@@ -126,8 +126,7 @@ origin.
 The CLI equivalent is:
 
 ```powershell
-$codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME '.codex' }
-$skillRoot = Join-Path $codexHome 'skills\chemdraw'
+$skillRoot = '<absolute path to the installed chemdraw Skill>'
 $runtime = & python (Join-Path $skillRoot 'scripts\runtime_discovery.py') --json |
   ConvertFrom-Json
 & $runtime.python.path (Join-Path $runtime.skill_root.path 'scripts\decimer_api.py') `

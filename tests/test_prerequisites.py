@@ -62,6 +62,13 @@ class PrerequisiteCheckerTests(unittest.TestCase):
         self.assertEqual(checks["chemdraw_com"]["status"], "skipped")
         self.assertIsInstance(report["next_steps"], list)
 
+    def test_generic_agent_setup_does_not_require_codex(self) -> None:
+        completed = self._run("-Python", sys.executable, "-SkipPythonPackages")
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        checks = {item["name"]: item for item in json.loads(completed.stdout)["checks"]}
+        self.assertEqual(checks["codex_cli"]["status"], "skipped")
+        self.assertFalse(checks["codex_cli"]["required"])
+
     def test_missing_explicit_python_is_a_structured_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             missing = Path(tmp) / "missing-python.exe"

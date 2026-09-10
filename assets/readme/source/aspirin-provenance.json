@@ -15,7 +15,7 @@
   },
   "draw": {
     "ok": true,
-    "output_path": "C:\\Users\\11234\\Documents\\GitHub\\codex-chemdraw-skill\\assets\\readme\\source\\aspirin.cdxml",
+    "output_path": "assets/readme/source/aspirin.cdxml",
     "size": 4534,
     "name": "aspirin",
     "smiles": "CC(=O)Oc1ccccc1C(=O)O",
@@ -31,7 +31,7 @@
       },
       "artifacts": [
         {
-          "path": "C:\\Users\\11234\\Documents\\GitHub\\codex-chemdraw-skill\\assets\\readme\\source\\aspirin.cdxml",
+          "path": "assets/readme/source/aspirin.cdxml",
           "bytes": 4534,
           "sha256": "e3c20d1c5f1b39bde8456b7352f3a5fb0d63281584758db1f286c08ea6301e86"
         }
@@ -40,16 +40,17 @@
   },
   "render": {
     "ok": true,
-    "output": "C:\\Users\\11234\\Documents\\GitHub\\codex-chemdraw-skill\\assets\\readme\\source\\aspirin-chemdraw.png",
+    "output": "assets/readme/source/aspirin-chemdraw.png",
     "size": 12850,
     "metadata": {
       "artifacts": [
         {
-          "path": "C:\\Users\\11234\\Documents\\GitHub\\codex-chemdraw-skill\\assets\\readme\\source\\aspirin-chemdraw.png",
+          "path": "assets/readme/source/aspirin-chemdraw.png",
           "bytes": 12850,
           "sha256": "4ef84e45bcb4df74d2ae134994e7ebc80a6c027a412a3af675d9ce63a48b78ec"
         }
       ]
     }
-  }
+  },
+  "path_scope": "Paths normalized relative to the repository; artifact hashes are unchanged."
 }

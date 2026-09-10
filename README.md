@@ -1,10 +1,10 @@
-# Codex ChemDraw Skill
+# ChemDraw Skill
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Codex ChemDraw Skill: controlled CDXML workflows from a chemistry request to a checked native ChemDraw artifact">
+  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill: controlled CDXML workflows from a chemistry request to a checked native ChemDraw artifact">
 </p>
 
-Turn chemistry requests into editable CDXML, native ChemDraw renders, molecule comparisons, recognition candidates, and Office-embedded structures through one Codex Skill and MCP server.
+Turn chemistry requests into editable CDXML, native ChemDraw renders, molecule comparisons, recognition candidates, and Office-embedded structures through a client-independent Skill and MCP server.
 
 <p align="center">
   <a href="README.zh-cn.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-007c83?style=flat" height="22" alt="简体中文"></a>&nbsp;
@@ -14,7 +14,7 @@ Turn chemistry requests into editable CDXML, native ChemDraw renders, molecule c
 </p>
 
 <p align="center">
-  <a href="https://github.com/ZiChenWang114514/codex-chemdraw-skill/actions/workflows/validate.yml"><img src="https://github.com/ZiChenWang114514/codex-chemdraw-skill/actions/workflows/validate.yml/badge.svg?style=flat" height="22" alt="Validate workflow status"></a>&nbsp;
+  <a href="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml"><img src="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml/badge.svg?style=flat" height="22" alt="Validate workflow status"></a>&nbsp;
   <img src="https://img.shields.io/badge/-Core%3A%20Windows%20%7C%20macOS%20%7C%20Linux-007c83?style=flat" height="22" alt="Portable core supports Windows, macOS, and Linux">&nbsp;
   <img src="https://img.shields.io/badge/-Python%203.10--3.13-3776AB?style=flat&amp;logo=python&amp;logoColor=white" height="22" alt="Python 3.10 through 3.13">&nbsp;
   <img src="https://img.shields.io/badge/-MCP%201.x%20%7C%202.x%20tested-17242b?style=flat" height="22" alt="MCP 1.x and 2.x tested">&nbsp;
@@ -61,13 +61,13 @@ Remote DECIMER calls require upload authorization. Visual review remains an agen
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process. Process separation limits stalled calls; it is not an operating-system security sandbox.
 - **Remote workstation access:** keep stdio as the default or expose the Windows host through optional Streamable HTTP with health and Prometheus endpoints.
 
-The project audits 594 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 38-tool Codex MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
+The project audits 594 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 38-tool full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
 
 ## Choose the Required Components
 
 | Goal | Add to the core setup |
 | --- | --- |
-| Create and edit CDXML | Codex, 64-bit Python 3.10-3.13, MCP 1.x or 2.x, and `cdxml-toolkit-community` at the commit pinned in Quick Start; runs on Windows, macOS, and Linux |
+| Create and edit CDXML | Any agent, 64-bit Python 3.10-3.13, MCP 1.x or 2.x, and `cdxml-toolkit-community` at the commit pinned in Quick Start; runs on Windows, macOS, and Linux |
 | Native PNG, CDX, or ChemDraw cleanup | Licensed and activated Windows desktop ChemDraw with working COM automation |
 | Molecule comparison or ChemScript SDK calls | Installed ChemScript DLLs compatible with the selected worker runtime |
 | Editable Word or PowerPoint objects | Supported desktop Microsoft Word and/or PowerPoint |
@@ -76,57 +76,29 @@ The project audits 594 public `cdxml-toolkit-community` symbols. That number des
 
 ChemDraw, Microsoft Office, ChemScript, and DECIMER model weights are not bundled. For a first installation, use the [step-by-step Chinese guide](docs/zh-cn.md#从零开始安装) or the [detailed English guide](docs/guide.md#first-time-windows-setup).
 
-## Quick Start
+## Quick Start: any agent
 
-These commands create a dedicated Conda environment, inspect the proposed installation, and then install the Skill and register its stdio MCP server:
-
-```powershell
-git clone https://github.com/ZiChenWang114514/codex-chemdraw-skill.git
-Set-Location .\codex-chemdraw-skill
-
-conda create -n cdxml python=3.12 pip -y
-$python = (conda run -n cdxml python -c "import sys; print(sys.executable)" | Select-Object -Last 1).Trim()
-conda run -n cdxml python -m pip install --upgrade pip
-conda run -n cdxml python -m pip install `
-  "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
-
-Set-ExecutionPolicy -Scope Process Bypass
-& .\scripts\check_prerequisites.ps1 -Python $python -Capabilities core,native,chemscript,office
-& .\scripts\install.ps1 -Python $python -ConfigureMcp
-& .\scripts\install.ps1 -Python $python -Apply -ConfigureMcp
-```
-
-For portable CDXML and RDKit only, run `check_prerequisites.ps1 -Capabilities core` and install the package without optional extras. The installer reports proposed paths without changing files until `-Apply` is supplied. When applying, it preserves existing Skill and MCP configuration files before replacement.
-
-Restart Codex, open a new PowerShell session, and perform the basic integration checks:
+Load `skill/chemdraw/SKILL.md` in your agent, then connect MCP or use Python/CLI. Clients with Skill discovery can install the whole `chemdraw` folder in their own Skill directory. Otherwise, point the agent's project instructions to the file.
 
 ```powershell
-$python = (conda run -n cdxml python -c "import sys; print(sys.executable)" | Select-Object -Last 1).Trim()
-codex mcp get cdxml-toolkit --json
-& "$HOME\.codex\skills\chemdraw\scripts\check_prerequisites.ps1" -Python $python -Capabilities core,native,chemscript,office
+git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+Set-Location .\chemdraw-skill
+python -m pip install "cdxml-toolkit-community @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
+python -m cdxml_toolkit.mcp_runtime
 ```
 
-Use `-Capabilities core` on the installed prerequisite checker for a portable-only setup. Then try the paper-figure request above or follow the [first-use walkthrough](docs/zh-cn.md#10-完成第一次使用).
+This starts a stdio server with the full 38-tool collection. Register the same absolute Python executable and arguments in your client's MCP settings. Image reconstruction needs vision or human visual review.
 
-<details>
-<summary><strong>Run deeper validation</strong></summary>
+On Windows, preview `scripts/install.ps1 -Destination <your-skill-directory>`, then add `-Apply`. Its default storage path is `$HOME/.agents/skills/chemdraw`; individual clients may use different discovery paths. Client configuration is not changed by default. On macOS/Linux, copy the entire Skill folder directly.
 
-The health check compiles Python modules, runs the repository test suite, and compares generated references. It is intended for maintenance and may take several minutes.
+[Generic MCP, CLI and optional client adapters](skill/chemdraw/references/agent-integration.md) · [Windows native setup](docs/guide.md#first-time-windows-setup) · [Chinese walkthrough](docs/zh-cn.md)
 
 ```powershell
-# Portable MCP and CDXML validation; omits every native ChemDraw and Office probe
-& "$HOME\.codex\skills\chemdraw\scripts\health_check.ps1" -Python $python -SkipNativeChemDraw
-
-# Native ChemDraw and ChemScript validation; omits Word and PowerPoint probes
-& "$HOME\.codex\skills\chemdraw\scripts\health_check.ps1" -Python $python -SkipOffice
-
-# Full local validation: ChemDraw, ChemScript, Word, and PowerPoint
-& "$HOME\.codex\skills\chemdraw\scripts\health_check.ps1" -Python $python
+# Generic health check; no particular agent CLI or native application required
+.\skill\chemdraw\scripts\health_check.ps1 -Python <absolute-python-path> -SkipNativeChemDraw
 ```
 
-`-SkipOffice` still requires a working ChemScript installation. Use `-SkipNativeChemDraw` when ChemScript or desktop ChemDraw is unavailable.
-
-</details>
+For native rendering, ChemScript or Office, add the corresponding dependencies and select the checks described in the setup guide.
 
 ## Validation and Safety
 
@@ -153,6 +125,6 @@ The deployable Skill lives in [`skill/chemdraw`](skill/chemdraw). Repository-spe
 
 ## License
 
-Repository-authored code and documentation are licensed under the [MIT License](LICENSE). ChemDraw, Microsoft Office, Codex, `cdxml-toolkit-community`, the MCP Python SDK, RDKit, DECIMER, and their dependencies retain their respective licenses and usage terms.
+Repository-authored code and documentation are licensed under the [MIT License](LICENSE). ChemDraw, Microsoft Office, agent clients, `cdxml-toolkit-community`, the MCP Python SDK, RDKit, DECIMER, and their dependencies retain their respective licenses and usage terms.
 
 This is an independent community project. It is not affiliated with or endorsed by Revvity, OpenAI, Microsoft, or the maintainers of the upstream `cdxml-toolkit`, the MCP Python SDK, RDKit, or DECIMER.

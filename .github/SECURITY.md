@@ -12,7 +12,7 @@ Include the affected version, tool name, minimal synthetic reproduction, expecte
 
 ## Security Boundaries
 
-- This repository does not sandbox ChemDraw, Microsoft Office, Python dependencies, or Codex itself.
+- This repository does not sandbox ChemDraw, Microsoft Office, Python dependencies, or the agent host itself.
 - Remote DECIMER sends image bytes to a third party only after explicit confirmation. Users remain responsible for authorization and service terms.
 - MCP tools can read and write paths accessible to their Windows user. Review requested paths and use a least-privilege account for untrusted inputs.
 - CDXML, Office, RDF, PDF, and image files are untrusted input. Keep dependencies patched and avoid opening generated files outside an isolated test environment until validation succeeds.

@@ -6,6 +6,7 @@ param(
     [string[]]$Capabilities = @('core'),
     [switch]$Json,
     [switch]$SkipCodex,
+    [switch]$CheckCodex,
     [switch]$SkipChemDraw,
     [switch]$SkipPythonPackages
 )
@@ -381,9 +382,9 @@ print(json.dumps(diagnose_runtime()["capabilities"]["decimer_models"]))
         -Detail 'Local DECIMER recognition is not among the selected capabilities.'
 }
 
-if ($SkipCodex) {
+if ($SkipCodex -or -not $CheckCodex) {
     Add-Check -Name 'codex_cli' -Status 'skipped' -Required $false `
-        -Detail 'Codex CLI discovery was skipped by request.'
+        -Detail 'Client-specific CLI discovery is opt-in (-CheckCodex).'
 } else {
     $codexPath = Get-CommandPath 'codex'
     if ($codexPath) {
@@ -392,7 +393,7 @@ if ($SkipCodex) {
             -Status $(if ($codexVersion.ExitCode -eq 0) { 'pass' } else { 'fail' }) `
             -Required $true `
             -Detail $(if ($codexVersion.Output) { $codexVersion.Output } else { $codexPath }) `
-            -Help 'The installer uses codex mcp add to register the server.'
+            -Help 'The optional configure_mcp.ps1 adapter verifies this client registration.'
     } else {
         Add-Check -Name 'codex_cli' -Status 'fail' -Required $true `
             -Detail 'The codex command was not found.' `
@@ -550,7 +551,7 @@ $requiredSkipped = @($checks | Where-Object {
 })
 $ok = $blockingChecks.Count -eq 0 -and $requiredSkipped.Count -eq 0
 if ($ok) {
-    Add-NextStep 'Install the selected package extras, inspect scripts\configure_mcp.ps1 output, then supply -Apply when the proposed Codex configuration is correct.'
+    Add-NextStep 'Install the selected package extras, load SKILL.md, and register the MCP runtime in your agent client. Client-specific configuration is optional.'
 }
 
 $report = [pscustomobject][ordered]@{

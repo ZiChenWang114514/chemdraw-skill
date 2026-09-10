@@ -1,11 +1,15 @@
 ---
 name: chemdraw
-description: Use when Codex needs to install, configure, diagnose, or use ChemDraw or cdxml-toolkit to resolve, compare, draw, edit, clean, merge, polish, parse, convert, render, recognize, analyze, or embed chemical structures and reaction schemes, including controlled ChemScript SDK work. Triggers include setup and runtime problems, molecule names, trusted SMILES, CDX/CDXML, DECIMER/OCSR images, paper reaction-figure reconstruction (论文反应图复刻), reaction screenshots, ELN/SciFinder RDF, LCMS/NMR, lab books, and editable ChemDraw objects in DOCX/PPTX.
+description: Use when an agent needs to install, configure, diagnose, or use ChemDraw or cdxml-toolkit to resolve, compare, draw, edit, clean, merge, polish, parse, convert, render, recognize, analyze, or embed chemical structures and reaction schemes, including controlled ChemScript SDK work. Triggers include setup and runtime problems, molecule names, trusted SMILES, CDX/CDXML, DECIMER/OCSR images, paper reaction-figure reconstruction (论文反应图复刻), reaction screenshots, ELN/SciFinder RDF, LCMS/NMR, lab books, and editable ChemDraw objects in DOCX/PPTX.
 ---
 
 # ChemDraw
 
 Use the `cdxml-toolkit-community` runtime for editable chemical figures. Preserve source files, ground structures, verify chemistry from the final CDXML, and inspect native ChemDraw previews. Chemical identity, visual quality, and reference-image fidelity are separate results.
+
+## Agent compatibility
+
+Any agent with local instruction access and MCP or Python execution can use this Skill. For setup, start with [agent integration](references/agent-integration.md). Image review requires actual vision or human review; native ChemDraw rendering requires the corresponding Windows host.
 
 ## 论文反应图复刻：快捷入口
 
@@ -43,7 +47,7 @@ For first-time installation or upgrade work, load [operations.md](references/ope
 
 For an exact callable signature, read [mcp-signatures.md](references/mcp-signatures.md). For selection, policy, and errors, read [toolkit-tools.md](references/toolkit-tools.md). Do not guess arguments from prose.
 
-Start diagnosis with `get_toolkit_capabilities()`. The default `codex` profile
+Start diagnosis with `get_toolkit_capabilities()`. The default full runtime profile
 contains 38 tools after the figure upgrade; `core`, `office`, `analysis`, and `chemscript` profiles can
 reduce tool selection noise for focused work.
 If the live registry still shows 35, use the documented figure CLI immediately; new MCP tool discovery requires restarting the host. Do not change unrelated MCP configuration to work around a stale registry.

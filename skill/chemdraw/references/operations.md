@@ -10,7 +10,7 @@ Run `scripts/check_prerequisites.ps1` before a first installation or upgrade. It
 
 Classify requirements by requested capability:
 
-- Portable CDXML and RDKit work runs on Windows, macOS, and Linux with a 64-bit Python 3.10-3.13 runtime, `cdxml-toolkit-community`, MCP SDK, and a working `codex` command. Python 3.12, `cdxml-toolkit-community==0.7.0a1`, and MCP 1.x/2.x are tested. PowerShell is needed only for the supplied `.ps1` helpers.
+- Portable CDXML and RDKit work runs on Windows, macOS, and Linux with a 64-bit Python 3.10-3.13 runtime, `cdxml-toolkit-community`, MCP SDK, and an agent with MCP or Python execution access. Python 3.12, `cdxml-toolkit-community==0.7.0a1`, and MCP 1.x/2.x are tested. PowerShell is needed only for the supplied `.ps1` helpers.
 - Native rendering, CDX conversion, and ChemDraw cleanup additionally require licensed Windows desktop ChemDraw, .NET Framework 4.8 for current releases, working `ChemDraw.Application` COM registration, and manual activation confirmation.
 - Molecular comparison and ChemScript SDK execution additionally require managed and native ChemScript DLLs. Keep the main MCP Python 64-bit; use a separate helper Python when a legacy ChemScript DLL is 32-bit.
 - Editable DOCX/PPTX objects require the corresponding desktop Office application. Office is optional for other workflows.
@@ -27,7 +27,7 @@ scripts/check_prerequisites.ps1 -Python <path> `
   -Capabilities core,native,chemscript,office,decimer
 ```
 
-Install from a repository checkout with `python -m pip install -e ".[dev]"` for portable development, or select the documented extras needed by the requested workflow. Run `scripts/configure_mcp.ps1` to inspect the proposed Codex configuration; supply `-Apply` only after reviewing it. After installation and a Codex restart, select the appropriate verification:
+Install from a repository checkout with `python -m pip install -e ".[dev]"` for portable development, or select the documented extras needed by the requested workflow. Use [agent integration](agent-integration.md) for generic MCP/CLI setup. The optional `scripts/configure_mcp.ps1` adapter configures one client only; it is not a universal installer. After refreshing your agent, select the appropriate verification:
 
 - `health_check.ps1 -SkipNativeChemDraw` for code, package, test, and MCP checks without native applications.
 - `health_check.ps1 -SkipOffice` for native ChemDraw PNG and ChemScript checks without Word or PowerPoint.
@@ -56,13 +56,13 @@ Workers also preserve `CHEMSCRIPT_*`, `CONDA_PREFIX`, and `JAVA_HOME` so an
 explicitly configured ChemScript or Java runtime remains visible after process
 isolation. Credentials and unrelated shell variables are not forwarded.
 
-Run `scripts/runtime_discovery.py` from Python when debugging discovery code. Generate MCP configuration with `scripts/configure_mcp.ps1`; it is read-only unless `-Apply` is supplied.
+Run `scripts/runtime_discovery.py` from Python when debugging discovery code. Register the runtime using your client settings. Only the optional Codex adapter uses `scripts/configure_mcp.ps1`; it is read-only unless `-Apply` is supplied.
 
 ## Health And Smoke Tests
 
 Run MCP `diagnose_runtime()` for an offline, read-only capability matrix. It reports the Python runtime, installed `cdxml-toolkit` and MCP SDK distribution versions, ChemDraw discovery and COM registration, ChemScript, Java/OPSIN, Office dependencies, DECIMER markers, and live tool count without importing DECIMER or downloading weights. Set `run_chemscript_probe=true` for an independent bridge ping. `run_native_probe=true` runs that ping first and then a temporary CDXML-to-PNG probe, so a ChemDraw COM timeout cannot hide the ChemScript result. Set `run_office_probe=true` for separate temporary PPTX and DOCX ChemDraw OLE probes. ChemScript is capped at 30 seconds, native rendering at 75 seconds, and each Office stage at 60 seconds. Results include stage duration, timeout, and cleanup status. Normal completion never force-terminates ChemDraw; timeout cleanup is limited to newly observed automation processes that can be attributed to the probe.
 
-Run `scripts/health_check.ps1` for the complete repository gate. It consumes the same diagnostic matrix, checks Python packages, generated signatures and inventory, Skill tests, Codex MCP state, and, unless skipped, the native and Office probes. Every subprocess is time-bounded.
+Run `scripts/health_check.ps1` for the complete repository gate. It consumes the same diagnostic matrix, checks Python packages, generated signatures and inventory, Skill tests, optional client registration (`-CheckCodex`), and, unless skipped, the native and Office probes. Every subprocess is time-bounded.
 
 Run `scripts/smoke_test.py --output-dir <directory>` for name resolution, editable aspirin CDXML, native ChemDraw PNG rendering, and raster validation.
 

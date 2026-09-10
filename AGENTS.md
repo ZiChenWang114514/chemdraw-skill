@@ -2,7 +2,7 @@
 
 ## Scope
 
-Treat `skill/chemdraw/` as the deployable Codex Skill and the source of truth for runtime behavior. Root Markdown is intentionally limited to `README.md`, its `README.zh-cn.md` translation, and `AGENTS.md`. Put detailed project guidance and direct translations in `docs/`, and GitHub-only policy in `.github/`; do not create standalone changelog, support, conduct, notice, or release ledgers when an existing authoritative section or GitHub feature is sufficient. Do not add repository-facing documents inside the deployable Skill.
+Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth for runtime behavior. Root Markdown is intentionally limited to `README.md`, its `README.zh-cn.md` translation, and `AGENTS.md`. Put detailed project guidance and direct translations in `docs/`, and GitHub-only policy in `.github/`; do not create standalone changelog, support, conduct, notice, or release ledgers when an existing authoritative section or GitHub feature is sufficient. Do not add repository-facing documents inside the deployable Skill.
 
 ## Skill Design
 

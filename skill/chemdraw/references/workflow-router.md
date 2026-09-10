@@ -59,8 +59,8 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 
 ## Install Or Upgrade
 
-Read [operations.md](operations.md). Run `scripts/check_prerequisites.ps1` with the requested `-Capabilities` before changing the Skill or MCP configuration. Identify the requested feature set: portable CDXML, native ChemDraw, ChemScript, Office, local DECIMER, or remote HTTP. Keep the main Python 64-bit; configure any legacy 32-bit ChemScript helper separately. Inspect `scripts/configure_mcp.ps1` output before supplying `-Apply`, and change configuration only when installation was requested. Restart Codex and run the matching health-check mode.
+Read [operations.md](operations.md). Run `scripts/check_prerequisites.ps1` with the requested `-Capabilities` before changing the Skill or MCP configuration. Identify the requested feature set: portable CDXML, native ChemDraw, ChemScript, Office, local DECIMER, or remote HTTP. Keep the main Python 64-bit; configure any legacy 32-bit ChemScript helper separately. Use [agent integration](agent-integration.md) for the current client, and change its configuration only when installation was requested. Restart the agent host and run the matching health-check mode.
 
 ## Diagnose Runtime
 
-Read [operations.md](operations.md). Start with `diagnose_runtime()` and load only the native probes needed for the failing capability. Run the full health check before changing Codex configuration.
+Read [operations.md](operations.md). Start with `diagnose_runtime()` and load only the native probes needed for the failing capability. Run the full health check before changing client configuration.

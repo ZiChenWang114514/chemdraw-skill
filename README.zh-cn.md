@@ -1,10 +1,10 @@
-# Codex ChemDraw Skill
+# ChemDraw Skill
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Codex ChemDraw Skill：将化学请求转化为经过检查的原生 ChemDraw 文件，并提供受控的 CDXML 工作流">
+  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill：将化学请求转化为经过检查的原生 ChemDraw 文件，并提供受控的 CDXML 工作流">
 </p>
 
-通过一个 Codex Skill 和 MCP 服务器，将化学请求转化为可编辑 CDXML、ChemDraw 原生渲染结果、分子比较结果、识别候选结构以及嵌入 Office 的化学结构。
+通过一个通用 Agent Skill 和 MCP 服务器，将化学请求转化为可编辑 CDXML、ChemDraw 原生渲染结果、分子比较结果、识别候选结构以及嵌入 Office 的化学结构。
 
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/-English-17242b?style=flat" height="22" alt="English"></a>&nbsp;
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ZiChenWang114514/codex-chemdraw-skill/actions/workflows/validate.yml"><img src="https://github.com/ZiChenWang114514/codex-chemdraw-skill/actions/workflows/validate.yml/badge.svg?style=flat" height="22" alt="验证工作流状态"></a>&nbsp;
+  <a href="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml"><img src="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml/badge.svg?style=flat" height="22" alt="验证工作流状态"></a>&nbsp;
   <img src="https://img.shields.io/badge/-%E6%A0%B8%E5%BF%83%EF%BC%9AWindows%20%7C%20macOS%20%7C%20Linux-007c83?style=flat" height="22" alt="可移植核心支持 Windows、macOS 和 Linux">&nbsp;
   <img src="https://img.shields.io/badge/-Python%203.10--3.13-3776AB?style=flat&amp;logo=python&amp;logoColor=white" height="22" alt="Python 3.10 至 3.13">&nbsp;
   <img src="https://img.shields.io/badge/-MCP%201.x%20%7C%202.x%20tested-17242b?style=flat" height="22" alt="已测试 MCP 1.x 和 2.x">&nbsp;
@@ -59,13 +59,13 @@
 - **ChemScript SDK：** 检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制停滞调用造成的影响，但不提供操作系统级安全沙箱。
 - **远程工作站访问：** 保持 stdio 为默认模式，或通过可选的 Streamable HTTP 向外提供 Windows 主机服务，并包含健康状态与 Prometheus 端点。
 
-本项目审计了 `cdxml-toolkit-community` 的 594 个公共符号。该数字表示工具包清单，并不表示 Codex MCP 配置中的 38 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
+本项目审计了 `cdxml-toolkit-community` 的 594 个公共符号。该数字表示工具包清单，并不表示 完整 MCP 配置中的 38 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
 
 ## 选择所需组件
 
 | 目标 | 在核心安装基础上增加 |
 | --- | --- |
-| 创建和编辑 CDXML | Codex、64 位 Python 3.10-3.13、MCP 1.x 或 2.x，以及 快速开始中固定提交的 `cdxml-toolkit-community`；可在 Windows、macOS 和 Linux 上运行 |
+| 创建和编辑 CDXML | 任意 Agent、64 位 Python 3.10-3.13、MCP 1.x 或 2.x，以及 快速开始中固定提交的 `cdxml-toolkit-community`；可在 Windows、macOS 和 Linux 上运行 |
 | 原生 PNG、CDX 或 ChemDraw 清理 | 已获得许可并激活的 Windows 桌面版 ChemDraw，且 COM 自动化可正常工作 |
 | 分子比较或 ChemScript SDK 调用 | 与所选工作进程运行时兼容的已安装 ChemScript DLL |
 | 可编辑的 Word 或 PowerPoint 对象 | 受支持的桌面版 Microsoft Word 和/或 PowerPoint |
@@ -74,57 +74,29 @@
 
 项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请使用[逐步中文指南](docs/zh-cn.md#从零开始安装)或[英文详细指南](docs/guide.md#first-time-windows-setup)。
 
-## 快速开始
+## 快速开始：任意 Agent
 
-以下命令会创建专用 Conda 环境、检查拟执行的安装，然后安装 Skill 并注册其 stdio MCP 服务器：
-
-```powershell
-git clone https://github.com/ZiChenWang114514/codex-chemdraw-skill.git
-Set-Location .\codex-chemdraw-skill
-
-conda create -n cdxml python=3.12 pip -y
-$python = (conda run -n cdxml python -c "import sys; print(sys.executable)" | Select-Object -Last 1).Trim()
-conda run -n cdxml python -m pip install --upgrade pip
-conda run -n cdxml python -m pip install `
-  "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
-
-Set-ExecutionPolicy -Scope Process Bypass
-& .\scripts\check_prerequisites.ps1 -Python $python -Capabilities core,native,chemscript,office
-& .\scripts\install.ps1 -Python $python -ConfigureMcp
-& .\scripts\install.ps1 -Python $python -Apply -ConfigureMcp
-```
-
-如果只使用可移植 CDXML 和 RDKit 功能，请运行 `check_prerequisites.ps1 -Capabilities core`，并安装不含可选附加依赖的软件包。在提供 `-Apply` 之前，安装程序只会报告拟使用的路径，不会修改文件。实际安装时，程序会在替换现有 Skill 和 MCP 配置文件之前保留副本。
-
-重新启动 Codex，打开新的 PowerShell 会话，然后执行基础集成检查：
+Skill 与客户端无关。让你的 Agent 加载 `skill/chemdraw/SKILL.md`，再接入 MCP 或使用 Python/CLI。支持 Skill 的客户端可将整个 `chemdraw` 文件夹放入自己的发现目录；其他客户端可通过项目指令指定该文件路径。
 
 ```powershell
-$python = (conda run -n cdxml python -c "import sys; print(sys.executable)" | Select-Object -Last 1).Trim()
-codex mcp get cdxml-toolkit --json
-& "$HOME\.codex\skills\chemdraw\scripts\check_prerequisites.ps1" -Python $python -Capabilities core,native,chemscript,office
+git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+Set-Location .\chemdraw-skill
+python -m pip install "cdxml-toolkit-community @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
+python -m cdxml_toolkit.mcp_runtime
 ```
 
-仅安装可移植功能时，应在已安装的前提条件检查器中使用 `-Capabilities core`。随后可以尝试上面的示例请求，或按照[首次使用教程](docs/zh-cn.md#10-完成第一次使用)操作。
+上面的命令启动包含完整 38 个工具的 stdio 服务；在 Agent 的 MCP 设置中填写同一 Python 的绝对路径及参数即可。图像复刻需要视觉能力或人工复核。
 
-<details>
-<summary><strong>执行深入验证</strong></summary>
+Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` 预览，再加 `-Apply` 安装。默认存放于 `$HOME/.agents/skills/chemdraw`；不同 Agent 的自动发现位置可能不同。安装器默认不改动客户端配置。macOS/Linux 可直接复制整个 Skill 文件夹。
 
-健康检查会编译 Python 模块、运行仓库测试套件，并比较自动生成的参考文档。该检查用于项目维护，可能需要数分钟。
+[通用 MCP、CLI 和可选客户端适配](skill/chemdraw/references/agent-integration.md) · [Windows 原生功能及安装](docs/guide.zh-cn.md#首次-windows-安装) · [中文首次使用教程](docs/zh-cn.md)
 
 ```powershell
-# 可移植的 MCP 和 CDXML 验证；省略所有原生 ChemDraw 与 Office 检查
-& "$HOME\.codex\skills\chemdraw\scripts\health_check.ps1" -Python $python -SkipNativeChemDraw
-
-# 原生 ChemDraw 和 ChemScript 验证；省略 Word 与 PowerPoint 检查
-& "$HOME\.codex\skills\chemdraw\scripts\health_check.ps1" -Python $python -SkipOffice
-
-# 完整本地验证：ChemDraw、ChemScript、Word 和 PowerPoint
-& "$HOME\.codex\skills\chemdraw\scripts\health_check.ps1" -Python $python
+# 通用健康检查；不要求特定 Agent CLI，不启动原生应用
+.\skill\chemdraw\scripts\health_check.ps1 -Python <Python绝对路径> -SkipNativeChemDraw
 ```
 
-`-SkipOffice` 仍要求 ChemScript 安装能够正常工作。ChemScript 或桌面版 ChemDraw 不可用时，请使用 `-SkipNativeChemDraw`。
-
-</details>
+需要原生渲染、ChemScript 或 Office 时，按安装指南增加对应依赖并选择检查范围。
 
 ## 验证与安全
 
@@ -151,6 +123,6 @@ codex mcp get cdxml-toolkit --json
 
 ## 许可证
 
-仓库自行编写的代码与文档采用 [MIT 许可证](LICENSE)。ChemDraw、Microsoft Office、Codex、`cdxml-toolkit-community`、MCP Python SDK、RDKit、DECIMER 及其依赖项继续适用各自的许可证与使用条款。
+仓库自行编写的代码与文档采用 [MIT 许可证](LICENSE)。ChemDraw、Microsoft Office、Agent 客户端、`cdxml-toolkit-community`、MCP Python SDK、RDKit、DECIMER 及其依赖项继续适用各自的许可证与使用条款。
 
 本项目为独立社区项目，与 Revvity、OpenAI、Microsoft 以及上游 `cdxml-toolkit`、MCP Python SDK、RDKit 或 DECIMER 的维护者不存在隶属关系，也未获得其认可。

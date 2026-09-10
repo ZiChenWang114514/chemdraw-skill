@@ -8,7 +8,7 @@ body:
     id: task
     attributes:
       label: End-to-end task
-      description: Describe what a Codex user needs to accomplish, not only a low-level function name.
+      description: Describe what an agent user needs to accomplish, not only a low-level function name.
     validations:
       required: true
   - type: textarea

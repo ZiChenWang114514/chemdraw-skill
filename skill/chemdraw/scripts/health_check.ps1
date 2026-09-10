@@ -3,6 +3,7 @@ param(
     [string]$Python,
     [string]$ReferenceRoot,
     [string]$CodexCommand = 'codex',
+    [switch]$CheckCodex,
     [switch]$SkipNativeChemDraw,
     [switch]$SkipOffice,
     [ValidateRange(1, 3600)]
@@ -400,10 +401,12 @@ if ($discovery) {
     }
 }
 
-$codex = Invoke-BoundedNative `
-    -FilePath $CodexCommand `
-    -Arguments @('mcp', 'get', 'cdxml-toolkit')
-Add-CommandFailure $codex 'Codex MCP registration check'
+if ($CheckCodex) {
+    $clientRegistration = Invoke-BoundedNative `
+        -FilePath $CodexCommand `
+        -Arguments @('mcp', 'get', 'cdxml-toolkit')
+    Add-CommandFailure $clientRegistration 'Codex MCP registration check'
+}
 
 if ($failures.Count -gt 0) {
     foreach ($failure in $failures) {
@@ -412,4 +415,4 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'ChemDraw/Codex integration: OK'
+Write-Output 'ChemDraw agent integration: OK'

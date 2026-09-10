@@ -2,13 +2,13 @@
 
 ## When To Load
 
-Load only when MCP lacks an operation, when reproducing a workflow outside Codex, or when diagnosing the Python layer.
+Load only when MCP lacks an operation, when reproducing a workflow outside the MCP client, or when diagnosing the Python layer.
 
 ## Preferred Entry Points
 
 Use installed `cdxml-*` console commands rather than guessing module paths. In cdxml-toolkit-community 0.7.0a1 the installed entry points cover the complete and core MCP services, generated MCP references, build, conversion, discovery, doctor, entry formatting, image rendering, layout, LCMS/NMR, merge, multi-LCMS, OLE, reaction parsing, polish, procedure writing, and scheme rendering. Template filling, SciFinder RDF parsing, and scheme segmentation are Python/MCP workflows; they are not installed console scripts.
 
-Prefer the equivalent MCP extended tool during normal Codex work because it adds isolated execution, timeout handling, overwrite refusal, and a stable JSON contract.
+Prefer the equivalent MCP extended tool during normal agent work because it adds isolated execution, timeout handling, overwrite refusal, and a stable JSON contract.
 
 ## Inputs And Outputs
 

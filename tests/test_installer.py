@@ -13,6 +13,16 @@ INSTALLER = ROOT / "scripts" / "install.ps1"
 
 
 class InstallerTests(unittest.TestCase):
+    def test_default_destination_is_agent_neutral(self) -> None:
+        shell = shutil.which("pwsh") or shutil.which("powershell")
+        result = subprocess.run(
+            [shell, "-NoProfile", "-File", str(INSTALLER)],
+            capture_output=True, text=True, encoding="utf-8-sig", check=True,
+        )
+        proposal = json.loads(result.stdout)
+        self.assertEqual(Path(proposal["destination"]).parts[-3:], (".agents", "skills", "chemdraw"))
+        self.assertFalse(proposal["configure_mcp"])
+
     def test_existing_skill_backup_is_outside_discovery_directory(self) -> None:
         shell = shutil.which("pwsh") or shutil.which("powershell")
         self.assertIsNotNone(shell, "PowerShell is required to test the supplied installer")

@@ -57,8 +57,13 @@ if (-not (Test-Path -LiteralPath (Join-Path $sourcePath 'SKILL.md') -PathType Le
 }
 
 if (-not $Destination) {
-    $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME '.codex' }
-    $Destination = Join-Path $codexHome 'skills\chemdraw'
+    if ($ConfigureMcp) {
+        # This opt-in adapter configures this specific client only.
+        $clientHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME '.codex' }
+    } else {
+        $clientHome = Join-Path $HOME '.agents'
+    }
+    $Destination = Join-Path $clientHome 'skills\chemdraw'
 }
 $destinationPath = [IO.Path]::GetFullPath($Destination).TrimEnd('\')
 if ($destinationPath -eq $sourcePath.TrimEnd('\')) {
@@ -69,9 +74,9 @@ $destinationParent = Split-Path -Parent $destinationPath
 if ($BackupRoot) {
     $backupRootPath = [IO.Path]::GetFullPath($BackupRoot).TrimEnd('\')
 } elseif ([IO.Path]::GetFileName($destinationParent) -ieq 'skills') {
-    $codexHomeFromDestination = Split-Path -Parent $destinationParent
+    $agentHomeFromDestination = Split-Path -Parent $destinationParent
     $backupRootPath = [IO.Path]::GetFullPath(
-        (Join-Path $codexHomeFromDestination 'backups\skills\chemdraw')
+        (Join-Path $agentHomeFromDestination 'backups\skills\chemdraw')
     ).TrimEnd('\')
 } else {
     $backupRootPath = [IO.Path]::GetFullPath(
@@ -111,7 +116,7 @@ if (-not $Apply) {
     return
 }
 
-if (-not $PSCmdlet.ShouldProcess($destinationPath, 'Install the ChemDraw Codex Skill')) {
+if (-not $PSCmdlet.ShouldProcess($destinationPath, 'Install the ChemDraw Skill')) {
     $proposal.status = 'whatif'
     $proposal | ConvertTo-Json -Depth 4
     return
