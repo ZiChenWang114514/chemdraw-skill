@@ -1,0 +1,15 @@
+{
+  "source": "Paper excerpt supplied by the user; original publication metadata was not provided.",
+  "publication_scope": "The user explicitly requested publication of this before/after example in the project README.",
+  "rights": "The original paper figure is third-party material and is not relicensed under the repository MIT license.",
+  "case": "13a, 14, 15, 16 and the shared 17a/17b depiction",
+  "verification": "Historical case: five corrected structures passed final-CDXML semantic readback, with agent visual review.",
+  "pixel_identical": false,
+  "limits": "Font metrics, arrowheads, line geometry and rasterization still differ. Readback agreement is not proof of OCSR accuracy.",
+  "files": {
+    "original.png": "9019c0e86d42ccb8f75175f1d2e9aeb78162f5053d069a8c1f50d57c99984c2e",
+    "replica.cdxml": "7534dc4110f9cb625a905da27d17f5ad5eb6e59b1bf9f2a82b144ef0a63b08e6",
+    "replica.png": "9e1a5f8b42f0f0f7c78cb2176c2cdde0a0df8a1b22524d703c01578e5ef00c26",
+    "structure-comparison.png": "8ec725150f7814777f075a0eed0f509318a72fbe90d6b27f68074e2627f6e1a7"
+  }
+}

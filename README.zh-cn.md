@@ -33,11 +33,25 @@
 用视觉转录条件，最后交付可编辑 CDXML、原生预览，并说明尚存的结构或视觉差异。
 ```
 
-下面是自行制作的 ChemDraw 原生绘图测试，展示多反应物排版和立体键；它不是论文复刻准确率的证明。
+### 从论文截图到可编辑 ChemDraw：实际复刻案例
 
-![ChemDraw 原生反应图，包含多个反应物和 S 构型立体键](assets/readme/stereo-reaction.png)
+**这段合成路线已实际完成识别、纠错与重绘。** 智能体先视觉分区，再调用 DECIMER API、使用 ChemDraw 重绘、查看左右对照并修正结构，最后将视觉转录的反应条件与版式组装。
 
-[可编辑反应图](assets/readme/stereo-reaction.cdxml) · [复刻快速指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [可前向复现的绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
+**论文原图｜用户提供的截图**
+
+![论文原图，包含 13a、14、15、16 及 17a/17b 共用结构](assets/readme/paper-replica/original.png)
+
+**可编辑复刻｜ChemDraw 原生输出**
+
+![ChemDraw 可编辑复刻，保留原图取向、反应条件与化合物编号](assets/readme/paper-replica/replica.png)
+
+[下载可编辑 CDXML](assets/readme/paper-replica/replica.cdxml) · [查看逐结构左右对照](assets/readme/paper-replica/structure-comparison.png) · [案例来源与验证范围](assets/readme/paper-replica/provenance.json)
+
+本例修正了羟基误识成甲基、甲氧基误识成羟基、X/R 缩写丢失，以及波浪键处擅自赋予构型等错误。五个修正后的结构均通过最终 CDXML 读回检查；17a/17b 保留原图的共享波浪键表示。
+
+**经过视觉复核，可继续编辑；尚非逐像素 1:1。** 字体、箭头和部分线条几何仍有差异。结构读回一致不等于识图绝对正确。
+
+[复刻快速指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [自行制作的绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
 | 遇到的需求 | 现成处理路线 |
 | --- | --- |

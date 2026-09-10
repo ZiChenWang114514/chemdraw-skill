@@ -35,11 +35,25 @@ structures. Transcribe conditions visually, then deliver editable CDXML and a
 native preview with unresolved chemistry or visual differences stated clearly.
 ```
 
-The image below is a self-authored native depiction test, illustrating editable multi-reactant layout and stereo bonds; it is not a paper-replication accuracy claim.
+### From a paper screenshot to editable ChemDraw
 
-![Native ChemDraw reaction with multiple reactants and S stereochemistry](assets/readme/stereo-reaction.png)
+**A worked reproduction of the supplied synthesis-scheme excerpt.** The agent segmented the figure, used DECIMER API recognition, redrew in ChemDraw, inspected side-by-side comparisons, corrected structures, and assembled visually transcribed conditions.
 
-[Editable reaction](assets/readme/stereo-reaction.cdxml) · [Fast replication guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Replayable figure example](skill/chemdraw/assets/paper-replica/example/CASE.md)
+**Original paper excerpt — supplied by the user**
+
+![Original paper scheme showing compounds 13a, 14, 15, 16 and the shared 17a/17b depiction](assets/readme/paper-replica/original.png)
+
+**Editable reconstruction — ChemDraw-native output**
+
+![Editable ChemDraw reconstruction preserving the original scheme orientation, conditions and compound labels](assets/readme/paper-replica/replica.png)
+
+[Download editable CDXML](assets/readme/paper-replica/replica.cdxml) · [Inspect structure-by-structure comparisons](assets/readme/paper-replica/structure-comparison.png) · [Case provenance](assets/readme/paper-replica/provenance.json)
+
+Review corrected OH/CH₃ and OMe/OH recognition errors, restored X/R abbreviations, and removed an unsupported configuration at a wavy bond. All five corrected structures passed final-CDXML readback in this case; 17a/17b retain the source's shared wavy-bond representation.
+
+**Visually reviewed and editable; not pixel-identical.** Font metrics, arrows and some line geometry still differ. Chemical readback agreement does not establish absolute recognition accuracy.
+
+[Fast replication guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Self-authored drawing fixture](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
 | Need | Ready-to-use route |
 | --- | --- |
