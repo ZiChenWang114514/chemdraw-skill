@@ -4,8 +4,8 @@
 
 ## `cdxml_builder`
 
-- **function**, line 595: `build_molecule_cdxml(atoms: List[Dict], bonds: List[Dict], start_id: int = 1000) -> str` - Build a CDXML document containing a single molecule fragment.
-- **function**, line 639: `build_reaction_cdxml(reactants: List[Dict], products: List[Dict], conditions: Optional[Dict] = None, arrow_y: Optional[float] = None, arrow_tail_x: Optional[float] = None, arrow_head_x: Optional[float] = None, start_id: int = 1000) -> str` - Build a CDXML reaction scheme document.
+- **function**, line 605: `build_molecule_cdxml(atoms: List[Dict], bonds: List[Dict], start_id: int = 1000) -> str` - Build a CDXML document containing a single molecule fragment.
+- **function**, line 649: `build_reaction_cdxml(reactants: List[Dict], products: List[Dict], conditions: Optional[Dict] = None, arrow_y: Optional[float] = None, arrow_tail_x: Optional[float] = None, arrow_head_x: Optional[float] = None, start_id: int = 1000) -> str` - Build a CDXML reaction scheme document.
 
 ## `cdxml_utils`
 
@@ -43,6 +43,10 @@
 - **function**, line 1274: `rxnmapper_align_to_product(root: ET.Element, verbose: bool = False, timeout: int = 120) -> int` - Align non-product fragments using RXNMapper atom maps.
 - **function**, line 44: `sp_fragment_to_cdxml(frag: ET.Element) -> str` - Wrap a single <fragment> element in a minimal CDXML document.
 - **function**, line 306: `translate_subtree(elem: ET.Element, dx: float, dy: float) -> None` - Recursively shift all p and BoundingBox attributes by (dx, dy).
+
+## `layout.label_anchors`
+
+- **function**, line 6: `preserve_label_anchors(source, output)` - No public docstring in the audited version.
 
 ## `layout.reaction_cleanup`
 
@@ -89,8 +93,8 @@
 
 ## `render.renderer`
 
-- **function**, line 2305: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a SchemeDescriptor to a CDXML document string.
-- **function**, line 2379: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **function**, line 2407: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 2425: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
 - **class**, line 139: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
 - **class**, line 154: `ResolvedStep` - A step with all structures resolved and laid out.
 

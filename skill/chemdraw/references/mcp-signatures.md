@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a1`
 Profile: `codex`
-Tools: `35`
+Tools: `38`
 
 ## Extended Tools
 
@@ -28,9 +28,29 @@ Create PPTX or DOCX containing editable ChemDraw OLE objects.
 
 Clean an existing CDXML reaction layout without changing the source file.
 
+### `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict`
+
+Compare aligned local raster previews without resizing or warping.
+
+Output JSON contains exact pixel equality, normalized mean absolute error,
+ink intersection-over-union, and dimensions. Different dimensions explicitly
+fail comparison. This evaluates appearance only, never chemical identity.
+
 ### `compare_molecules(molecule_a: str, molecule_b: str, fingerprint: str = 'morgan', radius: int = 2, n_bits: int = 2048) -> dict[str, typing.Any]`
 
 Compare two molecule representations using ChemScript identity and RDKit Tanimoto fingerprints.
+
+### `compose_chemical_figure(manifest_path: str, output_path: str) -> dict`
+
+Compose editable CDXML using explicit point coordinates and grounded molecules.
+
+Read the Skill publication-figures reference for the JSON manifest schema.
+Supports molecules with exact atom coordinates or template alignment, CIP/
+atom labels, highlights, rich text, straight/equilibrium/resonance/retro arrows,
+curved electron arrows, brackets and shapes. A template_path preserves native
+objects and permits translations/text edits without flattening. Outputs final
+CDXML round-trip validation; native rendering and reference comparison are
+separate required steps. Never claims journal identity from export success.
 
 ### `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, typing.Any]`
 
@@ -71,6 +91,20 @@ Parse SciFinder RDF and optionally enrich CAS data over the network.
 ### `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, typing.Any]`
 
 Run the audited deterministic polishing pipeline on a CDXML scheme.
+
+### `rdkit_workbench(molecules: list[dict], operation: str = 'inspect', options: dict | None = None, output_path: str | None = None) -> dict`
+
+Analyze grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo.
+
+Input records accept smiles/CXSMILES, molblock, or file (CDXML/MOL/SDF).
+Atom indices are zero-based and refer to each input's atom order. Options:
+max_results (1..128), only_unassigned (stereoisomers, default true),
+include_molblock, timeout (MCS, 1..30 seconds). R-group decomposition uses
+molecules[0] as the explicit core. set_stereo takes configurations={index:
+R/S/unspecified} for one molecule, verifies the achieved CIP labels, and emits
+a connectivity-preserving diff. Enumeration creates candidate structures,
+not predictions of populations, reaction products, or experimental ratios.
+Writes provenance, bounded candidate results and truncation status to JSON.
 
 ### `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, typing.Any]`
 
@@ -424,7 +458,7 @@ Safety override: Parse a scheme and atomically publish its JSON descriptor.
 
 ### `render_scheme(yaml_text: Optional[str] = None, compact_text: Optional[str] = None, json_path: Optional[str] = None, layout: str = 'auto', output_path: Optional[str] = None) -> str`
 
-Render a chemical reaction scheme to publication-ready CDXML.
+Render an editable chemical reaction scheme with per-fragment chemical validation.
 
     Accepts exactly ONE of: yaml_text, compact_text, or json_path.
     Call with NO arguments to see the full YAML schema reference.
@@ -439,9 +473,9 @@ Render a chemical reaction scheme to publication-ready CDXML.
     image with vision. Always call the appropriate tool first, then use the
     SMILES from its output in your YAML.
 
-    Convention: ONE substrate on center line per step.  Additional reagents
-    go in above_arrow (structures or text).  This shares intermediates
-    between sequential steps.
+    Place all atom-contributing substrates on the center line when appropriate.
+    Catalysts and conditions may go above/below arrows. Sequential steps can
+    share intermediates; spatial position does not determine chemical identity.
 
     Args:
         yaml_text:    YAML scheme descriptor string.

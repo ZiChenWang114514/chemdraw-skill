@@ -94,6 +94,13 @@ class StructureFidelityTests(unittest.TestCase):
             {"smiles": "F[C@H](Cl)Br"}, output_path=str(output)
         )
 
+        from xml.dom import minidom
+        document = minidom.parse(str(output))
+        for bond in document.getElementsByTagName("b"):
+            if bond.hasAttribute("Display"):
+                bond.removeAttribute("Display")
+        output.write_bytes(document.toxml(encoding="UTF-8"))
+
         with self.assertRaises(structure_fidelity.StructureFidelityError) as raised:
             structure_fidelity.repair_and_validate_drawn_cdxml(
                 "F[C@H](Cl)Br", output, repair_stereo=False

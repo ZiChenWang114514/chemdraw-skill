@@ -42,7 +42,9 @@ class DistributionTests(unittest.TestCase):
         repository_markdown = {
             path.relative_to(ROOT).as_posix()
             for path in ROOT.rglob("*.md")
-            if path.relative_to(ROOT).parts[0] not in {".git", "skill"}
+            if path.relative_to(ROOT).parts[0] not in {
+                ".git", "skill", ".pytest_cache", ".mypy_cache", ".ruff_cache"
+            }
         }
         self.assertEqual(
             repository_markdown,
@@ -128,10 +130,10 @@ class DistributionTests(unittest.TestCase):
         )
         self.assertIn("full-portable-tests:", workflow)
         self.assertIn('python-version: "3.12"', workflow)
-        self.assertIn('cdxml-toolkit-community.git@v0.7.0a1', workflow)
+        self.assertRegex(workflow, r'cdxml-toolkit-community\.git@[0-9a-f]{40}')
         self.assertIn('mcp-version: ["1.28.1", "2.0.0"]', workflow)
         self.assertIn('os: [windows-latest, ubuntu-latest]', workflow)
-        self.assertIn('unittest discover -s skill/chemdraw/scripts', workflow)
+        self.assertIn('pytest skill/chemdraw/scripts', workflow)
         self.assertIn('check_prerequisites.ps1', workflow)
 
     def test_health_check_can_skip_optional_office_probes(self) -> None:

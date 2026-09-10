@@ -21,31 +21,35 @@ Turn chemistry requests into editable CDXML, native ChemDraw renders, molecule c
   <a href="LICENSE"><img src="https://img.shields.io/badge/-MIT-d94f70?style=flat" height="22" alt="MIT License"></a>
 </p>
 
-## From Request to Checked Artifact
+## Reproduce a paper figure
+
+Start with the whole figure, then follow one route:
+
+**Inspect → crop structures → DECIMER → match orientation → inspect side-by-side → correct chemistry → assemble conditions and layout → native preview.**
 
 ```text
-Chemistry request
-    -> resolve and check structure identity
-    -> create, compare, or edit CDXML
-    -> render with ChemDraw when required
-    -> report absolute paths, metadata, and warnings
+Use the ChemDraw Skill to reproduce this paper figure. Read the whole scheme,
+crop each complete structure, and obtain DECIMER candidates. Match the original
+orientation, inspect actual side-by-side previews, and correct only the affected
+structures. Transcribe conditions visually, then deliver editable CDXML and a
+native preview with unresolved chemistry or visual differences stated clearly.
 ```
 
-For example, ask Codex:
+The image below is a self-authored native depiction test, illustrating editable multi-reactant layout and stereo bonds; it is not a paper-replication accuracy claim.
 
-```text
-Use the ChemDraw Skill to resolve aspirin, save editable CDXML and a native
-ChemDraw PNG, then report the absolute paths and chemistry checks.
-```
+![Native ChemDraw reaction with multiple reactants and S stereochemistry](assets/readme/stereo-reaction.png)
 
-The result contract includes:
+[Editable reaction](assets/readme/stereo-reaction.cdxml) · [Fast replication guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Replayable figure example](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
-- A source-grounded structure or an explicit warning when identity is uncertain.
-- Editable CDXML, plus native ChemDraw output when the requested software is available.
-- Absolute artifact paths, chemistry metadata, and actionable warnings.
-- Native rendering as a compatibility check. A successful render does not independently prove molecular identity.
+| Need | Ready-to-use route |
+| --- | --- |
+| Crop and review an image | Existing crop/mask and comparison helpers; keep region-to-result mapping |
+| Match a folded chain or bridged ring | Trace source coordinates, then check crossings and bond order |
+| Correct stereochemistry | Inspect atom indices, apply an explicit edit, and read back final CDXML |
+| Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
+| Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
 
-See the [workflow router](skill/chemdraw/references/workflow-router.md), [generated MCP signatures](skill/chemdraw/references/mcp-signatures.md), [audited public toolkit inventory](skill/chemdraw/references/toolkit-public-inventory.md), and [portable CI workflow](.github/workflows/validate.yml) for the corresponding implementation evidence.
+Remote DECIMER calls require upload authorization. Visual review remains an agent task; pixel metrics do not certify chemistry or universal 1:1 fidelity.
 
 ## What It Handles
 
@@ -57,13 +61,13 @@ See the [workflow router](skill/chemdraw/references/workflow-router.md), [genera
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process. Process separation limits stalled calls; it is not an operating-system security sandbox.
 - **Remote workstation access:** keep stdio as the default or expose the Windows host through optional Streamable HTTP with health and Prometheus endpoints.
 
-The project audits 584 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 35-tool Codex MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
+The project audits 594 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 38-tool Codex MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
 
 ## Choose the Required Components
 
 | Goal | Add to the core setup |
 | --- | --- |
-| Create and edit CDXML | Codex, 64-bit Python 3.10-3.13, MCP 1.x or 2.x, and `cdxml-toolkit-community==0.7.0a1`; runs on Windows, macOS, and Linux |
+| Create and edit CDXML | Codex, 64-bit Python 3.10-3.13, MCP 1.x or 2.x, and `cdxml-toolkit-community` at the commit pinned in Quick Start; runs on Windows, macOS, and Linux |
 | Native PNG, CDX, or ChemDraw cleanup | Licensed and activated Windows desktop ChemDraw with working COM automation |
 | Molecule comparison or ChemScript SDK calls | Installed ChemScript DLLs compatible with the selected worker runtime |
 | Editable Word or PowerPoint objects | Supported desktop Microsoft Word and/or PowerPoint |
@@ -84,7 +88,7 @@ conda create -n cdxml python=3.12 pip -y
 $python = (conda run -n cdxml python -c "import sys; print(sys.executable)" | Select-Object -Last 1).Trim()
 conda run -n cdxml python -m pip install --upgrade pip
 conda run -n cdxml python -m pip install `
-  "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@v0.7.0a1"
+  "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
 
 Set-ExecutionPolicy -Scope Process Bypass
 & .\scripts\check_prerequisites.ps1 -Python $python -Capabilities core,native,chemscript,office
@@ -102,7 +106,7 @@ codex mcp get cdxml-toolkit --json
 & "$HOME\.codex\skills\chemdraw\scripts\check_prerequisites.ps1" -Python $python -Capabilities core,native,chemscript,office
 ```
 
-Use `-Capabilities core` on the installed prerequisite checker for a portable-only setup. Then try the example request above or follow the [first-use walkthrough](docs/zh-cn.md#10-完成第一次使用).
+Use `-Capabilities core` on the installed prerequisite checker for a portable-only setup. Then try the paper-figure request above or follow the [first-use walkthrough](docs/zh-cn.md#10-完成第一次使用).
 
 <details>
 <summary><strong>Run deeper validation</strong></summary>
@@ -126,11 +130,11 @@ The health check compiles Python modules, runs the repository test suite, and co
 
 ## Validation and Safety
 
-- GitHub Actions validates the portable runtime on Windows and Linux with Python 3.12, MCP 1.28.1 and 2.0.0, and `cdxml-toolkit-community==0.7.0a1`. Python 3.10-3.13 is supported.
+- GitHub Actions validates the portable runtime on Windows and Linux with Python 3.12, MCP 1.28.1 and 2.0.0, and `cdxml-toolkit-community` at the commit pinned in Quick Start. Python 3.10-3.13 is supported.
 - Native ChemDraw, ChemScript, and Office behavior must be checked on a licensed local Windows host because those applications are unavailable in hosted CI.
 - Structural changes can be checked with source identity, MCS-based diffs, chemistry metadata, and native rendering. Scientific acceptance remains the user's responsibility.
 - Standard modifying tools create a new output path and reject accidental replacement. ChemScript SDK file access and replacement are available only when their explicit permission and overwrite options are enabled.
-- Remote image recognition refuses upload unless the caller explicitly confirms it. The higher-level reaction-image-to-CDXML workflow remains unpublished until structure roles and ordering can be verified reliably.
+- Remote image recognition refuses upload unless the caller explicitly confirms it. The guided replication route requires explicit structure-role assignment and visual review; it is not an unattended reaction-image converter.
 - The built-in HTTP listener does not provide TLS. Non-loopback use requires bearer authentication and an allowed `Host`; place it behind an encrypted tunnel or HTTPS reverse proxy. `/health` exposes status only, while `/metrics` requires authentication.
 - Worker processes provide timeout and failure isolation, but they do not sandbox ChemDraw, Office, Python dependencies, or filesystem access. Review the [security policy](.github/SECURITY.md) before enabling native file operations or remote access.
 

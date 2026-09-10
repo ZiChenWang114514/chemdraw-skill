@@ -17,6 +17,25 @@ from test_runtime_discovery import (
 
 
 class CurrentConfigureMcpTests(unittest.TestCase):
+    def test_successful_import_with_stderr_warning_can_register(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            harness = PowerShellHarness(Path(tmp))
+            # Emit only during the MCP --help probe, not discovery's JSON output.
+            (Path(tmp) / "sitecustomize.py").write_text(
+                "import sys\nif '--help' in sys.argv: "
+                "sys.stderr.write('nonfatal import warning\\n')\n",
+                encoding="utf-8",
+            )
+            environment = self._environment(harness)
+            environment["PYTHONPATH"] = tmp
+            result = _run_powershell(
+                CONFIGURE_SCRIPT,
+                [*self._arguments(harness), "-Apply"],
+                environment=environment,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout)["status"], "applied")
+
     def _arguments(self, harness: PowerShellHarness) -> list[str]:
         return [
             "-Python",
@@ -28,6 +47,25 @@ class CurrentConfigureMcpTests(unittest.TestCase):
             "-CodexCommand",
             str(harness.codex),
         ]
+
+    def test_failed_import_probe_does_not_change_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            harness = PowerShellHarness(Path(tmp))
+            original = harness.write_roundtrippable_config()
+            (Path(tmp) / "sitecustomize.py").write_text(
+                "import os, sys\nif '--help' in sys.argv: os._exit(7)\n",
+                encoding="utf-8",
+            )
+            environment = self._environment(harness)
+            environment["PYTHONPATH"] = tmp
+            result = _run_powershell(
+                CONFIGURE_SCRIPT,
+                [*self._arguments(harness), "-Apply"],
+                environment=environment,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("exit code 7", result.stdout + result.stderr)
+            self.assertEqual(harness.config.read_text(encoding="utf-8"), original)
 
     @staticmethod
     def _environment(harness: PowerShellHarness) -> dict[str, str]:

@@ -1,23 +1,31 @@
 ---
 name: chemdraw
-description: Use when Codex needs to install, configure, diagnose, or use ChemDraw or cdxml-toolkit to resolve, compare, draw, edit, clean, merge, polish, parse, convert, render, recognize, analyze, or embed chemical structures and reaction schemes, including controlled ChemScript SDK work. Triggers include setup and runtime problems, molecule names, trusted SMILES, CDX/CDXML, DECIMER/OCSR images, reaction screenshots, ELN/SciFinder RDF, LCMS/NMR, lab books, and editable ChemDraw objects in DOCX/PPTX.
+description: Use when Codex needs to install, configure, diagnose, or use ChemDraw or cdxml-toolkit to resolve, compare, draw, edit, clean, merge, polish, parse, convert, render, recognize, analyze, or embed chemical structures and reaction schemes, including controlled ChemScript SDK work. Triggers include setup and runtime problems, molecule names, trusted SMILES, CDX/CDXML, DECIMER/OCSR images, paper reaction-figure reconstruction (论文反应图复刻), reaction screenshots, ELN/SciFinder RDF, LCMS/NMR, lab books, and editable ChemDraw objects in DOCX/PPTX.
 ---
 
 # ChemDraw
 
-Use the `cdxml-toolkit-community` hardened MCP runtime for stable operations. Preserve source files, ground every structure, verify molecular semantics, and confirm final artifact compatibility through native ChemDraw rendering.
+Use the `cdxml-toolkit-community` runtime for editable chemical figures. Preserve source files, ground structures, verify chemistry from the final CDXML, and inspect native ChemDraw previews. Chemical identity, visual quality, and reference-image fidelity are separate results.
+
+## 论文反应图复刻：快捷入口
+
+当用户要求复刻论文中的结构图、反应路线、合成流程或截图时，直接阅读 [快速复刻指南](references/image-visual-review.md)，无需先扫描工具目录或阅读全部参考。
+
+默认路线：**整图读图 → 视觉分区 → DECIMER 批量识别 → 按原图取向重绘 → 左右对照纠错 → 条件与版式组装 → 原生预览验收**。先交付可编辑图和预览；结构、视觉与严格像素一致性分别验收。最小记录模板与可运行示例已在指南中链接。
 
 ## Core Rules
 
 1. Obtain connectivity only from a trusted user value or a resolver/parser/OCSR tool. Never pass invented or hand-edited SMILES directly; route intentional edits through `modify_molecule` and review its MCS diff.
-2. Apply molecular changes with `modify_molecule` and inspect its MCS diff before drawing. A trusted SMILES that requires no change can go directly to `draw_molecule`.
+2. Apply molecular changes with `modify_molecule` and inspect its MCS diff before drawing. Explicit atom-index R/S changes may use `rdkit_workbench(operation="set_stereo")`; inspect its achieved CIP assignments and connectivity-preserving diff. A trusted SMILES that requires no change can go directly to `draw_molecule`.
 3. Treat low-confidence or multiple OCSR candidates as unresolved until identity is validated.
 4. Never upload an image unless the user authorized third-party processing. Remote DECIMER additionally requires `confirm_upload=true`.
 5. Keep large CDXML and reaction JSON in files. Preserve inputs and write modifications to new paths.
+6. A stereocenter count or wedge count is not a proof of configuration. Validate output-derived isomeric structures and enhanced stereo groups; never use source SMILES as if it were an output readback.
+7. For journal replication, preserve original native objects when available. For raster references, separately ground chemical identity and measure layout. Do not guess an unreadable bond, treat unspecified stereo as racemic, or call a visually plausible reconstruction 1:1.
 
 ## Route By Intent
 
-Load [workflow-router.md](references/workflow-router.md), then read only the workflow matching the request:
+For tasks other than the fast replication route above, load [workflow-router.md](references/workflow-router.md), then read only the workflow matching the request:
 
 - Molecule drawing or modification
 - Molecular identity/similarity comparison or ChemScript SDK inspection
@@ -27,14 +35,18 @@ Load [workflow-router.md](references/workflow-router.md), then read only the wor
 - Word/PowerPoint extraction, embedding, or template filling
 - ELN/RDF, LCMS/NMR, experiment discovery, or lab-book assembly
 - Runtime diagnosis or installation
+- Fixed-layout publication figures, mechanisms, template replication, and image comparison: [publication-figures.md](references/publication-figures.md)
+- RDKit atom/CIP inspection, explicit R/S edits, stereo/tautomer enumeration, MCS, R-group decomposition, and aligned grids: [rdkit-workbench.md](references/rdkit-workbench.md)
+- Multi-structure image segmentation, DECIMER API recognition, agent visual correction loops, and structured reaction-condition transcription: [image-visual-review.md](references/image-visual-review.md)
 
 For first-time installation or upgrade work, load [operations.md](references/operations.md) before changing files or MCP configuration. Run the read-only prerequisite checker, distinguish core, native ChemDraw, ChemScript, Office, and DECIMER requirements, and verify only the capabilities the user selected.
 
 For an exact callable signature, read [mcp-signatures.md](references/mcp-signatures.md). For selection, policy, and errors, read [toolkit-tools.md](references/toolkit-tools.md). Do not guess arguments from prose.
 
 Start diagnosis with `get_toolkit_capabilities()`. The default `codex` profile
-contains 35 tools; `core`, `office`, `analysis`, and `chemscript` profiles can
+contains 38 tools after the figure upgrade; `core`, `office`, `analysis`, and `chemscript` profiles can
 reduce tool selection noise for focused work.
+If the live registry still shows 35, use the documented figure CLI immediately; new MCP tool discovery requires restarting the host. Do not change unrelated MCP configuration to work around a stale registry.
 
 ## Domain References
 
@@ -50,4 +62,8 @@ reduce tool selection noise for focused work.
 
 ## Acceptance
 
-Return absolute output paths. Check every output exists and is non-empty. For molecule drawing, require `metadata.chemistry_validation.status=preserved` and inspect the reported stereocenters, double-bond geometry, isotopes, charges, and wedge count. Render final CDXML through ChemDraw COM and inspect image dimensions; rendering confirms native compatibility, not molecular identity by itself. Open or render final DOCX/PPTX and confirm editable OLE objects remain embedded. Report warnings and unresolved chemistry explicitly.
+Return absolute output paths and check output existence. For molecules, inspect `chemistry_validation` source/roundtrip signatures, stereo groups, E/Z, isotopes and charges. Generated reaction fragments use the same final-coordinate validation; retain source-to-species roles and verify the complete reaction graph when parsing/merging. Layout-only edits must preserve the source molecular inventory.
+
+Render final CDXML through native ChemDraw and inspect actual pixels for missing arrow shafts, overlapping labels, stereo annotations, clipping, and missing plus signs. Dimensions alone are insufficient. Inspect the revised figure again after cleanup, template edits, or font changes. Confirm editable OLE objects for Office outputs.
+
+For reference replication, compare aligned images at the same scale/DPI, record dimensions and pixel/ink metrics, then inspect meaningful differences. Pixel equality does not establish chemical correctness; chemical equivalence does not establish visual equality. Report unverified/unsupported features and distinguish a native-template copy from a reconstructed raster figure.

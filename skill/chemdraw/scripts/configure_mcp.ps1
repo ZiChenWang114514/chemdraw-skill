@@ -157,8 +157,16 @@ function Invoke-Configuration {
     $discovery = Invoke-RuntimeDiscovery
     $pythonPath = [IO.Path]::GetFullPath([string]$discovery.python.path)
     $skillPath = [IO.Path]::GetFullPath([string]$discovery.skill_root.path)
-    $validationOutput = & $pythonPath -m cdxml_toolkit.mcp_runtime --help 2>&1
-    $validationExitCode = $LASTEXITCODE
+    # Windows PowerShell can turn benign native stderr into a terminating error.
+    # Determine probe success from its exit code, retaining stderr for failures.
+    $savedErrorPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $validationOutput = & $pythonPath -m cdxml_toolkit.mcp_runtime --help 2>&1
+        $validationExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $savedErrorPreference
+    }
     if ($validationExitCode -ne 0) {
         $detail = ($validationOutput | Out-String).Trim()
         throw "MCP server import validation failed with exit code $validationExitCode`: $detail"

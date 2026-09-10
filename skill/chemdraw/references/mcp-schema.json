@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a1",
   "profile": "codex",
-  "tool_count": 35,
+  "tool_count": 38,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -46,12 +46,28 @@
       "description": "Clean an existing CDXML reaction layout without changing the source file."
     },
     {
+      "name": "compare_figure_images",
+      "signature": "(reference_path: str, candidate_path: str, output_path: str) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Compare aligned local raster previews without resizing or warping.\n\nOutput JSON contains exact pixel equality, normalized mean absolute error,\nink intersection-over-union, and dimensions. Different dimensions explicitly\nfail comparison. This evaluates appearance only, never chemical identity."
+    },
+    {
       "name": "compare_molecules",
       "signature": "(molecule_a: str, molecule_b: str, fingerprint: str = 'morgan', radius: int = 2, n_bits: int = 2048) -> dict[str, typing.Any]",
       "group": "extended",
       "resource_class": null,
       "timeout_seconds": 120,
       "description": "Compare two molecule representations using ChemScript identity and RDKit Tanimoto fingerprints."
+    },
+    {
+      "name": "compose_chemical_figure",
+      "signature": "(manifest_path: str, output_path: str) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Compose editable CDXML using explicit point coordinates and grounded molecules.\n\nRead the Skill publication-figures reference for the JSON manifest schema.\nSupports molecules with exact atom coordinates or template alignment, CIP/\natom labels, highlights, rich text, straight/equilibrium/resonance/retro arrows,\ncurved electron arrows, brackets and shapes. A template_path preserves native\nobjects and permits translations/text edits without flattening. Outputs final\nCDXML round-trip validation; native rendering and reference comparison are\nseparate required steps. Never claims journal identity from export success."
     },
     {
       "name": "convert_cdx_cdxml",
@@ -222,6 +238,14 @@
       "description": "Run the audited deterministic polishing pipeline on a CDXML scheme."
     },
     {
+      "name": "rdkit_workbench",
+      "signature": "(molecules: list[dict], operation: str = 'inspect', options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Analyze grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo.\n\nInput records accept smiles/CXSMILES, molblock, or file (CDXML/MOL/SDF).\nAtom indices are zero-based and refer to each input's atom order. Options:\nmax_results (1..128), only_unassigned (stereoisomers, default true),\ninclude_molblock, timeout (MCS, 1..30 seconds). R-group decomposition uses\nmolecules[0] as the explicit core. set_stereo takes configurations={index:\nR/S/unspecified} for one molecule, verifies the achieved CIP labels, and emits\na connectivity-preserving diff. Enumeration creates candidate structures,\nnot predictions of populations, reaction products, or experimental ratios.\nWrites provenance, bounded candidate results and truncation status to JSON."
+    },
+    {
       "name": "render_cdxml_files",
       "signature": "(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, typing.Any]",
       "group": "extended",
@@ -235,7 +259,7 @@
       "group": "official",
       "resource_class": null,
       "timeout_seconds": null,
-      "description": "Render a chemical reaction scheme to publication-ready CDXML.\n\n    Accepts exactly ONE of: yaml_text, compact_text, or json_path.\n    Call with NO arguments to see the full YAML schema reference.\n\n    - yaml_text:  Write YAML with structures (ID + SMILES) and steps\n                  (substrates, products, above/below arrow).\n    - json_path:  Path to reaction JSON from parse_reaction (auto-layout).\n\n    IMPORTANT: Every SMILES in the YAML must come from a tool — resolve_name,\n    modify_molecule, parse_reaction, extract_structures_from_image, etc.\n    Never write SMILES from built-in chemistry knowledge or from reading an\n    image with vision. Always call the appropriate tool first, then use the\n    SMILES from its output in your YAML.\n\n    Convention: ONE substrate on center line per step.  Additional reagents\n    go in above_arrow (structures or text).  This shares intermediates\n    between sequential steps.\n\n    Args:\n        yaml_text:    YAML scheme descriptor string.\n        compact_text: Compact DSL syntax string.\n        json_path:    Path to a reaction JSON file.\n        layout:       Layout for json_path: \"auto\", \"landscape\", \"portrait\".\n        output_path:  If given, write the CDXML to this file and return\n                      {ok, output_path, size} instead of the raw CDXML string.\n\n    Returns:\n        CDXML string (when output_path is None), or {ok, output_path, size}\n        when output_path is provided, or YAML schema reference if called with\n        no arguments.\n    \n\nSafety override: Render a scheme through a validated no-overwrite staging file."
+      "description": "Render an editable chemical reaction scheme with per-fragment chemical validation.\n\n    Accepts exactly ONE of: yaml_text, compact_text, or json_path.\n    Call with NO arguments to see the full YAML schema reference.\n\n    - yaml_text:  Write YAML with structures (ID + SMILES) and steps\n                  (substrates, products, above/below arrow).\n    - json_path:  Path to reaction JSON from parse_reaction (auto-layout).\n\n    IMPORTANT: Every SMILES in the YAML must come from a tool — resolve_name,\n    modify_molecule, parse_reaction, extract_structures_from_image, etc.\n    Never write SMILES from built-in chemistry knowledge or from reading an\n    image with vision. Always call the appropriate tool first, then use the\n    SMILES from its output in your YAML.\n\n    Place all atom-contributing substrates on the center line when appropriate.\n    Catalysts and conditions may go above/below arrows. Sequential steps can\n    share intermediates; spatial position does not determine chemical identity.\n\n    Args:\n        yaml_text:    YAML scheme descriptor string.\n        compact_text: Compact DSL syntax string.\n        json_path:    Path to a reaction JSON file.\n        layout:       Layout for json_path: \"auto\", \"landscape\", \"portrait\".\n        output_path:  If given, write the CDXML to this file and return\n                      {ok, output_path, size} instead of the raw CDXML string.\n\n    Returns:\n        CDXML string (when output_path is None), or {ok, output_path, size}\n        when output_path is provided, or YAML schema reference if called with\n        no arguments.\n    \n\nSafety override: Render a scheme through a validated no-overwrite staging file."
     },
     {
       "name": "render_to_png",

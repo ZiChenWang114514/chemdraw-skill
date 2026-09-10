@@ -143,7 +143,7 @@ class RuntimeDiagnosticsTests(unittest.TestCase):
             result["outputs"]["capabilities"]["mcp_sdk"]["version"],
             importlib.metadata.version("mcp"),
         )
-        self.assertEqual(result["metadata"]["tool_count"], 35)
+        self.assertEqual(result["metadata"]["tool_count"], 38)
         self.assertEqual(
             result["outputs"]["capabilities"]["tool_registry"]["status"],
             "available",

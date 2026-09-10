@@ -21,31 +21,33 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/-MIT-d94f70?style=flat" height="22" alt="MIT 许可证"></a>
 </p>
 
-## 从请求到经过检查的文件
+## 快速复刻论文反应图
+
+先读整图，再沿一条路线执行：
+
+**整图读图 → 视觉分区 → DECIMER → 匹配原图取向 → 查看左右对照 → 修正结构 → 组装条件与版式 → 原生预览。**
 
 ```text
-化学请求
-    -> 解析并检查结构身份
-    -> 创建、比较或编辑 CDXML
-    -> 在需要时使用 ChemDraw 渲染
-    -> 报告绝对路径、元数据和警告
+使用 ChemDraw Skill 复刻这张论文图。先读完整反应流程，再裁切各个完整结构，
+取得 DECIMER 识别候选。按原图取向重绘，实际查看左右对照并修正受影响结构；
+用视觉转录条件，最后交付可编辑 CDXML、原生预览，并说明尚存的结构或视觉差异。
 ```
 
-例如，可以向 Codex 提出以下请求：
+下面是自行制作的 ChemDraw 原生绘图测试，展示多反应物排版和立体键；它不是论文复刻准确率的证明。
 
-```text
-使用 ChemDraw Skill 解析阿司匹林，保存可编辑的 CDXML 和 ChemDraw 原生
-PNG，然后报告绝对路径和化学检查结果。
-```
+![ChemDraw 原生反应图，包含多个反应物和 S 构型立体键](assets/readme/stereo-reaction.png)
 
-结果约定包括：
+[可编辑反应图](assets/readme/stereo-reaction.cdxml) · [复刻快速指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [可前向复现的绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
-- 提供有来源依据的结构；结构身份存在不确定性时，给出明确警告。
-- 提供可编辑 CDXML；所需软件可用时，同时提供 ChemDraw 原生输出。
-- 提供文件绝对路径、化学元数据和可执行的警告信息。
-- 使用原生渲染检查兼容性。渲染成功本身不能独立证明分子身份。
+| 遇到的需求 | 现成处理路线 |
+| --- | --- |
+| 图像裁切与复核 | 复用裁切、遮罩和拼图脚本，保留区域与识别结果的对应关系 |
+| 折叠链条或桥环取向 | 追踪原图坐标，检查交叉关系和键级 |
+| 修正立体化学 | 查看原子编号，经接口明确修改，再读回最终 CDXML |
+| 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
+| 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
 
-有关相应的实现依据，请参阅[工作流路由文档](skill/chemdraw/references/workflow-router.md)、[自动生成的 MCP 签名](skill/chemdraw/references/mcp-signatures.md)、[经过审计的公共工具包清单](skill/chemdraw/references/toolkit-public-inventory.md)以及[可移植 CI 工作流](.github/workflows/validate.yml)。
+远程 DECIMER 调用需要上传授权。视觉复核由智能体实际完成；像素指标不能认证化学正确，也不能保证任意图片都能自动达到严格 1:1。
 
 ## 支持的工作
 
@@ -57,13 +59,13 @@ PNG，然后报告绝对路径和化学检查结果。
 - **ChemScript SDK：** 检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制停滞调用造成的影响，但不提供操作系统级安全沙箱。
 - **远程工作站访问：** 保持 stdio 为默认模式，或通过可选的 Streamable HTTP 向外提供 Windows 主机服务，并包含健康状态与 Prometheus 端点。
 
-本项目审计了 `cdxml-toolkit-community` 的 584 个公共符号。该数字表示工具包清单，并不表示 Codex MCP 配置中的 35 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
+本项目审计了 `cdxml-toolkit-community` 的 594 个公共符号。该数字表示工具包清单，并不表示 Codex MCP 配置中的 38 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
 
 ## 选择所需组件
 
 | 目标 | 在核心安装基础上增加 |
 | --- | --- |
-| 创建和编辑 CDXML | Codex、64 位 Python 3.10-3.13、MCP 1.x 或 2.x，以及 `cdxml-toolkit-community==0.7.0a1`；可在 Windows、macOS 和 Linux 上运行 |
+| 创建和编辑 CDXML | Codex、64 位 Python 3.10-3.13、MCP 1.x 或 2.x，以及 快速开始中固定提交的 `cdxml-toolkit-community`；可在 Windows、macOS 和 Linux 上运行 |
 | 原生 PNG、CDX 或 ChemDraw 清理 | 已获得许可并激活的 Windows 桌面版 ChemDraw，且 COM 自动化可正常工作 |
 | 分子比较或 ChemScript SDK 调用 | 与所选工作进程运行时兼容的已安装 ChemScript DLL |
 | 可编辑的 Word 或 PowerPoint 对象 | 受支持的桌面版 Microsoft Word 和/或 PowerPoint |
@@ -84,7 +86,7 @@ conda create -n cdxml python=3.12 pip -y
 $python = (conda run -n cdxml python -c "import sys; print(sys.executable)" | Select-Object -Last 1).Trim()
 conda run -n cdxml python -m pip install --upgrade pip
 conda run -n cdxml python -m pip install `
-  "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@v0.7.0a1"
+  "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
 
 Set-ExecutionPolicy -Scope Process Bypass
 & .\scripts\check_prerequisites.ps1 -Python $python -Capabilities core,native,chemscript,office
@@ -126,11 +128,11 @@ codex mcp get cdxml-toolkit --json
 
 ## 验证与安全
 
-- GitHub Actions 使用 Windows 和 Linux、Python 3.12、MCP 1.28.1 与 2.0.0，以及 `cdxml-toolkit-community==0.7.0a1` 验证可移植运行时。项目支持 Python 3.10-3.13。
+- GitHub Actions 使用 Windows 和 Linux、Python 3.12、MCP 1.28.1 与 2.0.0，以及 快速开始中固定提交的 `cdxml-toolkit-community` 验证可移植运行时。项目支持 Python 3.10-3.13。
 - 原生 ChemDraw、ChemScript 和 Office 功能必须在已获得许可的本地 Windows 主机上检查，因为托管 CI 不提供这些应用程序。
 - 可以使用来源身份、基于 MCS 的差异、化学元数据和原生渲染检查结构修改。科学判断与最终确认仍由用户负责。
 - 标准修改工具会创建新的输出路径，并拒绝意外替换。只有明确启用相应权限与覆盖选项后，ChemScript SDK 才能访问文件和替换现有文件。
-- 远程图像识别仅在调用方明确确认后才允许上传。更高层级的反应图像转 CDXML 工作流尚未公开，因为结构角色和排序目前还无法得到可靠验证。
+- 远程图像识别仅在调用方明确确认后才允许上传。复刻指南要求明确结构角色并逐图复核，不将反应图识别视为无人检查的自动转换。
 - 内置 HTTP 监听器不提供 TLS。非环回地址必须使用持有者令牌身份验证和允许的 `Host`，并应通过加密隧道或 HTTPS 反向代理提供服务。`/health` 只公开状态，`/metrics` 需要身份验证。
 - 工作进程可以隔离超时与故障，但不会为 ChemDraw、Office、Python 依赖项或文件系统访问提供安全沙箱。启用原生文件操作或远程访问前，请阅读[安全策略](.github/SECURITY.md)。
 

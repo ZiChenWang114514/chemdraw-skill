@@ -1,0 +1,38 @@
+{
+  "source_image": "source.png",
+  "definitions": {},
+  "structures": [
+    {
+      "id": "A",
+      "crop": "work/crops/A.png",
+      "recognition_result": "work/A-decimer.json",
+      "correction": {
+        "result": null,
+        "reason": null
+      },
+      "drawing": null,
+      "review": {
+        "comparison": null,
+        "observations": null,
+        "unresolved": []
+      }
+    }
+  ],
+  "steps": [
+    {
+      "from": [
+        "A"
+      ],
+      "to": [
+        "B"
+      ],
+      "conditions_verbatim": [],
+      "yield_verbatim": null
+    }
+  ],
+  "outputs": {
+    "cdxml": null,
+    "native_preview": null,
+    "comparison": null
+  }
+}

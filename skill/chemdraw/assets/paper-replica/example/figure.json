@@ -1,0 +1,334 @@
+{
+  "version": 1,
+  "objects": [
+    {
+      "type": "text",
+      "text": "Editable chemical figure primitives",
+      "position": [
+        30,
+        25
+      ],
+      "size": 9
+    },
+    {
+      "type": "text",
+      "text": "forward",
+      "position": [
+        30,
+        65
+      ],
+      "size": 9
+    },
+    {
+      "type": "arrow",
+      "style": "forward",
+      "start": [
+        120,
+        62
+      ],
+      "end": [
+        230,
+        62
+      ]
+    },
+    {
+      "type": "text",
+      "text": "dashed",
+      "position": [
+        30,
+        110
+      ],
+      "size": 9
+    },
+    {
+      "type": "arrow",
+      "style": "dashed",
+      "start": [
+        120,
+        107
+      ],
+      "end": [
+        230,
+        107
+      ]
+    },
+    {
+      "type": "text",
+      "text": "failed",
+      "position": [
+        30,
+        155
+      ],
+      "size": 9
+    },
+    {
+      "type": "arrow",
+      "style": "failed",
+      "start": [
+        120,
+        152
+      ],
+      "end": [
+        230,
+        152
+      ]
+    },
+    {
+      "type": "text",
+      "text": "resonance",
+      "position": [
+        30,
+        200
+      ],
+      "size": 9
+    },
+    {
+      "type": "arrow",
+      "style": "resonance",
+      "start": [
+        120,
+        197
+      ],
+      "end": [
+        230,
+        197
+      ]
+    },
+    {
+      "type": "text",
+      "text": "equilibrium",
+      "position": [
+        30,
+        245
+      ],
+      "size": 9
+    },
+    {
+      "type": "arrow",
+      "style": "equilibrium",
+      "start": [
+        120,
+        242
+      ],
+      "end": [
+        230,
+        242
+      ]
+    },
+    {
+      "type": "text",
+      "text": "retro",
+      "position": [
+        30,
+        290
+      ],
+      "size": 9
+    },
+    {
+      "type": "arrow",
+      "style": "retro",
+      "start": [
+        120,
+        287
+      ],
+      "end": [
+        230,
+        287
+      ]
+    },
+    {
+      "type": "text",
+      "text": "1 electron arrow",
+      "position": [
+        280,
+        29
+      ],
+      "size": 9
+    },
+    {
+      "type": "electron_arrow",
+      "electrons": 1,
+      "points": [
+        [
+          280,
+          70
+        ],
+        [
+          310,
+          30
+        ],
+        [
+          350,
+          30
+        ],
+        [
+          380,
+          70
+        ]
+      ]
+    },
+    {
+      "type": "text",
+      "text": "2 electron arrow",
+      "position": [
+        280,
+        119
+      ],
+      "size": 9
+    },
+    {
+      "type": "electron_arrow",
+      "electrons": 2,
+      "points": [
+        [
+          280,
+          160
+        ],
+        [
+          310,
+          120
+        ],
+        [
+          350,
+          120
+        ],
+        [
+          380,
+          160
+        ]
+      ]
+    },
+    {
+      "type": "bracket",
+      "start": [
+        280,
+        225
+      ],
+      "end": [
+        365,
+        270
+      ],
+      "label": "n"
+    },
+    {
+      "type": "text",
+      "position": [
+        290,
+        250
+      ],
+      "runs": [
+        {
+          "text": "CH"
+        },
+        {
+          "text": "2",
+          "subscript": true
+        },
+        {
+          "text": "CH"
+        },
+        {
+          "text": "2",
+          "subscript": true
+        }
+      ]
+    },
+    {
+      "type": "ellipse",
+      "start": [
+        405,
+        220
+      ],
+      "end": [
+        460,
+        260
+      ],
+      "color": "#4477aa"
+    },
+    {
+      "type": "rectangle",
+      "start": [
+        405,
+        275
+      ],
+      "end": [
+        470,
+        310
+      ],
+      "color": "#aa4477"
+    },
+    {
+      "type": "molecule",
+      "smiles": "C[C@H](O)C(=O)O",
+      "position": [
+        85,
+        380
+      ],
+      "label": "(S)-lactic acid",
+      "cip_labels": true,
+      "highlight_atoms": [
+        1
+      ],
+      "bond_length": 22,
+      "highlight_bonds": [
+        0
+      ],
+      "annotation_offsets": {
+        "1": [
+          13,
+          8
+        ]
+      }
+    },
+    {
+      "type": "molecule",
+      "smiles": "CC[C@H](F)[C@H](C)O |&1:2,4|",
+      "position": [
+        335,
+        380
+      ],
+      "label": "AND stereogroup",
+      "atom_numbers": false,
+      "bond_length": 28
+    },
+    {
+      "type": "text",
+      "position": [
+        30,
+        440
+      ],
+      "runs": [
+        {
+          "text": "Bold ",
+          "bold": true
+        },
+        {
+          "text": "italic ",
+          "italic": true
+        },
+        {
+          "text": "13",
+          "superscript": true
+        },
+        {
+          "text": "C; Fe"
+        },
+        {
+          "text": "3+",
+          "superscript": true
+        }
+      ]
+    },
+    {
+      "type": "molecule",
+      "file": "e.cdxml",
+      "position": [
+        180,
+        500
+      ],
+      "atom_numbers": true,
+      "label": "Atom indices / E geometry",
+      "bond_length": 24
+    }
+  ]
+}

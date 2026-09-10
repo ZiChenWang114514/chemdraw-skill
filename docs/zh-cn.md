@@ -46,7 +46,7 @@
 - 查询本机 ChemScript SDK 的公开接口目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制超时调用造成的影响，但不提供操作系统级沙箱。
 - 可选用 Streamable HTTP 向另一台电脑提供服务，并提供健康状态和 Prometheus 指标。非本机监听必须配置 Bearer Token、允许的 `Host` 和加密网络。
 
-项目审计清单记录了 584 个 `cdxml-toolkit-community` 公开符号，这个数字表示工具包接口清单，并非 Codex MCP 配置中的 35 个工具。ChemScript 公共目录可被发现和报告，也不表示每个成员都能在所有 SDK 版本、许可证和位数组合中成功执行。
+项目审计清单记录了 594 个 `cdxml-toolkit-community` 公开符号，这个数字表示工具包接口清单，并非 Codex MCP 配置中的 38 个工具。ChemScript 公共目录可被发现和报告，也不表示每个成员都能在所有 SDK 版本、许可证和位数组合中成功执行。
 
 ## 先判断需要哪些组件
 
@@ -173,7 +173,7 @@ Get-ChildItem .\skill\chemdraw\SKILL.md
 conda create -n cdxml python=3.12 pip -y
 conda activate cdxml
 python -m pip install --upgrade pip
-python -m pip install "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@v0.7.0a1"
+python -m pip install "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
 python -m pip check
 python -c "import cdxml_toolkit, mcp, rdkit, win32com.client; print('Python runtime OK')"
 $python = (python -c "import sys; print(sys.executable)").Trim()
@@ -359,7 +359,7 @@ $python = (conda run -n cdxml python -c "import sys; print(sys.executable)" | Se
 - [项目指南](guide.md)：安装诊断、运行时发现、架构、Streamable HTTP、开发验证和第三方软件说明。
 - [工作流目录](../skill/chemdraw/references/workflow-router.md)：绘制、比较、反应式、识图、Office、实验记录和诊断步骤。
 - [MCP 工具真实签名](../skill/chemdraw/references/mcp-signatures.md)：当前可调用工具的精确参数与返回值。
-- [`cdxml-toolkit-community` 公开接口审计清单](../skill/chemdraw/references/toolkit-public-inventory.md)：按领域拆分的 584 个公开符号索引。
+- [`cdxml-toolkit-community` 公开接口审计清单](../skill/chemdraw/references/toolkit-public-inventory.md)：按领域拆分的 594 个公开符号索引。
 - [贡献说明](../.github/contributing.md)与[安全策略](../.github/SECURITY.md)：开发流程、私下报告方式和受支持版本。
 
 远程识图默认拒绝上传，必须由调用者明确确认。所有生成或识别出的化学结构在科研使用前都应与原始资料核验。

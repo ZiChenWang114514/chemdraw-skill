@@ -61,7 +61,7 @@ class MCPStdioTests(unittest.TestCase):
             expected_protocol,
         )
         by_name = {tool.name: tool for tool in tools}
-        self.assertEqual(len(by_name), 35)
+        self.assertEqual(len(by_name), 38)
         self.assertIn("inspect_chemdraw_objects_in_office", by_name)
         self.assertIn("replace_chemdraw_objects_in_office", by_name)
         self.assertIn("resolve_name", by_name)

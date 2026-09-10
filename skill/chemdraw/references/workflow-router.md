@@ -7,8 +7,8 @@ Load one section matching the user's intent. Exact signatures live only in [mcp-
 1. Resolve a name with `resolve_name`, or accept user-supplied trusted SMILES.
 2. Verify identity, formula, molecular weight, and ambiguity.
 3. If no structural change is requested, do not call `modify_molecule(operation="analyze")` merely to authorize drawing; complex naming analysis may be expensive and is limited to 90 seconds.
-4. For actual changes, call `modify_molecule` and inspect the MCS diff.
-5. Call `draw_molecule` and require `metadata.chemistry_validation.status=preserved`. Compare stereocenter, E/Z, isotope, charge, and wedge metadata with the source.
+4. For actual changes, call `modify_molecule` and inspect the MCS diff. For an explicit R/S assignment, `rdkit_workbench(operation="set_stereo")` provides a connectivity-preserving CIP diff; inspect it before drawing.
+5. Call `draw_molecule` and require `metadata.chemistry_validation.status=preserved`. Compare source/roundtrip structure signatures and enhanced stereo groups, in addition to E/Z, isotopes and charges.
 6. Call `render_to_png` for native compatibility and visual inspection. A successful PNG does not independently prove molecular identity.
 
 ## Compare Molecules Or Use ChemScript
@@ -21,12 +21,14 @@ Load one section matching the user's intent. Exact signatures live only in [mcp-
 ## Create Or Edit A Reaction
 
 1. Ground every drawn species.
-2. Use `render_scheme` for a new reaction.
+2. Use `render_scheme` for a new reaction and inspect its per-fragment `chemistry_validation` receipts. For exact coordinates, curved arrows, grids or native-template replication, use [publication-figures.md](publication-figures.md).
 3. Use `parse_scheme` or `parse_reaction` for an existing CDXML/CDX workflow.
 4. Use `clean_scheme_layout`, `merge_reaction_schemes`, or `polish_reaction_scheme` for existing schemes. Explicit and auto-detected sequential plans are checked for linear chemical links; any `force_sequential=true` override requires manual review.
-5. Render the resulting CDXML through `render_cdxml_files`.
+5. Render the resulting CDXML through `render_cdxml_files` and visually inspect all labels, wedges, arrows and plus signs. Cleanup/polish preserves molecular inventory but still needs visual acceptance.
 
 ## Recognize An Image
+
+For multi-structure images or publication reconstruction, follow [image-visual-review.md](image-visual-review.md): agent segmentation → DECIMER → native redraw → actual side-by-side visual review → grounded correction → repeat → structured conditions and final composition. Follow an explicit user preference for DECIMER API over the local default below.
 
 1. Prefer `extract_structures_from_image` when local DECIMER weights are available.
 2. Use `extract_structures_via_decimer_api` only after explicit upload authorization and set `confirm_upload=true`.

@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="14.4" LineWidth="0.6" BoldWidth="2" HashSpacing="2.5" MarginWidth="1.6" BondSpacing="18" LabelFont="3" CaptionFont="3" LabelSize="10" CaptionSize="10" LabelFace="96">
+  <fonttable>
+    <font id="3" charset="iso-8859-1" name="Arial" />
+  </fonttable>
+  <page id="1" BoundingBox="0 0 1000 1000">
+    <t id="1001" p="30.0 25.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">Editable chemical figure primitives</s>
+    </t>
+    <t id="1002" p="30.0 65.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">forward</s>
+    </t>
+    <arrow id="1003" Tail3D="120.0 62.0 0" Head3D="230.0 62.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1004" p="30.0 110.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">dashed</s>
+    </t>
+    <arrow id="1005" Tail3D="120.0 107.0 0" Head3D="230.0 107.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" LineType="Dashed" />
+    <t id="1006" p="30.0 155.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">failed</s>
+    </t>
+    <arrow id="1007" Tail3D="120.0 152.0 0" Head3D="230.0 152.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" NoGo="Cross" />
+    <t id="1008" p="30.0 200.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">resonance</s>
+    </t>
+    <arrow id="1009" Tail3D="120.0 197.0 0" Head3D="230.0 197.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" ArrowheadTail="Full" />
+    <t id="1010" p="30.0 245.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">equilibrium</s>
+    </t>
+    <arrow id="1011" Tail3D="120.0 242.0 0" Head3D="230.0 242.0 0" ArrowheadHead="HalfLeft" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <arrow id="1012" Tail3D="230.0 246.0 0" Head3D="120.0 246.0 0" ArrowheadHead="HalfLeft" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1013" p="30.0 290.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">retro</s>
+    </t>
+    <arrow id="1014" Tail3D="120.0 287.0 0" Head3D="230.0 287.0 0" ArrowheadHead="Full" ArrowheadType="Angle" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" ArrowShaftSpacing="300" LineType="Double" />
+    <t id="1015" p="280.0 29.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">1 electron arrow</s>
+    </t>
+    <curve id="1016" CurvePoints="280.0 70.0 280.0 70.0 310.0 30.0 350.0 30.0 380.0 70.0 380.0 70.0" FillType="None" LineWidth="0.6" color="3" ArrowheadHead="HalfLeft" ArrowheadType="Solid" />
+    <t id="1017" p="280.0 119.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="9.0" face="0" color="3">2 electron arrow</s>
+    </t>
+    <curve id="1018" CurvePoints="280.0 160.0 280.0 160.0 310.0 120.0 350.0 120.0 380.0 160.0 380.0 160.0" FillType="None" LineWidth="0.6" color="3" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <group id="1019" color="3">
+      <graphic id="1020" GraphicType="Line" color="3" BoundingBox="280.0 225.0 280.0 270.0" />
+      <graphic id="1021" GraphicType="Line" color="3" BoundingBox="280.0 225.0 285.0 225.0" />
+      <graphic id="1022" GraphicType="Line" color="3" BoundingBox="280.0 270.0 285.0 270.0" />
+      <graphic id="1023" GraphicType="Line" color="3" BoundingBox="365.0 225.0 365.0 270.0" />
+      <graphic id="1024" GraphicType="Line" color="3" BoundingBox="365.0 225.0 360.0 225.0" />
+      <graphic id="1025" GraphicType="Line" color="3" BoundingBox="365.0 270.0 360.0 270.0" />
+    </group>
+    <t id="1026" p="368.0 270.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="10.0" face="0" color="3">n</s>
+    </t>
+    <t id="1027" p="290.0 250.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="10.0" face="0" color="3">CH</s>
+      <s font="3" size="10.0" face="32" color="3">2</s>
+      <s font="3" size="10.0" face="0" color="3">CH</s>
+      <s font="3" size="10.0" face="32" color="3">2</s>
+    </t>
+    <graphic id="1028" GraphicType="Oval" BoundingBox="405.0 220.0 460.0 260.0" color="4" Center3D="432.5 240.0 0" MajorAxisEnd3D="460.0 240.0 0" MinorAxisEnd3D="432.5 260.0 0" />
+    <graphic id="1029" GraphicType="Rectangle" BoundingBox="405.0 275.0 470.0 310.0" color="5" />
+    <fragment id="1030" BoundingBox="63.00 360.95 107.00 399.05" Z="1031" color="3">
+      <n id="1032" p="107.00 360.95" Z="1033" />
+      <n id="1034" p="96.00 380.00" Z="1035" color="6" />
+      <n id="1036" p="107.00 399.05" Z="1037" Element="8" NumHydrogens="1" NeedsClean="yes">
+        <t id="1038" p="103.75 402.57" BoundingBox="104.00 391.53 110.00 399.05" LabelJustification="Left">
+          <s font="3" size="10.0" color="3" face="96">OH</s>
+        </t>
+      </n>
+      <n id="1039" p="74.00 380.00" Z="1040" />
+      <n id="1041" p="63.00 360.95" Z="1042" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1043" p="59.75 364.47" BoundingBox="60.00 353.43 66.00 360.95" LabelJustification="Left">
+          <s font="3" size="10.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1044" p="63.00 399.05" Z="1045" Element="8" NumHydrogens="1" NeedsClean="yes">
+        <t id="1046" p="59.75 402.57" BoundingBox="60.00 391.53 66.00 399.05" LabelJustification="Left">
+          <s font="3" size="10.0" color="3" face="96">OH</s>
+        </t>
+      </n>
+      <b id="1047" Z="1048" B="1034" E="1032" Display="WedgedHashBegin" color="7" />
+      <b id="1049" Z="1050" B="1034" E="1036" />
+      <b id="1051" Z="1052" B="1034" E="1039" />
+      <b id="1053" Z="1054" B="1039" E="1041" Order="2" />
+      <b id="1055" Z="1056" B="1039" E="1044" />
+    </fragment>
+    <graphic id="1056" GraphicType="Oval" OvalType="Circle" BoundingBox="89.0 373.0 103.0 387.0" Center3D="96.0 380.0 0" MajorAxisEnd3D="103.0 380.0 0" MinorAxisEnd3D="96.0 387.0 0" color="6" />
+    <t id="1057" p="109.0 388.0" Justification="Center" InterpretChemically="no">
+      <s font="3" size="7.0" face="0" color="3">S</s>
+    </t>
+    <t id="1058" p="85.0 421.052" Justification="Center" InterpretChemically="no">
+      <s font="3" size="10.0" face="0" color="3">(S)-lactic acid</s>
+    </t>
+    <fragment id="1059" BoundingBox="282.98 349.42 377.63 412.42" Z="1060" color="3">
+      <n id="1061" p="282.98 374.48" Z="1062" />
+      <n id="1063" p="309.71 366.13" Z="1064" />
+      <n id="1065" p="330.31 385.10" Z="1066" EnhancedStereoType="And" EnhancedStereoGroupNum="1" />
+      <n id="1067" p="324.18 412.42" Z="1068" Element="9" NumHydrogens="0" NeedsClean="yes">
+        <t id="1069" p="320.93 415.94" BoundingBox="321.18 404.90 327.18 412.42" LabelJustification="Left">
+          <s font="3" size="10.0" color="3" face="96">F</s>
+        </t>
+      </n>
+      <n id="1070" p="357.03 376.74" Z="1071" EnhancedStereoType="And" EnhancedStereoGroupNum="1" />
+      <n id="1072" p="377.63 395.71" Z="1073" />
+      <n id="1074" p="363.16 349.42" Z="1075" Element="8" NumHydrogens="1" NeedsClean="yes">
+        <t id="1076" p="359.91 352.94" BoundingBox="360.16 341.90 366.16 349.42" LabelJustification="Left">
+          <s font="3" size="10.0" color="3" face="96">OH</s>
+        </t>
+      </n>
+      <b id="1077" Z="1078" B="1061" E="1063" />
+      <b id="1079" Z="1080" B="1063" E="1065" />
+      <b id="1081" Z="1082" B="1065" E="1067" Display="WedgeBegin" />
+      <b id="1083" Z="1084" B="1065" E="1070" />
+      <b id="1085" Z="1086" B="1070" E="1072" Display="WedgeBegin" />
+      <b id="1087" Z="1088" B="1070" E="1074" />
+    </fragment>
+    <t id="1088" p="330.3066666666667 434.41813333333334" Justification="Center" InterpretChemically="no">
+      <s font="3" size="10.0" face="0" color="3">AND stereogroup</s>
+    </t>
+    <t id="1089" p="30.0 440.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="10.0" face="1" color="3">Bold </s>
+      <s font="3" size="10.0" face="2" color="3">italic </s>
+      <s font="3" size="10.0" face="64" color="3">13</s>
+      <s font="3" size="10.0" face="0" color="3">C; Fe</s>
+      <s font="3" size="10.0" face="64" color="3">3+</s>
+    </t>
+    <fragment id="1090" BoundingBox="148.33 492.79 211.67 507.21" Z="1091" color="3">
+      <n id="1092" p="148.33 502.18" Z="1093" />
+      <n id="1094" p="170.41 492.79" Z="1095" />
+      <n id="1096" p="189.59 507.21" Z="1097" />
+      <n id="1098" p="211.67 497.82" Z="1099" />
+      <b id="1100" Z="1101" B="1092" E="1094" />
+      <b id="1102" Z="1103" B="1094" E="1096" Order="2" />
+      <b id="1104" Z="1105" B="1096" E="1098" />
+    </fragment>
+    <t id="1105" p="135.3571948770208 503.0782698016199" Justification="Center" InterpretChemically="no">
+      <s font="3" size="7.0" face="0" color="3">0</s>
+    </t>
+    <t id="1106" p="160.0200092351877 484.9733402789833" Justification="Center" InterpretChemically="no">
+      <s font="3" size="7.0" face="0" color="3">1</s>
+    </t>
+    <t id="1107" p="199.9799907648123 515.0266597210167" Justification="Center" InterpretChemically="no">
+      <s font="3" size="7.0" face="0" color="3">2</s>
+    </t>
+    <t id="1108" p="224.6428051229792 496.9217301983801" Justification="Center" InterpretChemically="no">
+      <s font="3" size="7.0" face="0" color="3">3</s>
+    </t>
+    <t id="1109" p="180.0 529.2128" Justification="Center" InterpretChemically="no">
+      <s font="3" size="10.0" face="0" color="3">Atom indices / E geometry</s>
+    </t>
+  </page>
+  <colortable>
+    <color r="1" g="1" b="1" />
+    <color r="0" g="0" b="0" />
+    <color r="0.26666666666666666" g="0.4666666666666667" b="0.6666666666666666" />
+    <color r="0.6666666666666666" g="0.26666666666666666" b="0.4666666666666667" />
+    <color r="0.8" g="0.2" b="0.2" />
+    <color r="0.8" g="0.2" b="0.2" />
+  </colortable>
+</CDXML>

@@ -52,7 +52,7 @@ Set-Location .\codex-chemdraw-skill
 conda create -n cdxml python=3.12 pip -y
 conda activate cdxml
 python -m pip install --upgrade pip
-python -m pip install "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@v0.7.0a1"
+python -m pip install "cdxml-toolkit-community[windows,office,chemscript] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
 python -m pip check
 python -c "import cdxml_toolkit, mcp, rdkit, win32com.client; print('Python runtime OK')"
 $python = (python -c "import sys; print(sys.executable)").Trim()
@@ -194,7 +194,7 @@ Run repository validation and the complete Skill test suite before submitting ch
 
 ```powershell
 python scripts/validate_distribution.py
-python -m unittest discover -s skill/chemdraw/scripts -p "test_*.py" -v
+python -m pytest skill/chemdraw/scripts -q -v
 .\skill\chemdraw\scripts\health_check.ps1 -SkipNativeChemDraw
 ```
 
