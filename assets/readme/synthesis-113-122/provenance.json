@@ -16,18 +16,20 @@
     "119",
     "120"
   ],
-  "verification": "Component CDXML readback and native preview reviewed. Full-scheme and native-save-cycle acceptance pending.",
+  "verification": "All six components preserve connectivity, charge and reviewed stereochemistry through a second native CDXML/CDX save cycle. Native previews inspected. Full-scheme acceptance remains pending.",
   "pixel_identical": false,
   "sha256": {
-    "115.cdxml": "3d7e055ddaf1d8c6dc26ca1dbad61a4d7a7b4057c310d4e82cd20627fd49419e",
-    "116.cdxml": "4501a8670e3b50b9bd8f1d8e4cd9021f702c40699fdc80d35e72060fb9cd172f",
-    "117.cdxml": "e1b98796bdce0f80da7a39b60140c13c009c7bea3b31c163875a737039141a6f",
-    "118.cdxml": "09110dbd879ef2dc544814853908103fba5190d8dbc7704818408bf392d3881f",
-    "119.cdxml": "dac168378d6ec2ae736c84ce11834fa6d93917f42a9e7026a3d84838e0c9802b",
-    "120.cdxml": "db4d7c093dd492bb7b29e9a75766d56e52b8fc37692d9a0b562a428da3e49386",
-    "comparison.png": "3d180b5352553771fc34be156927ffd575241362eb873ce01bd17654a2bd53d9",
-    "reference.png": "bf93c865a4d4c48ad2aa40440057b73f5dca12bd661573dd95f87623ea763944",
-    "115.png": "2038f6f460b02eb9535ea673f2f6d28d88b20c84dbc1f779f037a5c9982ddf17",
-    "119.png": "eba28ab59cad27b6eafb0302d39d40a005f687e5838265a3d37be76a35d41a1e"
-  }
+    "115.cdxml": "4be1d9d29d5bb1fd941dd0df753119fecf3e9e8d7f71f0139b088c709c3f9425",
+    "115.png": "9a94c4148fe219cfdabb57a289d3416280d140b86b93d149d5d1087bb35c525e",
+    "116.cdxml": "036c9db92b91469319807f18493c9bdc36d5df80d91d0f744bd5e58749e086d7",
+    "117.cdxml": "58ca4e3a17f5fc95aac239de851efb882d31e9365356e0ae37ddf6df992a20a6",
+    "118.cdxml": "4daa5872b9c359132c5d6261d60d9489c292fd56d8e8da24fefba3fb64dd5e7f",
+    "119.cdxml": "f2601c636967eb290ab7d635bf6f1f9a1bc131269dcaea7eb6937bcc03138096",
+    "119.png": "9504e6177d5b79ea8b73ec374d40ba6063ef6d99e5ae30be11c8f4a1331c94cc",
+    "120.cdxml": "4a5bb2450ecae67ee868557fe624f9b68d1282f4bb95af8fe49fe161f510f1a6",
+    "comparison.png": "7e3d698589fe9dec5ecd258428a31090b80c81952a31da2fff75537a3ae0a6b1",
+    "reference.png": "bf93c865a4d4c48ad2aa40440057b73f5dca12bd661573dd95f87623ea763944"
+  },
+  "stereochemistry_scope": "Bridgehead assignments depend on the reference front/back projection interpretation; this is not independent experimental assignment or pixel identity.",
+  "proton_representation": "115 and 119 each contain a separate chemical [H+] species. Both neutral molecular cores retain their charge after native saving."
 }

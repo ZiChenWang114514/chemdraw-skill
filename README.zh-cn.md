@@ -137,6 +137,8 @@
 
 **部分结构已复刻，整张路线尚未完成。** 下方展示已有结构对照；完整原图可展开查看。
 
+115–120 经重复的 ChemDraw 原生保存后，连接关系、电荷和已复核的立体信息保持一致；115 和 119 均保留独立质子。桥头构型依据原图的前后投影判断，仍存在视觉差异。
+
 | 115 | 119 |
 | --- | --- |
 | ![115 — native electron arrows](assets/readme/synthesis-113-122/115.png) | ![119 — native electron arrows](assets/readme/synthesis-113-122/119.png) |

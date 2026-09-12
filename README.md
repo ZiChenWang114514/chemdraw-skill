@@ -137,6 +137,8 @@ Editable structures: [101](assets/readme/synthesis-101-112/101.cdxml) · [102](a
 
 **Selected structures reconstructed; the full scheme is unfinished.** The comparison below covers the available components; expand the reference to view the complete paper figure.
 
+Structures 115–120 preserve connectivity, charge and reviewed stereochemistry through repeated native ChemDraw saves. Structures 115 and 119 retain their separate protons. Bridgehead assignments follow the reference's front/back projection; visual differences remain.
+
 | 115 | 119 |
 | --- | --- |
 | ![115 — native electron arrows](assets/readme/synthesis-113-122/115.png) | ![119 — native electron arrows](assets/readme/synthesis-113-122/119.png) |

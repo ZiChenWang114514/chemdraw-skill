@@ -60,4 +60,6 @@ Set `complete: true` on a step only when both sides include every atom-contribut
 
 ## Acceptance
 
+Before comparing save cycles, inventory the chemical species actually shown in the reference, including separate protons and counterions. Check that each appears in the saved molecular inventory. Identical before/after inventories can still omit a species that was only drawn as text.
+
 Preserve inputs and save command receipts. Read molecular identity from saved CDXML, and inspect native previews for labels, stereo bonds, electron endpoints and symbol sizes. Render plot files with identical basenames into separate directories. Deliver figures and editable documents first, with concise data provenance and known limitations. Never claim pixel-level paper identity from a successful export.
