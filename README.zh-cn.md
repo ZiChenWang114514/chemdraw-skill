@@ -35,8 +35,8 @@
 | [原生装置图](#apparatus-demo) | 原生 ChemDraw 模板组装 | 可运行示例 |
 | [实验 NMR 谱图](#nmr-demo) | 真实一维数据与可编辑谱图 | 可运行示例 |
 | [模拟反应动力学](#kinetics-demo) | 数值数据转为可编辑曲线 | 可运行示例 |
-| [复杂合成：101–112](#synthesis-101-demo) | 101、102 的结构与对照 | 部分结构；整图待完成 |
-| [复杂合成：113–122](#synthesis-113-demo) | 115–120 的结构组件 | 部分结构；整图待完成 |
+| [复杂合成：101–112](#synthesis-101-demo) | 完整原生路线图与机理箭头 | 立体化学待完整验收；非 1:1 |
+| [复杂合成：113–122](#synthesis-113-demo) | 完整原生路线图与机理箭头 | 立体化学待完整验收；非 1:1 |
 
 <a id="paper-scheme-demo"></a>
 
@@ -118,46 +118,35 @@
 
 ### 复杂合成：101–112
 
-**部分结构已复刻，整张路线尚未完成。** 下方展示已有结构对照；完整原图可展开查看。
+**完整路线图与可编辑结构。** 已包含全部编号、反应条件和机理箭头。原生保存保持连接关系、电荷、同位素和双键几何；桥头立体信息尚未完整验收，字体与线条几何也有差异，不能视为严格 1:1。
 
-![复杂合成：101–112 — 结构对照](assets/readme/synthesis-101-112/comparison.png)
+![复杂合成：101–112](assets/readme/synthesis-101-112/reconstructed.png)
+
+[完整 CDXML](assets/readme/synthesis-101-112/figure.cdxml) · [原图与复刻对照](assets/readme/synthesis-101-112/comparison-full.png) · [验收范围与来源](assets/readme/synthesis-101-112/provenance.json)
 
 <details>
-<summary>查看完整论文原图</summary>
+<summary>展开原图与复刻对照</summary>
 
-![复杂合成：101–112 — reference](assets/readme/synthesis-101-112/reference.png)
+![复杂合成：101–112 — comparison](assets/readme/synthesis-101-112/comparison-full.png)
 
 </details>
-
-可编辑结构：[101](assets/readme/synthesis-101-112/101.cdxml) · [102](assets/readme/synthesis-101-112/102.cdxml) · [范围与来源](assets/readme/synthesis-101-112/provenance.json)
 
 <a id="synthesis-113-demo"></a>
 
 ### 复杂合成：113–122
 
-**部分结构已复刻，整张路线尚未完成。** 下方展示已有结构对照；完整原图可展开查看。
+**完整路线图与可编辑结构。** 已包含全部编号、反应条件和机理箭头。原生保存保持连接关系、电荷、同位素和双键几何；桥头立体信息尚未完整验收，字体与线条几何也有差异，不能视为严格 1:1。
 
-115–120 经重复的 ChemDraw 原生保存后，连接关系、电荷和已复核的立体信息保持一致；115 和 119 均保留独立质子。桥头构型依据原图的前后投影判断，仍存在视觉差异。
+![复杂合成：113–122](assets/readme/synthesis-113-122/reconstructed.png)
 
-| 115 | 119 |
-| --- | --- |
-| ![115 — native electron arrows](assets/readme/synthesis-113-122/115.png) | ![119 — native electron arrows](assets/readme/synthesis-113-122/119.png) |
+[完整 CDXML](assets/readme/synthesis-113-122/figure.cdxml) · [原图与复刻对照](assets/readme/synthesis-113-122/comparison-full.png) · [验收范围与来源](assets/readme/synthesis-113-122/provenance.json)
 
 <details>
-<summary>查看 116–120 的逐结构对照</summary>
+<summary>展开原图与复刻对照</summary>
 
-![116–120: reference and reconstructed structures](assets/readme/synthesis-113-122/comparison.png)
-
-</details>
-
-<details>
-<summary>查看完整论文原图</summary>
-
-![复杂合成：113–122 — reference](assets/readme/synthesis-113-122/reference.png)
+![复杂合成：113–122 — comparison](assets/readme/synthesis-113-122/comparison-full.png)
 
 </details>
-
-可编辑结构：[115](assets/readme/synthesis-113-122/115.cdxml) · [116](assets/readme/synthesis-113-122/116.cdxml) · [117](assets/readme/synthesis-113-122/117.cdxml) · [118](assets/readme/synthesis-113-122/118.cdxml) · [119](assets/readme/synthesis-113-122/119.cdxml) · [120](assets/readme/synthesis-113-122/120.cdxml) · [范围与来源](assets/readme/synthesis-113-122/provenance.json)
 
 ## 快速复刻论文反应图
 

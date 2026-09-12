@@ -1,20 +1,47 @@
 {
-  "source": "Paper excerpt supplied by the user; bibliographic reference not supplied. Source artwork is not relicensed under the software license.",
-  "scope": "Selected structures only; complete scheme reconstruction remains unfinished.",
+  "source": "Paper excerpt supplied by the user. Source artwork is not relicensed under the software license.",
+  "scope": "Full figure layout reconstructed with native editable molecular fragments, text, arrows and brackets.",
   "available_compounds": [
-    "101",
-    "102"
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112
   ],
-  "comparison_compounds": [
-    "101",
-    "102"
+  "native_save_checks": {
+    "before_species": 17,
+    "after_species": 17,
+    "connectivity_charge_isotopes_alkenes_preserved": true,
+    "full_stereo_inventory_preserved": false,
+    "changed_before": {
+      "C/C=C/CCCCC/C=C/C1(C(=O)OC)C(COCc2ccc(OC)cc2)CCC1(/C=C/C[C@@H](OCOC)C1(CC/C=C/C)OCCO1)[O][Mg][Br]": 1
+    },
+    "changed_after": {
+      "C/C=C/CCCCC/C=C/[C@]1(C(=O)OC)[C@H](COCc2ccc(OC)cc2)CCC1(/C=C/C[C@@H](OCOC)C1(CC/C=C/C)OCCO1)[O][Mg][Br]": 1
+    },
+    "duplicate_ids": false,
+    "embedded_bitmaps": false,
+    "native_electron_curves": 63,
+    "chemical_acceptance": "provisional: full source stereochemistry has not been established",
+    "visual_acceptance": "Full native previews inspected; layout complete with font, crossing and arrow differences; not pixel-identical"
+  },
+  "limitations": [
+    "Full source stereochemistry is not established; ChemDraw and RDKit can disagree at bridged centers.",
+    "Font metrics, crossing gaps and arrow geometry differ from the reference.",
+    "Depicted chain lengths do not consistently match earlier structures or later abbreviations; source drawings are preserved rather than made chemically self-consistent."
   ],
-  "verification": "Component CDXML readback and native preview reviewed. Full-scheme and native-save-cycle acceptance pending.",
   "pixel_identical": false,
   "sha256": {
-    "101.cdxml": "a2e865c91cd3a3460cba0f2ec8fe1a43d690f733f55f0bd949e5fb7ff82fcd96",
-    "102.cdxml": "caefc06e45c7e08e613450c21da06650c93e0584823f9ef2d2f2edecf28df985",
-    "comparison.png": "4dccacd16fca0db0c9482c1bb2391781cd1a864a649f6b37821926a90a4a78d9",
+    "figure.cdxml": "1508b9b7af57e6125d4e4248c85500c7954e70fda00ebe16c6ed14b71f41a0d9",
+    "reconstructed.png": "165036523452993166a4b73958c2457ea510b42d89509421eb4a5154aa087a10",
+    "comparison-full.png": "f9c228f4418790a68864811de8b1ea4417e00fe470f04cf41565eb199602ee54",
     "reference.png": "606cb988c83bf186b6833126ef3f6b267a486446d80e8463e212091f4a9fbcb6"
   }
 }

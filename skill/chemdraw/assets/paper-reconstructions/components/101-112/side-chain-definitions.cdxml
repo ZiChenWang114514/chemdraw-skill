@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="20" LineWidth="0.6" BoldWidth="2" MarginWidth="1.5" BondSpacing="18" LabelFont="3" CaptionFont="3" LabelSize="13" CaptionSize="13" LabelFace="96" BoundingBox="0 0 915.5 468.5">
+  <fonttable>
+    <font id="3" charset="iso-8859-1" name="Arial" />
+  </fonttable>
+  <colortable>
+    <color r="1" g="1" b="1" />
+    <color r="0" g="0" b="0" />
+  </colortable>
+  <page id="1030">
+    <fragment id="1000" BoundingBox="419.50 192.50 499.50 201.50" Z="1001">
+      <n id="1002" p="419.50 194.50" Z="1003" NodeType="GenericNickname" GenericNickname="R" Visible="no">
+</n>
+      <n id="1005" p="434.50 201.50" Z="1006" />
+      <n id="1007" p="450.50 192.50" Z="1008" />
+      <n id="1009" p="467.00 201.50" Z="1010" />
+      <n id="1011" p="483.50 192.50" Z="1012" />
+      <b id="1015" Z="1016" B="1002" E="1005" Display="Wavy" />
+      <b id="1017" Z="1018" B="1005" E="1007" />
+      <b id="1019" Z="1020" B="1007" E="1009" />
+      <b id="1021" Z="1022" B="1009" E="1011" Order="2" />
+      <b id="1023" Z="1024" B="1011" E="1025" />
+      <n id="1025" NodeType="Fragment" p="499.5 201.5" LabelDisplay="Left">
+        <fragment id="1026">
+          <n id="1013" p="499.50 201.50" Z="1014" />
+          <n id="1027" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="492.0 201.5" />
+          <b id="1028" B="1027" E="1013" />
+        </fragment>
+        <t id="1029" p="494.5 207.5" LabelJustification="Left" Justification="Left" InterpretChemically="no">
+          <s font="3" size="13" face="0" color="3">Me</s>
+        </t>
+      </n>
+    </fragment>
+    <fragment id="20000" BoundingBox="423.50 218.50 555.00 228.00" Z="1001">
+      <n id="20001" p="423.50 218.50" Z="1003" NodeType="GenericNickname" GenericNickname="R" Visible="no">
+</n>
+      <n id="20002" p="439.50 228.00" Z="1006" />
+      <n id="20003" p="456.00 218.50" Z="1008" />
+      <n id="20004" p="472.50 228.00" Z="1010" />
+      <n id="20005" p="489.00 218.50" Z="1012" />
+      <n id="20006" p="505.50 228.00" Z="1014" />
+      <n id="20007" p="522.00 218.50" Z="1016" />
+      <n id="20008" p="538.50 228.00" Z="1018" />
+      <b id="20009" Z="1022" B="20001" E="20002" Display="Wavy" />
+      <b id="20010" Z="1024" B="20002" E="20003" />
+      <b id="20011" Z="1026" B="20003" E="20004" />
+      <b id="20012" Z="1028" B="20004" E="20005" />
+      <b id="20013" Z="1030" B="20005" E="20006" />
+      <b id="20014" Z="1032" B="20006" E="20007" />
+      <b id="20015" Z="1034" B="20007" E="20008" Order="2" />
+      <b id="20016" Z="1036" B="20008" E="20017" />
+      <n id="20017" NodeType="Fragment" p="555.0 218.5" LabelDisplay="Left">
+        <fragment id="20018">
+          <n id="20019" p="555.00 218.50" Z="1020" />
+          <n id="20020" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="547.5 218.5" />
+          <b id="20021" B="20020" E="20019" />
+        </fragment>
+        <t id="20022" p="551.0 225.5" LabelJustification="Left" Justification="Left" InterpretChemically="no">
+          <s font="3" size="13" face="0" color="3">Me</s>
+        </t>
+      </n>
+    </fragment>
+    <t id="20023" p="369.5 201.5" Justification="Left" InterpretChemically="no">
+      <s font="3" size="13.0" face="0" color="0">C</s>
+      <s font="3" size="13.0" face="32" color="0">5</s>
+      <s font="3" size="13.0" face="0" color="0">H</s>
+      <s font="3" size="13.0" face="32" color="0">9</s>
+      <s font="3" size="13.0" face="0" color="0"> =</s>
+    </t>
+    <t id="20024" p="369.5 228.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="13.0" face="0" color="0">C</s>
+      <s font="3" size="13.0" face="32" color="0">8</s>
+      <s font="3" size="13.0" face="0" color="0">H</s>
+      <s font="3" size="13.0" face="32" color="0">15</s>
+      <s font="3" size="13.0" face="0" color="0"> =</s>
+    </t>
+  </page>
+</CDXML>

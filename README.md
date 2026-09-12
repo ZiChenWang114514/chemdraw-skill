@@ -35,8 +35,8 @@ Explore real paper images and data through native previews, reference comparison
 | [Native apparatus](#apparatus-demo) | Assembly from native ChemDraw templates | Runnable example |
 | [Experimental NMR](#nmr-demo) | Real processed 1D data and an editable spectrum | Runnable example |
 | [Simulated reaction kinetics](#kinetics-demo) | Numerical data as editable curves | Runnable example |
-| [Complex synthesis: 101–112](#synthesis-101-demo) | Structures 101 and 102 with comparisons | Selected structures; full scheme pending |
-| [Complex synthesis: 113–122](#synthesis-113-demo) | Structure components 115–120 | Selected structures; full scheme pending |
+| [Complex synthesis: 101–112](#synthesis-101-demo) | Full native scheme and electron arrows | Stereo acceptance pending; not 1:1 |
+| [Complex synthesis: 113–122](#synthesis-113-demo) | Full native scheme and electron arrows | Stereo acceptance pending; not 1:1 |
 
 <a id="paper-scheme-demo"></a>
 
@@ -118,46 +118,35 @@ Explicitly simulated first-order decay demonstrates the numerical-data-to-figure
 
 ### Complex synthesis: 101–112
 
-**Selected structures reconstructed; the full scheme is unfinished.** The comparison below covers the available components; expand the reference to view the complete paper figure.
+**Full scheme with editable structures.** Includes every compound number, reaction condition and mechanism arrow. Native saving preserves connectivity, charge, isotopes and alkene geometry. Bridgehead stereochemistry remains unresolved, and font and line geometry differ; this is not a validated 1:1 reproduction.
 
-![Complex synthesis: 101–112 — component comparisons](assets/readme/synthesis-101-112/comparison.png)
+![Complex synthesis: 101–112](assets/readme/synthesis-101-112/reconstructed.png)
+
+[Full editable CDXML](assets/readme/synthesis-101-112/figure.cdxml) · [Reference comparison](assets/readme/synthesis-101-112/comparison-full.png) · [Acceptance and provenance](assets/readme/synthesis-101-112/provenance.json)
 
 <details>
-<summary>View the complete paper reference</summary>
+<summary>Compare the complete reference and reconstruction</summary>
 
-![Complex synthesis: 101–112 — reference](assets/readme/synthesis-101-112/reference.png)
+![Complex synthesis: 101–112 — comparison](assets/readme/synthesis-101-112/comparison-full.png)
 
 </details>
-
-Editable structures: [101](assets/readme/synthesis-101-112/101.cdxml) · [102](assets/readme/synthesis-101-112/102.cdxml) · [Scope and provenance](assets/readme/synthesis-101-112/provenance.json)
 
 <a id="synthesis-113-demo"></a>
 
 ### Complex synthesis: 113–122
 
-**Selected structures reconstructed; the full scheme is unfinished.** The comparison below covers the available components; expand the reference to view the complete paper figure.
+**Full scheme with editable structures.** Includes every compound number, reaction condition and mechanism arrow. Native saving preserves connectivity, charge, isotopes and alkene geometry. Bridgehead stereochemistry remains unresolved, and font and line geometry differ; this is not a validated 1:1 reproduction.
 
-Structures 115–120 preserve connectivity, charge and reviewed stereochemistry through repeated native ChemDraw saves. Structures 115 and 119 retain their separate protons. Bridgehead assignments follow the reference's front/back projection; visual differences remain.
+![Complex synthesis: 113–122](assets/readme/synthesis-113-122/reconstructed.png)
 
-| 115 | 119 |
-| --- | --- |
-| ![115 — native electron arrows](assets/readme/synthesis-113-122/115.png) | ![119 — native electron arrows](assets/readme/synthesis-113-122/119.png) |
+[Full editable CDXML](assets/readme/synthesis-113-122/figure.cdxml) · [Reference comparison](assets/readme/synthesis-113-122/comparison-full.png) · [Acceptance and provenance](assets/readme/synthesis-113-122/provenance.json)
 
 <details>
-<summary>Compare structures 116–120 individually</summary>
+<summary>Compare the complete reference and reconstruction</summary>
 
-![116–120: reference and reconstructed structures](assets/readme/synthesis-113-122/comparison.png)
-
-</details>
-
-<details>
-<summary>View the complete paper reference</summary>
-
-![Complex synthesis: 113–122 — reference](assets/readme/synthesis-113-122/reference.png)
+![Complex synthesis: 113–122 — comparison](assets/readme/synthesis-113-122/comparison-full.png)
 
 </details>
-
-Editable structures: [115](assets/readme/synthesis-113-122/115.cdxml) · [116](assets/readme/synthesis-113-122/116.cdxml) · [117](assets/readme/synthesis-113-122/117.cdxml) · [118](assets/readme/synthesis-113-122/118.cdxml) · [119](assets/readme/synthesis-113-122/119.cdxml) · [120](assets/readme/synthesis-113-122/120.cdxml) · [Scope and provenance](assets/readme/synthesis-113-122/provenance.json)
 
 ## Reproduce a paper figure
 

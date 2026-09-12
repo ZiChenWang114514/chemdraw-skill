@@ -108,6 +108,8 @@ modify_molecule(mol_json={"smiles":"<recognized SMILES>"},
 
 ## 可运行示例
 
+[两张完整论文路线图](../assets/paper-reconstructions/README.md) 包含原生结构组件、布局清单和离线组装脚本。运行 `python <skill>/assets/paper-reconstructions/rebuild.py <new-output-directory>` 后进行原生预览。示例覆盖共享 OR、缩写、折叠链、桥键遮挡及电子箭头；完整布局已具备，但立体信息仍有读取工具间分歧，不能作为全部构型已验收的样板。不要将前后步骤自动改成自洽结构：原图的展开链与缩写定义可能不一致，逐处保留并列出差异。
+
 [绘图示例](../assets/paper-replica/example/CASE.md) 包含图形 manifest、实际 CDXML/原生预览和离线重建脚本；覆盖常用箭头、电子曲线、富文本、手性和增强立体组。
 
 ```powershell

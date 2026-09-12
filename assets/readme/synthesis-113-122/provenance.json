@@ -1,35 +1,46 @@
 {
-  "source": "Paper excerpt supplied by the user; bibliographic reference not supplied. Source artwork is not relicensed under the software license.",
-  "scope": "Selected structures only; complete scheme reconstruction remains unfinished.",
+  "source": "Paper excerpt supplied by the user. Source artwork is not relicensed under the software license.",
+  "scope": "Full figure layout reconstructed with native editable molecular fragments, text, arrows and brackets.",
   "available_compounds": [
-    "115",
-    "116",
-    "117",
-    "118",
-    "119",
-    "120"
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    112
   ],
-  "comparison_compounds": [
-    "116",
-    "117",
-    "118",
-    "119",
-    "120"
+  "native_save_checks": {
+    "before_species": 12,
+    "after_species": 12,
+    "connectivity_charge_isotopes_alkenes_preserved": true,
+    "full_stereo_inventory_preserved": false,
+    "changed_before": {
+      "*OC[C@]1(O)C2C(OCc3ccc(OC)cc3)C(=C[C@@H](CCCCC/C=C/C)[C@@H]2C[C@@H](O[Si](C)(C)C(C)(C)C)C(CCC/C=C/C)(OC)OC)C2(COC(C)(C)OC2)C[C@H]1C#N": 1
+    },
+    "changed_after": {
+      "*OC[C@@]1(O)[C@H](C#N)CC2(COC(C)(C)OC2)C2=C[C@@H](CCCCC/C=C/C)[C@H](C[C@@H](O[Si](C)(C)C(C)(C)C)C(CCC/C=C/C)(OC)OC)[C@H]1C2OCc1ccc(OC)cc1": 1
+    },
+    "duplicate_ids": false,
+    "embedded_bitmaps": false,
+    "native_electron_curves": 24,
+    "chemical_acceptance": "provisional: full source stereochemistry has not been established",
+    "visual_acceptance": "Full native previews inspected; layout complete with font, crossing and arrow differences; not pixel-identical"
+  },
+  "limitations": [
+    "Full source stereochemistry is not established; ChemDraw and RDKit can disagree at bridged centers.",
+    "Font metrics, crossing gaps and arrow geometry differ from the reference.",
+    "Depicted chain lengths do not consistently match earlier structures or later abbreviations; source drawings are preserved rather than made chemically self-consistent."
   ],
-  "verification": "All six components preserve connectivity, charge and reviewed stereochemistry through a second native CDXML/CDX save cycle. Native previews inspected. Full-scheme acceptance remains pending.",
   "pixel_identical": false,
   "sha256": {
-    "115.cdxml": "4be1d9d29d5bb1fd941dd0df753119fecf3e9e8d7f71f0139b088c709c3f9425",
-    "115.png": "9a94c4148fe219cfdabb57a289d3416280d140b86b93d149d5d1087bb35c525e",
-    "116.cdxml": "036c9db92b91469319807f18493c9bdc36d5df80d91d0f744bd5e58749e086d7",
-    "117.cdxml": "58ca4e3a17f5fc95aac239de851efb882d31e9365356e0ae37ddf6df992a20a6",
-    "118.cdxml": "4daa5872b9c359132c5d6261d60d9489c292fd56d8e8da24fefba3fb64dd5e7f",
-    "119.cdxml": "f2601c636967eb290ab7d635bf6f1f9a1bc131269dcaea7eb6937bcc03138096",
-    "119.png": "9504e6177d5b79ea8b73ec374d40ba6063ef6d99e5ae30be11c8f4a1331c94cc",
-    "120.cdxml": "4a5bb2450ecae67ee868557fe624f9b68d1282f4bb95af8fe49fe161f510f1a6",
-    "comparison.png": "7e3d698589fe9dec5ecd258428a31090b80c81952a31da2fff75537a3ae0a6b1",
+    "figure.cdxml": "0ad99db03edb59f5b868c4f4d5f52fdee57873c79211e1f3e08035db6fe3dd47",
+    "reconstructed.png": "0331eebdc87c8110b250743888aff2259a3ed15f4132535cf986047df8e39abc",
+    "comparison-full.png": "51abe2b757efb40006ba9c3ae156de2a8a94f416df9d0d7dab655400940ccb8e",
     "reference.png": "bf93c865a4d4c48ad2aa40440057b73f5dca12bd661573dd95f87623ea763944"
-  },
-  "stereochemistry_scope": "Bridgehead assignments depend on the reference front/back projection interpretation; this is not independent experimental assignment or pixel identity.",
-  "proton_representation": "115 and 119 each contain a separate chemical [H+] species. Both neutral molecular cores retain their charge after native saving."
+  }
 }
