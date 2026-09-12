@@ -1,0 +1,41 @@
+{
+  "example": "Sceptrin mechanism, compounds 192–199",
+  "source": {
+    "file": "reference.png",
+    "provided_by": "user",
+    "bibliographic_reference": "not supplied",
+    "rights": "The reference excerpt is not relicensed under the software license."
+  },
+  "outputs": {
+    "cdxml": "mechanism.cdxml",
+    "cdx": "mechanism.cdx",
+    "native_preview": "native.png",
+    "comparison": "comparison.png"
+  },
+  "verification": {
+    "saved_cdxml_inventory_count": 14,
+    "numbered_structures": 8,
+    "chloride_counterions": 6,
+    "native_cdx_cdxml_roundtrip": "molecular inventory preserved, including depicted stereo and formal charges",
+    "visual_review": "completed; differences remain",
+    "pixel_identical": false
+  },
+  "limitations": [
+    "The right-edge recrystallization statement is cropped in the supplied reference.",
+    "R is undefined in the reference crop and is preserved as a generic substituent in 198 and 199.",
+    "Guanidinium is encoded as an explicit resonance contributor. The circled charges in 197 are closer to the charged nitrogen to retain correct native association.",
+    "Font metrics, electron-arrow paths and some bridge/crossing geometry differ from the source.",
+    "The published mechanism is reproduced, not independently established by these checks."
+  ],
+  "sha256": {
+    "comparison.json": "d03af9116b96c8bba132940b3c075543954cbeb726f452aff81ee146d894d602",
+    "comparison.png": "4a271cadf37a416dea914a1a069cb120ab512fc481353b6743da263e5992d49d",
+    "mechanism.cdx": "d661317b8f65eb7fae115bf1385ef7df52c817fc7bfac98aee624284ae427529",
+    "mechanism.cdxml": "5fb3b0e522106f163ec4c51275fa673bd60067df82ca93078cd1fe9caac2e98a",
+    "native-aligned.png": "b461d2b602c54da1071f3efa87dc74404888d01b54e084f0761ec7f636f26238",
+    "native.png": "d66b8731ef2a17303c6e7bcc5a4f7e0352926528ac05a1bcfcf01bdc1747ef9a",
+    "reference-aligned.png": "0e146c376715215b465fe7bd7690d950aaa23a6bd9ae00e819d1774403ec1f14",
+    "reference.png": "0a8b218ed99379ea8b891a4ac3608bbb68a51f37bd03daa59510e2916e21098a",
+    "saved-by-chemdraw.cdxml": "368b0f7e8b60b18b7d202f898b299012bd9fa6bb88747a2c7328366923018650"
+  }
+}

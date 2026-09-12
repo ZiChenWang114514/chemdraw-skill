@@ -12,6 +12,7 @@ from typing import Any
 
 
 DOMAIN_REFERENCES = {
+    "scientific": "scientific-workflows.md",
     "analysis": "toolkit-analysis-interfaces.md",
     "chemdraw": "toolkit-office-chemdraw-interfaces.md",
     "deterministic_pipeline": "toolkit-perception-image-interfaces.md",

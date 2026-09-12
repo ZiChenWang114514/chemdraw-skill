@@ -1,0 +1,20 @@
+{
+  "input": "source-nmr/1d_data.ft",
+  "title": "Experimental NMR spectrum",
+  "processing": {
+    "integration_regions": [
+      [
+        178.97,
+        183.4
+      ],
+      [
+        175.33,
+        178.97
+      ],
+      [
+        49.46,
+        65.77
+      ]
+    ]
+  }
+}

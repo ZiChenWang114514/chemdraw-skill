@@ -65,6 +65,36 @@ Structures extracted from the saved CDXML match the five reviewed reference stru
 
 Remote DECIMER calls require upload authorization. Visual review remains an agent task; pixel metrics do not certify chemistry or universal 1:1 fidelity.
 
+## Laboratory drawings and scientific data
+
+Native TLC plates, native apparatus templates, processed 1D NMR analysis and editable scientific plots share a [runnable example guide](skill/chemdraw/references/scientific-workflows.md).
+
+| Native TLC plate | Apparatus from ChemDraw templates |
+| --- | --- |
+| ![Native TLC lanes and spots](assets/readme/scientific/tlc.png) | ![Editable laboratory apparatus assembled from native ChemDraw templates](assets/readme/scientific/apparatus.png) |
+| [Editable TLC](assets/readme/scientific/tlc.cdxml) | [Editable apparatus](assets/readme/scientific/apparatus.cdxml) |
+
+| Processed experimental NMR | Simulated reaction kinetics |
+| --- | --- |
+| ![Experimental 1D NMR spectrum rendered by ChemDraw](assets/readme/scientific/nmr.png) | ![Explicitly simulated first-order decay rendered by ChemDraw](assets/readme/scientific/kinetics.png) |
+| [Editable spectrum](assets/readme/scientific/nmr.cdxml) | [Editable plot](assets/readme/scientific/kinetics.cdxml) |
+
+NMR processing accepts real processed 1D NMRPipe or CSV data for peak picking and selected-region integration. It does not perform raw-FID processing, 2D interpretation or automatic atom assignment. TLC values are illustrative; kinetic data are explicitly simulated. [Data and template provenance](assets/readme/scientific/provenance.json).
+
+### Editable paper mechanism
+
+**Reference excerpt**
+
+![Reference mechanism showing compounds 192 through 199](assets/readme/mechanism/reference.png)
+
+**ChemDraw reconstruction**
+
+![Native ChemDraw reconstruction with eight structures, electron arrows and reaction conditions](assets/readme/mechanism/native.png)
+
+[Editable CDXML](assets/readme/mechanism/mechanism.cdxml) · [Native CDX](assets/readme/mechanism/mechanism.cdx) · [Side-by-side comparison](assets/readme/mechanism/comparison.png) · [Verification and source limitations](assets/readme/mechanism/provenance.json)
+
+Eight numbered structures and six chloride counterions retain their molecular inventory, depicted stereochemistry and formal charges through an actual ChemDraw CDXML → CDX → CDXML save cycle. Undefined R groups remain generic substituents. The reconstruction is visually reviewed, **not pixel-identical**: font metrics, electron-arrow paths, some bridge geometry and the placement of the delocalized charge indicators differ. The source's cropped recrystallization statement is not completed by inference.
+
 ## What It Handles
 
 - **Structures and reactions:** resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert, and render CDXML or CDX documents.
@@ -75,7 +105,7 @@ Remote DECIMER calls require upload authorization. Visual review remains an agen
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process. Process separation limits stalled calls; it is not an operating-system security sandbox.
 - **Remote workstation access:** keep stdio as the default or expose the Windows host through optional Streamable HTTP with health and Prometheus endpoints.
 
-The project audits 594 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 38-tool full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
+The project audits 613 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 38-tool full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
 
 ## Choose the Required Components
 
@@ -97,7 +127,7 @@ Load `skill/chemdraw/SKILL.md` in your agent, then connect MCP or use Python/CLI
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
+python -m pip install "cdxml-toolkit-community[scientific] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@d1bc6c3d2eebb1ce9a7ff7fa7e3f61fdbe9f614e"
 python -m cdxml_toolkit.mcp_runtime
 ```
 

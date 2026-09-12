@@ -50,6 +50,7 @@ Stereo AND/OR/ABS attributes are retained and round-trip checked. Native ChemDra
 - `arrow`: `start`, `end`, `style`: `forward`, `dashed`, `failed`, `resonance`, `equilibrium`, `retro`. Arbitrary direction is allowed. `line` is also an object type.
 - `electron_arrow`: four cubic Bezier `points` in start/control/control/end order; `electrons: 1` gives a fishhook, `2` a full head. These are editable graphic arrows, not inferred mechanistic correctness.
 - `curve`: the same four Bezier points without an arrowhead.
+- `symbol`: native ChemDraw electron/charge symbol, with native bounding coordinates `start` and `end`, optional `color`, and `symbol` chosen from `LonePair`, `Electron`, `RadicalCation`, `RadicalAnion`, `CirclePlus`, `CircleMinus`, `Dagger`, `DoubleDagger`, `Plus`, or `Minus`. Prefer these native objects to text dots or a drawn circle. They annotate the figure; a molecular formal charge must also be present in the grounded molecule graph. Symbol anchors vary with native type; inspect the native preview for placement, size and arrow clearance. For circled charges, follow the native save-cycle verification in [scientific workflows](scientific-workflows.md).
 - `rectangle`, `ellipse`, `bracket`: upper-left `start`, lower-right `end`, optional `color`; bracket may include a `label` such as `n`. This is a **visual bracket**, not a machine-readable polymer SRU graph. Preserve a native polymer template when SRU semantics matter.
 
 Place rich chemical conditions with explicit runs when typography matters:

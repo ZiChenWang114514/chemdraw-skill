@@ -93,8 +93,8 @@
 
 ## `render.renderer`
 
-- **function**, line 2407: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
-- **function**, line 2425: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **function**, line 2427: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 2445: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
 - **class**, line 139: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
 - **class**, line 154: `ResolvedStep` - A step with all structures resolved and laid out.
 

@@ -63,6 +63,36 @@
 
 远程 DECIMER 调用需要上传授权。视觉复核由智能体实际完成；像素指标不能认证化学正确，也不能保证任意图片都能自动达到严格 1:1。
 
+## 实验绘图与科研数据
+
+原生 TLC、装置模板、已处理的一维 NMR 分析和可编辑科研曲线均提供[可运行示例](skill/chemdraw/references/scientific-workflows.md).
+
+| 原生 TLC 板 | 原生模板装置图 |
+| --- | --- |
+| ![Native TLC lanes and spots](assets/readme/scientific/tlc.png) | ![Editable laboratory apparatus assembled from native ChemDraw templates](assets/readme/scientific/apparatus.png) |
+| [可编辑 TLC](assets/readme/scientific/tlc.cdxml) | [可编辑装置](assets/readme/scientific/apparatus.cdxml) |
+
+| 已处理的实验 NMR | 模拟反应动力学 |
+| --- | --- |
+| ![Experimental 1D NMR spectrum rendered by ChemDraw](assets/readme/scientific/nmr.png) | ![Explicitly simulated first-order decay rendered by ChemDraw](assets/readme/scientific/kinetics.png) |
+| [可编辑谱图](assets/readme/scientific/nmr.cdxml) | [可编辑曲线](assets/readme/scientific/kinetics.cdxml) |
+
+NMR 支持已处理的一维 NMRPipe 或 CSV 数据，可寻峰并对指定区间积分；不包含原始 FID 处理、二维谱解析或自动原子归属。TLC 数值为示例，动力学曲线明确来自模拟。[数据与模板来源](assets/readme/scientific/provenance.json)。
+
+### 可编辑的论文机理图
+
+**原始截图**
+
+![Reference mechanism showing compounds 192 through 199](assets/readme/mechanism/reference.png)
+
+**ChemDraw 重绘**
+
+![Native ChemDraw reconstruction with eight structures, electron arrows and reaction conditions](assets/readme/mechanism/native.png)
+
+[可编辑 CDXML](assets/readme/mechanism/mechanism.cdxml) · [原生 CDX](assets/readme/mechanism/mechanism.cdx) · [左右对照](assets/readme/mechanism/comparison.png) · [验证与原图限制](assets/readme/mechanism/provenance.json)
+
+八个编号结构和六个氯离子经过实际 ChemDraw CDXML → CDX → CDXML 保存后，分子组成、图示立体化学和形式电荷保持一致。未定义的 R 保留为通用取代基。已进行视觉核对，**并非逐像素一致**：字体、电子箭头路径、部分桥键几何以及离域电荷标记位置仍有差异；未推测补全原图被裁掉的重结晶说明。
+
 ## 支持的工作
 
 - **结构与反应：** 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档。
@@ -73,7 +103,7 @@
 - **ChemScript SDK：** 检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制停滞调用造成的影响，但不提供操作系统级安全沙箱。
 - **远程工作站访问：** 保持 stdio 为默认模式，或通过可选的 Streamable HTTP 向外提供 Windows 主机服务，并包含健康状态与 Prometheus 端点。
 
-本项目审计了 `cdxml-toolkit-community` 的 594 个公共符号。该数字表示工具包清单，并不表示 完整 MCP 配置中的 38 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
+本项目审计了 `cdxml-toolkit-community` 的 613 个公共符号。该数字表示工具包清单，并不表示 完整 MCP 配置中的 38 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
 
 ## 选择所需组件
 
@@ -95,7 +125,7 @@ Skill 与客户端无关。让你的 Agent 加载 `skill/chemdraw/SKILL.md`，�
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@57db286ea4fa1c74a524e7a329dd5ba3f39dc21e"
+python -m pip install "cdxml-toolkit-community[scientific] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@d1bc6c3d2eebb1ce9a7ff7fa7e3f61fdbe9f614e"
 python -m cdxml_toolkit.mcp_runtime
 ```
 

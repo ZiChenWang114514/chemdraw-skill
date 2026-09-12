@@ -39,6 +39,8 @@ For tasks other than the fast replication route above, load [workflow-router.md]
 - Word/PowerPoint extraction, embedding, or template filling
 - ELN/RDF, LCMS/NMR, experiment discovery, or lab-book assembly
 - Runtime diagnosis or installation
+- TLC plates, apparatus and laboratory instruments: [native-laboratory-drawings.md](references/native-laboratory-drawings.md). Use native TLC objects and installed ChemDraw apparatus templates by default; preserve editable template artwork.
+- Processed 1D NMR analysis, scientific plots and atom-anchored mechanisms: [scientific-workflows.md](references/scientific-workflows.md), with runnable example specifications.
 - Fixed-layout publication figures, mechanisms, template replication, and image comparison: [publication-figures.md](references/publication-figures.md)
 - RDKit atom/CIP inspection, explicit R/S edits, stereo/tautomer enumeration, MCS, R-group decomposition, and aligned grids: [rdkit-workbench.md](references/rdkit-workbench.md)
 - Multi-structure image segmentation, DECIMER API recognition, agent visual correction loops, and structured reaction-condition transcription: [image-visual-review.md](references/image-visual-review.md)
