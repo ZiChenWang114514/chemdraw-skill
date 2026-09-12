@@ -37,9 +37,9 @@ native preview with unresolved chemistry or visual differences stated clearly.
 
 ### From a paper screenshot to editable ChemDraw
 
-**A worked reproduction of the supplied synthesis-scheme excerpt.** The agent segmented the figure, used DECIMER API recognition, redrew in ChemDraw, inspected side-by-side comparisons, corrected structures, and assembled visually transcribed conditions.
+**Turn a published reaction scheme into an editable ChemDraw document.** This example preserves the five structures, reaction conditions, yields and compound labels shown in the reference image.
 
-**Original paper excerpt — supplied by the user**
+**Original paper figure**
 
 ![Original paper scheme showing compounds 13a, 14, 15, 16 and the shared 17a/17b depiction](assets/readme/paper-replica/original.png)
 
@@ -47,13 +47,13 @@ native preview with unresolved chemistry or visual differences stated clearly.
 
 ![Editable ChemDraw reconstruction preserving the original scheme orientation, conditions and compound labels](assets/readme/paper-replica/replica.png)
 
-[Download editable CDXML](assets/readme/paper-replica/replica.cdxml) · [Inspect structure-by-structure comparisons](assets/readme/paper-replica/structure-comparison.png) · [Case provenance](assets/readme/paper-replica/provenance.json)
+[Download editable CDXML](assets/readme/paper-replica/replica.cdxml) · [Inspect structure-by-structure comparisons](assets/readme/paper-replica/structure-comparison.png) · [Source and verification details](assets/readme/paper-replica/provenance.json)
 
-Review corrected OH/CH₃ and OMe/OH recognition errors, restored X/R abbreviations, and removed an unsupported configuration at a wavy bond. All five corrected structures passed final-CDXML readback in this case; 17a/17b retain the source's shared wavy-bond representation.
+Structures extracted from the saved CDXML match the five reviewed reference structures. The shared wavy bond for 17a/17b remains unspecified, as in the original figure.
 
-**Visually reviewed and editable; not pixel-identical.** Font metrics, arrows and some line geometry still differ. Chemical readback agreement does not establish absolute recognition accuracy.
+**Visually reviewed and editable; not pixel-identical.** Font metrics, arrows and some line geometry still differ. Matching saved structures does not independently prove that every detail was recognized correctly.
 
-[Fast replication guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Self-authored drawing fixture](skill/chemdraw/assets/paper-replica/example/CASE.md)
+[Fast replication guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
 | Need | Ready-to-use route |
 | --- | --- |

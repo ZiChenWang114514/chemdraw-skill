@@ -35,9 +35,9 @@
 
 ### 从论文截图到可编辑 ChemDraw：实际复刻案例
 
-**这段合成路线已实际完成识别、纠错与重绘。** 智能体先视觉分区，再调用 DECIMER API、使用 ChemDraw 重绘、查看左右对照并修正结构，最后将视觉转录的反应条件与版式组装。
+**将论文反应图转为可编辑的 ChemDraw 文档。** 示例保留了原图中的五个结构、反应条件、产率和化合物编号。
 
-**论文原图｜用户提供的截图**
+**论文原图**
 
 ![论文原图，包含 13a、14、15、16 及 17a/17b 共用结构](assets/readme/paper-replica/original.png)
 
@@ -47,11 +47,11 @@
 
 [下载可编辑 CDXML](assets/readme/paper-replica/replica.cdxml) · [查看逐结构左右对照](assets/readme/paper-replica/structure-comparison.png) · [案例来源与验证范围](assets/readme/paper-replica/provenance.json)
 
-本例修正了羟基误识成甲基、甲氧基误识成羟基、X/R 缩写丢失，以及波浪键处擅自赋予构型等错误。五个修正后的结构均通过最终 CDXML 读回检查；17a/17b 保留原图的共享波浪键表示。
+从保存的 CDXML 中重新解析出的五个结构，与经核对的参考结构一致。17a/17b 共用的波浪键保留原图中未指定构型的表示。
 
-**经过视觉复核，可继续编辑；尚非逐像素 1:1。** 字体、箭头和部分线条几何仍有差异。结构读回一致不等于识图绝对正确。
+**经过视觉复核，可继续编辑；尚非逐像素 1:1。** 字体、箭头和部分线条几何仍有差异。保存前后的结构一致，并不能独立证明图中所有细节都识别正确。
 
-[复刻快速指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [自行制作的绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
+[复刻快速指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
 | 遇到的需求 | 现成处理路线 |
 | --- | --- |

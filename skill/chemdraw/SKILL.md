@@ -48,9 +48,9 @@ For first-time installation or upgrade work, load [operations.md](references/ope
 For an exact callable signature, read [mcp-signatures.md](references/mcp-signatures.md). For selection, policy, and errors, read [toolkit-tools.md](references/toolkit-tools.md). Do not guess arguments from prose.
 
 Start diagnosis with `get_toolkit_capabilities()`. The default full runtime profile
-contains 38 tools after the figure upgrade; `core`, `office`, `analysis`, and `chemscript` profiles can
+contains 38 tools; `core`, `office`, `analysis`, and `chemscript` profiles can
 reduce tool selection noise for focused work.
-If the live registry still shows 35, use the documented figure CLI immediately; new MCP tool discovery requires restarting the host. Do not change unrelated MCP configuration to work around a stale registry.
+If a documented tool is missing, verify the installed runtime version and refresh the client tool list. Use the documented figure CLI when the client cannot discover MCP tools.
 
 ## Domain References
 

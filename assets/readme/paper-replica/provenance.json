@@ -1,9 +1,8 @@
 {
-  "source": "Paper excerpt supplied by the user; original publication metadata was not provided.",
-  "publication_scope": "The user explicitly requested publication of this before/after example in the project README.",
+  "source": "Paper figure excerpt. Bibliographic attribution is currently unavailable.",
   "rights": "The original paper figure is third-party material and is not relicensed under the repository MIT license.",
   "case": "13a, 14, 15, 16 and the shared 17a/17b depiction",
-  "verification": "Historical case: five corrected structures passed final-CDXML semantic readback, with agent visual review.",
+  "verification": "The five structures extracted from the saved CDXML match the reviewed reference structures. The rendered image was visually inspected.",
   "pixel_identical": false,
   "limits": "Font metrics, arrowheads, line geometry and rasterization still differ. Readback agreement is not proof of OCSR accuracy.",
   "files": {

@@ -27,4 +27,4 @@ For same-scaffold figure series, combine `mcs` inspection with `compose_chemical
 
 Limits are enforced: 1..128 input molecules, 1000 atoms per molecule, bounded enumerations, and MCS timeout. Inputs are local; these operations do not upload chemistry. Results use zero-based input atom order. Canonical SMILES may reorder atoms, so never reuse old indices against a canonicalized candidate without reinspection.
 
-New tools are available in the full runtime profile (legacy identifier `codex`, usable by any MCP client) after host rediscovery. The [figure CLI](publication-figures.md#immediate-cli-fallback) is usable immediately with the configured MCP Python.
+Use the full runtime profile (identifier `codex`, supported by any MCP client), or run the [figure CLI](publication-figures.md#immediate-cli-fallback) with the toolkit Python environment.

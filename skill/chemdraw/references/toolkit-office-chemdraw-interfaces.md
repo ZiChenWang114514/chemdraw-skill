@@ -52,4 +52,4 @@ File readers/writers and `LoadFile`/`ReadFile`/`WriteFile` require `allow_file_i
 
 ## Do Not Use Directly
 
-Do not call `_chemscript_server` commands, construct CFB/OLE bytes ad hoc, or claim full GUI automation. Do not use RDKit fallback as the final fidelity check for reactions or Office output. Catalog coverage does not mean that every SDK overload has been chemically validated with every possible input; inspect outputs and use real fixtures for the intended operation.
+Do not call `_chemscript_server` commands, construct CFB/OLE bytes ad hoc, or claim full GUI automation. Do not use RDKit fallback as the final fidelity check for reactions or Office output. Catalog coverage does not mean that every SDK overload has been chemically validated with every possible input; inspect outputs and test representative examples for the intended operation.

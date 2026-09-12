@@ -107,10 +107,10 @@ modify_molecule(mol_json={"smiles":"<recognized SMILES>"},
 
 ## 可运行示例
 
-[公开自绘示例](../assets/paper-replica/example/CASE.md) 包含图形 manifest、实际 CDXML/原生预览和离线重建脚本；覆盖常用箭头、电子曲线、富文本、手性和增强立体组。
+[绘图示例](../assets/paper-replica/example/CASE.md) 包含图形 manifest、实际 CDXML/原生预览和离线重建脚本；覆盖常用箭头、电子曲线、富文本、手性和增强立体组。
 
 ```powershell
 & <MCP-Python> <skill>/assets/paper-replica/example/replay.py <absolute-new-output-directory>
 ```
 
-对生成的 `figure.cdxml` 调用原生渲染接口，再制作并查看左右对照。本例不调用 DECIMER；论文识图使用用户有权提供的图片按上述流程执行。公开仓库不包含个人论文截图和会话记录。图形字段见 [绘图参考](publication-figures.md)。
+对生成的 `figure.cdxml` 调用原生渲染接口，再制作并查看左右对照。本例不调用 DECIMER；论文识图使用用户有权提供的图片按上述流程执行。图形字段见 [绘图参考](publication-figures.md)。

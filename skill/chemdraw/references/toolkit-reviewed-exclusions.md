@@ -10,7 +10,7 @@ Start with [interface-catalog.md](interface-catalog.md), then search one [invent
 
 ## Inputs And Outputs
 
-A publishable wrapper must own a complete operation, validate inputs, preserve sources, refuse overwrite, run through the isolated worker, return a stable contract, and have a real output fixture.
+A publishable wrapper must own a complete operation, validate inputs, preserve sources, refuse overwrite, run through the isolated worker, return a stable contract, and include a reproducible example of its output.
 
 ## Failure Modes
 
@@ -27,4 +27,4 @@ Supporting-only categories include atom/bond builders, coordinate transforms, XM
 - LLM correction/refinement as truth.
 - Network CAS/OCSR without explicit policy and bounded transport.
 - Developer audits, verification reports, or duplicate internals as user tools.
-- `reaction_image_to_cdxml` until real fixtures prove candidate order and reactant/product assignment.
+- `reaction_image_to_cdxml` because candidate ordering and reactant/product assignment are not reliably supported.
