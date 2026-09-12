@@ -148,6 +148,27 @@ Explicitly simulated first-order decay demonstrates the numerical-data-to-figure
 
 </details>
 
+## Reconstruction scope and structure review
+
+Both complex synthesis examples contain the complete layout, native molecular structures, text, brackets and electron arrows. Molecules remain editable atoms, bonds and expandable abbreviations; screenshots and traced outlines do not substitute for molecular objects.
+
+| Check | Current result |
+| --- | --- |
+| Connectivity, elements, charge, isotopes and alkene geometry after native saving | Save-cycle checks pass for both figures |
+| Complete stereochemistry | Not accepted; RDKit and ChemScript return opposing assignments at some bridgeheads |
+| Visual comparison with the reference | Native previews and full comparisons inspected; font, arrow and some line geometry still differ |
+| Strict pixel-for-pixel 1:1 | Not achieved |
+
+Save-cycle agreement does not establish perfect recognition of the reference. Compounds 105–109, 115–120 and 121 contain conflicting specified configurations; some expanded chains and abbreviation definitions in the source also need clarification. The reconstructions preserve each depiction rather than silently making the route chemically self-consistent. The [atom-level comparison](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json) records component hashes and atom mappings for review; absence of a disagreement does not independently establish source stereochemistry.
+
+After installing the runtime, rebuild these two layouts offline without repeating DECIMER recognition:
+
+```powershell
+python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
+```
+
+Use a new output directory. This assembles saved molecular components; native previews still require Windows ChemDraw. See the [rebuild example and limitations](skill/chemdraw/assets/paper-reconstructions/README.md). Source paper artwork is not relicensed under the software license.
+
 ## Reproduce a paper figure
 
 Start with the whole figure, then follow one route:
@@ -179,6 +200,9 @@ Remote DECIMER calls require upload authorization. Visual review remains an agen
 - **Structures and reactions:** resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert, and render CDXML or CDX documents.
 - **Molecule comparison:** use ChemScript exact-identity checks together with RDKit fingerprint similarity for one molecule pair or a bounded batch.
 - **Image recognition:** extract candidate structures, confidence values, and bounding boxes with local DECIMER models or an explicitly confirmed remote request. Recognition candidates still require source review.
+- **TLC and apparatus:** use native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly.
+- **Spectra and scientific plots:** pick peaks and integrate selected regions in processed 1D NMR data; turn numerical data into editable curves. Automatic atom assignment and a complete FID-processing pipeline are not included.
+- **Reaction mechanisms:** compose explicit atom coordinates and electron-arrow endpoints to illustrate supplied mechanisms; drawing does not establish mechanistic validity.
 - **Office documents:** embed editable ChemDraw objects in supported desktop versions of Word and PowerPoint.
 - **Experimental records:** discover files and process selected LCMS, SciFinder RDF, and lab-book workflows.
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process. Process separation limits stalled calls; it is not an operating-system security sandbox.
