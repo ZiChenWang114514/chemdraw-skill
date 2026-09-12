@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="20" LineWidth="0.6" BoldWidth="2" MarginWidth="1.5" BondSpacing="18" LabelFont="3" CaptionFont="3" LabelSize="13" CaptionSize="13" LabelFace="96" BoundingBox="0 0 915.5 468.5">
+  <fonttable>
+    <font id="3" charset="iso-8859-1" name="Arial" />
+  </fonttable>
+  <colortable>
+    <color r="1" g="1" b="1" />
+    <color r="0" g="0" b="0" />
+  </colortable>
+  <page id="1074" BoundingBox="0 0 915.5 468.5" WidthPages="2" HeightPages="1">
+    <fragment id="1000" BoundingBox="273.12 201.38 372.50 255.50" Z="1001">
+      <n id="1002" p="372.50 245.50" Z="1003" />
+      <n id="1004" p="355.00 255.50" Z="1005" />
+      <n id="1006" p="334.25 249.50" Z="1007" />
+      <n id="1008" p="312.50 254.50" Z="1009" />
+      <n id="1010" p="294.75 246.50" Z="1011" />
+      <n id="1012" p="305.38 232.75" Z="1013" />
+      <n id="1014" p="292.50 218.12" Z="1015" />
+      <n id="1016" p="273.12 217.38" Z="1017" Element="7" NumHydrogens="2" LabelDisplay="Right">
+        <t id="1018" p="250.625 222.075" LabelJustification="Left">
+          <s font="3" size="13" face="96" color="3">H2N</s>
+        </t>
+      </n>
+      <n id="1019" p="308.75 205.38" Z="1020" Element="8" NumHydrogens="0">
+        <t id="1021" p="303.75 210.075" LabelJustification="Left">
+          <s font="3" size="13" face="96" color="3">O</s>
+        </t>
+      </n>
+      <n id="1022" p="329.25 209.00" Z="1023" />
+      <n id="1024" p="345.75 201.38" Z="1025" Element="8" NumHydrogens="0">
+        <t id="1026" p="340.75 206.075" LabelJustification="Left">
+          <s font="3" size="13" face="96" color="3">O</s>
+        </t>
+      </n>
+      <n id="1027" p="367.75 206.38" Z="1028" Element="8" NumHydrogens="1">
+        <t id="1029" p="362.75 211.075" LabelJustification="Left">
+          <s font="3" size="13" face="96" color="3">OH</s>
+        </t>
+      </n>
+      <n id="1030" p="326.25 227.25" Z="1031" />
+      <n id="1032" p="348.00 236.00" Z="1033" />
+      <n id="1034" p="366.25 234.25" Z="1035" />
+      <n id="1036" p="338.88 219.50" Z="1037" />
+      <b id="1038" Z="1039" B="1002" E="1004" />
+      <b id="1040" Z="1041" B="1004" E="1006" Order="2" DoublePosition="Left" />
+      <b id="1042" Z="1043" B="1006" E="1008" />
+      <b id="1044" Z="1045" B="1008" E="1010" />
+      <b id="1046" Z="1047" B="1010" E="1012" />
+      <b id="1048" Z="1049" B="1012" E="1014" Order="2" DoublePosition="Left" />
+      <b id="1050" Z="1051" B="1014" E="1016" />
+      <b id="1052" Z="1053" B="1014" E="1019" />
+      <b id="1054" Z="1055" B="1019" E="1022" />
+      <b id="1056" Z="1057" B="1022" E="1024" />
+      <b id="1058" Z="1059" B="1024" E="1027" />
+      <b id="1060" Z="1061" B="1022" E="1030" Order="2" DoublePosition="Left" />
+      <b id="1062" Z="1063" B="1030" E="1032" CrossingBonds="1070" />
+      <b id="1064" Z="1065" B="1032" E="1034" />
+      <b id="1066" Z="1067" B="1032" E="1036" />
+      <b id="1068" Z="1069" B="1034" E="1002" />
+      <b id="1070" Z="1071" B="1036" E="1006" />
+      <b id="1072" Z="1073" B="1030" E="1012" />
+    </fragment>
+    <curve id="1075" CurvePoints="273.75 203.625 273.75 203.625 274.5 188.5 295.0 193.5 288.5 213.625 288.5 213.625" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <curve id="1076" CurvePoints="297.5 227.0 297.5 227.0 282.5 238.0 320.5 257.0 317.5 233.0 317.5 233.0" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <curve id="1077" CurvePoints="322.0 217.5 322.0 217.5 310.5 218.5 322.0 177.0 333.0 204.5 333.0 204.5" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <curve id="1078" CurvePoints="356.0 206.5 356.0 206.5 352.0 224.0 362.5 227.0 378.5 225.0 378.5 225.0" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <graphic id="1079" GraphicType="Symbol" SymbolType="LonePair" BoundingBox="270.5 206.5 274.5 208.0" color="0" />
+    <graphic id="1080" GraphicType="Symbol" SymbolType="CirclePlus" BoundingBox="389.5 211.5 398.0 220.0" color="0" />
+    <t id="1081" p="380.0 229.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="13.0" face="0" color="0">H</s>
+    </t>
+  </page>
+</CDXML>

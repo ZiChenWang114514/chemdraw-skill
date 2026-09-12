@@ -1,0 +1,33 @@
+{
+  "source": "Paper excerpt supplied by the user; bibliographic reference not supplied. Source artwork is not relicensed under the software license.",
+  "scope": "Selected structures only; complete scheme reconstruction remains unfinished.",
+  "available_compounds": [
+    "115",
+    "116",
+    "117",
+    "118",
+    "119",
+    "120"
+  ],
+  "comparison_compounds": [
+    "116",
+    "117",
+    "118",
+    "119",
+    "120"
+  ],
+  "verification": "Component CDXML readback and native preview reviewed. Full-scheme and native-save-cycle acceptance pending.",
+  "pixel_identical": false,
+  "sha256": {
+    "115.cdxml": "3d7e055ddaf1d8c6dc26ca1dbad61a4d7a7b4057c310d4e82cd20627fd49419e",
+    "116.cdxml": "4501a8670e3b50b9bd8f1d8e4cd9021f702c40699fdc80d35e72060fb9cd172f",
+    "117.cdxml": "e1b98796bdce0f80da7a39b60140c13c009c7bea3b31c163875a737039141a6f",
+    "118.cdxml": "09110dbd879ef2dc544814853908103fba5190d8dbc7704818408bf392d3881f",
+    "119.cdxml": "dac168378d6ec2ae736c84ce11834fa6d93917f42a9e7026a3d84838e0c9802b",
+    "120.cdxml": "db4d7c093dd492bb7b29e9a75766d56e52b8fc37692d9a0b562a428da3e49386",
+    "comparison.png": "3d180b5352553771fc34be156927ffd575241362eb873ce01bd17654a2bd53d9",
+    "reference.png": "bf93c865a4d4c48ad2aa40440057b73f5dca12bd661573dd95f87623ea763944",
+    "115.png": "2038f6f460b02eb9535ea673f2f6d28d88b20c84dbc1f779f037a5c9982ddf17",
+    "119.png": "eba28ab59cad27b6eafb0302d39d40a005f687e5838265a3d37be76a35d41a1e"
+  }
+}

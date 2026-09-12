@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="20" LineWidth="0.6" BoldWidth="2" MarginWidth="1.5" BondSpacing="18" LabelFont="3" CaptionFont="3" LabelSize="13" CaptionSize="13" LabelFace="96" BoundingBox="0 0 915.5 468.5">
+  <fonttable>
+    <font id="3" charset="iso-8859-1" name="Arial" />
+  </fonttable>
+  <colortable>
+    <color r="1" g="1" b="1" />
+    <color r="0" g="0" b="0" />
+  </colortable>
+  <page id="1070">
+    <fragment id="1000" BoundingBox="509.50 54.50 603.50 110.00" Z="1001">
+      <n id="1002" p="603.50 99.50" Z="1003" />
+      <n id="1004" p="585.00 110.00" Z="1005" />
+      <n id="1006" p="565.50 103.00" Z="1007" />
+      <n id="1008" p="544.50 107.50" Z="1009" />
+      <n id="1010" p="524.00 100.50" Z="1011" />
+      <n id="1012" p="535.00 86.50" Z="1013" />
+      <n id="1014" p="523.50 70.00" Z="1015">
+        <t id="1069" LabelJustification="Left" p="518.8 74.7">
+          <s font="3" size="13" face="96" color="3">C</s>
+        </t>
+      </n>
+      <n id="1016" p="509.50 54.50" Z="1017" Element="7" NumHydrogens="0">
+        <t id="1018" p="504.8 59.2" LabelJustification="Left">
+          <s font="3" size="13" face="96" color="3">N</s>
+        </t>
+      </n>
+      <n id="1019" p="555.50 82.00" Z="1020" />
+      <n id="1021" p="550.50 62.50" Z="1022" Element="8" NumHydrogens="0">
+        <t id="1023" p="545.8 67.2" LabelJustification="Left">
+          <s font="3" size="13" face="96" color="3">O</s>
+        </t>
+      </n>
+      <n id="1024" p="569.00 71.00" Z="1025" />
+      <n id="1026" p="579.00 90.00" Z="1027" />
+      <n id="1028" p="597.00 88.00" Z="1029" />
+      <n id="1030" p="574.50 71.50" Z="1031" />
+      <n id="1032" p="517.50 87.00" Z="1033" Element="1" NumHydrogens="0">
+        <t id="1034" p="512.8 91.7" LabelJustification="Left">
+          <s font="3" size="13" face="96" color="3">H</s>
+        </t>
+      </n>
+      <b id="1035" Z="1036" B="1002" E="1004" />
+      <b id="1037" Z="1038" B="1004" E="1006" Order="2" DoublePosition="Left" />
+      <b id="1039" Z="1040" B="1006" E="1008" />
+      <b id="1041" Z="1042" B="1008" E="1010" />
+      <b id="1043" Z="1044" B="1010" E="1012" />
+      <b id="1045" Z="1046" B="1012" E="1014" Display="WedgeBegin" />
+      <b id="1047" Z="1048" B="1014" E="1016" Order="3" />
+      <b id="1049" Z="1050" B="1012" E="1019" />
+      <b id="1051" Z="1052" B="1019" E="1021" Display="WedgeBegin" />
+      <b id="1053" Z="1054" B="1021" E="1024" />
+      <b id="1055" Z="1056" B="1019" E="1026" CrossingBonds="1063" />
+      <b id="1057" Z="1058" B="1026" E="1028" />
+      <b id="1059" Z="1060" B="1026" E="1030" />
+      <b id="1061" Z="1062" B="1028" E="1002" />
+      <b id="1063" Z="1064" B="1030" E="1006" />
+      <b id="1065" Z="1066" B="1019" E="1024" Display="WedgedHashBegin" />
+      <b id="1067" Z="1068" B="1012" E="1032" Display="WedgedHashBegin" />
+    </fragment>
+    <curve id="1071" CurvePoints="516.0 63.5 516.0 63.5 499.5 74.0 489.0 62.0 493.0 50.5 493.0 50.5" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <curve id="1072" CurvePoints="551.0 76.0 551.0 76.0 537.0 83.0 546.5 46.0 530.0 66.0 530.0 66.0" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <curve id="1073" CurvePoints="527.0 91.0 527.0 91.0 537.5 109.0 550.5 101.0 545.0 87.0 545.0 87.0" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <curve id="1074" CurvePoints="504.0 103.5 504.0 103.5 520.0 117.0 518.5 105.5 516.0 95.5 516.0 95.5" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <graphic id="1075" GraphicType="Symbol" SymbolType="CirclePlus" BoundingBox="498.0 30.0 507.0 39.0" color="0" />
+    <t id="1076" p="487.5 49.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="13.0" face="0" color="0">H</s>
+    </t>
+    <t id="1077" p="470.0 107.0" Justification="Left" InterpretChemically="no">
+      <s font="3" size="13.0" face="0" color="0">Base</s>
+    </t>
+  </page>
+</CDXML>

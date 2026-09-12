@@ -21,19 +21,26 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/-MIT-d94f70?style=flat" height="22" alt="MIT 许可证"></a>
 </p>
 
-## 快速复刻论文反应图
+<p align="center"><a href="#主打案例">查看主打案例</a> · <a href="#快速开始任意-agent">快速开始</a></p>
 
-先读整图，再沿一条路线执行：
+## 主打案例
 
-**整图读图 → 视觉分区 → DECIMER → 匹配原图取向 → 查看左右对照 → 修正结构 → 组装条件与版式 → 原生预览。**
+从实际图片和数据出发，直接查看效果、原图对照和可编辑文件。
 
-```text
-使用 ChemDraw Skill 复刻这张论文图。先读完整反应流程，再裁切各个完整结构，
-取得 DECIMER 识别候选。按原图取向重绘，实际查看左右对照并修正受影响结构；
-用视觉转录条件，最后交付可编辑 CDXML、原生预览，并说明尚存的结构或视觉差异。
-```
+| 案例 | 展示内容 | 交付范围 |
+| --- | --- | --- |
+| [论文反应路线](#paper-scheme-demo) | 五个结构、条件、产率与波浪键 | 完整复刻，非像素一致 |
+| [Sceptrin 反应机理](#mechanism-demo) | 八个结构、电子箭头、电荷与条件 | 完整复刻，非像素一致 |
+| [原生 TLC](#tlc-demo) | 可编辑泳道、斑点与 Rf | 可运行示例 |
+| [原生装置图](#apparatus-demo) | 原生 ChemDraw 模板组装 | 可运行示例 |
+| [实验 NMR 谱图](#nmr-demo) | 真实一维数据与可编辑谱图 | 可运行示例 |
+| [模拟反应动力学](#kinetics-demo) | 数值数据转为可编辑曲线 | 可运行示例 |
+| [复杂合成：101–112](#synthesis-101-demo) | 101、102 的结构与对照 | 部分结构；整图待完成 |
+| [复杂合成：113–122](#synthesis-113-demo) | 115–120 的结构组件 | 部分结构；整图待完成 |
 
-### 从论文截图到可编辑 ChemDraw：实际复刻案例
+<a id="paper-scheme-demo"></a>
+
+### 论文反应路线
 
 **将论文反应图转为可编辑的 ChemDraw 文档。** 示例保留了原图中的五个结构、反应条件、产率和化合物编号。
 
@@ -51,35 +58,9 @@
 
 **经过视觉复核，可继续编辑；尚非逐像素 1:1。** 字体、箭头和部分线条几何仍有差异。保存前后的结构一致，并不能独立证明图中所有细节都识别正确。
 
-[复刻快速指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
+<a id="mechanism-demo"></a>
 
-| 遇到的需求 | 现成处理路线 |
-| --- | --- |
-| 图像裁切与复核 | 复用裁切、遮罩和拼图脚本，保留区域与识别结果的对应关系 |
-| 折叠链条或桥环取向 | 追踪原图坐标，检查交叉关系和键级 |
-| 修正立体化学 | 查看原子编号，经接口明确修改，再读回最终 CDXML |
-| 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
-| 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
-
-远程 DECIMER 调用需要上传授权。视觉复核由智能体实际完成；像素指标不能认证化学正确，也不能保证任意图片都能自动达到严格 1:1。
-
-## 实验绘图与科研数据
-
-原生 TLC、装置模板、已处理的一维 NMR 分析和可编辑科研曲线均提供[可运行示例](skill/chemdraw/references/scientific-workflows.md).
-
-| 原生 TLC 板 | 原生模板装置图 |
-| --- | --- |
-| ![Native TLC lanes and spots](assets/readme/scientific/tlc.png) | ![Editable laboratory apparatus assembled from native ChemDraw templates](assets/readme/scientific/apparatus.png) |
-| [可编辑 TLC](assets/readme/scientific/tlc.cdxml) | [可编辑装置](assets/readme/scientific/apparatus.cdxml) |
-
-| 已处理的实验 NMR | 模拟反应动力学 |
-| --- | --- |
-| ![Experimental 1D NMR spectrum rendered by ChemDraw](assets/readme/scientific/nmr.png) | ![Explicitly simulated first-order decay rendered by ChemDraw](assets/readme/scientific/kinetics.png) |
-| [可编辑谱图](assets/readme/scientific/nmr.cdxml) | [可编辑曲线](assets/readme/scientific/kinetics.cdxml) |
-
-NMR 支持已处理的一维 NMRPipe 或 CSV 数据，可寻峰并对指定区间积分；不包含原始 FID 处理、二维谱解析或自动原子归属。TLC 数值为示例，动力学曲线明确来自模拟。[数据与模板来源](assets/readme/scientific/provenance.json)。
-
-### 可编辑的论文机理图
+### Sceptrin 反应机理
 
 **原始截图**
 
@@ -92,6 +73,113 @@ NMR 支持已处理的一维 NMRPipe 或 CSV 数据，可寻峰并对指定区�
 [可编辑 CDXML](assets/readme/mechanism/mechanism.cdxml) · [原生 CDX](assets/readme/mechanism/mechanism.cdx) · [左右对照](assets/readme/mechanism/comparison.png) · [验证与原图限制](assets/readme/mechanism/provenance.json)
 
 八个编号结构和六个氯离子经过实际 ChemDraw CDXML → CDX → CDXML 保存后，分子组成、图示立体化学和形式电荷保持一致。未定义的 R 保留为通用取代基。已进行视觉核对，**并非逐像素一致**：字体、电子箭头路径、部分桥键几何以及离域电荷标记位置仍有差异；未推测补全原图被裁掉的重结晶说明。
+
+<a id="tlc-demo"></a>
+
+### 原生 TLC
+
+原生 TLC 板、泳道和斑点，Rf 数值为示例。
+
+![原生 TLC](assets/readme/scientific/tlc.png)
+
+[可编辑 CDXML](assets/readme/scientific/tlc.cdxml) · [运行示例](skill/chemdraw/references/scientific-workflows.md) · [数据与模板来源](assets/readme/scientific/provenance.json)
+
+<a id="apparatus-demo"></a>
+
+### 原生装置图
+
+由 ChemDraw 自带装置模板组装，保留原生可编辑图形。
+
+![原生装置图](assets/readme/scientific/apparatus.png)
+
+[可编辑 CDXML](assets/readme/scientific/apparatus.cdxml) · [运行示例](skill/chemdraw/references/scientific-workflows.md) · [数据与模板来源](assets/readme/scientific/provenance.json)
+
+<a id="nmr-demo"></a>
+
+### 实验 NMR 谱图
+
+真实已处理的一维 NMR 数据；支持寻峰和指定区间积分，未进行自动原子归属。
+
+![实验 NMR 谱图](assets/readme/scientific/nmr.png)
+
+[可编辑 CDXML](assets/readme/scientific/nmr.cdxml) · [运行示例](skill/chemdraw/references/scientific-workflows.md) · [数据与模板来源](assets/readme/scientific/provenance.json)
+
+<a id="kinetics-demo"></a>
+
+### 模拟反应动力学
+
+明确标注为模拟的一阶衰减曲线，展示数据到科研图的转换。
+
+![模拟反应动力学](assets/readme/scientific/kinetics.png)
+
+[可编辑 CDXML](assets/readme/scientific/kinetics.cdxml) · [运行示例](skill/chemdraw/references/scientific-workflows.md) · [数据与模板来源](assets/readme/scientific/provenance.json)
+
+<a id="synthesis-101-demo"></a>
+
+### 复杂合成：101–112
+
+**部分结构已复刻，整张路线尚未完成。** 下方展示已有结构对照；完整原图可展开查看。
+
+![复杂合成：101–112 — 结构对照](assets/readme/synthesis-101-112/comparison.png)
+
+<details>
+<summary>查看完整论文原图</summary>
+
+![复杂合成：101–112 — reference](assets/readme/synthesis-101-112/reference.png)
+
+</details>
+
+可编辑结构：[101](assets/readme/synthesis-101-112/101.cdxml) · [102](assets/readme/synthesis-101-112/102.cdxml) · [范围与来源](assets/readme/synthesis-101-112/provenance.json)
+
+<a id="synthesis-113-demo"></a>
+
+### 复杂合成：113–122
+
+**部分结构已复刻，整张路线尚未完成。** 下方展示已有结构对照；完整原图可展开查看。
+
+| 115 | 119 |
+| --- | --- |
+| ![115 — native electron arrows](assets/readme/synthesis-113-122/115.png) | ![119 — native electron arrows](assets/readme/synthesis-113-122/119.png) |
+
+<details>
+<summary>查看 116–120 的逐结构对照</summary>
+
+![116–120: reference and reconstructed structures](assets/readme/synthesis-113-122/comparison.png)
+
+</details>
+
+<details>
+<summary>查看完整论文原图</summary>
+
+![复杂合成：113–122 — reference](assets/readme/synthesis-113-122/reference.png)
+
+</details>
+
+可编辑结构：[115](assets/readme/synthesis-113-122/115.cdxml) · [116](assets/readme/synthesis-113-122/116.cdxml) · [117](assets/readme/synthesis-113-122/117.cdxml) · [118](assets/readme/synthesis-113-122/118.cdxml) · [119](assets/readme/synthesis-113-122/119.cdxml) · [120](assets/readme/synthesis-113-122/120.cdxml) · [范围与来源](assets/readme/synthesis-113-122/provenance.json)
+
+## 快速复刻论文反应图
+
+先读整图，再沿一条路线执行：
+
+**整图读图 → 视觉分区 → DECIMER → 匹配原图取向 → 查看左右对照 → 修正结构 → 组装条件与版式 → 原生预览。**
+
+```text
+使用 ChemDraw Skill 复刻这张论文图。先读完整反应流程，再裁切各个完整结构，
+取得 DECIMER 识别候选。按原图取向重绘，实际查看左右对照并修正受影响结构；
+用视觉转录条件，最后交付可编辑 CDXML、原生预览，并说明尚存的结构或视觉差异。
+```
+
+[复刻快速指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
+
+| 遇到的需求 | 现成处理路线 |
+| --- | --- |
+| 图像裁切与复核 | 复用裁切、遮罩和拼图脚本，保留区域与识别结果的对应关系 |
+| 折叠链条或桥环取向 | 追踪原图坐标，检查交叉关系和键级 |
+| 修正立体化学 | 查看原子编号，经接口明确修改，再读回最终 CDXML |
+| 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
+| 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
+
+远程 DECIMER 调用需要上传授权。视觉复核由智能体实际完成；像素指标不能认证化学正确，也不能保证任意图片都能自动达到严格 1:1。
 
 ## 支持的工作
 

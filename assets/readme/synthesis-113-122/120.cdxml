@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="20" LineWidth="0.6" BoldWidth="2" MarginWidth="1.5" BondSpacing="18" LabelFont="3" CaptionFont="3" LabelSize="13" CaptionSize="13" LabelFace="96" BoundingBox="0 0 915.5 468.5"><fonttable><font id="3" charset="iso-8859-1" name="Arial" /></fonttable><colortable><color r="1" g="1" b="1" /><color r="0" g="0" b="0" /></colortable><page id="1069" BoundingBox="0 0 915.5 468.5" WidthPages="2" HeightPages="1"><fragment id="1000" BoundingBox="84.50 201.00 183.50 256.00" Z="1001">
+<n id="1002" p="183.50 245.50" Z="1003" />
+<n id="1004" p="165.00 256.00" Z="1005" />
+<n id="1006" p="145.50 250.00" Z="1007" />
+<n id="1008" p="123.00 255.00" Z="1009" />
+<n id="1010" p="105.00 247.00" Z="1011" />
+<n id="1012" p="116.50 233.50" Z="1013" />
+<n id="1014" p="137.00 228.00" Z="1015" />
+<n id="1016" p="158.50 237.50" Z="1017" />
+<n id="1018" p="177.00 235.50" Z="1019" />
+<n id="1020" p="150.00 220.50" Z="1021" />
+<n id="1022" p="139.50 209.50" Z="1023" />
+<n id="1024" p="157.50 201.00" Z="1025" Element="8" NumHydrogens="0">
+<t id="1026" p="152.5 205.7" LabelJustification="Left">
+<s font="3" size="13" face="96" color="3">O</s></t>
+</n>
+<n id="1027" p="117.50 207.00" Z="1028" Element="8" NumHydrogens="0">
+<t id="1029" p="112.5 211.7" LabelJustification="Left">
+<s font="3" size="13" face="96" color="3">O</s></t>
+</n>
+<n id="1030" p="103.75 219.00" Z="1031" />
+<n id="1032" p="84.50 217.50" Z="1033" Element="7" NumHydrogens="1" LabelDisplay="Right">
+<t id="1034" p="69.3 222.2" LabelJustification="Left">
+<s font="3" size="13" face="96" color="3">HN</s></t>
+</n>
+<b id="1035" Z="1036" B="1002" E="1004" />
+<b id="1037" Z="1038" B="1004" E="1006" Order="2" DoublePosition="Left" />
+<b id="1039" Z="1040" B="1006" E="1008" />
+<b id="1041" Z="1042" B="1008" E="1010" />
+<b id="1043" Z="1044" B="1010" E="1012" />
+<b id="1045" Z="1046" B="1012" E="1014" Order="2" DoublePosition="Left" />
+<b id="1047" Z="1048" B="1014" E="1016" CrossingBonds="1065" />
+<b id="1049" Z="1050" B="1016" E="1018" />
+<b id="1051" Z="1052" B="1016" E="1020" />
+<b id="1053" Z="1054" B="1014" E="1022" />
+<b id="1055" Z="1056" B="1022" E="1024" Order="2" />
+<b id="1057" Z="1058" B="1022" E="1027" />
+<b id="1059" Z="1060" B="1027" E="1030" />
+<b id="1061" Z="1062" B="1030" E="1032" Order="2" />
+<b id="1063" Z="1064" B="1018" E="1002" />
+<b id="1065" Z="1066" B="1020" E="1006" />
+<b id="1067" Z="1068" B="1030" E="1012" />
+</fragment></page></CDXML>

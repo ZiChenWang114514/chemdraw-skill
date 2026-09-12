@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="20" LineWidth="0.6" BoldWidth="2" MarginWidth="1.5" BondSpacing="18" LabelFont="3" CaptionFont="3" LabelSize="13" CaptionSize="13" LabelFace="96" BoundingBox="0 0 915.5 468.5"><fonttable><font id="3" charset="iso-8859-1" name="Arial" /></fonttable><colortable><color r="1" g="1" b="1" /><color r="0" g="0" b="0" /></colortable><page id="1099"><fragment id="1000" BoundingBox="40.78 15.00 201.41 73.00" Z="1001">
+<n id="1008" p="70.00 34.00" Z="1009" />
+<n id="1010" p="86.50 43.50" Z="1011" />
+<n id="1012" p="103.00 34.00" Z="1013" />
+<n id="1024" p="119.00 43.50" Z="1025" />
+<n id="1036" p="103.50 56.50" Z="1037" Element="8" NumHydrogens="0">
+<t id="1038" p="98.8 61.2" LabelJustification="Left">
+<s font="3" size="13" color="3" face="96">O</s>
+</t>
+</n>
+<n id="1039" p="109.50 73.00" Z="1040" />
+<n id="1041" p="128.00 73.00" Z="1042" />
+<n id="1043" p="134.00 56.50" Z="1044" Element="8" NumHydrogens="0">
+<t id="1045" p="129.3 61.2" LabelJustification="Left">
+<s font="3" size="13" color="3" face="96">O</s>
+</t>
+</n>
+<b id="1048" Z="1049" B="1084" E="1008" />
+<b id="1050" Z="1051" B="1008" E="1010" Order="2" />
+<b id="1052" Z="1053" B="1010" E="1012" />
+<b id="1054" Z="1055" B="1012" E="1089" Display="WedgeBegin" />
+<b id="1062" Z="1063" B="1012" E="1024" />
+<b id="1064" Z="1065" B="1024" E="1094" />
+<b id="1074" Z="1075" B="1024" E="1036" Display="WedgeBegin" />
+<b id="1076" Z="1077" B="1036" E="1039" />
+<b id="1078" Z="1079" B="1039" E="1041" />
+<b id="1080" Z="1081" B="1041" E="1043" />
+<b id="1082" Z="1083" B="1024" E="1043" Display="WedgedHashBegin" />
+<n id="1084" NodeType="Fragment" p="49.0 45.0" LabelDisplay="Right"><fragment id="1085"><n id="1002" p="40.78 61.85" Z="1003" Element="35" NumHydrogens="0">
+<t id="1004" p="36.083264734591964 66.55371655090353" LabelJustification="Left">
+<s font="3" size="13" color="3" face="96">Br</s>
+</t>
+</n>
+<n id="1005" p="49.00 45.00" Z="1006" Element="12" NumHydrogens="0">
+<t id="1007" p="44.3 49.7" LabelJustification="Left">
+<s font="3" size="13" color="3" face="96">Mg</s>
+</t>
+</n>
+<b id="1046" Z="1047" B="1002" E="1005" />
+<n id="1086" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="41.5 45.0" /><b id="1087" B="1086" E="1005" /></fragment><t id="1088" p="57.5 49.0" LabelJustification="Right" Justification="Right" InterpretChemically="no" LabelAlignment="Right" BoundingBox="25 36.0 57.5 50.0"><s font="3" size="13" face="0" color="3">BrMg</s></t></n><n id="1089" NodeType="Fragment" p="103.0 15.0" LabelDisplay="Left"><fragment id="1090"><n id="1014" p="103.00 15.00" Z="1015" Element="8" NumHydrogens="0">
+<t id="1016" p="98.3 19.7" LabelJustification="Left">
+<s font="3" size="13" color="3" face="96">O</s>
+</t>
+</n>
+<n id="1017" p="113.49 30.54" Z="1018" />
+<n id="1019" p="132.19 29.23" Z="1020" Element="8" NumHydrogens="0">
+<t id="1021" p="127.49149336252943 33.93180295202968" LabelJustification="Left">
+<s font="3" size="13" color="3" face="96">O</s>
+</t>
+</n>
+<n id="1022" p="142.68 44.77" Z="1023" />
+<b id="1056" Z="1057" B="1014" E="1017" />
+<b id="1058" Z="1059" B="1017" E="1019" />
+<b id="1060" Z="1061" B="1019" E="1022" />
+<n id="1091" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="95.5 15.0" /><b id="1092" B="1091" E="1014" /></fragment><t id="1093" p="97.5 19.5" LabelJustification="Left" Justification="Left" InterpretChemically="no"><s font="3" size="13" face="0" color="3">OMOM</s></t></n><n id="1094" NodeType="Fragment" p="136.5 35.0" LabelDisplay="Left"><fragment id="1095"><n id="1026" p="136.50 35.00" Z="1027" />
+<n id="1028" p="152.40 44.93" Z="1029" />
+<n id="1030" p="168.96 36.13" Z="1031" />
+<n id="1032" p="184.86 46.06" Z="1033" />
+<n id="1034" p="201.41 37.26" Z="1035" />
+<b id="1066" Z="1067" B="1026" E="1028" />
+<b id="1068" Z="1069" B="1028" E="1030" />
+<b id="1070" Z="1071" B="1030" E="1032" Order="2" />
+<b id="1072" Z="1073" B="1032" E="1034" />
+<n id="1096" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="129.0 35.0" /><b id="1097" B="1096" E="1026" /></fragment><t id="1098" p="131.5 40.5" LabelJustification="Left" Justification="Left" InterpretChemically="no"><s font="3" size="13" face="0" color="3">C</s><s font="3" size="13" face="32" color="3">5</s><s font="3" size="13" face="0" color="3">H</s><s font="3" size="13" face="32" color="3">9</s></t></n></fragment></page></CDXML>
