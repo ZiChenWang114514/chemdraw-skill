@@ -1,0 +1,413 @@
+{
+  "scope": "Cross-reader consistency only, not an experimental stereochemical assignment. Indices are zero-based in the recorded RDKit CDXML readback, and refer to the file hash listed for each compound. Missing assignments may be intentional and are not automatically errors.",
+  "rdkit_version": "2026.03.3",
+  "compounds": {
+    "103": {
+      "source_sha256": "16a76d519ba1c6591d8a4755e4b61f23efa77ee60343d823574d943562b5f176",
+      "rdkit_smiles": "C/C=C/CCCCC/C=C/C1(C(=O)OC)C(COCc2ccc(OC)cc2)CCC1(/C=C/C[C@@H](OCOC)C1(CC/C=C/C)OCCO1)[O][Mg][Br]",
+      "native_smiles": "C/C=C/CCCCC/C=C/[C@]1(C(=O)OC)[C@H](COCc2ccc(OC)cc2)CC[C@]1(/C=C/C[C@@H](OCOC)C1(CC/C=C/C)OCCO1)[O][Mg][Br]",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 2,
+          "native_atom_index": 4,
+          "element": "C",
+          "neighbors": [
+            1,
+            3,
+            5,
+            9
+          ],
+          "rdkit_CIP": "?",
+          "native_CIP": "S"
+        },
+        {
+          "rdkit_atom_index": 5,
+          "native_atom_index": 5,
+          "element": "C",
+          "neighbors": [
+            2,
+            6,
+            7
+          ],
+          "rdkit_CIP": "?",
+          "native_CIP": "R"
+        },
+        {
+          "rdkit_atom_index": 9,
+          "native_atom_index": 8,
+          "element": "C",
+          "neighbors": [
+            8,
+            10,
+            2,
+            48
+          ],
+          "rdkit_CIP": "?",
+          "native_CIP": "R"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "104": {
+      "source_sha256": "f29ebe2ccc19e9a6b4b3133fcd453a83887551736259a0fd6f504e08dbbfe18c",
+      "rdkit_smiles": "C/C=C/CCCCCC1/C=C(\\C(=O)OC)C(COCc2ccc(OC)cc2)CC/C([O][Mg][Br])=C/C1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1",
+      "native_smiles": "C/C=C/CCCCCC1/C=C(\\C(=O)OC)C(COCc2ccc(OC)cc2)CC/C([O][Mg][Br])=C/C1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [],
+      "direct_isomeric_smiles_agree": true
+    },
+    "105": {
+      "source_sha256": "a6d8b6c812516e546394a3d8a20f259244a863643e6e6793ca44e86287394b34",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@@H](C(=O)CC[C@H]2COCc2ccc(OC)cc2)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@H](C(=O)CC[C@H]2COCc2ccc(OC)cc2)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 36,
+          "native_atom_index": 2,
+          "element": "C",
+          "neighbors": [
+            34,
+            37,
+            39
+          ],
+          "rdkit_CIP": "R",
+          "native_CIP": "S"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "106": {
+      "source_sha256": "de7addaaf80c1c6a9955c6abb9b80776585a702e68b52e475a2731b98fe11bbc",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@@H](C(=O)C(C(=O)OC)C/C2=C(/OCOC)OC(=O)OC)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@H](C(=O)[C@H](C(=O)OC)C/C2=C(/OCOC)OC(=O)OC)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 36,
+          "native_atom_index": 22,
+          "element": "C",
+          "neighbors": [
+            35,
+            37,
+            24
+          ],
+          "rdkit_CIP": "?",
+          "native_CIP": "R"
+        },
+        {
+          "rdkit_atom_index": 39,
+          "native_atom_index": 2,
+          "element": "C",
+          "neighbors": [
+            37,
+            40,
+            42
+          ],
+          "rdkit_CIP": "R",
+          "native_CIP": "S"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "107": {
+      "source_sha256": "d3bd3efb7d1f1206a274e81db991477f806fd4d85cb3226b0a1a4020e5112fc0",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@@H](C(=O)C(C(=O)OC)C/C2=C(/OCOC)[O+](C(=O)OC)[Si](C)(C)C)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@H](C(=O)[C@H](C(=O)OC)C/C2=C(/OCOC)[O+](C(=O)OC)[Si](C)(C)C)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 40,
+          "native_atom_index": 16,
+          "element": "C",
+          "neighbors": [
+            39,
+            41,
+            21
+          ],
+          "rdkit_CIP": "?",
+          "native_CIP": "R"
+        },
+        {
+          "rdkit_atom_index": 43,
+          "native_atom_index": 18,
+          "element": "C",
+          "neighbors": [
+            41,
+            44,
+            46
+          ],
+          "rdkit_CIP": "R",
+          "native_CIP": "S"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "108": {
+      "source_sha256": "976fc3631fac01f5976714d0d204a00f06ec47f818576c837e82c471e617051f",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@@H](C(=O)C(C(=O)OC)C/C2=C(/OCOC)O[Si](C)(C)C)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1.COC#[O+]",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@H](C(=O)[C@H](C(=O)OC)C/C2=C(/OCOC)O[Si](C)(C)C)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1.COC#[O+]",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 36,
+          "native_atom_index": 22,
+          "element": "C",
+          "neighbors": [
+            35,
+            37,
+            19
+          ],
+          "rdkit_CIP": "?",
+          "native_CIP": "R"
+        },
+        {
+          "rdkit_atom_index": 39,
+          "native_atom_index": 2,
+          "element": "C",
+          "neighbors": [
+            37,
+            40,
+            42
+          ],
+          "rdkit_CIP": "R",
+          "native_CIP": "S"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "109": {
+      "source_sha256": "dd10670174b6d71f0491f615ce0abcd35b8fb937ca1cd64b57133bcec5e1591c",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@@H](C(=O)C(C(=O)OC)C[C@@]2(C(=O)OC)C(=O)OCOC)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1.C[Si](C)(C)OS(=O)(=O)C(F)(F)F.C[Si](C)(C)OS(=O)(=O)C(F)(F)F",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(=O)[C@H](C(=O)[C@H](C(=O)OC)C[C@@]2(C(=O)OC)C(=O)OCOC)[C@H]1C[C@@H](OCOC)C1(CC/C=C/C)OCCO1.C[Si](C)(C)OS(=O)(=O)C(F)(F)F.C[Si](C)(C)OS(=O)(=O)C(F)(F)F",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 45,
+          "native_atom_index": 31,
+          "element": "C",
+          "neighbors": [
+            44,
+            46,
+            29
+          ],
+          "rdkit_CIP": "?",
+          "native_CIP": "R"
+        },
+        {
+          "rdkit_atom_index": 48,
+          "native_atom_index": 33,
+          "element": "C",
+          "neighbors": [
+            46,
+            49,
+            51
+          ],
+          "rdkit_CIP": "R",
+          "native_CIP": "S"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "110": {
+      "source_sha256": "9b096a07a65786d13e55186c7452623ecc5d30fe69a267d60fe710a1e3457ed4",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C34O[C@@H](C5(CC/C=C/C)OCCO5)C[C@@H]1C3C(=O)C(C(=O)OC)CC2(C(=O)O[Si](C)(C)C)C(OC)(O[Si](C)(C)C)O4",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C34O[C@@H](C5(CC/C=C/C)OCCO5)C[C@@H]1C3C(=O)C(C(=O)OC)CC2(C(=O)O[Si](C)(C)C)C(OC)(O[Si](C)(C)C)O4",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [],
+      "direct_isomeric_smiles_agree": true
+    },
+    "111": {
+      "source_sha256": "53707b8515ecd80eb5c673364e0710af2e5ccb729a3c4e48708ad5e4d50974eb",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C3(C(=O)O)CC(C(=O)OC)C(=O)C4[C@H]1C[C@H](C1(CC/C=C/C)OCCO1)OC24OC3=O",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C3(C(=O)O)CC(C(=O)OC)C(=O)C4[C@H]1C[C@H](C1(CC/C=C/C)OCCO1)OC24OC3=O",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [],
+      "direct_isomeric_smiles_agree": true
+    },
+    "112": {
+      "source_sha256": "ec54ca44fde74633fc40c1fc248092bf58d1d8c8450cb9c285b13f3e223c9755",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C3(CC(=O)O)CC4=C(C(=O)OC4=O)C4[C@H]1C[C@H](C(=O)CC/C=C/C)OC24OC3=O",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C3(CC(=O)O)CC4=C(C(=O)OC4=O)C4[C@H]1C[C@H](C(=O)CC/C=C/C)OC24OC3=O",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [],
+      "direct_isomeric_smiles_agree": true
+    },
+    "115": {
+      "source_sha256": "4be1d9d29d5bb1fd941dd0df753119fecf3e9e8d7f71f0139b088c709c3f9425",
+      "rdkit_smiles": "N#C[C@@H]1CCC2=CCC[C@@H](C2)[C@@]12CO2.[H+]",
+      "native_smiles": "N#C[C@@H]1CCC2=CCC[C@H](C2)[C@@]12CO2.[H+]",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 11,
+          "native_atom_index": 9,
+          "element": "C",
+          "neighbors": [
+            8,
+            12,
+            13
+          ],
+          "rdkit_CIP": "S",
+          "native_CIP": "R"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "116": {
+      "source_sha256": "036c9db92b91469319807f18493c9bdc36d5df80d91d0f744bd5e58749e086d7",
+      "rdkit_smiles": "N=C1OCC2=C1CCC1=CCC[C@H]2C1",
+      "native_smiles": "N=C1OCC2=C1CCC1=CCC[C@@H]2C1",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 7,
+          "native_atom_index": 12,
+          "element": "C",
+          "neighbors": [
+            6,
+            8,
+            9
+          ],
+          "rdkit_CIP": "S",
+          "native_CIP": "R"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "117": {
+      "source_sha256": "58ca4e3a17f5fc95aac239de851efb882d31e9365356e0ae37ddf6df992a20a6",
+      "rdkit_smiles": "Nc1occ2c1CCC1=CCC[C@H]2C1",
+      "native_smiles": "Nc1occ2c1CCC1=CCC[C@@H]2C1",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 11,
+          "native_atom_index": 9,
+          "element": "C",
+          "neighbors": [
+            10,
+            12,
+            13
+          ],
+          "rdkit_CIP": "S",
+          "native_CIP": "R"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "118": {
+      "source_sha256": "4daa5872b9c359132c5d6261d60d9489c292fd56d8e8da24fefba3fb64dd5e7f",
+      "rdkit_smiles": "N=C1OC(OO)C2=C1CCC1=CCC[C@H]2C1",
+      "native_smiles": "N=C1OC(OO)C2=C1CCC1=CCC[C@@H]2C1",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 7,
+          "native_atom_index": 14,
+          "element": "C",
+          "neighbors": [
+            6,
+            8,
+            9
+          ],
+          "rdkit_CIP": "S",
+          "native_CIP": "R"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "119": {
+      "source_sha256": "f2601c636967eb290ab7d635bf6f1f9a1bc131269dcaea7eb6937bcc03138096",
+      "rdkit_smiles": "Nc1oc(OO)c2c1CCC1=CCC[C@H]2C1.[H+]",
+      "native_smiles": "Nc1oc(OO)c2c1CCC1=CCC[C@@H]2C1.[H+]",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 13,
+          "native_atom_index": 9,
+          "element": "C",
+          "neighbors": [
+            12,
+            14,
+            15
+          ],
+          "rdkit_CIP": "S",
+          "native_CIP": "R"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "120": {
+      "source_sha256": "4a5bb2450ecae67ee868557fe624f9b68d1282f4bb95af8fe49fe161f510f1a6",
+      "rdkit_smiles": "N=C1OC(=O)C2=C1CCC1=CCC[C@H]2C1",
+      "native_smiles": "N=C1OC(=O)C2=C1CCC1=CCC[C@@H]2C1",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 7,
+          "native_atom_index": 13,
+          "element": "C",
+          "neighbors": [
+            6,
+            8,
+            9
+          ],
+          "rdkit_CIP": "S",
+          "native_CIP": "R"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "121": {
+      "source_sha256": "30b7ca668b148a5708450efd749c584036859d632575e81798ac432ab3a84791",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C(OCc3ccc(OC)cc3)[C@@H](C3=C(CC24COC(C)(C)OC4)C(=O)OC3=O)[C@H]1C[C@@H](O[Si](C)(C)C(C)(C)C)C(CC/C=C/C)(OC)OC",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2[C@H](OCc3ccc(OC)cc3)[C@H](C3=C(CC24COC(C)(C)OC4)C(=O)OC3=O)[C@H]1C[C@@H](O[Si](C)(C)C(C)(C)C)C(CC/C=C/C)(OC)OC",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [
+        {
+          "rdkit_atom_index": 44,
+          "native_atom_index": 6,
+          "element": "C",
+          "neighbors": [
+            43,
+            45,
+            49
+          ],
+          "rdkit_CIP": "R",
+          "native_CIP": "S"
+        },
+        {
+          "rdkit_atom_index": 49,
+          "native_atom_index": 7,
+          "element": "C",
+          "neighbors": [
+            44,
+            39,
+            2
+          ],
+          "rdkit_CIP": "?",
+          "native_CIP": "R"
+        }
+      ],
+      "direct_isomeric_smiles_agree": false
+    },
+    "122": {
+      "source_sha256": "8577f18df073e1ce76f402221d7c8392fa594e4e088c9c2de49806b24d3c516c",
+      "rdkit_smiles": "C/C=C/CCCCC[C@@H]1C=C2C3(CC(=O)O)CC4=C(C(=O)OC4=O)C([C@H]1C[C@@H](O)C(=O)CC/C=C/C)C2(O)OC3=O",
+      "native_smiles": "C/C=C/CCCCC[C@@H]1C=C2C3(CC(=O)O)CC4=C(C(=O)OC4=O)C([C@H]1C[C@@H](O)C(=O)CC/C=C/C)C2(O)OC3=O",
+      "connectivity_atom_mapping_complete": true,
+      "differences": [],
+      "direct_isomeric_smiles_agree": true
+    }
+  },
+  "version_check": {
+    "rdkit_version": "2026.03.6",
+    "compound": "120",
+    "isomeric_smiles": "N=C1OC(=O)C2=C1CCC1=CCC[C@H]2C1",
+    "previous_rdkit_smiles": "N=C1OC(=O)C2=C1CCC1=CCC[C@H]2C1",
+    "native_smiles": "N=C1OC(=O)C2=C1CCC1=CCC[C@@H]2C1",
+    "native_agreement": false
+  }
+}
