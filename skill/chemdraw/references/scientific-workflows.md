@@ -52,6 +52,10 @@ Use native `symbol` objects for lone pairs and circled charges as described in [
 
 For a paper mechanism with circled charges, verify an actual **CDXML → CDX → CDXML** native save cycle with `convert_cdx_cdxml`, then compare `document_inventory` from `cdxml_toolkit.chemistry_semantics` before and after. A valid input CDXML alone misses charge reassignment during native editing. The CDXML `<represent attribute="Charge" object="ATOM_ID"/>` records a charge-symbol association, but placement must still be checked after saving; keep the symbol closest to its intended charged atom. If this prevents an exact visual match, state the difference. Preserve undefined R groups with native `NodeType="GenericNickname" GenericNickname="R"` nodes; `Element="0"` can prevent ChemDraw from opening the document.
 
+When the reference shows a separate proton, create a separate chemical `[H+]` species with an `Element="1"`, `Charge="1"` node. Put its H label on that node and associate any circled plus with that node. Plain H text beside a free charge symbol can cause ChemDraw to charge a nearby heteroatom instead. Verify both species separately after native saving: the proton must remain a proton and the neighbouring molecule must retain its intended charge.
+
+For bridged or perspective ring drawings, inspect native-save stereochemistry even when no new wedges were added. ChemDraw can write `Geometry="Tetrahedral"` and `BondOrdering` from the drawing geometry. Neither removing `CrossingBonds` nor setting `AS="u"` and `Geometry="Unknown"` reliably prevents that inference. Resolve the depicted configuration against the reference before accepting the native result; do not delete stereo from the comparison merely to make validation pass.
+
 Set `complete: true` on a step only when both sides include every atom-contributing species. Element, isotope and charge counts, including hydrogen, must balance. Repeat species IDs for stoichiometric coefficients. Partial paper illustrations remain explicitly unchecked. A balanced equation does not establish mechanistic correctness.
 
 ## Acceptance
