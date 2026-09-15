@@ -1,7 +1,7 @@
-# ChemDraw Skill
+# ChemDraw Skill — AI 化学绘图与 ChemDraw MCP
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill：将化学请求转化为经过检查的原生 ChemDraw 文件，并提供受控的 CDXML 工作流">
+  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill：任意 AI Agent 可用的化学结构绘图、论文图复刻与 ChemDraw MCP 工作流">
 </p>
 
 **让任意 AI Agent 都能使用 ChemDraw 工作流。** 绘制可编辑化学结构、复刻论文图，将结构与实验数据生成底物拓展图和 SAR 图；在 ChemDraw 手工调整后更新数据，保留无关布局与注释。支持通过 MCP 或 Python/CLI 接入。
@@ -23,7 +23,9 @@
 
 <p align="center"><a href="#主打案例">查看主打案例</a> · <a href="#快速开始任意-agent">快速开始</a></p>
 
-## 从数据生成可持续修改的论文图
+<a id="从数据生成可持续修改的论文图"></a>
+
+## 从 CSV / Excel 生成 SAR 图和底物拓展图
 
 将 CSV/XLSX 与可信结构生成底物拓展图或完整结构 SAR 图。化合物 ID 绑定结构和实验指标；在 ChemDraw 手工编辑后更新数据或替换结构，保留无关布局与注释。无法唯一匹配时输出冲突草稿。详见[使用指南与示例](skill/chemdraw/references/data-driven-figures.md)。XLSX 读取需要工具包的 `publication` 可选依赖。
 
@@ -258,6 +260,20 @@ Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` �
 - 远程图像识别仅在调用方明确确认后才允许上传。复刻指南要求明确结构角色并逐图复核，不将反应图识别视为无人检查的自动转换。
 - 内置 HTTP 监听器不提供 TLS。非环回地址必须使用持有者令牌身份验证和允许的 `Host`，并应通过加密隧道或 HTTPS 反向代理提供服务。`/health` 只公开状态，`/metrics` 需要身份验证。
 - 工作进程可以隔离超时与故障，但不会为 ChemDraw、Office、Python 依赖项或文件系统访问提供安全沙箱。启用原生文件操作或远程访问前，请阅读[安全策略](.github/SECURITY.md)。
+
+## ChemDraw AI 绘图与 MCP：常见问题
+
+### 任意 AI Agent 都能使用这个 ChemDraw Skill 吗？
+
+可以。Agent 需要能够读取 Skill 指令，并通过 MCP（Model Context Protocol，模型上下文协议）调用工具，或执行 Python/CLI。详见[Agent 接入指南](skill/chemdraw/references/agent-integration.md)。原生 ChemDraw 渲染需要已授权的 Windows 主机；CDXML 与 RDKit 核心工作流也支持 macOS 和 Linux。
+
+### 能从 Excel 实验数据生成 SAR 图和底物拓展图吗？
+
+可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图。稳定的化合物 ID 保持数据对应，更新项目时保留无关的手工布局修改。详见[数据驱动绘图指南](skill/chemdraw/references/data-driven-figures.md)。
+
+### 能把文献结构图复刻成可编辑 ChemDraw 文件吗？
+
+[论文图复刻流程](skill/chemdraw/references/image-visual-review.md)结合结构确认、版式重建与原生视觉复核，输出可编辑 CDXML。图像识别与立体化学仍需验证，不保证逐像素一致。
 
 ## 文档
 

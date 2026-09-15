@@ -1,7 +1,7 @@
-# ChemDraw Skill
+# ChemDraw Skill — AI Chemical Drawing with MCP
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill: controlled CDXML workflows from a chemistry request to a checked native ChemDraw artifact">
+  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill for any AI agent: editable chemical structures and native ChemDraw previews through MCP">
 </p>
 
 **Bring ChemDraw workflows to any AI agent.** Draw editable chemical structures, reconstruct paper figures, and turn structure tables into substrate-scope and SAR panels. Update data after ChemDraw editing while preserving unrelated layout and annotations. Connect through MCP or Python/CLI.
@@ -23,7 +23,9 @@
 
 <p align="center"><a href="#featured-demos">Explore featured demos</a> · <a href="#quick-start-any-agent">Quick start</a></p>
 
-## Data-driven publication figures
+<a id="data-driven-publication-figures"></a>
+
+## SAR and substrate-scope figures from CSV or Excel
 
 Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted structures. Stable compound IDs bind measurements to editable ChemDraw objects. Update data or replace a structure after native editing while preserving unrelated layout and annotations; ambiguous matches produce conflict drafts. See the [workflow and examples](skill/chemdraw/references/data-driven-figures.md). XLSX support requires the toolkit `publication` extra.
 
@@ -260,6 +262,20 @@ For native rendering, ChemScript or Office, add the corresponding dependencies a
 - Remote image recognition refuses upload unless the caller explicitly confirms it. The guided replication route requires explicit structure-role assignment and visual review; it is not an unattended reaction-image converter.
 - The built-in HTTP listener does not provide TLS. Non-loopback use requires bearer authentication and an allowed `Host`; place it behind an encrypted tunnel or HTTPS reverse proxy. `/health` exposes status only, while `/metrics` requires authentication.
 - Worker processes provide timeout and failure isolation, but they do not sandbox ChemDraw, Office, Python dependencies, or filesystem access. Review the [security policy](.github/SECURITY.md) before enabling native file operations or remote access.
+
+## ChemDraw AI and MCP: common questions
+
+### Can any AI agent use this ChemDraw Skill?
+
+Yes. An agent needs access to the Skill instructions and either MCP (Model Context Protocol) tool calls or Python/CLI execution. See [agent setup](skill/chemdraw/references/agent-integration.md). Native ChemDraw rendering requires a licensed Windows host; portable CDXML and RDKit workflows also run on macOS and Linux.
+
+### Can I generate SAR figures from an Excel spreadsheet?
+
+Use trusted structures with CSV or XLSX measurements to produce editable structure–activity relationship (SAR) panels or substrate-scope figures. Stable compound IDs retain data binding, and project updates preserve unrelated manual layout changes. See the [data-driven figure workflow](skill/chemdraw/references/data-driven-figures.md).
+
+### Can I reconstruct a paper figure as an editable ChemDraw file?
+
+The [paper reconstruction workflow](skill/chemdraw/references/image-visual-review.md) combines grounded structures, layout reconstruction and native visual review. It produces editable CDXML; image recognition and stereochemistry require validation, and pixel-identical reproduction is not guaranteed.
 
 ## Documentation
 
