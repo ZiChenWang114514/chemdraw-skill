@@ -4,7 +4,7 @@
   <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill：将化学请求转化为经过检查的原生 ChemDraw 文件，并提供受控的 CDXML 工作流">
 </p>
 
-通过一个通用 Agent Skill 和 MCP 服务器，将化学请求转化为可编辑 CDXML、ChemDraw 原生渲染结果、分子比较结果、识别候选结构以及嵌入 Office 的化学结构。
+**让任意 AI Agent 都能使用 ChemDraw 工作流。** 绘制可编辑化学结构、复刻论文图，将结构与实验数据生成底物拓展图和 SAR 图；在 ChemDraw 手工调整后更新数据，保留无关布局与注释。支持通过 MCP 或 Python/CLI 接入。
 
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/-English-17242b?style=flat" height="22" alt="English"></a>&nbsp;
@@ -22,6 +22,10 @@
 </p>
 
 <p align="center"><a href="#主打案例">查看主打案例</a> · <a href="#快速开始任意-agent">快速开始</a></p>
+
+## 从数据生成可持续修改的论文图
+
+将 CSV/XLSX 与可信结构生成底物拓展图或完整结构 SAR 图。化合物 ID 绑定结构和实验指标；在 ChemDraw 手工编辑后更新数据或替换结构，保留无关布局与注释。无法唯一匹配时输出冲突草稿。详见[使用指南与示例](skill/chemdraw/references/data-driven-figures.md)。XLSX 读取需要工具包的 `publication` 可选依赖。
 
 ## 主打案例
 
@@ -206,7 +210,7 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 - **ChemScript SDK：** 检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制停滞调用造成的影响，但不提供操作系统级安全沙箱。
 - **远程工作站访问：** 保持 stdio 为默认模式，或通过可选的 Streamable HTTP 向外提供 Windows 主机服务，并包含健康状态与 Prometheus 端点。
 
-本项目审计了 `cdxml-toolkit-community` 的 613 个公共符号。该数字表示工具包清单，并不表示 完整 MCP 配置中的 38 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
+本项目审计了 `cdxml-toolkit-community` 的 637 个公共符号。该数字表示工具包清单，并不表示 完整 MCP 配置中的 39 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
 
 ## 选择所需组件
 
@@ -223,16 +227,16 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 
 ## 快速开始：任意 Agent
 
-Skill 与客户端无关。让你的 Agent 加载 `skill/chemdraw/SKILL.md`，再接入 MCP 或使用 Python/CLI。支持 Skill 的客户端可将整个 `chemdraw` 文件夹放入自己的发现目录；其他客户端可通过项目指令指定该文件路径。
+任意 Agent 均可接入。让你的 Agent 加载 `skill/chemdraw/SKILL.md`，再接入 MCP 或使用 Python/CLI。支持 Skill 的客户端可将整个 `chemdraw` 文件夹放入自己的发现目录；其他客户端可通过项目指令指定该文件路径。
 
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community[scientific] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@d1bc6c3d2eebb1ce9a7ff7fa7e3f61fdbe9f614e"
+python -m pip install "cdxml-toolkit-community[scientific,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@e07add1ecc27879f07a27780b1603cdfa596f2c2"
 python -m cdxml_toolkit.mcp_runtime
 ```
 
-上面的命令启动包含完整 38 个工具的 stdio 服务；在 Agent 的 MCP 设置中填写同一 Python 的绝对路径及参数即可。图像复刻需要视觉能力或人工复核。
+上面的命令启动固定提交版本的 stdio 服务。数据驱动论文图需要包含 `publication_figure` 的工具包版本，安装后用 `get_toolkit_capabilities()` 核对；当前 Skill 对应完整 39 工具配置。在 Agent 的 MCP 设置中填写同一 Python 的绝对路径及参数即可。图像复刻需要视觉能力或人工复核。
 
 Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` 预览，再加 `-Apply` 安装。默认存放于 `$HOME/.agents/skills/chemdraw`；不同 Agent 的自动发现位置可能不同。安装器默认不改动客户端配置。macOS/Linux 可直接复制整个 Skill 文件夹。
 

@@ -60,7 +60,7 @@ jobs:
           "mcp==${{ matrix.mcp-version }}"
           "pytest>=7"
           "requests>=2.31"
-          "cdxml-toolkit-community[office] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@d1bc6c3d2eebb1ce9a7ff7fa7e3f61fdbe9f614e"
+          "cdxml-toolkit-community[office,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@e07add1ecc27879f07a27780b1603cdfa596f2c2"
 
       - name: Run complete portable Skill tests
         run: python -m pytest skill/chemdraw/scripts -q

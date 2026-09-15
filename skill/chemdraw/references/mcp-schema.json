@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a1",
   "profile": "codex",
-  "tool_count": 38,
+  "tool_count": 39,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -236,6 +236,14 @@
       "resource_class": "chemdraw_com",
       "timeout_seconds": null,
       "description": "Run the audited deterministic polishing pipeline on a CDXML scheme."
+    },
+    {
+      "name": "publication_figure",
+      "signature": "(operation: str, spec_path: str, output_dir: str) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 600,
+      "description": "Create, update, or check editable substrate-scope and SAR figure projects.\n\noperation is create, update, or check. spec_path is a local JSON file naming\nthe CSV/XLSX table, structure source, fields and style. Updates/checks name a\nproject_path and optionally edited_pages (zero-based page index to CDXML).\nOutput is a new directory. Conflicts produce only a draft and conflict report,\nnever a new accepted project. Native PNG/SVG rendering defaults on, through\nisolated locked workers; native failure is reported as pending validation.\nThis checks reader consistency and data binding, not experimental chemistry."
     },
     {
       "name": "rdkit_workbench",

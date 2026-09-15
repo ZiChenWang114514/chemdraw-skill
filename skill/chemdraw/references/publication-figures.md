@@ -107,3 +107,7 @@ The same entrypoint supports `rdkit_workbench` and `compare_figure_images`. This
 - [CDX SDK archive maintained by IUPAC FAIRSpec](https://iupac.github.io/IUPAC-FAIRSpec/cdx_sdk/TableOfProperties.htm): native curve, arrow, color and graphic properties.
 
 Fresh generation currently rejects unvalidated radical, axial and non-tetrahedral stereochemical encodings. Native-template copies preserve such source bytes, but that is not new chemical validation. Fischer/Newman/Haworth/chair layouts can use verified coordinates/native templates; automatic general projection conversion is not implemented. No claim is made to implement every ChemDraw feature or reconstruct every raster figure automatically.
+
+## Document validation receipt
+
+`metadata.document_chemistry_validation` supplements per-fragment receipts. Composed output uses `status`, `method`, `scope`, `molecules` (including duplicate species), and `sha256` of the final file. `scope=rdkit_readback_consistency` compares the complete serialized inventory against template molecules plus grounded inputs before publication. An unchanged native-template copy instead reports `scope=unchanged_bytes` and `method=byte_identical_copy`; it does not claim reader validation. Native rendering and cross-reader stereochemical acceptance remain separate.

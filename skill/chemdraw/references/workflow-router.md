@@ -64,3 +64,7 @@ Read [operations.md](operations.md). Run `scripts/check_prerequisites.ps1` with 
 ## Diagnose Runtime
 
 Read [operations.md](operations.md). Start with `diagnose_runtime()` and load only the native probes needed for the failing capability. Run the full health check before changing client configuration.
+
+## Substrate scope, SAR, or hand-edited publication updates
+
+Read [data-driven figures](data-driven-figures.md). Use `publication_figure` to create, update, or check a project. Keep the original project directory and supply hand-edited CDXML separately; unresolved identity or concurrent-edit conflicts produce drafts only.

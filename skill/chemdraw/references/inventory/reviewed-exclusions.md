@@ -91,9 +91,9 @@
 
 ## `mcp_runtime.figure_tools`
 
-- **function**, line 587: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
-- **function**, line 206: `compose_chemical_figure(manifest_path: str, output_path: str) -> dict` - Compose editable CDXML using explicit point coordinates and grounded molecules.
-- **function**, line 70: `rdkit_workbench(molecules: list[dict], operation: str = 'inspect', options: dict | None = None, output_path: str | None = None) -> dict` - Analyze grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo.
+- **function**, line 597: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
+- **function**, line 208: `compose_chemical_figure(manifest_path: str, output_path: str) -> dict` - Compose editable CDXML using explicit point coordinates and grounded molecules.
+- **function**, line 72: `rdkit_workbench(molecules: list[dict], operation: str = 'inspect', options: dict | None = None, output_path: str | None = None) -> dict` - Analyze grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo.
 
 ## `mcp_runtime.generate_reference`
 
@@ -178,6 +178,10 @@
 - **function**, line 155: `snapshot_automation_processes(timeout_seconds: float = 5) -> dict[int, dict[str, Any]]` - No public docstring in the audited version.
 - **function**, line 83: `terminate_pid(pid: int, timeout_seconds: float = 10) -> bool` - No public docstring in the audited version.
 
+## `mcp_runtime.publication_figure`
+
+- **function**, line 32: `publication_figure(operation: str, spec_path: str, output_dir: str) -> dict` - Create, update, or check editable substrate-scope and SAR figure projects.
+
 ## `mcp_runtime.remote_tools`
 
 - **function**, line 10: `extract_structures_via_decimer_api(image_path: str, hand_drawn: bool = False, output_path: Optional[str] = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: Optional[str] = None, approved_origin: Optional[str] = None) -> dict[str, Any]` - Upload an image to DECIMER only when confirm_upload is explicitly true.
@@ -219,5 +223,37 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 99: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **class**, line 24: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 101: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **class**, line 25: `ToolSpec` - No public docstring in the audited version.
+
+## `publication.data`
+
+- **function**, line 146: `field_text(record, field)` - No public docstring in the audited version.
+- **function**, line 83: `load_records(spec, base)` - No public docstring in the audited version.
+- **function**, line 15: `local_path(base, value)` - No public docstring in the audited version.
+- **function**, line 11: `sha256(path)` - No public docstring in the audited version.
+- **function**, line 36: `table_rows(path, sheet = None)` - No public docstring in the audited version.
+- **function**, line 155: `write_json(path, value)` - No public docstring in the audited version.
+
+## `publication.layout`
+
+- **function**, line 197: `bounds(node, style)` - No public docstring in the audited version.
+- **function**, line 219: `check_pages(project, roots, spec)` - No public docstring in the audited version.
+- **function**, line 111: `create_pages(records, spec, stage, start_index = 0)` - No public docstring in the audited version.
+- **function**, line 25: `font_for(style, size = None)` - No public docstring in the audited version.
+- **function**, line 53: `fragment_mol(fragment)` - No public docstring in the audited version.
+- **function**, line 64: `molecule_coordinates(mol, bond_length, reference = None)` - No public docstring in the audited version.
+- **function**, line 60: `node_text(node)` - No public docstring in the audited version.
+- **function**, line 215: `overlap(a, b)` - No public docstring in the audited version.
+- **function**, line 84: `prepare(records, spec)` - No public docstring in the audited version.
+- **function**, line 15: `style_settings(spec)` - No public docstring in the audited version.
+- **function**, line 36: `text_width(value, style, size = None)` - No public docstring in the audited version.
+- **function**, line 41: `wrap(value, width, style)` - No public docstring in the audited version.
+
+## `publication.update`
+
+- **function**, line 37: `match_objects(group, record)` - No public docstring in the audited version.
+- **function**, line 16: `matching_group(root, record)` - No public docstring in the audited version.
+- **function**, line 56: `replace_text(node, old, new)` - Preserve unchanged rich runs; single-run labels retain all their style.
+- **function**, line 86: `replacement_fragment(old_fragment, new_smiles, atom_map, stage, root, cid)` - No public docstring in the audited version.
+- **function**, line 151: `update_pages(base_project, base_dir, records, spec, spec_dir, stage)` - No public docstring in the audited version.

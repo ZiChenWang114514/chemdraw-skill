@@ -11,16 +11,16 @@
   <g id="title-block" transform="translate(64 48)">
     <text x="0" y="0"
           fill="#007c83" font-size="18" font-weight="700"
-          font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">AGENTS · MCP · CHEMDRAW</text>
+          font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">ANY AI AGENT · MCP · CHEMDRAW</text>
     <text x="0" y="72"
           fill="#17242b" font-size="58" font-weight="720"
           font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">ChemDraw Skill</text>
     <text x="0" y="118"
           fill="#43545d" font-size="24" font-weight="500"
-          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Controlled CDXML workflows from chemistry request</text>
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Editable chemistry and paper figures</text>
     <text x="0" y="152"
           fill="#43545d" font-size="24" font-weight="500"
-          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">to editable artifact and native ChemDraw render.</text>
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">for any AI agent. Powered by ChemDraw.</text>
   </g>
 
   <g id="workflow" transform="translate(64 278)"

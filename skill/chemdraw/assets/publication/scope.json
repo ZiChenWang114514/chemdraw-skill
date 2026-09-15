@@ -1,0 +1,21 @@
+{
+  "mode": "scope",
+  "table": "scope.csv",
+  "group_column": "group",
+  "fields": [
+    {
+      "column": "yield",
+      "label": "Yield"
+    },
+    {
+      "column": "ee",
+      "label": "ee"
+    }
+  ],
+  "title": "Substrate scope — illustrative data",
+  "conditions": "Layout demonstration; values are simulated, not experimental results.",
+  "footnotes": [
+    "Structures are reused to exercise 48-row pagination. No reaction outcome or biological activity is claimed."
+  ],
+  "native_render": true
+}

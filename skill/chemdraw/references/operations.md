@@ -102,3 +102,7 @@ Read [decimer-api.md](decimer-api.md) for the HTTP contract.
 ## Do Not Use Directly
 
 Do not edit `config.toml` with ad hoc string replacement, launch private ChemScript server commands, or bypass the worker registry.
+
+## Installed Skill Consistency
+
+Use the repository `skill/chemdraw/` as the maintained source. Before and after an upgrade, run `python <skill>/scripts/check_installation.py --source <repository>/skill/chemdraw --installed <installed-skill>`. This read-only check compares SHA-256 hashes, reports missing/modified/extra files, and checks example dependencies and the `figure.cdxml` output contract. It ignores Python bytecode and named test/type-checker caches. Preserve the full previous installation through the repository installer backup before replacing it; additional local files remain recoverable in that backup.

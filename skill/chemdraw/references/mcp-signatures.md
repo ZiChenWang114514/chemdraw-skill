@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a1`
 Profile: `codex`
-Tools: `38`
+Tools: `39`
 
 ## Extended Tools
 
@@ -91,6 +91,18 @@ Parse SciFinder RDF and optionally enrich CAS data over the network.
 ### `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, typing.Any]`
 
 Run the audited deterministic polishing pipeline on a CDXML scheme.
+
+### `publication_figure(operation: str, spec_path: str, output_dir: str) -> dict`
+
+Create, update, or check editable substrate-scope and SAR figure projects.
+
+operation is create, update, or check. spec_path is a local JSON file naming
+the CSV/XLSX table, structure source, fields and style. Updates/checks name a
+project_path and optionally edited_pages (zero-based page index to CDXML).
+Output is a new directory. Conflicts produce only a draft and conflict report,
+never a new accepted project. Native PNG/SVG rendering defaults on, through
+isolated locked workers; native failure is reported as pending validation.
+This checks reader consistency and data binding, not experimental chemistry.
 
 ### `rdkit_workbench(molecules: list[dict], operation: str = 'inspect', options: dict | None = None, output_path: str | None = None) -> dict`
 

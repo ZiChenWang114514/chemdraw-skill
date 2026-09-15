@@ -117,3 +117,7 @@ modify_molecule(mol_json={"smiles":"<recognized SMILES>"},
 ```
 
 对生成的 `figure.cdxml` 调用原生渲染接口，再制作并查看左右对照。本例不调用 DECIMER；论文识图使用用户有权提供的图片按上述流程执行。图形字段见 [绘图参考](publication-figures.md)。
+
+## 验证范围与原生能力缺失
+
+`document_chemistry_validation` 验证最终文件中的完整分子清单（含重复次数），并记录 SHA-256；`scope=rdkit_readback_consistency` 仅表示 RDKit 读回一致。跨读取器构型分歧仍阻止完整立体化学验收。原生 ChemDraw 不可用时，交付可编辑文件并明确标记“原生预览待验证”，不能以其他渲染器替代原生验收。

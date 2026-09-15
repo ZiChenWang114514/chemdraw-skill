@@ -1,6 +1,6 @@
 # Connect any agent
 
-This Skill is client-independent guidance plus Python tools. Any agent that can read local instructions and call MCP tools or execute Python can use it. Image reconstruction additionally needs agent vision (or explicit human visual review); a text-only agent cannot certify pixels it has not inspected. Native ChemDraw output requires a licensed Windows rendering host.
+Use this Skill with any AI agent that can read local instructions and call MCP tools or execute Python/CLI. Load the same Skill folder through the agent's supported instruction mechanism. Image reconstruction additionally needs agent vision (or explicit human visual review); a text-only agent cannot certify pixels it has not inspected. Native ChemDraw output requires a licensed Windows rendering host.
 
 ## Load the instructions
 
@@ -17,7 +17,7 @@ In an MCP-capable client, register a stdio server using its own settings format:
 }
 ```
 
-Use the interpreter in the installed toolkit environment. `codex` is the runtime's existing full-profile identifier (38 tools), accepted by any MCP client; it does not require that product. Keep this literal identifier until the runtime provides a compatible replacement. Restart or refresh the client, list tools, then call `get_toolkit_capabilities()`.
+Use the interpreter in the installed toolkit environment. `codex` is the runtime's existing full-profile identifier (39 tools), accepted by any MCP client; it does not require that product. Keep this literal identifier until the runtime provides a compatible replacement. Restart or refresh the client, list tools, then call `get_toolkit_capabilities()`.
 
 Without MCP, use the [Python/CLI routes](toolkit-cli-interfaces.md) and [figure CLI](publication-figures.md#immediate-cli-fallback). A remote client may connect to the Windows host's authenticated Streamable HTTP endpoint; see [operations](operations.md). Client configuration schemas differ, so do not copy another product's settings file verbatim.
 

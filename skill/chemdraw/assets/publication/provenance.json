@@ -1,0 +1,50 @@
+{
+  "measurements": "simulated",
+  "structures": [
+    {
+      "structure_number": 1,
+      "source": "samples/publication-figures/stereo-reaction.cdxml",
+      "sha256": "2b418be0bf430645370c82a7335b389c8dd62812507531f7f6b8c0ce369ffd51"
+    },
+    {
+      "structure_number": 2,
+      "source": "samples/publication-figures/stereo-reaction.cdxml",
+      "sha256": "2b418be0bf430645370c82a7335b389c8dd62812507531f7f6b8c0ce369ffd51"
+    },
+    {
+      "structure_number": 3,
+      "source": "samples/consolidated/two-step-scheme.cdxml",
+      "sha256": "b5745d56fe7d41f25fedf9b1af258e227273a306bcb4fcc83a81fcc920bcb36f"
+    },
+    {
+      "structure_number": 4,
+      "source": "samples/consolidated/two-step-scheme.cdxml",
+      "sha256": "b5745d56fe7d41f25fedf9b1af258e227273a306bcb4fcc83a81fcc920bcb36f"
+    },
+    {
+      "structure_number": 5,
+      "source": "samples/consolidated/two-step-scheme.cdxml",
+      "sha256": "b5745d56fe7d41f25fedf9b1af258e227273a306bcb4fcc83a81fcc920bcb36f"
+    },
+    {
+      "structure_number": 6,
+      "source": "samples/consolidated/two-step-scheme.cdxml",
+      "sha256": "b5745d56fe7d41f25fedf9b1af258e227273a306bcb4fcc83a81fcc920bcb36f"
+    },
+    {
+      "structure_number": 7,
+      "source": "samples/consolidated/two-step-scheme.cdxml",
+      "sha256": "b5745d56fe7d41f25fedf9b1af258e227273a306bcb4fcc83a81fcc920bcb36f"
+    },
+    {
+      "structure_number": 8,
+      "source": "examples/paper-reconstructions/components/101-112/101.cdxml",
+      "sha256": "23edebe8d9e12e95a0c1c8dda96b72e3691a71a2195430f9224cacbbe341cb4f"
+    },
+    {
+      "structure_number": 9,
+      "source": "examples/paper-reconstructions/components/101-112/102.cdxml",
+      "sha256": "d2c715e8c71781d42dc2f9f4d684e0878f262af5c11bddd8a08979f75a1c2d87"
+    }
+  ]
+}

@@ -4,7 +4,7 @@
   <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill: controlled CDXML workflows from a chemistry request to a checked native ChemDraw artifact">
 </p>
 
-Turn chemistry requests into editable CDXML, native ChemDraw renders, molecule comparisons, recognition candidates, and Office-embedded structures through a client-independent Skill and MCP server.
+**Bring ChemDraw workflows to any AI agent.** Draw editable chemical structures, reconstruct paper figures, and turn structure tables into substrate-scope and SAR panels. Update data after ChemDraw editing while preserving unrelated layout and annotations. Connect through MCP or Python/CLI.
 
 <p align="center">
   <a href="README.zh-cn.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-007c83?style=flat" height="22" alt="简体中文"></a>&nbsp;
@@ -22,6 +22,10 @@ Turn chemistry requests into editable CDXML, native ChemDraw renders, molecule c
 </p>
 
 <p align="center"><a href="#featured-demos">Explore featured demos</a> · <a href="#quick-start-any-agent">Quick start</a></p>
+
+## Data-driven publication figures
+
+Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted structures. Stable compound IDs bind measurements to editable ChemDraw objects. Update data or replace a structure after native editing while preserving unrelated layout and annotations; ambiguous matches produce conflict drafts. See the [workflow and examples](skill/chemdraw/references/data-driven-figures.md). XLSX support requires the toolkit `publication` extra.
 
 ## Featured demos
 
@@ -208,7 +212,7 @@ Remote DECIMER calls require upload authorization. Visual review remains an agen
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process. Process separation limits stalled calls; it is not an operating-system security sandbox.
 - **Remote workstation access:** keep stdio as the default or expose the Windows host through optional Streamable HTTP with health and Prometheus endpoints.
 
-The project audits 613 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 38-tool full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
+The project audits 637 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 39-tool full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
 
 ## Choose the Required Components
 
@@ -230,11 +234,11 @@ Load `skill/chemdraw/SKILL.md` in your agent, then connect MCP or use Python/CLI
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community[scientific] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@d1bc6c3d2eebb1ce9a7ff7fa7e3f61fdbe9f614e"
+python -m pip install "cdxml-toolkit-community[scientific,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@e07add1ecc27879f07a27780b1603cdfa596f2c2"
 python -m cdxml_toolkit.mcp_runtime
 ```
 
-This starts a stdio server with the full 38-tool collection. Register the same absolute Python executable and arguments in your client's MCP settings. Image reconstruction needs vision or human visual review.
+This starts the stdio server from the pinned toolkit revision. Data-driven figures require a toolkit build exposing `publication_figure`; check `get_toolkit_capabilities()` after installation. The current Skill targets the 39-tool full profile. Register the same absolute Python executable and arguments in your client's MCP settings. Image reconstruction needs vision or human visual review.
 
 On Windows, preview `scripts/install.ps1 -Destination <your-skill-directory>`, then add `-Apply`. Its default storage path is `$HOME/.agents/skills/chemdraw`; individual clients may use different discovery paths. Client configuration is not changed by default. On macOS/Linux, copy the entire Skill folder directly.
 
