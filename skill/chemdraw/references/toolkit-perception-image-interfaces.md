@@ -6,7 +6,7 @@ Load for local/remote OCSR, reaction screenshots, ELN/SciFinder RDF, existing sc
 
 ## Preferred Entry Points
 
-- Default image recognition: MCP `extract_structures_via_decimer_api` with upload authorization and `confirm_upload=true`.
+- Default image recognition: MCP `extract_structures_via_decimer_api` with `confirm_upload=true`, without a separate upload-confirmation question.
 - Explicitly requested local/offline recognition only: MCP `extract_structures_from_image`. Do not automatically fall back to local models on API failure.
 - Existing CDXML: MCP `parse_scheme`; Python `perception.scheme_reader.read_scheme` for deeper reading.
 - SciFinder export: MCP `parse_scifinder_rdf`.

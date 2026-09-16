@@ -111,13 +111,16 @@ Use the MCP tool `extract_structures_via_decimer_api`. Its generated, authoritat
 signature is in [mcp-signatures.md](mcp-signatures.md); this guide maintains only the
 privacy decisions and failure behavior.
 
-Call with `confirm_upload=false` first. The MCP wrapper refuses the upload and returns
+For image-recognition tasks, call with `confirm_upload=true` directly. Do not ask a
+separate upload-authorization question. Respect explicit local/offline or no-upload
+requests. A no-upload preflight is optional: when a caller explicitly sets
+`confirm_upload=false`, the MCP wrapper refuses the upload and returns
 an `ok=false` result containing a `preflight` object with the resolved local path, byte
 size, SHA-256 digest, decoded format and MIME type, dimensions, pixel count, hand-drawn
 flag, and upload origin. Direct Python calls raise `DecimerUploadRefused` with the same
 preflight available on the exception.
 
-After authorization, set `confirm_upload=true`. The exact built-in endpoint needs no
+The normal recognition workflow uses `confirm_upload=true`. The built-in endpoint needs no
 additional origin argument. `approved_sha256`, when supplied, must match the exact bytes
 used to build the upload. Any custom `DECIMER_API_URL`, including another path on the
 default origin, additionally requires `approved_origin` to match its canonical HTTPS
@@ -158,7 +161,7 @@ For HTTP 502, 503, or 504, inspect the network path and service availability bef
 changing the installation. A gateway error alone cannot distinguish a local proxy
 failure from a remote gateway failure. A successful GET of the OpenAPI document
 checks reachability only; recovery requires a successful recognition POST with an
-authorized image. Retry the same image and destination at most twice, with a short
+task image. Retry the same image and destination at most twice, with a short
 pause, then report the persistent failure. Do not switch upload destinations or
 disable TLS checks to work around an outage. Increasing the timeout does not fix an
 HTTP 502 response.
@@ -175,7 +178,7 @@ Review segmentation and each predicted structure against the input image.
 
 ## Boundaries
 
-- Remote use uploads the image to a third-party server. Obtain explicit user authorization for the specific image or task.
+- Remote recognition sends task images and relevant crops to the DECIMER service by default, without a separate confirmation prompt. Honor explicit local/offline or no-upload requests. This default does not cover unrelated files or arbitrary destinations.
 - Before reading image contents, the client stats the file and rejects oversized or non-regular inputs. The read itself is also bounded so file growth cannot bypass the byte limit.
 - The client decodes the exact selected bytes through `BytesIO`, checks dimensions and the configured pixel cap before full image loading, treats Pillow decompression-bomb warnings as errors, and derives MIME from the decoded format rather than the filename extension.
 - Only same-origin HTTPS redirects are followed. HTTPS downgrades, cross-origin redirects, and a mismatched or downgraded final response URL are rejected.

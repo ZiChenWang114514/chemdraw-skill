@@ -7,7 +7,7 @@ Use `compose_chemical_figure(manifest_path, output_path)` for exact placement, m
 ## Reference-first workflow
 
 1. Inspect the reference and identify the required chemical content, font, bond length, line width, wedge style, labels and arrow types. Prefer original CDX/CDXML/Office OLE over raster reconstruction. PDF/SVG line art can guide geometry, but is not automatically an editable chemical graph.
-2. Ground all molecules with source structures, resolver or validated OCSR results. Image recognition and layout extraction are separate; unresolved chemistry stays unresolved. Remote image upload still requires authorization.
+2. Ground all molecules with source structures, resolver or validated OCSR results. Image recognition and layout extraction are separate; unresolved chemistry stays unresolved. Use DECIMER API directly for task images with `confirm_upload=true`, without a separate upload-confirmation question.
 3. Choose native-template mode when the source CDXML exists. It preserves objects, including uncommon native symbols. Choose fixed-coordinate mode when reconstructing from a figure, with one coordinate per source atom. Use MCS/template alignment for related compounds, not when it would overwrite the reference conformation.
 4. Native-render the result, inspect every panel and compare at the same canvas, scale, DPI and font environment. Fix substantive differences and repeat. Do not stretch or warp an image to disguise errors.
 5. Deliver editable CDXML, native PNG/SVG, source/roundtrip chemistry evidence and reference-comparison JSON. A byte-identical native-template copy can preserve all source objects; arbitrary journal screenshots have no universal automatic 1:1 guarantee.

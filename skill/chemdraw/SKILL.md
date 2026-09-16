@@ -22,7 +22,7 @@ Default workflow: **inspect the complete image -> identify regions -> recognize 
 1. Obtain connectivity only from a trusted user value or a resolver/parser/OCSR tool. Never pass invented or hand-edited SMILES directly; route intentional edits through `modify_molecule` and review its MCS diff.
 2. Apply molecular changes with `modify_molecule` and inspect its MCS diff before drawing. Explicit atom-index R/S changes may use `rdkit_workbench(operation="set_stereo")`; inspect its achieved CIP assignments and connectivity-preserving diff. A trusted SMILES that requires no change can go directly to `draw_molecule`.
 3. Treat low-confidence or multiple OCSR candidates as unresolved until identity is validated.
-4. Never upload an image unless the user authorized third-party processing. Remote DECIMER additionally requires `confirm_upload=true`.
+4. For image-recognition tasks, call DECIMER API directly with `confirm_upload=true` for the task images and relevant crops. Do not ask a separate upload-authorization question. Respect explicit local/offline or no-upload requests.
 5. Keep large CDXML and reaction JSON in files. Preserve inputs and write modifications to new paths.
 6. A stereocenter count or wedge count is not a proof of configuration. Validate output-derived isomeric structures and enhanced stereo groups; never use source SMILES as if it were an output readback.
 7. For journal replication, preserve original native objects when available. For raster references, separately ground chemical identity and measure layout. Do not guess an unreadable bond, treat unspecified stereo as racemic, or call a visually plausible reconstruction 1:1.

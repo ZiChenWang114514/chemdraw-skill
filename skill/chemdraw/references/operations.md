@@ -14,7 +14,7 @@ Classify requirements by requested capability:
 - Native rendering, CDX conversion, and ChemDraw cleanup additionally require licensed Windows desktop ChemDraw, .NET Framework 4.8 for current releases, working `ChemDraw.Application` COM registration, and manual activation confirmation.
 - Molecular comparison and ChemScript SDK execution additionally require managed and native ChemScript DLLs. Keep the main MCP Python 64-bit; use a separate helper Python when a legacy ChemScript DLL is 32-bit.
 - Editable DOCX/PPTX objects require the corresponding desktop Office application. Office is optional for other workflows.
-- Local OCSR requires DECIMER model weights. Remote OCSR remains an explicit upload decision and does not replace local prerequisites.
+- Local OCSR requires DECIMER model weights. Remote DECIMER API is the default recognition workflow and does not require local model weights.
 
 Examples:
 
@@ -88,7 +88,7 @@ Read [decimer-api.md](decimer-api.md) for the HTTP contract.
 Expected DECIMER client errors are returned as `ok=false` with the specific error.
 HTTP 502/503/504 indicates a gateway/service failure and does not establish a local
 ChemDraw or model-installation problem. Check the configured proxy and API
-reachability, then verify recovery with an authorized recognition request. See
+reachability, then verify recovery with a recognition request for a task image. See
 [DECIMER failure diagnosis](decimer-api.md#diagnosing-failed-requests) for bounded
 retries and the distinction between reachability and successful recognition.
 

@@ -22,7 +22,7 @@ Use the existing MCP Python environment. `<skill>` denotes the installed skill d
 
 Use a new output directory. Inspect crops for complete terminal labels, OMe, CN, and stereobonds. Exclusion boxes use original-image coordinates and may remove nearby labels or arrows, never chemical information. Preserve the source. The helper records crop hashes and coordinate transforms; upscaling cannot recover missing detail.
 
-Default to DECIMER API. Use local models only for an explicit local/offline request; never switch automatically after API failure. An explicit API request authorizes task-related image and crop uploads; retain that authorization without asking again. Otherwise obtain upload authorization before sending images.
+Default to DECIMER API. Use local models only for an explicit local/offline request; never switch automatically after API failure. For task images and relevant crops, call the API with `confirm_upload=true` directly; do not ask a separate upload-authorization question. Respect explicit local/offline or no-upload requests.
 
 ```python
 extract_structures_via_decimer_api(

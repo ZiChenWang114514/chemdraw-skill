@@ -11,7 +11,7 @@ Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth fo
 - Keep exact MCP signatures generated in `references/mcp-signatures.md`; do not duplicate handwritten signatures elsewhere.
 - Preserve existing public tool names unless a documented breaking release is intentional.
 - Keep chemistry grounded: do not invent or hand-edit SMILES, do not silently resolve ambiguous OCSR, and do not overwrite source artifacts.
-- Keep remote upload opt-in. `confirm_upload=false` must remain the default.
+- For image-recognition tasks, use DECIMER API directly with `confirm_upload=true`; do not add a separate upload-confirmation question. Respect explicit local/offline or no-upload requests. Keep the low-level no-upload preflight available for callers that request it.
 
 ## Changes
 
