@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 import subprocess
 import unittest
-import sys
 from unittest import mock
 
 try:
@@ -148,7 +147,6 @@ class AutomationProcessCleanupTests(unittest.TestCase):
 
         self.assertEqual(snapshot, {})
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows COM/process test; covered by Windows CI")
     def test_snapshot_queries_only_supported_automation_processes(self):
         completed = subprocess.CompletedProcess(
             args=[],

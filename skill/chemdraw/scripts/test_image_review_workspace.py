@@ -47,3 +47,36 @@ def test_outside_exclusion_rejected_before_writing(tmp_path):
     im,r=fixture(tmp_path,[{'id':'A','box':[10,10,50,40],'exclude_boxes':[[0,0,15,16]]}])
     with pytest.raises(ValueError,match='inside'):prepare(im,r,tmp_path/'out')
     assert not (tmp_path/'out').exists()
+
+
+def test_candidate_without_receipt_is_not_native(tmp_path):
+    im,_=fixture(tmp_path,[{'id':'A','box':[0,0,5,5]}])
+    receipt=compare(im,im,tmp_path/'pair.png',100)
+    assert receipt['candidate_provenance']=='unverified'
+
+
+def test_native_receipt_hash_must_match(tmp_path):
+    im,_=fixture(tmp_path,[{'id':'A','box':[0,0,5,5]}])
+    proof=tmp_path/'native.json'
+    proof.write_text(json.dumps({'ok':True,'outputs':{'rendered':[str(im)]},
+        'metadata':{'renderer':'ChemDraw COM','artifacts':[{'path':str(im),'sha256':'wrong'}]}}))
+    with pytest.raises(ValueError,match='receipt'):
+        compare(im,im,tmp_path/'pair.png',100,native_receipt=proof)
+    assert not (tmp_path/'pair.png').exists()
+
+
+def test_aligned_comparison_rejects_clipping(tmp_path):
+    im,_=fixture(tmp_path,[{'id':'A','box':[0,0,5,5]}])
+    with pytest.raises(ValueError,match='clip'):
+        compare(im,im,tmp_path/'pair.png',100,mode='aligned',offset=(1,0))
+
+
+def test_comparison_receipt_failure_does_not_publish_image(tmp_path,monkeypatch):
+    im,_=fixture(tmp_path,[{'id':'A','box':[0,0,5,5]}])
+    original=Path.write_text
+    def fail_receipt(self,*args,**kwargs):
+        if self.suffix=='.json':raise OSError('receipt failed')
+        return original(self,*args,**kwargs)
+    monkeypatch.setattr(Path,'write_text',fail_receipt)
+    with pytest.raises(OSError):compare(im,im,tmp_path/'pair.png',100)
+    assert not (tmp_path/'pair.png').exists()

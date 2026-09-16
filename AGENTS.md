@@ -22,7 +22,7 @@ Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth fo
 
 ```powershell
 python .\skill\chemdraw\scripts\generate_tool_reference.py
-python .\skill\chemdraw\scripts\audit_toolkit_interfaces.py
+python .\skill\chemdraw\scripts\audit_toolkit_interfaces.py --output-dir .\skill\chemdraw\references
 ```
 
 ## Verification
@@ -36,7 +36,7 @@ python .\scripts\validate_distribution.py
 Run the full suite in a Python environment containing `cdxml-toolkit`:
 
 ```powershell
-python -m unittest discover -s .\skill\chemdraw\scripts -p "test_*.py" -v
+python -m pytest skill/chemdraw/scripts -q
 .\skill\chemdraw\scripts\health_check.ps1 -SkipNativeChemDraw
 ```
 

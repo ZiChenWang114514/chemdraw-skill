@@ -33,7 +33,12 @@ extract_structures_via_decimer_api(
 
 This is a single-image interface. Process independent crops concurrently only when supported; do not invent batch parameters. Save raw responses including invalid SMILES. Reuse cached predictions when crop hashes match. Change cropping or scale to address specific recognition errors, and never draw invalid predictions.
 
-## 3. Match the source orientation
+## 3. Correct chemistry, depth, then source orientation
+
+Before typography, review connectivity, bond orders, charges and abbreviation subgraphs. A valid OCSR SMILES is only a candidate. Record correction reasons and unresolved details in the same task record as crop hashes, predictions and coordinate mappings.
+
+Inspect local crops of every ambiguous crossing. A solid bond interrupted only at an intersection is occluded, not a repeated dash. A hashed wedge can encode stereo. Do not create an atom or split the chemical bond at a visual crossing. Use the explicit native `crossings` and bond-display template edits in [publication figures](publication-figures.md), then inspect both local and whole native previews. Resolve structure and depth before font/layout iteration.
+
 
 Check obvious recognition errors and X/R definitions first. Use constrained alignment for ordinary structures and trace atom coordinates for folded chains or bridged rings. Try a few rotations only when direct alignment fails; do not mirror or stretch structures.
 
@@ -78,7 +83,7 @@ modify_molecule(mol_json={"smiles":"<recognized SMILES>"},
     description="A: source shows OH, recognized as methyl; preserve other connectivity")
 ```
 
-Review the MCS, formula, and stereo changes before redrawing. Record minimal normalization of invalid R tokens separately from raw OCSR output. Redo affected structures only, but inspect the complete preview after layout changes. Keep unreadable source details unresolved instead of filling them from reaction expectations.
+Review the MCS status, formula, and stereo changes before redrawing. Null MCS or empty change lists with partial/not-completed status do not establish no change. Record minimal normalization of invalid R tokens separately from raw OCSR output. Redo affected structures only, but inspect the complete preview after layout changes. Keep unreadable source details unresolved instead of filling them from reaction expectations.
 
 ## 5. Assemble conditions and deliver
 
@@ -86,7 +91,7 @@ Preserve condition wording and order, structure/state labels, and yield scope. F
 
 Inspect the whole native figure for conditions, yields, labels, arrows, abbreviations, crossings, and clipping. Deliver **editable CDXML, preview, then necessary comparisons or unresolved issues**. Retain raw responses, corrections, and hashes in the working directory.
 
-Check corrected structures against final CDXML readback, inspect visual fidelity, and disclose layout differences. Claim strict 1:1 reproduction only when demonstrated. Pixel similarity and white-background area do not establish chemical correctness.
+Check corrected structures against final CDXML readback, inspect visual fidelity, and disclose layout differences. For bridges, charge symbols or stereo-sensitive edits, use [saved-file validation](figure-validation.md). Claim strict 1:1 reproduction only when demonstrated. Pixel similarity and white-background area do not establish chemical correctness.
 
 ## Common issues
 
@@ -99,7 +104,7 @@ Check corrected structures against final CDXML readback, inspect visual fidelity
 | Coordinate/wedge changes | Recompute wedges and read back final coordinates; verify the narrow end and attached atom. |
 | Missing bridged stereo or reader disagreement | Compare RDKit CDXML readback and direct ChemScript SMILES from the same native file. MOL intermediates can lose stereo and are not the sole judge. Map atoms explicitly. After upgrades, retest one disputed structure before batch processing. Never flip wedges merely to force agreement; unresolved differences prevent full acceptance. |
 | Reversed or wrapped abbreviations | Set node/text alignment and font runs explicitly; allow sufficient page width. |
-| Incorrect bridge depth | Verify front/back bonds before changing bold bonds or occlusion. Group vector masks with structures without hiding labels. |
+| Incorrect bridge depth | Verify front/back bonds before changing bold bonds or occlusion. Use native front/back crossing edits first; inspect every intersection rather than covering mistakes with extra lines. |
 | Individual exports wrap | Check page width and coordinates instead of editing correct SMILES. |
 
 ## Runnable examples
@@ -117,3 +122,9 @@ Render `figure.cdxml` natively and inspect a comparison. This example does not c
 ## Validation scope
 
 `document_chemistry_validation` checks the complete final molecular inventory, including multiplicity, and records SHA-256. `scope=rdkit_readback_consistency` establishes RDKit consistency only. Cross-reader stereo disagreement prevents full stereochemical acceptance. When native ChemDraw is unavailable, deliver editable files marked as pending native preview; other renderers cannot replace native acceptance.
+
+## Comparison modes and provenance
+
+The `compare` helper defaults to a visual display: panels may be independently resized and are not a strict pixel comparison. Candidates are not called native without `--native-receipt` pointing to the saved `render_cdxml_files` result with matching path/hash and renderer metadata. The helper publishes image and receipt together.
+
+Use `--mode aligned --offset DX DY` for explicit integer translation and padding at the original scale. Candidate pixels must fit the reference canvas; clipping is rejected. This mode records exact equality, normalized MAE and ink IoU. `--region X1 Y1 X2 Y2 --height N` produces an explicitly marked local display, not full-image pixel acceptance. Keep the complete comparison as well as details. See [lessons](lessons.md) for known mistakes.

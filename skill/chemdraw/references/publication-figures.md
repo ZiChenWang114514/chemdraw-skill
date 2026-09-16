@@ -14,7 +14,7 @@ Use `compose_chemical_figure(manifest_path, output_path)` for exact placement, m
 
 ## Manifest v1
 
-Top-level keys: `version: 1`, `objects`, optional `steps`, `style`, `grid`, `template_path`, `edits`. File paths are relative to the manifest unless absolute. All positions are **points, x right, y down**. Output path is a separate tool argument. Existing output files are rejected.
+Top-level keys: `version: 1`, `objects`, optional `steps`, `style`, `grid`, `template_path`, `edits`, `crossings`. File paths are relative to the manifest unless absolute. All positions are **points, x right, y down**. Output path is a separate tool argument. Existing output files are rejected.
 
 `style` accepts `font`, `font_size`, `bond_length`, `line_width`, `bold_width`, `hash_spacing`, `margin_width`. The base is Arial 10 pt, 14.4 pt bonds. Explicitly set measurements from the target figure rather than assigning a supposed universal journal style. Template style overrides affect document defaults and newly added objects; existing explicit text/bond styles remain intact.
 
@@ -111,3 +111,11 @@ Fresh generation currently rejects unvalidated radical, axial and non-tetrahedra
 ## Document validation receipt
 
 `metadata.document_chemistry_validation` supplements per-fragment receipts. Composed output uses `status`, `method`, `scope`, `molecules` (including duplicate species), and `sha256` of the final file. `scope=rdkit_readback_consistency` compares the complete serialized inventory against template molecules plus grounded inputs before publication. An unchanged native-template copy instead reports `scope=unchanged_bytes` and `method=byte_identical_copy`; it does not claim reader validation. Native rendering and cross-reader stereochemical acceptance remain separate.
+
+## Native bond display and crossing edits
+
+In template mode, an edit `{ "id": "BOND_ID", "display": "None" }` removes the display override while preserving bond order and atom references. Other supported native displays are Dash, Hash, Bold, WedgeBegin, WedgeEnd, WedgedHashBegin, WedgedHashEnd and Wavy. Display edits accept only id/display and cannot silently change the semantic molecular inventory.
+
+Top-level `crossings` accepts a list of `{ "front": "BOND_ID", "back": "BOND_ID" }` records using actual native IDs. Bonds must be distinct, in the same fragment, and must not share an atom. Cyclic depth constraints are rejected. The composer establishes consistent object ordering, Z values and mutual CrossingBonds references; it does not guess depth, split bonds, add crossing atoms or draw cover lines. Native-render every changed crossing. A display edit affecting stereochemical readback fails layout-only validation.
+
+Use [saved-file validation](figure-validation.md) for native save-cycle and direct cross-reader checks. Template-copy preservation alone does not validate the chemistry of an unreviewed template.

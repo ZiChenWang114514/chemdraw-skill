@@ -6,7 +6,6 @@ from pathlib import Path
 import struct
 import tempfile
 import unittest
-import sys
 from unittest import mock
 import zipfile
 
@@ -186,7 +185,6 @@ class OfficeInspectionTests(unittest.TestCase):
             list(range(1, 12)),
         )
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows COM/process test; covered by Windows CI")
     def test_native_conversion_initializes_and_releases_com_apartment(self):
         def convert(native_source, native_destination, *, method):
             self.assertEqual(method, "auto")
@@ -208,7 +206,6 @@ class OfficeInspectionTests(unittest.TestCase):
         initialize.assert_called_once_with()
         uninitialize.assert_called_once_with()
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows COM/process test; covered by Windows CI")
     def test_native_preview_initializes_and_releases_com_apartment(self):
         from PIL import Image
 
@@ -330,11 +327,9 @@ class OfficeReplacementTests(unittest.TestCase):
         for part in relationship_parts:
             self.assertEqual(after[part], before[part])
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows COM/process test; covered by Windows CI")
     def test_replace_one_of_two_pptx_objects_preserves_other_parts_and_geometry(self):
         self._assert_single_object_replaced(".pptx")
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows COM/process test; covered by Windows CI")
     def test_replace_one_of_two_docx_objects_preserves_other_parts_and_geometry(self):
         self._assert_single_object_replaced(".docx")
 
@@ -391,7 +386,6 @@ class OfficeReplacementTests(unittest.TestCase):
                 str(source), str(path), render_pdf_preview=False
             )
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows COM/process test; covered by Windows CI")
     def test_replace_rolls_back_office_and_pdf_when_office_export_fails(self):
         source, manifest = self._inspection_manifest(".pptx")
         path = self._write_replacements(

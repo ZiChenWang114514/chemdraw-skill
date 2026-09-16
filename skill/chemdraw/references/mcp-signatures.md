@@ -68,9 +68,9 @@ Execute a declarative ChemScript SDK program in an isolated Python.NET process.
 
 Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
 
-### `get_toolkit_capabilities() -> dict[str, typing.Any]`
+### `get_toolkit_capabilities(detail: str = 'full') -> dict[str, typing.Any]`
 
-Return versions, profile, tool schema digest, and local capability status.
+Return runtime identity and diagnostics; detail='summary' omits tool signatures.
 
 ### `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, typing.Any]`
 

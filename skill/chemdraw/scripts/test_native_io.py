@@ -5,7 +5,6 @@ from pathlib import Path
 import struct
 import tempfile
 import unittest
-import sys
 from unittest import mock
 
 try:
@@ -308,7 +307,6 @@ class NativeIOIntegrationTests(unittest.TestCase):
                 written["input_files"], [str((input_dir / "\u7ed3\u6784.cdx").resolve())]
             )
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows COM/process test; covered by Windows CI")
     def test_office_preview_renderer_receives_only_ascii_paths(self):
         from PIL import Image
         from cdxml_toolkit.mcp_runtime import office_objects

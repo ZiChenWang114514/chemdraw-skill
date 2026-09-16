@@ -31,9 +31,9 @@
 - **function**, line 2156: `draw_molecule(mol_json: Dict[str, Any], output_path: Optional[str] = None) -> Dict[str, Any]` - Render a single molecule to a standalone CDXML document.
 - **function**, line 1136: `enumerate_names(identifier: str, use_network: bool = True) -> Dict[str, Any]` - Enumerate alternative IUPAC name forms for a molecule.
 - **function**, line 569: `get_prefix_form(group: str) -> Dict[str, Any]` - Get the IUPAC substituent prefix form for a chemical group.
-- **function**, line 3009: `get_tool_definitions() -> List[Dict[str, Any]]` - Return tool schemas suitable for LLM function calling (Claude/OpenAI).
+- **function**, line 3012: `get_tool_definitions() -> List[Dict[str, Any]]` - Return tool schemas suitable for LLM function calling (Claude/OpenAI).
 - **function**, line 1754: `list_reactions(category: Optional[str] = None) -> Dict[str, Any]` - List available named reaction templates.
-- **function**, line 2474: `modify_molecule(mol_json: Dict[str, Any], operation: str, **kwargs: Any) -> Dict[str, Any]` - Modify a molecule and verify the change with a structural diff.
+- **function**, line 2477: `modify_molecule(mol_json: Dict[str, Any], operation: str, **kwargs: Any) -> Dict[str, Any]` - Modify a molecule and verify the change with a structural diff.
 - **function**, line 758: `modify_name(name: str, operation: str, target: Optional[str] = None, replacement: Optional[str] = None, locant: Optional[str] = None, validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Modify an IUPAC name by swapping, adding, or removing a substituent.
 - **function**, line 1059: `name_to_structure(name: str, output_format: str = 'cdxml') -> Dict[str, Any]` - Convert a chemical name to a structure in the requested format.
 - **function**, line 407: `resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve any chemical identifier to a rich molecule descriptor.

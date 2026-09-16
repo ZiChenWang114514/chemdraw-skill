@@ -29,7 +29,7 @@ def test_capability_report_is_content_free_and_has_schema_digest():
         capabilities, "_distribution", side_effect=lambda name: {"mcp": "2.0.0"}.get(name)
     ), mock.patch(
         "cdxml_toolkit.mcp_runtime.runtime_diagnostics.diagnose_runtime",
-        return_value={"capabilities": {"office": {"status": "available"}}},
+        return_value={"outputs": {"capabilities": {"office": {"status": "available"}}}},
     ):
         result = capabilities.get_toolkit_capabilities()
 

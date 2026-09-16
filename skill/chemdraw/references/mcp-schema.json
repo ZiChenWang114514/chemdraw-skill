@@ -159,11 +159,11 @@
     },
     {
       "name": "get_toolkit_capabilities",
-      "signature": "() -> dict[str, typing.Any]",
+      "signature": "(detail: str = 'full') -> dict[str, typing.Any]",
       "group": "extended",
       "resource_class": null,
       "timeout_seconds": null,
-      "description": "Return versions, profile, tool schema digest, and local capability status."
+      "description": "Return runtime identity and diagnostics; detail='summary' omits tool signatures."
     },
     {
       "name": "inspect_chemdraw_objects_in_office",

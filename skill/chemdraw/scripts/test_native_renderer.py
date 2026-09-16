@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 import tempfile
 import unittest
-import sys
 from unittest import mock
 
 from PIL import Image
@@ -60,7 +59,6 @@ class _ComError(RuntimeError):
         self.hresult = hresult
 
 
-@unittest.skipUnless(sys.platform == "win32", "Windows COM test; covered by Windows CI")
 class NativeRendererTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

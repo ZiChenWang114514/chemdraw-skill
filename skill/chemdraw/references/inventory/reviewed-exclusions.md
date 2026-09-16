@@ -2,6 +2,10 @@
 
 > Generated from cdxml-toolkit 0.7.0a1. Curated guidance: [../toolkit-reviewed-exclusions.md](../toolkit-reviewed-exclusions.md).
 
+## `chemistry_diff`
+
+- **function**, line 6: `structural_diff(before: str, after: str, timeout: int = 5) -> dict` - No public docstring in the audited version.
+
 ## `chemistry_semantics`
 
 - **function**, line 74: `document_inventory(path)` - No public docstring in the audited version.
@@ -35,7 +39,7 @@
 
 ## `mcp_runtime.capabilities`
 
-- **function**, line 22: `get_toolkit_capabilities() -> dict[str, Any]` - Return versions, profile, tool schema digest, and local capability status.
+- **function**, line 22: `get_toolkit_capabilities(detail: str = 'full') -> dict[str, Any]` - Return runtime identity and diagnostics; detail='summary' omits tool signatures.
 
 ## `mcp_runtime.chemistry_compare`
 
@@ -89,11 +93,22 @@
 - **function**, line 914: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
 - **function**, line 1263: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
 
+## `mcp_runtime.figure_editing`
+
+- **function**, line 4: `apply_crossings(page, crossings)` - No public docstring in the audited version.
+- **function**, line 50: `edit_bond_display(node, edit)` - No public docstring in the audited version.
+
 ## `mcp_runtime.figure_tools`
 
-- **function**, line 597: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
+- **function**, line 606: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
 - **function**, line 208: `compose_chemical_figure(manifest_path: str, output_path: str) -> dict` - Compose editable CDXML using explicit point coordinates and grounded molecules.
 - **function**, line 72: `rdkit_workbench(molecules: list[dict], operation: str = 'inspect', options: dict | None = None, output_path: str | None = None) -> dict` - Analyze grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo.
+
+## `mcp_runtime.figure_validation`
+
+- **function**, line 44: `compare_inventories(a, b)` - No public docstring in the audited version.
+- **function**, line 16: `inspect_document(path)` - No public docstring in the audited version.
+- **function**, line 70: `validate_figure(input_path: str, output_dir: str, native: bool = False, cross_reader: bool = False) -> dict` - Write a diagnostic directory without changing the source. CLI-only operation.
 
 ## `mcp_runtime.generate_reference`
 
@@ -129,16 +144,17 @@
 
 ## `mcp_runtime.native_io`
 
-- **function**, line 124: `ascii_input_directory(source: str | Path, *, suffixes: Sequence[str] = ('.cdxml', '.cdx', '.csv', '.rxn')) -> Iterator[tuple[Path, dict[str, str]]]` - No public docstring in the audited version.
-- **function**, line 108: `ascii_inputs(sources: Sequence[str | Path]) -> Iterator[list[Path]]` - No public docstring in the audited version.
-- **function**, line 91: `ascii_workspace(prefix: str = 'cdx-') -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 350: `batch_convert_cdxml(sources: Sequence[str | Path], batch_convert: Callable[[list[str]], Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 207: `bridge_file(source: str | Path, destination: str | Path, operation: Callable[[Path, Path], Any], *, output_kind: str | None = None, preserve_source_context: bool = False) -> Any` - No public docstring in the audited version.
-- **function**, line 379: `convert_cdx_bytes_to_cdxml(cdx_data: bytes, converter: Callable[..., Any]) -> str` - No public docstring in the audited version.
+- **function**, line 136: `ascii_input_directory(source: str | Path, *, suffixes: Sequence[str] = ('.cdxml', '.cdx', '.csv', '.rxn')) -> Iterator[tuple[Path, dict[str, str]]]` - No public docstring in the audited version.
+- **function**, line 119: `ascii_inputs(sources: Sequence[str | Path]) -> Iterator[list[Path]]` - No public docstring in the audited version.
+- **function**, line 102: `ascii_workspace(prefix: str = 'cdx-') -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 364: `batch_convert_cdxml(sources: Sequence[str | Path], batch_convert: Callable[[list[str]], Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 220: `bridge_file(source: str | Path, destination: str | Path, operation: Callable[[Path, Path], Any], *, output_kind: str | None = None, preserve_source_context: bool = False) -> Any` - No public docstring in the audited version.
+- **function**, line 393: `convert_cdx_bytes_to_cdxml(cdx_data: bytes, converter: Callable[..., Any]) -> str` - No public docstring in the audited version.
 - **class**, line 18: `NativeIOError` - Native automation failure with a stable public error code.
-- **function**, line 442: `rewrite_json_paths(path: str | Path, replacements: dict[str, str]) -> None` - No public docstring in the audited version.
-- **function**, line 150: `validate_native_output(path: str | Path, kind: str | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 400: `write_shadow_manifest(manifest: str | Path, workspace: str | Path) -> tuple[Path, list[Path]]` - No public docstring in the audited version.
+- **function**, line 31: `normalize_cdxml_staging(path: Path) -> None` - Normalize only a staged XML declaration; preserve document content and source.
+- **function**, line 456: `rewrite_json_paths(path: str | Path, replacements: dict[str, str]) -> None` - No public docstring in the audited version.
+- **function**, line 163: `validate_native_output(path: str | Path, kind: str | None = None) -> Path` - No public docstring in the audited version.
+- **function**, line 414: `write_shadow_manifest(manifest: str | Path, workspace: str | Path) -> tuple[Path, list[Path]]` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_renderer`
 
@@ -184,7 +200,7 @@
 
 ## `mcp_runtime.remote_tools`
 
-- **function**, line 10: `extract_structures_via_decimer_api(image_path: str, hand_drawn: bool = False, output_path: Optional[str] = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: Optional[str] = None, approved_origin: Optional[str] = None) -> dict[str, Any]` - Upload an image to DECIMER only when confirm_upload is explicitly true.
+- **function**, line 10: `extract_structures_via_decimer_api(image_path: str, hand_drawn: bool = False, output_path: Optional[str] = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: Optional[str] = None, approved_origin: Optional[str] = None) -> dict[str, Any]` - Default image-recognition tool: use the remote DECIMER API.
 
 ## `mcp_runtime.resource_lock`
 
