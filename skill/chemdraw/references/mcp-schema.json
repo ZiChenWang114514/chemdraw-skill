@@ -139,7 +139,7 @@
       "group": "remote",
       "resource_class": null,
       "timeout_seconds": null,
-      "description": "Upload an image to DECIMER only when confirm_upload is explicitly true."
+      "description": "Default image-recognition tool: use the remote DECIMER API.\n\nUpload only when confirm_upload is explicitly true and the user authorized\nthe task images. Retain existing authorization without asking again.\nUse local recognition only on an explicit local/offline request; do not\nsilently fall back to local models after an API failure."
     },
     {
       "name": "fill_office_template",

@@ -28,10 +28,10 @@ Load one section matching the user's intent. Exact signatures live only in [mcp-
 
 ## Recognize An Image
 
-For multi-structure images or publication reconstruction, follow [image-visual-review.md](image-visual-review.md): agent segmentation → DECIMER → native redraw → actual side-by-side visual review → grounded correction → repeat → structured conditions and final composition. Follow an explicit user preference for DECIMER API over the local default below.
+For multi-structure images or publication reconstruction, follow [image-visual-review.md](image-visual-review.md): agent segmentation → DECIMER API → native redraw → actual side-by-side visual review → grounded correction → repeat → structured conditions and final composition.
 
-1. Prefer `extract_structures_from_image` when local DECIMER weights are available.
-2. Use `extract_structures_via_decimer_api` only after explicit upload authorization and set `confirm_upload=true`.
+1. Default to `extract_structures_via_decimer_api`, including when local weights are installed. An explicit request to use DECIMER API authorizes uploading the task images and relevant crops; retain that authorization without asking again and set `confirm_upload=true`. If upload authorization is absent, obtain it before uploading.
+2. Use `extract_structures_from_image` only when the user explicitly requests local or offline recognition. Do not install local models or silently switch to them after an API failure; follow the bounded retry guidance in [decimer-api.md](decimer-api.md).
 3. Inspect every candidate and validation warning; never select by position alone.
 4. For complete reaction screenshots, use `reaction_image_to_cdxml` only when it appears in the live MCP registry. It remains withheld when structure-role mapping cannot be verified.
 
