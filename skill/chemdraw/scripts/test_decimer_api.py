@@ -57,6 +57,21 @@ class DecimerAPITests(unittest.TestCase):
             with self.assertRaisesRegex(client.DecimerAPIError, "confirm_upload"):
                 client.recognize_image(str(image))
 
+    def test_tool_returns_http_failure_instead_of_worker_crash(self):
+        client = load_client()
+        remote_tools = load_remote_tools(client)
+        with tempfile.TemporaryDirectory() as tmp:
+            image = self._valid_image(tmp)
+            from io import BytesIO
+            error = HTTPError(client.DEFAULT_ENDPOINT, 502, "Bad Gateway", {},
+                              BytesIO(b"Bad Gateway"))
+            with mock.patch.object(client, "urlopen", side_effect=error):
+                result = remote_tools.extract_structures_via_decimer_api(
+                    str(image), confirm_upload=True
+                )
+            self.assertFalse(result["ok"])
+            self.assertEqual(result["error"], "DECIMER API HTTP 502: Bad Gateway")
+
     def test_rejects_fake_image_before_network(self):
         client = load_client()
         with tempfile.TemporaryDirectory() as tmp:

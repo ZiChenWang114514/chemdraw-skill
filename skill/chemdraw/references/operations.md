@@ -85,6 +85,13 @@ Remote recognition uses the configured `DECIMER_API_URL` or the Steinbeck Lab de
 
 Read [decimer-api.md](decimer-api.md) for the HTTP contract.
 
+Expected DECIMER client errors are returned as `ok=false` with the specific error.
+HTTP 502/503/504 indicates a gateway/service failure and does not establish a local
+ChemDraw or model-installation problem. Check the configured proxy and API
+reachability, then verify recovery with an authorized recognition request. See
+[DECIMER failure diagnosis](decimer-api.md#diagnosing-failed-requests) for bounded
+retries and the distinction between reachability and successful recognition.
+
 ## Failure Modes
 
 - MCP startup timeout: verify discovered Python and import `mcp_server.py` directly.

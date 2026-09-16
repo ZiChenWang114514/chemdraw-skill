@@ -147,6 +147,32 @@ Environment overrides:
 - `DECIMER_API_MAX_IMAGE_PIXELS`: decoded pixel-count guard; defaults to 40,000,000 pixels.
 - `DECIMER_API_MAX_RESPONSE_BYTES`: response-size guard; defaults to 2 MiB.
 
+## Diagnosing failed requests
+
+The MCP wrapper returns expected client failures as `ok=false` with a readable
+`error`, including HTTP status, connection failures, invalid images, and upload
+refusals. Direct Python calls still raise `DecimerAPIError`. Unexpected programming
+errors remain worker failures with a local diagnostic log.
+
+For HTTP 502, 503, or 504, inspect the network path and service availability before
+changing the installation. A gateway error alone cannot distinguish a local proxy
+failure from a remote gateway failure. A successful GET of the OpenAPI document
+checks reachability only; recovery requires a successful recognition POST with an
+authorized image. Retry the same image and destination at most twice, with a short
+pause, then report the persistent failure. Do not switch upload destinations or
+disable TLS checks to work around an outage. Increasing the timeout does not fix an
+HTTP 502 response.
+
+When a client still shows only `tool_execution_failed`, use its `error_id` to read
+the worker log described in [operations.md](operations.md). Confirm the active
+Python runtime and package path: Skill compatibility scripts delegate to the
+installed `cdxml_toolkit.mcp_runtime` package, so updating documentation alone does
+not update the MCP implementation. Verify the tool again through the active MCP
+connection after applying a runtime fix.
+
+Successful recognition establishes service availability, not chemical accuracy.
+Review segmentation and each predicted structure against the input image.
+
 ## Boundaries
 
 - Remote use uploads the image to a third-party server. Obtain explicit user authorization for the specific image or task.
