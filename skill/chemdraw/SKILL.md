@@ -1,6 +1,6 @@
 ---
 name: chemdraw
-description: Use when an agent needs to install, configure, diagnose, or use ChemDraw or cdxml-toolkit to resolve, compare, draw, edit, clean, merge, polish, parse, convert, render, recognize, analyze, or embed chemical structures and reaction schemes, including controlled ChemScript SDK work. Triggers include setup and runtime problems, molecule names, trusted SMILES, CDX/CDXML, DECIMER/OCSR images, paper reaction-figure reconstruction (论文反应图复刻), CSV/XLSX-driven substrate-scope and SAR figures, updates after ChemDraw editing, reaction screenshots, ELN/SciFinder RDF, LCMS/NMR, lab books, and editable ChemDraw objects in DOCX/PPTX.
+description: Use when an agent needs to install, configure, diagnose, or use ChemDraw or cdxml-toolkit to resolve, compare, draw, edit, clean, merge, polish, parse, convert, render, recognize, analyze, or embed chemical structures and reaction schemes, including controlled ChemScript SDK work. Triggers include setup and runtime problems, molecule names, trusted SMILES, CDX/CDXML, DECIMER/OCSR images, paper reaction-figure reconstruction, CSV/XLSX-driven substrate-scope and SAR figures, updates after ChemDraw editing, reaction screenshots, ELN/SciFinder RDF, LCMS/NMR, lab books, and editable ChemDraw objects in DOCX/PPTX.
 ---
 
 # ChemDraw
@@ -11,11 +11,11 @@ Use the `cdxml-toolkit-community` runtime for editable chemical figures. Preserv
 
 This Skill works with any AI agent that can read its instructions and use MCP or Python/CLI. For setup, start with [agent integration](references/agent-integration.md). Image review requires actual vision or human review; native ChemDraw rendering requires the corresponding Windows host.
 
-## 论文反应图复刻：快捷入口
+## Publication figure reconstruction: quick start
 
-当用户要求复刻论文中的结构图、反应路线、合成流程或截图时，直接阅读 [快速复刻指南](references/image-visual-review.md)，无需先扫描工具目录或阅读全部参考。
+For publication structures, reaction schemes, synthesis routes, or screenshots, read the [quick reconstruction guide](references/image-visual-review.md) directly without first scanning the full tool catalog.
 
-默认路线：**整图读图 → 视觉分区 → DECIMER API 识别 → 按原图取向重绘 → 左右对照纠错 → 条件与版式组装 → 原生预览验收**。默认使用远程 DECIMER API；仅在用户明确要求本地或离线识别时使用本地模型，不因 API 暂时失败自动切换本地。先交付可编辑图和预览；结构、视觉与严格像素一致性分别验收。最小记录模板与可运行示例已在指南中链接。
+Default workflow: **inspect the complete image -> identify regions -> recognize with DECIMER API -> redraw in the source orientation -> compare and correct -> assemble conditions and layout -> inspect the native preview**. Use the remote DECIMER API by default. Local models are only for explicit local/offline requests; never switch automatically after an API failure. Deliver editable files and previews first. Validate chemical identity, visual fidelity, and strict pixel equivalence separately. The guide links the minimal record template and runnable examples.
 
 ## Core Rules
 

@@ -1,19 +1,19 @@
-# ChemDraw Skill 中文指南
+# ChemDraw Skill quick start
 
-这是面向任意 Agent 的化学绘图与论文反应图复刻 Skill。需要读取本地指令、调用 MCP 或执行 Python；图像复刻还需要视觉检查能力。不同客户端的配置文件和发现目录各自适配。
+This guide supports any agent that can read local instructions and call MCP or Python. Image reconstruction also requires visual inspection. Adapt discovery paths and configuration to the client.
 
-## 从零开始安装
+## Setup
 
-依次阅读[通用 Agent 接入](../skill/chemdraw/references/agent-integration.md)和[安装与能力验证](guide.zh-cn.md#首次-windows-安装)。项目不要求特定 Agent CLI，默认不会修改客户端配置。
+Read [generic integration](../skill/chemdraw/references/agent-integration.md) and [Windows setup](guide.md#first-time-windows-setup). No specific agent CLI is required, and the installer does not change client configuration by default.
 
-## 10. 完成第一次使用
+## First use
 
-加载 `skill/chemdraw/SKILL.md` 后，可以向任何具备相应工具权限的 Agent 提出：
+Load `skill/chemdraw/SKILL.md`, then ask:
 
 ```text
-使用 ChemDraw Skill 解析阿司匹林，输出可编辑 CDXML；原生 ChemDraw 可用时渲染 PNG，检查实际图像，并报告结构读回与输出路径。
+Use the ChemDraw Skill to resolve aspirin and produce editable CDXML. If native ChemDraw is available, render and inspect a PNG. Report structure readback and output paths.
 ```
 
-论文图片使用[快速复刻指南](../skill/chemdraw/references/image-visual-review.md)：读整图、裁切、DECIMER、取向匹配、左右对照、结构修正、条件和版式组装、原生验收。结构正确和视觉相似分别验收。
+For publication images, follow the [reconstruction guide](../skill/chemdraw/references/image-visual-review.md): inspect, crop, recognize with DECIMER API, align orientation, compare, correct, assemble conditions and layout, and validate natively. Assess chemical correctness and visual fidelity separately.
 
-[最小记录模板](../skill/chemdraw/assets/paper-replica/task-template.json) · [可复现示例](../skill/chemdraw/assets/paper-replica/example/CASE.md) · [全部任务入口](../skill/chemdraw/references/workflow-router.md)
+[Record template](../skill/chemdraw/assets/paper-replica/task-template.json) | [Runnable example](../skill/chemdraw/assets/paper-replica/example/CASE.md) | [Workflow router](../skill/chemdraw/references/workflow-router.md)

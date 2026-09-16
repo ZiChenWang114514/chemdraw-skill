@@ -1,30 +1,28 @@
-# 论文反应图快速复刻
+# Reconstructing publication reaction figures
 
-目标：拿到图片后直接工作，减少探索代码和临时编写脚本。默认交付可编辑 CDXML 与原生预览；仅在用户要求时展开长报告。
+Deliver editable CDXML and a native preview by default. Provide a longer report only when requested. Prefer existing CDX/CDXML or trusted structures and skip OCSR when native structures are available.
 
-## 1. 整图一次读清
+## 1. Inspect the complete image
 
-先用视觉看整张图，列出结构编号、箭头连接、条件、产率、X/R 定义。条件和编号由智能体读图，不作为分子交给 DECIMER。复制 [最小记录模板](../assets/paper-replica/task-template.json)，按实际结构数量填写；它是记录模板，不是绘图接口参数。
+Read structure labels, arrow connections, conditions, yields, and X/R definitions. Do not submit conditions or numbering to DECIMER as molecules. Adapt the [record template](../assets/paper-replica/task-template.json) to the actual structures; it is not a drawing API schema. Start with the existing tools without scanning the full catalog or reinstalling the environment.
 
-优先使用用户已有 CDX/CDXML 或可信结构；存在原生文件时跳过 OCSR。截图路线继续以下步骤。不要为了开始任务先读完整接口目录、遍历源码或重装环境。
+## 2. Crop and recognize structures
 
-## 2. 视觉分区并识别
-
-将结构区域写成 `regions.json`（原图显示像素，左上包含、右下不包含）：
+Write `regions.json` using original-image display pixels, with inclusive top-left and exclusive bottom-right boundaries:
 
 ```json
 [{"id":"A","box":[20,10,340,180],"kind":"structure","exclude_boxes":[]}]
 ```
 
-使用已有 MCP Python 环境运行辅助脚本，`<skill>` 表示当前 skill 目录：
+Use the existing MCP Python environment. `<skill>` denotes the installed skill directory:
 
 ```powershell
 & <MCP-Python> <skill>/scripts/image_review_workspace.py prepare source.png regions.json work/crops --scale 4
 ```
 
-`work/crops` 必须是新目录。打开裁片看一遍，确保 OMe、CN、末端字母和立体键完整。`exclude_boxes` 可移除邻近编号/箭头，坐标仍用原图坐标，不能覆盖任何化学信息。源图不改写，裁片哈希与坐标换算自动保存；四倍放大只帮助识别，不恢复缺失信息。
+Use a new output directory. Inspect crops for complete terminal labels, OMe, CN, and stereobonds. Exclusion boxes use original-image coordinates and may remove nearby labels or arrows, never chemical information. Preserve the source. The helper records crop hashes and coordinate transforms; upscaling cannot recover missing detail.
 
-默认使用 DECIMER API；仅在用户明确要求本地或离线识别时使用本地模型，API 失败不自动切换本地。用户明确要求 DECIMER API，即已授权该任务相关裁片上传；无需重复确认。否则沿用已获授权的服务，未获授权时先取得上传授权。对每个裁片调用：
+Default to DECIMER API. Use local models only for an explicit local/offline request; never switch automatically after API failure. An explicit API request authorizes task-related image and crop uploads; retain that authorization without asking again. Otherwise obtain upload authorization before sending images.
 
 ```python
 extract_structures_via_decimer_api(
@@ -33,13 +31,13 @@ extract_structures_via_decimer_api(
     confirm_upload=True, timeout_seconds=120)
 ```
 
-这是单图片接口；在工具允许并行时并行处理独立裁片，不构造不存在的 batch 参数。保存所有原始结果，包括无效 SMILES。只针对明确错误改变裁片/放大方式后重试；无效结果不能直接绘制。已有识别缓存且裁片哈希相同，就复用缓存。
+This is a single-image interface. Process independent crops concurrently only when supported; do not invent batch parameters. Save raw responses including invalid SMILES. Reuse cached predictions when crop hashes match. Change cropping or scale to address specific recognition errors, and never draw invalid predictions.
 
-## 3. 一开始就匹配原图取向
+## 3. Match the source orientation
 
-先检查识别结果里的明显错误和 X/R 定义。普通结构使用现有约束对齐；折叠链、桥环优先追踪可见原子坐标。不要先大量生成随机取向再筛选。只有无法直接对齐时，才尝试少量旋转候选；不镜像、不拉伸。
+Check obvious recognition errors and X/R definitions first. Use constrained alignment for ordinary structures and trace atom coordinates for folded chains or bridged rings. Try a few rotations only when direct alignment fails; do not mirror or stretch structures.
 
-绘图采用 `compose_chemical_figure(manifest_path, output_path)`。以下为 **绘图 manifest**，不是上面的记录模板：
+Use `compose_chemical_figure(manifest_path, output_path)` with a drawing manifest:
 
 ```json
 {"version":1,"objects":[
@@ -47,77 +45,75 @@ extract_structures_via_decimer_api(
 ]}
 ```
 
-精确取向时将 `position` 换为 `coordinates`，每个输入原子一个 `[x,y]`，单位是点，向右/下为正。索引来自该 MOL/SMILES 的实际原子顺序；不能在 canonical SMILES 重排后复用旧索引。裁片坐标回原图：`source_xy = crop_xy / scale + box_origin`；原图转点：`point_xy = source_xy * points_per_pixel + offset`。只用统一比例，不独立拉伸横纵轴。绘图器在最终坐标上重算楔线并检查读回。
+For precise orientation, replace `position` with `coordinates`: one `[x,y]` per input atom in points, positive rightward and downward. Use actual MOL/SMILES atom order; indices cannot be reused after canonical reordering. Convert coordinates with `source_xy = crop_xy / scale + box_origin`, then `point_xy = source_xy * points_per_pixel + offset`. Use uniform scaling. The renderer recalculates wedges from final coordinates and checks readback.
 
-新 MCP 工具尚未显示时，直接使用已存在的 CLI：
+If the MCP tool is not visible, use the existing CLI:
 
 ```powershell
 & <MCP-Python> -m cdxml_toolkit.mcp_runtime.figure_tools compose_chemical_figure --arguments draw-args.json
 ```
 
-其中 `draw-args.json` 是 `{"manifest_path":"<absolute>/figure.json","output_path":"<absolute>/figure.cdxml"}`。只在需要具体图形字段时查 [绘图字段参考](publication-figures.md)。R/X 等真实缩写及复杂桥环的已验证实现见末尾可运行示例；目前它们不是通用 manifest 中的 `abbreviations` 字段，不要虚构接口。
+`draw-args.json` contains `{"manifest_path":"<absolute>/figure.json","output_path":"<absolute>/figure.cdxml"}`. See [drawing fields](publication-figures.md) when needed. Runnable examples demonstrate grounded R/X abbreviations and bridged rings; do not invent a generic `abbreviations` manifest field.
 
-## 4. 原生重绘、左右检查、只改出错结构
-
-一次原生批量渲染准备好的文件：
+## 4. Render, compare, and correct
 
 ```python
 render_cdxml_files(input_paths=["<absolute>/A.cdxml", "<absolute>/B.cdxml"],
                    output_dir="<absolute>/work/native-r1", format="png", dpi=144)
 ```
 
-本机原生调用使用现有隔离 worker 和锁，不另起无锁 COM 会话。生成左右对照：
+Use the isolated native worker and shared lock, not an additional unlocked COM session. Create a comparison from the returned native output:
 
 ```powershell
 & <MCP-Python> <skill>/scripts/image_review_workspace.py compare work/crops/A.png work/native-r1/A.png work/A-review-r1.png --height 400
 ```
 
-**实际打开对照图检查**，不能根据生成成功判定正确。拼图自动记录两侧哈希与显示比例，但不会代替视觉判断，也不会验证右图确实来自 ChemDraw；应使用上一步返回的原生输出。
+Open and inspect the comparison. Successful generation, hashes, and display scales do not establish visual correctness or prove native-renderer provenance.
 
-发现结构错误时调用：
+Route grounded structural corrections through:
 
 ```python
 modify_molecule(mol_json={"smiles":"<recognized SMILES>"},
     operation="set_smiles", new_smiles="<visually grounded corrected SMILES>",
-    description="A: 图中为 OH，识别结果误为甲基；其他连接保持")
+    description="A: source shows OH, recognized as methyl; preserve other connectivity")
 ```
 
-查看返回的 MCS/分子式及立体变化，再绘制修正结果。非法 R token 的最小语法规范化需单独记录，不能冒充有效 OCSR 原文。只重做受修改影响的结构；布局改动后仍要查看最终预览。源图无法辨认的细节保持未解决，不能依靠反应常识补画。
+Review the MCS, formula, and stereo changes before redrawing. Record minimal normalization of invalid R tokens separately from raw OCSR output. Redo affected structures only, but inspect the complete preview after layout changes. Keep unreadable source details unresolved instead of filling them from reaction expectations.
 
-## 5. 条件组装与交付
+## 5. Assemble conditions and deliver
 
-按照源图顺序记录条件原文、结构/状态编号及产率作用范围。比如“70% (3 steps)”是三步合计；共享波浪键结构对应 a/b 标签时保存相对描述，不自动生成两个绝对构型 SMILES。使用原生富文本处理上下标，再按源图位置放置结构、箭头和标签。
+Preserve condition wording and order, structure/state labels, and yield scope. For example, "70% (3 steps)" covers all three steps. Preserve relative descriptions for shared wavy-bond structures with a/b labels; do not invent absolute stereoisomers. Use native rich text for subscripts and superscripts and follow source positions for structures, arrows, and labels.
 
-整图原生渲染后看一遍：条件顺序、产率、编号、箭头、缩写、交叉显示与裁边。输出顺序：**可编辑 CDXML → 预览 → 必要对照/未解决项**。原始响应、修正结果和哈希留在工作目录，不默认输出冗长审计报告。
+Inspect the whole native figure for conditions, yields, labels, arrows, abbreviations, crossings, and clipping. Deliver **editable CDXML, preview, then necessary comparisons or unresolved issues**. Retain raw responses, corrections, and hashes in the working directory.
 
-默认分层验收：修正结构与最终 CDXML 读回一致；视觉检查未发现明显结构/标注错误；版式差异如实说明。严格 1:1 只有确实达到时才能宣布完成；像素相似度不是结构正确率，白底占比也不是复刻成功率。
+Check corrected structures against final CDXML readback, inspect visual fidelity, and disclose layout differences. Claim strict 1:1 reproduction only when demonstrated. Pixel similarity and white-background area do not establish chemical correctness.
 
-## 高频问题：直接这样处理
+## Common issues
 
-| 看到的问题 | 已验证的处理 |
+| Issue | Approach |
 |---|---|
-| 折叠链看似成环、桥环有交叉 | 逐键追踪；仅线条相交不增加原子或闭环 |
-| Ph/Pb、OH/甲基、OMe/OH、CN、X/R | 优先核对这些部位；依据整图定义修正，再检查分子式差异 |
-| R/X 缩写 | 显示原文，内部用真实原子子图和连接点；不能用文字代替连接关系 |
-| 波浪键、α/β、R/S 混用 | 各自记录；未指定不等于消旋；CIP 字母改变不必然表示空间翻转 |
-| 坐标/楔线调整 | 最终坐标重新楔化并读回，核对楔线窄端与连接原子 |
-| 桥环构型缺失或读取结果矛盾 | 对同一原生保存文件比较 RDKit 的 CDXML 读回与 ChemScript 直接输出的 SMILES；MOL 中转可能损失立体信息，不能作为唯一裁判。逐原子对应核查；升级读取器后只复测一个有明确分歧的结构，确认有效后再批量处理。不要为使两个读取器一致而翻转楔线；分歧未解决时保留待验收状态 |
-| 左向缩写倒排、堆叠或换行 | 显式设置节点/文本左右对齐与字体 runs；单结构预览也需足够页宽 |
-| 桥环前后显示错误 | 先核对前后键，再调整粗键/遮挡；必要的矢量遮挡与结构归组，不遮掉真实标签 |
-| 只在全图正常、单结构换行 | 检查单结构导出的页面宽度与坐标，不反复修改正确 SMILES |
+| Folded chains or bridged crossings | Trace each bond; crossing lines alone create neither an atom nor a ring closure. |
+| Ph/Pb, OH/methyl, OMe/OH, CN, X/R | Check these first using full-image definitions, then inspect formula differences. |
+| R/X abbreviations | Preserve displayed text with real atom subgraphs and attachment points; text cannot replace connectivity. |
+| Wavy bonds, alpha/beta, R/S | Record each separately. Unspecified does not mean racemic; a changed CIP label need not mean spatial inversion. |
+| Coordinate/wedge changes | Recompute wedges and read back final coordinates; verify the narrow end and attached atom. |
+| Missing bridged stereo or reader disagreement | Compare RDKit CDXML readback and direct ChemScript SMILES from the same native file. MOL intermediates can lose stereo and are not the sole judge. Map atoms explicitly. After upgrades, retest one disputed structure before batch processing. Never flip wedges merely to force agreement; unresolved differences prevent full acceptance. |
+| Reversed or wrapped abbreviations | Set node/text alignment and font runs explicitly; allow sufficient page width. |
+| Incorrect bridge depth | Verify front/back bonds before changing bold bonds or occlusion. Group vector masks with structures without hiding labels. |
+| Individual exports wrap | Check page width and coordinates instead of editing correct SMILES. |
 
-## 可运行示例
+## Runnable examples
 
-[两张完整论文路线图](../assets/paper-reconstructions/README.md) 包含原生结构组件、布局清单和离线组装脚本。运行 `python <skill>/assets/paper-reconstructions/rebuild.py <new-output-directory>` 后进行原生预览。示例覆盖共享 OR、缩写、折叠链、桥键遮挡及电子箭头；完整布局已具备，但立体信息仍有读取工具间分歧，不能作为全部构型已验收的样板。不要将前后步骤自动改成自洽结构：原图的展开链与缩写定义可能不一致，逐处保留并列出差异。
+[Two complete publication schemes](../assets/paper-reconstructions/README.md) include native components, layout manifests, and an offline assembly script. Run `python <skill>/assets/paper-reconstructions/rebuild.py <new-output-directory>` and inspect native previews. Examples cover shared OR groups, abbreviations, folded chains, bridge occlusion, and electron arrows. Complete layouts do not establish stereo acceptance; reader disagreements remain. Preserve and report inconsistencies between source expanded chains and abbreviation definitions instead of making adjacent steps artificially consistent.
 
-[绘图示例](../assets/paper-replica/example/CASE.md) 包含图形 manifest、实际 CDXML/原生预览和离线重建脚本；覆盖常用箭头、电子曲线、富文本、手性和增强立体组。
+The [drawing example](../assets/paper-replica/example/CASE.md) includes a manifest, actual CDXML/native preview, and offline replay covering arrows, electron curves, rich text, chirality, and enhanced stereo groups:
 
 ```powershell
 & <MCP-Python> <skill>/assets/paper-replica/example/replay.py <absolute-new-output-directory>
 ```
 
-对生成的 `figure.cdxml` 调用原生渲染接口，再制作并查看左右对照。本例不调用 DECIMER；论文识图使用用户有权提供的图片按上述流程执行。图形字段见 [绘图参考](publication-figures.md)。
+Render `figure.cdxml` natively and inspect a comparison. This example does not call DECIMER. For recognition, use images the user is authorized to provide and follow the workflow above. See the [drawing reference](publication-figures.md) for supported fields.
 
-## 验证范围与原生能力缺失
+## Validation scope
 
-`document_chemistry_validation` 验证最终文件中的完整分子清单（含重复次数），并记录 SHA-256；`scope=rdkit_readback_consistency` 仅表示 RDKit 读回一致。跨读取器构型分歧仍阻止完整立体化学验收。原生 ChemDraw 不可用时，交付可编辑文件并明确标记“原生预览待验证”，不能以其他渲染器替代原生验收。
+`document_chemistry_validation` checks the complete final molecular inventory, including multiplicity, and records SHA-256. `scope=rdkit_readback_consistency` establishes RDKit consistency only. Cross-reader stereo disagreement prevents full stereochemical acceptance. When native ChemDraw is unavailable, deliver editable files marked as pending native preview; other renderers cannot replace native acceptance.

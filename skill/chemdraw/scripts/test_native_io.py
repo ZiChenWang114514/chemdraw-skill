@@ -35,8 +35,8 @@ class NativeIOBridgeTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            source = root / "中文输入" / "结构.cdxml"
-            destination = root / "中文输出" / "预览.png"
+            source = root / "\u4e2d\u6587\u8f93\u5165" / "\u7ed3\u6784.cdxml"
+            destination = root / "\u4e2d\u6587\u8f93\u51fa" / "\u9884\u89c8.png"
             source.parent.mkdir()
             destination.parent.mkdir()
             source.write_text(MINIMAL_CDXML, encoding="utf-8")
@@ -150,7 +150,7 @@ class NativeIOBridgeTests(unittest.TestCase):
     def test_source_context_is_copied_for_office_export(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            source = root / "中文" / "deck.pptx"
+            source = root / "\u4e2d\u6587" / "deck.pptx"
             sidecar = source.parent / "linked-data.csv"
             destination = root / "preview.pdf"
             source.parent.mkdir()
@@ -202,8 +202,8 @@ class NativeIOBridgeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             sources = []
-            for name in ("结构一.cdxml", "结构二.cdxml"):
-                path = root / "中文" / name
+            for name in ("\u7ed3\u6784\u4e00.cdxml", "\u7ed3\u6784\u4e8c.cdxml"):
+                path = root / "\u4e2d\u6587" / name
                 path.parent.mkdir(exist_ok=True)
                 path.write_text(MINIMAL_CDXML, encoding="utf-8")
                 sources.append(path)
@@ -251,7 +251,7 @@ class NativeIOIntegrationTests(unittest.TestCase):
         from cdxml_toolkit.mcp_runtime import official_overrides
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            source = root / "中文" / "结构.cdx"
+            source = root / "\u4e2d\u6587" / "\u7ed3\u6784.cdx"
             output = root / "reaction.json"
             source.parent.mkdir()
             source.write_bytes(b"VjCD0100" + (b"\0" * 24))
@@ -278,10 +278,10 @@ class NativeIOIntegrationTests(unittest.TestCase):
         from cdxml_toolkit.mcp_runtime import official_overrides
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            input_dir = root / "中文实验"
+            input_dir = root / "\u4e2d\u6587\u5b9e\u9a8c"
             output = root / "reaction.json"
             input_dir.mkdir()
-            (input_dir / "结构.cdx").write_bytes(b"VjCD0100" + (b"\0" * 24))
+            (input_dir / "\u7ed3\u6784.cdx").write_bytes(b"VjCD0100" + (b"\0" * 24))
 
             def parse(**kwargs):
                 native_dir = Path(kwargs["input_dir"])
@@ -305,7 +305,7 @@ class NativeIOIntegrationTests(unittest.TestCase):
             self.assertTrue(output.is_file())
             written = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(
-                written["input_files"], [str((input_dir / "结构.cdx").resolve())]
+                written["input_files"], [str((input_dir / "\u7ed3\u6784.cdx").resolve())]
             )
 
     @unittest.skipUnless(sys.platform == "win32", "Windows COM/process test; covered by Windows CI")
@@ -314,8 +314,8 @@ class NativeIOIntegrationTests(unittest.TestCase):
         from cdxml_toolkit.mcp_runtime import office_objects
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            source = root / "中文" / "结构.cdxml"
-            destination = root / "中文" / "预览.png"
+            source = root / "\u4e2d\u6587" / "\u7ed3\u6784.cdxml"
+            destination = root / "\u4e2d\u6587" / "\u9884\u89c8.png"
             source.parent.mkdir()
             source.write_text(MINIMAL_CDXML, encoding="utf-8")
 
@@ -342,8 +342,8 @@ class NativeIOIntegrationTests(unittest.TestCase):
         from cdxml_toolkit.mcp_runtime import official_overrides
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            source = root / "中文输入" / "结构.cdxml"
-            destination = root / "中文输出" / "结构.png"
+            source = root / "\u4e2d\u6587\u8f93\u5165" / "\u7ed3\u6784.cdxml"
+            destination = root / "\u4e2d\u6587\u8f93\u51fa" / "\u7ed3\u6784.png"
             source.parent.mkdir()
             destination.parent.mkdir()
             source.write_text(MINIMAL_CDXML, encoding="utf-8")

@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/-English-17242b?style=flat" height="22" alt="English"></a>&nbsp;
-  <a href="docs/guide.zh-cn.md#首次-windows-安装"><img src="https://img.shields.io/badge/-%E5%AE%89%E8%A3%85-17242b?style=flat" height="22" alt="安装"></a>&nbsp;
+  <a href="docs/guide.zh-cn.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-%E5%AE%89%E8%A3%85-17242b?style=flat" height="22" alt="安装"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9B%AE%E5%BD%95-007c83?style=flat" height="22" alt="工作流目录"></a>&nbsp;
   <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5-d94f70?style=flat" height="22" alt="安全策略"></a>
 </p>
@@ -225,7 +225,7 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖项 |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络路径 |
 
-项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请使用[逐步中文指南](docs/zh-cn.md#从零开始安装)或[英文详细指南](docs/guide.md#first-time-windows-setup)。
+项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请使用[快速入门指南（英文）](docs/zh-cn.md#setup)或[英文详细指南](docs/guide.md#first-time-windows-setup)。
 
 ## 快速开始：任意 Agent
 
@@ -242,7 +242,7 @@ python -m cdxml_toolkit.mcp_runtime
 
 Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` 预览，再加 `-Apply` 安装。默认存放于 `$HOME/.agents/skills/chemdraw`；不同 Agent 的自动发现位置可能不同。安装器默认不改动客户端配置。macOS/Linux 可直接复制整个 Skill 文件夹。
 
-[通用 MCP、CLI 和可选客户端适配](skill/chemdraw/references/agent-integration.md) · [Windows 原生功能及安装](docs/guide.zh-cn.md#首次-windows-安装) · [中文首次使用教程](docs/zh-cn.md)
+[通用 MCP、CLI 和可选客户端适配](skill/chemdraw/references/agent-integration.md) · [Windows 原生功能及安装](docs/guide.zh-cn.md#first-time-windows-setup) · [首次使用教程（英文）](docs/zh-cn.md)
 
 ```powershell
 # 通用健康检查；不要求特定 Agent CLI，不启动原生应用
@@ -277,7 +277,7 @@ Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` �
 
 ## 文档
 
-- [中文安装与首次使用教程](docs/zh-cn.md)
+- [安装与首次使用教程（英文）](docs/zh-cn.md)
 - [安装、故障处理、架构与运行维护](docs/guide.zh-cn.md)
 - [面向任务的工作流目录](skill/chemdraw/references/workflow-router.md)
 - [自动生成的 MCP 工具签名](skill/chemdraw/references/mcp-signatures.md)

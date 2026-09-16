@@ -35,7 +35,7 @@ The installer previews first; `-Apply` backs up and installs. It does not config
 Success ends with `ChemDraw agent integration: OK`. Generic checks do not validate a particular client registration: refresh the agent tool list and call `get_toolkit_capabilities()`. Select `core,native,chemscript,office,decimer` as needed; skipped features are not verified. See [operations](../skill/chemdraw/references/operations.md) for bitness, timeouts, remote hosting and DECIMER.
 
 <details>
-<summary>Optional Codex client adapter / 可选客户端适配</summary>
+<summary>Optional Codex client adapter</summary>
 
 Only for this client, after its CLI is already installed:
 

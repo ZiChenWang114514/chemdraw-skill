@@ -7,7 +7,7 @@
 **Bring ChemDraw workflows to any AI agent.** Draw editable chemical structures, reconstruct paper figures, and turn structure tables into substrate-scope and SAR panels. Update data after ChemDraw editing while preserving unrelated layout and annotations. Connect through MCP or Python/CLI.
 
 <p align="center">
-  <a href="README.zh-cn.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-007c83?style=flat" height="22" alt="简体中文"></a>&nbsp;
+  <a href="README.zh-cn.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-007c83?style=flat" height="22" alt="Simplified Chinese"></a>&nbsp;
   <a href="docs/guide.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-Installation-17242b?style=flat" height="22" alt="Installation"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-Workflow%20catalog-007c83?style=flat" height="22" alt="Workflow catalog"></a>&nbsp;
   <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-Security-d94f70?style=flat" height="22" alt="Security"></a>
@@ -227,7 +227,7 @@ The project audits 637 public `cdxml-toolkit-community` symbols. That number des
 | Local optical structure recognition | DECIMER model weights and their runtime dependencies |
 | Remote access to a ChemDraw workstation | A Windows host plus authenticated HTTP configuration and an encrypted network path |
 
-ChemDraw, Microsoft Office, ChemScript, and DECIMER model weights are not bundled. For a first installation, use the [step-by-step Chinese guide](docs/zh-cn.md#从零开始安装) or the [detailed English guide](docs/guide.md#first-time-windows-setup).
+ChemDraw, Microsoft Office, ChemScript, and DECIMER model weights are not bundled. For a first installation, use the [quick-start guide](docs/zh-cn.md#setup) or the [detailed English guide](docs/guide.md#first-time-windows-setup).
 
 ## Quick Start: any agent
 
@@ -244,7 +244,7 @@ This starts the stdio server from the pinned toolkit revision. Data-driven figur
 
 On Windows, preview `scripts/install.ps1 -Destination <your-skill-directory>`, then add `-Apply`. Its default storage path is `$HOME/.agents/skills/chemdraw`; individual clients may use different discovery paths. Client configuration is not changed by default. On macOS/Linux, copy the entire Skill folder directly.
 
-[Generic MCP, CLI and optional client adapters](skill/chemdraw/references/agent-integration.md) · [Windows native setup](docs/guide.md#first-time-windows-setup) · [Chinese walkthrough](docs/zh-cn.md)
+[Generic MCP, CLI and optional client adapters](skill/chemdraw/references/agent-integration.md) · [Windows native setup](docs/guide.md#first-time-windows-setup) · [Quick-start walkthrough](docs/zh-cn.md)
 
 ```powershell
 # Generic health check; no particular agent CLI or native application required
@@ -279,7 +279,7 @@ The [paper reconstruction workflow](skill/chemdraw/references/image-visual-revie
 
 ## Documentation
 
-- [Chinese setup and first use](docs/zh-cn.md)
+- [Setup and first use](docs/zh-cn.md)
 - [Installation, troubleshooting, architecture, and operations](docs/guide.md)
 - [Task-oriented workflow catalog](skill/chemdraw/references/workflow-router.md)
 - [Generated MCP tool signatures](skill/chemdraw/references/mcp-signatures.md)

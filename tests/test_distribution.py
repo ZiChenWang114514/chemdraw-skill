@@ -11,6 +11,23 @@ SKILL = ROOT / "skill" / "chemdraw"
 
 
 class DistributionTests(unittest.TestCase):
+    def test_chinese_text_is_limited_to_chinese_readme(self) -> None:
+        tracked = subprocess.check_output(
+            ["git", "ls-files", "-z"], cwd=ROOT
+        ).decode("utf-8").split("\0")
+        violations = []
+        for name in filter(None, tracked):
+            if name == "README.zh-cn.md":
+                continue
+            path = ROOT / name
+            try:
+                content = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            if re.search(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]", content):
+                violations.append(name)
+        self.assertEqual(violations, [], "Use English outside README.zh-cn.md")
+
     def test_required_repository_files_exist(self) -> None:
         required = [
             "README.md",
