@@ -23,6 +23,7 @@ Read only the matching workflow and the needed tool signature, not the complete 
 | Task | Start here |
 | --- | --- |
 | Publication image or reaction screenshot | [Quick reconstruction](references/image-visual-review.md) |
+| Small-context models, result files, local task packets | [Efficient reconstruction](references/efficient-reconstruction.md) |
 | Molecule drawing, modification, comparison, reaction editing | Matching section in [workflow router](references/workflow-router.md) |
 | Exact coordinates, native template edits, arrows, crossings | [Figure manifest](references/publication-figures.md) |
 | Saved-file and cross-reader validation | [Figure validation](references/figure-validation.md) |
@@ -39,6 +40,8 @@ For recurring errors, consult [lessons](references/lessons.md). Exact MCP signat
 ## Publication Figure Reconstruction
 
 Inspect the whole image, crop structures, recognize, correct connectivity and charges, verify stereobonds and occlusion, then restore coordinates and text. Native-render and inspect local details plus the complete figure. Reprocess only affected regions, preserving candidate/correction provenance. Follow the quick reconstruction guide for commands and the task record.
+
+Execute serially unless the user explicitly requests parallel agents or sets `parallel=true`. A request to edit parallel-workflow instructions does not itself authorize delegation. Use short local packets for an authorized worker; retain global conditions, final review and unresolved chemistry with the main agent. Never upgrade models automatically.
 
 ## Acceptance
 

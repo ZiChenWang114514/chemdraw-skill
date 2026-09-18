@@ -17,7 +17,9 @@ In an MCP-capable client, register a stdio server using its own settings format:
 }
 ```
 
-Use the interpreter in the installed toolkit environment. `codex` is the runtime's existing full-profile identifier (39 tools), accepted by any MCP client; it does not require that product. Keep this literal identifier until the runtime provides a compatible replacement. Restart or refresh the client, list tools, then call `get_toolkit_capabilities()`.
+Use the interpreter in the installed toolkit environment. `codex` is the runtime's existing full-profile identifier, accepted by any MCP client; it does not require that product. Keep this literal identifier until the runtime provides a compatible replacement. Query capability summaries only for unknown versions, missing interfaces or diagnosis. Normal tasks go directly to the matching workflow.
+
+For small-context clients, use the [compact CLI and task packets](efficient-reconstruction.md). Skill instructions cannot remove MCP schemas already injected by the host. This Skill does not add a reconstruction MCP profile or new runtime job APIs.
 
 Without MCP, use the [Python/CLI routes](toolkit-cli-interfaces.md) and [figure CLI](publication-figures.md#immediate-cli-fallback). A remote client may connect to the Windows host's authenticated Streamable HTTP endpoint; see [operations](operations.md). Client configuration schemas differ, so do not copy another product's settings file verbatim.
 

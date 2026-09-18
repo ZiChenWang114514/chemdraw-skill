@@ -13,6 +13,30 @@ INSTALLER = ROOT / "scripts" / "install.ps1"
 
 
 class InstallerTests(unittest.TestCase):
+    def test_apply_ignores_test_and_typecheck_caches(self) -> None:
+        shell = shutil.which("pwsh") or shutil.which("powershell")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            installer = root / "scripts" / "install.ps1"
+            installer.parent.mkdir()
+            shutil.copy2(INSTALLER, installer)
+            source = root / "skill" / "chemdraw"
+            source.mkdir(parents=True)
+            (source / "SKILL.md").write_text("test skill", encoding="ascii")
+            for cache in ("__pycache__", ".pytest_cache", ".mypy_cache"):
+                folder = source / "scripts" / cache
+                folder.mkdir(parents=True)
+                (folder / "cache.txt").write_text("local only", encoding="ascii")
+            result = subprocess.run(
+                [shell, "-NoProfile", "-File", str(installer), "-Apply",
+                 "-Destination", str(root / "installed")],
+                capture_output=True, text=True, encoding="utf-8-sig",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            record = json.loads(result.stdout)
+            self.assertEqual(record["source_fingerprint"], record["installed_fingerprint"])
+            self.assertEqual(list((root / "installed").rglob("cache.txt")), [])
+
     def test_default_destination_is_agent_neutral(self) -> None:
         shell = shutil.which("pwsh") or shutil.which("powershell")
         result = subprocess.run(

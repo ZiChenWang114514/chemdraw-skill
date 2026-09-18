@@ -154,11 +154,12 @@ class AutomationProcessCleanupTests(unittest.TestCase):
             stdout="[]",
             stderr="",
         )
-        with mock.patch.object(
+        with mock.patch.object(process_control, "os") as os_boundary, mock.patch.object(
             process_control, "_system_executable", return_value=Path("powershell.exe")
         ), mock.patch.object(
             process_control.subprocess, "run", return_value=completed
         ) as run:
+            os_boundary.name = "nt"
             process_control.snapshot_automation_processes()
 
         command = run.call_args.args[0][-1]

@@ -342,7 +342,7 @@ if ($discovery) {
 
     $tests = Invoke-BoundedNative `
         -FilePath $pythonPath `
-        -Arguments @('-m', 'unittest', 'discover', '-s', $PSScriptRoot, '-p', 'test_*.py')
+        -Arguments @('-m', 'pytest', $PSScriptRoot, '-q')
     Add-CommandFailure $tests 'ChemDraw Skill tests'
 
     if (-not $ReferenceRoot) {

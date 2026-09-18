@@ -17,7 +17,7 @@ function Get-TreeFingerprint {
     $records = @(
         Get-ChildItem -LiteralPath $resolved -Recurse -File -Force |
             Where-Object {
-                $_.FullName -notmatch '[\\/]__pycache__[\\/]' -and
+                $_.FullName -notmatch '[\\/](__pycache__|\.pytest_cache|\.mypy_cache)[\\/]' -and
                 $_.Extension -notin @('.pyc', '.pyo')
             } |
             Sort-Object FullName |
