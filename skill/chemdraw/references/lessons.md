@@ -14,3 +14,5 @@ Read only the relevant entry. These are observed failure modes, not universal re
 | Repeated styling and full catalog reads increase rework | Resolve structure and depth before typography; read one workflow and the needed signatures, and reuse unchanged crops. | If requested, separate cached input from other token usage and record the cutoff. |
 
 Use [reconstruction](image-visual-review.md), [native figure edits](publication-figures.md), and [saved-file validation](figure-validation.md) for executable workflows. New lessons should record an observed symptom, a tested correction and its limits; avoid machine-specific IDs and paths.
+
+For perspective-bond disagreement, abbreviation hydrogen loss, and version-specific stereo handling, use [stereo reconstruction diagnosis](stereo-reconstruction.md). Test a difficult fragment before propagating templates; revalidate the exact final saved file.

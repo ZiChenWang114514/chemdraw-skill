@@ -16,3 +16,5 @@ The JSON arguments are `input_path`, a new `output_dir`, optional `native` (defa
 For structural corrections, `modify_molecule.diff` retains legacy fields and adds `status`, `method`, `reason`, `atom_mapping`, `atom_changes`, `bond_changes`, and `stereo_changes`. Mapped stereo checks cover tetrahedral CIP and bond stereo; unclassified semantic differences, including enhanced-group distinctions, remain partial. `completed` means the stated comparison completed; `partial` and `not_completed` cannot authorize a no-change claim. Null mapping or an empty legacy list is not independent evidence of equivalence. MCS execution is bounded; symmetric mappings stay explicit.
 
 Timing and token reports are optional user deliverables. Keep host-specific accounting outside runtime health responses, distinguish repeated/cached inputs and outputs, and state the exact cutoff and unavailable third-party usage.
+
+For perspective-bond disagreement, abbreviation hydrogen loss, and version-specific stereo handling, use [stereo reconstruction diagnosis](stereo-reconstruction.md). Test a difficult fragment before propagating templates; revalidate the exact final saved file.

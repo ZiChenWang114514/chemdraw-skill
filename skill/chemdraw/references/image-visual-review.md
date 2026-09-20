@@ -128,3 +128,5 @@ Render `figure.cdxml` natively and inspect a comparison. This example does not c
 The `compare` helper defaults to a visual display: panels may be independently resized and are not a strict pixel comparison. Candidates are not called native without `--native-receipt` pointing to the saved `render_cdxml_files` result with matching path/hash and renderer metadata. The helper publishes image and receipt together.
 
 Use `--mode aligned --offset DX DY` for explicit integer translation and padding at the original scale. Candidate pixels must fit the reference canvas; clipping is rejected. This mode records exact equality, normalized MAE and ink IoU. `--region X1 Y1 X2 Y2 --height N` produces an explicitly marked local display, not full-image pixel acceptance. Keep the complete comparison as well as details. See [lessons](lessons.md) for known mistakes.
+
+For perspective-bond disagreement, abbreviation hydrogen loss, and version-specific stereo handling, use [stereo reconstruction diagnosis](stereo-reconstruction.md). Test a difficult fragment before propagating templates; revalidate the exact final saved file.

@@ -26,6 +26,7 @@ Read only the matching workflow and the needed tool signature, not the complete 
 | Small-context models, result files, local task packets | [Efficient reconstruction](references/efficient-reconstruction.md) |
 | Molecule drawing, modification, comparison, reaction editing | Matching section in [workflow router](references/workflow-router.md) |
 | Exact coordinates, native template edits, arrows, crossings | [Figure manifest](references/publication-figures.md) |
+| Reader stereo disagreement, native-save H loss | [Stereo diagnosis](references/stereo-reconstruction.md) |
 | Saved-file and cross-reader validation | [Figure validation](references/figure-validation.md) |
 | Substrate scope, SAR, table-driven updates | [Data-driven figures](references/data-driven-figures.md) |
 | Office extraction, inspection, replacement or embedding | Office section in [workflow router](references/workflow-router.md) |

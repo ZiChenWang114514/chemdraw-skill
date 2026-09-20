@@ -44,6 +44,18 @@
 | [复杂合成：101–112](#synthesis-101-demo) | 完整原生路线图与机理箭头 | 立体化学待完整验收；非 1:1 |
 | [复杂合成：113–122](#synthesis-113-demo) | 完整原生路线图与机理箭头 | 立体化学待完整验收；非 1:1 |
 
+<a id="stereo-reconstruction-demo"></a>
+
+### 20 个结构：修复跨软件立体信息不一致
+
+![20 个结构合成路线的 ChemDraw 原生复刻](https://raw.githubusercontent.com/ZiChenWang114514/cdxml-toolkit-community/main/assets/readme/stereo-reconstruction/native.png)
+
+忠实于原图画法的版本有 16 个结构在 ChemScript 与 RDKit 中读法不同。修复版经原生保存后 **20/20 一致**，并保持复核后的目标结构。产物 **1** 改用了显式楔键，因此外观与原图有差异；同尺度墨迹 IoU 为 **0.6960**。这不是像素级 1:1，也不是实验绝对构型的独立验证。
+
+[下载 CDXML](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [踩坑复盘、改进流程与版权说明](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/CASE.md) · [逐结构证据与软件版本](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/verification.json)
+
+X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使用前请查阅案例中的来源与权利说明。
+
 <a id="paper-scheme-demo"></a>
 
 ### 论文反应路线
