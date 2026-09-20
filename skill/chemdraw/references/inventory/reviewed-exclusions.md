@@ -106,9 +106,9 @@
 
 ## `mcp_runtime.figure_validation`
 
-- **function**, line 44: `compare_inventories(a, b)` - No public docstring in the audited version.
+- **function**, line 49: `compare_inventories(a, b)` - No public docstring in the audited version.
 - **function**, line 16: `inspect_document(path)` - No public docstring in the audited version.
-- **function**, line 70: `validate_figure(input_path: str, output_dir: str, native: bool = False, cross_reader: bool = False) -> dict` - Write a diagnostic directory without changing the source. CLI-only operation.
+- **function**, line 78: `validate_figure(input_path: str, output_dir: str, native: bool = False, cross_reader: bool = False) -> dict` - Write a diagnostic directory without changing the source. CLI-only operation.
 
 ## `mcp_runtime.generate_reference`
 
