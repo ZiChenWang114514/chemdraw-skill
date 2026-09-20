@@ -248,7 +248,7 @@ Load `skill/chemdraw/SKILL.md` in your agent, then connect MCP or use Python/CLI
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community[scientific,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@e07add1ecc27879f07a27780b1603cdfa596f2c2"
+python -m pip install "cdxml-toolkit-community[scientific,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@dfeb618958e3e1902411b084e40835e73179e2bd"
 python -m cdxml_toolkit.mcp_runtime
 ```
 
