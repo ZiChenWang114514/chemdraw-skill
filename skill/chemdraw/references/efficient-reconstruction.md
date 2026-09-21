@@ -1,6 +1,6 @@
 # Efficient reconstruction
 
-Use the existing toolkit environment. Read this guide and the needed tool signature; do not load the entire catalog. These helpers save evidence and prepare local packets. They do not implement a scheduler, cache service, task lease database, or lossless native component importer.
+Use the existing toolkit environment. Read this guide and the needed tool signature; do not load the entire catalog. These packet helpers save evidence and propose batches; they do not implement worker scheduling or a task lease database. For implemented candidate caching, change-based fragment checks, native-tree replay and dual delivery, use [incremental reconstruction](incremental-reconstruction.md). It does not add a general native component importer or launch agents.
 
 ## Short procedure
 
@@ -51,4 +51,4 @@ The caller limits OCSR requests separately from agent count, retries a transient
 
 Keep native, chemical and visual acceptance separate. A model without vision can run deterministic steps but cannot certify image agreement. Do not auto-upgrade a model on failure. Cache reuse is manual: verify source/crop hashes, transform, parameters, tool version and correction rules; never reuse a final correctness verdict. Changed shared definitions invalidate affected results even when pixels match.
 
-When requested, record wall time, recognition time, native queue time and host token counters with their cutoff. Separate cached input, uncached input and output; unavailable counters are unknown. Compare the same model and fixture before claiming savings or speedups. Packet generation and tests establish engineering behavior only, not low-cost model accuracy or parallel performance.
+When requested, record wall time, recognition time, native queue time and host token counters with their cutoff. Separate cached input, uncached input and output; unavailable counters are unknown. Compare the same model and fixture before claiming savings or speedups. Packet generation and tests establish engineering behavior only, not low-cost model accuracy or parallel performance. The incremental controller can enforce cache dependencies and a two-failure repair bound; final correctness verdicts are never cache hits.

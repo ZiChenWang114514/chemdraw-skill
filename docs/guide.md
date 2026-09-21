@@ -9,7 +9,7 @@ Use 64-bit Python 3.10–3.13, preferably in a dedicated Python 3.12 environment
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community[windows,office,chemscript,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@dfeb618958e3e1902411b084e40835e73179e2bd"
+python -m pip install "cdxml-toolkit-community[windows,office,chemscript,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@89c843bc027383030994557f9908b44985c2cf72"
 ```
 
 ```powershell

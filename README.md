@@ -56,6 +56,8 @@ The source-oriented reconstruction disagreed between ChemScript and RDKit for 16
 
 The embedded X-ray is a source crop. Paper-derived artwork is excluded from the MIT license; see the case's source and rights statement.
 
+**Incremental workflow available:** linked structure/scene records, verified candidate caching, local checks and explicit dual-variant acceptance. A controlled three-caption-edit replay reduced native calls from 8 to 2 (33.53 s to 8.88 s); this is not an end-to-end recognition speed claim. [Source-oriented version](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [Workflow](https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/incremental-reconstruction.md) · [Measured evidence](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/incremental-verification.json).
+
 <a id="paper-scheme-demo"></a>
 
 ### Paper reaction scheme
@@ -248,7 +250,7 @@ Load `skill/chemdraw/SKILL.md` in your agent, then connect MCP or use Python/CLI
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community[scientific,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@dfeb618958e3e1902411b084e40835e73179e2bd"
+python -m pip install "cdxml-toolkit-community[scientific,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@89c843bc027383030994557f9908b44985c2cf72"
 python -m cdxml_toolkit.mcp_runtime
 ```
 
