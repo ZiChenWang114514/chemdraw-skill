@@ -10,16 +10,19 @@
   <a href="README.md"><img src="https://img.shields.io/badge/-English-17242b?style=flat" height="22" alt="English"></a>&nbsp;
   <a href="docs/guide.zh-cn.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-%E5%AE%89%E8%A3%85-17242b?style=flat" height="22" alt="安装"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9B%AE%E5%BD%95-007c83?style=flat" height="22" alt="工作流目录"></a>&nbsp;
-  <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5-d94f70?style=flat" height="22" alt="安全策略"></a>
+  <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5-d94f70?style=flat" height="22" alt="安全策略"></a>&nbsp;
+  <a href="https://openai.com/brand/"><img src="https://img.shields.io/badge/ChatGPT-gpt--6--astra-17242b?style=flat&amp;logo=openai&amp;logoColor=white&amp;logoWidth=16" height="22" alt="ChatGPT · gpt-6-astra"></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml"><img src="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml/badge.svg?style=flat" height="22" alt="验证工作流状态"></a>&nbsp;
   <img src="https://img.shields.io/badge/-%E6%A0%B8%E5%BF%83%EF%BC%9AWindows%20%7C%20macOS%20%7C%20Linux-007c83?style=flat" height="22" alt="可移植核心支持 Windows、macOS 和 Linux">&nbsp;
   <img src="https://img.shields.io/badge/-Python%203.10--3.13-3776AB?style=flat&amp;logo=python&amp;logoColor=white" height="22" alt="Python 3.10 至 3.13">&nbsp;
-  <img src="https://img.shields.io/badge/-MCP%201.x%20%7C%202.x%20tested-17242b?style=flat" height="22" alt="已测试 MCP 1.x 和 2.x">&nbsp;
+  <img src="https://img.shields.io/badge/-MCP%201.x%20%7C%202.x%20%E5%B7%B2%E6%B5%8B%E8%AF%95-17242b?style=flat" height="22" alt="已测试 MCP 1.x 和 2.x">&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/-MIT-d94f70?style=flat" height="22" alt="MIT 许可证"></a>
 </p>
+
+<p align="center"><sub><code>ChatGPT · gpt-6-astra</code> 是本 Skill 的推荐模型标签，不会改变 Codex 实际选择的模型。ChatGPT/OpenAI 标志来自 <a href="https://github.com/openai/openai-agents-python/tree/main/docs/assets">OpenAI 官方维护的资源</a>，并遵循 <a href="https://openai.com/brand/">OpenAI 品牌指南</a>使用。</sub></p>
 
 <p align="center"><a href="#主打案例">查看主打案例</a> · <a href="#快速开始任意-agent">快速开始</a></p>
 
