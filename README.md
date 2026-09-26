@@ -11,6 +11,7 @@
   <a href="docs/guide.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-Installation-17242b?style=flat" height="22" alt="Installation"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-Workflow%20catalog-007c83?style=flat" height="22" alt="Workflow catalog"></a>&nbsp;
   <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-Security-d94f70?style=flat" height="22" alt="Security"></a>
+  <a href="https://openai.com/brand/"><img src="./skill/chemdraw/assets/openai-logo-small.svg" height="22" alt="ChatGPT"> <img src="https://img.shields.io/badge/-ChatGPT%20%C2%B7%20gpt--6--astra-17242b?style=flat" height="22" alt="ChatGPT · gpt-6-astra"></a>
 </p>
 
 <p align="center">
@@ -20,6 +21,8 @@
   <img src="https://img.shields.io/badge/-MCP%201.x%20%7C%202.x%20tested-17242b?style=flat" height="22" alt="MCP 1.x and 2.x tested">&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/-MIT-d94f70?style=flat" height="22" alt="MIT License"></a>
 </p>
+
+<p align="center"><sub><code>ChatGPT · gpt-6-astra</code> is a recommended model label for this Skill; it does not change the model selected by Codex. The ChatGPT/OpenAI mark is an official OpenAI asset from the <a href="https://github.com/openai/openai-agents-python/tree/main/docs/assets">OpenAI-maintained asset source</a>, used under the <a href="https://openai.com/brand/">OpenAI brand guidelines</a>.</sub></p>
 
 <p align="center"><a href="#featured-demos">Explore featured demos</a> · <a href="#quick-start-any-agent">Quick start</a></p>
 

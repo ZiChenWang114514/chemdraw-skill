@@ -1,6 +1,8 @@
 interface:
   display_name: "ChemDraw"
   short_description: "Install, diagnose, draw, compare, render, and embed chemistry"
+  icon_small: "./assets/openai-logo-small.svg"
+  icon_large: "./assets/openai-logo.svg"
   default_prompt: "Use $chemdraw to install, diagnose, or complete this ChemDraw workflow with grounded structures, preserved sources, and capability-appropriate verification."
 
 dependencies:
