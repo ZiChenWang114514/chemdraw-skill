@@ -229,7 +229,7 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 - **ChemScript SDK：** 检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制停滞调用造成的影响，但不提供操作系统级安全沙箱。
 - **远程工作站访问：** 保持 stdio 为默认模式，或通过可选的 Streamable HTTP 向外提供 Windows 主机服务，并包含健康状态与 Prometheus 端点。
 
-本项目审计了 `cdxml-toolkit-community` 的 637 个公共符号。该数字表示工具包清单，并不表示 完整 MCP 配置中的 39 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
+本项目审计了 `cdxml-toolkit-community` 的 637 个公共符号。该数字表示工具包清单，并不表示完整 MCP 配置中的 39 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
 
 ## 选择所需组件
 
@@ -242,7 +242,7 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖项 |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络路径 |
 
-项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请使用[快速入门指南（英文）](docs/zh-cn.md#setup)或[英文详细指南](docs/guide.md#first-time-windows-setup)。
+项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请使用[快速入门指南](docs/zh-cn.md#setup)或[英文详细指南](docs/guide.md#first-time-windows-setup)。
 
 ## 快速开始：任意 Agent
 
@@ -259,7 +259,7 @@ python -m cdxml_toolkit.mcp_runtime
 
 Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` 预览，再加 `-Apply` 安装。默认存放于 `$HOME/.agents/skills/chemdraw`；不同 Agent 的自动发现位置可能不同。安装器默认不改动客户端配置。macOS/Linux 可直接复制整个 Skill 文件夹。
 
-[通用 MCP、CLI 和可选客户端适配](skill/chemdraw/references/agent-integration.md) · [Windows 原生功能及安装](docs/guide.zh-cn.md#first-time-windows-setup) · [首次使用教程（英文）](docs/zh-cn.md)
+[通用 MCP、CLI 和可选客户端适配](skill/chemdraw/references/agent-integration.md) · [Windows 原生功能及安装](docs/guide.zh-cn.md#first-time-windows-setup) · [首次使用教程](docs/zh-cn.md)
 
 ```powershell
 # 通用健康检查；不要求特定 Agent CLI，不启动原生应用
@@ -294,7 +294,7 @@ Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` �
 
 ## 文档
 
-- [安装与首次使用教程（英文）](docs/zh-cn.md)
+- [安装与首次使用教程](docs/zh-cn.md)
 - [安装、故障处理、架构与运行维护](docs/guide.zh-cn.md)
 - [面向任务的工作流目录](skill/chemdraw/references/workflow-router.md)
 - [自动生成的 MCP 工具签名](skill/chemdraw/references/mcp-signatures.md)
