@@ -11,7 +11,7 @@
   <a href="docs/guide.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-Installation-17242b?style=flat" height="22" alt="Installation"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-Workflow%20catalog-007c83?style=flat" height="22" alt="Workflow catalog"></a>&nbsp;
   <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-Security-d94f70?style=flat" height="22" alt="Security"></a>
-  <a href="https://openai.com/brand/"><img src="./skill/chemdraw/assets/openai-logo-small.svg" height="22" alt="ChatGPT"> <img src="https://img.shields.io/badge/-ChatGPT%20%C2%B7%20gpt--6--astra-17242b?style=flat" height="22" alt="ChatGPT · gpt-6-astra"></a>
+  <a href="https://openai.com/brand/"><img src="https://img.shields.io/badge/ChatGPT-gpt--6--astra-17242b?style=flat&amp;logo=openai&amp;logoColor=white&amp;logoWidth=16" height="22" alt="ChatGPT · gpt-6-astra"></a>
 </p>
 
 <p align="center">
