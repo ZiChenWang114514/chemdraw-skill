@@ -6,6 +6,15 @@ import pytest
 from compact_tool import run_compact
 
 
+def test_compact_worker_uses_registered_timeout(tmp_path):
+    from cdxml_toolkit.mcp_runtime import mcp_server
+    args = tmp_path / 'args.json'; args.write_text('{}')
+    with mock.patch.object(mcp_server, '_execute_worker_process',
+            return_value=(0, b'{"ok":true,"result":{"ok":true}}', b'')) as process:
+        run_compact('modify_molecule', args, tmp_path / 'result.json')
+    assert process.call_args.kwargs['timeout_seconds'] == 90
+
+
 def test_full_evidence_stays_on_disk_and_summary_is_small(tmp_path):
     args=tmp_path/'args.json';args.write_text('{}')
     result={'ok':True,'result':{'ok':True,'raw_response':'x'*40000,'structures':[{'smiles':'CCO'}],

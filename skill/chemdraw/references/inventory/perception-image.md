@@ -1,6 +1,6 @@
 # Perception Image Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a1. Curated guidance: [../toolkit-perception-image-interfaces.md](../toolkit-perception-image-interfaces.md).
+> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../toolkit-perception-image-interfaces.md](../toolkit-perception-image-interfaces.md).
 
 ## `deterministic_pipeline.legacy.eln_cdx_cleanup`
 

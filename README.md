@@ -231,7 +231,7 @@ Remote DECIMER calls require upload authorization. Visual review remains an agen
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process. Process separation limits stalled calls; it is not an operating-system security sandbox.
 - **Remote workstation access:** keep stdio as the default or expose the Windows host through optional Streamable HTTP with health and Prometheus endpoints.
 
-The project audits 637 public `cdxml-toolkit-community` symbols. That number describes the toolkit inventory, not the 39-tool full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
+The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists audited `cdxml-toolkit-community` symbols and their current count. The inventory is separate from the full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
 
 ## Choose the Required Components
 
@@ -253,7 +253,7 @@ Load `skill/chemdraw/SKILL.md` in your agent, then connect MCP or use Python/CLI
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community[scientific,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@89c843bc027383030994557f9908b44985c2cf72"
+python skill/chemdraw/scripts/install_runtime.py --extras scientific publication
 python -m cdxml_toolkit.mcp_runtime
 ```
 
@@ -265,7 +265,7 @@ On Windows, preview `scripts/install.ps1 -Destination <your-skill-directory>`, t
 
 ```powershell
 # Generic health check; no particular agent CLI or native application required
-.\skill\chemdraw\scripts\health_check.ps1 -Python <absolute-python-path> -SkipNativeChemDraw
+.\skill\chemdraw\scripts\health_check.ps1 -Python <absolute-python-path> -SkipNativeChemDraw -SkipDevelopmentChecks
 ```
 
 For native rendering, ChemScript or Office, add the corresponding dependencies and select the checks described in the setup guide.

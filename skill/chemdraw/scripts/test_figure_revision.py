@@ -14,7 +14,8 @@ def test_real_diagnostics_envelope_and_summary():
         full = capabilities.get_toolkit_capabilities()
         summary = capabilities.get_toolkit_capabilities(detail='summary')
     assert full['outputs']['capabilities'] == diagnostic['outputs']['capabilities']
-    assert summary['warnings'] == diagnostic['warnings']
+    assert all(warning in summary['warnings'] for warning in diagnostic['warnings'])
+    assert summary['warnings'] == full['warnings']
     assert 'tools' not in summary['outputs']
     assert summary['outputs']['tool_schema_sha256'] == full['outputs']['tool_schema_sha256']
 

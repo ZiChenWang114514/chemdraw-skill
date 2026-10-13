@@ -169,7 +169,7 @@ class RuntimeDiscoveryTests(unittest.TestCase):
         command = run.call_args.args[0]
         self.assertEqual(command[0], str(Path(sys.executable)))
         self.assertEqual(command[1], "-c")
-        for module in REQUIRED_IMPORTS:
+        for module in runtime_discovery.REQUIRED_IMPORTS:
             self.assertIn(module, command[2])
         self.assertGreater(run.call_args.kwargs["timeout"], 0)
 

@@ -1,6 +1,6 @@
 # Chemistry Resolution Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a1. Curated guidance: [../toolkit-chemistry-resolution-interfaces.md](../toolkit-chemistry-resolution-interfaces.md).
+> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../toolkit-chemistry-resolution-interfaces.md](../toolkit-chemistry-resolution-interfaces.md).
 
 ## `naming.aligned_namer`
 

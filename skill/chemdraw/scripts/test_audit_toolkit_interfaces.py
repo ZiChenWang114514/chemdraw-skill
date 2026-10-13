@@ -25,6 +25,18 @@ def load_auditor():
 
 
 class InterfaceAuditTests(unittest.TestCase):
+    def test_inventory_labels_the_loaded_source_version(self):
+        import cdxml_toolkit
+        auditor = load_auditor()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / 'module.py').write_text('def work(): pass\n')
+            out = root / 'out.md'
+            with mock.patch.object(cdxml_toolkit, '__version__', '9.9.9'), mock.patch.object(
+                sys, 'argv', ['audit', '--package-root', str(root), '--output', str(out)]):
+                auditor.main()
+            self.assertIn('cdxml-toolkit 9.9.9', out.read_text())
+
     def test_scans_public_functions_classes_and_methods_only(self):
         auditor = load_auditor()
         with tempfile.TemporaryDirectory() as temp_dir:

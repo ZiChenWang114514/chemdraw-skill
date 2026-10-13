@@ -275,7 +275,10 @@ def main() -> int:
     parser.add_argument("--version", default=None)
     args = parser.parse_args()
     package_root = args.package_root or _default_package_root()
-    version = args.version or importlib.metadata.version("cdxml-toolkit-community")
+    if args.version:
+        version = args.version
+    else:
+        from cdxml_toolkit import __version__ as version
     if not args.output and not args.output_dir:
         parser.error("one of --output or --output-dir is required")
     symbols = scan_package(package_root)

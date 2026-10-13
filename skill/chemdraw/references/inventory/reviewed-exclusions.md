@@ -1,6 +1,6 @@
 # Reviewed Exclusions Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a1. Curated guidance: [../toolkit-reviewed-exclusions.md](../toolkit-reviewed-exclusions.md).
+> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../toolkit-reviewed-exclusions.md](../toolkit-reviewed-exclusions.md).
 
 ## `chemistry_diff`
 
@@ -39,7 +39,7 @@
 
 ## `mcp_runtime.capabilities`
 
-- **function**, line 22: `get_toolkit_capabilities(detail: str = 'full') -> dict[str, Any]` - Return runtime identity and diagnostics; detail='summary' omits tool signatures.
+- **function**, line 37: `get_toolkit_capabilities(detail: str = 'full') -> dict[str, Any]` - Return runtime identity and diagnostics; detail='summary' omits tool signatures.
 
 ## `mcp_runtime.chemistry_compare`
 
@@ -112,9 +112,9 @@
 
 ## `mcp_runtime.generate_reference`
 
-- **function**, line 33: `manifest(profile: str = 'codex') -> dict` - No public docstring in the audited version.
-- **function**, line 59: `render_markdown(profile: str = 'codex') -> str` - No public docstring in the audited version.
-- **function**, line 92: `render_reference(profile: str = 'codex') -> str` - Compatibility alias used by ChemDraw Skill catalog checks.
+- **function**, line 32: `manifest(profile: str = 'codex') -> dict` - No public docstring in the audited version.
+- **function**, line 55: `render_markdown(profile: str = 'codex') -> str` - No public docstring in the audited version.
+- **function**, line 88: `render_reference(profile: str = 'codex') -> str` - Compatibility alias used by ChemDraw Skill catalog checks.
 
 ## `mcp_runtime.install_decimer_models`
 
@@ -135,12 +135,12 @@
 
 ## `mcp_runtime.mcp_server`
 
-- **class**, line 489: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
-- **function**, line 686: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
-- **function**, line 626: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
-- **function**, line 654: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
-- **function**, line 553: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
-- **function**, line 724: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
+- **class**, line 515: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
+- **function**, line 713: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
+- **function**, line 652: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
+- **function**, line 681: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
+- **function**, line 579: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
+- **function**, line 751: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_io`
 
@@ -213,11 +213,11 @@
 
 ## `mcp_runtime.runtime_discovery`
 
-- **class**, line 27: `Discovery` - No public docstring in the audited version.
-- **method**, line 31: `Discovery.to_dict() -> dict[str, str]` - No public docstring in the audited version.
-- **function**, line 299: `find_chemdraw(explicit: str | None = None) -> Discovery` - Find ChemDraw.exe from explicit, environment, COM, then common paths.
-- **function**, line 143: `find_python(explicit: str | None = None) -> Discovery` - Find and probe Python using explicit, environment, then implicit paths.
-- **function**, line 184: `find_skill_root(explicit: str | None = None) -> Discovery` - No public docstring in the audited version.
+- **class**, line 28: `Discovery` - No public docstring in the audited version.
+- **method**, line 32: `Discovery.to_dict() -> dict[str, str]` - No public docstring in the audited version.
+- **function**, line 300: `find_chemdraw(explicit: str | None = None) -> Discovery` - Find ChemDraw.exe from explicit, environment, COM, then common paths.
+- **function**, line 144: `find_python(explicit: str | None = None) -> Discovery` - Find and probe Python using explicit, environment, then implicit paths.
+- **function**, line 185: `find_skill_root(explicit: str | None = None) -> Discovery` - No public docstring in the audited version.
 
 ## `mcp_runtime.structure_fidelity`
 
@@ -226,16 +226,16 @@
 
 ## `mcp_runtime.telemetry`
 
-- **function**, line 37: `configure_tools(names: Iterable[str]) -> None` - Set the finite tool-label vocabulary used by exported metrics.
-- **function**, line 105: `health_snapshot(*, tool_count: int) -> dict` - Return process health without input, output, filename, or molecule data.
-- **function**, line 99: `native_active_finished() -> None` - No public docstring in the audited version.
-- **function**, line 93: `native_active_started() -> None` - No public docstring in the audited version.
-- **function**, line 87: `native_wait_finished() -> None` - No public docstring in the audited version.
-- **function**, line 81: `native_wait_started() -> None` - No public docstring in the audited version.
-- **function**, line 135: `render_prometheus() -> str` - Render the current process metrics using the Prometheus text format.
-- **function**, line 216: `reset_for_tests() -> None` - No public docstring in the audited version.
-- **function**, line 55: `worker_finished(tool: str, *, duration_seconds: float, ok: bool, error_code: str | None) -> None` - No public docstring in the audited version.
-- **function**, line 48: `worker_started(tool: str) -> None` - No public docstring in the audited version.
+- **function**, line 38: `configure_tools(names: Iterable[str]) -> None` - Set the finite tool-label vocabulary used by exported metrics.
+- **function**, line 106: `health_snapshot(*, tool_count: int) -> dict` - Return process health without input, output, filename, or molecule data.
+- **function**, line 100: `native_active_finished() -> None` - No public docstring in the audited version.
+- **function**, line 94: `native_active_started() -> None` - No public docstring in the audited version.
+- **function**, line 88: `native_wait_finished() -> None` - No public docstring in the audited version.
+- **function**, line 82: `native_wait_started() -> None` - No public docstring in the audited version.
+- **function**, line 136: `render_prometheus() -> str` - Render the current process metrics using the Prometheus text format.
+- **function**, line 217: `reset_for_tests() -> None` - No public docstring in the audited version.
+- **function**, line 56: `worker_finished(tool: str, *, duration_seconds: float, ok: bool, error_code: str | None) -> None` - No public docstring in the audited version.
+- **function**, line 49: `worker_started(tool: str) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_registry`
 

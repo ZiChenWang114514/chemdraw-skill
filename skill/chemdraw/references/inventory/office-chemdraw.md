@@ -1,6 +1,6 @@
 # Office Chemdraw Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a1. Curated guidance: [../toolkit-office-chemdraw-interfaces.md](../toolkit-office-chemdraw-interfaces.md).
+> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../toolkit-office-chemdraw-interfaces.md](../toolkit-office-chemdraw-interfaces.md).
 
 ## `chemdraw._chemscript_server`
 

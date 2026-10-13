@@ -60,7 +60,9 @@ jobs:
           "mcp==${{ matrix.mcp-version }}"
           "pytest>=7"
           "requests>=2.31"
-          "cdxml-toolkit-community[office,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@3b602e6685e9c40b9eb5c6901fa864c6b6118040"
+
+      - name: Install the documented runtime baseline
+        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication
 
       - name: Run complete portable Skill tests
         run: python -m pytest skill/chemdraw/scripts -q

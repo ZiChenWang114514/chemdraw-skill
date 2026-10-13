@@ -45,7 +45,7 @@ Set `context` to a map from region ID to only its necessary definitions and styl
 
 When authorized, the main agent dispatches a bounded queue, replenishing only after completion. Use a fresh short packet per task, without full conversation history. Keep each structure's result independent even in a grouped batch. The main agent alone maintains status: pending, working, submitted, needs_review, failed, accepted. A worker writes only its attempt directory. Check attempt ID, input hashes and artifact hashes before accepting a returned path. Late or duplicate results cannot replace an accepted attempt; preserve them separately. After interruption inspect records and rerun only missing or changed regions. These are caller responsibilities, not automatic recovery guarantees.
 
-The caller limits OCSR requests separately from agent count, retries a transient network failure at most once while honoring server delay, and returns persistent or semantic failures to the main agent. Native work always uses the existing shared lock with one native worker. Preserve the existing HTTP host/port configuration (normally `127.0.0.1:8029`); different ports do not bypass that lock. Do not start a service per worker.
+The caller limits OCSR requests separately from agent count, uses the [DECIMER retry budget](decimer-api.md#diagnosing-failed-requests) for transient network failures while honoring server delay, and returns persistent or semantic failures to the main agent. Native work always uses the existing shared lock with one native worker. Preserve the existing HTTP host/port configuration (normally `127.0.0.1:8029`); different ports do not bypass that lock. Do not start a service per worker.
 
 ## Acceptance and measurement
 

@@ -147,7 +147,10 @@ class DistributionTests(unittest.TestCase):
         )
         self.assertIn("full-portable-tests:", workflow)
         self.assertIn('python-version: "3.12"', workflow)
-        self.assertRegex(workflow, r'cdxml-toolkit-community\.git@[0-9a-f]{40}')
+        self.assertIn('skill/chemdraw/scripts/install_runtime.py', workflow)
+        import json
+        baseline = json.loads((SKILL / 'runtime.json').read_text(encoding='utf-8'))
+        self.assertRegex(baseline['commit'], r'^[0-9a-f]{40}$')
         self.assertIn('mcp-version: ["1.28.1", "2.0.0"]', workflow)
         self.assertIn('os: [windows-latest, ubuntu-latest]', workflow)
         self.assertIn('pytest skill/chemdraw/scripts', workflow)

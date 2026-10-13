@@ -1,6 +1,6 @@
 # Scientific Workflows Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a1. Curated guidance: [../scientific-workflows.md](../scientific-workflows.md).
+> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../scientific-workflows.md](../scientific-workflows.md).
 
 ## `scientific.__main__`
 

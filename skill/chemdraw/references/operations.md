@@ -10,7 +10,7 @@ Run `scripts/check_prerequisites.ps1` before a first installation or upgrade. It
 
 Classify requirements by requested capability:
 
-- Portable CDXML and RDKit work runs on Windows, macOS, and Linux with a 64-bit Python 3.10-3.13 runtime, `cdxml-toolkit-community`, MCP SDK, and an agent with MCP or Python execution access. Python 3.12, `cdxml-toolkit-community==0.7.0a1`, and MCP 1.x/2.x are tested. PowerShell is needed only for the supplied `.ps1` helpers.
+- Portable CDXML and RDKit work runs on Windows, macOS, and Linux with a 64-bit Python 3.10-3.13 runtime, `cdxml-toolkit-community`, MCP SDK, and an agent with MCP or Python execution access. The exact installable source baseline is in `runtime.json` beside `SKILL.md`; install it with `python <skill>/scripts/install_runtime.py`. A version string alone does not identify older development snapshots. Python 3.12 and MCP 1.x/2.x are covered by the CI matrix. PowerShell is needed only for the supplied `.ps1` helpers.
 - Native rendering, CDX conversion, and ChemDraw cleanup additionally require licensed Windows desktop ChemDraw, .NET Framework 4.8 for current releases, working `ChemDraw.Application` COM registration, and manual activation confirmation.
 - Molecular comparison and ChemScript SDK execution additionally require managed and native ChemScript DLLs. Keep the main MCP Python 64-bit; use a separate helper Python when a legacy ChemScript DLL is 32-bit.
 - Editable DOCX/PPTX objects require the corresponding desktop Office application. Office is optional for other workflows.
@@ -29,7 +29,8 @@ scripts/check_prerequisites.ps1 -Python <path> `
 
 Install from a repository checkout with `python -m pip install -e ".[dev]"` for portable development, or select the documented extras needed by the requested workflow. Use [agent integration](agent-integration.md) for generic MCP/CLI setup. The optional `scripts/configure_mcp.ps1` adapter configures one client only; it is not a universal installer. After refreshing your agent, select the appropriate verification:
 
-- `health_check.ps1 -SkipNativeChemDraw` for code, package, test, and MCP checks without native applications.
+- `health_check.ps1 -SkipNativeChemDraw -SkipDevelopmentChecks` for core runtime/package checks without native or test dependencies.
+- `health_check.ps1 -SkipNativeChemDraw` additionally runs development tests and compares generated references; use the documented test dependencies and matching reference source version.
 - `health_check.ps1 -SkipOffice` for native ChemDraw PNG and ChemScript checks without Word or PowerPoint.
 - `health_check.ps1` for complete native and Office validation.
 

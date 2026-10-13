@@ -10,7 +10,9 @@ TOOLS = {'extract_structures_via_decimer_api', 'modify_molecule',
 
 def _worker(tool, arguments):
     from cdxml_toolkit.mcp_runtime.mcp_server import _run_worker
-    return _run_worker(tool, [], arguments)
+    from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
+    # Keep the pinned pre-release runtime compatible with the shared timeout policy.
+    return _run_worker(tool, [], arguments, timeout_seconds=build_registry()[tool].timeout_seconds)
 
 
 def run_compact(tool, arguments_path, output_path):

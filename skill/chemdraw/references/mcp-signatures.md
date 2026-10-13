@@ -2,7 +2,7 @@
 
 > Generated from the live community registry. Do not edit manually.
 
-Distribution: `cdxml-toolkit-community 0.7.0a1`
+Distribution: `cdxml-toolkit-community 0.7.0a2`
 Profile: `codex`
 Tools: `39`
 

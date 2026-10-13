@@ -1,6 +1,6 @@
 # Tools Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a1. Curated guidance: [../toolkit-tools.md](../toolkit-tools.md).
+> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../toolkit-tools.md](../toolkit-tools.md).
 
 ## `mcp_server._compat`
 

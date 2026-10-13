@@ -5,17 +5,17 @@ Contributions should keep the Skill focused, portable, and verifiable on a real 
 ## Development Setup
 
 1. Fork and clone the repository.
-2. Create or activate a Python 3.10+ environment.
+2. Create or activate a Python 3.10-3.13 environment.
 3. Install the dependencies required by `skill/chemdraw` and `cdxml-toolkit-community`.
 4. Run the baseline validation before making changes.
 
 ```powershell
 python scripts/validate_distribution.py
-python -m unittest discover -s skill/chemdraw/scripts -p "test_*.py" -v
+python -m pytest skill/chemdraw/scripts -q
 .\skill\chemdraw\scripts\health_check.ps1 -SkipNativeChemDraw
 ```
 
-See the [project guide](../docs/guide.md#development-and-validation) for native ChemDraw, Office, and network-gated checks.
+See the [project guide](../docs/guide.md#development-validation) for native ChemDraw, Office, and network-gated checks.
 
 ## Change Rules
 

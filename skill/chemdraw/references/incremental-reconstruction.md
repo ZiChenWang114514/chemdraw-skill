@@ -41,6 +41,8 @@ The transform in this example is not a default: supply a verified mapping from n
 | `finalize` | `package_dir`, `review_record` | Require bound source/visual review and matching artifact hashes before emitting an acceptance manifest. |
 | `benchmark` | `baseline`, `candidate` measurement records | Report speedup only with matching fixture/model/versions/acceptance contract, successful acceptance and positive durations. Missing usage stays unknown. |
 
+In `local` output, a report with `source_reference_base="report_directory"` resolves its `source` relative to the report file. Keep the fragment and check directories together when moving the result bundle. Older reports may contain absolute source paths.
+
 ## Cache and local repair
 
 `spec` must contain `source_image` and `crop` file paths, `definitions`, `parameters`, `versions`, and `transform`. Include recognizer/model version and every relevant recognition parameter. File paths become content hashes; context and transform remain cache dependencies. Load rechecks bytes. A cache hit only returns a candidate requiring review. Changed dependencies miss; corrupted entries miss and are preserved for diagnosis rather than silently overwritten.

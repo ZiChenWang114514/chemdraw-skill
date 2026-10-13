@@ -12,10 +12,10 @@ if __name__ == "__main__":
     from pathlib import Path as _Path
 
     # Optional native COM must not block portable runtime discovery.
-    if _sys.platform != "win32":
-        _runtime.REQUIRED_IMPORTS = tuple(
-            name for name in _runtime.REQUIRED_IMPORTS if name != "win32com.client"
-        )
+    # Also supports the pinned runtime baseline before native discovery was split.
+    _runtime.REQUIRED_IMPORTS = tuple(
+        name for name in _runtime.REQUIRED_IMPORTS if name != "win32com.client"
+    )
     # The runtime package cannot infer the location of this Skill proxy.
     if not _os.environ.get("CHEMDRAW_SKILL_ROOT") and not any(
         arg == "--skill-root" or arg.startswith("--skill-root=")

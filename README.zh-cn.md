@@ -229,7 +229,7 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 - **ChemScript SDK：** 检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制停滞调用造成的影响，但不提供操作系统级安全沙箱。
 - **远程工作站访问：** 保持 stdio 为默认模式，或通过可选的 Streamable HTTP 向外提供 Windows 主机服务，并包含健康状态与 Prometheus 端点。
 
-本项目审计了 `cdxml-toolkit-community` 的 637 个公共符号。该数字表示工具包清单，并不表示完整 MCP 配置中的 39 个工具。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
+生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了已审计的 `cdxml-toolkit-community` 符号及当前数量；该清单与完整 MCP 配置的工具数量分开统计。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
 
 ## 选择所需组件
 
@@ -251,7 +251,7 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python -m pip install "cdxml-toolkit-community[scientific,publication] @ git+https://github.com/ZiChenWang114514/cdxml-toolkit-community.git@89c843bc027383030994557f9908b44985c2cf72"
+python skill/chemdraw/scripts/install_runtime.py --extras scientific publication
 python -m cdxml_toolkit.mcp_runtime
 ```
 
@@ -263,7 +263,7 @@ Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` �
 
 ```powershell
 # 通用健康检查；不要求特定 Agent CLI，不启动原生应用
-.\skill\chemdraw\scripts\health_check.ps1 -Python <Python绝对路径> -SkipNativeChemDraw
+.\skill\chemdraw\scripts\health_check.ps1 -Python <Python绝对路径> -SkipNativeChemDraw -SkipDevelopmentChecks
 ```
 
 需要原生渲染、ChemScript 或 Office 时，按安装指南增加对应依赖并选择检查范围。

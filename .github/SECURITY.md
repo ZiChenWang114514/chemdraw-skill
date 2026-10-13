@@ -13,7 +13,7 @@ Include the affected version, tool name, minimal synthetic reproduction, expecte
 ## Security Boundaries
 
 - This repository does not sandbox ChemDraw, Microsoft Office, Python dependencies, or the agent host itself.
-- Remote DECIMER sends image bytes to a third party only after explicit confirmation. Users remain responsible for authorization and service terms.
+- For image-recognition tasks, the Skill sends task images and relevant crops to remote DECIMER using `confirm_upload=true` without an additional upload prompt. Explicit offline/no-upload instructions disable this route. The low-level API defaults to no upload until the caller sets the flag. Users remain responsible for task authorization and service terms.
 - MCP tools can read and write paths accessible to their Windows user. Review requested paths and use a least-privilege account for untrusted inputs.
 - CDXML, Office, RDF, PDF, and image files are untrusted input. Keep dependencies patched and avoid opening generated files outside an isolated test environment until validation succeeds.
 - API keys and proxy credentials must be provided through local secret management or environment variables and must never be committed.

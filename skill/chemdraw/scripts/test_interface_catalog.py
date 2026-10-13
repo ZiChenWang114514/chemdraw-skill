@@ -47,7 +47,11 @@ class InterfaceCatalogTests(unittest.TestCase):
 
         expected = generate_tool_reference.render_reference()
         actual = (REFERENCES / "mcp-signatures.md").read_text(encoding="utf-8")
-        self.assertEqual(actual, expected)
+        # Documentation may be generated from a newer compatible source release.
+        # The CI baseline must still match every tool signature and description.
+        def contract(text):
+            return re.sub(r'^Distribution: .*\n', '', text, flags=re.MULTILINE)
+        self.assertEqual(contract(actual), contract(expected))
 
     def test_signature_generator_writes_lf_on_windows(self):
         sys.path.insert(0, str(SKILL_ROOT / "scripts"))

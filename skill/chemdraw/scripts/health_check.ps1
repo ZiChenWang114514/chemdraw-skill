@@ -6,6 +6,7 @@ param(
     [switch]$CheckCodex,
     [switch]$SkipNativeChemDraw,
     [switch]$SkipOffice,
+    [switch]$SkipDevelopmentChecks,
     [ValidateRange(1, 3600)]
     [int]$CommandTimeoutSeconds = 300
 )
@@ -285,9 +286,11 @@ if (-not $bootstrap) {
 
 if ($discovery) {
     $pythonPath = [string]$discovery.python.path
+    $requiredImports = 'import cdxml_toolkit, mcp, rdkit'
+    if (-not $SkipNativeChemDraw) { $requiredImports += ', win32com.client' }
     $commands = @(
         [pscustomobject]@{
-            Arguments = @('-c', "import cdxml_toolkit, mcp, rdkit, win32com.client; print('Python packages: OK')")
+            Arguments = @('-c', "$requiredImports; print('Python packages: OK')")
             Description = 'Required Python package import'
         },
         [pscustomobject]@{
@@ -331,73 +334,77 @@ if ($discovery) {
         }
     }
 
-    $pythonFiles = @(
-        Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.py' -File |
-            Select-Object -ExpandProperty FullName
-    )
-    $compile = Invoke-BoundedNative `
-        -FilePath $pythonPath `
-        -Arguments (@('-m', 'py_compile') + $pythonFiles)
-    Add-CommandFailure $compile 'ChemDraw Skill Python compilation'
-
-    $tests = Invoke-BoundedNative `
-        -FilePath $pythonPath `
-        -Arguments @('-m', 'pytest', $PSScriptRoot, '-q')
-    Add-CommandFailure $tests 'ChemDraw Skill tests'
-
-    if (-not $ReferenceRoot) {
-        $ReferenceRoot = Join-Path $PSScriptRoot '..\references'
-    }
-    $ReferenceRoot = [IO.Path]::GetFullPath($ReferenceRoot)
-    if (-not (Test-Path -LiteralPath $ReferenceRoot -PathType Container)) {
-        $failures.Add("Reference root not found: $ReferenceRoot")
-    } else {
-        $checkRoot = [IO.Path]::GetFullPath(
-            (Join-Path $env:TEMP ("chemdraw-health-check-" + [guid]::NewGuid().ToString('N')))
+    if (-not $SkipDevelopmentChecks) {
+        $pythonFiles = @(
+            Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.py' -File |
+                Select-Object -ExpandProperty FullName
         )
-        $tempRoot = [IO.Path]::GetFullPath($env:TEMP).TrimEnd('\') + '\'
-        if (-not ($checkRoot + '\').StartsWith(
-            $tempRoot,
-            [StringComparison]::OrdinalIgnoreCase
-        )) {
-            throw "Health-check directory escaped TEMP: $checkRoot"
-        }
-        New-Item -ItemType Directory -Path $checkRoot -Force | Out-Null
-        try {
-            $generatedReferences = Join-Path $checkRoot 'references'
-            $inventory = Invoke-BoundedNative `
-                -FilePath $pythonPath `
-                -Arguments @(
-                    (Join-Path $PSScriptRoot 'audit_toolkit_interfaces.py'),
-                    '--output-dir', $generatedReferences
-                )
-            Add-CommandFailure $inventory 'Toolkit interface inventory generation'
-            if ($inventory.ExitCode -eq 0 -and -not $inventory.TimedOut) {
-                Compare-ManagedInventoryFiles $ReferenceRoot $generatedReferences
-            }
+        $compile = Invoke-BoundedNative `
+            -FilePath $pythonPath `
+            -Arguments (@('-m', 'py_compile') + $pythonFiles)
+        Add-CommandFailure $compile 'ChemDraw Skill Python compilation'
 
-            $generatedSignatures = Join-Path $generatedReferences 'mcp-signatures.md'
-            $signatures = Invoke-BoundedNative `
-                -FilePath $pythonPath `
-                -Arguments @(
-                    (Join-Path $PSScriptRoot 'generate_tool_reference.py'),
-                    '--output', $generatedSignatures
-                )
-            Add-CommandFailure $signatures 'MCP signature generation'
-            if ($signatures.ExitCode -eq 0 -and -not $signatures.TimedOut) {
-                $expectedSignatures = Join-Path $ReferenceRoot 'mcp-signatures.md'
-                if (-not (Test-Path -LiteralPath $expectedSignatures -PathType Leaf)) {
-                    $failures.Add('Generated MCP signatures are missing: mcp-signatures.md')
-                } elseif (
-                    (Get-Sha256Hex -LiteralPath $expectedSignatures) -ne
-                    (Get-Sha256Hex -LiteralPath $generatedSignatures)
-                ) {
-                    $failures.Add('Generated MCP signatures are stale: mcp-signatures.md')
-                }
-            }
-        } finally {
-            Remove-Item -LiteralPath $checkRoot -Recurse -Force -ErrorAction SilentlyContinue
+        $tests = Invoke-BoundedNative `
+            -FilePath $pythonPath `
+            -Arguments @('-m', 'pytest', $PSScriptRoot, '-q')
+        Add-CommandFailure $tests 'ChemDraw Skill tests'
+
+        if (-not $ReferenceRoot) {
+            $ReferenceRoot = Join-Path $PSScriptRoot '..\references'
         }
+        $ReferenceRoot = [IO.Path]::GetFullPath($ReferenceRoot)
+        if (-not (Test-Path -LiteralPath $ReferenceRoot -PathType Container)) {
+            $failures.Add("Reference root not found: $ReferenceRoot")
+        } else {
+            $checkRoot = [IO.Path]::GetFullPath(
+                (Join-Path $env:TEMP ("chemdraw-health-check-" + [guid]::NewGuid().ToString('N')))
+            )
+            $tempRoot = [IO.Path]::GetFullPath($env:TEMP).TrimEnd('\') + '\'
+            if (-not ($checkRoot + '\').StartsWith(
+                $tempRoot,
+                [StringComparison]::OrdinalIgnoreCase
+            )) {
+                throw "Health-check directory escaped TEMP: $checkRoot"
+            }
+            New-Item -ItemType Directory -Path $checkRoot -Force | Out-Null
+            try {
+                $generatedReferences = Join-Path $checkRoot 'references'
+                $inventory = Invoke-BoundedNative `
+                    -FilePath $pythonPath `
+                    -Arguments @(
+                        (Join-Path $PSScriptRoot 'audit_toolkit_interfaces.py'),
+                        '--output-dir', $generatedReferences
+                    )
+                Add-CommandFailure $inventory 'Toolkit interface inventory generation'
+                if ($inventory.ExitCode -eq 0 -and -not $inventory.TimedOut) {
+                    Compare-ManagedInventoryFiles $ReferenceRoot $generatedReferences
+                }
+
+                $generatedSignatures = Join-Path $generatedReferences 'mcp-signatures.md'
+                $signatures = Invoke-BoundedNative `
+                    -FilePath $pythonPath `
+                    -Arguments @(
+                        (Join-Path $PSScriptRoot 'generate_tool_reference.py'),
+                        '--output', $generatedSignatures
+                    )
+                Add-CommandFailure $signatures 'MCP signature generation'
+                if ($signatures.ExitCode -eq 0 -and -not $signatures.TimedOut) {
+                    $expectedSignatures = Join-Path $ReferenceRoot 'mcp-signatures.md'
+                    if (-not (Test-Path -LiteralPath $expectedSignatures -PathType Leaf)) {
+                        $failures.Add('Generated MCP signatures are missing: mcp-signatures.md')
+                    } elseif (
+                        (Get-Sha256Hex -LiteralPath $expectedSignatures) -ne
+                        (Get-Sha256Hex -LiteralPath $generatedSignatures)
+                    ) {
+                        $failures.Add('Generated MCP signatures are stale: mcp-signatures.md')
+                    }
+                }
+            } finally {
+                Remove-Item -LiteralPath $checkRoot -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+    } else {
+        Write-Warning 'Development tests and generated-reference checks were not run'
     }
 }
 
