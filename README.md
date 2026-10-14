@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml"><img src="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml/badge.svg?style=flat" height="22" alt="Validate workflow status"></a>&nbsp;
-  <img src="https://img.shields.io/badge/-Core%3A%20Windows%20%7C%20macOS%20%7C%20Linux-007c83?style=flat" height="22" alt="Portable core supports Windows, macOS, and Linux">&nbsp;
+  <img src="https://img.shields.io/badge/-Portable%20runtime%3A%20Windows%20%7C%20macOS%20%7C%20Linux-007c83?style=flat" height="22" alt="Portable runtime supports Windows, macOS, and Linux">&nbsp;
   <img src="https://img.shields.io/badge/-Python%203.10--3.13-3776AB?style=flat&amp;logo=python&amp;logoColor=white" height="22" alt="Python 3.10 through 3.13">&nbsp;
   <img src="https://img.shields.io/badge/-MCP%201.x%20%7C%202.x%20tested-17242b?style=flat" height="22" alt="MCP 1.x and 2.x tested">&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/-MIT-d94f70?style=flat" height="22" alt="MIT License"></a>
@@ -27,6 +27,19 @@
 <p align="center"><a href="#featured-demos">Explore featured demos</a> · <a href="#quick-start-any-agent">Quick start</a></p>
 
 <a id="data-driven-publication-figures"></a>
+
+## Platform reality
+
+The portable chemistry layer runs on Windows, macOS and Linux: CDXML generation and editing, RDKit validation, MCP, Python and CLI workflows are the cross-platform foundation. The current native integration is different: ChemDraw-native PNG/CDX rendering, the ChemScript bridge, Office objects and ChemDraw cleanup are validated on Windows and are not yet feature-complete on macOS.
+
+ChemDraw itself may be installed on macOS, but installing the app does not make this Skill's Windows COM/.NET bridge available. macOS native save/export automation, capability detection and a reproducible AppleScript/JXA adapter are an active engineering gap. If you need full local macOS automation, treat it as a work in progress and follow [the macOS build effort](#building-the-macos-path-together) rather than assuming platform parity.
+
+| Capability | Windows | macOS | Linux |
+| --- | --- | --- | --- |
+| CDXML, RDKit, MCP, Python and CLI workflows | Supported | Portable workflows supported; native ChemDraw automation pending | Portable workflows supported |
+| ChemDraw-native rendering and cleanup | Supported with an activated installation | Not yet supported by the current adapter | Not supported |
+| ChemScript SDK bridge | Supported when the compatible SDK is installed | No supported bridge in the current release | No supported bridge |
+| Editable Office ChemDraw objects | Supported on supported desktop Office | Not yet supported by the current adapter | Not supported |
 
 ## SAR and substrate-scope figures from CSV or Excel
 
@@ -221,15 +234,15 @@ Remote DECIMER calls require upload authorization. Visual review remains an agen
 ## What It Handles
 
 - **Structures and reactions:** resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert, and render CDXML or CDX documents.
-- **Molecule comparison:** use ChemScript exact-identity checks together with RDKit fingerprint similarity for one molecule pair or a bounded batch.
+- **Molecule comparison:** use RDKit fingerprint similarity in portable workflows; add ChemScript exact-identity checks on a Windows host when the compatible SDK is installed.
 - **Image recognition:** extract candidate structures, confidence values, and bounding boxes with local DECIMER models or an explicitly confirmed remote request. Recognition candidates still require source review.
 - **TLC and apparatus:** use native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly.
 - **Spectra and scientific plots:** pick peaks and integrate selected regions in processed 1D NMR data; turn numerical data into editable curves. Automatic atom assignment and a complete FID-processing pipeline are not included.
 - **Reaction mechanisms:** compose explicit atom coordinates and electron-arrow endpoints to illustrate supplied mechanisms; drawing does not establish mechanistic validity.
-- **Office documents:** embed editable ChemDraw objects in supported desktop versions of Word and PowerPoint.
+- **Office documents:** embed editable ChemDraw objects in supported desktop versions of Word and PowerPoint through the current Windows integration.
 - **Experimental records:** discover files and process selected LCMS, SciFinder RDF, and lab-book workflows.
-- **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process. Process separation limits stalled calls; it is not an operating-system security sandbox.
-- **Remote workstation access:** keep stdio as the default or expose the Windows host through optional Streamable HTTP with health and Prometheus endpoints.
+- **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows. Process separation limits stalled calls; it is not an operating-system security sandbox.
+- **Remote workstation access:** keep stdio as the default or expose a Windows native host through optional Streamable HTTP with health and Prometheus endpoints.
 
 The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists audited `cdxml-toolkit-community` symbols and their current count. The inventory is separate from the full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
 
@@ -237,10 +250,10 @@ The generated [public inventory](skill/chemdraw/references/toolkit-public-invent
 
 | Goal | Add to the core setup |
 | --- | --- |
-| Create and edit CDXML | Any agent, 64-bit Python 3.10-3.13, MCP 1.x or 2.x, and `cdxml-toolkit-community` at the commit pinned in Quick Start; runs on Windows, macOS, and Linux |
+| Create and edit CDXML | Any agent, 64-bit Python 3.10-3.13, MCP 1.x or 2.x, and `cdxml-toolkit-community` at the commit pinned in Quick Start; portable workflows run on Windows, macOS, and Linux |
 | Native PNG, CDX, or ChemDraw cleanup | Licensed and activated Windows desktop ChemDraw with working COM automation |
-| Molecule comparison or ChemScript SDK calls | Installed ChemScript DLLs compatible with the selected worker runtime |
-| Editable Word or PowerPoint objects | Supported desktop Microsoft Word and/or PowerPoint |
+| Molecule comparison or ChemScript SDK calls | RDKit for portable similarity; compatible ChemScript DLLs on a Windows host for exact checks |
+| Editable Word or PowerPoint objects | Supported desktop Microsoft Word and/or PowerPoint on Windows |
 | Local optical structure recognition | DECIMER model weights and their runtime dependencies |
 | Remote access to a ChemDraw workstation | A Windows host plus authenticated HTTP configuration and an encrypted network path |
 
@@ -259,7 +272,7 @@ python -m cdxml_toolkit.mcp_runtime
 
 This starts the stdio server from the pinned toolkit revision. Data-driven figures require a toolkit build exposing `publication_figure`; check `get_toolkit_capabilities()` after installation. The current Skill targets the 39-tool full profile. Register the same absolute Python executable and arguments in your client's MCP settings. Image reconstruction needs vision or human visual review.
 
-On Windows, preview `scripts/install.ps1 -Destination <your-skill-directory>`, then add `-Apply`. Its default storage path is `$HOME/.agents/skills/chemdraw`; individual clients may use different discovery paths. Client configuration is not changed by default. On macOS/Linux, copy the entire Skill folder directly.
+On Windows, preview `scripts/install.ps1 -Destination <your-skill-directory>`, then add `-Apply`. Its default storage path is `$HOME/.agents/skills/chemdraw`; individual clients may use different discovery paths. Client configuration is not changed by default. On macOS/Linux, copy the entire Skill folder directly for portable workflows. The current full MCP profile still exposes native-boundary tools; on macOS, use the portable subset and expect native ChemDraw, ChemScript and Office calls to report unavailable or pending until the native adapter lands.
 
 [Generic MCP, CLI and optional client adapters](skill/chemdraw/references/agent-integration.md) · [Windows native setup](docs/guide.md#first-time-windows-setup) · [Quick-start walkthrough](docs/zh-cn.md)
 
@@ -272,7 +285,7 @@ For native rendering, ChemScript or Office, add the corresponding dependencies a
 
 ## Validation and Safety
 
-- GitHub Actions validates the portable runtime on Windows and Linux with Python 3.12, MCP 1.28.1 and 2.0.0, and `cdxml-toolkit-community` at the commit pinned in Quick Start. Python 3.10-3.13 is supported.
+- GitHub Actions validates the portable runtime on Windows and Linux with Python 3.12, MCP 1.28.1 and 2.0.0, and `cdxml-toolkit-community` at the commit pinned in Quick Start. Python 3.10-3.13 is supported. This is not macOS native-app certification.
 - Native ChemDraw, ChemScript, and Office behavior must be checked on a licensed local Windows host because those applications are unavailable in hosted CI.
 - Structural changes can be checked with source identity, MCS-based diffs, chemistry metadata, and native rendering. Scientific acceptance remains the user's responsibility.
 - Standard modifying tools create a new output path and reject accidental replacement. ChemScript SDK file access and replacement are available only when their explicit permission and overwrite options are enabled.
@@ -284,7 +297,7 @@ For native rendering, ChemScript or Office, add the corresponding dependencies a
 
 ### Can any AI agent use this ChemDraw Skill?
 
-Yes. An agent needs access to the Skill instructions and either MCP (Model Context Protocol) tool calls or Python/CLI execution. See [agent setup](skill/chemdraw/references/agent-integration.md). Native ChemDraw rendering requires a licensed Windows host; portable CDXML and RDKit workflows also run on macOS and Linux.
+Yes, with platform boundaries. An agent needs access to the Skill instructions and either MCP (Model Context Protocol) tool calls or Python/CLI execution. See [agent setup](skill/chemdraw/references/agent-integration.md). Portable CDXML and RDKit workflows run on macOS and Linux; the current native ChemDraw, ChemScript and Office integrations require Windows.
 
 ### Can I generate SAR figures from an Excel spreadsheet?
 
@@ -293,6 +306,17 @@ Use trusted structures with CSV or XLSX measurements to produce editable structu
 ### Can I reconstruct a paper figure as an editable ChemDraw file?
 
 The [paper reconstruction workflow](skill/chemdraw/references/image-visual-review.md) combines grounded structures, layout reconstruction and native visual review. It produces editable CDXML; image recognition and stereochemistry require validation, and pixel-identical reproduction is not guaranteed.
+
+## Building the macOS path together
+
+macOS support is welcome as a community effort. The highest-value work is a small, reproducible native adapter rather than a platform-specific fork of the whole Skill:
+
+- verify ChemDraw's actual AppleScript/JXA scripting dictionary on supported macOS and ChemDraw versions;
+- implement isolated open/save/export operations with timeouts, single-instance locking, temporary files, hash checks and save-cycle read-back;
+- map ChemScript-only behavior to portable chemistry backends where the semantics are equivalent, and report unsupported operations explicitly where they are not;
+- add Apple Silicon and Intel coverage when hardware is available, including clean install, permissions, crash recovery and upgrade tests.
+
+Please open a focused issue or pull request with the exact macOS version, chip, ChemDraw build, permission prompts, command output and a minimal reproducible file. Do not submit proprietary papers, credentials or licensed ChemDraw assets. Start with the [contributing guide](.github/contributing.md) and keep platform claims tied to passing evidence; a portable-runtime pass is not native-app certification.
 
 ## Documentation
 
