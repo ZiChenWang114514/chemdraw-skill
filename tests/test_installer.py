@@ -64,7 +64,8 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         runtime = json.loads(result.stdout)["runtime"]
         self.assertEqual(runtime["action"], "create")
-        self.assertEqual(Path(runtime["venv"]), destination.parent / "chemdraw-venv")
+        # resolve() normalizes 8.3 short names (e.g. RUNNER~1) that PowerShell expands.
+        self.assertEqual(Path(runtime["venv"]).resolve(), (destination.parent / "chemdraw-venv").resolve())
         self.assertEqual(runtime["extras"], ["publication"])
         self.assertFalse(destination.exists(), "a proposal must not install anything")
 
