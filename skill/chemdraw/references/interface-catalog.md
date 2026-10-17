@@ -4,8 +4,8 @@ Use this page only when the workflow router does not identify an entry point.
 
 | Need | Authority |
 | --- | --- |
-| Exact live MCP names and parameters | [mcp-signatures.md](mcp-signatures.md) |
-| MCP selection, privacy, and failures | [toolkit-tools.md](toolkit-tools.md) |
+| Exact live tool names and parameters | [mcp-signatures.md](mcp-signatures.md) or `cdx.py sig NAME` |
+| Tool selection, privacy, and failures | [toolkit-tools.md](toolkit-tools.md) |
 | End-to-end task order | [workflow-router.md](workflow-router.md) |
 | Python interfaces by domain | One `toolkit-*-interfaces.md` file |
 | Installed console commands | [toolkit-cli-interfaces.md](toolkit-cli-interfaces.md) |

@@ -1,6 +1,6 @@
 # Chemical drawing examples
 
-Run `python replay.py NEW_OUTPUT_DIRECTORY` with the toolkit installed, then render `figure.cdxml` using `render_cdxml_files`.
+Run `cdx.py py <skill>/assets/paper-replica/example/replay.py NEW_DIR`, then `cdx.py render NEW_DIR/figure.cdxml` and inspect the PNG.
 
 `figure.json` defines six reaction-arrow styles, electron arrows, formatted text, a highlighted chiral molecule, an enhanced AND stereo group and atom numbering. `reference.cdxml` and `reference.png` show the expected editable document and ChemDraw rendering. Compare the generated image with the reference to check appearance.
 

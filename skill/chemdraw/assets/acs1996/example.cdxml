@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd">
+<CDXML BondLength="14.4" LabelFont="3" LabelSize="10" LabelFace="96" CaptionFont="3" CaptionSize="10" LineWidth="0.6" BoldWidth="2" HashSpacing="2.5" MarginWidth="1.6" BondSpacing="18" ChainAngle="120" LabelJustification="Auto" CaptionJustification="Left" color="0" bgcolor="1"><colortable><color r="1" g="1" b="1"/><color r="0" g="0" b="0"/></colortable><fonttable><font id="3" charset="iso-8859-1" name="Arial"/><font id="5" charset="Unicode" name="SimSun"/></fonttable><page id="1">
+<fragment id="1009">
+<n id="1001" p="117.41 70.81" NodeType="GenericNickname" GenericNickname="C10H21"><t p="117.41 74.31" LabelJustification="Left" LabelAlignment="Left"><s font="3" size="10" face="0">C</s><s font="3" size="10" face="32">10</s><s font="3" size="10" face="0">H</s><s font="3" size="10" face="32">21</s></t></n>
+<n id="1002" p="104.94 63.61"/>
+<n id="1003" p="92.47 70.79"/>
+<n id="1004" p="80.00 63.59"/>
+<n id="1005" p="80.01 49.19" Element="8" NumHydrogens="0"><t p="80.01 52.69" LabelJustification="Left" LabelAlignment="Left"><s font="3" size="10" face="0">O</s></t></n>
+<n id="1006" p="67.53 70.78" Element="8" NumHydrogens="0"><t p="67.53 74.28" LabelJustification="Left" LabelAlignment="Left"><s font="3" size="10" face="0">O</s></t></n>
+<n id="1007" p="55.06 63.57"/>
+<n id="1008" p="42.59 70.76"/>
+<b id="1010" B="1001" E="1002"/>
+<b id="1011" B="1002" E="1003" Order="2" DoublePosition="Left"/>
+<b id="1012" B="1003" E="1004"/>
+<b id="1013" B="1004" E="1005" Order="2" DoublePosition="Center"/>
+<b id="1014" B="1004" E="1006"/>
+<b id="1015" B="1006" E="1007"/>
+<b id="1016" B="1007" E="1008"/>
+</fragment>
+<graphic id="1017" BoundingBox="88.00 107.00 72.00 91.00" GraphicType="Rectangle" RectangleType="RoundEdge"/>
+<t id="1018" p="76.40 103.50"><s font="3" size="10" face="1">A</s></t>
+<arrow id="1019" FillType="None" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadCenterSize="875" ArrowheadWidth="250" Head3D="245.00 60.00 0" Tail3D="175.00 60.00 0"/>
+<t id="1020" p="210.00 50.00" Justification="Center" CaptionJustification="Center"><s font="3" size="10" face="0">H</s><s font="3" size="10" face="32">2</s><s font="3" size="10" face="0">, Pd/C</s></t>
+<t id="1021" p="210.00 76.00" Justification="Center" CaptionJustification="Center"><s font="3" size="10" face="0">EtOH</s><s font="5" size="10" face="0">，</s><s font="3" size="10" face="0">25 °C</s></t>
+<fragment id="1030">
+<n id="1022" p="362.41 70.81" NodeType="GenericNickname" GenericNickname="C10H21"><t p="362.41 74.31" LabelJustification="Left" LabelAlignment="Left"><s font="3" size="10" face="0">C</s><s font="3" size="10" face="32">10</s><s font="3" size="10" face="0">H</s><s font="3" size="10" face="32">21</s></t></n>
+<n id="1023" p="349.94 63.61"/>
+<n id="1024" p="337.47 70.79"/>
+<n id="1025" p="325.00 63.59"/>
+<n id="1026" p="325.01 49.19" Element="8" NumHydrogens="0"><t p="325.01 52.69" LabelJustification="Left" LabelAlignment="Left"><s font="3" size="10" face="0">O</s></t></n>
+<n id="1027" p="312.53 70.78" Element="8" NumHydrogens="0"><t p="312.53 74.28" LabelJustification="Left" LabelAlignment="Left"><s font="3" size="10" face="0">O</s></t></n>
+<n id="1028" p="300.06 63.57"/>
+<n id="1029" p="287.59 70.76"/>
+<b id="1031" B="1022" E="1023"/>
+<b id="1032" B="1023" E="1024"/>
+<b id="1033" B="1024" E="1025"/>
+<b id="1034" B="1025" E="1026" Order="2" DoublePosition="Center"/>
+<b id="1035" B="1025" E="1027"/>
+<b id="1036" B="1027" E="1028"/>
+<b id="1037" B="1028" E="1029"/>
+</fragment>
+<graphic id="1038" BoundingBox="333.00 107.00 317.00 91.00" GraphicType="Rectangle" RectangleType="RoundEdge"/>
+<t id="1039" p="321.40 103.50"><s font="3" size="10" face="1">B</s></t>
+</page></CDXML>

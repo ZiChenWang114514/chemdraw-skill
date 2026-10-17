@@ -1,9 +1,13 @@
 """COM boundary doubles for portable unit tests; never used by native smoke tests."""
+from pathlib import Path
 import sys
 from types import ModuleType
 from unittest import mock
 
 import pytest
+
+# Skill helpers (cdx, acs_builder, image_review_workspace, ...) live in scripts/.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 
 
 @pytest.fixture(autouse=True)

@@ -1,0 +1,9 @@
+{"objects": [
+  {"type": "molecule", "smiles": "[*:1]/C=C/C(=O)OCC", "at": [80, 60], "labels": {"1": "C10H21"}},
+  {"type": "label_box", "at": [80, 100], "text": "A"},
+  {"type": "arrow", "from": [175, 60], "to": [245, 60]},
+  {"type": "text", "at": [210, 50], "text": "H{sub:2}, Pd/C"},
+  {"type": "text", "at": [210, 76], "text": "EtOH\uff0c25 \u00b0C"},
+  {"type": "molecule", "smiles": "[*:1]CCC(=O)OCC", "at": [325, 60], "labels": {"1": "C10H21"}},
+  {"type": "label_box", "at": [325, 100], "text": "B"}
+]}

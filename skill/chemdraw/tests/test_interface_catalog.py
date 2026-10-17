@@ -29,8 +29,7 @@ class InterfaceCatalogTests(unittest.TestCase):
         self.assertEqual(missing, [])
 
     def test_every_mcp_tool_is_documented(self):
-        sys.path.insert(0, str(SKILL_ROOT / "scripts"))
-        import mcp_server
+        from cdxml_toolkit.mcp_runtime import mcp_server
 
         live_tools = set(mcp_server.build_server()._tool_manager._tools)
         documented = set(
@@ -42,30 +41,22 @@ class InterfaceCatalogTests(unittest.TestCase):
         self.assertEqual(live_tools, documented)
 
     def test_generated_mcp_signatures_are_current(self):
-        sys.path.insert(0, str(SKILL_ROOT / "scripts"))
-        import generate_tool_reference
+        import cdx
 
-        expected = generate_tool_reference.render_reference()
-        actual = (REFERENCES / "mcp-signatures.md").read_text(encoding="utf-8")
-        # Documentation may be generated from a newer compatible source release.
-        # The CI baseline must still match every tool signature and description.
-        def contract(text):
-            return re.sub(r'^Distribution: .*\n', '', text, flags=re.MULTILINE)
-        self.assertEqual(contract(actual), contract(expected))
+        # Distribution/profile lines and docstring indentation (Python 3.13
+        # dedents docstrings) are not part of the signature contract.
+        self.assertTrue(cdx._signatures_current(), "run `cdx.py regen-signatures`")
 
     def test_signature_generator_writes_lf_on_windows(self):
-        sys.path.insert(0, str(SKILL_ROOT / "scripts"))
-        import generate_tool_reference
+        import cdx
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output = Path(temp_dir) / "mcp-signatures.md"
-            with mock.patch.object(
-                sys,
-                "argv",
-                ["generate_tool_reference.py", "--output", str(output)],
-            ):
-                self.assertEqual(generate_tool_reference.main(), 0)
-            self.assertNotIn(b"\r\n", output.read_bytes())
+            with mock.patch.object(cdx, "SIGNATURES", output):
+                cdx.write_signatures()
+            data = output.read_bytes()
+            self.assertNotIn(b"\r\n", data)
+            self.assertIn(b"Profile: `full (default)`", data)
 
     def test_decimer_guide_defers_exact_signature_to_generated_reference(self):
         guide = (REFERENCES / "decimer-api.md").read_text(encoding="utf-8")

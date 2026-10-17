@@ -4,6 +4,9 @@ Load one section matching the user's intent. Exact signatures live only in [mcp-
 
 ## Draw Or Modify A Molecule
 
+For exam or lecture figures with abbreviations, Chinese notes or compound codes, use [ACS 1996 drawings](acs1996-drawings.md) instead.
+
+
 1. Resolve a name with `resolve_name`, or accept user-supplied trusted SMILES.
 2. Verify identity, formula, molecular weight, and ambiguity.
 3. If no structural change is requested, do not call `modify_molecule(operation="analyze")` merely to authorize drawing; complex naming analysis may be expensive and is limited to 90 seconds.
@@ -21,7 +24,7 @@ Load one section matching the user's intent. Exact signatures live only in [mcp-
 ## Create Or Edit A Reaction
 
 1. Ground every drawn species.
-2. Use `render_scheme` for a new reaction and inspect its per-fragment `chemistry_validation` receipts. For exact coordinates, curved arrows, grids or native-template replication, use [publication-figures.md](publication-figures.md).
+2. Use `render_scheme` for a new reaction and check its per-fragment `chemistry_validation` status. For exact coordinates, curved arrows, grids or native-template replication, use [publication-figures.md](publication-figures.md).
 3. Use `parse_scheme` or `parse_reaction` for an existing CDXML/CDX workflow.
 4. Use `clean_scheme_layout`, `merge_reaction_schemes`, or `polish_reaction_scheme` for existing schemes. Explicit and auto-detected sequential plans are checked for linear chemical links; any `force_sequential=true` override requires manual review.
 5. Render the resulting CDXML through `render_cdxml_files` and visually inspect all labels, wedges, arrows and plus signs. Cleanup/polish preserves molecular inventory but still needs visual acceptance.
@@ -30,10 +33,10 @@ Load one section matching the user's intent. Exact signatures live only in [mcp-
 
 For multi-structure images or publication reconstruction, follow [image-visual-review.md](image-visual-review.md): agent segmentation → DECIMER API → native redraw → actual side-by-side visual review → grounded correction → repeat → structured conditions and final composition.
 
-1. Default to `extract_structures_via_decimer_api`, including when local weights are installed. For the task images and relevant crops, set `confirm_upload=true` and proceed without a separate upload-authorization question. Respect explicit local/offline or no-upload requests.
+1. Default to the DECIMER API (`cdx.py decimer CROP.png`), including when local weights are installed, following the upload rule in SKILL.md.
 2. Use `extract_structures_from_image` only when the user explicitly requests local or offline recognition. Do not install local models or silently switch to them after an API failure; follow the bounded retry guidance in [decimer-api.md](decimer-api.md).
 3. Inspect every candidate and validation warning; never select by position alone.
-4. For complete reaction screenshots, use `reaction_image_to_cdxml` only when it appears in the live MCP registry. It remains withheld when structure-role mapping cannot be verified.
+4. For complete reaction screenshots, use `reaction_image_to_cdxml` only when it appears in `cdx.py tools`. It remains withheld when structure-role mapping cannot be verified.
 
 ## Convert Or Render
 
@@ -44,7 +47,7 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 ## Work With Office
 
 1. Use `inspect_chemdraw_objects_in_office` when object identity, host location, geometry, or selective replacement matters. Use `extract_cdxml_from_office` for simple bulk extraction.
-2. Modify and native-render the extracted CDXML. Keep the inspection manifest with its source SHA-256 and stable object IDs.
+2. Modify and native-render the extracted CDXML. Keep the inspection manifest; replacements refer to its object IDs.
 3. Use `replace_chemdraw_objects_in_office` to update selected objects in place. Replacement CDXML paths must remain relative to the replacement manifest; inspect the staged PDF preview when requested.
 4. Create a new one-object file with `embed_cdxml_in_office`, create a new collection with `batch_embed_cdxml_in_office`, or preserve an existing template through `fill_office_template`. The single-object tool rejects an existing Office target because the upstream builder cannot preserve its content.
 5. Verify the OOXML package opens, keeps its OLE relationships and geometry, and contains editable ChemDraw objects rather than flat images.
@@ -59,11 +62,11 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 
 ## Install Or Upgrade
 
-Read [operations.md](operations.md). Run `scripts/check_prerequisites.ps1` with the requested `-Capabilities` before changing the Skill or MCP configuration. Identify the requested feature set: portable CDXML, native ChemDraw, ChemScript, Office, local DECIMER, or remote HTTP. Keep the main Python 64-bit; configure any legacy 32-bit ChemScript helper separately. Use [agent integration](agent-integration.md) for the current client, and change its configuration only when installation was requested. Restart the agent host and run the matching health-check mode.
+Read [operations.md](operations.md). Run `cdx.py doctor` first and identify the requested feature set: portable CDXML, native ChemDraw, ChemScript, Office, local DECIMER, or remote HTTP. Keep the main Python 64-bit; configure any legacy 32-bit ChemScript helper separately. Change the runtime only when installation was requested, then rerun `cdx.py doctor` with the matching probes.
 
 ## Diagnose Runtime
 
-Read [operations.md](operations.md). Start with `diagnose_runtime()` and load only the native probes needed for the failing capability. Run the full health check before changing client configuration.
+Read [operations.md](operations.md). Start with `cdx.py doctor` and add only the probe needed for the failing capability (`--native`, `--office`, `--chemscript`).
 
 ## Substrate scope, SAR, or hand-edited publication updates
 

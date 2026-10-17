@@ -107,83 +107,33 @@ The skill client normalizes output to:
 
 ## Skill Usage
 
-Use the MCP tool `extract_structures_via_decimer_api`. Its generated, authoritative
-signature is in [mcp-signatures.md](mcp-signatures.md); this guide maintains only the
-privacy decisions and failure behavior.
-
-For image-recognition tasks, call with `confirm_upload=true` directly. Do not ask a
-separate upload-authorization question. Respect explicit local/offline or no-upload
-requests. A no-upload preflight is optional: when a caller explicitly sets
-`confirm_upload=false`, the MCP wrapper refuses the upload and returns
-an `ok=false` result containing a `preflight` object with the resolved local path, byte
-size, SHA-256 digest, decoded format and MIME type, dimensions, pixel count, hand-drawn
-flag, and upload origin. Direct Python calls raise `DecimerUploadRefused` with the same
-preflight available on the exception.
-
-The normal recognition workflow uses `confirm_upload=true`. The built-in endpoint needs no
-additional origin argument. `approved_sha256`, when supplied, must match the exact bytes
-used to build the upload. Any custom `DECIMER_API_URL`, including another path on the
-default origin, additionally requires `approved_origin` to match its canonical HTTPS
-origin.
-
-The CLI equivalent is:
-
-```powershell
-$skillRoot = '<absolute path to the installed chemdraw Skill>'
-$runtime = & python (Join-Path $skillRoot 'scripts\runtime_discovery.py') --json |
-  ConvertFrom-Json
-& $runtime.python.path (Join-Path $runtime.skill_root.path 'scripts\decimer_api.py') `
-  C:\path\to\structure.png `
-  --confirm-upload `
-  --approved-sha256 <digest> `
-  --approved-origin https://custom.example
+```bash
+cdx.py decimer crop.png --out crop-decimer.json          # upload and recognize (default endpoint)
+cdx.py decimer sketch.png --hand-drawn
+cdx.py decimer crop.png --preflight                      # no upload: size, format, sha256, origin
 ```
 
-Omit `--approved-origin` only for the exact built-in endpoint. Omitting
-`--confirm-upload` prints a refusal result with preflight metadata and performs no
-network request.
+The tool behind it is `extract_structures_via_decimer_api` (signature in [mcp-signatures.md](mcp-signatures.md)). Upload follows the rule in SKILL.md: task images and their crops go up without asking; ask once for unpublished or confidential sources; never upload when the user wants offline work.
 
-Environment overrides:
+The built-in endpoint needs nothing else. For a **custom endpoint**, set `DECIMER_API_URL` (HTTPS) and pass its origin; to pin the exact bytes, take `sha256` from a `--preflight` run:
 
-- `DECIMER_API_URL`: custom API endpoint; defaults to the official upload endpoint above. It must use HTTPS, contain no URL userinfo, query, or fragment, and its canonical origin must be supplied as `approved_origin`.
-- `DECIMER_API_MAX_IMAGE_BYTES`: local upload-size guard; defaults to 25 MiB.
-- `DECIMER_API_MAX_IMAGE_PIXELS`: decoded pixel-count guard; defaults to 40,000,000 pixels.
-- `DECIMER_API_MAX_RESPONSE_BYTES`: response-size guard; defaults to 2 MiB.
+```bash
+DECIMER_API_URL=https://ocsr.example.org/process cdx.py call extract_structures_via_decimer_api --json '{"image_path": "<abs>/crop.png", "confirm_upload": true, "approved_origin": "https://ocsr.example.org", "approved_sha256": "<sha256 from --preflight>"}'
+```
+
+Limits: `DECIMER_API_MAX_IMAGE_BYTES` (25 MiB), `DECIMER_API_MAX_IMAGE_PIXELS` (40,000,000), `DECIMER_API_MAX_RESPONSE_BYTES` (2 MiB).
 
 ## Diagnosing failed requests
 
-The MCP wrapper returns expected client failures as `ok=false` with a readable
-`error`, including HTTP status, connection failures, invalid images, and upload
-refusals. Direct Python calls still raise `DecimerAPIError`. Unexpected programming
-errors remain worker failures with a local diagnostic log.
+Expected failures (HTTP status, connection errors, invalid images, refused upload) come back as `ok=false` with a readable `error`. For a bare `tool_execution_failed`, read the worker log named by its `error_id` (`cdx.py doctor --paths`).
 
-For HTTP 502, 503, or 504, inspect the network path and service availability before
-changing the installation. A gateway error alone cannot distinguish a local proxy
-failure from a remote gateway failure. A successful GET of the OpenAPI document
-checks reachability only; recovery requires a successful recognition POST with an
-task image. Retry the same image and destination at most twice, with a short
-pause, then report the persistent failure. Do not switch upload destinations or
-disable TLS checks to work around an outage. Increasing the timeout does not fix an
-HTTP 502 response.
+HTTP 502/503/504 is a gateway or service problem, not a local installation problem. Retry the same image at most twice with a short pause, then report the failure. Do not switch endpoints, disable TLS checks, or raise the timeout to work around it. Reaching the OpenAPI page only shows the service is reachable; a successful recognition POST shows it works.
 
-When a client still shows only `tool_execution_failed`, use its `error_id` to read
-the worker log described in [operations.md](operations.md). Confirm the active
-Python runtime and package path: Skill compatibility scripts delegate to the
-installed `cdxml_toolkit.mcp_runtime` package, so updating documentation alone does
-not update the MCP implementation. Verify the tool again through the active MCP
-connection after applying a runtime fix.
+A successful response says nothing about accuracy: check segmentation and every predicted structure against the image.
 
-Successful recognition establishes service availability, not chemical accuracy.
-Review segmentation and each predicted structure against the input image.
+## Notes
 
-## Boundaries
-
-- Remote recognition sends task images and relevant crops to the DECIMER service by default, without a separate confirmation prompt. Honor explicit local/offline or no-upload requests. This default does not cover unrelated files or arbitrary destinations.
-- Before reading image contents, the client stats the file and rejects oversized or non-regular inputs. The read itself is also bounded so file growth cannot bypass the byte limit.
-- The client decodes the exact selected bytes through `BytesIO`, checks dimensions and the configured pixel cap before full image loading, treats Pillow decompression-bomb warnings as errors, and derives MIME from the decoded format rather than the filename extension.
-- Only same-origin HTTPS redirects are followed. HTTPS downgrades, cross-origin redirects, and a mismatched or downgraded final response URL are rejected.
-- Normal and HTTP-error response reads are bounded. Custom endpoint metadata is reduced to its approved origin, and URL credentials, paths, and query values are not echoed in transport or response errors.
-- JSON output uses an atomic same-directory install that refuses existing or race-created destinations. The serialized file is the same result object returned to the caller.
-- The public contract does not state a rate limit or retention guarantee. Do not infer either.
-- `https://decimer.ai` is a CSRF-protected Laravel web application, not the REST endpoint used here. Its current official source has no DECIMER route in `routes/api.php`.
-- The `/latest` alias can change with future deployments. Re-read the live OpenAPI document when requests begin failing or response fields change.
+- The client follows only same-origin HTTPS redirects and decodes the image locally before upload; the MIME type comes from the decoded format.
+- The public contract states no rate limit or retention policy.
+- `https://decimer.ai` is a web application, not this REST endpoint.
+- The `/latest` alias can change; re-read the live OpenAPI document if requests start failing or fields change.

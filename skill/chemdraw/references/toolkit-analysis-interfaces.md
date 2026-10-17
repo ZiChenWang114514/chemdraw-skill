@@ -6,11 +6,11 @@ Load for LCMS/NMR PDFs, multi-timepoint LCMS, experiment file discovery, expecte
 
 ## Preferred Entry Points
 
-- One analytical PDF: MCP `parse_analysis_file`.
-- Discover an experiment: MCP `discover_experiment_files`.
-- Multi-LCMS tracking: MCP `analyze_lcms_series`.
-- Format structured entries: MCP `format_lab_entry`.
-- Complete experiment entry: MCP `assemble_lab_book`.
+- One analytical PDF: tool `parse_analysis_file`.
+- Discover an experiment: tool `discover_experiment_files`.
+- Multi-LCMS tracking: tool `analyze_lcms_series`.
+- Format structured entries: tool `format_lab_entry`.
+- Complete experiment entry: tool `assemble_lab_book`.
 - Python series engine: `analysis.deterministic.multi_lcms_analyzer.analyze`.
 - Python expected species: `mass_resolver.extract_expected_masses`.
 

@@ -11,7 +11,7 @@ import unittest
 from unittest import mock
 
 
-MODULE_PATH = Path(__file__).with_name("audit_toolkit_interfaces.py")
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "audit_toolkit_interfaces.py"
 
 
 def load_auditor():

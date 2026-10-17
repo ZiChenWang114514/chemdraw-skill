@@ -5,8 +5,6 @@ param(
     [ValidateSet('core', 'native', 'chemscript', 'office', 'decimer')]
     [string[]]$Capabilities = @('core'),
     [switch]$Json,
-    [switch]$SkipCodex,
-    [switch]$CheckCodex,
     [switch]$SkipChemDraw,
     [switch]$SkipPythonPackages
 )
@@ -380,26 +378,6 @@ print(json.dumps(diagnose_runtime()["capabilities"]["decimer_models"]))
 } else {
     Add-Check -Name 'decimer_models' -Status 'skipped' -Required $false `
         -Detail 'Local DECIMER recognition is not among the selected capabilities.'
-}
-
-if ($SkipCodex -or -not $CheckCodex) {
-    Add-Check -Name 'codex_cli' -Status 'skipped' -Required $false `
-        -Detail 'Client-specific CLI discovery is opt-in (-CheckCodex).'
-} else {
-    $codexPath = Get-CommandPath 'codex'
-    if ($codexPath) {
-        $codexVersion = Invoke-Captured -FilePath $codexPath -Arguments @('--version')
-        Add-Check -Name 'codex_cli' `
-            -Status $(if ($codexVersion.ExitCode -eq 0) { 'pass' } else { 'fail' }) `
-            -Required $true `
-            -Detail $(if ($codexVersion.Output) { $codexVersion.Output } else { $codexPath }) `
-            -Help 'The optional configure_mcp.ps1 adapter verifies this client registration.'
-    } else {
-        Add-Check -Name 'codex_cli' -Status 'fail' -Required $true `
-            -Detail 'The codex command was not found.' `
-            -Help 'Install and sign in to Codex using https://developers.openai.com/codex/cli.'
-        Add-NextStep 'Install Codex CLI, run codex once, and complete sign-in.'
-    }
 }
 
 $chemdrawExe = $null

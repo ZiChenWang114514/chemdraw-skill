@@ -1,31 +1,25 @@
 # Efficient reconstruction
 
-Use the existing toolkit environment. Read this guide and the needed tool signature; do not load the entire catalog. These packet helpers save evidence and propose batches; they do not implement worker scheduling or a task lease database. For implemented candidate caching, change-based fragment checks, native-tree replay and dual delivery, use [incremental reconstruction](incremental-reconstruction.md). It does not add a general native component importer or launch agents.
+For figures with many structures, or when work is split across subagents. Read this guide and the needed signatures only. For candidate caching and repeated local repairs, see [incremental reconstruction](incremental-reconstruction.md).
 
-## Short procedure
+## Procedure
 
-1. Main agent inspects the whole source. Keep complete structures, salts and shared fragments together. Own reaction arrows, conditions, numbering and common definitions centrally.
-2. Use `image_review_workspace.py prepare IMAGE REGIONS_JSON NEW_DIRECTORY` from the visual-review guide. Inspect each crop against the full image. Overlapping regions require review; automatic cropping is not correct segmentation by definition.
-3. Generate packets with `reconstruction_packets.py CROPS/manifest.json NEW_PACKETS_DIRECTORY [--config CONFIG_JSON]`. Each structure receives its crop hash, source hash, coordinate map, relevant context and isolated output directory. Check `dispatch.json` before execution.
-4. For each crop, recognize a candidate, correct connectivity and charges, and compare stereobonds and crossings locally. A broken line at a crossing may be an occluded single bond. A parsed SMILES is not acceptance.
-5. Native-render the editable result; inspect labels and pixels. Record issues and evidence in that structure's attempt directory. Submit a path and hash, not long SMILES, XML or logs. Any ambiguity returns to the main agent.
-6. Main agent checks all components and the complete figure. Use supported existing figure/template operations. Existing molecule-file drawing may reconstruct through RDKit; it is not a lossless native import. If native object relationships cannot be preserved, retain separate components and report assembly unresolved.
+1. The main agent reads the whole source. Keep complete structures, salts and shared fragments together. Arrows, conditions, numbering and shared definitions stay with the main agent.
+2. Crop: `cdx.py py <skill>/scripts/image_review_workspace.py prepare IMAGE REGIONS_JSON NEW_DIR`. Look at each crop against the full image; automatic cropping is not segmentation.
+3. Optional packets: `cdx.py py <skill>/scripts/reconstruction_packets.py CROPS/manifest.json NEW_PACKETS_DIR [--config CONFIG_JSON]`. Each structure gets its crop, coordinate map, the context it needs and its own output folder. Check `dispatch.json` before running.
+4. Per crop: recognize, correct connectivity and charges, check stereobonds and crossings locally. A broken line at a crossing may be an occluded single bond.
+5. Render the result natively and look at it. Return the output path to the main agent, not long SMILES, XML or logs. Anything ambiguous goes back to the main agent.
+6. The main agent checks all components and the complete figure and assembles them with the existing figure operations. If native object relationships cannot be kept, deliver separate components and say so.
 
-## Compact tool output
-
-Write the arguments for one existing tool to a JSON object file, using its generated signature. Then run:
+## Large results
 
 ```text
-python scripts/compact_tool.py modify_molecule --arguments arguments.json --output new-evidence.json
+cdx.py call modify_molecule --args arguments.json --out result.json
 ```
 
-The allowlist also includes `extract_structures_via_decimer_api`, `compose_chemical_figure`, `render_cdxml_files` and `get_toolkit_capabilities`. This calls the existing isolated worker without changing its interface or native lock. Full output is saved before a short summary is printed. Inspect referenced errors and warnings before further work; `produced` never means chemically accepted. Existing evidence files are refused. If publication fails after a tool ran, inspect that tool's artifacts before retrying.
+Works for every tool. The full result goes to the file and only a short summary is printed (normally under 4 KB). Read the errors and warnings it points to before continuing.
 
-DECIMER upload/offline rules are unchanged. No response is silently truncated on disk. Normally the summary is below 4 KiB; path length contributes to its size. This helper does not reduce schemas already exposed by an MCP host. Do not equate characters with tokens.
-
-## Optional dispatch proposal
-
-Configuration fields and defaults:
+## Dispatch configuration
 
 ```json
 {
@@ -41,14 +35,12 @@ Configuration fields and defaults:
 }
 ```
 
-Set `context` to a map from region ID to only its necessary definitions and style requirements. Obtain host capacity from the actual host. Only set parallel true after the user requests it. No subagent support means serial fallback; zero capacity on an enabled host means blocked. The helper generates proposed batches but launches nothing and enforces no remote concurrency limit.
+`context` maps a region ID to only the definitions and style it needs. Set `parallel` true only when the user asked for parallel work. The helper proposes batches; it launches nothing.
 
-When authorized, the main agent dispatches a bounded queue, replenishing only after completion. Use a fresh short packet per task, without full conversation history. Keep each structure's result independent even in a grouped batch. The main agent alone maintains status: pending, working, submitted, needs_review, failed, accepted. A worker writes only its attempt directory. Check attempt ID, input hashes and artifact hashes before accepting a returned path. Late or duplicate results cannot replace an accepted attempt; preserve them separately. After interruption inspect records and rerun only missing or changed regions. These are caller responsibilities, not automatic recovery guarantees.
+When authorized, the main agent runs a bounded queue and tracks each structure as pending, working, submitted, needs_review, failed or accepted. A subagent writes only into its own folder. A late or duplicate result never replaces an accepted one. After an interruption, rerun only missing or changed regions.
 
-The caller limits OCSR requests separately from agent count, uses the [DECIMER retry budget](decimer-api.md#diagnosing-failed-requests) for transient network failures while honoring server delay, and returns persistent or semantic failures to the main agent. Native work always uses the existing shared lock with one native worker. Preserve the existing HTTP host/port configuration (normally `127.0.0.1:8029`); different ports do not bypass that lock. Do not start a service per worker.
+Limit OCSR requests separately from agent count and follow the [DECIMER retry rule](decimer-api.md#diagnosing-failed-requests). Native work is serialized by the ChemDraw mutex no matter how many agents run.
 
-## Acceptance and measurement
+## Acceptance
 
-Keep native, chemical and visual acceptance separate. A model without vision can run deterministic steps but cannot certify image agreement. Do not auto-upgrade a model on failure. Cache reuse is manual: verify source/crop hashes, transform, parameters, tool version and correction rules; never reuse a final correctness verdict. Changed shared definitions invalidate affected results even when pixels match.
-
-When requested, record wall time, recognition time, native queue time and host token counters with their cutoff. Separate cached input, uncached input and output; unavailable counters are unknown. Compare the same model and fixture before claiming savings or speedups. Packet generation and tests establish engineering behavior only, not low-cost model accuracy or parallel performance. The incremental controller can enforce cache dependencies and a two-failure repair bound; final correctness verdicts are never cache hits.
+Keep native, chemical and visual acceptance separate. An agent without vision cannot judge image agreement. Do not upgrade a model after a failure. Reuse a cached recognition only if the crop, scale and parameters are unchanged; a changed shared definition invalidates the structures that use it.

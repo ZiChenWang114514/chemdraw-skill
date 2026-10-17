@@ -1,36 +1,60 @@
-# Connect any agent
+# Agent integration
 
-Use this Skill with any AI agent that can read local instructions and call MCP tools or execute Python/CLI. Load the same Skill folder through the agent's supported instruction mechanism. Image reconstruction additionally needs agent vision (or explicit human visual review); a text-only agent cannot certify pixels it has not inspected. Native ChemDraw output requires a licensed Windows rendering host.
+The Skill needs an agent that can read `SKILL.md` and run shell commands. Image reconstruction additionally needs vision (or a human reviewer). Native ChemDraw output needs a licensed Windows host.
 
-## Load the instructions
+## Layout
 
-Load `SKILL.md` from this folder's parent. A client with native Skill support may install the entire `chemdraw` folder in its own discovery directory. Otherwise, provide the absolute `SKILL.md` path in the agent's project instructions. Resolve linked references and scripts relative to that folder. `agents/openai.yaml` is optional metadata for one client family, not a runtime dependency.
+| Item | Default location (Claude Code) |
+| --- | --- |
+| Skill folder | `~/.claude/skills/chemdraw/` — discovered automatically |
+| Toolkit runtime | `~/.claude/skills/chemdraw-venv/` — a sibling of the Skill; created by `install.ps1 -Runtime` |
+| Entry point | `<skill>/scripts/cdx.py` |
+| Installation manifest | `<skill>/manifest.json`, written by the installer |
+| Backups of replaced installs | `~/.claude/backups/skills/chemdraw/` (outside `skills/`, so never loaded as a second Skill) |
 
-## Connect the runtime
+Other agents: install with `install.ps1 -Destination <their skill folder>`, or point their project instructions at `<skill>/SKILL.md`. The runtime venv always sits beside the Skill folder.
 
-In an MCP-capable client, register a stdio server using its own settings format:
+`cdx.py` finds the runtime in this order: `CHEMDRAW_MCP_PYTHON`, the sibling `chemdraw-venv`, a conda environment named `cdxml` (from `~/.conda/environments.txt`). Started from any other Python, it re-launches itself there.
+
+To stop permission prompts in Claude Code, allow the entry point in `settings.json`:
 
 ```json
-{
-  "command": "/absolute/path/to/python",
-  "args": ["-m", "cdxml_toolkit.mcp_runtime", "--profile", "codex"]
-}
+{"permissions": {"allow": ["Bash(python ~/.claude/skills/chemdraw/scripts/cdx.py:*)"]}}
 ```
 
-Use the interpreter in the installed toolkit environment. `codex` is the runtime's existing full-profile identifier, accepted by any MCP client; it does not require that product. Keep this literal identifier until the runtime provides a compatible replacement. Query capability summaries only for unknown versions, missing interfaces or diagnosis. Normal tasks go directly to the matching workflow.
+## Why the command line instead of MCP
 
-For small-context clients, use the [compact CLI and task packets](efficient-reconstruction.md). Skill instructions cannot remove MCP schemas already injected by the host. This Skill does not add a reconstruction MCP profile or new runtime job APIs.
+- `cdx.py call` runs every registered tool through the same isolated worker an MCP server would use: worker timeout, native ChemDraw mutex, input/output limits and the JSON result envelope are unchanged.
+- Large results go to a file and only a summary is printed, so tool output does not flood the conversation.
+- No resident server, no client registration to keep in sync, nothing to restart after an upgrade.
 
-Without MCP, use the [Python/CLI routes](toolkit-cli-interfaces.md) and [figure CLI](publication-figures.md#immediate-cli-fallback). A remote client may connect to the Windows host's authenticated Streamable HTTP endpoint; see [operations](operations.md). Client configuration schemas differ, so do not copy another product's settings file verbatim.
+An MCP server remains available for clients that want typed tool calls. Register it with the runtime interpreter and no profile flag (the default profile is the full tool set), for example in Claude Code:
 
-## Installation helpers
+```bash
+claude mcp add --scope user cdxml-toolkit -- <runtime-python> -m cdxml_toolkit.mcp_runtime
+```
 
-The repository Windows installer accepts `-Destination` for any client or project folder. Its default storage location is `$HOME/.agents/skills/chemdraw`; this is this installer's default, not a claim that every client auto-discovers it. The source folder can also be copied on macOS/Linux without PowerShell.
+`<runtime-python>` is the `"runtime"` value printed by `cdx.py doctor`. For a remote Windows host, see the HTTP section of [operations](operations.md).
 
-Prerequisite and health checks do not require a particular agent CLI by default. Use `health_check.ps1 -SkipNativeChemDraw` for portable validation. Inspect client tool discovery separately when using generic MCP integration.
+## Command reference
 
-## Optional Codex adapter
+```text
+cdx.py tools [--detail summary]           list tools, timeouts and native-lock use
+cdx.py sig TOOL                           print one generated signature
+cdx.py call TOOL --json '{...}' | --args FILE [--out NEW.json]
+cdx.py render A.cdxml [B.cdxml ...] [--out-dir DIR]
+cdx.py build SPEC.json OUT.cdxml [--render]
+cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--out NEW.json]
+cdx.py chemscript-info SAVED.cdxml        direct ChemScript reading, under the native lock
+cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full]
+cdx.py py ARGS...                         run the runtime Python (helper scripts, -m modules, tests)
+cdx.py regen-signatures                   after a toolkit upgrade
+```
 
-Only for users of this client: repository `scripts/install.ps1 -ConfigureMcp` selects its conventional destination and invokes `scripts/configure_mcp.ps1`. `-Apply` performs the inspected proposal. The adapter preserves configuration and existing Skill backups. Add `-CheckCodex` to prerequisite/health checks when you want to verify this client's CLI or MCP registration. Existing `-SkipCodex` on the prerequisite checker remains supported.
+`call` prints results up to about 6 KB directly; larger results go to a new file under the temp folder's `chemdraw-cdx` directory (or `--out`) and a short summary with the path is printed. `ok` means the tool ran without error. Existing result files are never overwritten.
 
-The `.codex` paths, `CODEX_HOME`, `codex mcp` commands, `codex_config` module and generated signatures identify actual compatibility interfaces; do not replace their spelling with generic prose.
+`render` writes to a temporary name and replaces the old PNG only after a successful render, so a failed render keeps the previous image.
+
+## Subagents
+
+Subagents load the same Skill. Give them the `cdx.py` command form, never a guessed interpreter path. Native work is serialized by the ChemDraw mutex however many agents run.
