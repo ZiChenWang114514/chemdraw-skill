@@ -1,10 +1,10 @@
 # ChemDraw Skill quick start
 
-This guide supports any agent that can read local instructions and run shell commands; Claude Code discovers the Skill automatically. Image reconstruction also requires visual inspection.
+This guide supports any agent that can read local instructions and run shell commands. Image reconstruction also requires visual inspection.
 
 ## Setup
 
-Follow [Windows setup](guide.md#first-time-windows-setup): `scripts/install.ps1 -Runtime -Apply` installs the Skill and its runtime. Then run `python ~/.claude/skills/chemdraw/scripts/cdx.py doctor`. [Agent integration](../skill/chemdraw/references/agent-integration.md) explains the layout and every command.
+Follow [first-time setup](guide.md#first-time-setup): `python scripts/install.py --agent <your agents> --runtime --apply` installs the Skill for each agent plus one shared runtime. Then run `python <skill>/scripts/cdx.py doctor`. [Agent integration](../skill/chemdraw/references/agent-integration.md) explains the layout and every command.
 
 ## First use
 

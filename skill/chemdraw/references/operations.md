@@ -40,21 +40,21 @@ Optional dependency groups (`pip` extras) and what fails without them:
 
 ## Install or upgrade
 
-Windows, from a repository checkout (preview first, then `-Apply`):
-
-```powershell
-./scripts/install.ps1 -Runtime                          # proposal: Skill to ~/.claude/skills/chemdraw, runtime venv beside it
-./scripts/install.ps1 -Runtime -Apply                   # install; add -Python <python 3.10-3.13> if auto-detection finds none
-./scripts/install.ps1 -Apply -Destination <other agent skill folder>
-```
-
-The installer stages and verifies the copy, moves a previous installation to `backups/skills/chemdraw` beside the agent's `skills` folder, restores it on failure, then (with `-Runtime`) creates or reuses `chemdraw-venv` and installs the pinned toolkit with the default extras. It writes `manifest.json` last.
-
-macOS/Linux, or a manual runtime:
+From a repository checkout, on any OS (preview first, then `--apply`):
 
 ```bash
-python3 -m venv <skills-folder>/chemdraw-venv
-<skills-folder>/chemdraw-venv/bin/python <skill>/scripts/install_runtime.py --extras publication scientific
+python scripts/install.py --agent <name> --runtime              # proposal
+python scripts/install.py --agent <name> --runtime --apply      # install; add --python <3.10-3.13> if none is found
+python scripts/install.py --destination <other skills folder>/chemdraw --apply
+```
+
+The installer stages and verifies each copy, moves a previous installation to the shared backup folder, restores it on failure, then (with `--runtime`) creates or reuses the shared venv and installs the pinned toolkit with every extra that applies to the OS. It writes `manifest.json` last. Agent presets, folders and the runtime search order are in [agent integration](agent-integration.md).
+
+A manual runtime works too; point `CHEMDRAW_MCP_PYTHON` at it if it is not in a searched location:
+
+```bash
+python3 -m venv <venv>
+<venv>/bin/python <skill>/scripts/install_runtime.py --extras publication scientific
 ```
 
 `install_runtime.py` installs exactly the commit in `runtime.json`; `--toolkit-path` selects a local checkout for development and `--print-requirement` only prints the requirement. Never upgrade the runtime unasked. After a toolkit change:
@@ -79,7 +79,7 @@ cdx.py py <skill>/scripts/check_installation.py --write-manifest       # accept 
 
 Runtime selection and workers:
 
-- `CHEMDRAW_MCP_PYTHON` — runtime interpreter for `cdx.py` (otherwise the sibling `chemdraw-venv`, then a conda env named `cdxml`)
+- `CHEMDRAW_MCP_PYTHON` — runtime interpreter for `cdx.py` (otherwise `runtime.local.json`, a sibling `chemdraw-venv`, the shared venv, then a conda env named `cdxml`)
 - `CHEMDRAW_EXE` — explicit ChemDraw executable
 - `CHEMDRAW_NATIVE_TEMP` — writable ASCII-only root for native staging
 - `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`, `CHEMDRAW_MCP_WORKER_INPUT_BYTES`, `CHEMDRAW_MCP_WORKER_OUTPUT_BYTES`
@@ -102,7 +102,7 @@ HTTP 502/503/504 from the remote API indicates a gateway or service failure, not
 
 ## Failure Modes
 
-- `cdx.py: no cdxml-toolkit runtime found`: install one (`install.ps1 -Runtime`) or set `CHEMDRAW_MCP_PYTHON` to the runtime interpreter.
+- `cdx.py: no cdxml-toolkit runtime found`: install one (`scripts/install.py --runtime --apply`) or set `CHEMDRAW_MCP_PYTHON` to the runtime interpreter.
 - Tool timeout: raise `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS` only after confirming the operation is legitimately long-running. `modify_molecule` is limited to 90 s because ChemScript naming and decomposition can be expensive for fused systems; trusted SMILES can be drawn directly when no modification is needed.
 - Native resource busy: ChemDraw COM operations share one per-user mutex (`cdx.py doctor --paths` shows its name). Let the active render, conversion or Office operation finish; ordinary parsing stays concurrent. Do not start a second COM session to bypass it.
 - `tool_execution_failed` with an `error_id`: read `worker-<id>.log` in the folder printed by `cdx.py doctor --paths`. Detailed exceptions are deliberately kept out of results.

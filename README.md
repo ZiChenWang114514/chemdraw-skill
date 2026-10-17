@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="README.zh-cn.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-007c83?style=flat" height="22" alt="Simplified Chinese"></a>&nbsp;
-  <a href="docs/guide.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-Installation-17242b?style=flat" height="22" alt="Installation"></a>&nbsp;
+  <a href="docs/guide.md#first-time-setup"><img src="https://img.shields.io/badge/-Installation-17242b?style=flat" height="22" alt="Installation"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-Workflow%20catalog-007c83?style=flat" height="22" alt="Workflow catalog"></a>&nbsp;
   <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-Security-d94f70?style=flat" height="22" alt="Security"></a>
 </p>
@@ -260,39 +260,47 @@ The generated [public inventory](skill/chemdraw/references/toolkit-public-invent
 
 | Goal | Add to the core setup |
 | --- | --- |
-| Create and edit CDXML | Any agent with shell access, 64-bit Python 3.10-3.13, and `cdxml-toolkit-community` at the pinned commit (installed by `install.ps1 -Runtime`); portable workflows run on Windows, macOS, and Linux |
+| Create and edit CDXML | Any agent with shell access, 64-bit Python 3.10-3.13, and `cdxml-toolkit-community` at the pinned commit (installed by `scripts/install.py --runtime`); portable workflows run on Windows, macOS, and Linux |
 | Native PNG, CDX, or ChemDraw cleanup | Licensed and activated Windows desktop ChemDraw with working COM automation |
 | Molecule comparison or ChemScript SDK calls | RDKit for portable similarity; compatible ChemScript DLLs on a Windows host for exact checks |
 | Editable Word or PowerPoint objects | Supported desktop Microsoft Word and/or PowerPoint on Windows |
 | Local optical structure recognition | DECIMER model weights and their runtime dependencies |
 | Remote access to a ChemDraw workstation | A Windows host plus authenticated HTTP configuration and an encrypted network path |
 
-ChemDraw, Microsoft Office, ChemScript, and DECIMER model weights are not bundled. For a first installation, follow [Quick start](#quick-start) or the [detailed guide](docs/guide.md#first-time-windows-setup).
+ChemDraw, Microsoft Office, ChemScript, and DECIMER model weights are not bundled. For a first installation, follow [Quick start](#quick-start) or the [detailed guide](docs/guide.md#first-time-setup).
 
 ## Quick start
 
-Windows, with a 64-bit Python 3.10-3.13 available:
+Any OS, with a 64-bit Python 3.10-3.13 available for the runtime (the installer itself runs on any Python 3.9+):
 
-```powershell
+```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
-Set-Location .\chemdraw-skill
-.\scripts\install.ps1 -Runtime          # preview what will be installed
-.\scripts\install.ps1 -Runtime -Apply   # Skill -> ~/.claude/skills/chemdraw, runtime -> ~/.claude/skills/chemdraw-venv
-python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor
+cd chemdraw-skill
+python scripts/install.py --agent claude agents --runtime          # preview what will be installed
+python scripts/install.py --agent claude agents --runtime --apply  # install the Skill and the shared runtime
+python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
 ```
 
-Claude Code picks the Skill up automatically. For another agent add `-Destination <its skill folder>`, or point its project instructions at `SKILL.md`. Existing installations are backed up and restored on failure; `-Python <python.exe>` selects the interpreter for the runtime.
+Pick the agents you use with `--agent` (one or more):
+
+| `--agent` | Skill folder | Used by |
+| --- | --- | --- |
+| `claude` | `~/.claude/skills/` | Claude Code (also read by GitHub Copilot and OpenCode) |
+| `agents` | `~/.agents/skills/` | Shared Agent Skills folder: Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and others |
+| `gemini` / `copilot` / `cursor` / `opencode` | each agent's own folder | when you prefer the agent-specific location |
+
+Add `--project <repo>` for a project-scoped copy (`.claude/skills/`, `.agents/skills/`, `.github/skills/`, ...), or `--destination <folder>` for any other location. Agents without Skill discovery only need one line in their instruction file pointing at `SKILL.md`; see [agent integration](skill/chemdraw/references/agent-integration.md). All copies share one runtime venv; existing installations are backed up and restored on failure.
 
 `cdx.py` is the single entry point and can be started by any Python — it re-launches itself in the toolkit runtime:
 
-```powershell
+```bash
 python <skill>/scripts/cdx.py tools                         # the 39 tools
 python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
 python <skill>/scripts/cdx.py render figure.cdxml           # native 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png              # structure recognition
 ```
 
-On macOS/Linux, copy `skill/chemdraw` into the agent's Skill folder and create the runtime by hand (see the [guide](docs/guide.md#first-time-windows-setup)); native ChemDraw, ChemScript and Office calls report unavailable there. MCP clients can still register `<runtime-python> -m cdxml_toolkit.mcp_runtime`; see [agent integration](skill/chemdraw/references/agent-integration.md).
+On macOS and Linux the portable workflows work the same way; native ChemDraw, ChemScript and Office calls report unavailable there. MCP clients can still register `<runtime-python> -m cdxml_toolkit.mcp_runtime`; see [agent integration](skill/chemdraw/references/agent-integration.md).
 
 ## Validation and Safety
 
@@ -308,7 +316,7 @@ On macOS/Linux, copy `skill/chemdraw` into the agent's Skill folder and create t
 
 ### Can any AI agent use this ChemDraw Skill?
 
-Yes, with platform boundaries. An agent needs the Skill instructions and shell access; every tool runs through `cdx.py`. Claude Code discovers the installed Skill automatically, and clients that prefer MCP (Model Context Protocol) can register the bundled server. See [agent setup](skill/chemdraw/references/agent-integration.md). Portable CDXML and RDKit workflows run on macOS and Linux; the current native ChemDraw, ChemScript and Office integrations require Windows.
+Yes, with platform boundaries. An agent needs the Skill instructions and shell access; every tool runs through `cdx.py`. The installer places it in the Skill folder of Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode or any other agent that reads `SKILL.md` folders; agents without Skill discovery can be pointed at `SKILL.md` from their instruction file, and clients that prefer MCP (Model Context Protocol) can register the bundled server. See [agent setup](skill/chemdraw/references/agent-integration.md). Portable CDXML and RDKit workflows run on macOS and Linux; the current native ChemDraw, ChemScript and Office integrations require Windows.
 
 ### Can I generate SAR figures from an Excel spreadsheet?
 

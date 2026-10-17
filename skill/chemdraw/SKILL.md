@@ -9,7 +9,7 @@ Editable chemistry through `cdxml-toolkit-community` and, on Windows, licensed n
 
 ## Quick start (command line)
 
-`<skill>` is this folder (for Claude Code: `~/.claude/skills/chemdraw`). Everything runs through one entry point:
+`<skill>` is the folder containing this file. `python` is any Python 3.9+ on the host (`python3` on macOS/Linux, `python` or `py` on Windows). Everything runs through one entry point:
 
 ```bash
 python <skill>/scripts/cdx.py tools                              # list the 39 tools
@@ -18,9 +18,9 @@ python <skill>/scripts/cdx.py build spec.json out.cdxml --render # ACS 1996 draw
 python <skill>/scripts/cdx.py doctor                             # what works on this host
 ```
 
-Any Python 3.9+ can start `cdx.py`: it re-launches itself in the toolkit runtime (`CHEMDRAW_MCP_PYTHON`, the `chemdraw-venv` beside this folder, or a conda env named `cdxml`). Below, `cdx.py` stands for `python <skill>/scripts/cdx.py`. Run helper scripts and toolkit modules the same way: `cdx.py py <skill>/scripts/image_review_workspace.py ...`, `cdx.py py -m cdxml_toolkit.scientific ...`.
+`cdx.py` re-launches itself in the toolkit runtime, wherever the installer put it; if none is found it says where it looked. Below, `cdx.py` stands for `python <skill>/scripts/cdx.py`. Run helper scripts and toolkit modules the same way: `cdx.py py <skill>/scripts/image_review_workspace.py ...`, `cdx.py py -m cdxml_toolkit.scientific ...`.
 
-A tool written as `tool(arg=value, ...)` in these references runs as `cdx.py call tool --json '{"arg": value}'` (or `--args file.json`; `--out new.json` keeps the full result). `cdx.py sig tool` prints one signature. Calls go through the toolkit's isolated worker, which keeps the native ChemDraw lock and timeouts. No MCP server is needed; see [agent integration](references/agent-integration.md).
+A tool written as `tool(arg=value, ...)` in these references runs as `cdx.py call tool --json '{"arg": value}'` (or `--args file.json`, which avoids shell quoting problems; `--out new.json` keeps the full result). `cdx.py sig tool` prints one signature. Calls go through the toolkit's isolated worker, which keeps the native ChemDraw lock and timeouts. No MCP server is needed. Installation for each agent, runtime discovery and command allowlisting: [agent integration](references/agent-integration.md).
 
 ## Core Rules
 
@@ -30,7 +30,7 @@ A tool written as `tool(arg=value, ...)` in these references runs as `cdx.py cal
 4. A crossing does not create an atom. Distinguish an occluded solid bond, a repeated dash and a stereochemical hashed wedge. Check narrow ends and foreground/background against the image.
 5. Layout edits must preserve the molecular inventory, including stereo, charge and isotope information. A bond-display edit that changes semantic readback is not layout-only.
 6. Native work goes through `cdx.py`. Deliver native ChemDraw renders, not RDKit images, and keep chemistry editable.
-7. After every render, open the PNG and look at it before reporting (agents: read the image file).
+7. After every render, open the PNG and look at it before reporting (view the image file with your image-reading tool).
 
 ## Route By Intent
 

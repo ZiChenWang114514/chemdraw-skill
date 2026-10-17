@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/-English-17242b?style=flat" height="22" alt="English"></a>&nbsp;
-  <a href="docs/guide.zh-cn.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-%E5%AE%89%E8%A3%85-17242b?style=flat" height="22" alt="安装"></a>&nbsp;
+  <a href="docs/guide.zh-cn.md#first-time-setup"><img src="https://img.shields.io/badge/-%E5%AE%89%E8%A3%85-17242b?style=flat" height="22" alt="安装"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9B%AE%E5%BD%95-007c83?style=flat" height="22" alt="工作流目录"></a>&nbsp;
   <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5-d94f70?style=flat" height="22" alt="安全策略"></a>
 </p>
@@ -258,39 +258,47 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 
 | 目标 | 在核心安装基础上增加 |
 | --- | --- |
-| 创建和编辑 CDXML | 能执行命令行的任意 Agent、64 位 Python 3.10-3.13，以及固定提交的 `cdxml-toolkit-community`（由 `install.ps1 -Runtime` 安装）；可移植工作流可在 Windows、macOS 和 Linux 上运行 |
+| 创建和编辑 CDXML | 能执行命令行的任意 Agent、64 位 Python 3.10-3.13，以及固定提交的 `cdxml-toolkit-community`（由 `scripts/install.py --runtime` 安装）；可移植工作流可在 Windows、macOS 和 Linux 上运行 |
 | 原生 PNG、CDX 或 ChemDraw 清理 | 已获得许可并激活的 Windows 桌面版 ChemDraw，且 COM 自动化可正常工作 |
 | 分子比较或 ChemScript SDK 调用 | 可移植相似度比较使用 RDKit；精确检查需 Windows 主机上的兼容 ChemScript DLL |
 | 可编辑的 Word 或 PowerPoint 对象 | Windows 上受支持的桌面版 Microsoft Word 和/或 PowerPoint |
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖项 |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络路径 |
 
-项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请按[快速开始](#快速开始)或[详细指南](docs/guide.zh-cn.md#first-time-windows-setup)操作。
+项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请按[快速开始](#快速开始)或[详细指南](docs/guide.zh-cn.md#first-time-setup)操作。
 
 ## 快速开始
 
-Windows，需已有 64 位 Python 3.10-3.13：
+任意操作系统均可，运行时需要 64 位 Python 3.10-3.13（安装脚本本身可用任意 Python 3.9+ 运行）：
 
-```powershell
+```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
-Set-Location .\chemdraw-skill
-.\scripts\install.ps1 -Runtime          # 预览将要安装的内容
-.\scripts\install.ps1 -Runtime -Apply   # Skill 装到 ~/.claude/skills/chemdraw，运行时装到 ~/.claude/skills/chemdraw-venv
-python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor
+cd chemdraw-skill
+python scripts/install.py --agent claude agents --runtime          # 预览将要安装的内容
+python scripts/install.py --agent claude agents --runtime --apply  # 安装 Skill 和共享运行时
+python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
 ```
 
-Claude Code 会自动加载该 Skill。其他 Agent 请加 `-Destination <其 Skill 目录>`，或在项目指令中指向 `SKILL.md`。已有安装会先备份，失败时自动恢复；`-Python <python.exe>` 可指定用于创建运行时的解释器。
+用 `--agent` 选择你使用的 Agent（可多选）：
+
+| `--agent` | Skill 目录 | 适用 |
+| --- | --- | --- |
+| `claude` | `~/.claude/skills/` | Claude Code（GitHub Copilot 和 OpenCode 也会读取） |
+| `agents` | `~/.agents/skills/` | Agent Skills 通用目录：Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等 |
+| `gemini` / `copilot` / `cursor` / `opencode` | 各 Agent 自己的目录 | 需要装到专属目录时使用 |
+
+加 `--project <仓库>` 可装到项目级目录（`.claude/skills/`、`.agents/skills/`、`.github/skills/` 等），`--destination <目录>` 可装到任意位置。不支持自动发现 Skill 的 Agent，只需在它的指令文件里加一行指向 `SKILL.md`，详见 [Agent 接入](skill/chemdraw/references/agent-integration.md)。所有副本共用一套运行时；已有安装会先备份，失败时自动恢复。
 
 `cdx.py` 是唯一入口，任何 Python 都能启动它，它会自动切换到工具包运行时：
 
-```powershell
+```bash
 python <skill>/scripts/cdx.py tools                         # 39 个工具
 python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
 python <skill>/scripts/cdx.py render figure.cdxml           # 原生 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png              # 结构识别
 ```
 
-macOS/Linux：把 `skill/chemdraw` 复制到 Agent 的 Skill 目录，并按[指南](docs/guide.zh-cn.md#first-time-windows-setup)手动创建运行时；ChemDraw 原生、ChemScript 和 Office 调用在这些平台上会返回不可用。MCP 客户端仍可注册 `<运行时 python> -m cdxml_toolkit.mcp_runtime`，详见 [Agent 接入](skill/chemdraw/references/agent-integration.md)。
+macOS 和 Linux 上可移植工作流的用法完全相同；ChemDraw 原生、ChemScript 和 Office 调用在这些平台上会返回不可用。MCP 客户端仍可注册 `<运行时 python> -m cdxml_toolkit.mcp_runtime`，详见 [Agent 接入](skill/chemdraw/references/agent-integration.md)。
 
 ## 验证与安全
 
@@ -306,7 +314,7 @@ macOS/Linux：把 `skill/chemdraw` 复制到 Agent 的 Skill 目录，并按[指
 
 ### 任意 AI Agent 都能使用这个 ChemDraw Skill 吗？
 
-可以，但要遵守平台边界。Agent 需要能读取 Skill 指令并执行命令行，所有工具都通过 `cdx.py` 运行。Claude Code 会自动发现已安装的 Skill；偏好 MCP（Model Context Protocol，模型上下文协议）的客户端也可以注册自带的服务。详见[Agent 接入指南](skill/chemdraw/references/agent-integration.md)。CDXML 与 RDKit 可移植工作流支持 macOS 和 Linux；当前 ChemDraw 原生、ChemScript 和 Office 集成需要 Windows。
+可以，但要遵守平台边界。Agent 需要能读取 Skill 指令并执行命令行，所有工具都通过 `cdx.py` 运行。安装脚本可以把它放进 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等任何读取 `SKILL.md` 目录的 Agent；不支持 Skill 自动发现的 Agent，可在其指令文件中指向 `SKILL.md`；偏好 MCP（Model Context Protocol，模型上下文协议）的客户端也可以注册自带的服务。详见[Agent 接入指南](skill/chemdraw/references/agent-integration.md)。CDXML 与 RDKit 可移植工作流支持 macOS 和 Linux；当前 ChemDraw 原生、ChemScript 和 Office 集成需要 Windows。
 
 ### 能从 Excel 实验数据生成 SAR 图和底物拓展图吗？
 

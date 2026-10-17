@@ -10,7 +10,8 @@ Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth fo
 - Preserve the progressive path: metadata -> core rules/router -> workflow/domain guide -> generated signatures -> inventory shards.
 - Keep exact tool signatures generated in `references/mcp-signatures.md` (`cdx.py regen-signatures`); do not duplicate handwritten signatures elsewhere.
 - Keep `scripts/cdx.py` the single entry point: new workflows get a subcommand or run through `cdx.py call` / `cdx.py py`, never a guessed interpreter path. Its bootstrap section must stay standard-library only.
-- Keep the Skill client-neutral: no client-specific adapters, branding or configuration writers inside `skill/chemdraw/`.
+- Keep the Skill client-neutral: no client-specific adapters, branding or configuration writers inside `skill/chemdraw/`. Agent names appear only where users choose an install target (`scripts/install.py`, `references/agent-integration.md`, README and guide).
+- Keep `scripts/install.py` and the `cdx.py` bootstrap standard-library only and portable across Windows, macOS and Linux. New agent presets go into `AGENTS` in `install.py` and the table in `agent-integration.md`.
 - Preserve existing public tool names unless a documented breaking release is intentional.
 - Keep chemistry grounded: do not invent or hand-edit SMILES, do not silently resolve ambiguous OCSR, and do not overwrite source artifacts.
 - For image-recognition tasks, use the DECIMER API directly (`cdx.py decimer`); do not add a separate upload-confirmation question, except once for sources marked unpublished or confidential. Respect explicit local/offline or no-upload requests. Keep the no-upload preflight (`--preflight`) available.

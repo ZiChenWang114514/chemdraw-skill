@@ -1,22 +1,50 @@
 # Agent integration
 
-The Skill needs an agent that can read `SKILL.md` and run shell commands. Image reconstruction additionally needs vision (or a human reviewer). Native ChemDraw output needs a licensed Windows host.
+The Skill follows the open Agent Skills layout (a folder with `SKILL.md`, `references/`, `scripts/`, `assets/`) and needs only two things from an agent: it can read the files and run shell commands. Image reconstruction also needs vision (or a human reviewer). Native ChemDraw output needs a licensed Windows host.
 
-## Layout
+## Install for an agent
 
-| Item | Default location (Claude Code) |
-| --- | --- |
-| Skill folder | `~/.claude/skills/chemdraw/` — discovered automatically |
-| Toolkit runtime | `~/.claude/skills/chemdraw-venv/` — a sibling of the Skill; created by `install.ps1 -Runtime` |
-| Entry point | `<skill>/scripts/cdx.py` |
-| Installation manifest | `<skill>/manifest.json`, written by the installer |
-| Backups of replaced installs | `~/.claude/backups/skills/chemdraw/` (outside `skills/`, so never loaded as a second Skill) |
+From a repository checkout, `scripts/install.py` copies the Skill into each agent's Skill folder and can build the shared toolkit runtime. It prints a JSON proposal first; add `--apply` to install.
 
-Other agents: install with `install.ps1 -Destination <their skill folder>`, or point their project instructions at `<skill>/SKILL.md`. The runtime venv always sits beside the Skill folder.
+```bash
+python scripts/install.py --agent claude agents --runtime          # proposal
+python scripts/install.py --agent claude agents --runtime --apply  # install
+python scripts/install.py --agent copilot --project <repo> --apply # project-scoped copy
+python scripts/install.py --destination <any skills folder>/chemdraw --apply
+```
 
-`cdx.py` finds the runtime in this order: `CHEMDRAW_MCP_PYTHON`, the sibling `chemdraw-venv`, a conda environment named `cdxml` (from `~/.conda/environments.txt`). Started from any other Python, it re-launches itself there.
+| `--agent` | User folder | Project folder (`--project DIR`) | Typical readers |
+| --- | --- | --- | --- |
+| `claude` | `~/.claude/skills/` | `.claude/skills/` | Claude Code; also read by GitHub Copilot and OpenCode |
+| `agents` | `~/.agents/skills/` | `.agents/skills/` | The shared folder of the Agent Skills convention: Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and others |
+| `gemini` | `~/.gemini/skills/` | `.gemini/skills/` | Gemini CLI |
+| `copilot` | `~/.copilot/skills/` | `.github/skills/` | GitHub Copilot (VS Code and CLI) |
+| `cursor` | `~/.cursor/skills/` | `.cursor/skills/` | Cursor |
+| `opencode` | `~/.config/opencode/skills/` | `.opencode/skills/` | OpenCode |
 
-To stop permission prompts in Claude Code, allow the entry point in `settings.json`:
+Discovery folders change between agent releases; check your agent's documentation when a copy is not picked up, and use `--destination` for any folder not listed. An agent that reads several of these folders may list the Skill once per copy; keep only the copies it needs.
+
+**Agents without Skill discovery.** Copy the Skill anywhere (`--destination`) and add one line to the agent's instruction file (`AGENTS.md`, `GEMINI.md`, `.cursor/rules/*.mdc`, `.github/copilot-instructions.md`, a system prompt):
+
+```text
+For chemical structures, reactions, ChemDraw/CDXML files or chemistry figures, read <skill>/SKILL.md first and follow it.
+```
+
+## Runtime
+
+All copies share one toolkit venv: `%LOCALAPPDATA%\chemdraw-skill\venv` on Windows, `$XDG_DATA_HOME/chemdraw-skill/venv` (default `~/.local/share/...`) elsewhere. `--runtime-dir` puts it somewhere else; the installer then writes `runtime.local.json` into each copy so the Skill still finds it. Replaced installations are moved to `chemdraw-skill/backups/` in the same data folder, outside every Skill folder, with a `BACKUP_ORIGIN.txt` naming where they came from.
+
+`cdx.py` looks for the runtime in this order and re-launches itself there when started from any other Python 3.9+:
+
+1. `CHEMDRAW_MCP_PYTHON`
+2. `runtime.local.json` in the Skill folder
+3. a `chemdraw-venv` folder beside the Skill folder (older layout; still honored and reused by the installer)
+4. the shared venv above
+5. a conda environment named `cdxml` (from `~/.conda/environments.txt`)
+
+## Command permissions
+
+Every Skill action is one command prefix, so a single allowlist entry stops repeated approval prompts. Allow `python <skill>/scripts/cdx.py` in your agent's command allowlist (use the interpreter name you actually run: `python3`, `python` or `py`). For example, in Claude Code `settings.json`:
 
 ```json
 {"permissions": {"allow": ["Bash(python ~/.claude/skills/chemdraw/scripts/cdx.py:*)"]}}
@@ -26,15 +54,23 @@ To stop permission prompts in Claude Code, allow the entry point in `settings.js
 
 - `cdx.py call` runs every registered tool through the same isolated worker an MCP server would use: worker timeout, native ChemDraw mutex, input/output limits and the JSON result envelope are unchanged.
 - Large results go to a file and only a summary is printed, so tool output does not flood the conversation.
-- No resident server, no client registration to keep in sync, nothing to restart after an upgrade.
+- No resident server, no client registration to keep in sync, nothing to restart after an upgrade, and it works in every agent that has a shell.
 
-An MCP server remains available for clients that want typed tool calls. Register it with the runtime interpreter and no profile flag (the default profile is the full tool set), for example in Claude Code:
+An MCP server remains available for clients that want typed tool calls. Register the runtime interpreter (the `"runtime"` value printed by `cdx.py doctor`) with no profile flag; the default profile is the full tool set. Most clients accept the common `mcpServers` JSON shape:
 
-```bash
-claude mcp add --scope user cdxml-toolkit -- <runtime-python> -m cdxml_toolkit.mcp_runtime
+```json
+{"mcpServers": {"cdxml-toolkit": {"command": "<runtime-python>", "args": ["-m", "cdxml_toolkit.mcp_runtime"]}}}
 ```
 
-`<runtime-python>` is the `"runtime"` value printed by `cdx.py doctor`. For a remote Windows host, see the HTTP section of [operations](operations.md).
+TOML-configured clients use the same command and arguments:
+
+```toml
+[mcp_servers.cdxml-toolkit]
+command = "<runtime-python>"
+args = ["-m", "cdxml_toolkit.mcp_runtime"]
+```
+
+Command-line registration, for example `claude mcp add --scope user cdxml-toolkit -- <runtime-python> -m cdxml_toolkit.mcp_runtime`. For a remote Windows host, see the HTTP section of [operations](operations.md).
 
 ## Command reference
 
@@ -54,6 +90,8 @@ cdx.py regen-signatures                   after a toolkit upgrade
 `call` prints results up to about 6 KB directly; larger results go to a new file under the temp folder's `chemdraw-cdx` directory (or `--out`) and a short summary with the path is printed. `ok` means the tool ran without error. Existing result files are never overwritten.
 
 `render` writes to a temporary name and replaces the old PNG only after a successful render, so a failed render keeps the previous image.
+
+On a shell that does not pass JSON quotes through intact (Windows PowerShell 5, `cmd.exe`), write the arguments to a file and use `--args`.
 
 ## Subagents
 

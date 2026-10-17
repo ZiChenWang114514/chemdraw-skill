@@ -1,48 +1,44 @@
 # ChemDraw Skill setup and operations
 
-The Skill works with any agent that can read local instructions and run shell commands; Claude Code discovers it automatically. Everything runs through one entry point, `skill/chemdraw/scripts/cdx.py`. See [agent integration](../skill/chemdraw/references/agent-integration.md) for the layout and command reference.
+The Skill works with any agent that can read local instructions and run shell commands. Everything runs through one entry point, `skill/chemdraw/scripts/cdx.py`. See [agent integration](../skill/chemdraw/references/agent-integration.md) for per-agent Skill folders, runtime discovery, command allowlisting and the command reference.
 
-## First-Time Windows Setup
+## First-time setup
 
-You need a 64-bit Python 3.10–3.13 to build the runtime (3.12 is the tested version). Portable CDXML/RDKit work needs no desktop application. Native output requires activated Windows ChemDraw; Office and ChemScript are needed only for their workflows.
-
-```powershell
-git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
-Set-Location .\chemdraw-skill
-.\scripts\check_prerequisites.ps1 -Capabilities core,native     # read-only host report
-.\scripts\install.ps1 -Runtime                                   # preview
-.\scripts\install.ps1 -Runtime -Apply                            # install Skill + runtime
-```
-
-By default the Skill goes to `~/.claude/skills/chemdraw` and the runtime venv to `~/.claude/skills/chemdraw-venv`. Use `-Destination <folder>` for another agent's Skill directory, `-Python <python.exe>` when auto-detection does not find a suitable interpreter, and `-Extras` to choose toolkit extras (default: `publication scientific office analysis image chemscript`).
-
-The installer stages and verifies the copy, moves an existing installation to `backups/skills/chemdraw` (outside the discovery folder), restores it on failure, installs the runtime, and writes `manifest.json` so later drift can be detected. Re-running it upgrades the Skill and reuses the venv.
-
-The runtime revision is the exact commit in [runtime.json](../skill/chemdraw/runtime.json); CI installs the same commit. To install a runtime by hand, or on macOS/Linux:
+You need a 64-bit Python 3.10–3.13 to build the runtime (3.12 is the tested version); the installer itself runs on any Python 3.9+. Portable CDXML/RDKit work needs no desktop application and runs on Windows, macOS and Linux. Native output requires activated Windows ChemDraw; Office and ChemScript are needed only for their workflows.
 
 ```bash
-python3 -m venv ~/.claude/skills/chemdraw-venv
-~/.claude/skills/chemdraw-venv/bin/python skill/chemdraw/scripts/install_runtime.py --extras publication scientific
-cp -r skill/chemdraw ~/.claude/skills/chemdraw
+git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+cd chemdraw-skill
+pwsh ./scripts/check_prerequisites.ps1 -Capabilities core,native     # optional read-only Windows host report
+python scripts/install.py --agent claude agents --runtime            # preview
+python scripts/install.py --agent claude agents --runtime --apply    # install Skill copies + shared runtime
 ```
 
-`install_runtime.py --print-requirement` prints the requirement without installing; `--toolkit-path <checkout>` installs a local toolkit checkout for development.
+`--agent` takes one or more of `claude`, `agents` (the shared `~/.agents/skills` folder read by most agents), `gemini`, `copilot`, `cursor` and `opencode`; `--project <repo>` installs project-scoped copies instead, and `--destination <folder>` installs anywhere. `--python <interpreter>` picks the base interpreter when auto-detection finds none, `--extras` chooses toolkit extras (default: every extra that applies to the OS), and `--runtime-dir` moves the shared venv.
+
+The installer stages and verifies each copy, moves an existing installation to the shared backup folder (outside every Skill folder), restores it on failure, installs the runtime once for all copies, and writes `manifest.json` so later drift can be detected. Re-running it upgrades the Skill and reuses the venv.
+
+The runtime revision is the exact commit in [runtime.json](../skill/chemdraw/runtime.json); CI installs the same commit. To build a runtime by hand instead:
+
+```bash
+python3 -m venv <venv>
+<venv>/bin/python skill/chemdraw/scripts/install_runtime.py --extras publication scientific
+export CHEMDRAW_MCP_PYTHON=<venv>/bin/python      # only if <venv> is not a location cdx.py searches
+```
+
+`install_runtime.py --print-requirement` prints the requirement without installing; `--toolkit-path <checkout>` (also accepted by `install.py`) installs a local toolkit checkout for development.
 
 ## Check the installation
 
-```powershell
-python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor              # versions, extras, drift, capability matrix
-python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor --native     # + ChemScript ping and a native PNG render
-python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor --office     # + Word/PowerPoint OLE probes
+```bash
+python <skill>/scripts/cdx.py doctor              # versions, extras, drift, capability matrix
+python <skill>/scripts/cdx.py doctor --native     # + ChemScript ping and a native PNG render
+python <skill>/scripts/cdx.py doctor --office     # + Word/PowerPoint OLE probes
 ```
 
 Any Python can start `cdx.py`; it re-launches itself in the runtime. Skipped probes are not verified features. See [operations](../skill/chemdraw/references/operations.md) for bitness, timeouts, DECIMER and failure codes.
 
-In Claude Code, allow the entry point once to avoid permission prompts:
-
-```json
-{"permissions": {"allow": ["Bash(python ~/.claude/skills/chemdraw/scripts/cdx.py:*)"]}}
-```
+Allow the `python <skill>/scripts/cdx.py` prefix once in your agent's command allowlist to avoid permission prompts; [agent integration](../skill/chemdraw/references/agent-integration.md#command-permissions) has an example.
 
 ## MCP (optional)
 
