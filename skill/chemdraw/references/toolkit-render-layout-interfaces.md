@@ -6,10 +6,10 @@ Load for new reaction rendering, existing CDXML cleanup, alignment, multi-scheme
 
 ## Preferred Entry Points
 
-- New grounded scheme: MCP `render_scheme`.
-- Existing layout cleanup: MCP `clean_scheme_layout`; Python `layout.reaction_cleanup.run_cleanup`.
-- Multi-file merge: MCP `merge_reaction_schemes`; Python `layout.scheme_merger` parse, detect, execute workflow.
-- Full normalization/polish: MCP `polish_reaction_scheme`; Python `scheme_polisher_v2.run_pipeline`.
+- New grounded scheme: tool `render_scheme`.
+- Existing layout cleanup: tool `clean_scheme_layout`; Python `layout.reaction_cleanup.run_cleanup`.
+- Multi-file merge: tool `merge_reaction_schemes`; Python `layout.scheme_merger` parse, detect, execute workflow.
+- Full normalization/polish: tool `polish_reaction_scheme`; Python `scheme_polisher_v2.run_pipeline`.
 - Parsed reaction JSON: `render.auto_layout.auto_layout_to_cdxml` or `render.scheme_maker.build_scheme`.
 - YAML/compact input: `render.parser.parse_yaml` or `render.compact_parser.parse_compact`, then `render.renderer.render_to_file`.
 

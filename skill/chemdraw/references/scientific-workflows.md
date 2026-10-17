@@ -11,10 +11,10 @@ Use the toolkit source version containing `cdxml_toolkit.scientific`, with the `
 
 ## Fast examples
 
-The example runner and JSON specifications are in [assets/scientific](../assets/scientific/run_examples.py). From the Skill directory:
+The example runner and JSON specifications are in [assets/scientific](../assets/scientific/run_examples.py). Requires the `scientific` extra (`cdx.py doctor` lists missing extras):
 
 ```console
-python assets/scientific/run_examples.py --output generated-examples
+cdx.py py <skill>/assets/scientific/run_examples.py --output NEW_DIR
 ```
 
 This produces TLC, substitution-mechanism and simulated kinetic-plot examples. The TLC values are illustrative and the kinetic data are explicitly simulated. Add `--nmr-input PATH` for a real processed spectrum; add both `--glassware PATH --condensers PATH` for converted, inspected native template libraries. The apparatus page indexes are example-specific and must be checked against the installed library. Use a new output directory.
@@ -27,7 +27,7 @@ This produces TLC, substitution-mechanism and simulated kinetic-plot examples. T
 4. Run the command and inspect the plotted spectrum for a distorted baseline, missing peaks or inappropriate integration limits. Report assignments as unperformed unless separately supported by evidence.
 
 ```console
-python -m cdxml_toolkit.scientific nmr --spec nmr.json --output nmr-results
+cdx.py py -m cdxml_toolkit.scientific nmr --spec nmr.json --output nmr-results
 ```
 
 The [NMR JSON example](../assets/scientific/nmr.json) uses integration ranges from the real [nmrglue integration example](https://nmrglue.readthedocs.io/en/latest/examples/integrate_1d.html). Set its input path to the downloaded `1d_data.ft`. For another spectrum, replace the ranges or use the example runner, which omits those preset intervals.
@@ -35,7 +35,7 @@ The [NMR JSON example](../assets/scientific/nmr.json) uses integration ranges fr
 ## Scientific plots
 
 ```console
-python -m cdxml_toolkit.scientific plot --spec plot.json --output plot-results
+cdx.py py -m cdxml_toolkit.scientific plot --spec plot.json --output plot-results
 ```
 
 The JSON requires `input`, `x_column`, `y_column`, `x_label` and `y_label`; `title` and `reverse_x` are optional. Input paths are relative to the JSON. Label units and distinguish simulated from experimental data. Native CDXML and SVG/PNG share axis limits and ticks. The CDXML display may use a peak-preserving envelope, while the exported CSV keeps all samples. Do not analyze reduced display coordinates as if they were the original data.
@@ -43,7 +43,7 @@ The JSON requires `input`, `x_column`, `y_column`, `x_label` and `y_label`; `tit
 ## Mechanisms
 
 ```console
-python -m cdxml_toolkit.scientific mechanism --spec mechanism.json --output mechanism.cdxml
+cdx.py py -m cdxml_toolkit.scientific mechanism --spec mechanism.json --output mechanism.cdxml
 ```
 
 Use the [complete substitution example](../assets/scientific/mechanism.json). Each molecule supplies a grounded SMILES or structure `file`, `id` and explicit `coordinates` in atom order. Each electron arrow has `source` and `target` anchors with a molecule ID and either `atom` or `bond: [i,j]`; optional offsets shift endpoints. Two Bezier `controls` shape the curve; `electrons` is 1 or 2. Endpoint anchors follow atom positions; absolute control points must be reviewed after moving a structure.
@@ -56,12 +56,12 @@ When the reference shows a separate proton, create a separate chemical `[H+]` sp
 
 For bridged or perspective ring drawings, inspect native-save stereochemistry even when no new wedges were added. ChemDraw can write `Geometry="Tetrahedral"` and `BondOrdering` from the drawing geometry. Neither removing `CrossingBonds` nor setting `AS="u"` and `Geometry="Unknown"` reliably prevents that inference. Resolve the depicted configuration against the reference before accepting the native result; do not delete stereo from the comparison merely to make validation pass.
 
-When a bridgehead assignment is missing or disputed, compare RDKit's CDXML readback with ChemScript's direct SMILES output from the **same saved file**. The installed CLI `python -m cdxml_toolkit.chemdraw.chemscript_bridge info <saved.cdxml>` returns this native interpretation; use the shared native resource lock for automated calls. A ChemScript-exported MOL read by RDKit is an additional format check, not a substitute for direct SMILES: MOL conversion can lose centers, and the direct readers can disagree on a bridgehead configuration. Match atoms by connectivity before comparing configurations; never compare raw atom indices or only center counts. Agreement confirms reader consistency, not the source figure's chemistry. Preserve unresolved assignments and distinguish connectivity checks from full stereochemical acceptance. Setting `Geometry` and `BondOrdering` alone is not evidence that readers recover the intended stereochemistry.
+When a bridgehead assignment is missing or disputed, compare RDKit's readback with `cdx.py chemscript-info <saved.cdxml>` on the **same saved file**, matching atoms by connectivity rather than by index. A MOL export read by RDKit can lose centers and is only a secondary check. Setting `Geometry` and `BondOrdering` alone does not make readers recover the intended stereo; leave real disagreements open.
 
 Set `complete: true` on a step only when both sides include every atom-contributing species. Element, isotope and charge counts, including hydrogen, must balance. Repeat species IDs for stoichiometric coefficients. Partial paper illustrations remain explicitly unchecked. A balanced equation does not establish mechanistic correctness.
 
 ## Acceptance
 
-Before comparing save cycles, inventory the chemical species actually shown in the reference, including separate protons and counterions. Check that each appears in the saved molecular inventory. Identical before/after inventories can still omit a species that was only drawn as text.
+Before comparing save cycles, list every species the reference shows, including separate protons and counterions, and check each one is in the saved inventory — a species drawn only as text will be missing on both sides.
 
-Preserve inputs and save command receipts. Read molecular identity from saved CDXML, and inspect native previews for labels, stereo bonds, electron endpoints and symbol sizes. Render plot files with identical basenames into separate directories. Deliver figures and editable documents first, with concise data provenance and known limitations. Never claim pixel-level paper identity from a successful export.
+Read molecular identity from the saved CDXML and look at the native previews for labels, stereo bonds, electron-arrow endpoints and symbol sizes. Render plot files with identical basenames into separate folders. Deliver the figures and editable files first, with a short note on data source and limitations.

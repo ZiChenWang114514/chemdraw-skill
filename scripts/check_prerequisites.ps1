@@ -4,8 +4,6 @@ param(
     [ValidateSet('core', 'native', 'chemscript', 'office', 'decimer')]
     [string[]]$Capabilities = @('core'),
     [switch]$Json,
-    [switch]$SkipCodex,
-    [switch]$CheckCodex,
     [switch]$SkipChemDraw,
     [switch]$SkipPythonPackages
 )

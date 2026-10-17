@@ -5,14 +5,13 @@ Contributions should keep the Skill focused, portable, and verifiable on a real 
 ## Development Setup
 
 1. Fork and clone the repository.
-2. Create or activate a Python 3.10-3.13 environment.
-3. Install the dependencies required by `skill/chemdraw` and `cdxml-toolkit-community`.
-4. Run the baseline validation before making changes.
+2. Install a runtime: `python scripts/install.py --runtime --apply` (or create one by hand with `install_runtime.py`, see the guide).
+3. Run the baseline validation before making changes.
 
 ```powershell
 python scripts/validate_distribution.py
-python -m pytest skill/chemdraw/scripts -q
-.\skill\chemdraw\scripts\health_check.ps1 -SkipNativeChemDraw
+python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
+python skill/chemdraw/scripts/cdx.py doctor
 ```
 
 See the [project guide](../docs/guide.md#development-validation) for native ChemDraw, Office, and network-gated checks.
@@ -20,7 +19,7 @@ See the [project guide](../docs/guide.md#development-validation) for native Chem
 ## Change Rules
 
 - Keep `skill/chemdraw/SKILL.md` a compact task router; put detailed guidance in the existing reference hierarchy.
-- Preserve public MCP tool names and response contracts unless the change is intentionally breaking and documented in the pull request.
+- Preserve public tool names, `cdx.py` commands and response contracts unless the change is intentionally breaking and documented in the pull request.
 - Add a failing test before implementing a bug fix or new behavior.
 - Use runtime discovery instead of machine-specific usernames or installation paths.
 - Do not commit credentials, proprietary binaries, ChemDraw installers, Office files containing private data, or DECIMER model weights.

@@ -42,11 +42,9 @@ def validate_skill_metadata() -> list[str]:
         if not re.search(r"^name:\s*chemdraw\s*$", frontmatter.group(1), flags=re.MULTILINE):
             errors.append("skill/chemdraw/SKILL.md: name must be chemdraw")
 
-    agent_text = (SKILL / "agents" / "openai.yaml").read_text(encoding="utf-8")
-    for token in ("display_name:", "short_description:", "default_prompt:", 'value: "cdxml-toolkit"'):
-        if token not in agent_text:
-            errors.append(f"skill/chemdraw/agents/openai.yaml: missing {token}")
-
+    for token in ("scripts/cdx.py", "## Core Rules", "## Route By Intent"):
+        if token not in skill_text:
+            errors.append(f"skill/chemdraw/SKILL.md: missing {token}")
     return errors
 
 

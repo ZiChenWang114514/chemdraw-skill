@@ -63,10 +63,6 @@
 - **function**, line 575: `execute_program(runtime: ChemScriptRuntime, request: dict[str, Any]) -> dict[str, Any]` - No public docstring in the audited version.
 - **function**, line 63: `validate_program(program: list[dict[str, Any]], *, allow_file_io: bool = True, allow_unsafe_interop: bool = False) -> list[dict[str, Any]]` - Validate the declarative SDK program without loading Python.NET.
 
-## `mcp_runtime.codex_config`
-
-- **function**, line 27: `update_config(config_path: str | os.PathLike[str], python_path: str | os.PathLike[str], *, expected_sha256: str | None = None) -> dict` - Update one MCP table while preserving unrelated TOML content and settings.
-
 ## `mcp_runtime.decimer_api`
 
 - **function**, line 72: `build_multipart_body(*, filename: str, mime_type: str, image_bytes: bytes, hand_drawn: bool, boundary: str | None = None) -> tuple[str, bytes]` - Encode the multipart fields declared by the live OpenAPI document.
@@ -112,9 +108,9 @@
 
 ## `mcp_runtime.generate_reference`
 
-- **function**, line 32: `manifest(profile: str = 'codex') -> dict` - No public docstring in the audited version.
-- **function**, line 55: `render_markdown(profile: str = 'codex') -> str` - No public docstring in the audited version.
-- **function**, line 88: `render_reference(profile: str = 'codex') -> str` - Compatibility alias used by ChemDraw Skill catalog checks.
+- **function**, line 32: `manifest(profile: str = <full default profile>) -> dict` - No public docstring in the audited version.
+- **function**, line 55: `render_markdown(profile: str = <full default profile>) -> str` - No public docstring in the audited version.
+- **function**, line 88: `render_reference(profile: str = <full default profile>) -> str` - Compatibility alias used by ChemDraw Skill catalog checks.
 
 ## `mcp_runtime.install_decimer_models`
 

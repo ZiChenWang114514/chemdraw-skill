@@ -1,18 +1,30 @@
 # Lessons and fixes
 
-Read only the relevant entry. These are observed failure modes, not universal restrictions on all ChemDraw versions.
+Observed failures and the fix that worked. Read only the relevant row.
 
-| Symptom | Correction | Verification boundary |
-| --- | --- | --- |
-| A C-N bridge appears as two segments and is mistaken for a dashed bond | Inspect the crossing crop. Keep a single bond and remove `Display="Dash"` when the gap is occlusion; set native crossing depth separately. Do not add an intersection atom. | Compare plain and isomeric readback. The observed Dash-to-solid correction preserved both; hashed wedge edits may not. |
-| One crossing is correct but the matching crossing has no gap | Use explicit front/back bond references and consistent native ordering through the figure composer. Remove obsolete manually overlaid lines before reuse. | Inspect every native-rendered crossing. `Z` alone or a black overlay did not reliably fix the observed case. |
-| DECIMER returns parseable but incorrect bridge structures | Check connectivity, carbonyls, N-ethyl, protecting-group abbreviations and formal charges before styling. Retain raw candidates and grounded correction records. | Formula and successful parsing do not prove image identity. |
-| MCS is null while change lists are empty | Read the comparison status and reason. Incomplete or ambiguous mapping is not an empty successful difference. | Formula deltas supplement but do not replace mapped atom/bond changes. |
-| Native saving adds bridgehead configurations | Compare the saved file, distinguish added/lost/changed assignments, and use direct ChemScript readback when necessary. | Reader agreement does not independently identify the source; do not remove stereo or reverse wedges to force a pass. |
-| Native opening fails with no output or `NoneType ... SaveAs` | Check the XML declaration. The observed `utf8` alias failed while standard `UTF-8` worked. Native import normalizes the staged declaration, preserving the source. | This is one cause, not a diagnosis of every native failure. |
-| A comparison calls an arbitrary candidate a native ChemDraw image | Supply a matching native render receipt or label the image simply as a candidate. | A matching record is provenance linkage, not cryptographic proof of the renderer or visual acceptance. |
-| Repeated styling and full catalog reads increase rework | Resolve structure and depth before typography; read one workflow and the needed signatures, and reuse unchanged crops. | If requested, separate cached input from other token usage and record the cutoff. |
+## Everyday drawing
 
-Use [reconstruction](image-visual-review.md), [native figure edits](publication-figures.md), and [saved-file validation](figure-validation.md) for executable workflows. New lessons should record an observed symptom, a tested correction and its limits; avoid machine-specific IDs and paths.
+| Symptom | Fix |
+| --- | --- |
+| `No module named cdxml_toolkit.mcp_runtime`, or old toolkit behaviour | A script ran on the wrong interpreter. Start everything through `cdx.py` (it re-launches in the runtime); run other scripts as `cdx.py py SCRIPT`. |
+| Re-rendered PNG did not change | The renderer refuses to overwrite. `cdx.py render` renders to a temporary name and replaces the old PNG only on success; other routes must use a new name. |
+| Chinese text shows as boxes | The run needs a CJK font entry (SimSun, font 5). `acs_builder` puts CJK characters in SimSun and keeps Latin text in Arial automatically. |
+| Abbreviation reads "C10H21" on the wrong side of the bond, or digits not subscripted | Use a `GenericNickname` node with a reversed label (H21C10) when the bond leaves to the right; put digits in subscript runs. `acs_builder` does both. |
+| Ylide or resonance form "corrected" by RDKit | Write the nodes explicitly (`coords`/`label_text`, or raw fragment XML) instead of going through SMILES. |
+| Condition text collides with a molecule | Leave about 25 pt between the molecule box and the text; long abbreviations widen the box. |
+| Figures look inconsistent in a Word document | Insert every 300 dpi PNG at native size (px / 300 × 2.54 cm) so bond length and font size match across figures. |
+| A figure "looked fine" in the log but was wrong | Open every rendered PNG and look at it before reporting. |
 
-For perspective-bond disagreement, abbreviation hydrogen loss, and version-specific stereo handling, use [stereo reconstruction diagnosis](stereo-reconstruction.md). Test a difficult fragment before propagating templates; revalidate the exact final saved file.
+## Reconstruction
+
+| Symptom | Fix |
+| --- | --- |
+| A C–N bridge shows as two segments and is taken for a dashed bond | It is occlusion: keep one single bond, remove `Display="Dash"`, set depth with `crossings`. Never add an intersection atom. |
+| One crossing has a gap, the matching one does not | Give explicit front/back pairs to the figure composer; remove old hand-drawn cover lines. `Z` alone or a white overlay did not fix it. |
+| DECIMER returns a parseable but wrong bridged structure | Check connectivity, carbonyls, N-ethyl, protecting-group abbreviations and charges before any styling. |
+| MCS is null but the change lists are empty | Read the comparison status; an incomplete mapping is not "no change". |
+| Native save adds bridgehead configurations | Compare the saved file with `cdx.py chemscript-info`; do not delete stereo or reverse wedges to make readers agree. |
+| Native open fails with no output or `NoneType ... SaveAs` | The XML declaration said `utf8`; it must be `UTF-8`. |
+| Time lost restyling | Settle structure and depth before typography; reuse unchanged crops. |
+
+For perspective-bond disagreement and abbreviation hydrogen loss, see [stereo diagnosis](stereo-reconstruction.md). Workflows: [image reconstruction](image-visual-review.md), [figure manifest](publication-figures.md), [saved-file validation](figure-validation.md).

@@ -6,11 +6,11 @@ Load for chemical-name resolution, CAS lookup, formula/MW validation, reagent ab
 
 ## Preferred Entry Points
 
-- Resolve a molecule: MCP `resolve_name`.
-- Modify a validated molecule: MCP `modify_molecule`.
-- Draw grounded SMILES: MCP `draw_molecule`.
-- Search collections: MCP `search_compound`.
-- Compare molecular identity and similarity: MCP `compare_molecules` or `batch_compare_molecules`.
+- Resolve a molecule: tool `resolve_name`.
+- Modify a validated molecule: tool `modify_molecule`.
+- Draw grounded SMILES: tool `draw_molecule`.
+- Search collections: tool `search_compound`.
+- Compare molecular identity and similarity: tool `compare_molecules` or `batch_compare_molecules`.
 - Python CAS resolution: `resolve.cas_resolver` high-level resolvers.
 - Python naming support: curated reagent database and name decomposition modules.
 

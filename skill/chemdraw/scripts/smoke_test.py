@@ -7,8 +7,8 @@ import sys
 
 from PIL import Image
 
-import official_overrides
-import mcp_server
+from cdxml_toolkit.mcp_runtime import official_overrides
+from cdxml_toolkit.mcp_runtime import mcp_server
 
 
 def as_dict(value):

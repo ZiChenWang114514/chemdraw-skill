@@ -1,13 +1,13 @@
 # Editable publication figures and reference replication
 
-For a paper screenshot, start with the [fast replication guide](image-visual-review.md). This page is the optional field reference for fixed layout and drawing objects; do not load it in full before image segmentation or recognition.
+For a paper screenshot, start with [image reconstruction](image-visual-review.md). For exam or lecture figures in ACS 1996 style, use [ACS 1996 drawings](acs1996-drawings.md). This page is the optional field reference for fixed layout and drawing objects; do not load it in full before image segmentation or recognition.
 
 Use `compose_chemical_figure(manifest_path, output_path)` for exact placement, mechanism graphics, compound grids, and preservation of a native template. Use `render_scheme` for ordinary automatic reaction layout. Use `compare_figure_images` after native rendering to quantify reference differences.
 
 ## Reference-first workflow
 
 1. Inspect the reference and identify the required chemical content, font, bond length, line width, wedge style, labels and arrow types. Prefer original CDX/CDXML/Office OLE over raster reconstruction. PDF/SVG line art can guide geometry, but is not automatically an editable chemical graph.
-2. Ground all molecules with source structures, resolver or validated OCSR results. Image recognition and layout extraction are separate; unresolved chemistry stays unresolved. Use DECIMER API directly for task images with `confirm_upload=true`, without a separate upload-confirmation question.
+2. Ground all molecules with source structures, resolver or validated OCSR results. Image recognition and layout extraction are separate; unresolved chemistry stays unresolved. Use the DECIMER API for task images under the upload rule in SKILL.md.
 3. Choose native-template mode when the source CDXML exists. It preserves objects, including uncommon native symbols. Choose fixed-coordinate mode when reconstructing from a figure, with one coordinate per source atom. Use MCS/template alignment for related compounds, not when it would overwrite the reference conformation.
 4. Native-render the result, inspect every panel and compare at the same canvas, scale, DPI and font environment. Fix substantive differences and repeat. Do not stretch or warp an image to disguise errors.
 5. Deliver editable CDXML, native PNG/SVG, source/roundtrip chemistry evidence and reference-comparison JSON. A byte-identical native-template copy can preserve all source objects; arbitrary journal screenshots have no universal automatic 1:1 guarantee.
@@ -40,7 +40,7 @@ Sources: tool-produced `smiles`/CXSMILES, `molblock`, or `file` ending CDXML/MOL
 - `atom_numbers: true`: display zero-based input indices; `cip_labels: true`: labels computed with RDKit CIPLabeler. These labels supplement, never replace, wedge bonds.
 - `annotation_offsets`: object keyed by atom index string, e.g. `{"1":[12,-8]}`, to place crowded index/CIP labels precisely.
 - `highlight_atoms`, `highlight_bonds`: zero-based index lists; `highlight_color` RGB hex. Atoms receive a visible halo, including unlabeled carbon atoms. `color` colors a whole molecule.
-- `bond_displays`: zero-based bond index to `None`, `WedgeBegin`, `WedgeEnd`, `WedgedHashBegin`, `WedgedHashEnd`, `Wavy`, `Bold`, or `Dash`. Used to match a reference's specific bond depiction; final semantic readback rejects changes that remove/invert specified chirality. These are presentation attributes, not a way to invent missing chemistry.
+- `bond_displays`: zero-based bond index to `None`, `WedgeBegin`, `WedgeEnd`, `WedgedHashBegin`, `WedgedHashEnd`, `Wavy`, `Bold`, or `Dash`. Used to match a reference's specific bond depiction; final semantic readback rejects changes that remove/invert specified chirality. These are presentation attributes, not a way to invent missing chemistry. Plain `Hash` (a non-directional hashed bond) is not in this list: the toolkit's fresh-generation validator rejects it, while native template edits (below) accept it. This is not a typo. The likely reason is that RDKit readback of a fresh figure cannot distinguish a plain hashed bond from stereo hashing, whereas a template edit is checked by comparing readback before and after. Use `Dash` for partial or forming bonds in new figures, or apply `Hash` as a template edit.
 
 Stereo AND/OR/ABS attributes are retained and round-trip checked. Native ChemDraw may place stereo-group labels close together; inspect and use longer bonds or a native template when the target requires different label placement.
 
@@ -86,19 +86,19 @@ IDs are actual native IDs. Edits support translation of whole fragments/groups/t
 
 ## Comparison and acceptance
 
-`compare_figure_images(reference_path, candidate_path, output_path)` writes dimensions, exact pixel equality, normalized MAE and ink IoU. Different dimensions explicitly fail comparability; no implicit resampling occurs. Images must already be aligned. Transparent backgrounds are composited over white. These metrics do not establish chemical identity, text correctness or vector editability. No automatic threshold is a universal publication standard.
+`compare_figure_images(reference_path, candidate_path, output_path)` writes dimensions, exact pixel equality, normalized MAE and ink IoU. Images must already be aligned and the same size; transparent backgrounds count as white. Use the numbers to find differences, then look.
 
-`component_overlap_candidates` is a conservative geometry warning, not full font-aware collision detection. Mechanistic arrows intentionally touching atoms should be reviewed in context. Native rendering and manual inspection remain mandatory for final acceptance.
+`component_overlap_candidates` is a rough geometry warning; check flagged spots in the native render.
 
-## Immediate CLI fallback
+## Running it
 
-If the host has not rediscovered the new tools, write a JSON keyword-arguments file and invoke:
+Write the keyword arguments to a JSON file and run:
 
-```powershell
-& <MCP-Python> -m cdxml_toolkit.mcp_runtime.figure_tools compose_chemical_figure --arguments <arguments.json>
+```bash
+cdx.py call compose_chemical_figure --args arguments.json --out new-result.json
 ```
 
-The same entrypoint supports `rdkit_workbench` and `compare_figure_images`. This runs portable operations only; native rendering continues through the isolated, locked native MCP tools.
+The same applies to `rdkit_workbench` and `compare_figure_images`. Native rendering goes through `cdx.py render` or `render_cdxml_files`, which use the locked native worker.
 
 ## Sources and limits
 
@@ -106,11 +106,7 @@ The same entrypoint supports `rdkit_workbench` and `compare_figure_images`. This
 - [RDKit CDXML support](https://www.rdkit.org/docs/cppapi/namespaceRDKit_1_1v2_1_1CDXMLParser.html): CDXML coverage is partial, not a full native-format implementation.
 - [CDX SDK archive maintained by IUPAC FAIRSpec](https://iupac.github.io/IUPAC-FAIRSpec/cdx_sdk/TableOfProperties.htm): native curve, arrow, color and graphic properties.
 
-Fresh generation currently rejects unvalidated radical, axial and non-tetrahedral stereochemical encodings. Native-template copies preserve such source bytes, but that is not new chemical validation. Fischer/Newman/Haworth/chair layouts can use verified coordinates/native templates; automatic general projection conversion is not implemented. No claim is made to implement every ChemDraw feature or reconstruct every raster figure automatically.
-
-## Document validation receipt
-
-`metadata.document_chemistry_validation` supplements per-fragment receipts. Composed output uses `status`, `method`, `scope`, `molecules` (including duplicate species), and `sha256` of the final file. `scope=rdkit_readback_consistency` compares the complete serialized inventory against template molecules plus grounded inputs before publication. An unchanged native-template copy instead reports `scope=unchanged_bytes` and `method=byte_identical_copy`; it does not claim reader validation. Native rendering and cross-reader stereochemical acceptance remain separate.
+Fresh generation rejects radical, axial and non-tetrahedral stereo encodings; use a native template for those. Fischer/Newman/Haworth/chair layouts need explicit coordinates or a native template; there is no automatic projection conversion.
 
 ## Native bond display and crossing edits
 

@@ -2,115 +2,120 @@
 
 ## When To Load
 
-Load for installation, MCP startup, worker timeout, ChemDraw COM, ChemScript, DECIMER, or path-discovery problems.
+Load for installation, upgrade, worker timeout, ChemDraw COM, ChemScript, DECIMER, or path problems. Agent setup and the command reference are in [agent integration](agent-integration.md).
 
-## Installation Prerequisites
+## Health check
 
-Run `scripts/check_prerequisites.ps1` before a first installation or upgrade. It is read-only: it does not launch ChemDraw, read chemistry files, install packages, or change configuration. Pass the intended MCP runtime with `-Python` and select only the intended features with `-Capabilities`; add `-Json` when a structured support report is useful.
-
-Classify requirements by requested capability:
-
-- Portable CDXML and RDKit work runs on Windows, macOS, and Linux with a 64-bit Python 3.10-3.13 runtime, `cdxml-toolkit-community`, MCP SDK, and an agent with MCP or Python execution access. The exact installable source baseline is in `runtime.json` beside `SKILL.md`; install it with `python <skill>/scripts/install_runtime.py`. A version string alone does not identify older development snapshots. Python 3.12 and MCP 1.x/2.x are covered by the CI matrix. PowerShell is needed only for the supplied `.ps1` helpers.
-- Native rendering, CDX conversion, and ChemDraw cleanup additionally require licensed Windows desktop ChemDraw, .NET Framework 4.8 for current releases, working `ChemDraw.Application` COM registration, and manual activation confirmation.
-- Molecular comparison and ChemScript SDK execution additionally require managed and native ChemScript DLLs. Keep the main MCP Python 64-bit; use a separate helper Python when a legacy ChemScript DLL is 32-bit.
-- Editable DOCX/PPTX objects require the corresponding desktop Office application. Office is optional for other workflows.
-- Local OCSR requires DECIMER model weights. Remote DECIMER API is the default recognition workflow and does not require local model weights.
-
-Examples:
-
-```powershell
-# Portable CDXML and RDKit only; this is the default selection.
-scripts/check_prerequisites.ps1 -Python <path> -Capabilities core
-
-# Licensed Windows workstation with every local native feature.
-scripts/check_prerequisites.ps1 -Python <path> `
-  -Capabilities core,native,chemscript,office,decimer
+```bash
+cdx.py doctor                 # toolkit/Python versions, missing extras, signature drift, installation manifest, capability matrix
+cdx.py doctor --paths         # also worker-log folder, native mutex name, native temp root, ChemScript path
+cdx.py doctor --native        # + ChemScript ping and a temporary CDXML -> PNG render through ChemDraw COM
+cdx.py doctor --office        # + Word and PowerPoint ChemDraw-OLE probes
+cdx.py doctor --full          # include the complete diagnose_runtime() result
 ```
 
-Install from a repository checkout with `python -m pip install -e ".[dev]"` for portable development, or select the documented extras needed by the requested workflow. Use [agent integration](agent-integration.md) for generic MCP/CLI setup. The optional `scripts/configure_mcp.ps1` adapter configures one client only; it is not a universal installer. After refreshing your agent, select the appropriate verification:
+The report is read-only. A skipped probe is not a verified capability. ChemScript is capped at 30 s, native rendering at 75 s and each Office stage at 60 s; timeout cleanup touches only automation processes started by the probe. Exit code 1 means signature drift or a mismatch against `manifest.json`.
 
-- `health_check.ps1 -SkipNativeChemDraw -SkipDevelopmentChecks` for core runtime/package checks without native or test dependencies.
-- `health_check.ps1 -SkipNativeChemDraw` additionally runs development tests and compares generated references; use the documented test dependencies and matching reference source version.
-- `health_check.ps1 -SkipOffice` for native ChemDraw PNG and ChemScript checks without Word or PowerPoint.
-- `health_check.ps1` for complete native and Office validation.
+`cdx.py py <skill>/scripts/smoke_test.py --output-dir NEW_DIR` runs an end-to-end check: name resolution, editable aspirin CDXML, native PNG and raster validation.
 
-Do not report a skipped capability as verified. A manual ChemDraw activation check remains required because the prerequisite script intentionally avoids launching licensed software.
+## Requirements by capability
 
-## Runtime Discovery
+- Portable CDXML and RDKit work: 64-bit Python 3.10–3.13 with `cdxml-toolkit-community`. The pinned source is `runtime.json` (`repository`, `commit`, `toolkit_version`).
+- Native rendering, CDX conversion and ChemDraw cleanup: licensed desktop ChemDraw, .NET Framework 4.8, working `ChemDraw.Application` COM registration. Confirm activation manually once.
+- Molecular comparison and ChemScript SDK: managed and native ChemScript DLLs (`pythonnet`). Keep the main runtime 64-bit; a legacy 32-bit ChemScript needs a separate helper Python (`CHEMSCRIPT_PYTHON`).
+- Editable DOCX/PPTX objects: desktop Word/PowerPoint.
+- Recognition: the remote DECIMER API needs no local weights. Local OCSR needs DECIMER weights (below).
 
-Path precedence is explicit argument, environment variable, active Conda/current Python, PATH/common installation locations, then a legacy machine fallback. Supported variables:
+Optional dependency groups (`pip` extras) and what fails without them:
 
-- `CHEMDRAW_MCP_PYTHON`
-- `CHEMDRAW_SKILL_ROOT`
-- `CHEMDRAW_EXE`
-- `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`
-- `CHEMDRAW_MCP_WORKER_INPUT_BYTES`
-- `CHEMDRAW_MCP_WORKER_OUTPUT_BYTES`
-- `CHEMDRAW_MCP_TRANSPORT`
-- `CHEMDRAW_MCP_HTTP_HOST`
-- `CHEMDRAW_MCP_HTTP_PORT`
-- `CHEMDRAW_MCP_HTTP_API_KEY`
-- `CHEMSCRIPT_PYTHON`
-- `CHEMSCRIPT_CONFIG_PATH`
+| Extra | Packages | Needed for |
+| --- | --- | --- |
+| `publication` | openpyxl | XLSX tables in data-driven figures |
+| `scientific` | numpy, scipy, matplotlib, nmrglue | NMR, plots, `assets/scientific` examples |
+| `office` | pywin32, python-docx, python-pptx, olefile | Office extraction, embedding, replacement |
+| `analysis` | pdfplumber, pymupdf | LCMS/NMR PDF reports |
+| `image` | opencv-python, pytesseract | image segmentation helpers |
+| `chemscript` | pythonnet | ChemScript bridge |
+| `decimer` | tensorflow, decimer | local OCSR only |
 
-Workers also preserve `CHEMSCRIPT_*`, `CONDA_PREFIX`, and `JAVA_HOME` so an
-explicitly configured ChemScript or Java runtime remains visible after process
-isolation. Credentials and unrelated shell variables are not forwarded.
+## Install or upgrade
 
-Run `scripts/runtime_discovery.py` from Python when debugging discovery code. Register the runtime using your client settings. Only the optional Codex adapter uses `scripts/configure_mcp.ps1`; it is read-only unless `-Apply` is supplied.
+From a repository checkout, on any OS (preview first, then `--apply`):
 
-## Health And Smoke Tests
+```bash
+python scripts/install.py --agent <name> --runtime              # proposal
+python scripts/install.py --agent <name> --runtime --apply      # install; add --python <3.10-3.13> if none is found
+python scripts/install.py --destination <other skills folder>/chemdraw --apply
+```
 
-Run MCP `diagnose_runtime()` for an offline, read-only capability matrix. It reports the Python runtime, installed `cdxml-toolkit` and MCP SDK distribution versions, ChemDraw discovery and COM registration, ChemScript, Java/OPSIN, Office dependencies, DECIMER markers, and live tool count without importing DECIMER or downloading weights. Set `run_chemscript_probe=true` for an independent bridge ping. `run_native_probe=true` runs that ping first and then a temporary CDXML-to-PNG probe, so a ChemDraw COM timeout cannot hide the ChemScript result. Set `run_office_probe=true` for separate temporary PPTX and DOCX ChemDraw OLE probes. ChemScript is capped at 30 seconds, native rendering at 75 seconds, and each Office stage at 60 seconds. Results include stage duration, timeout, and cleanup status. Normal completion never force-terminates ChemDraw; timeout cleanup is limited to newly observed automation processes that can be attributed to the probe.
+The installer stages and verifies each copy, moves a previous installation to the shared backup folder, restores it on failure, then (with `--runtime`) creates or reuses the shared venv and installs the pinned toolkit with every extra that applies to the OS. It writes `manifest.json` last. Agent presets, folders and the runtime search order are in [agent integration](agent-integration.md).
 
-Run `scripts/health_check.ps1` for the complete repository validation. It consumes the same diagnostic matrix, checks Python packages, generated signatures and inventory, Skill tests, optional client registration (`-CheckCodex`), and, unless skipped, the native and Office probes. Every subprocess is time-bounded.
+A manual runtime works too; point `CHEMDRAW_MCP_PYTHON` at it if it is not in a searched location:
 
-Run `scripts/smoke_test.py --output-dir <directory>` for name resolution, editable aspirin CDXML, native ChemDraw PNG rendering, and raster validation.
+```bash
+python3 -m venv <venv>
+<venv>/bin/python <skill>/scripts/install_runtime.py --extras publication scientific
+```
 
-## Streamable HTTP And Metrics
+`install_runtime.py` installs exactly the commit in `runtime.json`; `--toolkit-path` selects a local checkout for development and `--print-requirement` only prints the requirement. Never upgrade the runtime unasked. After a toolkit change:
 
-`scripts/mcp_server.py` uses stdio unless `--transport streamable-http` is supplied. HTTP defaults to `127.0.0.1:8029`. Non-loopback listening requires `CHEMDRAW_MCP_HTTP_API_KEY`; wildcard listening additionally requires `--allowed-host`. The key must contain at least 32 UTF-8 bytes, remains in the parent server, and is removed from every worker environment. Use the standard `Authorization: Bearer ...` header.
+```bash
+cdx.py regen-signatures
+cdx.py py -m pip install pytest
+cdx.py py -m pytest <skill>/tests -q
+```
 
-`/health` is intentionally public and returns only uptime, registered tool count, active worker count, and local ChemDraw scheduler state. `/metrics` uses Prometheus text format and requires the bearer token when HTTP authentication is enabled. It records tool duration, hard timeouts, stable worker failure codes, active workers, and the local ChemDraw queue. It never records arguments, molecule strings, filenames, document content, outputs, or credentials.
+## Installed skill consistency
 
-The parent process schedules one local ChemDraw COM worker at a time and reports callers waiting there. The named per-user mutex remains active inside each worker to coordinate with another local server process.
+`manifest.json` (written by the installer) lists a SHA-256 per file; text files are hashed after CRLF→LF normalization, so Git `autocrlf` checkouts do not show false modifications. `cdx.py doctor` reports drift; for details:
 
-## DECIMER
+```bash
+cdx.py py <skill>/scripts/check_installation.py                        # installed copy vs its manifest
+cdx.py py <skill>/scripts/check_installation.py --source <repo>/skill/chemdraw   # installed copy vs a checkout
+cdx.py py <skill>/scripts/check_installation.py --write-manifest       # accept intended local edits
+```
 
-Local image recognition requires official DECIMER weights. Install both with `scripts/install_decimer_models.py`, or select one with `--model standard` / `--model handdrawn`. Each model is downloaded and extracted in isolation, verified against the MD5 published with the [standard model](https://zenodo.org/records/8300489) or [hand-drawn model](https://zenodo.org/records/10781330), assigned a computed SHA-256 receipt, and atomically installed only after its complete marker exists. Missing local weights are a warning and do not block other tools.
+## Environment variables
 
-Remote recognition uses the configured `DECIMER_API_URL` or the Steinbeck Lab default. It enforces image decoding, request/response size limits, timeout, and explicit `confirm_upload=true`. Relevant limits:
+Runtime selection and workers:
 
-- `DECIMER_API_MAX_IMAGE_BYTES`
-- `DECIMER_API_MAX_RESPONSE_BYTES`
+- `CHEMDRAW_MCP_PYTHON` — runtime interpreter for `cdx.py` (otherwise `runtime.local.json`, a sibling `chemdraw-venv`, the shared venv, then a conda env named `cdxml`)
+- `CHEMDRAW_EXE` — explicit ChemDraw executable
+- `CHEMDRAW_NATIVE_TEMP` — writable ASCII-only root for native staging
+- `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`, `CHEMDRAW_MCP_WORKER_INPUT_BYTES`, `CHEMDRAW_MCP_WORKER_OUTPUT_BYTES`
+- `CHEMSCRIPT_PYTHON`, `CHEMSCRIPT_CONFIG_PATH`
 
-Read [decimer-api.md](decimer-api.md) for the HTTP contract.
+DECIMER (see [decimer-api.md](decimer-api.md)):
 
-Expected DECIMER client errors are returned as `ok=false` with the specific error.
-HTTP 502/503/504 indicates a gateway/service failure and does not establish a local
-ChemDraw or model-installation problem. Check the configured proxy and API
-reachability, then verify recovery with a recognition request for a task image. See
-[DECIMER failure diagnosis](decimer-api.md#diagnosing-failed-requests) for bounded
-retries and the distinction between reachability and successful recognition.
+- `DECIMER_API_URL` — custom endpoint; requires a matching `approved_origin`
+- `DECIMER_API_MAX_IMAGE_BYTES` — default 25 MiB
+- `DECIMER_API_MAX_IMAGE_PIXELS` — default 40,000,000
+- `DECIMER_API_MAX_RESPONSE_BYTES` — default 2 MiB
+
+Workers also keep `CHEMSCRIPT_*`, `CONDA_PREFIX` and `JAVA_HOME`. Credentials and unrelated shell variables are not forwarded. (`CHEMDRAW_MCP_*` names are the toolkit's own identifiers and apply equally to `cdx.py`.)
+
+## DECIMER weights
+
+Local recognition requires official DECIMER weights: `cdx.py py -m cdxml_toolkit.mcp_runtime.install_decimer_models` (both) or `--model standard` / `--model handdrawn`. Archives come from the [standard](https://zenodo.org/records/8300489) and [hand-drawn](https://zenodo.org/records/10781330) model records and are checksum-verified on install. Missing weights are a warning only.
+
+HTTP 502/503/504 from the remote API indicates a gateway or service failure, not a local ChemDraw or model problem. Follow [DECIMER failure diagnosis](decimer-api.md#diagnosing-failed-requests).
 
 ## Failure Modes
 
-- MCP startup timeout: verify discovered Python and import `mcp_server.py` directly.
-- MCP SDK mismatch: use a supported MCP 1.x or 2.x release. The community runtime supplies the compatibility alias required by its core service.
-- Tool timeout: raise the worker timeout only after confirming the operation is legitimately long-running.
-- Molecular analysis timeout: `modify_molecule` is limited to 90 seconds because ChemScript naming and decomposition can become expensive for complex fused structures. Trusted SMILES can be drawn directly when no modification is requested.
-- Native resource busy: ChemDraw COM operations share a named per-user mutex. Let the active render, conversion, or Office operation finish before retrying; ordinary parsing remains concurrent.
-- Worker error id: inspect `%LOCALAPPDATA%\Codex\chemdraw-mcp\logs\worker-<id>.log`; detailed exceptions are intentionally not returned over MCP.
-- COM failure: verify registration and run the smoke test. Rendering requests a dedicated automation instance so an already open interactive session is not reused, waits for a stable file, and retries one silent `SaveAs`. Batch rendering reuses one dedicated application instance.
-- Native path failure: the Skill copies inputs into an ASCII-only workspace before ChemDraw or Office COM calls, validates native output there, and publishes it transactionally to the requested path. `CHEMDRAW_NATIVE_TEMP` can select an explicit writable ASCII root. `native_ascii_workspace_unavailable`, `native_saveas_silent_failure`, `native_output_missing`, and `native_output_invalid` identify failures before publication.
-- `chemdraw_license_unavailable`: ChemDraw COM returned HRESULT `-2147221230` or an equivalent license message. Stop native validation and inspect the installed product license, Python bitness, and COM registration. Do not treat showing a hidden application window as an activation fix, and do not alter an activated interactive installation as a shortcut.
-- ChemScript failure: inspect the bridge health output; do not call the private server protocol.
-- Config drift: run the config script without `-Apply`, review its proposed block, then apply with automatic backup. Failed writes restore only when the config fingerprint still matches the last known state; concurrent edits are preserved.
+- `cdx.py: no cdxml-toolkit runtime found`: install one (`scripts/install.py --runtime --apply`) or set `CHEMDRAW_MCP_PYTHON` to the runtime interpreter.
+- Tool timeout: raise `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS` only after confirming the operation is legitimately long-running. `modify_molecule` is limited to 90 s because ChemScript naming and decomposition can be expensive for fused systems; trusted SMILES can be drawn directly when no modification is needed.
+- Native resource busy: ChemDraw COM operations share one per-user mutex (`cdx.py doctor --paths` shows its name). Let the active render, conversion or Office operation finish; ordinary parsing stays concurrent. Do not start a second COM session to bypass it.
+- `tool_execution_failed` with an `error_id`: read `worker-<id>.log` in the folder printed by `cdx.py doctor --paths`. Detailed exceptions are deliberately kept out of results.
+- COM failure: run `cdx.py doctor --native`. Rendering uses a dedicated automation instance (an open interactive ChemDraw is not reused), waits for a stable file and retries one silent `SaveAs`.
+- Native path failure: inputs are copied into an ASCII-only workspace before COM calls and published transactionally. `native_ascii_workspace_unavailable`, `native_saveas_silent_failure`, `native_output_missing` and `native_output_invalid` identify failures before publication. Set `CHEMDRAW_NATIVE_TEMP` if the default temp path is unusable.
+- `chemdraw_license_unavailable` (HRESULT `-2147221230`): stop native validation and check the product license, Python bitness and COM registration. Showing a hidden window is not an activation fix.
+- ChemScript failure: `cdx.py doctor --chemscript`; for one file `cdx.py chemscript-info FILE`. Do not call the private bridge server protocol.
+- Rendered PNG unchanged after an edit: an old PNG with the same name blocked the write. `cdx.py render` removes it first; other routes must write a new name.
+
+## Remote HTTP (only when asked)
+
+`cdx.py py -m cdxml_toolkit.mcp_runtime --transport streamable-http` serves the tools over HTTP, default `127.0.0.1:8029`. Non-loopback listening requires `CHEMDRAW_MCP_HTTP_API_KEY` (at least 32 bytes, bearer header); wildcard hosts additionally need `--allowed-host`. `/health` is public and content-free; `/metrics` (Prometheus) needs the token when authentication is on and never records arguments, molecules, filenames or outputs. The server schedules one ChemDraw COM worker at a time; different ports do not bypass the mutex. Related variables: `CHEMDRAW_MCP_TRANSPORT`, `CHEMDRAW_MCP_HTTP_HOST`, `CHEMDRAW_MCP_HTTP_PORT`, `CHEMDRAW_MCP_HTTP_API_KEY`.
 
 ## Do Not Use Directly
 
-Do not edit `config.toml` with ad hoc string replacement, launch private ChemScript server commands, or bypass the worker registry.
-
-## Installed Skill Consistency
-
-Use the repository `skill/chemdraw/` as the maintained source. Before and after an upgrade, run `python <skill>/scripts/check_installation.py --source <repository>/skill/chemdraw --installed <installed-skill>`. This read-only check compares SHA-256 hashes, reports missing/modified/extra files, and checks example dependencies and the `figure.cdxml` output contract. It ignores Python bytecode and named test/type-checker caches. Preserve the full previous installation through the repository installer backup before replacing it; additional local files remain recoverable in that backup.
+Do not launch private ChemScript server commands, call ChemDraw COM outside the worker, or bypass the tool registry.

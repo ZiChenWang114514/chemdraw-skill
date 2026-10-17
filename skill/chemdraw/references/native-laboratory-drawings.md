@@ -8,8 +8,8 @@ These commands require the toolkit's `cdxml_toolkit.scientific` module. Native c
 
 1. Inspect the requested arrangement and list the components and joints.
 2. Locate the installed ChemDraw Items directory. Depending on the installation, it may be under the vendor's ProgramData directory. Locate Clipware `.ctp` files or a user-provided native template; preserve the original files. Do not assume a template's page numbers are identical across installations.
-3. Copy each required binary CTP to a new working `.cdx` file and convert that copy to CDXML using the existing native conversion tool. Use the generated signatures reference for the exact MCP call. Do not start a separate, unlocked COM process.
-4. Inspect the converted template pages and their native previews. Use `template_catalog` below to obtain zero-based page indexes and source hashes. Select the actual equipment artwork, including flask, condenser, funnel, stand, clamp or other available instrument. If the requested component is absent, report that gap or use a user-supplied native template; do not claim a generic replacement is a built-in instrument.
+3. Copy each required binary CTP to a new working `.cdx` file and convert that copy to CDXML using the existing native conversion tool. Use `cdx.py call convert_cdx_cdxml`.
+4. Inspect the converted template pages and their native previews. Use `template_catalog` below to obtain zero-based page indexes. Select the actual equipment artwork, including flask, condenser, funnel, stand, clamp or other available instrument. If the requested component is absent, report that gap or use a user-supplied native template; do not claim a generic replacement is a built-in instrument.
 5. Assemble a JSON specification, preserving aspect ratio. Attach components through normalized ports. Place supporting components behind the glassware by listing them first. Port attachment describes drawing geometry, not an engineering compatibility assessment.
 6. Render the saved CDXML in native ChemDraw and actually inspect joints, overlap, hoses, clamp positions, missing lines and labels. Deliver the editable CDXML and preview together.
 
@@ -41,15 +41,15 @@ Minimal assembly specification (page indexes must come from the inspected librar
 `position` places the upper-left of the template bounds in CDXML points. Ports are fractions of those bounds. To attach a later component, give it a local port and `"attach": {"port": "bottom", "to": "flask.neck"}`. Inspect both port positions in the source artwork before using them. Optional connections have `from`, `to` and intermediate `via` points.
 
 ```console
-python -m cdxml_toolkit.scientific apparatus --spec apparatus.json --output apparatus.cdxml
+cdx.py py -m cdxml_toolkit.scientific apparatus --spec apparatus.json --output apparatus.cdxml
 ```
 
-Template paths are relative to the specification. Use a new output path. The returned receipt records source hashes, selected pages and copied object counts. Keep proprietary template libraries on the licensed host; do not bundle the complete libraries with a public demo. Share the assembly recipe and the resulting drawing as appropriate.
+Template paths are relative to the specification. Use a new output path. Keep proprietary template libraries on the licensed host; do not bundle the complete libraries with a public demo. Share the assembly recipe and the resulting drawing as appropriate.
 
 ## TLC
 
 ```console
-python -m cdxml_toolkit.scientific tlc --spec tlc.json --output tlc.cdxml
+cdx.py py -m cdxml_toolkit.scientific tlc --spec tlc.json --output tlc.cdxml
 ```
 
 Use measured or explicitly illustrative Rf values. Do not infer purity from spot intensity. For image measurement, calibrate the origin and solvent front along the same development axis, then project each spot onto that axis. Preserve lane order and distinguish co-spots from separate samples.

@@ -29,11 +29,12 @@ jobs:
         shell: pwsh
         run: |
           $python = (Get-Command python).Source
-          ./scripts/check_prerequisites.ps1 -Python $python -Capabilities core -Json -SkipCodex -SkipPythonPackages
+          ./scripts/check_prerequisites.ps1 -Python $python -Capabilities core -Json -SkipPythonPackages
 
-      - name: Validate installer dry run
-        shell: pwsh
-        run: ./scripts/install.ps1
+      - name: Validate installer proposals
+        run: |
+          python scripts/install.py
+          python scripts/install.py --agent claude agents gemini copilot cursor opencode --runtime
 
   full-portable-tests:
     strategy:
@@ -62,7 +63,50 @@ jobs:
           "requests>=2.31"
 
       - name: Install the documented runtime baseline
-        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication
+        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication scientific
 
       - name: Run complete portable Skill tests
-        run: python -m pytest skill/chemdraw/scripts -q
+        run: python -m pytest skill/chemdraw/tests -q
+
+      - name: Exercise the command-line entry point
+        run: |
+          python skill/chemdraw/scripts/cdx.py tools --detail summary
+          python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml
+
+  installer-end-to-end:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run installer tests
+        run: python -m unittest tests.test_installer -v
+
+      - name: Install for two agents with a custom runtime location
+        shell: bash
+        run: >-
+          python scripts/install.py --agent agents claude
+          --project "$RUNNER_TEMP/project" --runtime --runtime-dir "$RUNNER_TEMP/runtime"
+          --extras publication --apply
+
+      - name: Use the installed copies from a plain interpreter
+        shell: bash
+        run: |
+          for agent in .agents .claude; do
+            skill="$RUNNER_TEMP/project/$agent/skills/chemdraw"
+            python -I "$skill/scripts/cdx.py" tools --detail summary
+            python -I "$skill/scripts/cdx.py" build "$skill/assets/acs1996/example.json" "$RUNNER_TEMP/$agent.cdxml"
+            python "$skill/scripts/check_installation.py"
+          done

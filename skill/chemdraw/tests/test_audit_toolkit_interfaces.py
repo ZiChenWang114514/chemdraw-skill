@@ -11,7 +11,7 @@ import unittest
 from unittest import mock
 
 
-MODULE_PATH = Path(__file__).with_name("audit_toolkit_interfaces.py")
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "audit_toolkit_interfaces.py"
 
 
 def load_auditor():
@@ -157,6 +157,13 @@ class InterfaceAuditTests(unittest.TestCase):
             self.assertTrue(generated)
             for path in generated:
                 self.assertNotIn(b"\r\n", path.read_bytes(), path.name)
+
+    def test_scientific_interfaces_route_to_the_runnable_guide(self) -> None:
+        auditor = load_auditor()
+        for module in ("scientific.tlc", "scientific.apparatus", "scientific.spectra",
+                       "scientific.plots", "scientific.mechanism"):
+            with self.subTest(module=module):
+                self.assertEqual(auditor._reference_for_module(module), "scientific-workflows.md")
 
 
 if __name__ == "__main__":

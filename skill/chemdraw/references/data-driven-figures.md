@@ -110,13 +110,12 @@ new `project.json`. Do not use a draft as a completed revision.
 
 ## Execute and inspect
 
-The MCP signature is generated in [mcp-signatures.md](mcp-signatures.md).
-The equivalent CLI is:
+The tool is `publication_figure` (`cdx.py sig publication_figure`). The equivalent CLI is:
 
 ```console
-python -m cdxml_toolkit.mcp_runtime.publication_figure create --spec figure.json --output new-project
-python -m cdxml_toolkit.mcp_runtime.publication_figure update --spec update.json --output new-revision
-python -m cdxml_toolkit.mcp_runtime.publication_figure check --spec check.json --output new-check
+cdx.py py -m cdxml_toolkit.mcp_runtime.publication_figure create --spec figure.json --output new-project
+cdx.py py -m cdxml_toolkit.mcp_runtime.publication_figure update --spec update.json --output new-revision
+cdx.py py -m cdxml_toolkit.mcp_runtime.publication_figure check --spec check.json --output new-check
 ```
 
 `check` needs `project_path` and optional `edited_pages`, and writes a new report;

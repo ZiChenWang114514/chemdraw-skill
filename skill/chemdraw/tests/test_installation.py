@@ -5,13 +5,13 @@ import unittest
 import subprocess
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+SKILL = Path(__file__).resolve().parents[1]
 
 
-class InstalledBundleTests(unittest.TestCase):
+class InstallationAndExampleTests(unittest.TestCase):
     @unittest.skipUnless(importlib.util.find_spec('cdxml_toolkit'), 'toolkit required for example execution')
     def test_replay_output_and_preserve_existing_directory(self):
-        script = ROOT/'skill/chemdraw/assets/paper-replica/example/replay.py'
+        script = SKILL/'assets/paper-replica/example/replay.py'
         with tempfile.TemporaryDirectory() as folder:
             out = Path(folder)/'example'
             result = subprocess.run([sys.executable, '-B', str(script), str(out)], capture_output=True, timeout=60)
@@ -23,7 +23,7 @@ class InstalledBundleTests(unittest.TestCase):
 
     @unittest.skipUnless(importlib.util.find_spec('cdxml_toolkit'), 'toolkit required for example execution')
     def test_rebuild_validation_survives_optimization(self):
-        script = ROOT/'skill/chemdraw/assets/paper-reconstructions/rebuild.py'
+        script = SKILL/'assets/paper-reconstructions/rebuild.py'
         code = '''
 import runpy, sys
 from pathlib import Path
@@ -47,7 +47,7 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             self.assertFalse(out.exists())
 
     def test_drift_and_cache_exclusions(self):
-        spec = importlib.util.spec_from_file_location('check_installation', ROOT/'skill/chemdraw/scripts/check_installation.py')
+        spec = importlib.util.spec_from_file_location('check_installation', SKILL/'scripts/check_installation.py')
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         with tempfile.TemporaryDirectory() as folder:
@@ -65,10 +65,10 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             self.assertFalse(result['ok'])
 
     def test_example_contract(self):
-        spec = importlib.util.spec_from_file_location('check_installation', ROOT/'skill/chemdraw/scripts/check_installation.py')
+        spec = importlib.util.spec_from_file_location('check_installation', SKILL/'scripts/check_installation.py')
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        self.assertEqual(module.check_examples(ROOT/'skill/chemdraw'), [])
+        self.assertEqual(module.check_examples(SKILL), [])
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             example = root/'assets/paper-replica/example'
