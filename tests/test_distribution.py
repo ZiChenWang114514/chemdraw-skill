@@ -45,7 +45,7 @@ class DistributionTests(unittest.TestCase):
             "docs/guide.zh-cn.md",
             "docs/zh-cn.md",
             "scripts/check_prerequisites.ps1",
-            "scripts/install.ps1",
+            "scripts/install.py",
             "scripts/validate_distribution.py",
         ]
         missing = [item for item in required if not (ROOT / item).is_file()]
@@ -89,20 +89,26 @@ class DistributionTests(unittest.TestCase):
         # Thin re-export modules were removed; the toolkit package is imported directly.
         self.assertEqual(sorted(p.name for p in (SKILL / "scripts").glob("test_*.py")), [])
 
-    def test_no_client_specific_branding_or_adapters(self) -> None:
-        banned = re.compile("co" + "dex|open" + "ai", re.IGNORECASE)
+    def test_agent_names_only_appear_in_installation_documents(self) -> None:
+        # The Skill is client-neutral; agents are named only where users pick an install target.
+        brands = re.compile(r"\b(co" + r"dex|open" + r"ai|gemini|copilot|opencode)\b", re.IGNORECASE)
+        allowed = {"README.md", "README.zh-cn.md", "docs/guide.md", "docs/guide.zh-cn.md",
+                   ".github/workflows/validate.yml", "scripts/install.py",
+                   "skill/chemdraw/references/agent-integration.md"}
         tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode("utf-8").split("\0")
         offenders = []
         for name in filter(None, tracked):
-            if name.startswith("tests/"):
+            if name in allowed or name.startswith("tests/") or "/tests/" in name:
                 continue
             try:
                 text = (ROOT / name).read_text(encoding="utf-8")
             except (UnicodeDecodeError, FileNotFoundError):
                 continue
-            if banned.search(text):
+            if brands.search(text):
                 offenders.append(name)
         self.assertEqual(offenders, [])
+        adapters = [name for name in tracked if name.endswith((".yaml", ".svg")) and "agents/" in name]
+        self.assertEqual(adapters, [], "client-specific adapter files")
 
     def test_generated_and_local_state_are_not_distributed(self) -> None:
         forbidden_names = {"__pycache__", ".pytest_cache", ".mypy_cache", ".env"}
@@ -174,6 +180,8 @@ class DistributionTests(unittest.TestCase):
         self.assertIn('os: [windows-latest, ubuntu-latest]', workflow)
         self.assertIn('pytest skill/chemdraw/tests', workflow)
         self.assertIn('check_prerequisites.ps1', workflow)
+        self.assertIn('installer-end-to-end:', workflow)
+        self.assertIn('os: [windows-latest, ubuntu-latest, macos-latest]', workflow)
 
     def test_doctor_probes_are_opt_in(self) -> None:
         cdx = (SKILL / "scripts" / "cdx.py").read_text(encoding="utf-8")

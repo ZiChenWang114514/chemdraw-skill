@@ -1,11 +1,11 @@
+#!/usr/bin/env python3
 """Single command-line entry point for the ChemDraw skill.
 
-    python <skill>/scripts/cdx.py <command> ...
+    python3 <skill>/scripts/cdx.py <command> ...     (Windows: python or py)
 
 Any Python 3.9+ can start it: when the current interpreter lacks
-cdxml-toolkit, cdx.py re-launches itself in the toolkit runtime
-(CHEMDRAW_MCP_PYTHON, a `chemdraw-venv` beside the skill folder, or a conda
-environment named `cdxml`). Every tool call goes through the toolkit's
+cdxml-toolkit, cdx.py re-launches itself in the toolkit runtime (see
+runtime_candidates for the search order). Every tool call goes through the toolkit's
 isolated worker, so the native ChemDraw lock, worker timeouts and the JSON
 envelope are preserved.
 """
@@ -26,6 +26,8 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 SIGNATURES = SKILL_ROOT / 'references' / 'mcp-signatures.md'
 SUMMARY_LIMIT = 6000
 REEXEC_FLAG = 'CHEMDRAW_CDX_REEXEC'
+# Written by the installer when the runtime lives somewhere cdx.py would not look.
+LOCAL_CONFIG = SKILL_ROOT / 'runtime.local.json'
 EXTRAS = {'publication': ['openpyxl'], 'scientific': ['numpy', 'scipy', 'matplotlib', 'nmrglue'],
           'office': ['win32com.client', 'docx', 'pptx', 'olefile'], 'analysis': ['pdfplumber', 'fitz'],
           'image': ['cv2', 'pytesseract'], 'chemscript': ['clr']}
@@ -56,15 +58,33 @@ def _interpreter(env_root):
     return None
 
 
+def default_runtime_dir():
+    """Shared runtime venv used by every agent's copy of the skill."""
+    if os.name == 'nt':
+        base = os.environ.get('LOCALAPPDATA') or str(Path.home() / 'AppData' / 'Local')
+    else:
+        base = os.environ.get('XDG_DATA_HOME') or str(Path.home() / '.local' / 'share')
+    return Path(base) / 'chemdraw-skill' / 'venv'
+
+
 def runtime_candidates():
-    """Ordered runtime interpreters: explicit variable, sibling venv, conda `cdxml`."""
+    """Ordered runtime interpreters: CHEMDRAW_MCP_PYTHON, runtime.local.json,
+    a `chemdraw-venv` beside the skill folder, the shared venv, conda env `cdxml`."""
     found = []
     explicit = os.environ.get('CHEMDRAW_MCP_PYTHON')
     if explicit:
         found.append(('CHEMDRAW_MCP_PYTHON', Path(explicit)))
-    sibling = _interpreter(SKILL_ROOT.parent / 'chemdraw-venv')
-    if sibling:
-        found.append(('chemdraw-venv', sibling))
+    try:
+        local = json.loads(LOCAL_CONFIG.read_text(encoding='utf-8')).get('runtime_python')
+        if local:
+            found.append(('runtime.local.json', Path(local)))
+    except (OSError, ValueError, AttributeError):
+        pass
+    for source, env_root in (('chemdraw-venv', SKILL_ROOT.parent / 'chemdraw-venv'),
+                             ('shared venv', default_runtime_dir())):
+        python = _interpreter(env_root)
+        if python:
+            found.append((source, python))
     registry = Path.home() / '.conda' / 'environments.txt'
     if registry.is_file():
         for line in registry.read_text(encoding='utf-8', errors='ignore').splitlines():
@@ -90,8 +110,10 @@ def _ensure_runtime(argv):
             raise SystemExit(subprocess.call([str(python), str(Path(__file__).resolve()), *argv], env=env))
     sys.stderr.write(
         'cdx.py: no cdxml-toolkit runtime found.\n'
-        f'Looked for: CHEMDRAW_MCP_PYTHON, {SKILL_ROOT.parent / "chemdraw-venv"}, conda env "cdxml".\n'
-        'Install one with the repository installer (install.ps1 -Runtime) or set CHEMDRAW_MCP_PYTHON.\n')
+        f'Looked for: CHEMDRAW_MCP_PYTHON, {LOCAL_CONFIG.name}, {SKILL_ROOT.parent / "chemdraw-venv"}, '
+        f'{default_runtime_dir()}, conda env "cdxml".\n'
+        'Install one with the repository installer (scripts/install.py --runtime --apply) '
+        'or set CHEMDRAW_MCP_PYTHON.\n')
     raise SystemExit(2)
 
 

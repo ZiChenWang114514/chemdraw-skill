@@ -1,0 +1,287 @@
+#!/usr/bin/env python3
+"""Install the ChemDraw Skill for one or more coding agents, and optionally its runtime.
+
+Without --apply this prints the proposal only (JSON on stdout). With --apply each
+Skill copy is staged, verified and swapped into place; an existing installation
+is moved to a backup outside every Skill discovery directory and restored on
+failure.
+
+--runtime creates (or reuses) one toolkit venv shared by all installed copies
+and installs the cdxml-toolkit revision pinned in runtime.json. scripts/cdx.py
+finds that venv on its own, so any Python can launch the Skill's CLI.
+
+Examples:
+    python3 scripts/install.py                                   # proposal for --agent claude
+    python3 scripts/install.py --agent claude agents --runtime --apply
+    python3 scripts/install.py --agent copilot --project ~/src/app --apply
+    python3 scripts/install.py --destination /opt/skills/chemdraw --apply
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import time
+import uuid
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE = ROOT / 'skill' / 'chemdraw'
+SKILL_NAME = 'chemdraw'
+
+# Skill folders per agent: (user scope relative to the home folder, project scope).
+# `agents` is the shared Agent Skills folder that most agents read in addition to their own.
+AGENTS = {
+    'claude': ('.claude/skills', '.claude/skills'),
+    'agents': ('.agents/skills', '.agents/skills'),
+    'gemini': ('.gemini/skills', '.gemini/skills'),
+    'copilot': ('.copilot/skills', '.github/skills'),
+    'cursor': ('.cursor/skills', '.cursor/skills'),
+    'opencode': ('.config/opencode/skills', '.opencode/skills'),
+}
+# Never copied into an installation; runtime.local.json is written per installation.
+IGNORED = ('__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', '*.pyc', '*.pyo',
+           'manifest.json', 'runtime.local.json')
+WINDOWS_ONLY_EXTRAS = ('office', 'chemscript')
+ALL_EXTRAS = ('publication', 'scientific', 'office', 'analysis', 'image', 'chemscript')
+
+
+def _load(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# The Skill's own modules are the single source for hashing and runtime locations.
+check_installation = _load('chemdraw_check_installation', SOURCE / 'scripts' / 'check_installation.py')
+cdx = _load('chemdraw_cdx', SOURCE / 'scripts' / 'cdx.py')
+
+
+def log(message):
+    print(message, file=sys.stderr, flush=True)
+
+
+def fingerprint(root):
+    hashes = check_installation.file_hashes(root)
+    hashes.pop('runtime.local.json', None)
+    return hashlib.sha256(json.dumps(hashes, sort_keys=True).encode('utf-8')).hexdigest()
+
+
+def data_dir():
+    return cdx.default_runtime_dir().parent
+
+
+def destinations(ns):
+    if ns.destination:
+        return [Path(d).expanduser().resolve() for d in ns.destination]
+    base = Path(ns.project).expanduser().resolve() if ns.project else Path.home()
+    scope = 1 if ns.project else 0
+    seen, out = set(), []
+    for agent in ns.agent:
+        target = (base / AGENTS[agent][scope] / SKILL_NAME).resolve()
+        if target not in seen:
+            seen.add(target)
+            out.append(target)
+    return out
+
+
+def venv_python(venv):
+    return venv / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+
+
+def probe_python(command):
+    """(major, minor, bits) for a runnable interpreter command, else None."""
+    code = 'import struct,sys;print(sys.version_info[0],sys.version_info[1],struct.calcsize("P")*8)'
+    try:
+        out = subprocess.run([*command, '-c', code], capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    parts = out.stdout.split()
+    if out.returncode != 0 or len(parts) != 3:
+        return None
+    return tuple(int(x) for x in parts)
+
+
+def supported(info):
+    return bool(info) and info[2] == 64 and (3, 10) <= info[:2] <= (3, 13)
+
+
+def base_python(requested):
+    """First command that runs a 64-bit Python 3.10-3.13 (the toolkit's supported range)."""
+    if requested:
+        found = shutil.which(requested) or (requested if Path(requested).is_file() else None)
+        if not found:
+            raise SystemExit(f'Python not found: {requested}')
+        commands = [[found, f'-{v}'] for v in ('3.12', '3.13', '3.11', '3.10')] \
+            if Path(found).stem.lower() == 'py' else [[found]]
+    else:
+        commands = [[sys.executable]]
+        launcher = shutil.which('py') if os.name == 'nt' else None
+        if launcher:
+            commands += [[launcher, f'-{v}'] for v in ('3.12', '3.13', '3.11', '3.10')]
+        for name in ('python3.12', 'python3.13', 'python3.11', 'python3.10', 'python3', 'python'):
+            if shutil.which(name):
+                commands.append([shutil.which(name)])
+    for command in commands:
+        if supported(probe_python(command)):
+            return command
+    return None
+
+
+def runtime_plan(ns, targets):
+    if not ns.runtime:
+        return {'action': 'skip'}
+    venv = Path(ns.runtime_dir).expanduser().resolve() if ns.runtime_dir else None
+    if venv is None:
+        # Reuse a venv that an older installation placed beside the Skill.
+        legacy = [t.parent / 'chemdraw-venv' for t in targets if venv_python(t.parent / 'chemdraw-venv').is_file()]
+        venv = legacy[0] if legacy else cdx.default_runtime_dir()
+    action = 'reuse' if venv_python(venv).is_file() else 'create'
+    base = None
+    if action == 'create':
+        base = base_python(ns.python)
+        if base is None:
+            raise SystemExit('The runtime needs a 64-bit Python 3.10-3.13 and none was found; '
+                             'pass --python <interpreter>.')
+    extras = ns.extras if ns.extras is not None else \
+        [e for e in ALL_EXTRAS if os.name == 'nt' or e not in WINDOWS_ONLY_EXTRAS]
+    return {'action': action, 'venv': str(venv), 'python': str(venv_python(venv)),
+            'base_python': ' '.join(base) if base else None, 'extras': extras,
+            'toolkit_path': ns.toolkit_path}
+
+
+def backup_root(ns):
+    return Path(ns.backup_root).expanduser().resolve() if ns.backup_root else data_dir() / 'backups'
+
+
+def install_one(target, source_print, backups):
+    """Stage, verify and swap one Skill copy. Returns the backup folder (or None)."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    staging = target.parent / f'.chemdraw-install-{uuid.uuid4().hex}'
+    backup, published = None, False
+    try:
+        shutil.copytree(SOURCE, staging, ignore=shutil.ignore_patterns(*IGNORED))
+        if fingerprint(staging) != source_print:
+            raise RuntimeError('staged Skill does not match the repository source')
+        if target.exists():
+            backups.mkdir(parents=True, exist_ok=True)
+            backup = backups / f'{time.strftime("%Y%m%d-%H%M%S")}-{uuid.uuid4().hex[:8]}'
+            shutil.move(str(target), str(backup))
+            (backup / 'BACKUP_ORIGIN.txt').write_text(f'{target}\n', encoding='utf-8')
+        os.replace(staging, target)
+        published = True
+        if fingerprint(target) != source_print:
+            raise RuntimeError('installed Skill does not match the repository source')
+    except BaseException:
+        if published and target.exists():
+            shutil.rmtree(target)
+        if backup and backup.exists():
+            (backup / 'BACKUP_ORIGIN.txt').unlink(missing_ok=True)
+            shutil.move(str(backup), str(target))
+        raise
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging, ignore_errors=True)
+    return backup
+
+
+def install_runtime(plan, skill):
+    """Create or reuse the venv and install the pinned toolkit; progress goes to stderr."""
+    venv, python = Path(plan['venv']), Path(plan['python'])
+    if plan['action'] == 'create':
+        venv.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run([*plan['base_python'].split(' '), '-m', 'venv', str(venv)], check=True,
+                       stdout=sys.stderr)
+    command = [str(python), str(skill / 'scripts' / 'install_runtime.py'), '--extras', *plan['extras']]
+    if plan['toolkit_path']:
+        command += ['--toolkit-path', plan['toolkit_path']]
+    subprocess.run(command, check=True, stdout=sys.stderr)
+
+
+def needs_local_config(skill, python):
+    """True when cdx.py would not find `python` by its default search order."""
+    return Path(python).resolve() not in {
+        venv_python(skill.parent / 'chemdraw-venv').resolve(), venv_python(cdx.default_runtime_dir()).resolve()}
+
+
+def parse(argv):
+    p = argparse.ArgumentParser(description=__doc__.split('\n\n')[0],
+                                formatter_class=argparse.RawDescriptionHelpFormatter,
+                                epilog='Agents: ' + ', '.join(f'{k} (~/{u}, <project>/{q})'
+                                                             for k, (u, q) in AGENTS.items()))
+    p.add_argument('--agent', nargs='+', choices=sorted(AGENTS), default=['claude'],
+                   help='agent Skill folder(s) to install into (default: claude)')
+    p.add_argument('--project', help='install into this project instead of the home folder')
+    p.add_argument('--destination', nargs='+', help='explicit Skill folder(s); overrides --agent/--project')
+    p.add_argument('--runtime', action='store_true', help='create or reuse the shared toolkit venv')
+    p.add_argument('--runtime-dir', help=f'venv location (default: {cdx.default_runtime_dir()})')
+    p.add_argument('--python', help='base interpreter for a new venv (64-bit Python 3.10-3.13)')
+    p.add_argument('--extras', nargs='*', help='toolkit extras (default: all that apply to this OS)')
+    p.add_argument('--toolkit-path', help='local cdxml-toolkit checkout instead of the pinned commit')
+    p.add_argument('--backup-root', help=f'where replaced installations go (default: {data_dir() / "backups"})')
+    p.add_argument('--apply', action='store_true', help='install; without it only the proposal is printed')
+    ns = p.parse_args(argv)
+    for extra in ns.extras or ():
+        if not re.fullmatch(r'[a-z][a-z0-9_-]*', extra):
+            p.error(f'invalid extra: {extra}')
+    return ns
+
+
+def main(argv=None):
+    ns = parse(argv)
+    if not (SOURCE / 'SKILL.md').is_file():
+        raise SystemExit(f'Deployable Skill not found: {SOURCE}')
+    targets = destinations(ns)
+    backups = backup_root(ns)
+    for target in targets:
+        if target == SOURCE.resolve() or SOURCE.resolve() in target.parents:
+            raise SystemExit(f'Destination must lie outside the repository Skill source: {target}')
+        if target in backups.parents or backups == target:
+            raise SystemExit('The backup folder must not be inside an installed Skill.')
+    source_print = fingerprint(SOURCE)
+    record = {
+        'apply': ns.apply, 'source': str(SOURCE), 'source_fingerprint': source_print,
+        'backup_root': str(backups),
+        'installations': [{'destination': str(t), 'existing': t.exists()} for t in targets],
+        'runtime': runtime_plan(ns, targets),
+        'status': 'proposal',
+    }
+    if not ns.apply:
+        print(json.dumps(record, indent=2))
+        return 0
+
+    for item, target in zip(record['installations'], targets):
+        backup = install_one(target, source_print, backups)
+        item.update(backup=str(backup) if backup else None, installed_fingerprint=fingerprint(target))
+    record['status'] = 'installed'
+
+    # A failed runtime install leaves usable Skill copies (docs, diagnostics) and is reported.
+    code = 0
+    runtime = record['runtime']
+    if ns.runtime:
+        try:
+            install_runtime(runtime, targets[0])
+            runtime['status'] = 'installed'
+        except (OSError, subprocess.CalledProcessError) as exc:
+            runtime.update(status='failed', error=str(exc))
+            record['status'] = 'installed_runtime_failed'
+            code = 1
+    for target in targets:
+        if ns.runtime and runtime.get('status') == 'installed' and needs_local_config(target, runtime['python']):
+            (target / 'runtime.local.json').write_text(
+                json.dumps({'runtime_python': runtime['python']}, indent=2) + '\n', encoding='utf-8')
+        # Record the installed state so check_installation.py / cdx.py doctor detect later drift.
+        check_installation.write_manifest(target)
+    print(json.dumps(record, indent=2))
+    return code
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

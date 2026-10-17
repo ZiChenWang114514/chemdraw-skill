@@ -1,5 +1,6 @@
 """Unified CLI, ACS-1996 builder and installation-manifest contracts."""
 import json
+import re
 import os
 from pathlib import Path
 import subprocess
@@ -87,7 +88,8 @@ def _isolated_copy(tmp_path):
     scripts.mkdir(parents=True)
     (scripts / 'cdx.py').write_bytes((SKILL_ROOT / 'scripts' / 'cdx.py').read_bytes())
     env = {k: v for k, v in os.environ.items() if k not in ('CHEMDRAW_MCP_PYTHON', cdx.REEXEC_FLAG)}
-    env.update(USERPROFILE=str(tmp_path), HOME=str(tmp_path))
+    env.update(USERPROFILE=str(tmp_path), HOME=str(tmp_path), LOCALAPPDATA=str(tmp_path / 'data'),
+               XDG_DATA_HOME=str(tmp_path / 'data'))
     return scripts / 'cdx.py', env
 
 
@@ -121,6 +123,29 @@ def test_sibling_venv_is_a_runtime_candidate(tmp_path, monkeypatch):
     assert found[0][0] == 'chemdraw-venv' and cdx._has_toolkit(found[0][1])
 
 
+def _fake_env(root):
+    python = root / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+    python.parent.mkdir(parents=True)
+    python.write_bytes(b'')
+    return python
+
+
+def test_shared_venv_and_local_config_are_runtime_candidates(tmp_path, monkeypatch):
+    monkeypatch.setattr(cdx, 'SKILL_ROOT', tmp_path / 'skills' / 'chemdraw')
+    monkeypatch.setattr(cdx, 'LOCAL_CONFIG', tmp_path / 'skills' / 'chemdraw' / 'runtime.local.json')
+    monkeypatch.setenv('LOCALAPPDATA', str(tmp_path / 'data'))
+    monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path / 'data'))
+    monkeypatch.delenv('CHEMDRAW_MCP_PYTHON', raising=False)
+    monkeypatch.setattr(cdx.Path, 'home', lambda: tmp_path)
+    shared = _fake_env(tmp_path / 'data' / 'chemdraw-skill' / 'venv')
+    assert cdx.default_runtime_dir() == tmp_path / 'data' / 'chemdraw-skill' / 'venv'
+    assert cdx.runtime_candidates() == [('shared venv', shared)]
+    custom = _fake_env(tmp_path / 'elsewhere')
+    cdx.LOCAL_CONFIG.parent.mkdir(parents=True)
+    cdx.LOCAL_CONFIG.write_text(json.dumps({'runtime_python': str(custom)}), encoding='utf-8')
+    assert [s for s, _ in cdx.runtime_candidates()] == ['runtime.local.json', 'shared venv']
+
+
 def test_py_passes_arguments_to_the_runtime(capfd):
     assert cdx.main(['py', '-c', 'import cdxml_toolkit, sys; print("rt-ok", sys.argv[1:])', 'x']) == 0
     assert "rt-ok ['x']" in capfd.readouterr().out
@@ -151,13 +176,15 @@ def test_manifest_ignores_line_endings(tmp_path):
     assert check_installation.check_manifest(tmp_path)['modified'] == ['b.png']
 
 
-def test_skill_has_no_foreign_client_traces():
-    banned = ('co' + 'dex', 'open' + 'ai')
+def test_skill_instructions_are_client_neutral():
+    # Agent product names belong only in the per-agent installation guide.
+    brands = re.compile(r'\b(claude|co' + r'dex|open' + r'ai|gemini|copilot|opencode)\b|\bCursor\b|\.cursor/', re.I)
     hits = [p.relative_to(SKILL_ROOT).as_posix() for p in SKILL_ROOT.rglob('*')
             if p.is_file() and p.suffix in {'.md', '.py', '.json', '.ps1', '.yaml', '.cdxml', '.csv'}
-            and '__pycache__' not in p.parts and p.name != 'manifest.json'
-            and any(b in p.read_text(encoding='utf-8', errors='ignore').lower() for b in banned)]
+            and '__pycache__' not in p.parts and p.name not in {'manifest.json', 'agent-integration.md', 'test_cdx.py'}
+            and brands.search(p.read_text(encoding='utf-8', errors='ignore').replace('$cursor', ''))]
     assert hits == []
+    assert not (SKILL_ROOT / 'agents').exists(), 'no client-specific adapter folders'
 
 
 def test_only_cjk_characters_switch_font():

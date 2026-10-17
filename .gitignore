@@ -24,3 +24,7 @@ output/
 *.bak
 *.tmp
 *.log
+
+# Written per installation by scripts/install.py
+skill/chemdraw/manifest.json
+skill/chemdraw/runtime.local.json
