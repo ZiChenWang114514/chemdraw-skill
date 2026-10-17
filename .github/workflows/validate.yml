@@ -29,11 +29,13 @@ jobs:
         shell: pwsh
         run: |
           $python = (Get-Command python).Source
-          ./scripts/check_prerequisites.ps1 -Python $python -Capabilities core -Json -SkipCodex -SkipPythonPackages
+          ./scripts/check_prerequisites.ps1 -Python $python -Capabilities core -Json -SkipPythonPackages
 
       - name: Validate installer dry run
         shell: pwsh
-        run: ./scripts/install.ps1
+        run: |
+          ./scripts/install.ps1
+          ./scripts/install.ps1 -Runtime -Python (Get-Command python).Source
 
   full-portable-tests:
     strategy:
@@ -62,7 +64,12 @@ jobs:
           "requests>=2.31"
 
       - name: Install the documented runtime baseline
-        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication
+        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication scientific
 
       - name: Run complete portable Skill tests
-        run: python -m pytest skill/chemdraw/scripts -q
+        run: python -m pytest skill/chemdraw/tests -q
+
+      - name: Exercise the command-line entry point
+        run: |
+          python skill/chemdraw/scripts/cdx.py tools --detail summary
+          python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml

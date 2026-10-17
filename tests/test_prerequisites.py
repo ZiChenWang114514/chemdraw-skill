@@ -41,7 +41,6 @@ class PrerequisiteCheckerTests(unittest.TestCase):
         completed = self._run(
             "-Python",
             sys.executable,
-            "-SkipCodex",
             "-SkipChemDraw",
             "-SkipPythonPackages",
         )
@@ -58,16 +57,14 @@ class PrerequisiteCheckerTests(unittest.TestCase):
         self.assertEqual(checks["powershell"]["status"], "pass")
         self.assertEqual(checks["python_runtime"]["status"], "pass")
         self.assertEqual(checks["python_packages"]["status"], "skipped")
-        self.assertEqual(checks["codex_cli"]["status"], "skipped")
         self.assertEqual(checks["chemdraw_com"]["status"], "skipped")
         self.assertIsInstance(report["next_steps"], list)
 
-    def test_generic_agent_setup_does_not_require_codex(self) -> None:
+    def test_no_agent_client_is_required(self) -> None:
         completed = self._run("-Python", sys.executable, "-SkipPythonPackages")
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        checks = {item["name"]: item for item in json.loads(completed.stdout)["checks"]}
-        self.assertEqual(checks["codex_cli"]["status"], "skipped")
-        self.assertFalse(checks["codex_cli"]["required"])
+        names = {item["name"] for item in json.loads(completed.stdout)["checks"]}
+        self.assertFalse(any(name.endswith("_cli") for name in names), names)
 
     def test_missing_explicit_python_is_a_structured_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -75,7 +72,6 @@ class PrerequisiteCheckerTests(unittest.TestCase):
             completed = self._run(
                 "-Python",
                 str(missing),
-                "-SkipCodex",
                 "-SkipChemDraw",
                 "-SkipPythonPackages",
             )
@@ -93,7 +89,7 @@ class PrerequisiteCheckerTests(unittest.TestCase):
         command = (
             "function conda { throw 'shell function must not be invoked' }; "
             f"& '{checker}' -Json -Python '{python}' "
-            "-SkipCodex -SkipChemDraw -SkipPythonPackages; "
+            "-SkipChemDraw -SkipPythonPackages; "
             "exit $LASTEXITCODE"
         )
         completed = subprocess.run(

@@ -8,10 +8,12 @@ Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth fo
 
 - Keep `SKILL.md` concise and route detail to one-level references.
 - Preserve the progressive path: metadata -> core rules/router -> workflow/domain guide -> generated signatures -> inventory shards.
-- Keep exact MCP signatures generated in `references/mcp-signatures.md`; do not duplicate handwritten signatures elsewhere.
+- Keep exact tool signatures generated in `references/mcp-signatures.md` (`cdx.py regen-signatures`); do not duplicate handwritten signatures elsewhere.
+- Keep `scripts/cdx.py` the single entry point: new workflows get a subcommand or run through `cdx.py call` / `cdx.py py`, never a guessed interpreter path. Its bootstrap section must stay standard-library only.
+- Keep the Skill client-neutral: no client-specific adapters, branding or configuration writers inside `skill/chemdraw/`.
 - Preserve existing public tool names unless a documented breaking release is intentional.
 - Keep chemistry grounded: do not invent or hand-edit SMILES, do not silently resolve ambiguous OCSR, and do not overwrite source artifacts.
-- For image-recognition tasks, use DECIMER API directly with `confirm_upload=true`; do not add a separate upload-confirmation question. Respect explicit local/offline or no-upload requests. Keep the low-level no-upload preflight available for callers that request it.
+- For image-recognition tasks, use the DECIMER API directly (`cdx.py decimer`); do not add a separate upload-confirmation question, except once for sources marked unpublished or confidential. Respect explicit local/offline or no-upload requests. Keep the no-upload preflight (`--preflight`) available.
 
 ## Changes
 
@@ -21,8 +23,8 @@ Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth fo
 - Regenerate generated references after changing registry signatures:
 
 ```powershell
-python .\skill\chemdraw\scripts\generate_tool_reference.py
-python .\skill\chemdraw\scripts\audit_toolkit_interfaces.py --output-dir .\skill\chemdraw\references
+python .\skill\chemdraw\scripts\cdx.py regen-signatures
+python .\skill\chemdraw\scripts\cdx.py py .\skill\chemdraw\scripts\audit_toolkit_interfaces.py --output-dir .\skill\chemdraw\references
 ```
 
 ## Verification
@@ -33,11 +35,11 @@ Run portable validation for every change:
 python .\scripts\validate_distribution.py
 ```
 
-Run the full suite in a Python environment containing `cdxml-toolkit`:
+Run the full Skill suite in the toolkit runtime (`cdx.py py` selects it):
 
 ```powershell
-python -m pytest skill/chemdraw/scripts -q
-.\skill\chemdraw\scripts\health_check.ps1 -SkipNativeChemDraw
+python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
+python skill/chemdraw/scripts/cdx.py doctor
 ```
 
 For native or Office changes, also validate with an activated ChemDraw installation, native PNG rendering, and open/render checks for DOCX/PPTX outputs. Never report those gates as passed when they were skipped.

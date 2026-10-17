@@ -79,11 +79,30 @@ class DistributionTests(unittest.TestCase):
 
     def test_skill_bundle_is_self_contained(self) -> None:
         self.assertTrue((SKILL / "SKILL.md").is_file())
-        self.assertTrue((SKILL / "agents" / "openai.yaml").is_file())
         self.assertTrue((SKILL / "references" / "workflow-router.md").is_file())
         self.assertTrue((SKILL / "scripts" / "check_prerequisites.ps1").is_file())
-        self.assertTrue((SKILL / "scripts" / "mcp_server.py").is_file())
+        self.assertTrue((SKILL / "scripts" / "cdx.py").is_file())
+        self.assertTrue((SKILL / "scripts" / "acs_builder.py").is_file())
+        self.assertTrue((SKILL / "tests" / "conftest.py").is_file())
         self.assertFalse((SKILL / "README.md").exists())
+        self.assertFalse((SKILL / "manifest.json").exists(), "manifest.json is written by the installer")
+        # Thin re-export modules were removed; the toolkit package is imported directly.
+        self.assertEqual(sorted(p.name for p in (SKILL / "scripts").glob("test_*.py")), [])
+
+    def test_no_client_specific_branding_or_adapters(self) -> None:
+        banned = re.compile("co" + "dex|open" + "ai", re.IGNORECASE)
+        tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode("utf-8").split("\0")
+        offenders = []
+        for name in filter(None, tracked):
+            if name.startswith("tests/"):
+                continue
+            try:
+                text = (ROOT / name).read_text(encoding="utf-8")
+            except (UnicodeDecodeError, FileNotFoundError):
+                continue
+            if banned.search(text):
+                offenders.append(name)
+        self.assertEqual(offenders, [])
 
     def test_generated_and_local_state_are_not_distributed(self) -> None:
         forbidden_names = {"__pycache__", ".pytest_cache", ".mypy_cache", ".env"}
@@ -153,15 +172,13 @@ class DistributionTests(unittest.TestCase):
         self.assertRegex(baseline['commit'], r'^[0-9a-f]{40}$')
         self.assertIn('mcp-version: ["1.28.1", "2.0.0"]', workflow)
         self.assertIn('os: [windows-latest, ubuntu-latest]', workflow)
-        self.assertIn('pytest skill/chemdraw/scripts', workflow)
+        self.assertIn('pytest skill/chemdraw/tests', workflow)
         self.assertIn('check_prerequisites.ps1', workflow)
 
-    def test_health_check_can_skip_optional_office_probes(self) -> None:
-        health_check = (SKILL / "scripts" / "health_check.ps1").read_text(
-            encoding="utf-8-sig"
-        )
-        self.assertIn("[switch]$SkipOffice", health_check)
-        self.assertIn("if (-not $SkipOffice)", health_check)
+    def test_doctor_probes_are_opt_in(self) -> None:
+        cdx = (SKILL / "scripts" / "cdx.py").read_text(encoding="utf-8")
+        for flag in ("'--native'", "'--office'", "'--chemscript'", "'--paths'"):
+            self.assertIn(flag, cdx)
 
     def test_removed_fastmcp_import_is_isolated_to_compatibility_module(self) -> None:
         matches = []

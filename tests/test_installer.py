@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import shutil
+import sys
 import subprocess
 import tempfile
 import unittest
@@ -37,22 +38,62 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(record["source_fingerprint"], record["installed_fingerprint"])
             self.assertEqual(list((root / "installed").rglob("cache.txt")), [])
 
-    def test_default_destination_is_agent_neutral(self) -> None:
+    def test_default_destination_is_the_claude_code_skill_directory(self) -> None:
         shell = shutil.which("pwsh") or shutil.which("powershell")
         result = subprocess.run(
             [shell, "-NoProfile", "-File", str(INSTALLER)],
             capture_output=True, text=True, encoding="utf-8-sig", check=True,
         )
         proposal = json.loads(result.stdout)
-        self.assertEqual(Path(proposal["destination"]).parts[-3:], (".agents", "skills", "chemdraw"))
-        self.assertFalse(proposal["configure_mcp"])
+        self.assertEqual(Path(proposal["destination"]).parts[-3:], (".claude", "skills", "chemdraw"))
+        self.assertEqual(proposal["runtime"]["action"], "skip")
+
+    def test_runtime_proposal_uses_a_sibling_venv(self) -> None:
+        shell = shutil.which("pwsh") or shutil.which("powershell")
+        with tempfile.TemporaryDirectory() as tmp:
+            destination = Path(tmp) / "skills" / "chemdraw"
+            result = subprocess.run(
+                [shell, "-NoProfile", "-File", str(INSTALLER), "-Runtime", "-Python", sys.executable,
+                 "-Extras", "publication", "-Destination", str(destination)],
+                capture_output=True, text=True, encoding="utf-8-sig",
+            )
+        if sys.version_info >= (3, 14) or sys.version_info < (3, 10):
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("3.10-3.13", result.stdout + result.stderr)
+            return
+        self.assertEqual(result.returncode, 0, result.stderr)
+        runtime = json.loads(result.stdout)["runtime"]
+        self.assertEqual(runtime["action"], "create")
+        self.assertEqual(Path(runtime["venv"]), destination.parent / "chemdraw-venv")
+        self.assertEqual(runtime["extras"], ["publication"])
+        self.assertFalse(destination.exists(), "a proposal must not install anything")
+
+    def test_apply_writes_an_installation_manifest(self) -> None:
+        shell = shutil.which("pwsh") or shutil.which("powershell")
+        with tempfile.TemporaryDirectory() as tmp:
+            destination = Path(tmp) / "skills" / "chemdraw"
+            result = subprocess.run(
+                [shell, "-NoProfile", "-File", str(INSTALLER), "-Apply", "-Python", sys.executable,
+                 "-Destination", str(destination)],
+                capture_output=True, text=True, encoding="utf-8-sig",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            record = json.loads(result.stdout)
+            self.assertEqual(record["source_fingerprint"], record["installed_fingerprint"])
+            manifest = json.loads((destination / "manifest.json").read_text(encoding="utf-8"))
+            self.assertIn("SKILL.md", manifest)
+            check = subprocess.run(
+                [sys.executable, str(destination / "scripts" / "check_installation.py")],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
 
     def test_existing_skill_backup_is_outside_discovery_directory(self) -> None:
         shell = shutil.which("pwsh") or shutil.which("powershell")
         self.assertIsNotNone(shell, "PowerShell is required to test the supplied installer")
         with tempfile.TemporaryDirectory() as tmp:
-            codex_home = Path(tmp) / ".codex"
-            destination = codex_home / "skills" / "chemdraw"
+            agent_home = Path(tmp) / ".claude"
+            destination = agent_home / "skills" / "chemdraw"
             destination.mkdir(parents=True)
             (destination / "SKILL.md").write_text("existing", encoding="ascii")
 
