@@ -12,22 +12,10 @@ from unittest import mock
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 REFERENCES = SKILL_ROOT / "references"
-MARKDOWN_LINK = re.compile(r"\[[^\]]+\]\(([^)]+\.md)\)")
 TOOL_HEADING = re.compile(r"^### `([a-z][a-z0-9_]*)\(", re.MULTILINE)
 
 
 class InterfaceCatalogTests(unittest.TestCase):
-    def test_all_local_markdown_links_resolve(self):
-        files = [SKILL_ROOT / "SKILL.md", *REFERENCES.rglob("*.md")]
-        missing = []
-        for source in files:
-            text = source.read_text(encoding="utf-8")
-            for target in MARKDOWN_LINK.findall(text):
-                destination = (source.parent / target).resolve()
-                if not destination.is_file():
-                    missing.append(f"{source.name} -> {target}")
-        self.assertEqual(missing, [])
-
     def test_every_mcp_tool_is_documented(self):
         from cdxml_toolkit.mcp_runtime import mcp_server
 

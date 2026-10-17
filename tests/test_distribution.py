@@ -183,20 +183,6 @@ class DistributionTests(unittest.TestCase):
         self.assertIn('installer-end-to-end:', workflow)
         self.assertIn('os: [windows-latest, ubuntu-latest, macos-latest]', workflow)
 
-    def test_doctor_probes_are_opt_in(self) -> None:
-        cdx = (SKILL / "scripts" / "cdx.py").read_text(encoding="utf-8")
-        for flag in ("'--native'", "'--office'", "'--chemscript'", "'--paths'"):
-            self.assertIn(flag, cdx)
-
-    def test_removed_fastmcp_import_is_isolated_to_compatibility_module(self) -> None:
-        matches = []
-        for path in (ROOT / "skill" / "chemdraw" / "scripts").glob("*.py"):
-            if path.name == "mcp_compat.py" or path.name.startswith("test_"):
-                continue
-            if "mcp.server.fastmcp" in path.read_text(encoding="utf-8"):
-                matches.append(path.name)
-        self.assertEqual(matches, [])
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -158,6 +158,13 @@ class InterfaceAuditTests(unittest.TestCase):
             for path in generated:
                 self.assertNotIn(b"\r\n", path.read_bytes(), path.name)
 
+    def test_scientific_interfaces_route_to_the_runnable_guide(self) -> None:
+        auditor = load_auditor()
+        for module in ("scientific.tlc", "scientific.apparatus", "scientific.spectra",
+                       "scientific.plots", "scientific.mechanism"):
+            with self.subTest(module=module):
+                self.assertEqual(auditor._reference_for_module(module), "scientific-workflows.md")
+
 
 if __name__ == "__main__":
     unittest.main()

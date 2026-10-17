@@ -26,7 +26,7 @@ def run(*args: str, home: Path | None = None) -> subprocess.CompletedProcess:
 class InstallerTests(unittest.TestCase):
     def test_default_proposal_targets_the_claude_skill_folder_and_installs_nothing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            home = Path(tmp)
+            home = Path(tmp).resolve()
             result = run(home=home)
             self.assertEqual(result.returncode, 0, result.stderr)
             proposal = json.loads(result.stdout)
@@ -48,7 +48,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_apply_installs_each_agent_copy_with_a_manifest_and_no_caches(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            home = Path(tmp)
+            home = Path(tmp).resolve()
             result = run("--agent", "claude", "agents", "--apply", home=home)
             self.assertEqual(result.returncode, 0, result.stderr)
             record = json.loads(result.stdout)
@@ -62,7 +62,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_reinstall_moves_the_old_copy_outside_every_skill_folder(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            home = Path(tmp)
+            home = Path(tmp).resolve()
             skill = home / ".claude" / "skills" / "chemdraw"
             skill.mkdir(parents=True)
             (skill / "SKILL.md").write_text("old", encoding="ascii")
@@ -76,7 +76,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_failed_install_restores_the_previous_copy(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            home = Path(tmp)
+            home = Path(tmp).resolve()
             skill = home / ".claude" / "skills" / "chemdraw"
             skill.mkdir(parents=True)
             (skill / "SKILL.md").write_text("old", encoding="ascii")
@@ -95,7 +95,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_runtime_proposal_uses_one_shared_venv(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            home = Path(tmp)
+            home = Path(tmp).resolve()
             result = run("--agent", "claude", "gemini", "--runtime", "--python", sys.executable,
                          "--extras", "publication", home=home)
         if not ((3, 10) <= sys.version_info[:2] <= (3, 13)):
@@ -110,7 +110,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_runtime_reuses_a_venv_beside_an_existing_skill(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            home = Path(tmp)
+            home = Path(tmp).resolve()
             venv = home / ".claude" / "skills" / "chemdraw-venv"
             python = venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
             python.parent.mkdir(parents=True)
