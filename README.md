@@ -1,17 +1,16 @@
-# ChemDraw Skill — AI Chemical Drawing with MCP
+# ChemDraw Skill — editable chemistry for AI agents
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill for any AI agent: editable chemical structures and native ChemDraw previews through MCP">
+  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill for AI agents: editable chemical structures and native ChemDraw previews">
 </p>
 
-**Bring ChemDraw workflows to any AI agent.** Draw editable chemical structures, reconstruct paper figures, and turn structure tables into substrate-scope and SAR panels. Update data after ChemDraw editing while preserving unrelated layout and annotations. Connect through MCP or Python/CLI.
+**Bring ChemDraw workflows to any AI agent.** Draw editable chemical structures, reconstruct paper figures, and turn structure tables into substrate-scope and SAR panels. Update data after ChemDraw editing while preserving unrelated layout and annotations. Draw exam and lecture figures in ACS Document 1996 style. Everything runs through one command-line entry point; MCP is optional.
 
 <p align="center">
   <a href="README.zh-cn.md"><img src="https://img.shields.io/badge/-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-007c83?style=flat" height="22" alt="Simplified Chinese"></a>&nbsp;
   <a href="docs/guide.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-Installation-17242b?style=flat" height="22" alt="Installation"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-Workflow%20catalog-007c83?style=flat" height="22" alt="Workflow catalog"></a>&nbsp;
   <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-Security-d94f70?style=flat" height="22" alt="Security"></a>
-  <a href="https://openai.com/brand/"><img src="https://img.shields.io/badge/ChatGPT-gpt--6--astra-17242b?style=flat&amp;logo=openai&amp;logoColor=white&amp;logoWidth=16" height="22" alt="ChatGPT · gpt-6-astra"></a>
 </p>
 
 <p align="center">
@@ -22,9 +21,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/-MIT-d94f70?style=flat" height="22" alt="MIT License"></a>
 </p>
 
-<p align="center"><sub><code>ChatGPT · gpt-6-astra</code> is a recommended model label for this Skill; it does not change the model selected by Codex. The ChatGPT/OpenAI mark is an official OpenAI asset from the <a href="https://github.com/openai/openai-agents-python/tree/main/docs/assets">OpenAI-maintained asset source</a>, used under the <a href="https://openai.com/brand/">OpenAI brand guidelines</a>.</sub></p>
-
-<p align="center"><a href="#featured-demos">Explore featured demos</a> · <a href="#quick-start-any-agent">Quick start</a></p>
+<p align="center"><a href="#featured-demos">Explore featured demos</a> · <a href="#quick-start">Quick start</a></p>
 
 <a id="data-driven-publication-figures"></a>
 
@@ -36,7 +33,7 @@ ChemDraw itself may be installed on macOS, but installing the app does not make 
 
 | Capability | Windows | macOS | Linux |
 | --- | --- | --- | --- |
-| CDXML, RDKit, MCP, Python and CLI workflows | Supported | Portable workflows supported; native ChemDraw automation pending | Portable workflows supported |
+| CDXML, RDKit, command-line and MCP workflows | Supported | Portable workflows supported; native ChemDraw automation pending | Portable workflows supported |
 | ChemDraw-native rendering and cleanup | Supported with an activated installation | Not yet supported by the current adapter | Not supported |
 | ChemScript SDK bridge | Supported when the compatible SDK is installed | No supported bridge in the current release | No supported bridge |
 | Editable Office ChemDraw objects | Supported on supported desktop Office | Not yet supported by the current adapter | Not supported |
@@ -44,6 +41,18 @@ ChemDraw itself may be installed on macOS, but installing the app does not make 
 ## SAR and substrate-scope figures from CSV or Excel
 
 Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted structures. Stable compound IDs bind measurements to editable ChemDraw objects. Update data or replace a structure after native editing while preserving unrelated layout and annotations; ambiguous matches produce conflict drafts. See the [workflow and examples](skill/chemdraw/references/data-driven-figures.md). XLSX support requires the toolkit `publication` extra.
+
+## Exam and lecture drawings in ACS Document 1996 style
+
+Describe a figure as a small JSON spec — SMILES with abbreviation nodes such as C10H21, conditions, arrows, bold compound codes, Chinese notes — and get editable ACS 1996 CDXML plus a native ChemDraw PNG:
+
+```powershell
+python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
+```
+
+![ACS Document 1996 reaction drawn from a JSON spec: an alpha,beta-unsaturated ester with a C10H21 abbreviation is hydrogenated with H2 and Pd/C](skill/chemdraw/assets/acs1996/example.png)
+
+Abbreviations stay real `GenericNickname` nodes with correct subscripts and label direction; CJK text switches to a CJK font automatically. See the [ACS 1996 drawing guide](skill/chemdraw/references/acs1996-drawings.md).
 
 ## Featured demos
 
@@ -200,7 +209,7 @@ Save-cycle agreement does not establish perfect recognition of the reference. Co
 After installing the runtime, rebuild these two layouts offline without repeating DECIMER recognition:
 
 ```powershell
-python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
+python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
 ```
 
 Use a new output directory. This assembles saved molecular components; native previews still require Windows ChemDraw. See the [rebuild example and limitations](skill/chemdraw/assets/paper-reconstructions/README.md). Source paper artwork is not relicensed under the software license.
@@ -219,7 +228,7 @@ structures. Transcribe conditions visually, then deliver editable CDXML and a
 native preview with unresolved chemistry or visual differences stated clearly.
 ```
 
-[Fast replication guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
+[Image reconstruction guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
 | Need | Ready-to-use route |
 | --- | --- |
@@ -229,59 +238,61 @@ native preview with unresolved chemistry or visual differences stated clearly.
 | Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
 | Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
 
-Remote DECIMER calls require upload authorization. Visual review remains an agent task; pixel metrics do not certify chemistry or universal 1:1 fidelity.
+Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored). Visual review remains an agent task; pixel metrics do not certify chemistry.
 
 ## What It Handles
 
 - **Structures and reactions:** resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert, and render CDXML or CDX documents.
 - **Molecule comparison:** use RDKit fingerprint similarity in portable workflows; add ChemScript exact-identity checks on a Windows host when the compatible SDK is installed.
-- **Image recognition:** extract candidate structures, confidence values, and bounding boxes with local DECIMER models or an explicitly confirmed remote request. Recognition candidates still require source review.
+- **Image recognition:** extract candidate structures, confidence values, and bounding boxes through the DECIMER API or, on request, local DECIMER models. Recognition candidates still require source review.
 - **TLC and apparatus:** use native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly.
 - **Spectra and scientific plots:** pick peaks and integrate selected regions in processed 1D NMR data; turn numerical data into editable curves. Automatic atom assignment and a complete FID-processing pipeline are not included.
 - **Reaction mechanisms:** compose explicit atom coordinates and electron-arrow endpoints to illustrate supplied mechanisms; drawing does not establish mechanistic validity.
 - **Office documents:** embed editable ChemDraw objects in supported desktop versions of Word and PowerPoint through the current Windows integration.
 - **Experimental records:** discover files and process selected LCMS, SciFinder RDF, and lab-book workflows.
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows. Process separation limits stalled calls; it is not an operating-system security sandbox.
-- **Remote workstation access:** keep stdio as the default or expose a Windows native host through optional Streamable HTTP with health and Prometheus endpoints.
+- **ACS 1996 figures:** build exam, lecture and paper drawings from a JSON spec, with abbreviation nodes, rich text, CJK notes, arrows and boxed compound codes.
+- **Remote workstation access:** optionally expose a Windows native host through Streamable HTTP with health and Prometheus endpoints.
 
-The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists audited `cdxml-toolkit-community` symbols and their current count. The inventory is separate from the full MCP profile. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
+The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists audited `cdxml-toolkit-community` symbols and their current count. The inventory is separate from the 39 registered tools. Full public ChemScript catalog coverage means the interface can be discovered and reported; successful execution still depends on the installed SDK, license, architecture, and individual member behavior.
 
 ## Choose the Required Components
 
 | Goal | Add to the core setup |
 | --- | --- |
-| Create and edit CDXML | Any agent, 64-bit Python 3.10-3.13, MCP 1.x or 2.x, and `cdxml-toolkit-community` at the commit pinned in Quick Start; portable workflows run on Windows, macOS, and Linux |
+| Create and edit CDXML | Any agent with shell access, 64-bit Python 3.10-3.13, and `cdxml-toolkit-community` at the pinned commit (installed by `install.ps1 -Runtime`); portable workflows run on Windows, macOS, and Linux |
 | Native PNG, CDX, or ChemDraw cleanup | Licensed and activated Windows desktop ChemDraw with working COM automation |
 | Molecule comparison or ChemScript SDK calls | RDKit for portable similarity; compatible ChemScript DLLs on a Windows host for exact checks |
 | Editable Word or PowerPoint objects | Supported desktop Microsoft Word and/or PowerPoint on Windows |
 | Local optical structure recognition | DECIMER model weights and their runtime dependencies |
 | Remote access to a ChemDraw workstation | A Windows host plus authenticated HTTP configuration and an encrypted network path |
 
-ChemDraw, Microsoft Office, ChemScript, and DECIMER model weights are not bundled. For a first installation, use the [quick-start guide](docs/zh-cn.md#setup) or the [detailed English guide](docs/guide.md#first-time-windows-setup).
+ChemDraw, Microsoft Office, ChemScript, and DECIMER model weights are not bundled. For a first installation, follow [Quick start](#quick-start) or the [detailed guide](docs/guide.md#first-time-windows-setup).
 
-## Quick Start: any agent
+## Quick start
 
-Load `skill/chemdraw/SKILL.md` in your agent, then connect MCP or use Python/CLI. Clients with Skill discovery can install the whole `chemdraw` folder in their own Skill directory. Otherwise, point the agent's project instructions to the file.
+Windows, with a 64-bit Python 3.10-3.13 available:
 
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python skill/chemdraw/scripts/install_runtime.py --extras scientific publication
-python -m cdxml_toolkit.mcp_runtime
+.\scripts\install.ps1 -Runtime          # preview what will be installed
+.\scripts\install.ps1 -Runtime -Apply   # Skill -> ~/.claude/skills/chemdraw, runtime -> ~/.claude/skills/chemdraw-venv
+python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor
 ```
 
-This starts the stdio server from the pinned toolkit revision. Data-driven figures require a toolkit build exposing `publication_figure`; check `get_toolkit_capabilities()` after installation. The current Skill targets the 39-tool full profile. Register the same absolute Python executable and arguments in your client's MCP settings. Image reconstruction needs vision or human visual review.
+Claude Code picks the Skill up automatically. For another agent add `-Destination <its skill folder>`, or point its project instructions at `SKILL.md`. Existing installations are backed up and restored on failure; `-Python <python.exe>` selects the interpreter for the runtime.
 
-On Windows, preview `scripts/install.ps1 -Destination <your-skill-directory>`, then add `-Apply`. Its default storage path is `$HOME/.agents/skills/chemdraw`; individual clients may use different discovery paths. Client configuration is not changed by default. On macOS/Linux, copy the entire Skill folder directly for portable workflows. The current full MCP profile still exposes native-boundary tools; on macOS, use the portable subset and expect native ChemDraw, ChemScript and Office calls to report unavailable or pending until the native adapter lands.
-
-[Generic MCP, CLI and optional client adapters](skill/chemdraw/references/agent-integration.md) · [Windows native setup](docs/guide.md#first-time-windows-setup) · [Quick-start walkthrough](docs/zh-cn.md)
+`cdx.py` is the single entry point and can be started by any Python — it re-launches itself in the toolkit runtime:
 
 ```powershell
-# Generic health check; no particular agent CLI or native application required
-.\skill\chemdraw\scripts\health_check.ps1 -Python <absolute-python-path> -SkipNativeChemDraw -SkipDevelopmentChecks
+python <skill>/scripts/cdx.py tools                         # the 39 tools
+python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
+python <skill>/scripts/cdx.py render figure.cdxml           # native 300 dpi PNG
+python <skill>/scripts/cdx.py decimer crop.png              # structure recognition
 ```
 
-For native rendering, ChemScript or Office, add the corresponding dependencies and select the checks described in the setup guide.
+On macOS/Linux, copy `skill/chemdraw` into the agent's Skill folder and create the runtime by hand (see the [guide](docs/guide.md#first-time-windows-setup)); native ChemDraw, ChemScript and Office calls report unavailable there. MCP clients can still register `<runtime-python> -m cdxml_toolkit.mcp_runtime`; see [agent integration](skill/chemdraw/references/agent-integration.md).
 
 ## Validation and Safety
 
@@ -289,7 +300,7 @@ For native rendering, ChemScript or Office, add the corresponding dependencies a
 - Native ChemDraw, ChemScript, and Office behavior must be checked on a licensed local Windows host because those applications are unavailable in hosted CI.
 - Structural changes can be checked with source identity, MCS-based diffs, chemistry metadata, and native rendering. Scientific acceptance remains the user's responsibility.
 - Standard modifying tools create a new output path and reject accidental replacement. ChemScript SDK file access and replacement are available only when their explicit permission and overwrite options are enabled.
-- Remote image recognition refuses upload unless the caller explicitly confirms it. The guided replication route requires explicit structure-role assignment and visual review; it is not an unattended reaction-image converter.
+- Remote image recognition sends only the selected task images to the DECIMER API; `--preflight` reports size, format and destination without uploading. The guided reconstruction route requires explicit structure-role assignment and visual review; it is not an unattended reaction-image converter.
 - The built-in HTTP listener does not provide TLS. Non-loopback use requires bearer authentication and an allowed `Host`; place it behind an encrypted tunnel or HTTPS reverse proxy. `/health` exposes status only, while `/metrics` requires authentication.
 - Worker processes provide timeout and failure isolation, but they do not sandbox ChemDraw, Office, Python dependencies, or filesystem access. Review the [security policy](.github/SECURITY.md) before enabling native file operations or remote access.
 
@@ -297,7 +308,7 @@ For native rendering, ChemScript or Office, add the corresponding dependencies a
 
 ### Can any AI agent use this ChemDraw Skill?
 
-Yes, with platform boundaries. An agent needs access to the Skill instructions and either MCP (Model Context Protocol) tool calls or Python/CLI execution. See [agent setup](skill/chemdraw/references/agent-integration.md). Portable CDXML and RDKit workflows run on macOS and Linux; the current native ChemDraw, ChemScript and Office integrations require Windows.
+Yes, with platform boundaries. An agent needs the Skill instructions and shell access; every tool runs through `cdx.py`. Claude Code discovers the installed Skill automatically, and clients that prefer MCP (Model Context Protocol) can register the bundled server. See [agent setup](skill/chemdraw/references/agent-integration.md). Portable CDXML and RDKit workflows run on macOS and Linux; the current native ChemDraw, ChemScript and Office integrations require Windows.
 
 ### Can I generate SAR figures from an Excel spreadsheet?
 
@@ -323,9 +334,10 @@ Please open a focused issue or pull request with the exact macOS version, chip, 
 - [Setup and first use](docs/zh-cn.md)
 - [Installation, troubleshooting, architecture, and operations](docs/guide.md)
 - [Task-oriented workflow catalog](skill/chemdraw/references/workflow-router.md)
-- [Generated MCP tool signatures](skill/chemdraw/references/mcp-signatures.md)
+- [Agent integration and `cdx.py` command reference](skill/chemdraw/references/agent-integration.md)
+- [Generated tool signatures](skill/chemdraw/references/mcp-signatures.md)
 - [Audited `cdxml-toolkit-community` public inventory](skill/chemdraw/references/toolkit-public-inventory.md)
-- [Streamable HTTP setup](docs/guide.md#streamable-http)
+- [Remote HTTP setup](skill/chemdraw/references/operations.md#remote-http-only-when-asked)
 - [Contributing guide](.github/contributing.md)
 - [Security policy](.github/SECURITY.md)
 
@@ -335,4 +347,4 @@ The deployable Skill lives in [`skill/chemdraw`](skill/chemdraw). Repository-spe
 
 Repository-authored code and documentation are licensed under the [MIT License](LICENSE). ChemDraw, Microsoft Office, agent clients, `cdxml-toolkit-community`, the MCP Python SDK, RDKit, DECIMER, and their dependencies retain their respective licenses and usage terms.
 
-This is an independent community project. It is not affiliated with or endorsed by Revvity, OpenAI, Microsoft, or the maintainers of the upstream `cdxml-toolkit`, the MCP Python SDK, RDKit, or DECIMER.
+This is an independent community project. It is not affiliated with or endorsed by Revvity, Anthropic, Microsoft, or the maintainers of the upstream `cdxml-toolkit`, the MCP Python SDK, RDKit, or DECIMER.

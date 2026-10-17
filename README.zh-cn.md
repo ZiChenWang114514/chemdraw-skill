@@ -1,17 +1,16 @@
-# ChemDraw Skill — AI 化学绘图与 ChemDraw MCP
+# ChemDraw Skill — 面向 AI Agent 的可编辑化学绘图
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill：任意 AI Agent 可用的化学结构绘图、论文图复刻与 ChemDraw MCP 工作流">
+  <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill：AI Agent 可用的化学结构绘图、论文图复刻与 ChemDraw 原生预览">
 </p>
 
-**让任意 AI Agent 都能使用 ChemDraw 工作流。** 绘制可编辑化学结构、复刻论文图，将结构与实验数据生成底物拓展图和 SAR 图；在 ChemDraw 手工调整后更新数据，保留无关布局与注释。支持通过 MCP 或 Python/CLI 接入。
+**让任意 AI Agent 都能使用 ChemDraw 工作流。** 绘制可编辑化学结构、复刻论文图，将结构与实验数据生成底物拓展图和 SAR 图；在 ChemDraw 手工调整后更新数据，保留无关布局与注释；按 ACS Document 1996 格式绘制试卷与讲义插图。所有功能都通过同一个命令行入口运行，MCP 为可选项。
 
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/-English-17242b?style=flat" height="22" alt="English"></a>&nbsp;
   <a href="docs/guide.zh-cn.md#first-time-windows-setup"><img src="https://img.shields.io/badge/-%E5%AE%89%E8%A3%85-17242b?style=flat" height="22" alt="安装"></a>&nbsp;
   <a href="skill/chemdraw/references/workflow-router.md"><img src="https://img.shields.io/badge/-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9B%AE%E5%BD%95-007c83?style=flat" height="22" alt="工作流目录"></a>&nbsp;
-  <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5-d94f70?style=flat" height="22" alt="安全策略"></a>&nbsp;
-  <a href="https://openai.com/brand/"><img src="https://img.shields.io/badge/ChatGPT-gpt--6--astra-17242b?style=flat&amp;logo=openai&amp;logoColor=white&amp;logoWidth=16" height="22" alt="ChatGPT · gpt-6-astra"></a>
+  <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/-%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5-d94f70?style=flat" height="22" alt="安全策略"></a>
 </p>
 
 <p align="center">
@@ -22,9 +21,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/-MIT-d94f70?style=flat" height="22" alt="MIT 许可证"></a>
 </p>
 
-<p align="center"><sub><code>ChatGPT · gpt-6-astra</code> 是本 Skill 的推荐模型标签，不会改变 Codex 实际选择的模型。ChatGPT/OpenAI 标志来自 <a href="https://github.com/openai/openai-agents-python/tree/main/docs/assets">OpenAI 官方维护的资源</a>，并遵循 <a href="https://openai.com/brand/">OpenAI 品牌指南</a>使用。</sub></p>
-
-<p align="center"><a href="#主打案例">查看主打案例</a> · <a href="#快速开始任意-agent">快速开始</a></p>
+<p align="center"><a href="#主打案例">查看主打案例</a> · <a href="#快速开始">快速开始</a></p>
 
 <a id="从数据生成可持续修改的论文图"></a>
 
@@ -36,7 +33,7 @@ macOS 可以安装 ChemDraw，但安装应用本身不会让本 Skill 的 Window
 
 | 能力 | Windows | macOS | Linux |
 | --- | --- | --- | --- |
-| CDXML、RDKit、MCP、Python 与 CLI 工作流 | 支持 | 支持可移植工作流；ChemDraw 原生自动化待实现 | 支持可移植工作流 |
+| CDXML、RDKit、命令行与 MCP 工作流 | 支持 | 支持可移植工作流；ChemDraw 原生自动化待实现 | 支持可移植工作流 |
 | ChemDraw 原生渲染与清理 | 已支持（需激活安装） | 当前适配器尚不支持 | 不支持 |
 | ChemScript SDK bridge | 支持（需安装兼容 SDK） | 当前版本没有受支持的 bridge | 当前版本没有受支持的 bridge |
 | 可编辑 Office ChemDraw 对象 | 支持受支持的桌面版 Office | 当前适配器尚不支持 | 不支持 |
@@ -44,6 +41,18 @@ macOS 可以安装 ChemDraw，但安装应用本身不会让本 Skill 的 Window
 ## 从 CSV / Excel 生成 SAR 图和底物拓展图
 
 将 CSV/XLSX 与可信结构生成底物拓展图或完整结构 SAR 图。化合物 ID 绑定结构和实验指标；在 ChemDraw 手工编辑后更新数据或替换结构，保留无关布局与注释。无法唯一匹配时输出冲突草稿。详见[使用指南与示例](skill/chemdraw/references/data-driven-figures.md)。XLSX 读取需要工具包的 `publication` 可选依赖。
+
+## 试卷与讲义插图：ACS Document 1996 格式
+
+用一个小 JSON 描述图：带 C10H21 等缩写节点的 SMILES、反应条件、箭头、加粗化合物代号和中文注释，即可得到可编辑的 ACS 1996 CDXML 与 ChemDraw 原生 PNG：
+
+```powershell
+python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
+```
+
+![由 JSON 描述生成的 ACS Document 1996 反应图：带 C10H21 缩写的 α,β-不饱和酯经 H2、Pd/C 氢化](skill/chemdraw/assets/acs1996/example.png)
+
+缩写基团保存为真实的 `GenericNickname` 节点，下标与标签方向自动处理；中文文本自动切换到中文字体。详见 [ACS 1996 绘图指南](skill/chemdraw/references/acs1996-drawings.md)。
 
 ## 主打案例
 
@@ -200,7 +209,7 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
 安装运行时后，可离线重建这两张布局，无需再次调用 DECIMER：
 
 ```powershell
-python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
+python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
 ```
 
 请使用新的输出目录。此命令组装已保存的结构组件；原生预览仍需 Windows ChemDraw。[重建示例与限制](skill/chemdraw/assets/paper-reconstructions/README.md)。原论文图片的版权不随软件许可证转授。
@@ -217,7 +226,7 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 用视觉转录条件，最后交付可编辑 CDXML、原生预览，并说明尚存的结构或视觉差异。
 ```
 
-[复刻快速指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
+[图像复刻指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
 | 遇到的需求 | 现成处理路线 |
 | --- | --- |
@@ -227,59 +236,61 @@ python skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-ou
 | 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
 | 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
 
-远程 DECIMER 调用需要上传授权。视觉复核由智能体实际完成；像素指标不能认证化学正确，也不能保证任意图片都能自动达到严格 1:1。
+识别时只把任务图片及其裁切图上传到 DECIMER API（`cdx.py decimer --preflight` 可先查看将要发送的内容；要求离线时不上传）。视觉复核由智能体实际完成；像素指标不能认证化学正确。
 
 ## 支持的工作
 
 - **结构与反应：** 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档。
 - **分子比较：** 可移植工作流使用 RDKit 指纹相似度；在安装兼容 SDK 的 Windows 主机上，可增加 ChemScript 精确身份检查。
-- **图像识别：** 使用本地 DECIMER 模型或经过明确确认的远程请求，提取候选结构、置信度和外接矩形。识别候选结构仍需结合来源复核。
+- **图像识别：** 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。识别候选结构仍需结合来源复核。
 - **TLC 与装置：** 使用原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。
 - **谱图与科研绘图：** 对已处理的一维 NMR 数据进行寻峰与指定区间积分；将数值数据输出为可编辑曲线。当前不包含自动原子归属或完整 FID 处理。
 - **反应机理：** 按明确的原子坐标和电子箭头端点组装图示；绘制已有机理，不宣称自动证明反应机理。
 - **Office 文档：** 通过当前 Windows 集成，在受支持的桌面版 Word 和 PowerPoint 中嵌入可编辑的 ChemDraw 对象。
 - **实验记录：** 发现文件，并处理选定的 LCMS、SciFinder RDF 和实验记录工作流。
 - **ChemScript SDK：** 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制停滞调用造成的影响，但不提供操作系统级安全沙箱。
-- **远程工作站访问：** 保持 stdio 为默认模式，或通过可选的 Streamable HTTP 向外提供 Windows 原生主机服务，并包含健康状态与 Prometheus 端点。
+- **ACS 1996 插图：** 由 JSON 描述生成试卷、讲义和论文插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。
+- **远程工作站访问：** 可选地通过 Streamable HTTP 向外提供 Windows 原生主机服务，并包含健康状态与 Prometheus 端点。
 
-生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了已审计的 `cdxml-toolkit-community` 符号及当前数量；该清单与完整 MCP 配置的工具数量分开统计。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
+生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了已审计的 `cdxml-toolkit-community` 符号及当前数量；该清单与 39 个已注册工具分开统计。完整的 ChemScript 公共目录覆盖意味着该界面能够发现并报告相关成员；能否成功执行仍取决于已安装的 SDK、许可证、体系结构以及各成员的具体行为。
 
 ## 选择所需组件
 
 | 目标 | 在核心安装基础上增加 |
 | --- | --- |
-| 创建和编辑 CDXML | 任意 Agent、64 位 Python 3.10-3.13、MCP 1.x 或 2.x，以及快速开始中固定提交的 `cdxml-toolkit-community`；可移植工作流可在 Windows、macOS 和 Linux 上运行 |
+| 创建和编辑 CDXML | 能执行命令行的任意 Agent、64 位 Python 3.10-3.13，以及固定提交的 `cdxml-toolkit-community`（由 `install.ps1 -Runtime` 安装）；可移植工作流可在 Windows、macOS 和 Linux 上运行 |
 | 原生 PNG、CDX 或 ChemDraw 清理 | 已获得许可并激活的 Windows 桌面版 ChemDraw，且 COM 自动化可正常工作 |
 | 分子比较或 ChemScript SDK 调用 | 可移植相似度比较使用 RDKit；精确检查需 Windows 主机上的兼容 ChemScript DLL |
 | 可编辑的 Word 或 PowerPoint 对象 | Windows 上受支持的桌面版 Microsoft Word 和/或 PowerPoint |
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖项 |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络路径 |
 
-项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请使用[快速入门指南](docs/zh-cn.md#setup)或[英文详细指南](docs/guide.md#first-time-windows-setup)。
+项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。首次安装时，请按[快速开始](#快速开始)或[详细指南](docs/guide.zh-cn.md#first-time-windows-setup)操作。
 
-## 快速开始：任意 Agent
+## 快速开始
 
-任意 Agent 均可接入。让你的 Agent 加载 `skill/chemdraw/SKILL.md`，再接入 MCP 或使用 Python/CLI。支持 Skill 的客户端可将整个 `chemdraw` 文件夹放入自己的发现目录；其他客户端可通过项目指令指定该文件路径。
+Windows，需已有 64 位 Python 3.10-3.13：
 
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python skill/chemdraw/scripts/install_runtime.py --extras scientific publication
-python -m cdxml_toolkit.mcp_runtime
+.\scripts\install.ps1 -Runtime          # 预览将要安装的内容
+.\scripts\install.ps1 -Runtime -Apply   # Skill 装到 ~/.claude/skills/chemdraw，运行时装到 ~/.claude/skills/chemdraw-venv
+python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor
 ```
 
-上面的命令启动固定提交版本的 stdio 服务。数据驱动论文图需要包含 `publication_figure` 的工具包版本，安装后用 `get_toolkit_capabilities()` 核对；当前 Skill 对应完整 39 工具配置。在 Agent 的 MCP 设置中填写同一 Python 的绝对路径及参数即可。图像复刻需要视觉能力或人工复核。
+Claude Code 会自动加载该 Skill。其他 Agent 请加 `-Destination <其 Skill 目录>`，或在项目指令中指向 `SKILL.md`。已有安装会先备份，失败时自动恢复；`-Python <python.exe>` 可指定用于创建运行时的解释器。
 
-Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` 预览，再加 `-Apply` 安装。默认存放于 `$HOME/.agents/skills/chemdraw`；不同 Agent 的自动发现位置可能不同。安装器默认不改动客户端配置。macOS/Linux 可直接复制整个 Skill 文件夹运行可移植工作流。当前完整 MCP profile 仍包含原生边界工具；在 macOS 上请使用可移植子集，并预期 ChemDraw 原生、ChemScript 和 Office 调用在原生适配器完成前返回不可用或待验证。
-
-[通用 MCP、CLI 和可选客户端适配](skill/chemdraw/references/agent-integration.md) · [Windows 原生功能及安装](docs/guide.zh-cn.md#first-time-windows-setup) · [首次使用教程](docs/zh-cn.md)
+`cdx.py` 是唯一入口，任何 Python 都能启动它，它会自动切换到工具包运行时：
 
 ```powershell
-# 通用健康检查；不要求特定 Agent CLI，不启动原生应用
-.\skill\chemdraw\scripts\health_check.ps1 -Python <Python绝对路径> -SkipNativeChemDraw -SkipDevelopmentChecks
+python <skill>/scripts/cdx.py tools                         # 39 个工具
+python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
+python <skill>/scripts/cdx.py render figure.cdxml           # 原生 300 dpi PNG
+python <skill>/scripts/cdx.py decimer crop.png              # 结构识别
 ```
 
-需要原生渲染、ChemScript 或 Office 时，按安装指南增加对应依赖并选择检查范围。
+macOS/Linux：把 `skill/chemdraw` 复制到 Agent 的 Skill 目录，并按[指南](docs/guide.zh-cn.md#first-time-windows-setup)手动创建运行时；ChemDraw 原生、ChemScript 和 Office 调用在这些平台上会返回不可用。MCP 客户端仍可注册 `<运行时 python> -m cdxml_toolkit.mcp_runtime`，详见 [Agent 接入](skill/chemdraw/references/agent-integration.md)。
 
 ## 验证与安全
 
@@ -287,7 +298,7 @@ Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` �
 - 原生 ChemDraw、ChemScript 和 Office 功能必须在已获得许可的本地 Windows 主机上检查，因为托管 CI 不提供这些应用程序。
 - 可以使用来源身份、基于 MCS 的差异、化学元数据和原生渲染检查结构修改。科学判断与最终确认仍由用户负责。
 - 标准修改工具会创建新的输出路径，并拒绝意外替换。只有明确启用相应权限与覆盖选项后，ChemScript SDK 才能访问文件和替换现有文件。
-- 远程图像识别仅在调用方明确确认后才允许上传。复刻指南要求明确结构角色并逐图复核，不将反应图识别视为无人检查的自动转换。
+- 远程图像识别只把选定的任务图片发送到 DECIMER API；`--preflight` 可在不上传的情况下报告文件大小、格式和目标地址。复刻指南要求明确结构角色并逐图复核，不将反应图识别视为无人检查的自动转换。
 - 内置 HTTP 监听器不提供 TLS。非环回地址必须使用持有者令牌身份验证和允许的 `Host`，并应通过加密隧道或 HTTPS 反向代理提供服务。`/health` 只公开状态，`/metrics` 需要身份验证。
 - 工作进程可以隔离超时与故障，但不会为 ChemDraw、Office、Python 依赖项或文件系统访问提供安全沙箱。启用原生文件操作或远程访问前，请阅读[安全策略](.github/SECURITY.md)。
 
@@ -295,7 +306,7 @@ Windows 用户可运行 `scripts/install.ps1 -Destination <你的Skill目录>` �
 
 ### 任意 AI Agent 都能使用这个 ChemDraw Skill 吗？
 
-可以，但要遵守平台边界。Agent 需要能够读取 Skill 指令，并通过 MCP（Model Context Protocol，模型上下文协议）调用工具，或执行 Python/CLI。详见[Agent 接入指南](skill/chemdraw/references/agent-integration.md)。CDXML 与 RDKit 可移植工作流支持 macOS 和 Linux；当前 ChemDraw 原生、ChemScript 和 Office 集成需要 Windows。
+可以，但要遵守平台边界。Agent 需要能读取 Skill 指令并执行命令行，所有工具都通过 `cdx.py` 运行。Claude Code 会自动发现已安装的 Skill；偏好 MCP（Model Context Protocol，模型上下文协议）的客户端也可以注册自带的服务。详见[Agent 接入指南](skill/chemdraw/references/agent-integration.md)。CDXML 与 RDKit 可移植工作流支持 macOS 和 Linux；当前 ChemDraw 原生、ChemScript 和 Office 集成需要 Windows。
 
 ### 能从 Excel 实验数据生成 SAR 图和底物拓展图吗？
 
@@ -321,9 +332,10 @@ macOS 支持欢迎社区共建。最有价值的贡献是一个小而可复现�
 - [安装与首次使用教程](docs/zh-cn.md)
 - [安装、故障处理、架构与运行维护](docs/guide.zh-cn.md)
 - [面向任务的工作流目录](skill/chemdraw/references/workflow-router.md)
-- [自动生成的 MCP 工具签名](skill/chemdraw/references/mcp-signatures.md)
+- [Agent 接入与 `cdx.py` 命令参考](skill/chemdraw/references/agent-integration.md)
+- [自动生成的工具签名](skill/chemdraw/references/mcp-signatures.md)
 - [经过审计的 `cdxml-toolkit-community` 公共清单](skill/chemdraw/references/toolkit-public-inventory.md)
-- [Streamable HTTP 配置](docs/guide.zh-cn.md#streamable-http)
+- [远程 HTTP 配置](skill/chemdraw/references/operations.md#remote-http-only-when-asked)
 - [贡献指南](.github/contributing.md)
 - [安全策略](.github/SECURITY.md)
 
@@ -333,4 +345,4 @@ macOS 支持欢迎社区共建。最有价值的贡献是一个小而可复现�
 
 仓库自行编写的代码与文档采用 [MIT 许可证](LICENSE)。ChemDraw、Microsoft Office、Agent 客户端、`cdxml-toolkit-community`、MCP Python SDK、RDKit、DECIMER 及其依赖项继续适用各自的许可证与使用条款。
 
-本项目为独立社区项目，与 Revvity、OpenAI、Microsoft 以及上游 `cdxml-toolkit`、MCP Python SDK、RDKit 或 DECIMER 的维护者不存在隶属关系，也未获得其认可。
+本项目为独立社区项目，与 Revvity、Anthropic、Microsoft 以及上游 `cdxml-toolkit`、MCP Python SDK、RDKit 或 DECIMER 的维护者不存在隶属关系，也未获得其认可。

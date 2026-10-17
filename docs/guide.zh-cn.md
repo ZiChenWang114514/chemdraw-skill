@@ -1,71 +1,60 @@
 # ChemDraw Skill setup and operations
 
-For any agent that can load local instructions and call MCP or Python. Start with [generic integration](../skill/chemdraw/references/agent-integration.md). If the client does not discover Skills, supply the absolute `SKILL.md` path through project instructions. Client configuration formats differ.
+The Skill works with any agent that can read local instructions and run shell commands; Claude Code discovers it automatically. Everything runs through one entry point, `skill/chemdraw/scripts/cdx.py`. See [agent integration](../skill/chemdraw/references/agent-integration.md) for the layout and command reference.
 
 ## First-Time Windows Setup
 
-Use 64-bit Python 3.10–3.13, preferably in a dedicated Python 3.12 environment. Portable CDXML/RDKit work needs no desktop application. Native output requires activated Windows ChemDraw; install Office and ChemScript only for the selected workflows.
+You need a 64-bit Python 3.10–3.13 to build the runtime (3.12 is the tested version). Portable CDXML/RDKit work needs no desktop application. Native output requires activated Windows ChemDraw; Office and ChemScript are needed only for their workflows.
 
 ```powershell
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 Set-Location .\chemdraw-skill
-python skill/chemdraw/scripts/install_runtime.py --extras windows office chemscript publication
+.\scripts\check_prerequisites.ps1 -Capabilities core,native     # read-only host report
+.\scripts\install.ps1 -Runtime                                   # preview
+.\scripts\install.ps1 -Runtime -Apply                            # install Skill + runtime
 ```
+
+By default the Skill goes to `~/.claude/skills/chemdraw` and the runtime venv to `~/.claude/skills/chemdraw-venv`. Use `-Destination <folder>` for another agent's Skill directory, `-Python <python.exe>` when auto-detection does not find a suitable interpreter, and `-Extras` to choose toolkit extras (default: `publication scientific office analysis image chemscript`).
+
+The installer stages and verifies the copy, moves an existing installation to `backups/skills/chemdraw` (outside the discovery folder), restores it on failure, installs the runtime, and writes `manifest.json` so later drift can be detected. Re-running it upgrades the Skill and reuses the venv.
+
+The runtime revision is the exact commit in [runtime.json](../skill/chemdraw/runtime.json); CI installs the same commit. To install a runtime by hand, or on macOS/Linux:
+
+```bash
+python3 -m venv ~/.claude/skills/chemdraw-venv
+~/.claude/skills/chemdraw-venv/bin/python skill/chemdraw/scripts/install_runtime.py --extras publication scientific
+cp -r skill/chemdraw ~/.claude/skills/chemdraw
+```
+
+`install_runtime.py --print-requirement` prints the requirement without installing; `--toolkit-path <checkout>` installs a local toolkit checkout for development.
+
+## Check the installation
 
 ```powershell
-$python = (Get-Command python).Source
-.\scripts\check_prerequisites.ps1 -Python $python -Capabilities core
-# Use your client's actual Skill discovery path, or load this folder explicitly.
-.\scripts\install.ps1 -Destination "$HOME/.agents/skills/chemdraw" -Python $python
-.\scripts\install.ps1 -Destination "$HOME/.agents/skills/chemdraw" -Python $python -Apply
+python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor              # versions, extras, drift, capability matrix
+python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor --native     # + ChemScript ping and a native PNG render
+python $HOME\.claude\skills\chemdraw\scripts\cdx.py doctor --office     # + Word/PowerPoint OLE probes
 ```
 
-The installer previews first; `-Apply` backs up and installs. It does not configure a client by default. On macOS/Linux, copy the Skill folder and use the same Python MCP arguments. The full service arguments are `-m cdxml_toolkit.mcp_runtime --profile codex`; this profile name is a compatibility identifier.
+Any Python can start `cdx.py`; it re-launches itself in the runtime. Skipped probes are not verified features. See [operations](../skill/chemdraw/references/operations.md) for bitness, timeouts, DECIMER and failure codes.
 
-The install helper and CI read the same exact commit from [runtime.json](../skill/chemdraw/runtime.json). Use no extras for core-only work; `--print-requirement` prints the selected requirement without installing. Extras select features, not a different source revision.
+In Claude Code, allow the entry point once to avoid permission prompts:
 
-The pinned baseline includes the `0.7.0a2` runtime fixes. For a local development checkout, use `python skill/chemdraw/scripts/install_runtime.py --toolkit-path <local-toolkit-checkout> --extras office publication`. When changing the recommended runtime, update `runtime.json` to its complete published commit and validate that combination.
-
-## Validation and troubleshooting
-
-```powershell
-.\skill\chemdraw\scripts\health_check.ps1 -Python $python -SkipNativeChemDraw -SkipDevelopmentChecks
-# Native ChemDraw + ChemScript, without Office:
-.\skill\chemdraw\scripts\health_check.ps1 -Python $python -SkipOffice
-# Complete licensed workstation checks:
-.\skill\chemdraw\scripts\health_check.ps1 -Python $python
+```json
+{"permissions": {"allow": ["Bash(python ~/.claude/skills/chemdraw/scripts/cdx.py:*)"]}}
 ```
 
-Success ends with `ChemDraw agent integration: OK`. Generic checks do not validate a particular client registration: refresh the agent tool list and call `get_toolkit_capabilities()`. Select `core,native,chemscript,office,decimer` as needed; skipped features are not verified. See [operations](../skill/chemdraw/references/operations.md) for bitness, timeouts, remote hosting and DECIMER.
+## MCP (optional)
 
-<details>
-<summary>Optional Codex client adapter</summary>
-
-Only for this client, after its CLI is already installed:
-
-```powershell
-.\scripts\install.ps1 -Python $python -ConfigureMcp
-.\scripts\install.ps1 -Python $python -ConfigureMcp -Apply
-codex mcp get cdxml-toolkit --json
-.\skill\chemdraw\scripts\health_check.ps1 -Python $python -SkipNativeChemDraw -SkipDevelopmentChecks -CheckCodex
-```
-
-This opt-in adapter uses `$HOME/.codex/skills/chemdraw` (or `CODEX_HOME`) and preserves the client's configuration. `configure_mcp.ps1` configures only this client. Other agents use their own MCP registration settings.
-
-</details>
-
-## Streamable HTTP
-
-Register the host MCP URL and authentication in your own client settings. Server arguments and access controls are documented in [operations](../skill/chemdraw/references/operations.md#streamable-http-and-metrics).
-
-Runtime-only checks use `-SkipDevelopmentChecks`: this explicitly skips pytest and reference regeneration. Development checks require pytest and the test dependencies (`office`, `publication`, and requests), plus a toolkit checkout matching the generated reference version. This distinction lets core-only installations run health checks without optional native or test dependencies.
+The command line covers every tool, so no server is required. Clients that prefer MCP can register `<runtime-python> -m cdxml_toolkit.mcp_runtime` (no profile flag needed); `cdx.py doctor` prints the runtime path. For a remote Windows host, see the HTTP section of [operations](../skill/chemdraw/references/operations.md#remote-http-only-when-asked).
 
 ## Development validation
 
 ```powershell
-python scripts/validate_distribution.py
-python -m pytest skill/chemdraw/scripts -q
-.\skill\chemdraw\scripts\health_check.ps1 -Python $python -SkipNativeChemDraw
+python scripts/validate_distribution.py                           # repository checks and installer tests
+python skill/chemdraw/scripts/cdx.py py -m pip install pytest
+python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
+python skill/chemdraw/scripts/cdx.py regen-signatures             # after a toolkit upgrade
 ```
 
 Validate final structure readback separately from visual comparison. Read only the relevant [workflow](../skill/chemdraw/references/workflow-router.md); exact interfaces live in the [generated signatures](../skill/chemdraw/references/mcp-signatures.md). Keep chemistry, source files and credentials out of logs and public repositories. Repository content uses [MIT](../LICENSE); dependencies and desktop software retain their own terms.
