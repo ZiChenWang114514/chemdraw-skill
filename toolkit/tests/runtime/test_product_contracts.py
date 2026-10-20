@@ -112,7 +112,7 @@ def test_business_failure_is_counted_as_error(monkeypatch):
     assert count(after) == count(before) + 1
 
 
-@pytest.mark.parametrize('profile', ['core', 'codex', 'office', 'analysis', 'chemscript'])
+@pytest.mark.parametrize('profile', ['core', 'full', 'codex', 'office', 'analysis', 'chemscript'])
 def test_stdio_capabilities_match_listed_tools_and_business_failure(profile):
     import os
     from mcp import ClientSession, StdioServerParameters
@@ -131,7 +131,7 @@ def test_stdio_capabilities_match_listed_tools_and_business_failure(profile):
                 report = await client.call_tool('get_toolkit_capabilities', {'detail': 'full'})
                 value = json.loads(next(c.text for c in report.content if c.type == 'text'))['outputs']
                 assert names == set(build_registry(profile)) == {t['name'] for t in value['tools']}
-                assert value['profile'] == profile
+                assert value['profile'] == ('full' if profile == 'codex' else profile)  # alias reports the canonical name
                 assert value['tool_count'] == value['capabilities']['tool_registry']['count'] == len(names)
                 result = await client.call_tool('draw_molecule', {'mol_json': {'smiles': 'not-a-smiles'}})
                 assert getattr(result, 'is_error', getattr(result, 'isError', False)) is True

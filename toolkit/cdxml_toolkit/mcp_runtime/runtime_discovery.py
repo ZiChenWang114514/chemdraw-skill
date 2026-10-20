@@ -198,7 +198,6 @@ def find_skill_root(explicit: str | None = None) -> Discovery:
 
     candidates = [
         (str(Path(__file__).resolve().parent.parent), "script-location"),
-        (str(Path.home() / ".codex" / "skills" / "chemdraw"), "common-path"),
     ]
     for value, source in candidates:
         path = Path(value).expanduser().resolve()

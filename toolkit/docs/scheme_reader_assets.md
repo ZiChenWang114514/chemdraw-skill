@@ -236,7 +236,7 @@ from cdxml_toolkit.cdxml_utils import (
 ### Showcase CDXML (30 synthetic schemes, rendered from DSL)
 
 ```
-C:\Users\mic23\cdxml-toolkit\experiments\scheme_dsl\showcase\
+toolkit/experiments/scheme_dsl/showcase/
 ├── 01_buchwald_linear.cdxml        # Single-step Buchwald-Hartwig
 ├── 02_suzuki_linear.cdxml          # Suzuki coupling
 ├── 03_snar_linear.cdxml            # SNAr
@@ -256,8 +256,10 @@ Each has a matching `.yaml` DSL source and a pre-rendered `.cdxml` output.
 
 ### Real-world CDXML (extracted from DOCX/PPTX)
 
+The real-world test set is private laboratory data and is not part of this repository. Its layout was:
+
 ```
-C:\Users\mic23\chem-test-data\
+<private test data>/
 ├── docx\*.docx                    # Source Word documents with embedded ChemDraw
 ├── pptx\*.pptx                    # Source PowerPoint slides
 ├── extracted_docx\*.cdxml         # Extracted ChemDraw objects from DOCX
@@ -268,8 +270,10 @@ Extraction tool: `cdxml_toolkit.ole_extractor.extract_from_office()`
 
 ### Verification report
 
+Generated from the private test set (not distributed):
+
 ```
-C:\Users\mic23\chem-test-data\scheme_reader_report_full_rendered.html
+<private test data>/scheme_reader_report_full_rendered.html
 ```
 
 HTML report with ChemDraw-rendered images, parsed species tables,

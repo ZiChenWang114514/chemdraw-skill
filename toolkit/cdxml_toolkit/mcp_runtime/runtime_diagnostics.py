@@ -481,7 +481,7 @@ def diagnose_runtime(
     try:
         from .tool_registry import build_registry
 
-        tool_count = len(build_registry(profile=os.environ.get("CHEMDRAW_MCP_PROFILE", "codex")))
+        tool_count = len(build_registry(profile=os.environ.get("CHEMDRAW_MCP_PROFILE")))
         capabilities["tool_registry"] = _status(True, count=tool_count)
     except Exception as exc:
         tool_count = 0

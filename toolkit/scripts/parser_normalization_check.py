@@ -3,7 +3,7 @@ test_parser_normalization.py
 
 Tests for the LLM-friendly YAML normalization pass in parser.py.
 Run with:
-    /c/Users/mic23/miniconda3/Scripts/conda.exe run -n LLMChem python test_parser_normalization.py
+    python scripts/parser_normalization_check.py   (from toolkit/, with the runtime Python)
 """
 
 import sys

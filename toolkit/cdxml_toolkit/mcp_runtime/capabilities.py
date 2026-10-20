@@ -41,7 +41,9 @@ def get_toolkit_capabilities(detail: str = "full") -> dict[str, Any]:
 
     if detail not in {"full", "summary"}:
         raise ValueError("detail must be full or summary")
-    profile = os.environ.get("CHEMDRAW_MCP_PROFILE", "codex")
+    from .tool_registry import normalize_profile
+
+    profile = normalize_profile()
     registry = build_registry(profile=profile)
     schema = [
         {

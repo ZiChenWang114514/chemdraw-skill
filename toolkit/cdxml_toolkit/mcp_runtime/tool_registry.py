@@ -95,7 +95,20 @@ PROFILE_EXTENSION_TOOLS = {
         "inspect_chemscript_sdk",
     },
 }
-SUPPORTED_PROFILES = {"core", "codex", *PROFILE_EXTENSION_TOOLS}
+DEFAULT_PROFILE = "full"
+# Earlier releases called the full tool set "codex"; existing client configurations that
+# pass `--profile codex` keep working through this alias.
+PROFILE_ALIASES = {"codex": DEFAULT_PROFILE}
+SUPPORTED_PROFILES = {"core", DEFAULT_PROFILE, *PROFILE_EXTENSION_TOOLS}
+PROFILE_CHOICES = tuple(sorted(SUPPORTED_PROFILES | set(PROFILE_ALIASES)))
+
+
+def normalize_profile(profile: str | None = None) -> str:
+    """Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default."""
+    import os
+
+    selected = (profile or os.environ.get("CHEMDRAW_MCP_PROFILE") or DEFAULT_PROFILE).strip().lower()
+    return PROFILE_ALIASES.get(selected, selected)
 
 
 def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
@@ -164,11 +177,12 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     }
     registry = _merge_named_tools(official, remote, source="remote tools")
     registry = _merge_named_tools(registry, extended, source="extended tools")
-    selected = (profile or "codex").strip().lower()
+    selected = PROFILE_ALIASES.get((profile or DEFAULT_PROFILE).strip().lower(),
+                                   (profile or DEFAULT_PROFILE).strip().lower())
     if selected not in SUPPORTED_PROFILES:
         expected = ", ".join(sorted(SUPPORTED_PROFILES))
         raise ValueError(f"Unknown MCP profile {selected!r}; choose one of: {expected}")
-    if selected == "codex":
+    if selected == DEFAULT_PROFILE:
         return registry
     names = set(official) | {"get_toolkit_capabilities"}
     if selected != "core":

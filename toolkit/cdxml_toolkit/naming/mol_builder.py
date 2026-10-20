@@ -3010,7 +3010,7 @@ def modify_molecule(mol_json: Dict[str, Any],
 # ---------------------------------------------------------------------------
 
 def get_tool_definitions() -> List[Dict[str, Any]]:
-    """Return tool schemas suitable for LLM function calling (Claude/OpenAI).
+    """Return tool schemas suitable for LLM function calling.
 
     Each tool definition follows the Anthropic tool-use format::
 

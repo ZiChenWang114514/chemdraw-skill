@@ -28,7 +28,7 @@ mcp_compat.install_legacy_fastmcp_alias()
 from cdxml_toolkit.mcp_server import server as upstream
 
 from .process_control import _assign_kill_job, _close_job, _terminate_process_tree
-from .tool_registry import build_registry
+from .tool_registry import DEFAULT_PROFILE, PROFILE_CHOICES, build_registry, normalize_profile
 
 
 _WORKER_MODULE = "cdxml_toolkit.mcp_runtime.tool_worker"
@@ -303,7 +303,7 @@ def _run_worker_impl(
         "args": args,
         "kwargs": kwargs,
         "timeout_seconds": timeout,
-        "profile": _CALL_PROFILE.get() or os.environ.get("CHEMDRAW_MCP_PROFILE", "codex"),
+        "profile": _CALL_PROFILE.get() or normalize_profile(),
     }).encode("utf-8")
     if len(payload) > input_limit:
         return {
@@ -651,7 +651,7 @@ def _register_observability_routes(mcp, *, tool_count: int) -> None:
 
 def build_server(*, profile: str | None = None, **server_settings):
     server_type = mcp_compat.server_class()
-    selected_profile = profile or os.environ.get("CHEMDRAW_MCP_PROFILE", "codex")
+    selected_profile = normalize_profile(profile)
     registry = build_registry(profile=selected_profile)
     telemetry.configure_tools(registry)
     mcp = server_type(
@@ -687,8 +687,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--profile",
-        choices=("core", "codex", "office", "analysis", "chemscript"),
-        default=os.environ.get("CHEMDRAW_MCP_PROFILE", "codex"),
+        choices=PROFILE_CHOICES,
+        default=os.environ.get("CHEMDRAW_MCP_PROFILE", DEFAULT_PROFILE),
     )
     parser.add_argument("--host", default=os.environ.get("CHEMDRAW_MCP_HTTP_HOST", "127.0.0.1"))
     parser.add_argument(

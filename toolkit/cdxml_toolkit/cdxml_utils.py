@@ -3,7 +3,7 @@
 Extracted from duplicated code across reaction_cleanup.py,
 eln_enrichment.py, and scheme_polisher.py for v0.3 consolidation.
 
-Key design decisions (from CLAUDE.md / reaction_cleanup FINDINGS):
+Key design decisions (from docs/agent-reference.md / reaction_cleanup FINDINGS):
   - Fragment bounding boxes use direct-child <n> atom "p" positions ONLY.
     XML BoundingBox attributes are unreliable, especially for
     NodeType="Fragment" abbreviation groups (OTs, Boc) which report

@@ -78,7 +78,7 @@ def build_multipart_body(
     boundary: str | None = None,
 ) -> tuple[str, bytes]:
     """Encode the multipart fields declared by the live OpenAPI document."""
-    boundary = boundary or f"----codex-decimer-{uuid.uuid4().hex}"
+    boundary = boundary or f"----chemdraw-skill-decimer-{uuid.uuid4().hex}"
     safe_name = filename.replace('"', "_").replace("\r", "_").replace("\n", "_")
     chunks = [
         f"--{boundary}\r\n".encode("ascii"),

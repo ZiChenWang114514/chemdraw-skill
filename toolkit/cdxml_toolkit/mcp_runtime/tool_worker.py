@@ -30,7 +30,7 @@ def _failure_log(exc: BaseException) -> str:
         os.environ.get("LOCALAPPDATA")
         or os.environ.get("TEMP")
         or Path.home()
-    ) / "Codex" / "chemdraw-mcp" / "logs"
+    ) / "chemdraw-skill" / "logs"
     try:
         root.mkdir(parents=True, exist_ok=True)
         (root / f"worker-{error_id}.log").write_text(
@@ -142,9 +142,9 @@ def main() -> int:
             from rdkit import RDLogger
 
             RDLogger.DisableLog("rdApp.*")
-            from .tool_registry import build_registry
+            from .tool_registry import build_registry, normalize_profile
 
-            profile = payload.get("profile", os.environ.get("CHEMDRAW_MCP_PROFILE", "codex"))
+            profile = normalize_profile(payload.get("profile"))
             build_registry(profile=profile)  # Validate the server's selected profile.
             # Profiles filter public exposure, not internal calls between tool implementations.
             registry = build_registry()

@@ -29,7 +29,7 @@ def _signature(function) -> str:
     )
 
 
-def manifest(profile: str = "codex") -> dict:
+def manifest(profile: str = "full") -> dict:
     registry = build_registry(profile=profile)
     from cdxml_toolkit import __version__ as version
     return {
@@ -52,7 +52,7 @@ def manifest(profile: str = "codex") -> dict:
     }
 
 
-def render_markdown(profile: str = "codex") -> str:
+def render_markdown(profile: str = "full") -> str:
     data = manifest(profile)
     lines = [
         "# MCP Tool Reference",
@@ -85,14 +85,14 @@ def render_markdown(profile: str = "codex") -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def render_reference(profile: str = "codex") -> str:
-    """Compatibility alias used by ChemDraw Skill catalog checks."""
+def render_reference(profile: str = "full") -> str:
+    """Signature reference used by the Skill's catalog checks."""
     return render_markdown(profile)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", default="codex")
+    parser.add_argument("--profile", default="full")
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--json", dest="json_path", type=Path)
     parser.add_argument("--output", type=Path, help=argparse.SUPPRESS)

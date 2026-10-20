@@ -1,9 +1,9 @@
-# cdxml-toolkit — Agent Reference
+# cdxml-toolkit — Developer and Agent Reference
 
 ## What this is
 
-A chemistry office automation toolkit with 15 compatible core MCP tools and a
-38-tool community profile. Agents use these tools to draw molecules, render
+A chemistry office automation toolkit with 15 compatible core MCP tools and the
+39-tool `full` profile. Agents use these tools to draw molecules, render
 reaction schemes, parse ELN exports, analyze LCMS/NMR data, complete lab books,
 and manipulate ChemDraw files in PowerPoint/Word.
 
@@ -275,7 +275,7 @@ cdxml_toolkit/
 │   ├── server.py               # Tool definitions + input normalization
 │   ├── __main__.py
 │   └── __init__.py
-├── mcp_runtime/                # 35-tool hardened community service
+├── mcp_runtime/                # Hardened runtime: 39-tool `full` profile, workers, locks
 │
 ├── naming/                     # Agent chemistry reasoning
 │   ├── mol_builder.py          # resolve_compound, modify_molecule, draw_molecule

@@ -7,6 +7,8 @@ import os
 from typing import Iterator
 
 
+# Keep this name: it is the mutex every runtime version shares, so older and newer runtimes
+# still exclude each other on one machine. Changing it would allow two ChemDraw COM sessions.
 CHEMDRAW_COM_MUTEX = r"Local\CodexChemDrawComAutomation"
 
 
