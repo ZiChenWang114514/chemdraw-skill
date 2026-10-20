@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: pip
-    directory: /
+    directory: /toolkit
     schedule:
       interval: weekly
     groups:
@@ -12,4 +12,3 @@ updates:
     directory: /
     schedule:
       interval: weekly
-

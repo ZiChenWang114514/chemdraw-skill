@@ -12,13 +12,15 @@ jobs:
   build:
     runs-on: windows-latest
     timeout-minutes: 10
-
+    defaults:
+      run:
+        working-directory: toolkit
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -32,6 +34,6 @@ jobs:
       - name: Upload distributions
         uses: actions/upload-artifact@v7
         with:
-          name: cdxml-toolkit-community-${{ github.ref_name }}
-          path: dist/*
+          name: chemdraw-skill-toolkit-${{ github.ref_name }}
+          path: toolkit/dist/*
           if-no-files-found: error

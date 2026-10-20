@@ -25,7 +25,7 @@
 
 ## 快速开始
 
-运行安装脚本需要 Python 3.9+；工具包运行时需要 64 位 Python 3.10–3.13，安装脚本会自动查找（通过 `py` 启动器、`uv` 管理的解释器或 PATH 上的 `python3.x`）。`cdxml-toolkit-community` 目前尚不支持 Python 3.14 及更新版本：如果你只有 3.14，请先安装 3.12（例如 `uv python install 3.12`）或用 `--python <解释器>` 指定。
+运行安装脚本需要 Python 3.9+；工具包运行时需要 64 位 Python 3.10–3.13，安装脚本会自动查找（通过 `py` 启动器、`uv` 管理的解释器或 PATH 上的 `python3.x`）。内置工具包目前尚不支持 Python 3.14 及更新版本：如果你只有 3.14，请先安装 3.12（例如 `uv python install 3.12`）或用 `--python <解释器>` 指定。
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
@@ -79,7 +79,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 - **ChemScript SDK：** 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制调用卡死的影响，但不是操作系统级沙箱。
 - **远程工作站访问：** 可选地通过 Streamable HTTP 对外提供 Windows 原生主机服务，带健康检查与 Prometheus 端点。
 
-生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了已审计的 `cdxml-toolkit-community` 符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。ChemScript 公共目录"完整覆盖"指相关接口都能被发现和报告；能否成功执行仍取决于已安装的 SDK、许可证、体系结构和各成员的具体行为。
+生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了内置工具包中已审计的公共符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。ChemScript 公共目录"完整覆盖"指相关接口都能被发现和报告；能否成功执行仍取决于已安装的 SDK、许可证、体系结构和各成员的具体行为。
 
 ### 试卷与讲义插图：ACS Document 1996 格式
 
@@ -119,15 +119,15 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 
 ### 20 个结构：修复跨软件立体信息不一致
 
-![20 个结构合成路线的 ChemDraw 原生复刻](https://raw.githubusercontent.com/ZiChenWang114514/cdxml-toolkit-community/main/assets/readme/stereo-reconstruction/native.png)
+![20 个结构合成路线的 ChemDraw 原生复刻](toolkit/assets/readme/stereo-reconstruction/native.png)
 
 忠实于原图画法的版本有 16 个结构在 ChemScript 与 RDKit 中读法不同。修复版经原生保存后 **20/20 一致**，并保持复核后的目标结构。产物 **1** 改用了显式楔键，因此外观与原图有差异；同尺度墨迹 IoU 为 **0.6960**。这不是像素级 1:1，也不是实验绝对构型的独立验证。
 
-[下载 CDXML](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [踩坑复盘、改进流程与版权说明](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/CASE.md) · [逐结构证据与软件版本](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/verification.json)
+[下载 CDXML](toolkit/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [踩坑复盘、改进流程与版权说明](toolkit/assets/readme/stereo-reconstruction/CASE.md) · [逐结构证据与软件版本](toolkit/assets/readme/stereo-reconstruction/verification.json)
 
 X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使用前请查阅案例中的来源与权利说明。
 
-**增量流程：** 关联化学与绘图记录、验证缓存依赖、按变化局部检查，并分别验收原图版和兼容版。在一次修改三处标题字号的回放中，原生调用从 8 次减至 2 次，耗时从 33.53 秒降至 8.88 秒；这不代表整图识别的提速。[原图画法版](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [使用流程](skill/chemdraw/references/incremental-reconstruction.md) · [实测证据](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/incremental-verification.json)
+**增量流程：** 关联化学与绘图记录、验证缓存依赖、按变化局部检查，并分别验收原图版和兼容版。在一次修改三处标题字号的回放中，原生调用从 8 次减至 2 次，耗时从 33.53 秒降至 8.88 秒；这不代表整图识别的提速。[原图画法版](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [使用流程](skill/chemdraw/references/incremental-reconstruction.md) · [实测证据](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
 
 <a id="paper-scheme-demo"></a>
 
@@ -301,7 +301,7 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 
 | 目标 | 在核心安装基础上增加 |
 | --- | --- |
-| 创建和编辑 CDXML | 能执行命令行的任意 Agent、64 位 Python 3.10–3.13，以及固定提交的 `cdxml-toolkit-community`（由 `scripts/install.py --runtime` 安装） |
+| 创建和编辑 CDXML | 能执行命令行的任意 Agent、64 位 Python 3.10–3.13，以及内置工具包运行时（由 `scripts/install.py --runtime` 从 `toolkit/` 构建） |
 | 原生 PNG、CDX 或 ChemDraw 清理 | 已获得许可并激活的 Windows 桌面版 ChemDraw，且 COM 自动化可正常工作 |
 | 分子比较或 ChemScript SDK 调用 | 可移植相似度比较使用 RDKit；精确检查需 Windows 主机上的兼容 ChemScript DLL |
 | 可编辑的 Word 或 PowerPoint 对象 | Windows 上受支持的桌面版 Microsoft Word 和/或 PowerPoint |
@@ -312,7 +312,7 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 
 ## 验证与安全
 
-- GitHub Actions 在 Windows 和 Linux 上，用 Python 3.12、MCP 1.28.1 与 2.0.0 以及固定提交的 `cdxml-toolkit-community` 运行 Skill 测试，并在 Windows、Linux 和 macOS 上做完整的端到端安装测试。这不等于 macOS 原生应用认证。
+- GitHub Actions 在 Windows 和 Linux 上用 Python 3.12、MCP 1.28.1 与 2.0.0 运行 Skill 测试，在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做完整的端到端安装测试。这不等于 macOS 原生应用认证。
 - 原生 ChemDraw、ChemScript 和 Office 功能必须在已获许可的本地 Windows 主机上检查，因为托管 CI 没有这些应用程序。
 - 可以使用来源身份、基于 MCS 的差异、化学元数据和原生渲染检查结构修改。科学判断与最终确认仍由用户负责。
 - 标准修改工具会写入新的输出路径，并拒绝意外替换。只有明确启用相应权限与覆盖选项后，ChemScript SDK 才能访问和替换现有文件。
@@ -356,14 +356,15 @@ macOS 支持欢迎社区共建。最有价值的贡献是一个小而可复现�
 - [Agent 接入与 `cdx.py` 命令参考](skill/chemdraw/references/agent-integration.md)
 - [面向任务的工作流目录](skill/chemdraw/references/workflow-router.md)
 - [自动生成的工具签名](skill/chemdraw/references/mcp-signatures.md)
-- [经过审计的 `cdxml-toolkit-community` 公共清单](skill/chemdraw/references/toolkit-public-inventory.md)
+- [经过审计的内置工具包公共清单](skill/chemdraw/references/toolkit-public-inventory.md)
+- [工具包开发者参考](toolkit/docs/agent-reference.md)与[生成的 MCP 工具参考](toolkit/docs/mcp-tools.md)
 - [远程 HTTP 配置](skill/chemdraw/references/operations.md#remote-http-only-when-asked)
 - [贡献指南](.github/contributing.md) · [安全策略](.github/SECURITY.md)
 
-可部署的 Skill 位于 [`skill/chemdraw`](skill/chemdraw)。仓库专用的贡献者说明位于 [`AGENTS.md`](AGENTS.md)。
+可部署的 Skill 位于 [`skill/chemdraw`](skill/chemdraw)。它所驱动的化学运行时，即 `cdxml_toolkit` Python 包，位于 [`toolkit`](toolkit)，并带有自己的测试。仓库专用的贡献者说明位于 [`AGENTS.md`](AGENTS.md)。
 
 ## 许可证
 
-仓库自行编写的代码与文档采用 [MIT 许可证](LICENSE)。ChemDraw、Microsoft Office、各 Agent 客户端、`cdxml-toolkit-community`、MCP Python SDK、RDKit、DECIMER 及其依赖项继续适用各自的许可证与使用条款。
+仓库自行编写的代码与文档采用 [MIT 许可证](LICENSE)。[`toolkit/`](toolkit) 中的内置工具包基于 Hiu Fung Kevin Lee 的原始 `cdxml-toolkit`，保留其自身的 [MIT 许可证](toolkit/LICENSE)和[第三方声明](toolkit/NOTICE.md)。ChemDraw、Microsoft Office、各 Agent 客户端、MCP Python SDK、RDKit、DECIMER 及其依赖项继续适用各自的许可证与使用条款。
 
 本项目为独立社区项目，与 Revvity、Anthropic、OpenAI、Google、GitHub、Microsoft、Anysphere、OpenCode 维护者以及上游 `cdxml-toolkit`、MCP Python SDK、RDKit 或 DECIMER 的维护者不存在隶属关系，也未获得其认可。

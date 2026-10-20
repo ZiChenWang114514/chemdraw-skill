@@ -1,6 +1,8 @@
 # Project Instructions
 
-- Preserve the `cdxml_toolkit` import package and the 15 compatible core MCP tool names.
+- This folder is the bundled runtime of the ChemDraw Skill; the repository-root `AGENTS.md` also applies.
+- Preserve the `cdxml_toolkit` import package, the `cdxml-toolkit-community` distribution name, the 15 compatible core MCP tool names, and the shared ChemDraw COM mutex name.
+- Keep the runtime client-neutral: no agent-specific configuration writers, defaults, paths or product names (the `codex` profile alias is the only compatibility exception).
 - Use `cdxml_toolkit.mcp_runtime` for the complete service and `cdxml_toolkit.mcp_server` only for core compatibility work.
 - Ground molecular connectivity in a trusted user value, resolver, parser, or OCSR result. Do not invent SMILES.
 - Route structural changes through `modify_molecule` and inspect its MCS diff.

@@ -1,15 +1,18 @@
 # Maintenance Guide
 
-This document defines how `cdxml-toolkit-community` tracks upstream, tests
+This document defines how the bundled toolkit in `toolkit/` tracks upstream, tests
 changes, and prepares releases.
 
 ## Repository model
 
-- `origin` is `ZiChenWang114514/cdxml-toolkit-community`.
-- `upstream` is `leehiufung911/cdxml-toolkit`.
-- `main` contains reviewed community changes.
-- Feature and repair work uses short-lived branches.
-- The compatible import package remains `cdxml_toolkit`.
+- The toolkit lives in the `toolkit/` folder of `ZiChenWang114514/chemdraw-skill`.
+  It was imported with `git subtree`, so its complete history is part of this
+  repository. The former `cdxml-toolkit-community` repository is no longer the
+  source of truth.
+- Upstream is `leehiufung911/cdxml-toolkit`.
+- `main` contains reviewed changes; feature and repair work uses short-lived branches.
+- The compatible import package remains `cdxml_toolkit` and the distribution name
+  remains `cdxml-toolkit-community`.
 
 The project starts from the complete upstream Git history. Upstream version
 `0.5.17` was introduced by commit
@@ -18,18 +21,19 @@ still be compared before that commit is declared an exact release snapshot.
 
 ## Upstream synchronization
 
-Review upstream commits before merging them into a dedicated branch:
+Review upstream commits, then merge them into `toolkit/` on a dedicated branch:
 
 ```powershell
-git fetch upstream
-git log --oneline main..upstream/main
+git fetch https://github.com/leehiufung911/cdxml-toolkit.git main
+git log --oneline FETCH_HEAD
 git switch -c sync/upstream-YYYYMMDD
-git merge --no-commit upstream/main
+git subtree pull --prefix=toolkit https://github.com/leehiufung911/cdxml-toolkit.git main
 ```
 
 Resolve changes deliberately, run the complete portable suite, and add native
 checks when affected modules use ChemDraw, ChemScript, or Office. Merge the
-sync branch through a pull request. Do not force-push `main`.
+sync branch through a pull request with a merge commit, not a squash, so the
+pinned commit in `skill/chemdraw/runtime.json` stays reachable. Do not force-push `main`.
 
 ## Supported environments
 
@@ -55,7 +59,8 @@ applications explicitly.
 
 ## Release procedure
 
-1. Update the version in `pyproject.toml` and `cdxml_toolkit/__init__.py`.
+1. Update the version in `pyproject.toml`, `cdxml_toolkit/__init__.py` and
+   `skill/chemdraw/runtime.json` (`toolkit_version`), then pin `commit` there.
 2. Run `python -m pytest -m "not network" -q` on Python 3.10-3.13.
 3. Run applicable native ChemDraw, ChemScript, and Office checks.
 4. Run `python -m build` and `python -m twine check dist/*` in a clean tree.
@@ -80,10 +85,13 @@ and Trusted Publishing is configured with an approved GitHub environment.
 - `cdxml_toolkit.mcp_server` retains the 15 compatible core tools.
 - `cdxml_toolkit.mcp_runtime` owns worker isolation, native resource coordination,
   artifact validation, HTTP security, metrics, and the complete tool registry.
-- The `codex` profile contains 39 tools. Smaller profiles are tested by exact count.
-- `scripts/sync_skill_runtime.py` exports package-backed compatibility proxies,
-  runtime tests, and generated references into an installed ChemDraw Skill.
+- The `full` profile (default) contains 39 tools; `codex` is a compatibility alias.
+  Smaller profiles are tested by exact count.
+- The runtime is client-neutral: no agent-specific configuration writers or
+  defaults. The ChemDraw COM mutex keeps its historical name so that older and
+  newer runtimes still exclude each other.
 - `docs/mcp-tools.md` and `docs/mcp-schema.json` are generated files. CI rejects drift.
+  After a registry change also run `cdx.py regen-signatures` for the Skill.
 - The native workflow requires a self-hosted runner carrying the `chemdraw` label,
   a current GitHub Actions runner, an activated desktop ChemDraw installation,
   and desktop Word and PowerPoint.

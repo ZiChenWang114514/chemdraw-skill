@@ -71,7 +71,7 @@ class DistributionTests(unittest.TestCase):
             path.relative_to(ROOT).as_posix()
             for path in ROOT.rglob("*.md")
             if path.relative_to(ROOT).parts[0] not in {
-                ".git", "skill", ".pytest_cache", ".mypy_cache", ".ruff_cache"
+                ".git", "skill", "toolkit", ".pytest_cache", ".mypy_cache", ".ruff_cache"
             }
         }
         self.assertEqual(
@@ -82,11 +82,37 @@ class DistributionTests(unittest.TestCase):
                 "AGENTS.md",
                 ".github/contributing.md",
                 ".github/SECURITY.md",
+                ".github/pull_request_template.md",
                 "docs/guide.md",
                 "docs/guide.zh-cn.md",
                 "docs/zh-cn.md",
             },
         )
+
+    def test_toolkit_documentation_stays_in_its_documented_places(self) -> None:
+        toolkit = ROOT / "toolkit"
+        top = {path.name for path in toolkit.glob("*.md")}
+        self.assertEqual(top, {"README.md", "AGENTS.md", "NOTICE.md"})
+        allowed_roots = {"docs", "examples", "experiments", "assets"}
+        stray = [path.relative_to(ROOT).as_posix() for path in toolkit.rglob("*.md")
+                 if path.parent != toolkit and path.relative_to(toolkit).parts[0] not in allowed_roots]
+        self.assertEqual(stray, [])
+        # Workflows only run from the repository root; a nested .github would silently do nothing.
+        self.assertFalse((toolkit / ".github").exists())
+        self.assertTrue((toolkit / "LICENSE").is_file() and (toolkit / "NOTICE.md").is_file())
+
+    def test_no_personal_machine_paths_in_tracked_sources(self) -> None:
+        # samples/ keeps the recorded provenance of its fixtures and is exempt.
+        pattern = re.compile(r"[A-Za-z]:[\\/]Users[\\/](?!<|you|user|USERNAME|example)[A-Za-z0-9_.-]+[\\/]")
+        tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode("utf-8").split("\0")
+        offenders = []
+        for name in filter(None, tracked):
+            if name.startswith("toolkit/samples/") or not name.endswith((".py", ".md", ".ps1", ".yml", ".yaml", ".toml")):
+                continue
+            path = ROOT / name
+            if path.is_file() and pattern.search(path.read_text(encoding="utf-8", errors="replace")):
+                offenders.append(name)
+        self.assertEqual(offenders, [])
 
     def test_skill_bundle_is_self_contained(self) -> None:
         self.assertTrue((SKILL / "SKILL.md").is_file())
@@ -105,7 +131,10 @@ class DistributionTests(unittest.TestCase):
         brands = re.compile(r"\b(co" + r"dex|open" + r"ai|gemini|copilot|opencode)\b", re.IGNORECASE)
         allowed = {"README.md", "README.zh-cn.md", "docs/guide.md", "docs/guide.zh-cn.md",
                    ".github/workflows/validate.yml", "scripts/install.py",
-                   "skill/chemdraw/references/agent-integration.md"}
+                   "skill/chemdraw/references/agent-integration.md",
+                   # The toolkit documents and implements one compatibility alias (`--profile codex`).
+                   "toolkit/README.md", "toolkit/AGENTS.md", "toolkit/docs/maintenance.md",
+                   "toolkit/cdxml_toolkit/mcp_runtime/tool_registry.py"}
         tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode("utf-8").split("\0")
         offenders = []
         for name in filter(None, tracked):

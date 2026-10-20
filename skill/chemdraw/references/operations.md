@@ -20,7 +20,7 @@ The report is read-only. A skipped probe is not a verified capability. ChemScrip
 
 ## Requirements by capability
 
-- Portable CDXML and RDKit work: 64-bit Python 3.10–3.13 with `cdxml-toolkit-community` (3.14 and newer are not supported by the toolkit yet; the installer picks an older interpreter or takes `--python`). The pinned source is `runtime.json` (`repository`, `commit`, `toolkit_version`).
+- Portable CDXML and RDKit work: 64-bit Python 3.10–3.13 with the bundled `cdxml_toolkit` runtime (3.14 and newer are not supported by the toolkit yet; the installer picks an older interpreter or takes `--python`). The pinned source is `runtime.json` (`repository`, `commit`, `toolkit_version`).
 - Native rendering, CDX conversion and ChemDraw cleanup: licensed desktop ChemDraw, .NET Framework 4.8, working `ChemDraw.Application` COM registration. Confirm activation manually once.
 - Molecular comparison and ChemScript SDK: managed and native ChemScript DLLs (`pythonnet`). Keep the main runtime 64-bit; a legacy 32-bit ChemScript needs a separate helper Python (`CHEMSCRIPT_PYTHON`).
 - Editable DOCX/PPTX objects: desktop Word/PowerPoint.
@@ -57,7 +57,7 @@ python3 -m venv <venv>
 <venv>/bin/python <skill>/scripts/install_runtime.py --extras publication scientific
 ```
 
-`install_runtime.py` installs exactly the commit in `runtime.json`; `--toolkit-path` selects a local checkout for development and `--print-requirement` only prints the requirement. Never upgrade the runtime unasked. After a toolkit change:
+`install_runtime.py` builds from the repository's `toolkit/` folder when the Skill sits in a checkout, otherwise from the exact commit in `runtime.json`; `--toolkit-path` selects another toolkit source folder and `--print-requirement` only prints the requirement. Never upgrade the runtime unasked. After a toolkit change:
 
 ```bash
 cdx.py regen-signatures
