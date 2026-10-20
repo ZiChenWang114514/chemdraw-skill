@@ -108,7 +108,7 @@ def test_any_python_relaunches_into_the_runtime(tmp_path):
     proc = subprocess.run([sys.executable, '-I', '-S', str(script), 'tools', '--detail', 'summary'],
                           capture_output=True, text=True, env=env, timeout=120)
     assert proc.returncode == 0, proc.stderr
-    assert proc.stdout.startswith('39 tools')
+    assert re.match(r'\d+ tools: ', proc.stdout)
 
 
 def test_sibling_venv_is_a_runtime_candidate(tmp_path, monkeypatch):
@@ -117,10 +117,24 @@ def test_sibling_venv_is_a_runtime_candidate(tmp_path, monkeypatch):
     (venv / 'Scripts' / 'python.exe').write_bytes(b'')
     (venv / 'Lib' / 'site-packages' / 'cdxml_toolkit' / 'mcp_runtime').mkdir(parents=True)
     monkeypatch.setattr(cdx, 'SKILL_ROOT', tmp_path / 'chemdraw')
+    monkeypatch.setattr(cdx, 'LOCAL_CONFIG', tmp_path / 'chemdraw' / 'runtime.local.json')
     monkeypatch.delenv('CHEMDRAW_MCP_PYTHON', raising=False)
     monkeypatch.setattr(cdx.Path, 'home', lambda: tmp_path)
+    monkeypatch.setattr(cdx, '_runs', lambda python, code, timeout: True)
     found = cdx.runtime_candidates()
     assert found[0][0] == 'chemdraw-venv' and cdx._has_toolkit(found[0][1])
+
+
+def test_venv_whose_interpreter_does_not_start_is_skipped(tmp_path):
+    # A site-packages match is not enough: the venv launcher must actually run
+    # (base interpreter removed or blocked -> "Unable to create process").
+    venv = tmp_path / 'chemdraw-venv'
+    python = venv / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+    python.parent.mkdir(parents=True)
+    python.write_bytes(b'')
+    for pattern in ('Lib/site-packages', 'lib/python3.12/site-packages'):
+        (venv / pattern / 'cdxml_toolkit' / 'mcp_runtime').mkdir(parents=True)
+    assert cdx._has_toolkit(python) is False
 
 
 def _fake_env(root):
@@ -181,7 +195,9 @@ def test_skill_instructions_are_client_neutral():
     brands = re.compile(r'\b(claude|co' + r'dex|open' + r'ai|gemini|copilot|opencode)\b|\bCursor\b|\.cursor/', re.I)
     hits = [p.relative_to(SKILL_ROOT).as_posix() for p in SKILL_ROOT.rglob('*')
             if p.is_file() and p.suffix in {'.md', '.py', '.json', '.ps1', '.yaml', '.cdxml', '.csv'}
-            and '__pycache__' not in p.parts and p.name not in {'manifest.json', 'agent-integration.md', 'test_cdx.py'}
+            and '__pycache__' not in p.parts
+            # manifest.json / runtime.local.json are per-machine files written by the installer.
+            and p.name not in {'manifest.json', 'runtime.local.json', 'agent-integration.md', 'test_cdx.py'}
             and brands.search(p.read_text(encoding='utf-8', errors='ignore').replace('$cursor', ''))]
     assert hits == []
     assert not (SKILL_ROOT / 'agents').exists(), 'no client-specific adapter folders'

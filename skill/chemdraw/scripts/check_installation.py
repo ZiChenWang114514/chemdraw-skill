@@ -41,8 +41,15 @@ def _diff(expected, actual):
             'algorithm': 'sha256, text files LF-normalized'}
 
 
+LOCAL_ONLY = {'runtime.local.json'}  # per-machine runtime pointer; never part of a tree comparison
+
+
 def compare_trees(source, installed):
-    return _diff(file_hashes(source), file_hashes(installed))
+    expected, actual = file_hashes(source), file_hashes(installed)
+    for name in LOCAL_ONLY:
+        expected.pop(name, None)
+        actual.pop(name, None)
+    return _diff(expected, actual)
 
 
 def write_manifest(root):

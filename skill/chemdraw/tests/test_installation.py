@@ -58,6 +58,8 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             (installed/'extra').write_text('c')
             (installed/'__pycache__').mkdir()
             (installed/'__pycache__/ignored.pyc').write_bytes(b'cache')
+            # The per-machine runtime pointer may exist on either side and is never drift.
+            (source/'runtime.local.json').write_text('{"runtime_python": "x"}')
             result = module.compare_trees(source, installed)
             self.assertEqual(result['missing'], ['missing'])
             self.assertEqual(result['modified'], ['changed'])
