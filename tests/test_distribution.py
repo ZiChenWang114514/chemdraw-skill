@@ -11,13 +11,15 @@ SKILL = ROOT / "skill" / "chemdraw"
 
 
 class DistributionTests(unittest.TestCase):
-    def test_chinese_text_is_limited_to_chinese_readme(self) -> None:
+    CHINESE_DOCUMENTS = {"README.zh-cn.md", "docs/guide.zh-cn.md", "docs/zh-cn.md"}
+
+    def test_chinese_text_is_limited_to_chinese_documents(self) -> None:
         tracked = subprocess.check_output(
             ["git", "ls-files", "-z"], cwd=ROOT
         ).decode("utf-8").split("\0")
         violations = []
         for name in filter(None, tracked):
-            if name == "README.zh-cn.md":
+            if name in self.CHINESE_DOCUMENTS:
                 continue
             path = ROOT / name
             try:
@@ -26,7 +28,16 @@ class DistributionTests(unittest.TestCase):
                 continue
             if re.search(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]", content):
                 violations.append(name)
-        self.assertEqual(violations, [], "Use English outside README.zh-cn.md")
+        self.assertEqual(violations, [], "Use English outside the Chinese documents")
+
+    def test_chinese_documents_are_actually_chinese(self) -> None:
+        # Files named *.zh-cn.md / zh-cn.md must be translations, not copies of the English text.
+        cjk = re.compile("[" + chr(0x4E00) + "-" + chr(0x9FFF) + "]")  # CJK ideographs, kept out of this file
+        for name in sorted(self.CHINESE_DOCUMENTS):
+            with self.subTest(document=name):
+                text = (ROOT / name).read_text(encoding="utf-8")
+                self.assertGreaterEqual(len(cjk.findall(text)), 100, f"{name} is not written in Chinese")
+        self.assertNotEqual((ROOT / "docs/guide.zh-cn.md").read_bytes(), (ROOT / "docs/guide.md").read_bytes())
 
     def test_required_repository_files_exist(self) -> None:
         required = [

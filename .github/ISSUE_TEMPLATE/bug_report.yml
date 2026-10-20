@@ -11,7 +11,7 @@ body:
     id: tool
     attributes:
       label: Tool or workflow
-      placeholder: clean_scheme_layout, MCP startup, installer, etc.
+      placeholder: clean_scheme_layout, cdx.py render, scripts/install.py, etc.
     validations:
       required: true
   - type: textarea

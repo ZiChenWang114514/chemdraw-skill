@@ -32,9 +32,9 @@ For chemical structures, reactions, ChemDraw/CDXML files or chemistry figures, r
 
 ## Runtime
 
-All copies share one toolkit venv: `%LOCALAPPDATA%\chemdraw-skill\venv` on Windows, `$XDG_DATA_HOME/chemdraw-skill/venv` (default `~/.local/share/...`) elsewhere. `--runtime-dir` puts it somewhere else; the installer then writes `runtime.local.json` into each copy so the Skill still finds it. Replaced installations are moved to `chemdraw-skill/backups/` in the same data folder, outside every Skill folder, with a `BACKUP_ORIGIN.txt` naming where they came from.
+All copies share one toolkit venv: `%LOCALAPPDATA%\chemdraw-skill\venv` on Windows, `$XDG_DATA_HOME/chemdraw-skill/venv` (default `~/.local/share/...`) elsewhere. `--runtime-dir` puts it somewhere else; the installer then writes `runtime.local.json` into each copy, and into the repository checkout it was run from, so the Skill still finds it. Replaced installations are moved to `chemdraw-skill/backups/` in the same data folder, outside every Skill folder, with a `BACKUP_ORIGIN.txt` naming where they came from.
 
-`cdx.py` looks for the runtime in this order and re-launches itself there when started from any other Python 3.9+:
+`cdx.py` looks for the runtime in this order and re-launches itself there when started from any other Python 3.9+ (a candidate whose interpreter no longer starts, for example a venv whose base Python was removed, is skipped):
 
 1. `CHEMDRAW_MCP_PYTHON`
 2. `runtime.local.json` in the Skill folder

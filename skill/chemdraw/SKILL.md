@@ -12,7 +12,7 @@ Editable chemistry through `cdxml-toolkit-community` and, on Windows, licensed n
 `<skill>` is the folder containing this file. `python` is any Python 3.9+ on the host (`python3` on macOS/Linux, `python` or `py` on Windows). Everything runs through one entry point:
 
 ```bash
-python <skill>/scripts/cdx.py tools                              # list the 39 tools
+python <skill>/scripts/cdx.py tools                              # list the registered tools
 python <skill>/scripts/cdx.py render a.cdxml                     # native 300 dpi PNG beside it
 python <skill>/scripts/cdx.py build spec.json out.cdxml --render # ACS 1996 drawing from a spec
 python <skill>/scripts/cdx.py doctor                             # what works on this host

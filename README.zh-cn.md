@@ -25,7 +25,7 @@
 
 ## 快速开始
 
-运行安装脚本需要 Python 3.9+；工具包运行时需要 64 位 Python 3.10–3.13，安装脚本会自动查找。
+运行安装脚本需要 Python 3.9+；工具包运行时需要 64 位 Python 3.10–3.13，安装脚本会自动查找（通过 `py` 启动器、`uv` 管理的解释器或 PATH 上的 `python3.x`）。`cdxml-toolkit-community` 目前尚不支持 Python 3.14 及更新版本：如果你只有 3.14，请先安装 3.12（例如 `uv python install 3.12`）或用 `--python <解释器>` 指定。
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
@@ -58,7 +58,7 @@ python ~/.claude/skills/chemdraw/scripts/cdx.py doctor             # 查看本�
 Agent 通过同一个入口调用所有功能；任何 Python 都能启动它，它会自动切换到工具包运行时：
 
 ```bash
-python <skill>/scripts/cdx.py tools                                         # 39 个工具
+python <skill>/scripts/cdx.py tools                                         # 列出已注册的工具
 python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
 python <skill>/scripts/cdx.py render figure.cdxml                           # 原生 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png                              # 结构识别
@@ -79,7 +79,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 - **ChemScript SDK：** 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制调用卡死的影响，但不是操作系统级沙箱。
 - **远程工作站访问：** 可选地通过 Streamable HTTP 对外提供 Windows 原生主机服务，带健康检查与 Prometheus 端点。
 
-生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了已审计的 `cdxml-toolkit-community` 符号，与 39 个已注册工具分开统计。ChemScript 公共目录"完整覆盖"指相关接口都能被发现和报告；能否成功执行仍取决于已安装的 SDK、许可证、体系结构和各成员的具体行为。
+生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了已审计的 `cdxml-toolkit-community` 符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。ChemScript 公共目录"完整覆盖"指相关接口都能被发现和报告；能否成功执行仍取决于已安装的 SDK、许可证、体系结构和各成员的具体行为。
 
 ### 试卷与讲义插图：ACS Document 1996 格式
 
