@@ -9,7 +9,7 @@ and other heavy dependencies are lazy-imported and only required when their
 specific features are used.
 """
 
-__version__ = "0.7.0a2"
+__version__ = "0.7.0a3"
 
 # Core utilities — always available (stdlib + lxml only)
 from .constants import ACS_BOND_LENGTH, ACS_CHAIN_ANGLE, ACS_STYLE

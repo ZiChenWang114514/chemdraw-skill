@@ -484,14 +484,14 @@ if ($SkipChemDraw -or -not $windowsNativeRequested) {
         if ($managedDll -and $nativeDll) {
             Add-Check -Name 'chemscript_files' -Status 'pass' -Required $chemScriptRequested `
                 -Detail "Managed: $($managedDll.Name); native: $($nativeDll.Name)" `
-                -Help 'Run cdx.py doctor --chemscript after the runtime is installed to verify the bridge.'
+                -Help 'Verify the bridge with cdx.py doctor --chemscript after the runtime is installed.'
         } else {
             Add-Check -Name 'chemscript_files' `
                 -Status $(if ($chemScriptRequested) { 'fail' } else { 'warning' }) `
                 -Required $chemScriptRequested `
                 -Detail 'A complete managed/native ChemScript DLL pair was not found near ChemDraw.exe.' `
                 -Help 'Core CDXML tools can still work. Molecule comparison and full SDK tools require ChemScript.'
-            Add-NextStep 'Run cdx.py doctor --chemscript to discover or configure ChemScript if those tools are needed.'
+            Add-NextStep 'If ChemScript tools are needed, configure the bridge with cdx.py py -m cdxml_toolkit.doctor --no-tests --configure-chemscript, then verify it with cdx.py doctor --chemscript.'
         }
     } else {
         Add-Check -Name 'chemscript_files' `

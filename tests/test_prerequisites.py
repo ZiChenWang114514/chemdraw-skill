@@ -171,7 +171,8 @@ class PrerequisiteCheckerTests(unittest.TestCase):
         self.assertIn("runtime.json", script)
         self.assertNotRegex(script, r"0\.\d+\.\d+a\d+", "hard-coded toolkit version in the checker")
         self.assertNotIn("install_decimer_models.py", script)
-        self.assertNotIn("cdxml-doctor", script)
+        # ChemScript configuration goes through the runtime, which cdx.py py always selects.
+        self.assertIn("cdx.py py -m cdxml_toolkit.doctor --no-tests --configure-chemscript", script)
         self.assertNotIn("register the MCP runtime", script)
         self.assertRegex(baseline["toolkit_version"], r"^\d+\.\d+")
 

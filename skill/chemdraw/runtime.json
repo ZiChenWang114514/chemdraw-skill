@@ -1,5 +1,6 @@
 {
-  "repository": "https://github.com/ZiChenWang114514/cdxml-toolkit-community.git",
-  "commit": "1a7a51864d328ddf509031a381a3c40431fea04f",
-  "toolkit_version": "0.7.0a2"
+  "repository": "https://github.com/ZiChenWang114514/chemdraw-skill.git",
+  "subdirectory": "toolkit",
+  "commit": "63b71ecf58ec9b4b7e866bb29a6b05da4a674203",
+  "toolkit_version": "0.7.0a3"
 }

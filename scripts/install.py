@@ -7,7 +7,7 @@ is moved to a backup outside every Skill discovery directory and restored on
 failure.
 
 --runtime creates (or reuses) one toolkit venv shared by all installed copies
-and installs the cdxml-toolkit revision pinned in runtime.json. scripts/cdx.py
+and installs the bundled toolkit from this checkout's toolkit/ folder. scripts/cdx.py
 finds that venv on its own, so any Python can launch the Skill's CLI. When the
 venv lives somewhere cdx.py would not look, runtime.local.json is written into
 every installed copy and into this repository checkout (ignored by Git).
@@ -35,6 +35,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'skill' / 'chemdraw'
+TOOLKIT = ROOT / 'toolkit'  # the bundled cdxml-toolkit source the runtime is built from
 SKILL_NAME = 'chemdraw'
 
 # Skill folders per agent: (user scope relative to the home folder, project scope).
@@ -159,7 +160,9 @@ def runtime_plan(ns, targets):
     # base_python stays a command list: interpreter paths may contain spaces ("Program Files").
     return {'action': action, 'venv': str(venv), 'python': str(venv_python(venv)),
             'base_python': list(base) if base else None, 'extras': extras,
-            'toolkit_path': ns.toolkit_path}
+            # Always build from this checkout's toolkit/ so the runtime matches the Skill exactly.
+            'toolkit_path': str(Path(ns.toolkit_path).expanduser().resolve()) if ns.toolkit_path
+            else str(TOOLKIT)}
 
 
 def backup_root(ns):
@@ -243,7 +246,7 @@ def parse(argv):
     p.add_argument('--runtime-dir', help=f'venv location (default: {cdx.default_runtime_dir()})')
     p.add_argument('--python', help='base interpreter for a new venv (64-bit Python 3.10-3.13)')
     p.add_argument('--extras', nargs='*', help='toolkit extras (default: all that apply to this OS)')
-    p.add_argument('--toolkit-path', help='local cdxml-toolkit checkout instead of the pinned commit')
+    p.add_argument('--toolkit-path', help='toolkit source folder to build the runtime from (default: toolkit/ of this checkout)')
     p.add_argument('--backup-root', help=f'where replaced installations go (default: {data_dir() / "backups"})')
     p.add_argument('--apply', action='store_true', help='install; without it only the proposal is printed')
     ns = p.parse_args(argv)
