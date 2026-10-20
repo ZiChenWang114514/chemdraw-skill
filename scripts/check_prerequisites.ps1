@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$Python,
-    [ValidateSet('core', 'native', 'chemscript', 'office', 'decimer')]
+    # Validated (and comma-split) by the deployable checker.
     [string[]]$Capabilities = @('core'),
     [switch]$Json,
     [switch]$SkipChemDraw,

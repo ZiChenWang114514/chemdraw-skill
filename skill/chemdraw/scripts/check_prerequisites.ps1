@@ -2,7 +2,8 @@
 [CmdletBinding()]
 param(
     [string]$Python,
-    [ValidateSet('core', 'native', 'chemscript', 'office', 'decimer')]
+    # core, native, chemscript, office, decimer. Accepts an array or one comma-separated
+    # string: `pwsh script.ps1 -Capabilities core,native` from bash or cmd passes a single string.
     [string[]]$Capabilities = @('core'),
     [switch]$Json,
     [switch]$SkipChemDraw,
@@ -15,7 +16,29 @@ $ErrorActionPreference = 'Stop'
 
 $checks = [Collections.Generic.List[object]]::new()
 $nextSteps = [Collections.Generic.List[string]]::new()
-$selectedCapabilities = @($Capabilities | ForEach-Object { $_.ToLowerInvariant() } | Select-Object -Unique)
+
+# The tested toolkit version is the one pinned in the Skill's runtime.json, never a literal here.
+$testedToolkitVersion = $null
+$runtimeBaseline = Join-Path $PSScriptRoot '..\runtime.json'
+if (Test-Path -LiteralPath $runtimeBaseline -PathType Leaf) {
+    try {
+        $testedToolkitVersion = [string](Get-Content -LiteralPath $runtimeBaseline -Raw | ConvertFrom-Json).toolkit_version
+    } catch {
+        $testedToolkitVersion = $null
+    }
+}
+$testedToolkitText = if ($testedToolkitVersion) { "cdxml-toolkit-community $testedToolkitVersion" } else { 'the cdxml-toolkit-community revision pinned in runtime.json' }
+$knownCapabilities = @('core', 'native', 'chemscript', 'office', 'decimer')
+$selectedCapabilities = @($Capabilities |
+    ForEach-Object { $_ -split '[,\s]+' } |
+    Where-Object { $_ } |
+    ForEach-Object { $_.ToLowerInvariant() } |
+    Select-Object -Unique)
+$unknownCapabilities = @($selectedCapabilities | Where-Object { $_ -notin $knownCapabilities })
+if ($unknownCapabilities.Count) {
+    throw ("Unknown capability: {0}. Use one or more of: {1}." -f `
+        ($unknownCapabilities -join ', '), ($knownCapabilities -join ', '))
+}
 if ('core' -notin $selectedCapabilities) {
     $selectedCapabilities = @('core') + $selectedCapabilities
 }
@@ -183,16 +206,17 @@ if ($condaCommand) {
         $condaDetail = "Conda is registered as a PowerShell $([string]$condaCommand.CommandType)."
     } else {
         $condaVersion = Invoke-Captured -FilePath $condaPath -Arguments @('--version')
-        $condaDetail = if ($condaVersion.Output) { $condaVersion.Output } else { $condaPath }
+        # A failed version probe (for example a console-encoding error from conda.exe) must not
+        # be reported as the version; fall back to the path.
+        $condaDetail = if ($condaVersion.ExitCode -eq 0 -and $condaVersion.Output) { $condaVersion.Output } else { $condaPath }
     }
     Add-Check -Name 'conda' -Status 'pass' -Required $false `
         -Detail $condaDetail `
-        -Help 'A dedicated Conda environment is the recommended Python setup.'
+        -Help 'Optional. The installer creates its own runtime venv; a Conda environment named cdxml is also discovered.'
 } else {
-    Add-Check -Name 'conda' -Status 'warning' -Required $false `
-        -Detail 'Conda was not found. An existing compatible Python can still be supplied explicitly.' `
-        -Help 'Install 64-bit Miniconda from https://docs.conda.io/projects/conda/en/stable/user-guide/install/windows.html.'
-    Add-NextStep 'Install 64-bit Miniconda if you do not already manage isolated Python environments.'
+    Add-Check -Name 'conda' -Status 'skipped' -Required $false `
+        -Detail 'Conda was not found; it is not required. scripts/install.py --runtime creates a dedicated venv from any 64-bit Python 3.10-3.13.' `
+        -Help 'Install Conda only if you prefer to manage the runtime environment yourself.'
 }
 
 $pythonPath = $null
@@ -230,12 +254,12 @@ if ($pythonPath) {
                 $pythonInfo.version[2],
                 $pythonInfo.bits,
                 $pythonInfo.executable
-            $help = 'Use a 64-bit Python 3.10-3.13 runtime. Python 3.12 is tested.'
+            $help = 'Use a 64-bit Python 3.10-3.13 runtime (3.12 is tested; 3.14 and newer are not supported by the toolkit yet).'
             Add-Check -Name 'python_runtime' `
                 -Status $(if ($pythonReady) { 'pass' } else { 'fail' }) `
                 -Required $true -Detail $detail -Help $help
             if (-not $supportedVersion) {
-                Add-NextStep 'Create a new Conda environment with Python 3.12.'
+                Add-NextStep 'Install a 64-bit Python 3.12 (python.org, uv python install 3.12, or Conda) and pass it with -Python or scripts/install.py --python.'
             }
             if (-not $supportedBits) {
                 Add-NextStep 'Use 64-bit Python for the main MCP environment; keep any 32-bit ChemScript helper separate.'
@@ -250,8 +274,8 @@ if ($pythonPath) {
 if (-not $pythonReady -and -not ($checks | Where-Object { $_.name -eq 'python_runtime' })) {
     Add-Check -Name 'python_runtime' -Status 'fail' -Required $true `
         -Detail $(if ($pythonProblem) { $pythonProblem } else { 'No usable Python runtime was found.' }) `
-        -Help 'Create a 64-bit Conda environment with Python 3.12 and pass its python.exe with -Python.'
-    Add-NextStep 'Create the recommended Python 3.12 Conda environment, then run this check with -Python.'
+        -Help 'Install a 64-bit Python 3.10-3.13 (3.12 is tested) and pass its python.exe with -Python.'
+    Add-NextStep 'Install a 64-bit Python 3.12, then run this check with -Python.'
 }
 
 if ($SkipPythonPackages) {
@@ -301,28 +325,30 @@ print(json.dumps(result))
             }
             if ($missingPackages.Count -eq 0) {
                 $versionText = ($versions -join ', ')
-                $testedVersions = $versionText -match 'cdxml_toolkit=0\.7\.0a1' -and `
-                    $versionText -match 'mcp=[12]\.'
+                $toolkitMatches = if ($testedToolkitVersion) {
+                    $versionText -match ('cdxml_toolkit=' + [regex]::Escape($testedToolkitVersion) + '(,|$)')
+                } else { $true }
+                $testedVersions = $toolkitMatches -and $versionText -match 'mcp=[12]\.'
                 Add-Check -Name 'python_packages' `
                     -Status $(if ($testedVersions) { 'pass' } else { 'warning' }) `
                     -Required $true `
                     -Detail $versionText `
-                    -Help 'The tested runtime is cdxml-toolkit-community 0.7.0a1 with MCP 1.x or 2.x.'
+                    -Help "The tested runtime is $testedToolkitText with MCP 1.x or 2.x (scripts/install.py --runtime installs it)."
             } else {
                 Add-Check -Name 'python_packages' -Status 'fail' -Required $true `
                     -Detail ($missingPackages -join '; ') `
-                    -Help 'Install cdxml-toolkit-community 0.7.0a1 and MCP 1.x or 2.x into this exact Python environment.'
+                    -Help "Install $testedToolkitText and MCP 1.x or 2.x into this exact Python environment (scripts/install.py --runtime --apply)."
                 Add-NextStep 'Install the tested Python packages into the selected environment.'
             }
         } catch {
             Add-Check -Name 'python_packages' -Status 'fail' -Required $true `
                 -Detail "The package probe returned invalid JSON: $($_.Exception.Message)" `
-                -Help 'Reinstall the tested package versions in a clean Python 3.12 environment.'
+                -Help 'Reinstall the runtime in a clean Python 3.12 venv (scripts/install.py --runtime --apply).'
         }
     } else {
         Add-Check -Name 'python_packages' -Status 'fail' -Required $true `
             -Detail $packageProbe.Output `
-            -Help 'Install cdxml-toolkit-community 0.7.0a1 and MCP 1.x or 2.x into this exact Python environment.'
+            -Help "Install $testedToolkitText and MCP 1.x or 2.x into this exact Python environment (scripts/install.py --runtime --apply)."
         Add-NextStep 'Install the tested Python packages into the selected environment.'
     }
 
@@ -347,7 +373,12 @@ if ($decimerRequested -and $pythonReady) {
 import json
 from cdxml_toolkit.mcp_runtime.runtime_diagnostics import diagnose_runtime
 
-print(json.dumps(diagnose_runtime()["capabilities"]["decimer_models"]))
+report = diagnose_runtime()
+if isinstance(report, str):
+    report = json.loads(report)
+# Current toolkits wrap results as {"ok", "outputs": {"capabilities": ...}}; older ones did not.
+capabilities = (report.get("outputs") or {}).get("capabilities") or report.get("capabilities") or {}
+print(json.dumps(capabilities.get("decimer_models") or {"status": "unknown", "root": None}))
 '@
     $decimerProbe = Invoke-PythonCode -PythonPath $pythonPath -Code $decimerCode
     if ($decimerProbe.ExitCode -eq 0) {
@@ -358,7 +389,7 @@ print(json.dumps(diagnose_runtime()["capabilities"]["decimer_models"]))
                 -Status $(if ($decimerReady) { 'pass' } else { 'fail' }) `
                 -Required $true `
                 -Detail $(if ($decimerReady) { "DECIMER model markers are complete under $($decimerInfo.root)." } else { "DECIMER model markers are incomplete under $($decimerInfo.root)." }) `
-                -Help 'Install the official standard and hand-drawn model weights with scripts\install_decimer_models.py.'
+                -Help 'Install the official standard and hand-drawn model weights with: cdx.py py -m cdxml_toolkit.mcp_runtime.install_decimer_models'
             if (-not $decimerReady) {
                 Add-NextStep 'Install and verify the DECIMER model weights, then repeat this capability check.'
             }
@@ -453,14 +484,14 @@ if ($SkipChemDraw -or -not $windowsNativeRequested) {
         if ($managedDll -and $nativeDll) {
             Add-Check -Name 'chemscript_files' -Status 'pass' -Required $chemScriptRequested `
                 -Detail "Managed: $($managedDll.Name); native: $($nativeDll.Name)" `
-                -Help 'Run cdxml-doctor --no-tests after Python package installation to configure the bridge.'
+                -Help 'Run cdx.py doctor --chemscript after the runtime is installed to verify the bridge.'
         } else {
             Add-Check -Name 'chemscript_files' `
                 -Status $(if ($chemScriptRequested) { 'fail' } else { 'warning' }) `
                 -Required $chemScriptRequested `
                 -Detail 'A complete managed/native ChemScript DLL pair was not found near ChemDraw.exe.' `
                 -Help 'Core CDXML tools can still work. Molecule comparison and full SDK tools require ChemScript.'
-            Add-NextStep 'Run cdxml-doctor --no-tests to discover or configure ChemScript if those tools are needed.'
+            Add-NextStep 'Run cdx.py doctor --chemscript to discover or configure ChemScript if those tools are needed.'
         }
     } else {
         Add-Check -Name 'chemscript_files' `
@@ -529,7 +560,7 @@ $requiredSkipped = @($checks | Where-Object {
 })
 $ok = $blockingChecks.Count -eq 0 -and $requiredSkipped.Count -eq 0
 if ($ok) {
-    Add-NextStep 'Install the selected package extras, load SKILL.md, and register the MCP runtime in your agent client. Client-specific configuration is optional.'
+    Add-NextStep 'Run scripts/install.py --agent <name> --runtime --apply, then cdx.py doctor. No MCP registration is needed; the command line covers every tool.'
 }
 
 $report = [pscustomobject][ordered]@{
