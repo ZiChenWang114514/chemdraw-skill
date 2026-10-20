@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible toolkit defect
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not attach credentials, proprietary chemistry, or licensed binaries.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: Package version, source commit or wheel hash, and runtime_identity
+    validations:
+      required: true
+  - type: dropdown
+    id: capability
+    attributes:
+      label: Capability
+      options:
+        - Portable CDXML or RDKit
+        - MCP server
+        - ChemDraw COM
+        - ChemScript
+        - Office
+        - Image recognition
+        - Analysis
+        - Packaging or installation
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide minimal steps and a non-sensitive fixture when possible.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Windows, Python, ChemDraw, ChemScript, Office, and package versions.
+    validations:
+      required: true

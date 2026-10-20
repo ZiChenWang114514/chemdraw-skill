@@ -1,0 +1,37 @@
+# Showcase 20: Stacked Rows - Different Synthetic Routes
+# Three independent routes to similar targets
+
+structures:
+  sm_a: {smiles: "Brc1ccc2ccccc2n1", label: "1a"}
+  prod_a: {smiles: "c1ccc2nc(N3CCOCC3)ccc2c1", label: "2a"}
+  sm_b: {smiles: "Clc1ccnc2ccccc12", label: "1b"}
+  prod_b: {smiles: "C1CCN(c2ccnc3ccccc23)CC1", label: "2b"}
+  sm_c: {smiles: "Fc1ccncc1", label: "1c"}
+  int_c: {smiles: "C1CCN(c2ccncc2)CC1", label: "2c"}
+  prod_c: {smiles: "O=C(c1ccccc1)N1CCCC1c1ccncc1", label: "3c"}
+
+sections:
+  - label: "(i)"
+    steps:
+      - substrates: [sm_a]
+        below_arrow:
+          text: ["morpholine, Pd2(dba)3", "BINAP, Cs2CO3, dioxane", "reflux, 24 h, 72%"]
+        products: [prod_a]
+  - label: "(ii)"
+    steps:
+      - substrates: [sm_b]
+        below_arrow:
+          text: ["piperidine (3 eq)", "DIPEA, NMP", "120 C, 16 h, 91%"]
+        products: [prod_b]
+  - label: "(iii)"
+    steps:
+      - substrates: [sm_c]
+        below_arrow:
+          text: ["piperidine (3 eq)", "K2CO3, DMSO", "80 C, 12 h"]
+        products: [int_c]
+      - substrates: [int_c]
+        below_arrow:
+          text: ["BzCl (1.1 eq)", "Et3N, DCM, 0 C"]
+        products: [prod_c]
+
+layout: stacked-rows

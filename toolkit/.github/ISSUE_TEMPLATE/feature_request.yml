@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a focused capability or compatibility improvement
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Chemistry workflow
+      description: Describe the user task and expected artifact.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation method
+      description: Explain how molecular fidelity and output compatibility can be checked.
+    validations:
+      required: true
+

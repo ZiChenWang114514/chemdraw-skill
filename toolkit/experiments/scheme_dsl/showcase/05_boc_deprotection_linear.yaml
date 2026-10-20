@@ -1,0 +1,18 @@
+# Showcase 05: Boc Deprotection (linear, simple reagent)
+
+structures:
+  boc_amine:
+    smiles: "CC(C)(C)OC(=O)Nc1ccc(F)cc1"
+    label: "9"
+  free_amine:
+    smiles: "Nc1ccc(F)cc1"
+    label: "10"
+
+steps:
+  - substrates: [boc_amine]
+    below_arrow:
+      text: ["TFA (20 eq)", "DCM, RT, 1 h"]
+    products: [free_amine]
+    yield_: "quant."
+
+layout: linear

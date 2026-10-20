@@ -1,0 +1,23 @@
+# Showcase 04: Amide Coupling (linear, above-arrow amine)
+
+structures:
+  acid:
+    smiles: "OC(=O)c1ccc(F)cc1"
+    label: "7"
+  amine:
+    smiles: "NCc1ccccc1"
+  amide:
+    smiles: "O=C(NCc1ccccc1)c1ccc(F)cc1"
+    label: "8"
+
+steps:
+  - substrates: [acid]
+    above_arrow:
+      structures: [amine]
+      text: ["(1.1 eq)"]
+    below_arrow:
+      text: ["HATU (1.2 eq)", "DIPEA (3.0 eq)", "DMF, RT, 2 h"]
+    products: [amide]
+    yield_: "85%"
+
+layout: linear

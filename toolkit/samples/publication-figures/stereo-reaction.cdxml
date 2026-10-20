@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >
+<CDXML
+ CreationProgram="ChemDraw 16.0.0.82"
+ BoundingBox="0 0 1620 2160"
+ WindowPosition="-2147483648 -2147483648"
+ WindowSize="-2147483648 -2147483648"
+ FractionalWidths="yes"
+ InterpretChemically="yes"
+ ShowAtomQuery="yes"
+ ShowAtomStereo="no"
+ ShowAtomEnhancedStereo="yes"
+ ShowAtomNumber="no"
+ ShowResidueID="no"
+ ShowBondQuery="yes"
+ ShowBondRxn="yes"
+ ShowBondStereo="no"
+ ShowTerminalCarbonLabels="no"
+ ShowNonTerminalCarbonLabels="no"
+ HideImplicitHydrogens="no"
+ LabelFont="3"
+ LabelSize="10"
+ LabelFace="96"
+ CaptionFont="3"
+ CaptionSize="10"
+ HashSpacing="2.50"
+ MarginWidth="1.60"
+ LineWidth="0.60"
+ BoldWidth="2"
+ BondLength="14.40"
+ BondSpacing="18"
+ ChainAngle="120"
+ LabelJustification="Auto"
+ CaptionJustification="Left"
+ AminoAcidTermini="HOH"
+ ShowSequenceTermini="yes"
+ ShowSequenceBonds="yes"
+ ResidueWrapCount="40"
+ ResidueBlockCount="10"
+ ResidueZigZag="yes"
+ NumberResidueBlocks="no"
+ PrintMargins="36 36 36 36"
+ ChemPropName=""
+ ChemPropFormula="Chemical Formula: "
+ ChemPropExactMass="Exact Mass: "
+ ChemPropMolWt="Molecular Weight: "
+ ChemPropMOverZ="m/z: "
+ ChemPropAnalysis="Elemental Analysis: "
+ ChemPropBoilingPt="Boiling Point: "
+ ChemPropMeltingPt="Melting Point: "
+ ChemPropCritTemp="Critical Temp: "
+ ChemPropCritPres="Critical Pres: "
+ ChemPropCritVol="Critical Vol: "
+ ChemPropGibbs="Gibbs Energy: "
+ ChemPropLogP="Log P: "
+ ChemPropMR="MR: "
+ ChemPropHenry="Henry&apos;s Law: "
+ ChemPropEForm="Heat of Form: "
+ ChemProptPSA="tPSA: "
+ ChemPropCLogP="CLogP: "
+ ChemPropCMR="CMR: "
+ ChemPropLogS="LogS: "
+ ChemPropPKa="pKa: "
+ ChemPropID=""
+ color="0"
+ bgcolor="1"
+ RxnAutonumberStart="1"
+ RxnAutonumberConditions="no"
+ RxnAutonumberStyle="Roman"
+ RxnAutonumberFormat="(#)"
+><colortable>
+<color r="1" g="1" b="1"/>
+<color r="0" g="0" b="0"/>
+<color r="1" g="0" b="0"/>
+<color r="1" g="1" b="0"/>
+<color r="0" g="1" b="0"/>
+<color r="0" g="1" b="1"/>
+<color r="0" g="0" b="1"/>
+<color r="1" g="0" b="1"/>
+</colortable><fonttable>
+<font id="3" charset="iso-8859-1" name="Arial"/>
+</fonttable>
+<page id="1083" BoundingBox="0 0 1620 2160" HeaderPosition="36" FooterPosition="36" PrintTrimMarks="yes" HeightPages="3" WidthPages="3">
+<fragment id="1000" BoundingBox="103.30 283.80 138.23 316.20" Z="1001">
+<n id="1002" p="138.23 307.61" Z="1003"/>
+<n id="1004" p="127.64 297.85" Z="1005"/>
+<n id="1006" p="130.79 283.80" Z="1007" Element="8" NumHydrogens="1" NeedsClean="yes">
+<t id="1008" p="127.54 287.32" BoundingBox="127.79 276.28 133.79 283.80" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">OH</s>
+</t>
+</n>
+<n id="1009" p="113.89 302.15" Z="1010"/>
+<n id="1011" p="110.74 316.20" Z="1012" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1013" p="107.49 319.72" BoundingBox="107.74 308.68 113.74 316.20" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1014" p="103.30 292.39" Z="1015" Element="8" NumHydrogens="1" NeedsClean="yes">
+<t id="1016" p="100.05 295.91" BoundingBox="100.30 284.87 106.30 292.39" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">OH</s>
+</t>
+</n>
+<b id="1017" Z="1018" B="1004" E="1002" Display="WedgeBegin"/>
+<b id="1019" Z="1020" B="1004" E="1006"/>
+<b id="1021" Z="1022" B="1004" E="1009"/>
+<b id="1023" Z="1024" B="1009" E="1011" Order="2"/>
+<b id="1025" Z="1026" B="1009" E="1014"/>
+</fragment>
+<t id="1027" p="120.77 331.65" BoundingBox="85.52 322.55 156.02 333.65" Z="1028" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="0">(S)-lactic acid</s>
+</t>
+<t id="1029" p="147.29 303.50" BoundingBox="144.94 294.40 149.64 305.50" Z="1030" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="96">+</s>
+</t>
+<fragment id="1031" BoundingBox="156.35 300.00 170.75 300.00" Z="1032">
+<n id="1033" p="156.35 300.00" Z="1034"/>
+<n id="1035" p="170.75 300.00" Z="1036" Element="8" NumHydrogens="1" NeedsClean="yes">
+<t id="1037" p="167.50 303.52" BoundingBox="167.75 292.48 173.75 300.00" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">OH</s>
+</t>
+</n>
+<b id="1038" Z="1039" B="1033" E="1035"/>
+</fragment>
+<t id="1040" p="163.55 315.45" BoundingBox="154.15 306.35 172.95 317.45" Z="1041" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="0">MeOH</s>
+</t>
+<arrow id="1042" BoundingBox="189.89 296.00 265.69 304.00" Z="1043" FillType="None" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadCenterSize="875" ArrowheadWidth="250" Head3D="265.69 300.00 0" Tail3D="189.89 300.00 0" LineWidth="0.60"/>
+<t id="1044" p="227.79 294.00" BoundingBox="206.64 284.90 248.94 296.00" Z="1045" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="0">H+ (cat.)</s>
+</t>
+<t id="1046" p="227.79 313.10" BoundingBox="194.89 304.00 260.69 315.10" Z="1047" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="96">Depiction test</s>
+</t>
+<fragment id="1048" BoundingBox="283.39 283.80 332.06 316.20" Z="1049">
+<n id="1050" p="283.39 296.69" Z="1051"/>
+<n id="1052" p="297.13 292.39" Z="1053" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1054" p="293.88 295.91" BoundingBox="294.13 284.87 300.13 292.39" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1055" p="307.73 302.15" Z="1056"/>
+<n id="1057" p="304.58 316.20" Z="1058" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1059" p="301.33 319.72" BoundingBox="301.58 308.68 307.58 316.20" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1060" p="321.47 297.85" Z="1061"/>
+<n id="1062" p="332.06 307.61" Z="1063"/>
+<n id="1064" p="324.62 283.80" Z="1065" Element="8" NumHydrogens="1" NeedsClean="yes">
+<t id="1066" p="321.37 287.32" BoundingBox="321.62 276.28 327.62 283.80" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">OH</s>
+</t>
+</n>
+<b id="1067" Z="1068" B="1050" E="1052"/>
+<b id="1069" Z="1070" B="1052" E="1055"/>
+<b id="1071" Z="1072" B="1055" E="1057" Order="2"/>
+<b id="1073" Z="1074" B="1055" E="1060"/>
+<b id="1075" Z="1076" B="1060" E="1062" Display="WedgeBegin"/>
+<b id="1077" Z="1078" B="1060" E="1064"/>
+</fragment>
+<t id="1079" p="307.73 331.65" BoundingBox="265.43 322.55 350.03 333.65" Z="1080" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="0">methyl (S)-lactate</s>
+</t>
+<scheme id="1081">
+<step id="1082" ReactionStepReactants="1000 1031" ReactionStepProducts="1048" ReactionStepArrows="1042" ReactionStepObjectsAboveArrow="1044" ReactionStepObjectsBelowArrow="1046"/>
+</scheme>
+</page>
+</CDXML>

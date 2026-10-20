@@ -1,0 +1,55 @@
+# Showcase 10: Wrap:Repeat with Run Arrows
+# Progress report style: scheme + mass/yield tracking below
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  morph:
+    smiles: "C1COCCN1"
+  int1:
+    smiles: "c1ccc2nc(N3CCOCC3)ccc2c1"
+    label: "2"
+  int2:
+    smiles: "Brc1cc2ccccc2nc1N1CCOCC1"
+    label: "3"
+  product:
+    smiles: "c1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1"
+    label: "4"
+
+steps:
+  - substrates: [sm]
+    above_arrow:
+      structures: [morph]
+      text: ["(1.2 eq)"]
+    below_arrow:
+      text: ["Pd2(dba)3, BINAP", "Cs2CO3, dioxane, reflux"]
+    products: [int1]
+  - substrates: [int1]
+    below_arrow:
+      text: ["NBS, DMF, 0 C"]
+    products: [int2]
+  - substrates: [int2]
+    below_arrow:
+      text: ["PhB(OH)2, Pd(dppf)Cl2", "K2CO3, dioxane/H2O, 80 C"]
+    products: [product]
+
+layout: sequential
+wrap: repeat
+steps_per_row: 2
+
+run_arrows:
+  - step: 1
+    runs:
+      - input: "2.15 g"
+        output: "1.60 g, 72%"
+      - input: "500 mg"
+        output: "360 mg, 70%"
+  - step: 2
+    runs:
+      - input: "1.60 g"
+        output: "1.52 g, 95%"
+  - step: 3
+    runs:
+      - input: "1.00 g"
+        output: "780 mg, 85%"

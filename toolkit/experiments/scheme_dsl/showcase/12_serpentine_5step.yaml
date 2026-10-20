@@ -1,0 +1,47 @@
+# Showcase 12: Serpentine Wrapping - 5 Steps (Thesis Style)
+# Row 1 L→R (3 steps), vertical arrow, Row 2 R→L (1 step)
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  morph:
+    smiles: "C1COCCN1"
+  int1:
+    smiles: "c1ccc2nc(N3CCOCC3)ccc2c1"
+    label: "2"
+  int2:
+    smiles: "Brc1cc2ccccc2nc1N1CCOCC1"
+    label: "3"
+  int3:
+    smiles: "c1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1"
+    label: "4"
+  product:
+    smiles: "O=Cc1c(-c2ccccc2)c2ccccc2nc1N1CCOCC1"
+    label: "5"
+
+steps:
+  - substrates: [sm]
+    above_arrow:
+      structures: [morph]
+      text: ["(1.2 eq)"]
+    below_arrow:
+      text: ["Pd2(dba)3, BINAP", "Cs2CO3, dioxane, reflux"]
+    products: [int1]
+  - substrates: [int1]
+    below_arrow:
+      text: ["NBS, DMF, 0 C"]
+    products: [int2]
+  - substrates: [int2]
+    below_arrow:
+      text: ["PhB(OH)2, Pd(dppf)Cl2", "K2CO3, dioxane/H2O, 80 C"]
+    products: [int3]
+  # This step becomes the vertical transition arrow
+  - substrates: [int3]
+    below_arrow:
+      text: ["Cl2CHOCH3, TiCl4", "DCM, -78 C"]
+    products: [product]
+
+layout: sequential
+wrap: serpentine
+steps_per_row: 3

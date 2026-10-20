@@ -1,0 +1,6 @@
+@layout linear
+
+"1"{Brc1ccc2ccccc2n1} --> "2"{c1ccc2nc(N3CCOCC3)ccc2c1}
+
+step 1:
+  below: "morpholine (1.2 eq)", "Pd2(dba)3 (5 mol%)", "rac-BINAP (10 mol%)", "Cs2CO3 (2.0 eq)", "1,4-dioxane", "reflux, 24 h"

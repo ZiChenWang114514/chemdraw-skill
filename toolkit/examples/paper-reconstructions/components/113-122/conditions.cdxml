@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="14.4" LineWidth="0.6" BoldWidth="2" HashSpacing="2.5" MarginWidth="1.6" BondSpacing="18" LabelFont="1001" CaptionFont="1001" LabelSize="13.0" CaptionSize="13.0" LabelFace="96">
+  <fonttable>
+    <font id="3" charset="iso-8859-1" name="Arial" />
+    <font id="1001" charset="iso-8859-1" name="Arial" />
+  </fonttable>
+  <page id="1" BoundingBox="0 0 1000 1000">
+    <arrow id="1002" Tail3D="129.0 151.0 0" Head3D="147.5 151.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1003" p="58.5 147.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">MsCl, Et</s>
+      <s font="1001" size="13.0" face="32" color="3">3</s>
+      <s font="1001" size="13.0" face="0" color="3">N</s>
+    </t>
+    <t id="1004" p="179.5 136.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">R = H</s>
+    </t>
+    <t id="1005" p="179.5 154.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">R = Ms</s>
+    </t>
+    <arrow id="1006" Tail3D="302.0 69.0 0" Head3D="461.0 69.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1007" p="317.0 63.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">K</s>
+      <s font="1001" size="13.0" face="32" color="3">2</s>
+      <s font="1001" size="13.0" face="0" color="3">CO</s>
+      <s font="1001" size="13.0" face="32" color="3">3</s>
+      <s font="1001" size="13.0" face="0" color="3">, MeOH, 25 °C</s>
+    </t>
+    <t id="1008" p="350.5 90.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">− MsO</s>
+      <s font="1001" size="13.0" face="64" color="3">−</s>
+    </t>
+    <t id="1009" p="317.5 109.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">3-exo-tet cyclization</s>
+    </t>
+    <arrow id="1010" Tail3D="612.5 69.0 0" Head3D="755.0 69.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1011" p="632.5 86.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">β-elimination then</s>
+    </t>
+    <t id="1012" p="625.0 100.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">5-exo-dig cyclization</s>
+    </t>
+    <arrow id="1013" Tail3D="821.5 129.5 0" Head3D="821.5 179.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1014" p="727.5 158.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">tautomerization</s>
+    </t>
+    <t id="1015" p="828.5 151.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">Et</s>
+      <s font="1001" size="13.0" face="32" color="3">2</s>
+      <s font="1001" size="13.0" face="0" color="3">O, air,</s>
+    </t>
+    <t id="1016" p="830.5 164.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">(CO</s>
+      <s font="1001" size="13.0" face="32" color="3">2</s>
+      <s font="1001" size="13.0" face="0" color="3">H)</s>
+      <s font="1001" size="13.0" face="32" color="3">2</s>
+    </t>
+    <arrow id="1017" Tail3D="751.0 224.5 0" Head3D="656.0 224.5 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1018" p="662.0 241.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">addition of </s>
+      <s font="1001" size="13.0" face="64" color="3">3</s>
+      <s font="1001" size="13.0" face="0" color="3">O</s>
+      <s font="1001" size="13.0" face="32" color="3">2</s>
+    </t>
+    <arrow id="1019" Tail3D="514.5 224.5 0" Head3D="408.5 224.5 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1020" p="419.5 240.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">tautomerization</s>
+    </t>
+    <arrow id="1021" Tail3D="244.5 224.5 0" Head3D="194.5 224.5 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1022" p="203.0 241.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">− H</s>
+      <s font="1001" size="13.0" face="32" color="3">2</s>
+      <s font="1001" size="13.0" face="0" color="3">O</s>
+    </t>
+    <arrow id="1023" Tail3D="127.0 282.5 0" Head3D="127.0 329.0 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1024" p="85.5 296.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">H</s>
+      <s font="1001" size="13.0" face="32" color="3">2</s>
+      <s font="1001" size="13.0" face="0" color="3">O</s>
+    </t>
+    <t id="1025" p="76.0 314.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">(− NH</s>
+      <s font="1001" size="13.0" face="32" color="3">3</s>
+      <s font="1001" size="13.0" face="0" color="3">)</s>
+    </t>
+    <t id="1026" p="131.0 298.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">(56 % overall</s>
+    </t>
+    <t id="1027" p="141.0 314.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">from 113)</s>
+    </t>
+    <arrow id="1028" Tail3D="228.0 389.5 0" Head3D="369.0 389.5 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <arrow id="1029" Tail3D="233.0 395.5 0" Head3D="374.0 395.5 0" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1030" p="152.0 136.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">113</s>
+      <s font="1001" size="13.0" face="0" color="3">:</s>
+    </t>
+    <t id="1031" p="152.0 154.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">114</s>
+      <s font="1001" size="13.0" face="0" color="3">:</s>
+    </t>
+    <t id="1032" p="532.0 125.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">115</s>
+    </t>
+    <t id="1033" p="810.0 122.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">116</s>
+    </t>
+    <t id="1034" p="810.0 279.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">117</s>
+    </t>
+    <t id="1035" p="582.0 279.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">118</s>
+    </t>
+    <t id="1036" p="317.5 279.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">119</s>
+    </t>
+    <t id="1037" p="116.0 279.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">120</s>
+    </t>
+    <t id="1038" p="113.5 458.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">121</s>
+    </t>
+    <t id="1039" p="464.0 458.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">122</s>
+      <s font="1001" size="13.0" face="0" color="3">: (−)-CP-225,917</s>
+    </t>
+    <t id="1040" p="735.0 458.5" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="1" color="3">112</s>
+      <s font="1001" size="13.0" face="0" color="3">: (+)-CP-263,114</s>
+    </t>
+    <group id="1041" color="3">
+      <graphic id="1042" GraphicType="Line" color="3" BoundingBox="467.0 27.5 467.0 114.0" />
+      <graphic id="1043" GraphicType="Line" color="3" BoundingBox="467.0 27.5 472.0 27.5" />
+      <graphic id="1044" GraphicType="Line" color="3" BoundingBox="467.0 114.0 472.0 114.0" />
+      <graphic id="1045" GraphicType="Line" color="3" BoundingBox="608.5 27.5 608.5 114.0" />
+      <graphic id="1046" GraphicType="Line" color="3" BoundingBox="608.5 27.5 603.5 27.5" />
+      <graphic id="1047" GraphicType="Line" color="3" BoundingBox="608.5 114.0 603.5 114.0" />
+    </group>
+    <group id="1048" color="3">
+      <graphic id="1049" GraphicType="Line" color="3" BoundingBox="760.5 29.5 760.5 106.5" />
+      <graphic id="1050" GraphicType="Line" color="3" BoundingBox="760.5 29.5 765.5 29.5" />
+      <graphic id="1051" GraphicType="Line" color="3" BoundingBox="760.5 106.5 765.5 106.5" />
+      <graphic id="1052" GraphicType="Line" color="3" BoundingBox="886.0 29.5 886.0 106.5" />
+      <graphic id="1053" GraphicType="Line" color="3" BoundingBox="886.0 29.5 881.0 29.5" />
+      <graphic id="1054" GraphicType="Line" color="3" BoundingBox="886.0 106.5 881.0 106.5" />
+    </group>
+    <group id="1055" color="3">
+      <graphic id="1056" GraphicType="Line" color="3" BoundingBox="756.5 182.0 756.5 266.5" />
+      <graphic id="1057" GraphicType="Line" color="3" BoundingBox="756.5 182.0 761.5 182.0" />
+      <graphic id="1058" GraphicType="Line" color="3" BoundingBox="756.5 266.5 761.5 266.5" />
+      <graphic id="1059" GraphicType="Line" color="3" BoundingBox="886.0 182.0 886.0 266.5" />
+      <graphic id="1060" GraphicType="Line" color="3" BoundingBox="886.0 182.0 881.0 182.0" />
+      <graphic id="1061" GraphicType="Line" color="3" BoundingBox="886.0 266.5 881.0 266.5" />
+    </group>
+    <group id="1062" color="3">
+      <graphic id="1063" GraphicType="Line" color="3" BoundingBox="519.5 182.0 519.5 266.5" />
+      <graphic id="1064" GraphicType="Line" color="3" BoundingBox="519.5 182.0 524.5 182.0" />
+      <graphic id="1065" GraphicType="Line" color="3" BoundingBox="519.5 266.5 524.5 266.5" />
+      <graphic id="1066" GraphicType="Line" color="3" BoundingBox="649.5 182.0 649.5 266.5" />
+      <graphic id="1067" GraphicType="Line" color="3" BoundingBox="649.5 182.0 644.5 182.0" />
+      <graphic id="1068" GraphicType="Line" color="3" BoundingBox="649.5 266.5 644.5 266.5" />
+    </group>
+    <group id="1069" color="3">
+      <graphic id="1070" GraphicType="Line" color="3" BoundingBox="249.5 182.0 249.5 266.5" />
+      <graphic id="1071" GraphicType="Line" color="3" BoundingBox="249.5 182.0 254.5 182.0" />
+      <graphic id="1072" GraphicType="Line" color="3" BoundingBox="249.5 266.5 254.5 266.5" />
+      <graphic id="1073" GraphicType="Line" color="3" BoundingBox="403.5 182.0 403.5 266.5" />
+      <graphic id="1074" GraphicType="Line" color="3" BoundingBox="403.5 182.0 398.5 182.0" />
+      <graphic id="1075" GraphicType="Line" color="3" BoundingBox="403.5 266.5 398.5 266.5" />
+    </group>
+    <group id="1076" color="3">
+      <graphic id="1077" GraphicType="Line" color="3" BoundingBox="66.5 182.0 66.5 266.5" />
+      <graphic id="1078" GraphicType="Line" color="3" BoundingBox="66.5 182.0 71.5 182.0" />
+      <graphic id="1079" GraphicType="Line" color="3" BoundingBox="66.5 266.5 71.5 266.5" />
+      <graphic id="1080" GraphicType="Line" color="3" BoundingBox="189.0 182.0 189.0 266.5" />
+      <graphic id="1081" GraphicType="Line" color="3" BoundingBox="189.0 182.0 184.0 182.0" />
+      <graphic id="1082" GraphicType="Line" color="3" BoundingBox="189.0 266.5 184.0 266.5" />
+    </group>
+    <arrow id="1083" Tail3D="129.0 132.5 0" Head3D="148.0 132.5 0" ArrowheadHead="None" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <arrow id="1084" Tail3D="129.0 132.5 0" Head3D="129.0 151.0 0" ArrowheadHead="None" ArrowheadType="Solid" HeadSize="1000" ArrowheadWidth="250" FillType="None" LineWidth="0.6" color="3" />
+    <t id="1085" p="630.0 397.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="13.0" face="0" color="3">+</s>
+    </t>
+  </page>
+  <colortable>
+    <color r="1" g="1" b="1" />
+    <color r="0" g="0" b="0" />
+  </colortable>
+</CDXML>

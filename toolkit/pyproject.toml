@@ -1,0 +1,153 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cdxml-toolkit-community"
+version = "0.7.0a2"
+description = "Community-maintained MCP server and Python toolkit for ChemDraw CDXML workflows."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10,<3.14"
+authors = [
+    {name = "Hiu Fung Kevin Lee"},
+]
+maintainers = [
+    {name = "ZiChenWang114514"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: Microsoft :: Windows",
+]
+dependencies = [
+    "lxml>=4.6",
+    "rdkit>=2025.03",
+    "Pillow>=9.0",
+    "pyyaml>=5.4",
+    "mcp>=1.0,<3",
+    "tomlkit>=0.13",
+]
+
+[project.optional-dependencies]
+publication = [
+    "openpyxl>=3.1",
+]
+scientific = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+    "nmrglue>=0.10",
+]
+windows = [
+    "pywin32>=300; platform_system == 'Windows'",
+]
+office = [
+    "pywin32>=300; platform_system == 'Windows'",
+    "python-pptx>=0.6",
+    "python-docx>=0.8",
+    "olefile>=0.46",
+]
+chemscript = [
+    "pythonnet>=3.0",
+]
+analysis = [
+    "pdfplumber>=0.7",
+    "pymupdf>=1.20",
+]
+image = [
+    "opencv-python>=4.5",
+    "pytesseract>=0.3",
+]
+decimer = [
+    "opencv-python>=4.5",
+    "pytesseract>=0.3",
+    "tensorflow>=2.16",
+    "decimer>=2.6",
+    "requests>=2.31",
+]
+http = [
+    "uvicorn>=0.30",
+    "starlette>=0.37",
+    "tomlkit>=0.13",
+]
+opsin = [
+    "py2opsin>=1.0",
+    "requests>=2.31",
+    "uvicorn>=0.30",
+    "starlette>=0.37",
+]
+all = [
+    "openpyxl>=3.1",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+    "nmrglue>=0.10",
+    "pywin32>=300; platform_system == 'Windows'",
+    "python-pptx>=0.6",
+    "python-docx>=0.8",
+    "olefile>=0.46",
+    "pythonnet>=3.0",
+    "pdfplumber>=0.7",
+    "pymupdf>=1.20",
+    "opencv-python>=4.5",
+    "pytesseract>=0.3",
+    "tensorflow>=2.16",
+    "decimer>=2.6",
+    "py2opsin>=1.0",
+    "requests>=2.31",
+    "uvicorn>=0.30",
+    "starlette>=0.37",
+]
+dev = [
+    "build>=1.2",
+    "pytest>=7.0",
+    "twine>=5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ZiChenWang114514/cdxml-toolkit-community"
+Repository = "https://github.com/ZiChenWang114514/cdxml-toolkit-community"
+Issues = "https://github.com/ZiChenWang114514/cdxml-toolkit-community/issues"
+Upstream = "https://github.com/leehiufung911/cdxml-toolkit"
+
+[project.scripts]
+cdxml-publication = "cdxml_toolkit.mcp_runtime.publication_figure:main"
+cdxml-render = "cdxml_toolkit.render.render_scheme:main"
+cdxml-layout = "cdxml_toolkit.layout.reaction_cleanup:main"
+cdxml-build = "cdxml_toolkit.cdxml_builder:main"
+cdxml-convert = "cdxml_toolkit.chemdraw.cdx_converter:main"
+cdxml-image = "cdxml_toolkit.chemdraw.cdxml_to_image:main"
+cdxml-polish = "cdxml_toolkit.deterministic_pipeline.legacy.scheme_polisher_v2:main"
+cdxml-parse = "cdxml_toolkit.perception.reaction_parser:main"
+cdxml-merge = "cdxml_toolkit.layout.scheme_merger:main"
+cdxml-ole = "cdxml_toolkit.office.ole_embedder:main"
+cdxml-mcp = "cdxml_toolkit.mcp_runtime.mcp_server:main"
+cdxml-mcp-core = "cdxml_toolkit.mcp_server.server:main"
+cdxml-mcp-docs = "cdxml_toolkit.mcp_runtime.generate_reference:main"
+cdxml-lcms = "cdxml_toolkit.analysis.lcms_analyzer:main"
+cdxml-multi-lcms = "cdxml_toolkit.analysis.deterministic.multi_lcms_analyzer:main"
+cdxml-procedure = "cdxml_toolkit.analysis.deterministic.procedure_writer:main"
+cdxml-discover = "cdxml_toolkit.analysis.deterministic.discover_experiment_files:main"
+cdxml-format-entry = "cdxml_toolkit.analysis.format_procedure_entry:main"
+cdxml-nmr = "cdxml_toolkit.analysis.extract_nmr:main"
+cdxml-doctor = "cdxml_toolkit.doctor:main"
+
+[tool.setuptools.packages.find]
+include = ["cdxml_toolkit*"]
+
+[tool.setuptools.package-data]
+"cdxml_toolkit.resolve" = ["*.json"]
+"cdxml_toolkit.naming" = ["*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "network: tests requiring internet access",
+]

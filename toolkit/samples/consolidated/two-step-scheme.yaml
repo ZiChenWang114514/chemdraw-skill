@@ -1,0 +1,47 @@
+layout: sequential
+wrap: none
+
+structures:
+  ArBr:
+    smiles: "Brc1ncnc2sccc12"
+  Morph:
+    smiles: "C1COCCN1"
+  KL_CC_001:
+    smiles: "c1nc(N2CCOCC2)c2ccsc2n1"
+    label: "KL-CC-001"
+  TsOPyrrole:
+    smiles: "Cc1ccc(S(=O)(=O)OCc2ccc[nH]2)cc1"
+  KL_CC_002:
+    smiles: "c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1"
+    label: "KL-CC-002"
+
+steps:
+  - substrates: [ArBr]
+    products: [KL_CC_001]
+    above_arrow:
+      structures: [Morph]
+    below_arrow:
+      text:
+        - "Pd2(dba)3 (0.05 eq.)"
+        - "rac-BINAP (0.1 eq.)"
+        - "Cs2CO3 (2 eq.)"
+        - "Dioxane, 105 °C, 24 h"
+
+  - substrates: [KL_CC_001]
+    products: [KL_CC_002]
+    above_arrow:
+      structures: [TsOPyrrole]
+    below_arrow:
+      text:
+        - "n-BuLi (1.05 eq.)"
+        - "THF, -78 °C, 1 h"
+
+run_arrows:
+  - step: 1
+    runs:
+      - input: "2.15 g"
+        output: "1.60 g, 72% yield"
+  - step: 2
+    runs:
+      - input: "1.25 g"
+        output: "600 mg, 44% yield"

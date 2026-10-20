@@ -1,0 +1,24 @@
+# Showcase 16: Failed Arrow (X on arrow)
+# Single failed reaction attempt
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  aniline:
+    smiles: "Nc1ccccc1"
+  expected:
+    smiles: "c1ccc(Nc2ccc3ccccc3n2)cc1"
+    label: "2"
+
+steps:
+  - substrates: [sm]
+    above_arrow:
+      structures: [aniline]
+      text: ["(1.2 eq)"]
+    below_arrow:
+      text: ["Pd2(dba)3, BINAP", "Cs2CO3, dioxane", "reflux, 24 h"]
+    products: [expected]
+    arrow_style: failed
+
+layout: linear

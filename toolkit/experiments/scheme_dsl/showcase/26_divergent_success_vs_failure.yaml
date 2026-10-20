@@ -1,0 +1,26 @@
+# Showcase 26: Divergent - Success vs Failure Comparison
+# Two routes from same SM: one works, one doesn't
+
+structures:
+  sm:
+    smiles: "Brc1ccnc2cc(NC(=O)OC(C)(C)C)ccc12"
+    label: "1"
+  prod_success:
+    smiles: "C1CCN(c2ccnc3cc(NC(=O)OC(C)(C)C)ccc23)CC1"
+    label: "2"
+  prod_fail:
+    smiles: "c1ccc(Nc2ccnc3cc(NC(=O)OC(C)(C)C)ccc23)cc1"
+    label: "3"
+
+steps:
+  - substrates: [sm]
+    below_arrow:
+      text: ["piperidine (3 eq)", "DIPEA, NMP", "120 C, 16 h, 82%"]
+    products: [prod_success]
+  - substrates: [sm]
+    below_arrow:
+      text: ["aniline (3 eq)", "Pd2(dba)3, BINAP", "Cs2CO3, dioxane, reflux"]
+    products: [prod_fail]
+    arrow_style: failed
+
+layout: divergent

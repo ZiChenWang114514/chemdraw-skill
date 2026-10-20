@@ -1,0 +1,27 @@
+# Showcase 06: Two-Step Sequential (SNAr then Boc removal)
+# Multi-step in one row, no wrapping
+
+structures:
+  sm:
+    smiles: "Fc1ccnc2cc(NC(=O)OC(C)(C)C)ccc12"
+    label: "11"
+  intermediate:
+    smiles: "C1CCN(c2ccnc3cc(NC(=O)OC(C)(C)C)ccc23)CC1"
+    label: "12"
+  product:
+    smiles: "C1CCN(c2ccnc3cc(N)ccc23)CC1"
+    label: "13"
+
+steps:
+  - substrates: [sm]
+    below_arrow:
+      text: ["piperidine (3.0 eq)", "DIPEA (3.0 eq)", "NMP, 120 C, 16 h"]
+    products: [intermediate]
+    yield_: "82%"
+  - substrates: [intermediate]
+    below_arrow:
+      text: ["TFA/DCM (1:1)", "RT, 1 h"]
+    products: [product]
+    yield_: "quant."
+
+layout: sequential

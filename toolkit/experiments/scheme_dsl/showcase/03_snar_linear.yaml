@@ -1,0 +1,18 @@
+# Showcase 03: SNAr Displacement (linear, simple conditions text)
+
+structures:
+  aryl_f:
+    smiles: "Fc1ccnc2ccccc12"
+    label: "5"
+  product:
+    smiles: "C1CCN(c2ccnc3ccccc23)CC1"
+    label: "6"
+
+steps:
+  - substrates: [aryl_f]
+    below_arrow:
+      text: ["piperidine (3.0 eq)", "DIPEA (3.0 eq)", "NMP, 120 C, 16 h"]
+    products: [product]
+    yield_: "91%"
+
+layout: linear

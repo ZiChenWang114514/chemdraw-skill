@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/ZiChenWang114514/cdxml-toolkit-community/security/advisories/new
+    about: Report security problems without exposing details publicly.

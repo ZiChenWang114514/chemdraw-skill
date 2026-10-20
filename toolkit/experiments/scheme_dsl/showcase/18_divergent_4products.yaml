@@ -1,0 +1,39 @@
+# Showcase 18: Divergent - 4 Products from One Intermediate
+# SAR library synthesis from a common intermediate
+
+structures:
+  core:
+    smiles: "Brc1cc2ccccc2nc1N1CCOCC1"
+    label: "3"
+  prod_a:
+    smiles: "c1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1"
+    label: "4a"
+  prod_b:
+    smiles: "COc1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1"
+    label: "4b"
+  prod_c:
+    smiles: "Fc1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1"
+    label: "4c"
+  prod_d:
+    smiles: "N#Cc1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1"
+    label: "4d"
+
+steps:
+  - substrates: [core]
+    below_arrow:
+      text: ["PhB(OH)2, Pd(dppf)Cl2", "K2CO3, dioxane/H2O", "80 C, 16 h, 85%"]
+    products: [prod_a]
+  - substrates: [core]
+    below_arrow:
+      text: ["4-MeO-PhB(OH)2", "Pd(dppf)Cl2, K2CO3", "dioxane/H2O, 80 C, 78%"]
+    products: [prod_b]
+  - substrates: [core]
+    below_arrow:
+      text: ["4-F-PhB(OH)2", "Pd(dppf)Cl2, K2CO3", "dioxane/H2O, 80 C, 82%"]
+    products: [prod_c]
+  - substrates: [core]
+    below_arrow:
+      text: ["4-CN-PhB(OH)2", "Pd(dppf)Cl2, K2CO3", "dioxane/H2O, 80 C, 71%"]
+    products: [prod_d]
+
+layout: divergent

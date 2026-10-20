@@ -1,0 +1,50 @@
+# Showcase 08: Wrap:Repeat - 4 Steps in 2 Rows (2+2)
+# Most common layout for progress reports
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  morph:
+    smiles: "C1COCCN1"
+  int1:
+    smiles: "c1ccc2nc(N3CCOCC3)ccc2c1"
+    label: "2"
+  int2:
+    smiles: "Brc1cc2ccccc2nc1N1CCOCC1"
+    label: "3"
+  int3:
+    smiles: "c1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1"
+    label: "4"
+  product:
+    smiles: "O=Cc1c(-c2ccccc2)c2ccccc2nc1N1CCOCC1"
+    label: "5"
+
+steps:
+  - substrates: [sm]
+    above_arrow:
+      structures: [morph]
+      text: ["(1.2 eq)"]
+    below_arrow:
+      text: ["Pd2(dba)3, BINAP", "Cs2CO3, dioxane", "reflux, 24 h"]
+    products: [int1]
+    yield_: "72%"
+  - substrates: [int1]
+    below_arrow:
+      text: ["NBS (1.1 eq)", "DMF, 0 C, 2 h"]
+    products: [int2]
+    yield_: "95%"
+  - substrates: [int2]
+    below_arrow:
+      text: ["PhB(OH)2, Pd(dppf)Cl2", "K2CO3, dioxane/H2O", "80 C, 16 h"]
+    products: [int3]
+    yield_: "85%"
+  - substrates: [int3]
+    below_arrow:
+      text: ["Rieche formylation", "Cl2CHOCH3, TiCl4", "DCM, -78 C, 1 h"]
+    products: [product]
+    yield_: "63%"
+
+layout: sequential
+wrap: repeat
+steps_per_row: 2

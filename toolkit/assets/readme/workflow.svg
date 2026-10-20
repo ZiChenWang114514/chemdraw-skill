@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" role="img" aria-labelledby="title desc">
+  <title id="title">Chemistry artifact workflow</title>
+  <desc id="desc">Four stages move chemistry sources through grounding, controlled operations, and verified ChemDraw or Office outputs.</desc>
+
+  <rect width="1200" height="430" rx="8" fill="#17191c"/>
+  <text x="54" y="48" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, sans-serif" font-size="34" font-weight="720">From chemical intent to an editable artifact</text>
+  <text x="1146" y="44" text-anchor="end" fill="#8f9997" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">MCP / WORKER-ISOLATED / VERIFIED</text>
+
+  <g id="source" transform="translate(54 86)">
+    <rect width="236" height="270" rx="6" fill="#f6f6f1"/>
+    <text x="22" y="38" fill="#c53f4e" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">01 / SOURCE</text>
+    <text x="22" y="79" fill="#17191c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25" font-weight="720">Read chemistry</text>
+    <path d="M22 98H214" stroke="#c9cbc5" stroke-width="2"/>
+    <text x="22" y="135" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">Names and CAS</text>
+    <text x="22" y="170" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">CDX / CDXML / RDF</text>
+    <text x="22" y="205" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">Images and ELN</text>
+    <path d="M24 237H63L77 223L96 251L116 229L136 237H211" fill="none" stroke="#157d7f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <path d="M302 221H328" stroke="#c53f4e" stroke-width="4" stroke-linecap="round"/>
+  <path d="M318 209L330 221L318 233" fill="none" stroke="#c53f4e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g id="ground" transform="translate(342 86)">
+    <rect width="236" height="270" rx="6" fill="#f6f6f1"/>
+    <text x="22" y="38" fill="#c53f4e" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">02 / GROUND</text>
+    <text x="22" y="79" fill="#17191c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25" font-weight="720">Resolve truth</text>
+    <path d="M22 98H214" stroke="#c9cbc5" stroke-width="2"/>
+    <text x="22" y="135" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">Reagent database</text>
+    <text x="22" y="170" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">ChemScript / OPSIN</text>
+    <text x="22" y="205" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">DECIMER candidates</text>
+    <circle cx="48" cy="239" r="15" fill="none" stroke="#157d7f" stroke-width="4"/>
+    <path d="M41 239L46 245L57 232" fill="none" stroke="#157d7f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="75" y="246" fill="#157d7f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">validated input</text>
+  </g>
+
+  <path d="M590 221H616" stroke="#c53f4e" stroke-width="4" stroke-linecap="round"/>
+  <path d="M606 209L618 221L606 233" fill="none" stroke="#c53f4e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g id="operate" transform="translate(630 86)">
+    <rect width="236" height="270" rx="6" fill="#f6f6f1"/>
+    <text x="22" y="38" fill="#c53f4e" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">03 / OPERATE</text>
+    <text x="22" y="79" fill="#17191c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25" font-weight="720">Change safely</text>
+    <path d="M22 98H214" stroke="#c9cbc5" stroke-width="2"/>
+    <text x="22" y="135" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">MCS structural diff</text>
+    <text x="22" y="170" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">Stereo fidelity</text>
+    <text x="22" y="205" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">Bounded workers</text>
+    <path d="M22 239H76M160 239H214" stroke="#157d7f" stroke-width="4" stroke-linecap="round"/>
+    <path d="M76 239L96 219L116 259L136 219L160 239" fill="none" stroke="#157d7f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <path d="M878 221H904" stroke="#c53f4e" stroke-width="4" stroke-linecap="round"/>
+  <path d="M894 209L906 221L894 233" fill="none" stroke="#c53f4e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g id="publish" transform="translate(918 86)">
+    <rect width="228" height="270" rx="6" fill="#f6f6f1"/>
+    <text x="22" y="38" fill="#c53f4e" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">04 / PUBLISH</text>
+    <text x="22" y="79" fill="#17191c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25" font-weight="720">Verify output</text>
+    <path d="M22 98H206" stroke="#c9cbc5" stroke-width="2"/>
+    <text x="22" y="135" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">Editable CDXML</text>
+    <text x="22" y="170" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">Native PNG / SVG</text>
+    <text x="22" y="205" fill="#34393c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20">PPTX / DOCX OLE</text>
+    <rect x="22" y="225" width="184" height="28" rx="4" fill="#157d7f"/>
+    <text x="114" y="246" text-anchor="middle" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">artifact checked</text>
+  </g>
+
+  <text x="54" y="398" fill="#8f9997" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18">Arguments and molecular content stay out of metrics. Native ChemDraw calls share a serialized queue.</text>
+</svg>

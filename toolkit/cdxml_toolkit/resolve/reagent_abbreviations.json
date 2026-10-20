@@ -1,0 +1,1046 @@
+{
+    "pd2dba3": {
+        "display": "Pd2dba3",
+        "role": "catalyst",
+        "smiles": "C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.[Pd].[Pd]"
+    },
+    "pd2(dba)3": {
+        "display": "Pd2(dba)3",
+        "role": "catalyst",
+        "smiles": "C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.[Pd].[Pd]"
+    },
+    "pd(dba)2": {
+        "display": "Pd(dba)2",
+        "role": "catalyst",
+        "smiles": "C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.[Pd]"
+    },
+    "pd(oac)2": {
+        "display": "Pd(OAc)2",
+        "role": "catalyst",
+        "smiles": "CC(=O)[O-].CC(=O)[O-].[Pd+2]"
+    },
+    "pd(pph3)4": {
+        "display": "Pd(PPh3)4",
+        "role": "catalyst",
+        "smiles": "C1=CC=C(C=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.C1=CC=C(C=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.C1=CC=C(C=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.C1=CC=C(C=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.[Pd]"
+    },
+    "pd(pph3)2cl2": {
+        "display": "Pd(PPh3)2Cl2",
+        "role": "catalyst",
+        "smiles": "C1=CC=C(C=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.C1=CC=C(C=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.Cl[Pd]Cl"
+    },
+    "pdcl2": {
+        "display": "PdCl2",
+        "role": "catalyst",
+        "smiles": "Cl[Pd]Cl"
+    },
+    "pd/c": {
+        "display": "Pd/C",
+        "role": "catalyst",
+        "smiles": "[Pd]"
+    },
+    "pd(oh)2/c": {
+        "display": "Pd(OH)2/C",
+        "role": "catalyst",
+        "smiles": "[OH-].[OH-].[Pd+2]"
+    },
+    "pd2cl2(allyl)2": {
+        "display": "Pd2Cl2(allyl)2",
+        "role": "catalyst",
+        "smiles": "[CH2-]C=C.[CH2-]C=C.Cl[Pd+].Cl[Pd+]"
+    },
+    "peppsi-ipr": {
+        "display": "PEPPSI-IPr",
+        "role": "catalyst",
+        "smiles": "CC(C)C1=C(C(=CC=C1)C(C)C)N2CN(C=C2)C3=C(C=CC=C3C(C)C)C(C)C.C1=CC(=CN=C1)Cl.Cl[Pd]Cl"
+    },
+    "binap": {
+        "display": "BINAP",
+        "role": "ligand",
+        "smiles": "C1=CC=C(C=C1)P(C2=CC=CC=C2)C3=C(C4=CC=CC=C4C=C3)C5=C(C=CC6=CC=CC=C65)P(C7=CC=CC=C7)C8=CC=CC=C8"
+    },
+    "rac-binap": {
+        "display": "rac-BINAP",
+        "role": "ligand",
+        "aliases": [
+            "racbinap",
+            "(±)-binap"
+        ],
+        "smiles": "C1=CC=C(C=C1)P(C2=CC=CC=C2)C3=C(C4=CC=CC=C4C=C3)C5=C(C=CC6=CC=CC=C65)P(C7=CC=CC=C7)C8=CC=CC=C8"
+    },
+    "xantphos": {
+        "display": "XantPhos",
+        "role": "ligand",
+        "smiles": "CC1(C2=C(C(=CC=C2)P(C3=CC=CC=C3)C4=CC=CC=C4)OC5=C1C=CC=C5P(C6=CC=CC=C6)C7=CC=CC=C7)C"
+    },
+    "sphos": {
+        "display": "SPhos",
+        "role": "ligand",
+        "smiles": "COC1=C(C(=CC=C1)OC)C2=CC=CC=C2P(C3CCCCC3)C4CCCCC4"
+    },
+    "xphos": {
+        "display": "XPhos",
+        "role": "ligand",
+        "smiles": "CC(C)C1=CC(=C(C(=C1)C(C)C)C2=CC=CC=C2P(C3CCCCC3)C4CCCCC4)C(C)C"
+    },
+    "ruphos": {
+        "display": "RuPhos",
+        "role": "ligand",
+        "smiles": "CC(C)OC1=C(C(=CC=C1)OC(C)C)C2=CC=CC=C2P(C3CCCCC3)C4CCCCC4"
+    },
+    "brettphos": {
+        "display": "BrettPhos",
+        "role": "ligand",
+        "smiles": "CC(C)C1=CC(=C(C(=C1)C(C)C)C2=C(C=CC(=C2P(C3CCCCC3)C4CCCCC4)OC)OC)C(C)C"
+    },
+    "dppp": {
+        "display": "dppp",
+        "role": "ligand",
+        "smiles": "C1=CC=C(C=C1)P(CCCP(C2=CC=CC=C2)C3=CC=CC=C3)C4=CC=CC=C4"
+    },
+    "dppf": {
+        "display": "dppf",
+        "role": "ligand",
+        "smiles": "[CH-]1C=CC(=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.[CH-]1C=CC(=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.[Fe+2]"
+    },
+    "dcype": {
+        "display": "dcype",
+        "role": "ligand",
+        "smiles": "C1CCC(CC1)P(CCP(C2CCCCC2)C3CCCCC3)C4CCCCC4"
+    },
+    "catacxium a": {
+        "display": "CataCXium A",
+        "role": "ligand",
+        "smiles": "CCCCP(C12CC3CC(C1)CC(C3)C2)C45CC6CC(C4)CC(C6)C5"
+    },
+    "p(cy)3": {
+        "display": "P(Cy)3",
+        "role": "ligand",
+        "smiles": "C1CCC(CC1)P(C2CCCCC2)C3CCCCC3"
+    },
+    "p(tbu)3": {
+        "display": "P(tBu)3",
+        "role": "ligand",
+        "smiles": "CC(C)(C)P(C(C)(C)C)C(C)(C)C"
+    },
+    "pph3": {
+        "display": "PPh3",
+        "role": "ligand",
+        "smiles": "c1ccc(P(c2ccccc2)c3ccccc3)cc1"
+    },
+    "dppe": {
+        "display": "dppe",
+        "role": "ligand",
+        "smiles": "C1=CC=C(C=C1)P(CCP(C2=CC=CC=C2)C3=CC=CC=C3)C4=CC=CC=C4"
+    },
+    "dtbpf": {
+        "display": "dtbpf",
+        "role": "ligand",
+        "smiles": "CC(C)(C)P(C1=CC=C[CH-]1)C(C)(C)C.CC(C)(C)P(C1=CC=C[CH-]1)C(C)(C)C.[Fe+2]"
+    },
+    "amphos": {
+        "display": "AmPhos",
+        "role": "ligand",
+        "smiles": "CC(C)(C)P(C1=CC=C(C=C1)N(C)C)C(C)(C)C"
+    },
+    "davephos": {
+        "display": "DavePhos",
+        "role": "ligand",
+        "smiles": "CN(C)C1=CC=CC=C1C2=CC=CC=C2P(C3CCCCC3)C4CCCCC4"
+    },
+    "johnphos": {
+        "display": "JohnPhos",
+        "role": "ligand",
+        "smiles": "CC(C)(C)P(C1=CC=CC=C1C2=CC=CC=C2)C(C)(C)C"
+    },
+    "cs2co3": {
+        "display": "Cs2CO3",
+        "role": "base",
+        "smiles": "O=C([O-])[O-].[Cs+].[Cs+]",
+        "aliases": ["cesium carbonate"]
+    },
+    "k2co3": {
+        "display": "K2CO3",
+        "role": "base",
+        "smiles": "O=C([O-])[O-].[K+].[K+]",
+        "aliases": ["potassium carbonate"]
+    },
+    "na2co3": {
+        "display": "Na2CO3",
+        "role": "base",
+        "smiles": "O=C([O-])[O-].[Na+].[Na+]",
+        "aliases": ["sodium carbonate"]
+    },
+    "k3po4": {
+        "display": "K3PO4",
+        "role": "base",
+        "smiles": "O=P([O-])([O-])[O-].[K+].[K+].[K+]",
+        "aliases": ["potassium phosphate", "tripotassium phosphate"]
+    },
+    "koh": {
+        "display": "KOH",
+        "role": "base",
+        "smiles": "[K+].[OH-]",
+        "aliases": ["potassium hydroxide"]
+    },
+    "naoh": {
+        "display": "NaOH",
+        "role": "base",
+        "smiles": "[Na+].[OH-]",
+        "aliases": ["sodium hydroxide"]
+    },
+    "lioh": {
+        "display": "LiOH",
+        "role": "base",
+        "smiles": "[Li+].[OH-]"
+    },
+    "naot-bu": {
+        "display": "NaOt-Bu",
+        "role": "base",
+        "smiles": "CC(C)(C)[O-].[Na+]"
+    },
+    "naotbu": {
+        "display": "NaOtBu",
+        "role": "base",
+        "smiles": "CC(C)(C)[O-].[Na+]"
+    },
+    "kot-bu": {
+        "display": "KOt-Bu",
+        "role": "base",
+        "smiles": "CC(C)(C)[O-].[K+]"
+    },
+    "kotbu": {
+        "display": "KOtBu",
+        "role": "base",
+        "smiles": "CC(C)(C)[O-].[K+]"
+    },
+    "liotbu": {
+        "display": "LiOtBu",
+        "role": "base",
+        "smiles": "CC(C)(C)[O-].[Li+]"
+    },
+    "lihmds": {
+        "display": "LiHMDS",
+        "role": "base",
+        "smiles": "[Li][N](C(C)(C)C)C(C)(C)C"
+    },
+    "nahmds": {
+        "display": "NaHMDS",
+        "role": "base",
+        "smiles": "C[Si](C)(C)[N]([Na])[Si](C)(C)C"
+    },
+    "ki": {
+        "display": "KI",
+        "role": "additive",
+        "smiles": "[K+].[I-]",
+        "aliases": ["potassium iodide"]
+    },
+    "khmds": {
+        "display": "KHMDS",
+        "role": "base",
+        "smiles": "C[Si](C)(C)[N-][Si](C)(C)C.[K+]"
+    },
+    "nahco3": {
+        "display": "NaHCO3",
+        "role": "base",
+        "smiles": "O=C([O-])O.[Na+]",
+        "aliases": ["sodium bicarbonate"]
+    },
+    "khco3": {
+        "display": "KHCO3",
+        "role": "base",
+        "smiles": "C(=O)(O)[O-].[K+]"
+    },
+    "lda": {
+        "display": "LDA",
+        "role": "base",
+        "smiles": "[Li+].CC(C)[N-]C(C)C"
+    },
+    "nah": {
+        "display": "NaH",
+        "role": "base",
+        "smiles": "[NaH]"
+    },
+    "n-buli": {
+        "display": "n-BuLi",
+        "role": "base",
+        "smiles": [
+            "[Li]CCCC",
+            "[Li][CH2]CCC"
+        ],
+        "aliases": [
+            "nbuli"
+        ]
+    },
+    "t-buli": {
+        "display": "t-BuLi",
+        "role": "base",
+        "smiles": "[Li]C(C)(C)C",
+        "aliases": [
+            "tbuli"
+        ]
+    },
+    "et3n": {
+        "display": "Et3N",
+        "role": "base",
+        "smiles": "CCN(CC)CC",
+        "aliases": [
+            "tea",
+            "triethylamine"
+        ]
+    },
+    "diea": {
+        "display": "DIEA",
+        "role": "base",
+        "smiles": "CCN(C(C)C)C(C)C"
+    },
+    "dipea": {
+        "display": "DIPEA",
+        "role": "base",
+        "smiles": "CCN(C(C)C)C(C)C",
+        "aliases": [
+            "hunig's base"
+        ]
+    },
+    "dbu": {
+        "display": "DBU",
+        "role": "base",
+        "smiles": "C1CCC2=NCCCN2CC1"
+    },
+    "dmap": {
+        "display": "DMAP",
+        "role": "base",
+        "smiles": "CN(C)c1ccncc1"
+    },
+    "pyridine": {
+        "display": "pyridine",
+        "role": "base",
+        "smiles": "C1=CC=NC=C1"
+    },
+    "2,6-lutidine": {
+        "display": "2,6-lutidine",
+        "role": "base",
+        "smiles": "CC1=NC(=CC=C1)C"
+    },
+    "dabco": {
+        "display": "DABCO",
+        "role": "base",
+        "smiles": "C1CN2CCN1CC2"
+    },
+    "tmeda": {
+        "display": "TMEDA",
+        "role": "additive",
+        "smiles": "CN(C)CCN(C)C"
+    },
+    "hatu": {
+        "display": "HATU",
+        "role": "coupling_reagent",
+        "smiles": "CN(C)C(=[N+](C)C)N1C2=C(N=CC=C2)[N+](=N1)[O-].F[P-](F)(F)(F)(F)F"
+    },
+    "hbtu": {
+        "display": "HBTU",
+        "role": "coupling_reagent",
+        "smiles": "CN(C)C(=[N+](C)C)ON1C2=CC=CC=C2N=N1.F[P-](F)(F)(F)(F)F"
+    },
+    "edc": {
+        "display": "EDC",
+        "role": "coupling_reagent",
+        "smiles": "CCN=C=NCCCN(C)C",
+        "aliases": ["edci", "edac"]
+    },
+    "edc·hcl": {
+        "display": "EDC·HCl",
+        "role": "coupling_reagent",
+        "smiles": "CCN=C=NCCCN(C)C.Cl"
+    },
+    "hobt": {
+        "display": "HOBt",
+        "role": "coupling_reagent",
+        "smiles": "On1nnc2ccccc21"
+    },
+    "hoat": {
+        "display": "HOAt",
+        "role": "coupling_reagent",
+        "smiles": "C1=CC2=C(N=C1)N(N=N2)O"
+    },
+    "t3p": {
+        "display": "T3P",
+        "role": "coupling_reagent",
+        "smiles": "CCCP1(=O)OP(=O)(OP(=O)(O1)CCC)CCC"
+    },
+    "pybop": {
+        "display": "PyBOP",
+        "role": "coupling_reagent",
+        "smiles": "C1CCN(C1)[P+](N2CCCC2)(N3CCCC3)ON4C5=CC=CC=C5N=N4.F[P-](F)(F)(F)(F)F"
+    },
+    "comu": {
+        "display": "COMU",
+        "role": "coupling_reagent",
+        "smiles": "CCOC(=O)/C(=N\\OC(=[N+](C)C)N1CCOCC1)/C#N.F[P-](F)(F)(F)(F)F"
+    },
+    "tbtu": {
+        "display": "TBTU",
+        "role": "coupling_reagent",
+        "smiles": "[B-](F)(F)(F)F.CN(C)C(=[N+](C)C)ON1C2=CC=CC=C2N=N1"
+    },
+    "dcc": {
+        "display": "DCC",
+        "role": "coupling_reagent",
+        "smiles": "C(=NC1CCCCC1)NC1CCCCC1"
+    },
+    "dic": {
+        "display": "DIC",
+        "role": "coupling_reagent",
+        "smiles": "CC(C)N=C=NC(C)C"
+    },
+    "cdmt": {
+        "display": "CDMT",
+        "role": "coupling_reagent",
+        "smiles": "COC1=NC(=NC(=N1)Cl)OC"
+    },
+    "dead": {
+        "display": "DEAD",
+        "role": "coupling_reagent",
+        "smiles": "CCOC(=O)/N=N/C(=O)OCC",
+        "aliases": [
+            "diethyl azodicarboxylate"
+        ]
+    },
+    "diad": {
+        "display": "DIAD",
+        "role": "coupling_reagent",
+        "smiles": "CC(C)OC(=O)/N=N/C(=O)OC(C)C",
+        "aliases": [
+            "diisopropyl azodicarboxylate"
+        ]
+    },
+    "addp": {
+        "display": "ADDP",
+        "role": "coupling_reagent",
+        "smiles": "O=C(N1CCCCC1)/N=N/C(=O)N2CCCCC2",
+        "aliases": [
+            "1,1'-(azodicarbonyl)dipiperidine"
+        ]
+    },
+    "pbu3": {
+        "display": "PBu3",
+        "role": "ligand",
+        "smiles": "CCCCP(CCCC)CCCC",
+        "aliases": [
+            "tributylphosphine"
+        ]
+    },
+    "nabh4": {
+        "display": "NaBH4",
+        "role": "reducing_agent",
+        "smiles": "[BH4-].[Na+]"
+    },
+    "nabh(oac)3": {
+        "display": "NaBH(OAc)3",
+        "role": "reducing_agent",
+        "smiles": "[BH-](OC(=O)C)(OC(=O)C)OC(=O)C.[Na+]",
+        "aliases": ["stab", "sodium triacetoxyborohydride"]
+    },
+    "nabh3cn": {
+        "display": "NaBH3CN",
+        "role": "reducing_agent",
+        "smiles": "[BH3-]C#N.[Na+]"
+    },
+    "lialh4": {
+        "display": "LiAlH4",
+        "role": "reducing_agent",
+        "aliases": [
+            "lah"
+        ],
+        "smiles": "[Li+].[AlH4-]"
+    },
+    "dibal-h": {
+        "display": "DIBAL-H",
+        "role": "reducing_agent",
+        "aliases": [
+            "dibal",
+            "dibalh"
+        ],
+        "smiles": "CC(C)C[AlH]CC(C)C"
+    },
+    "dmp": {
+        "display": "DMP",
+        "role": "oxidant",
+        "aliases": [
+            "dess-martin",
+            "dessmartin"
+        ],
+        "smiles": "CC(=O)OI1(C2=CC=CC=C2C(=O)O1)(OC(=O)C)OC(=O)C"
+    },
+    "pcc": {
+        "display": "PCC",
+        "role": "oxidant",
+        "smiles": "C1=CC=NC=C1.O=[Cr](=O)=O.Cl"
+    },
+    "pdc": {
+        "display": "PDC",
+        "role": "oxidant",
+        "smiles": "C1=CC=NC=C1.C1=CC=NC=C1.O[Cr](=O)(=O)O[Cr](=O)(=O)O"
+    },
+    "tpap": {
+        "display": "TPAP",
+        "role": "oxidant",
+        "smiles": "CCC[N+](CCC)(CCC)CCC.[O-][Ru](=O)(=O)=O"
+    },
+    "mcpba": {
+        "display": "mCPBA",
+        "role": "oxidant",
+        "smiles": "O=C(OO)c1cccc(Cl)c1",
+        "aliases": [
+            "m-cpba"
+        ]
+    },
+    "oxone": {
+        "display": "Oxone",
+        "role": "oxidant",
+        "smiles": "OOS(=O)(=O)[O-].[K+]"
+    },
+    "h2o2": {
+        "display": "H2O2",
+        "role": "oxidant",
+        "smiles": "OO"
+    },
+    "tbhp": {
+        "display": "TBHP",
+        "role": "oxidant",
+        "smiles": "CC(C)(C)OO"
+    },
+    "thf": {
+        "display": "THF",
+        "role": "solvent",
+        "smiles": "C1CCOC1"
+    },
+    "dmf": {
+        "display": "DMF",
+        "role": "solvent",
+        "smiles": "CN(C)C=O"
+    },
+    "dma": {
+        "display": "DMA",
+        "role": "solvent",
+        "smiles": "CC(=O)N(C)C"
+    },
+    "dmso": {
+        "display": "DMSO",
+        "role": "solvent",
+        "smiles": "CS(C)=O"
+    },
+    "dcm": {
+        "display": "DCM",
+        "role": "solvent",
+        "smiles": "ClCCl"
+    },
+    "ch2cl2": {
+        "display": "CH2Cl2",
+        "role": "solvent",
+        "smiles": "ClCCl"
+    },
+    "meoh": {
+        "display": "MeOH",
+        "role": "solvent",
+        "smiles": "CO"
+    },
+    "etoh": {
+        "display": "EtOH",
+        "role": "solvent",
+        "smiles": "CCO"
+    },
+    "iproh": {
+        "display": "iPrOH",
+        "role": "solvent",
+        "smiles": "CC(C)O"
+    },
+    "mecn": {
+        "display": "MeCN",
+        "role": "solvent",
+        "smiles": "CC#N",
+        "aliases": [
+            "acn"
+        ]
+    },
+    "dioxane": {
+        "display": "Dioxane",
+        "role": "solvent",
+        "smiles": "C1COCCO1",
+        "aliases": ["1,4-dioxane"]
+    },
+    "toluene": {
+        "display": "toluene",
+        "role": "solvent",
+        "smiles": "Cc1ccccc1"
+    },
+    "acetone": {
+        "display": "acetone",
+        "role": "solvent",
+        "smiles": "CC(=O)C"
+    },
+    "etoac": {
+        "display": "EtOAc",
+        "role": "solvent",
+        "smiles": "CCOC(C)=O"
+    },
+    "mtbe": {
+        "display": "MTBE",
+        "role": "solvent",
+        "smiles": "CC(C)(C)OC"
+    },
+    "dce": {
+        "display": "DCE",
+        "role": "solvent",
+        "smiles": "C(CCl)Cl"
+    },
+    "nmp": {
+        "display": "NMP",
+        "role": "solvent",
+        "smiles": "CN1CCCC1=O"
+    },
+    "dmpu": {
+        "display": "DMPU",
+        "role": "solvent",
+        "smiles": "CN1CCCN(C1=O)C"
+    },
+    "h2o": {
+        "display": "H2O",
+        "role": "solvent",
+        "smiles": "O",
+        "aliases": [
+            "water"
+        ]
+    },
+    "acoh": {
+        "display": "AcOH",
+        "role": "solvent",
+        "smiles": "CC(=O)O"
+    },
+    "tfa": {
+        "display": "TFA",
+        "role": "acid",
+        "smiles": "OC(=O)C(F)(F)F"
+    },
+    "tfaa": {
+        "display": "TFAA",
+        "role": "activating_agent",
+        "smiles": "C(=O)(C(F)(F)F)OC(=O)C(F)(F)F"
+    },
+    "boc2o": {
+        "display": "Boc2O",
+        "role": "protecting_group",
+        "aliases": [
+            "di-tert-butyl dicarbonate"
+        ],
+        "smiles": "CC(C)(C)OC(=O)OC(=O)OC(C)(C)C"
+    },
+    "fmoc-cl": {
+        "display": "Fmoc-Cl",
+        "role": "protecting_group",
+        "smiles": "C1=CC=C2C(=C1)C(C3=CC=CC=C32)COC(=O)Cl"
+    },
+    "cbz-cl": {
+        "display": "Cbz-Cl",
+        "role": "protecting_group",
+        "smiles": "C1=CC=C(C=C1)COC(=O)Cl"
+    },
+    "tbscl": {
+        "display": "TBSCl",
+        "role": "protecting_group",
+        "aliases": [
+            "tbdmscl"
+        ],
+        "smiles": "CC(C)(C)[Si](C)(C)Cl"
+    },
+    "tmscl": {
+        "display": "TMSCl",
+        "role": "protecting_group",
+        "smiles": "C[Si](C)(C)Cl"
+    },
+    "tipscl": {
+        "display": "TIPSCl",
+        "role": "protecting_group",
+        "smiles": "CC(C)[Si](C(C)C)(C(C)C)Cl"
+    },
+    "tbaf": {
+        "display": "TBAF",
+        "role": "deprotecting_agent",
+        "smiles": "CCCC[N+](CCCC)(CCCC)CCCC.[F-]"
+    },
+    "hcl": {
+        "display": "HCl",
+        "role": "acid",
+        "smiles": "[H]Cl"
+    },
+    "hcl in dioxane": {
+        "display": "HCl in dioxane",
+        "role": "acid"
+    },
+    "cui": {
+        "display": "CuI",
+        "role": "catalyst",
+        "smiles": "[Cu+].[I-]"
+    },
+    "cucl": {
+        "display": "CuCl",
+        "role": "catalyst",
+        "smiles": "Cl[Cu]"
+    },
+    "cu(oac)2": {
+        "display": "Cu(OAc)2",
+        "role": "oxidant",
+        "smiles": "CC(=O)[O-].CC(=O)[O-].[Cu+2]"
+    },
+    "cuso4": {
+        "display": "CuSO4",
+        "role": "catalyst",
+        "smiles": "[O-]S(=O)(=O)[O-].[Cu+2]"
+    },
+    "cuso4·5h2o": {
+        "display": "CuSO4·5H2O",
+        "role": "catalyst",
+        "smiles": "[O-]S(=O)(=O)[O-].[Cu+2]"
+    },
+    "ni(cod)2": {
+        "display": "Ni(cod)2",
+        "role": "catalyst",
+        "smiles": "C1/C=C\\CC/C=C\\C1.C1/C=C\\CC/C=C\\C1.[Ni]"
+    },
+    "nicl2": {
+        "display": "NiCl2",
+        "role": "catalyst",
+        "smiles": "Cl[Ni]Cl"
+    },
+    "nicl2(dme)": {
+        "display": "NiCl2(DME)",
+        "role": "catalyst",
+        "smiles": "COCCOC.Cl[Ni]Cl"
+    },
+    "b2pin2": {
+        "display": "B2pin2",
+        "role": "borylating_agent",
+        "smiles": "B1(OC(C(O1)(C)C)(C)C)B2OC(C(O2)(C)C)(C)C"
+    },
+    "b(oh)3": {
+        "display": "B(OH)3",
+        "role": "borylating_agent",
+        "smiles": "B(O)(O)O"
+    },
+    "pinbh": {
+        "display": "pinBH",
+        "role": "borylating_agent",
+        "smiles": "[B]1OC(C(O1)(C)C)(C)C"
+    },
+    "hbpin": {
+        "display": "HBpin",
+        "role": "borylating_agent",
+        "smiles": "[B]1OC(C(O1)(C)C)(C)C"
+    },
+    "kf": {
+        "display": "KF",
+        "role": "base",
+        "smiles": "[F-].[K+]"
+    },
+    "csf": {
+        "display": "CsF",
+        "role": "base",
+        "smiles": "[Cs+].[F-]"
+    },
+    "fecl3": {
+        "display": "FeCl3",
+        "role": "lewis_acid",
+        "smiles": "Cl[Fe](Cl)Cl"
+    },
+    "fecl2": {
+        "display": "FeCl2",
+        "role": "catalyst",
+        "smiles": "Cl[Fe]Cl"
+    },
+    "zncl2": {
+        "display": "ZnCl2",
+        "role": "lewis_acid",
+        "smiles": "Cl[Zn]Cl"
+    },
+    "znbr2": {
+        "display": "ZnBr2",
+        "role": "lewis_acid",
+        "smiles": "[Zn+2].[Br-].[Br-]"
+    },
+    "na2so4": {
+        "display": "Na2SO4",
+        "role": "drying_agent",
+        "smiles": "[O-]S(=O)(=O)[O-].[Na+].[Na+]"
+    },
+    "mgso4": {
+        "display": "MgSO4",
+        "role": "drying_agent",
+        "smiles": "[O-]S(=O)(=O)[O-].[Mg+2]"
+    },
+    "socl2": {
+        "display": "SOCl2",
+        "role": "activating_agent",
+        "smiles": "O=S(Cl)Cl"
+    },
+    "alcl3": {
+        "display": "AlCl3",
+        "role": "lewis_acid",
+        "smiles": "[Al](Cl)(Cl)Cl"
+    },
+    "bbr3": {
+        "display": "BBr3",
+        "role": "lewis_acid",
+        "smiles": "B(Br)(Br)Br"
+    },
+    "bf3·oet2": {
+        "display": "BF3·OEt2",
+        "role": "lewis_acid",
+        "smiles": "B(F)(F)F.CCOCC"
+    },
+    "tf2o": {
+        "display": "Tf2O",
+        "role": "activating_agent",
+        "smiles": "C(F)(F)(F)S(=O)(=O)OS(=O)(=O)C(F)(F)F"
+    },
+    "ticl4": {
+        "display": "TiCl4",
+        "role": "lewis_acid",
+        "smiles": "Cl[Ti](Cl)(Cl)Cl"
+    },
+    "zn dust": {
+        "display": "Zn dust",
+        "role": "reductant",
+        "smiles": "[Zn]"
+    },
+    "mg turnings": {
+        "display": "Mg turnings",
+        "role": "reductant",
+        "smiles": "[Mg]"
+    },
+    "cul": {
+        "display": "CuL",
+        "smiles": "[Cu+].[I-]"
+    },
+    "tmsi": {
+        "display": "TMSI",
+        "role": "reagent",
+        "smiles": "C[Si](C)(C)I"
+    },
+    "nbs": {
+        "display": "NBS",
+        "role": "halogenating_agent",
+        "smiles": "C1CC(=O)N(C1=O)Br"
+    },
+    "ncs": {
+        "display": "NCS",
+        "role": "halogenating_agent",
+        "smiles": "C1CC(=O)N(C1=O)Cl"
+    },
+    "nis": {
+        "display": "NIS",
+        "role": "halogenating_agent",
+        "smiles": "C1CC(=O)N(C1=O)I"
+    },
+    "selectfluor": {
+        "display": "Selectfluor",
+        "role": "fluorinating_agent",
+        "smiles": "[B-](F)(F)(F)F.[B-](F)(F)(F)F.C1C[N+]2(CC[N+]1(CC2)CCl)F"
+    },
+    "naso3cf3": {
+        "display": "NaSO3CF3",
+        "role": "reagent",
+        "smiles": "C(F)(F)(F)S(=O)[O-].[Na+]"
+    },
+    "dast": {
+        "display": "DAST",
+        "role": "fluorinating_agent",
+        "smiles": "CCN(CC)S(F)(F)F"
+    },
+    "p(oet)3": {
+        "display": "P(OEt)3",
+        "role": "ligand",
+        "smiles": "CCOP(OCC)OCC"
+    },
+    "grubbs ii": {
+        "display": "Grubbs II",
+        "role": "catalyst",
+        "smiles": "CC1=CC(=C(C(=C1)C)N2CCN(C2=[Ru](=CC3=CC=CC=C3)(Cl)Cl)C4=C(C=C(C=C4C)C)C)C.C1CCC(CC1)P(C2CCCCC2)C3CCCCC3"
+    },
+    "hoveyda-grubbs ii": {
+        "display": "Hoveyda-Grubbs II",
+        "role": "catalyst",
+        "smiles": "CC1=CC(=C(C(=C1)C)N2CCN(C2=[Ru](=CC3=CC=CC=C3OC(C)C)(Cl)Cl)C4=C(C=C(C=C4C)C)C)C"
+    },
+    "morpholine": {
+        "display": "morpholine",
+        "smiles": "C1COCCN1"
+    },
+    "dme": {
+        "display": "DME",
+        "role": "solvent",
+        "smiles": "COCCOC"
+    },
+    "chloroform": {
+        "display": "CHCl3",
+        "role": "solvent",
+        "smiles": "ClC(Cl)Cl",
+        "aliases": ["chcl3"]
+    },
+    "benzene": {
+        "display": "benzene",
+        "role": "solvent",
+        "smiles": "c1ccccc1"
+    },
+    "hexane": {
+        "display": "hexane",
+        "role": "solvent",
+        "smiles": "CCCCCC"
+    },
+    "heptane": {
+        "display": "heptane",
+        "role": "solvent",
+        "smiles": "CCCCCCC"
+    },
+    "tempo": {
+        "display": "TEMPO",
+        "role": "oxidant",
+        "smiles": "CC1(C)CCCC(C)(C)N1[O]"
+    },
+    "tbuxphos": {
+        "display": "tBuXPhos",
+        "role": "ligand",
+        "smiles": "CC(C)C1=CC(=C(C(=C1)C(C)C)C2=CC=CC=C2P(C(C)(C)C)C(C)(C)C)C(C)C"
+    },
+    "pd(dppf)cl2": {
+        "display": "Pd(dppf)Cl2",
+        "role": "catalyst",
+        "smiles": "[CH-]1[CH-][CH-][C-]([CH-]1)P(C2=CC=CC=C2)C3=CC=CC=C3.C1=CC=C(C=C1)P([C-]2C=CC=C2)C3=CC=CC=C3.Cl[Pd]Cl.[Fe]"
+    },
+    "cubr": {
+        "display": "CuBr",
+        "role": "catalyst",
+        "smiles": "[Cu]Br"
+    },
+    "n-butanol": {
+        "display": "n-BuOH",
+        "role": "solvent",
+        "smiles": "CCCCO",
+        "aliases": ["nbuoh", "1-butanol"]
+    },
+    "ccl4": {
+        "display": "CCl4",
+        "role": "solvent",
+        "smiles": "ClC(Cl)(Cl)Cl",
+        "aliases": ["carbon tetrachloride"]
+    },
+    "chlorobenzene": {
+        "display": "PhCl",
+        "role": "solvent",
+        "smiles": "Clc1ccccc1"
+    },
+    "cyclohexane": {
+        "display": "cyclohexane",
+        "role": "solvent",
+        "smiles": "C1CCCCC1"
+    },
+    "et2o": {
+        "display": "Et2O",
+        "role": "solvent",
+        "smiles": "CCOCC",
+        "aliases": ["diethyl ether"]
+    },
+    "hmpa": {
+        "display": "HMPA",
+        "role": "solvent",
+        "smiles": "CN(C)P(=O)(N(C)C)N(C)C",
+        "aliases": ["hexamethylphosphoramide"]
+    },
+    "pentane": {
+        "display": "pentane",
+        "role": "solvent",
+        "smiles": "CCCCC"
+    },
+    "d2o": {
+        "display": "D2O",
+        "role": "solvent",
+        "smiles": "[2H]O[2H]",
+        "aliases": ["deuterium oxide", "heavy water"]
+    },
+    "ibx": {
+        "display": "IBX",
+        "role": "oxidant",
+        "smiles": "OI1(=O)OC(=O)c2ccccc12",
+        "aliases": ["2-iodoxybenzoic acid"]
+    },
+    "pd(dppf)cl2·dcm": {
+        "display": "Pd(dppf)Cl2·DCM",
+        "role": "catalyst",
+        "smiles": "[CH-]1C=CC(=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.[CH-]1C=CC(=C1)P(C2=CC=CC=C2)C3=CC=CC=C3.Cl[Pd]Cl.[Fe+2].ClCCl",
+        "aliases": ["pd(dppf)cl2.dcm", "pd(dppf)cl2 dcm"]
+    },
+    "pd2(dba)3·chcl3": {
+        "display": "Pd2(dba)3·CHCl3",
+        "role": "catalyst",
+        "smiles": "C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C(Cl)(Cl)Cl.[Pd].[Pd]",
+        "aliases": ["pd2(dba)3.chcl3", "pd2dba3·chcl3", "pd2dba3.chcl3"]
+    },
+    "cutc": {
+        "display": "CuTC",
+        "role": "catalyst",
+        "smiles": "C1=CSC(=C1)C(=O)[O-].[Cu+]",
+        "aliases": ["copper(i) thiophene-2-carboxylate"]
+    },
+    "phb(oh)2": {
+        "display": "PhB(OH)2",
+        "role": "reagent",
+        "smiles": "OB(O)c1ccccc1",
+        "aliases": ["phenylboronic acid"]
+    },
+    "phmgbr": {
+        "display": "PhMgBr",
+        "role": "reagent",
+        "smiles": "[Mg](Br)c1ccccc1",
+        "aliases": ["phenylmagnesium bromide"]
+    },
+    "memgbr": {
+        "display": "MeMgBr",
+        "role": "reagent",
+        "smiles": "[Mg](Br)C",
+        "aliases": ["methylmagnesium bromide"]
+    },
+    "cl2choch3": {
+        "display": "Cl2CHOCH3",
+        "role": "reagent",
+        "smiles": "COC(Cl)Cl",
+        "aliases": ["dichloromethyl methyl ether", "rieche reagent"]
+    },
+    "bzcl": {
+        "display": "BzCl",
+        "role": "reagent",
+        "smiles": "O=C(Cl)c1ccccc1",
+        "aliases": ["benzoyl chloride"]
+    },
+    "mei": {
+        "display": "MeI",
+        "role": "reagent",
+        "smiles": "CI",
+        "aliases": ["methyl iodide", "iodomethane"]
+    },
+    "ag2o": {
+        "display": "Ag2O",
+        "role": "oxidant",
+        "smiles": "[Ag]O[Ag]",
+        "aliases": ["silver oxide", "silver(i) oxide"]
+    },
+    "piperidine": {
+        "display": "Piperidine",
+        "role": "base",
+        "smiles": "C1CCNCC1"
+    },
+    "nh4cl": {
+        "display": "NH4Cl",
+        "role": "reagent",
+        "smiles": "[NH4+].[Cl-]",
+        "aliases": ["ammonium chloride"]
+    }
+}

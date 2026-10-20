@@ -1,0 +1,209 @@
+{
+  "scope": "Saved-file interoperability; not independent experimental stereochemical assignment or pixel-exact reproduction",
+  "rdkit_version": "2026.03.3",
+  "ChemScript_version": "22.0.0.0",
+  "ChemDraw_version": "22.2.0.3300",
+  "source_sha256": "ff4958d1a140b85bf7f3187d7e7fb44c9a90602b43fb62108f49857f4c145a57",
+  "cdxml_sha256": "aa128a715b42024bd47f534d719ccc30d2d45b0a6036d6d8f42a8bdb08a864ee",
+  "png_sha256": "716767e0ba5624bb8d89c7af947ed29c5468cd6c5451b16a085d86a368d60ec5",
+  "molecules": [
+    {
+      "label": "13",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CC1(C=O)CC=C(O[Si](C)(C)C(C)(C)C)CC1",
+      "missing_centers_before": 0,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "11",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCNCC1(C)CC=C(O[Si](C)(C)C(C)(C)C)CC1",
+      "missing_centers_before": 0,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "12",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "C=C(C(=O)O)c1ccc(OC)cc1",
+      "missing_centers_before": 0,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "14",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "C=C(C(=O)N(CC)CC1(C)CC=C(O[Si](C)(C)C(C)(C)C)CC1)c1ccc(OC)cc1",
+      "missing_centers_before": 0,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "15",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CCC(O[Si](C)(C)C(C)(C)C)=C[C@@H]2CC(c2ccc(OC)cc2)C1=O",
+      "missing_centers_before": 1,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "16",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CCC(OC(=O)c3ccccc3)=C[C@@H]2CC(c2ccc(OC)cc2)C1=O",
+      "missing_centers_before": 1,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "17",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C=C(c2ccc(OC)cc2)C[C@H]2C=C(OC(=O)c3ccccc3)CC[C@@]2(C)C1",
+      "missing_centers_before": 1,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "18",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C=C(c2ccc(OC)cc2)C[C@H]2C(C(=O)OC)=C(O)CC[C@@]2(C)C1",
+      "missing_centers_before": 1,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "19",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CCC(=O)[C@]3(C(=O)OC)[C@@H]1[C@H](c1ccc(OC)cc1)C[C@H]23",
+      "missing_centers_before": 1,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "20",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@H](OC(C)=O)[C@]3(COC(C)=O)[C@@H]1[C@H](C1=CCC4(CC1)OCCO4)C[C@H]23",
+      "missing_centers_before": 2,
+      "opposite_centers_before": 1
+    },
+    {
+      "label": "21",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@H](OC(C)=O)[C@]3(C=O)[C@@H]1[C@H](C1=CCC4(CC1)OCCO4)C[C@H]23",
+      "missing_centers_before": 2,
+      "opposite_centers_before": 1
+    },
+    {
+      "label": "10",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@@H]3OC(=O)C=C[C@]34[C@@H]1[C@H](C1=CCC3(CC1)OCCO3)C[C@H]24",
+      "missing_centers_before": 1,
+      "opposite_centers_before": 0
+    },
+    {
+      "label": "22",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@@H]3OC(=O)C=C[C@]34[C@@H]1[C@H](C1=CC=C(OCCO[Si](C)(C)C)CC1)C[C@H]24",
+      "missing_centers_before": 1,
+      "opposite_centers_before": 1
+    },
+    {
+      "label": "23",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@@H]3OC(=O)C[C@@H]4[C@@]5(C=CC(=O)CC5)[C@H]5C[C@H]2[C@]34[C@@H]51",
+      "missing_centers_before": 1,
+      "opposite_centers_before": 3
+    },
+    {
+      "label": "24",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@H](O[Si](CC)(CC)CC)[C@]34[C@@H]2C[C@@H]([C@@H]13)[C@]1(C=CC(=O)CC1)[C@H]4CC(=O)Nc1ccccc1",
+      "missing_centers_before": 2,
+      "opposite_centers_before": 3
+    },
+    {
+      "label": "25",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@H](O[Si](CC)(CC)CC)[C@]34[C@@H]2C[C@@H]([C@@H]13)[C@@]1(CCC(=O)C2O[C@H]21)[C@H]4CC(=O)Nc1ccccc1",
+      "missing_centers_before": 2,
+      "opposite_centers_before": 4
+    },
+    {
+      "label": "26",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@H](O[Si](CC)(CC)CC)[C@]34[C@@H]2C[C@@H]([C@@H]13)[C@@]1(CCC(=O)C(SC(c2ccccc2)(c2ccccc2)c2ccccc2)[C@H]1O)[C@H]4CC(=O)Nc1ccccc1",
+      "missing_centers_before": 2,
+      "opposite_centers_before": 4
+    },
+    {
+      "label": "27",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@H](O[Si](CC)(CC)CC)[C@]34[C@@H]2C[C@@H]([C@@H]13)[C@]1(C=C(SC(c2ccccc2)(c2ccccc2)c2ccccc2)C(=O)CC1)[C@H]4CC(=O)Nc1ccccc1",
+      "missing_centers_before": 2,
+      "opposite_centers_before": 2
+    },
+    {
+      "label": "28",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CCN1C[C@]2(C)CC[C@H](O[Si](CC)(CC)CC)[C@]34[C@@H]2C[C@@H]([C@@H]13)[C@@]12C=C(SC(c3ccccc3)(c3ccccc3)c3ccccc3)C(=O)[C@@H](C1)C(=O)C[C@H]24",
+      "missing_centers_before": 2,
+      "opposite_centers_before": 3
+    },
+    {
+      "label": "1",
+      "status": "consistent",
+      "matches_pre_repair_ChemScript": true,
+      "smiles": "CC[N@@H+]1C[C@]2(C)CC[C@H](O)[C@]34[C@@H]2C[C@@H]([C@@H]13)[C@@]12C=C(S(=O)(=O)[O-])C(=O)[C@@H](C1)C(=O)C[C@H]24",
+      "missing_centers_before": 2,
+      "opposite_centers_before": 4
+    }
+  ],
+  "pre_repair_atom_level_counts": {
+    "same": 48,
+    "missing": 24,
+    "opposite": 26
+  },
+  "native_inventory_preserved": true,
+  "cross_reader_consistent": 20,
+  "mismatched": 0,
+  "source_doi": "10.1021/jacs.5c17047",
+  "source_kind": "User-provided published-figure screenshot; original screenshot not redistributed here",
+  "native_check": "Recorded licensed-host CDXML -> CDX -> CDXML and direct saved-CDXML reader comparison",
+  "source_ink_iou": 0.6960194420911379,
+  "normalized_mae": 0.03038084041326184,
+  "image_alignment": {
+    "scale": 1,
+    "translation_pixels": [
+      30,
+      10
+    ],
+    "warping": false
+  },
+  "visible_change": "Compound 1 uses explicit wedge/hashed-wedge stereobonds; other 19 structures retain source-oriented bond styles.",
+  "rights": "Reconstructed scientific figure and embedded source X-ray crop are third-party-derived material, excluded from the repository MIT license. Consult the original publisher/rightsholder for reuse rights.",
+  "usage": {
+    "scope": "Stereo interoperability repair only; excludes later calls and final reply",
+    "elapsed_seconds": 1544.747,
+    "tokens": {
+      "input_tokens": 7324136,
+      "cached_input_tokens": 7230848,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 32434,
+      "reasoning_output_tokens": 15804,
+      "total_tokens": 7356570,
+      "uncached_input_tokens": 93288
+    },
+    "cutoff_utc": "2026-09-20T18:07:51.473Z",
+    "method": "Difference of cumulative max snapshots, not sum of snapshots. Cached input included in input; reasoning included in output. Excludes later calls/final reply."
+  }
+}

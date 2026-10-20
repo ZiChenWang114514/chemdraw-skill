@@ -1,0 +1,78 @@
+{
+  "scope": "Incremental native-edit replay and reviewed dual delivery; not unseen image accuracy",
+  "source_image_sha256": "ff4958d1a140b85bf7f3187d7e7fb44c9a90602b43fb62108f49857f4c145a57",
+  "source_variant": {
+    "chemistry_gate": true,
+    "chemscript_matches_target": true,
+    "cross_reader_status": "unresolved",
+    "native_preserved": true,
+    "rdkit_matches_target": false,
+    "render_ok": true,
+    "sha256": "121a035f59bd4651c81767d3406a71a99f40273cc749e11f45b1fd1b4aa7f1f1",
+    "visual_review": "reviewed_with_differences"
+  },
+  "compatible_variant": {
+    "chemistry_gate": true,
+    "chemscript_matches_target": true,
+    "cross_reader_status": "consistent",
+    "native_preserved": true,
+    "rdkit_matches_target": true,
+    "render_ok": true,
+    "sha256": "aa128a715b42024bd47f534d719ccc30d2d45b0a6036d6d8f42a8bdb08a864ee",
+    "visual_review": "reviewed_with_differences"
+  },
+  "source_preview_sha256": "fe8a59322da7b70e8eef47945d9df4f428174fbec520058245c221af91f075c0",
+  "compatible_preview_sha256": "716767e0ba5624bb8d89c7af947ed29c5468cd6c5451b16a085d86a368d60ec5",
+  "visual_review": "Both native figures and source overlays inspected; not pixel identical.",
+  "initial_source_import": "First native normalization added RDKit-readable stereo metadata (0 to 74 specified centers); raw input failed preservation gate. Normalized source was separately saved again and passed preservation. Raw prior artifacts retained locally.",
+  "benchmark": {
+    "comparable": true,
+    "speedup": 3.7747384268336415,
+    "baseline": {
+      "fixture_sha256": "aa128a715b42024bd47f534d719ccc30d2d45b0a6036d6d8f42a8bdb08a864ee",
+      "model": "none: deterministic Python replay",
+      "versions": {
+        "rdkit": "2026.03.3",
+        "native_host": "same_host_same_run"
+      },
+      "acceptance_contract": "known-target multiset plus final native save; no image-recognition accuracy claim",
+      "accepted": true,
+      "elapsed_seconds": 33.53339009999763,
+      "native_calls": 8,
+      "native_operations": {
+        "convert_cdx_cdxml": 8
+      },
+      "recognition_calls": 0,
+      "edits": 3,
+      "agent_tokens": null,
+      "source_image_sha256": "716767e0ba5624bb8d89c7af947ed29c5468cd6c5451b16a085d86a368d60ec5"
+    },
+    "candidate": {
+      "fixture_sha256": "aa128a715b42024bd47f534d719ccc30d2d45b0a6036d6d8f42a8bdb08a864ee",
+      "model": "none: deterministic Python replay",
+      "versions": {
+        "rdkit": "2026.03.3",
+        "native_host": "same_host_same_run"
+      },
+      "acceptance_contract": "known-target multiset plus final native save; no image-recognition accuracy claim",
+      "accepted": true,
+      "elapsed_seconds": 8.883632799988845,
+      "native_calls": 2,
+      "native_operations": {
+        "convert_cdx_cdxml": 2
+      },
+      "recognition_calls": 0,
+      "edits": 3,
+      "agent_tokens": null,
+      "source_image_sha256": "716767e0ba5624bb8d89c7af947ed29c5468cd6c5451b16a085d86a368d60ec5"
+    },
+    "scope": "Three caption-size edits; native-save scheduling only. Not end-to-end agent speed or accuracy.",
+    "missing_usage_is_unknown": true
+  },
+  "native_versions": {
+    "ChemDraw": "22.2.0.3300",
+    "ChemScript": "22.0.0.0",
+    "RDKit": "2026.03.3"
+  },
+  "rights": "Third-party-derived artwork and embedded source X-ray excluded from MIT license; see CASE.md."
+}

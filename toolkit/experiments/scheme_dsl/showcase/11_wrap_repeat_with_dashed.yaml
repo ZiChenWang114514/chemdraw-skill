@@ -1,0 +1,40 @@
+# Showcase 11: Wrap:Repeat with Dashed Arrow (Planned Step)
+# Common in progress reports: completed steps + one planned step
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  morph:
+    smiles: "C1COCCN1"
+  int1:
+    smiles: "c1ccc2nc(N3CCOCC3)ccc2c1"
+    label: "2"
+  int2:
+    smiles: "Brc1cc2ccccc2nc1N1CCOCC1"
+    label: "3"
+  planned:
+    smiles: "Cc1cc2ccccc2nc1N1CCOCC1"
+    label: "4"
+
+steps:
+  - substrates: [sm]
+    above_arrow:
+      structures: [morph]
+      text: ["(1.2 eq)"]
+    below_arrow:
+      text: ["Pd2(dba)3, BINAP", "Cs2CO3, dioxane, reflux"]
+    products: [int1]
+  - substrates: [int1]
+    below_arrow:
+      text: ["NBS, DMF, 0 C"]
+    products: [int2]
+  - substrates: [int2]
+    arrow_style: dashed
+    below_arrow:
+      text: ["MeI, Ag2O", "DMF, 80 C"]
+    products: [planned]
+
+layout: sequential
+wrap: repeat
+steps_per_row: 2
