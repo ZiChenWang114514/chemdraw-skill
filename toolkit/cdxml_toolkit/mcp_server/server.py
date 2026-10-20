@@ -1295,7 +1295,7 @@ def embed_cdxml_in_office(
 
     from cdxml_toolkit.office.ole_embedder import (
         batch_convert,
-        get_cdxml_content_size,
+        content_size_emu,
         build_ole_compound_file,
         build_pptx,
         build_docx,
@@ -1320,7 +1320,7 @@ def embed_cdxml_in_office(
         item = converted[0]
 
         # Step 2: compute display dimensions + build OLE compound file
-        w_emu, h_emu = get_cdxml_content_size(str(cdxml_p))
+        w_emu, h_emu = content_size_emu({**item, "path": str(cdxml_p)})
         ole_data = build_ole_compound_file(item["cdx_data"])
 
         items = [{

@@ -276,13 +276,14 @@ class OfficeReplacementTests(unittest.TestCase):
         )
         return path
 
-    def _replace(self, source: Path, manifest_path: Path, output: Path):
+    def _replace(self, source: Path, manifest_path: Path, output: Path, content_bbox=None):
         converted = [
             {
                 "path": str(self.replacement),
                 "name": self.replacement.stem,
                 "cdx_data": b"VjCD0100replacement",
                 "emf_data": self.replacement_emf,
+                "content_bbox": content_bbox,
             }
         ]
         with mock.patch(
@@ -332,6 +333,23 @@ class OfficeReplacementTests(unittest.TestCase):
 
     def test_replace_one_of_two_docx_objects_preserves_other_parts_and_geometry(self):
         self._assert_single_object_replaced(".docx")
+
+    def test_replace_warns_when_the_drawing_shape_does_not_fit_the_kept_frame(self):
+        # The frame is kept by contract, so a much wider drawing is squeezed; say so.
+        source, manifest = self._inspection_manifest(".pptx")
+        first = manifest["objects"][0]
+        width, height = first["geometry"]["width_emu"], first["geometry"]["height_emu"]
+        self.assertTrue(width and height)
+        replacements = self._write_replacements(
+            manifest, [{"object_id": first["object_id"], "replacement_cdxml": self.replacement.name}])
+        same_shape = (0, 0, width / 12700, height / 12700)
+        result = self._replace(source, replacements, self.root / "same.pptx", same_shape)
+        self.assertEqual(result["warnings"], [])
+        wide = (0, 0, 4 * width / 12700, height / 12700)
+        result = self._replace(source, replacements, self.root / "wide.pptx", wide)
+        self.assertEqual(len(result["warnings"]), 1)
+        self.assertIn(first["object_id"], result["warnings"][0])
+        self.assertIn("distorted", result["warnings"][0])
 
     def test_replace_rejects_unsafe_and_ambiguous_manifest_entries(self):
         source, manifest = self._inspection_manifest(".pptx")

@@ -15,6 +15,20 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 
+class OutputExistsError(ValueError):
+    """An output already exists and the tool will not replace it.
+
+    This is an expected answer, not a crash: the worker returns the message to the caller
+    with the code ``output_exists`` so it can choose another path.
+    """
+
+    error_code = "output_exists"
+
+    @property
+    def public_message(self) -> str:
+        return str(self)
+
+
 def validate_input_file(
     path: str | Path,
     *,
@@ -53,7 +67,7 @@ def resolve_destination(
     if output_path is not None:
         destination = Path(output_path).expanduser().resolve()
         if destination.exists() or destination == source_path:
-            raise ValueError(f"Refusing to overwrite an existing file: {destination}")
+            raise OutputExistsError(f"Refusing to overwrite an existing file: {destination}")
         if destination.suffix.lower() != suffix.lower():
             raise ValueError(f"output_path must end in {suffix}: {destination}")
     else:
@@ -83,7 +97,7 @@ def resolve_directory_destination(
     if output_dir is not None:
         destination = Path(output_dir).expanduser().resolve()
         if destination.exists():
-            raise ValueError(f"Refusing to overwrite an existing directory: {destination}")
+            raise OutputExistsError(f"Refusing to overwrite an existing directory: {destination}")
     else:
         candidate = source_path.parent / f"{source_path.stem}_{tag}"
         destination = candidate
@@ -152,7 +166,7 @@ def publish_file(staged: str | Path, destination: str | Path) -> None:
         os.link(source, target)
         published = True
     except FileExistsError as exc:
-        raise ValueError(f"Refusing to overwrite an existing file: {target}") from exc
+        raise OutputExistsError(f"Refusing to overwrite an existing file: {target}") from exc
     except OSError:
         created = False
         try:
@@ -163,7 +177,7 @@ def publish_file(staged: str | Path, destination: str | Path) -> None:
                 os.fsync(target_handle.fileno())
             published = True
         except FileExistsError as exc:
-            raise ValueError(f"Refusing to overwrite an existing file: {target}") from exc
+            raise OutputExistsError(f"Refusing to overwrite an existing file: {target}") from exc
         except Exception:
             if created:
                 target.unlink(missing_ok=True)
@@ -185,7 +199,7 @@ def publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None:
     outputs = [(Path(source), Path(target)) for source, target in staged_outputs]
     for _, target in outputs:
         if target.exists():
-            raise ValueError(f"Refusing to overwrite an existing file: {target}")
+            raise OutputExistsError(f"Refusing to overwrite an existing file: {target}")
     committed: list[Path] = []
     try:
         for source, target in outputs:
@@ -201,18 +215,18 @@ def publish_directory(staged: str | Path, destination: str | Path) -> None:
     source = Path(staged).resolve()
     target = Path(destination).resolve()
     if target.exists():
-        raise ValueError(f"Refusing to overwrite an existing directory: {target}")
+        raise OutputExistsError(f"Refusing to overwrite an existing directory: {target}")
     for attempt in range(6):
         try:
             source.rename(target)
             return
         except FileExistsError as exc:
-            raise ValueError(
+            raise OutputExistsError(
                 f"Refusing to overwrite an existing directory: {target}"
             ) from exc
         except PermissionError as exc:
             if target.exists():
-                raise ValueError(
+                raise OutputExistsError(
                     f"Refusing to overwrite an existing directory: {target}"
                 ) from exc
             if attempt == 5:
@@ -220,7 +234,7 @@ def publish_directory(staged: str | Path, destination: str | Path) -> None:
             time.sleep(min(0.05 * (2**attempt), 0.5))
         except OSError as exc:
             if target.exists():
-                raise ValueError(
+                raise OutputExistsError(
                     f"Refusing to overwrite an existing directory: {target}"
                 ) from exc
             raise

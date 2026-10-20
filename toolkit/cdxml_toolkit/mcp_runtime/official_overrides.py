@@ -16,7 +16,7 @@ from . import native_renderer
 mcp_compat.install_legacy_fastmcp_alias()
 
 
-_TEMP_OUTPUT = Path(tempfile.gettempdir()) / "codex-chemdraw"
+_TEMP_OUTPUT = Path(tempfile.gettempdir()) / "chemdraw-skill-native"
 
 
 def _raw_upstream(function):
@@ -366,7 +366,7 @@ def _build_embedded_office(source: Path, destination: Path) -> dict[str, Any]:
         batch_convert,
         build_docx,
         build_pptx,
-        get_cdxml_content_size,
+        content_size_emu,
     )
     from .extended_tools import _build_chemdraw_ole
 
@@ -380,7 +380,9 @@ def _build_embedded_office(source: Path, destination: Path) -> dict[str, Any]:
         return {"ok": False, "error": "ChemDraw COM conversion returned empty CDX"}
     if not isinstance(emf_data, (bytes, bytearray, memoryview)) or not emf_data:
         return {"ok": False, "error": "ChemDraw COM conversion returned empty EMF"}
-    width, height = get_cdxml_content_size(str(source))
+    width, height = content_size_emu({**item, "path": str(source)})
+    if width <= 0 or height <= 0:
+        return {"ok": False, "error": "Could not determine the drawing size of the CDXML content"}
     items = [
         {
             "ole_data": _build_chemdraw_ole(bytes(cdx_data)),

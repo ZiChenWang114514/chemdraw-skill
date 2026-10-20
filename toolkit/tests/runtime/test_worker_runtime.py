@@ -52,6 +52,31 @@ class WorkerRuntimeTests(unittest.TestCase):
         self.assertEqual(envelope["error"]["id"], "abc123")
         self.assertLessEqual(len(envelope["error"]["message"]), 1000)
 
+    def test_overwrite_refusals_reach_the_caller_with_their_message(self):
+        # Refusing to replace an existing output is an expected answer, not a crash: the caller
+        # needs the path to choose another one, and no diagnostic log is written.
+        from cdxml_toolkit.mcp_runtime.artifact_safety import OutputExistsError
+        for error in (OutputExistsError("Refusing to overwrite an existing file: out.pdf"),
+                      FileExistsError("Refusing to overwrite native output: out.png")):
+            with self.subTest(type(error).__name__):
+                with mock.patch.object(tool_worker, "_failure_log") as log:
+                    envelope, return_code = tool_worker._error_envelope(error)
+                self.assertEqual(return_code, 1)
+                self.assertEqual(envelope["error"]["code"], "output_exists")
+                self.assertEqual(envelope["error"]["message"], str(error))
+                log.assert_not_called()
+        self.assertTrue(issubclass(OutputExistsError, ValueError))
+
+    def test_replacement_preview_collision_is_an_overwrite_refusal(self):
+        from cdxml_toolkit.mcp_runtime import extended_tools
+        from cdxml_toolkit.mcp_runtime.artifact_safety import OutputExistsError
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "replaced.pdf").write_bytes(b"%PDF")
+            with self.assertRaises(OutputExistsError):
+                extended_tools._replacement_destination(
+                    root / "deck.pptx", str(root / "replaced.pptx"), render_pdf_preview=True)
+
     def test_worker_environment_preserves_runtime_configuration_and_filters_secrets(self):
         configured = {
             "CHEMSCRIPT_DLL_DIR": r"C:\ChemScript\bin",

@@ -843,7 +843,7 @@ class ExtendedToolContractTests(unittest.TestCase):
             "build_docx": build_docx,
             "build_ole_compound_file": build_ole,
             "build_pptx": build_pptx,
-            "get_cdxml_content_size": mock.Mock(return_value=(100, 200)),
+            "content_size_emu": mock.Mock(return_value=(100, 200)),
         }
         return mocked_module("cdxml_toolkit.office.ole_embedder", **members), members
 

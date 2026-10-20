@@ -94,6 +94,15 @@ def _error_envelope(exc: BaseException) -> tuple[dict, int]:
             },
             3,
         )
+    if isinstance(exc, FileExistsError) or getattr(exc, "error_code", None) == "output_exists":
+        # An existing output was protected. The caller needs the path, and nothing failed.
+        return (
+            {
+                "ok": False,
+                "error": {"code": "output_exists", "message": str(exc)[:1000]},
+            },
+            1,
+        )
     error_id = _failure_log(exc)
     error_code = getattr(exc, "error_code", None)
     if isinstance(error_code, str) and re.fullmatch(r"[a-z0-9_]{1,100}", error_code):

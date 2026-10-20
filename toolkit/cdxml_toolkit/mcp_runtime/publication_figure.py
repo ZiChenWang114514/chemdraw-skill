@@ -47,7 +47,7 @@ def publication_figure(operation: str, spec_path: str, output_dir: str) -> dict:
     requested=json.loads(spec_file.read_text(encoding='utf-8-sig'))
     if not isinstance(requested,dict):raise ValueError('Specification must be an object')
     target=Path(output_dir).expanduser().resolve()
-    if target.exists():raise ValueError('Refusing to overwrite output directory')
+    if target.exists():raise artifact_safety.OutputExistsError(f'Refusing to overwrite output directory: {target}')
     project=None;base_dir=None
     if operation!='create':
         project_file=local_path(spec_file.parent,requested['project_path'])

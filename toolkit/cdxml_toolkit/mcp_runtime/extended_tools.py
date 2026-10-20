@@ -389,7 +389,7 @@ def _render_cdxml(source: str, destination: str, dpi: int = 300) -> str:
 def _staged_cdxml_outputs(destination: Path, render_preview: bool, writer, semantic_source=None) -> dict[str, str]:
     preview = destination.with_name(f"{destination.stem}_preview.png")
     if render_preview and preview.exists():
-        raise ValueError(f"Refusing to overwrite an existing preview: {preview}")
+        raise artifact_safety.OutputExistsError(f"Refusing to overwrite an existing preview: {preview}")
     with tempfile.TemporaryDirectory(prefix=".cdxml-", dir=destination.parent) as stage_dir:
         stage = Path(stage_dir)
         temporary_cdxml = stage / destination.name
@@ -624,7 +624,7 @@ def render_cdxml_files(
         raise ValueError("Render inputs produce duplicate destination paths")
     conflicts = [path for path in destinations if path.exists()]
     if conflicts:
-        raise ValueError(
+        raise artifact_safety.OutputExistsError(
             "Refusing to overwrite existing render destination(s): "
             + ", ".join(str(path) for path in conflicts)
         )
@@ -797,11 +797,11 @@ def batch_embed_cdxml_in_office(
     if destination.suffix.lower() not in {".pptx", ".docx"}:
         raise ValueError("output_path must end in .pptx or .docx")
     if destination.exists() or destination in sources:
-        raise ValueError(f"Refusing to overwrite an existing file: {destination}")
+        raise artifact_safety.OutputExistsError(f"Refusing to overwrite an existing file: {destination}")
     destination.parent.mkdir(parents=True, exist_ok=True)
     from cdxml_toolkit.office.ole_embedder import (
         batch_convert, build_docx, build_pptx,
-        get_cdxml_content_size,
+        content_size_emu,
     )
 
     converted = native_io.batch_convert_cdxml(sources, batch_convert)
@@ -817,7 +817,7 @@ def batch_embed_cdxml_in_office(
             raise RuntimeError(f"ChemDraw conversion {index} returned empty CDX data")
         if not isinstance(emf_data, (bytes, bytearray, memoryview)) or not emf_data:
             raise RuntimeError(f"ChemDraw conversion {index} returned empty EMF data")
-        width, height = get_cdxml_content_size(item["path"], margin_pt=margin_pt)
+        width, height = content_size_emu(item, margin_pt=margin_pt)
         if width <= 0 or height <= 0:
             raise RuntimeError(
                 f"ChemDraw conversion {index} returned invalid content dimensions"
@@ -900,7 +900,7 @@ def _replacement_destination(
         return destination, None
     pdf = destination.with_suffix(".pdf")
     if output_path is not None and pdf.exists():
-        raise ValueError(f"Refusing to overwrite an existing file: {pdf}")
+        raise artifact_safety.OutputExistsError(f"Refusing to overwrite an existing file: {pdf}")
     if output_path is None:
         base = destination
         index = 2
@@ -909,6 +909,29 @@ def _replacement_destination(
             pdf = destination.with_suffix(".pdf")
             index += 1
     return destination, pdf
+
+
+def _frame_shape_warning(object_id, record, content_size_emu, converted_item) -> str | None:
+    """Warn when a replacement drawing will be stretched to fit the frame it inherits."""
+    geometry = record.get("geometry") or {}
+    frame_w, frame_h = geometry.get("width_emu"), geometry.get("height_emu")
+    if not frame_w or not frame_h or frame_w <= 0 or frame_h <= 0:
+        return None
+    try:
+        width, height = content_size_emu(converted_item)
+    except Exception:
+        return None
+    if width <= 0 or height <= 0:
+        return None
+    ratio = (width / height) / (frame_w / frame_h)
+    if 1 / 1.1 <= ratio <= 1.1:
+        return None
+    return (
+        f"Object {object_id} keeps its original frame, so the replacement drawing is "
+        f"distorted: its width-to-height ratio differs from the frame by a factor of "
+        f"{max(ratio, 1 / ratio):.2f}. Resize the object in Office, or embed the drawing "
+        "as a new object instead."
+    )
 
 
 def replace_chemdraw_objects_in_office(
@@ -934,7 +957,7 @@ def replace_chemdraw_objects_in_office(
         render_pdf_preview=render_pdf_preview,
     )
 
-    from cdxml_toolkit.office.ole_embedder import batch_convert
+    from cdxml_toolkit.office.ole_embedder import batch_convert, content_size_emu
 
     with office_objects.com_apartment():
         converted = native_io.batch_convert_cdxml(
@@ -943,6 +966,7 @@ def replace_chemdraw_objects_in_office(
     if len(converted) != len(replacements):
         raise RuntimeError("ChemDraw did not convert every replacement CDXML")
     replacement_parts: dict[str, dict[str, bytes]] = {}
+    warnings: list[str] = []
     for index, (replacement, converted_item) in enumerate(
         zip(replacements, converted), start=1
     ):
@@ -963,6 +987,11 @@ def replace_chemdraw_objects_in_office(
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
         record = replacement["record"]
+        shape_warning = _frame_shape_warning(
+            replacement["object_id"], record, content_size_emu, converted_item
+        )
+        if shape_warning:
+            warnings.append(shape_warning)
         replacement_parts[replacement["object_id"]] = {
             "embedding_part": record["embedding_part"],
             "preview_part": record["preview_part"],
@@ -1002,6 +1031,7 @@ def replace_chemdraw_objects_in_office(
         outputs["pdf_preview"] = str(pdf_destination)
     return _contract(
         outputs,
+        warnings=warnings,
         metadata={
             "objects_replaced": len(replacements),
             "object_ids": [item["object_id"] for item in replacements],

@@ -29,7 +29,7 @@ import zipfile
 
 from .ole_embedder import (
     batch_convert,
-    get_cdxml_content_size,
+    content_size_emu,
     build_ole_compound_file,
     _ensure_content_types,
 )
@@ -108,7 +108,7 @@ def prepare_ole_items(cdxml_slots, margin_pt=0.0):
     items = {}
     for conv in converted:
         path = os.path.abspath(conv["path"])
-        w_emu, h_emu = get_cdxml_content_size(conv["path"], margin_pt=margin_pt)
+        w_emu, h_emu = content_size_emu(conv, margin_pt=margin_pt)
         ole_data = build_ole_compound_file(conv["cdx_data"])
         items[path] = {
             "ole_data": ole_data,

@@ -229,7 +229,9 @@ class Fig:
         self._bb(x, y)
         base = 1 if bold else 0
         j = f' Justification="{align}" CaptionJustification="{align}"' if align != 'Left' else ''
-        self.items.append(f'<t id="{self._id()}" p="{x:.2f} {y:.2f}"{j}>{runs(markup, font, size, base)}</t>')
+        # Captions are annotations; without this ChemDraw reads codes such as "B" as atoms on CDX conversion.
+        self.items.append(f'<t id="{self._id()}" p="{x:.2f} {y:.2f}"{j} InterpretChemically="no">'
+                          f'{runs(markup, font, size, base)}</t>')
 
     def arrow(self, x1, y1, x2, y2, kind='forward'):
         self._bb(x1, y1); self._bb(x2, y2)
@@ -255,8 +257,10 @@ class Fig:
 
     def write(self, path):
         b = self.bbox
+        # Root BoundingBox: ChemDraw writes one, and Office embedding sizes the OLE object from it.
+        box = f' BoundingBox="{b[0]:.2f} {b[1]:.2f} {b[2]:.2f} {b[3]:.2f}"' if b[0] < b[2] and b[1] < b[3] else ''
         head = ('<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd">\n'
-                f'<CDXML BondLength="14.4" LabelFont="3" LabelSize="10" LabelFace="96" CaptionFont="3" CaptionSize="10" '
+                f'<CDXML{box} BondLength="14.4" LabelFont="3" LabelSize="10" LabelFace="96" CaptionFont="3" CaptionSize="10" '
                 'LineWidth="0.6" BoldWidth="2" HashSpacing="2.5" MarginWidth="1.6" BondSpacing="18" ChainAngle="120" '
                 'LabelJustification="Auto" CaptionJustification="Left" color="0" bgcolor="1">'
                 '<colortable><color r="1" g="1" b="1"/><color r="0" g="0" b="0"/></colortable>'

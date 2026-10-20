@@ -100,7 +100,7 @@ def _catalog_destination(output_path: str) -> Path:
     if destination.suffix.lower() != ".json":
         raise ValueError("output_path must end in .json")
     if destination.exists():
-        raise ValueError(f"Refusing to overwrite existing output: {destination}")
+        raise artifact_safety.OutputExistsError(f"Refusing to overwrite existing output: {destination}")
     destination.parent.mkdir(parents=True, exist_ok=True)
     return destination
 

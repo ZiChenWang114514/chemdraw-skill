@@ -91,8 +91,11 @@ def batch_convert(cdxml_paths):
     Returns list of dicts: [{
         'path': str, 'name': str,
         'cdx_data': bytes, 'emf_data': bytes,
-        'width_emu': int, 'height_emu': int,
+        'content_bbox': (left, top, right, bottom) in points or None,
     }, ...]
+
+    ``content_bbox`` is the root BoundingBox ChemDraw writes when it saves the
+    document as CDXML: the tight extent of the drawing. Use content_size_emu().
     """
     import win32com.client as win32
 
@@ -108,6 +111,7 @@ def batch_convert(cdxml_paths):
 
             tmp_cdx = tempfile.mktemp(suffix=".cdx")
             tmp_emf = tempfile.mktemp(suffix=".emf")
+            tmp_cdxml = tempfile.mktemp(suffix=".cdxml")
 
             doc = None
             try:
@@ -121,11 +125,19 @@ def batch_convert(cdxml_paths):
                 with open(tmp_emf, "rb") as f:
                     emf_data = f.read()
 
+                content_bbox = None
+                try:
+                    doc.SaveAs(os.path.abspath(tmp_cdxml))
+                    content_bbox = _parse_box(ET.parse(tmp_cdxml).getroot().get('BoundingBox'))
+                except Exception:
+                    content_bbox = None  # sizing falls back to measuring the input file
+
                 results.append({
                     'path': cdxml_path,
                     'name': name,
                     'cdx_data': cdx_data,
                     'emf_data': emf_data,
+                    'content_bbox': content_bbox,
                 })
             finally:
                 try:
@@ -133,7 +145,7 @@ def batch_convert(cdxml_paths):
                         doc.Close(False)
                 except Exception:
                     pass
-                for tmp in (tmp_cdx, tmp_emf):
+                for tmp in (tmp_cdx, tmp_emf, tmp_cdxml):
                     if os.path.exists(tmp):
                         os.unlink(tmp)
 
@@ -167,36 +179,48 @@ def get_cdxml_content_size(cdxml_path, margin_pt=0.0, scale=1.02):
 
     w_pt = h_pt = None
 
-    # Try root BoundingBox first (tightest content box)
-    bb = root.get('BoundingBox')
-    if bb:
-        parts = bb.split()
-        if len(parts) == 4:
-            x1, y1, x2, y2 = map(float, parts)
-            w_pt = (x2 - x1) + 2 * margin_pt
-            h_pt = (y2 - y1) + 2 * margin_pt
+    # Try root BoundingBox first (tightest content box). Some generators copy the page
+    # extent into it instead; that box says nothing about the drawing and is skipped.
+    root_box = _parse_box(root.get('BoundingBox'))
+    page_boxes = {_parse_box(page.get('BoundingBox')) for page in root.iter('page')}
+    if root_box and root_box not in page_boxes:
+        x1, y1, x2, y2 = root_box
+        w_pt = (x2 - x1) + 2 * margin_pt
+        h_pt = (y2 - y1) + 2 * margin_pt
 
-    # Fallback: compute from all child BoundingBox attributes
+    # Fallback: measure every geometric element. ChemDraw stores some boxes (rectangles,
+    # for example) as "right bottom left top", so each box is normalized first; atoms,
+    # text anchors and arrow end points carry no BoundingBox at all in generated files.
     if w_pt is None:
-        min_x, min_y = float("inf"), float("inf")
-        max_x, max_y = float("-inf"), float("-inf")
+        xs, ys = [], []
         for elem in root.iter():
+            if elem.tag in ("page", "CDXML"):
+                continue
             child_bb = elem.get("BoundingBox")
-            if child_bb and elem.tag not in ("page", "CDXML"):
-                parts = child_bb.split()
-                if len(parts) == 4:
-                    try:
-                        cx1, cy1, cx2, cy2 = map(float, parts)
-                        min_x = min(min_x, cx1)
-                        min_y = min(min_y, cy1)
-                        max_x = max(max_x, cx2)
-                        max_y = max(max_y, cy2)
-                    except ValueError:
-                        continue
-
-        if min_x < float("inf"):
-            w_pt = (max_x - min_x) + 2 * margin_pt
-            h_pt = (max_y - min_y) + 2 * margin_pt
+            if child_bb:
+                try:
+                    cx1, cy1, cx2, cy2 = map(float, child_bb.split())
+                except ValueError:
+                    pass
+                else:
+                    xs += [cx1, cx2]
+                    ys += [cy1, cy2]
+            for attr in ("p", "Head3D", "Tail3D"):
+                value = elem.get(attr)
+                if not value:
+                    continue
+                try:
+                    coords = [float(v) for v in value.split()]
+                except ValueError:
+                    continue
+                if len(coords) >= 2:
+                    xs.append(coords[0])
+                    ys.append(coords[1])
+        if xs and ys:
+            w_pt = (max(xs) - min(xs)) + 2 * margin_pt
+            h_pt = (max(ys) - min(ys)) + 2 * margin_pt
+            if w_pt <= 0 or h_pt <= 0:
+                w_pt = h_pt = None
 
     # Last resort: use page dimensions (scale not applied)
     if w_pt is None:
@@ -211,6 +235,35 @@ def get_cdxml_content_size(cdxml_path, margin_pt=0.0, scale=1.02):
     w_pt *= scale
     h_pt *= scale
 
+    return int(w_pt * 12700), int(h_pt * 12700)
+
+
+def _parse_box(value):
+    """Return a normalized (left, top, right, bottom) box with positive size, or None."""
+    try:
+        x1, y1, x2, y2 = map(float, (value or '').split())
+    except ValueError:
+        return None
+    left, right = sorted((x1, x2))
+    top, bottom = sorted((y1, y2))
+    if right - left <= 0 or bottom - top <= 0:
+        return None
+    return left, top, right, bottom
+
+
+def content_size_emu(item, margin_pt=0.0, scale=1.02):
+    """OLE display size for one batch_convert() result.
+
+    ChemDraw's own tight content box (``content_bbox``, recorded during conversion) is
+    preferred because the input file may carry no root BoundingBox or only the page extent.
+    Without it, the CDXML file is measured with get_cdxml_content_size().
+    """
+    box = item.get('content_bbox')
+    box = _parse_box(' '.join(map(str, box))) if isinstance(box, (list, tuple)) and len(box) == 4 else None
+    if box is None:
+        return get_cdxml_content_size(item['path'], margin_pt=margin_pt, scale=scale)
+    w_pt = (box[2] - box[0] + 2 * margin_pt) * scale
+    h_pt = (box[3] - box[1] + 2 * margin_pt) * scale
     return int(w_pt * 12700), int(h_pt * 12700)
 
 
@@ -765,7 +818,7 @@ def main(argv=None) -> int:
     _log(f"[2/3] Computing dimensions and building OLE files...")
     items = []
     for item in converted:
-        w_emu, h_emu = get_cdxml_content_size(item['path'], margin_pt=args.margin)
+        w_emu, h_emu = content_size_emu(item, margin_pt=args.margin)
         ole_data = build_ole_compound_file(item['cdx_data'])
 
         w_pt = w_emu / 12700
