@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChemDraw Skill: editable ChemDraw structures for Claude Code, Codex and any AI agent</title>
+<meta name="description" content="ChemDraw Skill lets Claude Code, Codex, Gemini CLI, Cursor and other AI agents draw editable ChemDraw structures: rebuild paper reaction schemes, turn Excel data into SAR and substrate-scope figures, make ACS 1996 exam drawings and embed ChemDraw in Word and PowerPoint. Open source, MIT.">
+<link rel="canonical" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
+<link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/">
+<link rel="alternate" hreflang="en" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
+<link rel="alternate" hreflang="x-default" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ChemDraw Skill">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="ChemDraw Skill: editable chemistry for any AI agent">
+<meta property="og:description" content="Editable ChemDraw structures, paper figure reconstruction, SAR and substrate-scope figures for Claude Code, Codex and any agent with a shell.">
+<meta property="og:url" content="https://zichenwang114514.github.io/chemdraw-skill/en/">
+<meta property="og:image" content="https://zichenwang114514.github.io/chemdraw-skill/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#007c83">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../styles.css">
+<script>document.documentElement.classList.add("js")</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareSourceCode",
+      "name": "ChemDraw Skill",
+      "description": "An open-source skill that lets any AI agent draw editable ChemDraw structures, rebuild paper figures and generate SAR and substrate-scope figures.",
+      "url": "https://zichenwang114514.github.io/chemdraw-skill/en/",
+      "codeRepository": "https://github.com/ZiChenWang114514/chemdraw-skill",
+      "programmingLanguage": "Python",
+      "license": "https://opensource.org/licenses/MIT",
+      "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope",
+      "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Does this ChemDraw Skill work with any AI agent?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through cdx.py. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor and OpenCode look for skills." } },
+        { "@type": "Question", "name": "Do I need an MCP server?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. The command line covers every tool with the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server." } },
+        { "@type": "Question", "name": "Can it build SAR and substrate-scope figures from Excel data?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures; updating the data keeps unrelated manual layout edits." } },
+        { "@type": "Question", "name": "Can it turn a structure image from a paper into an editable ChemDraw file?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review, and outputs editable CDXML with a native ChemDraw preview." } },
+        { "@type": "Question", "name": "Does it work without ChemDraw installed?",
+          "acceptedAnswer": { "@type": "Answer", "text": "The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed ChemDraw on Windows." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="ChemDraw Skill home">
+      <img src="../favicon.svg" width="26" height="26" alt="">
+      ChemDraw Skill
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a class="hide-sm" href="#gallery">Gallery</a>
+      <a class="hide-sm" href="#capabilities">Capabilities</a>
+      <a href="#start">Quick start</a>
+      <a class="hide-sm" href="#faq">FAQ</a>
+      <a href="../" hreflang="zh-CN" lang="zh-CN">中文</a>
+      <a class="gh" href="https://github.com/ZiChenWang114514/chemdraw-skill"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <h1>Editable ChemDraw chemistry<span class="en">for any AI agent</span></h1>
+      <p class="lede">ChemDraw Skill teaches AI coding agents to draw chemistry. Ask in plain words and the agent grounds the structure, draws it natively in ChemDraw and reads it back to check. You get CDXML you can keep editing, not a screenshot.</p>
+      <div class="install">
+        <code id="clone">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
+        <button class="copy" type="button" data-copy="#clone">Copy</button>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="#start">Install in three steps</a>
+        <a class="btn" href="https://github.com/ZiChenWang114514/chemdraw-skill">View the source on GitHub</a>
+      </div>
+      <p class="agents">Works with <b>Claude Code</b>, <b>Codex</b>, <b>Gemini CLI</b>, <b>GitHub Copilot</b>, <b>Cursor</b>, <b>OpenCode</b> and any agent that can run a shell command.</p>
+    </div>
+
+    <figure class="doc" aria-label="Example: an agent draws aspirin as an editable ChemDraw document">
+      <div class="doc-bar"><i></i><i></i><i></i><span>aspirin.cdxml</span></div>
+      <div class="doc-canvas">
+        <svg class="mol" viewBox="0 0 323 262" role="img" aria-label="Skeletal structure of aspirin">
+          <path class="b" style="--i:0" d="M40.0 123.7L88.4 151.8"/>
+          <path class="b" style="--i:1" d="M84.4 151.8L84.3 196.8"/>
+          <path class="b" style="--i:1" d="M92.4 151.8L92.3 196.8"/>
+          <path class="b" style="--i:2" d="M88.4 151.8L127.5 129.4"/>
+          <path class="b" style="--i:3" d="M146.5 129.4L185.4 152.0"/>
+          <path class="b" style="--i:4" d="M185.4 152.0L185.3 208.0"/>
+          <path class="b" style="--i:4" d="M193.4 159.9L193.3 200.2"/>
+          <path class="b" style="--i:5" d="M185.3 208.0L233.8 236.1"/>
+          <path class="b" style="--i:6" d="M233.8 236.1L282.3 208.2"/>
+          <path class="b" style="--i:6" d="M236.6 225.3L271.5 205.2"/>
+          <path class="b" style="--i:7" d="M282.3 208.2L282.4 152.2"/>
+          <path class="b" style="--i:8" d="M282.4 152.2L234.0 124.1"/>
+          <path class="b" style="--i:8" d="M271.6 155.2L236.8 134.9"/>
+          <path class="b" style="--i:9" d="M234.0 124.1L234.1 68.1"/>
+          <path class="b" style="--i:10" d="M232.1 71.6L193.2 49.0"/>
+          <path class="b" style="--i:10" d="M236.1 64.7L197.2 42.1"/>
+          <path class="b" style="--i:11" d="M234.1 68.1L273.1 45.7"/>
+          <path class="b" style="--i:12" d="M234.0 124.1L185.4 152.0"/>
+          <text class="a" style="--i:1" x="88.3" y="214.8" text-anchor="middle">O</text>
+          <text class="a" style="--i:2" x="137.0" y="136.2" text-anchor="middle">O</text>
+          <text class="a" style="--i:10" x="185.7" y="46.0" text-anchor="middle">O</text>
+          <text class="a" style="--i:11" x="276.2" y="52.4">OH</text>
+          <g class="selg" aria-hidden="true">
+            <rect class="sel" x="28" y="24" width="282" height="222"/>
+            <rect class="handle" x="24" y="20" width="8" height="8"/><rect class="handle" x="165" y="20" width="8" height="8"/><rect class="handle" x="306" y="20" width="8" height="8"/>
+            <rect class="handle" x="24" y="131" width="8" height="8"/><rect class="handle" x="306" y="131" width="8" height="8"/>
+            <rect class="handle" x="24" y="242" width="8" height="8"/><rect class="handle" x="165" y="242" width="8" height="8"/><rect class="handle" x="306" y="242" width="8" height="8"/>
+          </g>
+        </svg>
+      </div>
+      <ol class="log">
+        <li class="ask" style="--t:.15">“Use ChemDraw Skill to draw aspirin as editable CDXML and show me the render.”</li>
+        <li style="--t:.45"><span class="k">resolve_name</span><span>aspirin → CC(=O)Oc1ccccc1C(=O)O</span></li>
+        <li style="--t:.8"><span class="k">build</span><span>aspirin.cdxml · ACS Document 1996</span></li>
+        <li style="--t:2.2"><span class="k">render</span><span>native ChemDraw PNG, 300 dpi</span></li>
+        <li style="--t:2.6"><span class="k">readback</span><span>C<sub>9</sub>H<sub>8</sub>O<sub>4</sub> matches the input <span class="ok">✓</span></span></li>
+      </ol>
+    </figure>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="tenets">
+    <div><h3>Grounded chemistry</h3><p>Structures come from databases, ChemScript, OPSIN or DECIMER, never from invented SMILES.</p></div>
+    <div><h3>Truly editable</h3><p>Every result is native CDXML: atoms, bonds and text you can keep editing in ChemDraw.</p></div>
+    <div><h3>One entry point</h3><p>A single <code>cdx.py</code> command works in any agent. MCP is optional.</p></div>
+    <div><h3>Native quality</h3><p>ChemDraw itself renders and saves every figure, and the chemistry is read back after saving.</p></div>
+  </div>
+</div>
+
+<section id="gallery">
+  <div class="wrap">
+    <div class="head">
+      <h2>From a paper figure to an editable ChemDraw document</h2>
+      <p>Drag the divider. The left side is the original image from the paper; the right side is the agent's ChemDraw rebuild, with five structures, conditions, yields and compound numbers all editable.</p>
+    </div>
+    <div class="compare" style="--cut:50%">
+      <img src="../gallery/paper-scheme-original.png" width="1600" height="275" alt="Original reaction scheme from a paper">
+      <div class="after"><img src="../gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
+      <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the original and the ChemDraw rebuild">
+      <span class="seam"></span>
+    </div>
+    <div class="compare-legend"><span><b>Paper figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
+
+    <div class="gallery">
+      <figure>
+        <div class="plate"><img src="../gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="A complex multistep synthesis rebuilt in ChemDraw"></div>
+        <figcaption><h3>Complex synthesis</h3><p>A full multistep route with every compound, condition and mechanism arrow.</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="../gallery/mechanism.png" width="720" height="450" loading="lazy" alt="The sceptrin mechanism redrawn natively in ChemDraw"></div>
+        <figcaption><h3>Reaction mechanism</h3><p>Sceptrin: eight structures, electron-pushing arrows, charges and counterions.</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="../gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="A twenty-structure synthesis rebuilt in ChemDraw"></div>
+        <figcaption><h3>Twenty-structure route</h3><p>ChemScript and RDKit agree on stereochemistry for 20 of 20 structures.</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="../gallery/acs1996.png" width="720" height="450" loading="lazy" alt="An ACS Document 1996 hydrogenation drawing built from JSON"></div>
+        <figcaption><h3>Exam and lecture drawings</h3><p>A small JSON file becomes an ACS Document 1996 drawing, with C<sub>10</sub>H<sub>21</sub> abbreviations and annotations.</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="../gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="A native TLC plate and reflux apparatus"></div>
+        <figcaption><h3>TLC and apparatus</h3><p>Native TLC plates, lanes, spots and Rf values, plus ChemDraw apparatus templates.</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="../gallery/nmr.png" width="720" height="450" loading="lazy" alt="An editable experimental NMR spectrum"></div>
+        <figcaption><h3>Spectra and plots</h3><p>Peak picking and integration on processed 1D NMR, and numeric data as editable curves.</p></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="head">
+      <h2>Every figure goes through four steps</h2>
+      <p>Correct chemistry matters more than a figure that merely looks right, so each drawing is split into steps that can be checked.</p>
+    </div>
+    <ol class="steps">
+      <li><h3>Ground the structure</h3><p>Start from a name, identifier, trusted SMILES or a DECIMER reading, and record where it came from.</p></li>
+      <li><h3>Draw natively</h3><p>Build CDXML in a style such as ACS Document 1996, keeping stereo, charge and isotope information.</p></li>
+      <li><h3>Render and look</h3><p>ChemDraw writes a 300 dpi PNG and the agent opens it to check the layout.</p></li>
+      <li><h3>Read it back</h3><p>The saved file is read again to confirm the chemistry written is the chemistry intended.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="capabilities">
+  <div class="wrap">
+    <div class="head">
+      <h2>What it handles</h2>
+      <p>From a single molecule to every figure in a paper, common chemistry drawing jobs each have a workflow.</p>
+    </div>
+    <dl class="caps">
+      <div><dt>Structures and reactions</dt><dd>Resolve names and identifiers; draw, edit, clean, merge, split, convert and render CDXML or CDX.</dd></div>
+      <div><dt>Paper figures</dt><dd>Crop the source, read it with DECIMER, compare side by side, fix the chemistry and assemble the layout.</dd></div>
+      <div><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations and boxed labels.</dd></div>
+      <div><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.</dd></div>
+      <div><dt>Molecule comparison</dt><dd>RDKit fingerprint similarity everywhere; exact ChemScript identity checks on Windows.</dd></div>
+      <div><dt>Mechanisms</dt><dd>Electron-pushing arrows, charges and counterions placed from explicit atom coordinates.</dd></div>
+      <div><dt>TLC and apparatus</dt><dd>Native TLC plates, lanes, spots and Rf; apparatus assembled from ChemDraw templates.</dd></div>
+      <div><dt>Spectra</dt><dd>Peak picking and range integration on 1D NMR; numeric data as editable curves.</dd></div>
+      <div><dt>Word and PowerPoint</dt><dd>Embed live ChemDraw objects that open with a double-click in Windows desktop Office.</dd></div>
+      <div><dt>Lab records</dt><dd>File discovery plus LCMS, SciFinder RDF and notebook workflows.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap start">
+    <div class="head">
+      <h2>Start in three steps</h2>
+      <p>The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the runtime on Windows, macOS or Linux. Native rendering and Office embedding need licensed ChemDraw on Windows.</p>
+      <p class="note">Installing for Codex, Gemini CLI or Cursor? Replace <code>--agent claude</code> with that agent, or use <code>agents</code> for the shared folder. See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">agent integration</a>.</p>
+    </div>
+    <ol>
+      <li>
+        <h3>Install</h3>
+        <pre class="code"><button class="copy" type="button" data-copy="#q1">Copy</button><code id="q1">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+cd chemdraw-skill
+python scripts/install.py --agent claude agents --runtime --apply</code></pre>
+      </li>
+      <li>
+        <h3>See what works on this machine</h3>
+        <pre class="code"><button class="copy" type="button" data-copy="#q2">Copy</button><code id="q2">python ~/.claude/skills/chemdraw/scripts/cdx.py doctor</code></pre>
+      </li>
+      <li>
+        <h3>Ask your agent</h3>
+        <p class="say">Use ChemDraw Skill to draw aspirin as editable CDXML, render it natively in ChemDraw and show me the PNG.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="head"><h2>Common questions</h2></div>
+    <div class="faq">
+      <details open>
+        <summary>Does this ChemDraw Skill work with any AI agent?</summary>
+        <p>Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through <code>cdx.py</code>. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor and OpenCode look for skills. For an agent without skill discovery, point its instruction file at <code>SKILL.md</code>.</p>
+      </details>
+      <details>
+        <summary>Do I need an MCP server?</summary>
+        <p>No. The command line covers every tool with the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server.</p>
+      </details>
+      <details>
+        <summary>Can it build SAR and substrate-scope figures from Excel data?</summary>
+        <p>Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures; updating the data keeps unrelated manual layout edits. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">data-driven figures guide</a>.</p>
+      </details>
+      <details>
+        <summary>Can it turn a structure image from a paper into an editable ChemDraw file?</summary>
+        <p>Yes. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review, and outputs editable CDXML with a native ChemDraw preview. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">reconstruction guide</a>.</p>
+      </details>
+      <details>
+        <summary>Does it work without ChemDraw installed?</summary>
+        <p>The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed ChemDraw on Windows.</p>
+      </details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>ChemDraw Skill is MIT licensed. The bundled toolkit is based on Hiu Fung Kevin Lee's <code>cdxml-toolkit</code>.</p>
+      <p>This is an independent community project, not affiliated with or endorsed by Revvity, Anthropic, OpenAI, Google, GitHub or Microsoft. ChemDraw is a trademark of Revvity.</p>
+    </div>
+    <nav aria-label="Footer">
+      <a href="https://github.com/ZiChenWang114514/chemdraw-skill">GitHub</a>
+      <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/docs/guide.md">Setup and operations guide</a>
+      <a href="../" hreflang="zh-CN" lang="zh-CN">中文</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="../app.js" defer></script>
+</body>
+</html>

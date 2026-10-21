@@ -1,0 +1,55 @@
+name: Landing page
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "assets/readme/gallery/**"
+      - ".github/workflows/pages.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Assemble site
+        run: |
+          mkdir _site
+          cp -r site/. _site/
+          cp -r assets/readme/gallery _site/gallery
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+      # Tell Bing (and other IndexNow engines) the pages changed.
+      - name: Notify IndexNow
+        continue-on-error: true
+        run: |
+          base="${{ steps.deployment.outputs.page_url }}"
+          key=$(ls site | grep -E '^[0-9a-f]{32}\.txt$' | sed 's/\.txt$//')
+          curl -sS -o /dev/null -w "IndexNow HTTP %{http_code}\n" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "{\"host\":\"zichenwang114514.github.io\",\"key\":\"$key\",\"keyLocation\":\"${base}${key}.txt\",\"urlList\":[\"${base}\",\"${base}en/\"]}" \
+            https://api.indexnow.org/indexnow

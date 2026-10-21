@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChemDraw Skill：AI 绘制可编辑化学结构式（Claude Code / Codex）</title>
+<meta name="description" content="ChemDraw Skill 让 Claude Code、Codex、Gemini CLI、Cursor 等 AI Agent 绘制可编辑的 ChemDraw 化学结构式：复刻论文反应路线、由 Excel 生成 SAR 与底物拓展图、ACS 1996 试卷插图、在 Word/PPT 中嵌入 ChemDraw 对象。开源，MIT 许可。">
+<meta name="keywords" content="ChemDraw Skill, ChemDraw, AI 画化学结构式, 化学结构式, CDXML, Claude Code, Codex, Agent Skills, 论文图复刻, 底物拓展图, SAR, ACS Document 1996, DECIMER, OCSR">
+<link rel="canonical" href="https://zichenwang114514.github.io/chemdraw-skill/">
+<link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/">
+<link rel="alternate" hreflang="en" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
+<link rel="alternate" hreflang="x-default" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ChemDraw Skill">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="ChemDraw Skill：AI 绘制可编辑化学结构式">
+<meta property="og:description" content="让 Claude Code、Codex 等任意 AI Agent 产出可编辑的 ChemDraw 化学图：结构式、论文路线复刻、SAR 与底物拓展图。">
+<meta property="og:url" content="https://zichenwang114514.github.io/chemdraw-skill/">
+<meta property="og:image" content="https://zichenwang114514.github.io/chemdraw-skill/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#007c83">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<script>document.documentElement.classList.add("js")</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareSourceCode",
+      "name": "ChemDraw Skill",
+      "description": "让任意 AI Agent 绘制可编辑 ChemDraw 化学结构式、复刻论文图、生成 SAR 与底物拓展图的开源 Skill。",
+      "url": "https://zichenwang114514.github.io/chemdraw-skill/",
+      "codeRepository": "https://github.com/ZiChenWang114514/chemdraw-skill",
+      "programmingLanguage": "Python",
+      "license": "https://opensource.org/licenses/MIT",
+      "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope",
+      "inLanguage": ["zh-CN", "en"],
+      "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "任意 AI Agent 都能使用这个 ChemDraw Skill 吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "可以。Agent 只需要能读取 Skill 指令并执行命令行，所有工具都通过 cdx.py 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等 Agent 能发现的目录。" } },
+        { "@type": "Question", "name": "必须使用 MCP 服务吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "不需要。命令行覆盖全部工具，并保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。" } },
+        { "@type": "Question", "name": "能从 Excel 实验数据生成 SAR 图和底物拓展图吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图；更新数据时保留无关的手工布局修改。" } },
+        { "@type": "Question", "name": "能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "可以。论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核，输出可编辑 CDXML 和 ChemDraw 原生预览。" } },
+        { "@type": "Question", "name": "没有安装 ChemDraw 能用吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "可以使用跨平台的 cdxml-toolkit 运行时生成和检查 CDXML（Windows、macOS、Linux）。原生渲染、ChemScript 检查和 Office 嵌入需要 Windows 上已授权的 ChemDraw。" } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="ChemDraw Skill 首页">
+      <img src="favicon.svg" width="26" height="26" alt="">
+      ChemDraw Skill
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a class="hide-sm" href="#gallery">作品</a>
+      <a class="hide-sm" href="#capabilities">能做什么</a>
+      <a href="#start">快速开始</a>
+      <a class="hide-sm" href="#faq">常见问题</a>
+      <a href="en/" hreflang="en" lang="en">EN</a>
+      <a class="gh" href="https://github.com/ZiChenWang114514/chemdraw-skill"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <h1>让 AI 画出可编辑的<span class="en">ChemDraw 结构式</span></h1>
+      <p class="lede">ChemDraw Skill 是给 AI 编程 Agent 用的化学绘图技能。说一句话，Agent 就会确认结构、在 ChemDraw 里原生绘制，再把结果读回来核对。你拿到的是能继续编辑的 CDXML，而不是一张截图。</p>
+      <div class="install">
+        <code id="clone">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
+        <button class="copy" type="button" data-copy="#clone">复制</button>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="#start">三步安装</a>
+        <a class="btn" href="https://github.com/ZiChenWang114514/chemdraw-skill">在 GitHub 上查看源码</a>
+      </div>
+      <p class="agents">适用于 <b>Claude Code</b>、<b>Codex</b>、<b>Gemini CLI</b>、<b>GitHub Copilot</b>、<b>Cursor</b>、<b>OpenCode</b>，以及任何能执行命令行的 Agent。</p>
+    </div>
+
+    <figure class="doc" aria-label="示例：Agent 把阿司匹林画成可编辑的 ChemDraw 文档">
+      <div class="doc-bar"><i></i><i></i><i></i><span>aspirin.cdxml</span></div>
+      <div class="doc-canvas">
+        <svg class="mol" viewBox="0 0 323 262" role="img" aria-label="阿司匹林的骨架结构式">
+          <path class="b" style="--i:0" d="M40.0 123.7L88.4 151.8"/>
+          <path class="b" style="--i:1" d="M84.4 151.8L84.3 196.8"/>
+          <path class="b" style="--i:1" d="M92.4 151.8L92.3 196.8"/>
+          <path class="b" style="--i:2" d="M88.4 151.8L127.5 129.4"/>
+          <path class="b" style="--i:3" d="M146.5 129.4L185.4 152.0"/>
+          <path class="b" style="--i:4" d="M185.4 152.0L185.3 208.0"/>
+          <path class="b" style="--i:4" d="M193.4 159.9L193.3 200.2"/>
+          <path class="b" style="--i:5" d="M185.3 208.0L233.8 236.1"/>
+          <path class="b" style="--i:6" d="M233.8 236.1L282.3 208.2"/>
+          <path class="b" style="--i:6" d="M236.6 225.3L271.5 205.2"/>
+          <path class="b" style="--i:7" d="M282.3 208.2L282.4 152.2"/>
+          <path class="b" style="--i:8" d="M282.4 152.2L234.0 124.1"/>
+          <path class="b" style="--i:8" d="M271.6 155.2L236.8 134.9"/>
+          <path class="b" style="--i:9" d="M234.0 124.1L234.1 68.1"/>
+          <path class="b" style="--i:10" d="M232.1 71.6L193.2 49.0"/>
+          <path class="b" style="--i:10" d="M236.1 64.7L197.2 42.1"/>
+          <path class="b" style="--i:11" d="M234.1 68.1L273.1 45.7"/>
+          <path class="b" style="--i:12" d="M234.0 124.1L185.4 152.0"/>
+          <text class="a" style="--i:1" x="88.3" y="214.8" text-anchor="middle">O</text>
+          <text class="a" style="--i:2" x="137.0" y="136.2" text-anchor="middle">O</text>
+          <text class="a" style="--i:10" x="185.7" y="46.0" text-anchor="middle">O</text>
+          <text class="a" style="--i:11" x="276.2" y="52.4">OH</text>
+          <g class="selg" aria-hidden="true">
+            <rect class="sel" x="28" y="24" width="282" height="222"/>
+            <rect class="handle" x="24" y="20" width="8" height="8"/><rect class="handle" x="165" y="20" width="8" height="8"/><rect class="handle" x="306" y="20" width="8" height="8"/>
+            <rect class="handle" x="24" y="131" width="8" height="8"/><rect class="handle" x="306" y="131" width="8" height="8"/>
+            <rect class="handle" x="24" y="242" width="8" height="8"/><rect class="handle" x="165" y="242" width="8" height="8"/><rect class="handle" x="306" y="242" width="8" height="8"/>
+          </g>
+        </svg>
+      </div>
+      <ol class="log">
+        <li class="ask" style="--t:.15">“用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，渲染后给我看。”</li>
+        <li style="--t:.45"><span class="k">resolve_name</span><span>aspirin → CC(=O)Oc1ccccc1C(=O)O</span></li>
+        <li style="--t:.8"><span class="k">build</span><span>aspirin.cdxml · ACS Document 1996</span></li>
+        <li style="--t:2.2"><span class="k">render</span><span>ChemDraw 原生 PNG，300 dpi</span></li>
+        <li style="--t:2.6"><span class="k">readback</span><span>C<sub>9</sub>H<sub>8</sub>O<sub>4</sub> 与输入一致 <span class="ok">✓</span></span></li>
+      </ol>
+    </figure>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="tenets">
+    <div><h3>结构有出处</h3><p>结构来自数据库、ChemScript、OPSIN 或 DECIMER 识别，不让模型凭空编 SMILES。</p></div>
+    <div><h3>真正可编辑</h3><p>输出是原生 CDXML，原子、键和文字都能在 ChemDraw 里接着改。</p></div>
+    <div><h3>一个入口</h3><p>所有功能都走 <code>cdx.py</code> 一条命令，任何 Agent 都能调用，MCP 可选。</p></div>
+    <div><h3>原生品质</h3><p>由 ChemDraw 本身渲染和保存，保存后再回读核对化学结构。</p></div>
+  </div>
+</div>
+
+<section id="gallery">
+  <div class="wrap">
+    <div class="head">
+      <h2>从论文图片到可编辑的 ChemDraw 文档</h2>
+      <p>拖动分隔线对比：左边是论文里的原图，右边是 Agent 复刻出的 ChemDraw 文档，五个结构、反应条件、产率和化合物编号都能编辑。</p>
+    </div>
+    <div class="compare" style="--cut:50%">
+      <img src="gallery/paper-scheme-original.png" width="1600" height="275" alt="论文中的原始反应路线图">
+      <div class="after"><img src="gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="同一路线复刻为可编辑的 ChemDraw 文档"></div>
+      <input type="range" min="0" max="100" value="50" aria-label="调整原图与 ChemDraw 复刻的对比位置">
+      <span class="seam"></span>
+    </div>
+    <div class="compare-legend"><span><b>论文原图</b>（图片）</span><span><b>ChemDraw 复刻</b>（CDXML）</span></div>
+
+    <div class="gallery">
+      <figure>
+        <div class="plate"><img src="gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="在 ChemDraw 中复刻的复杂多步合成路线"></div>
+        <figcaption><h3>复杂合成路线</h3><p>完整多步路线、全部化合物、条件与机理箭头。</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="gallery/mechanism.png" width="720" height="450" loading="lazy" alt="Sceptrin 反应机理的 ChemDraw 原生重绘"></div>
+        <figcaption><h3>反应机理</h3><p>Sceptrin 机理：八个结构、电子箭头、电荷与抗衡离子。</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="20 个结构的合成路线 ChemDraw 复刻"></div>
+        <figcaption><h3>20 个结构的合成路线</h3><p>ChemScript 与 RDKit 读取的立体信息 20/20 一致。</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="gallery/acs1996.png" width="720" height="450" loading="lazy" alt="由 JSON 描述生成的 ACS Document 1996 氢化反应图"></div>
+        <figcaption><h3>试卷与讲义插图</h3><p>一小段 JSON 生成 ACS Document 1996 格式，支持 C<sub>10</sub>H<sub>21</sub> 缩写和中文注释。</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="原生 TLC 板与回流装置"></div>
+        <figcaption><h3>TLC 与装置图</h3><p>原生 TLC 板、泳道、斑点与 Rf，以及 ChemDraw 装置模板。</p></figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="gallery/nmr.png" width="720" height="450" loading="lazy" alt="可编辑的实验 NMR 谱图"></div>
+        <figcaption><h3>谱图与科研绘图</h3><p>对一维 NMR 数据寻峰、积分，数值数据输出为可编辑曲线。</p></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="head">
+      <h2>每张图都经过四步</h2>
+      <p>化学正确比看起来像更重要。Skill 把每次绘图都拆成能检查的步骤。</p>
+    </div>
+    <ol class="steps">
+      <li><h3>确认结构</h3><p>从名称、标识符、可信 SMILES 或 DECIMER 识别结果出发，记录来源。</p></li>
+      <li><h3>原生绘制</h3><p>生成 CDXML，按 ACS Document 1996 等样式排版，保留立体、电荷和同位素。</p></li>
+      <li><h3>渲染查看</h3><p>由 ChemDraw 输出 300 dpi PNG，Agent 打开图片逐项检查版面。</p></li>
+      <li><h3>回读核对</h3><p>保存后重新读取文件，确认写进去的化学结构就是要画的那个。</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="capabilities">
+  <div class="wrap">
+    <div class="head">
+      <h2>能做什么</h2>
+      <p>从一个分子到一整篇论文的插图，常见的化学绘图工作都有对应的工作流。</p>
+    </div>
+    <dl class="caps">
+      <div><dt>结构与反应</dt><dd>解析名称和标识符；绘制、编辑、清理、合并、拆分、转换和渲染 CDXML / CDX。</dd></div>
+      <div><dt>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对、修正化学，组装条件与版面。</dd></div>
+      <div><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释和带框编号。</dd></div>
+      <div><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。</dd></div>
+      <div><dt>分子比较</dt><dd>RDKit 指纹相似度；Windows 上可增加 ChemScript 精确身份检查。</dd></div>
+      <div><dt>反应机理</dt><dd>按原子坐标绘制电子箭头、电荷和抗衡离子。</dd></div>
+      <div><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点和 Rf 计算；ChemDraw 装置模板组装。</dd></div>
+      <div><dt>谱图</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线。</dd></div>
+      <div><dt>Word 与 PPT</dt><dd>在 Windows 版 Word、PowerPoint 中嵌入可双击编辑的 ChemDraw 对象。</dd></div>
+      <div><dt>实验记录</dt><dd>处理 LCMS、SciFinder RDF 和实验记录相关工作流。</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap start">
+    <div class="head">
+      <h2>三步开始使用</h2>
+      <p>安装脚本需要 Python 3.9 以上，会自动找到 64 位 Python 3.10–3.13 作为运行时，Windows、macOS、Linux 都能装。原生渲染和 Office 嵌入需要 Windows 上已授权的 ChemDraw。</p>
+      <p class="note">想装到 Codex、Gemini CLI 或 Cursor？把 <code>--agent claude</code> 换成对应名称，或用 <code>agents</code> 安装到通用目录。详见 <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">Agent 接入说明</a>。</p>
+    </div>
+    <ol>
+      <li>
+        <h3>安装</h3>
+        <pre class="code"><button class="copy" type="button" data-copy="#q1">复制</button><code id="q1">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+cd chemdraw-skill
+python scripts/install.py --agent claude agents --runtime --apply</code></pre>
+      </li>
+      <li>
+        <h3>检查本机能用哪些功能</h3>
+        <pre class="code"><button class="copy" type="button" data-copy="#q2">复制</button><code id="q2">python ~/.claude/skills/chemdraw/scripts/cdx.py doctor</code></pre>
+      </li>
+      <li>
+        <h3>直接对 Agent 说</h3>
+        <p class="say">用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，用 ChemDraw 原生渲染并给我看 PNG。</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="head"><h2>常见问题</h2></div>
+    <div class="faq">
+      <details open>
+        <summary>任意 AI Agent 都能使用这个 ChemDraw Skill 吗？</summary>
+        <p>可以。Agent 只需要能读取 Skill 指令并执行命令行，所有工具都通过 <code>cdx.py</code> 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等 Agent 能发现的目录；不支持自动发现的 Agent，在它的指令文件里指向 <code>SKILL.md</code> 即可。</p>
+      </details>
+      <details>
+        <summary>必须使用 MCP 服务吗？</summary>
+        <p>不需要。命令行覆盖全部工具，并保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。</p>
+      </details>
+      <details>
+        <summary>能从 Excel 实验数据生成 SAR 图和底物拓展图吗？</summary>
+        <p>可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图；更新数据时保留无关的手工布局修改。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">数据驱动绘图指南</a>。</p>
+      </details>
+      <details>
+        <summary>能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？</summary>
+        <p>可以。论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核，输出可编辑 CDXML 和 ChemDraw 原生预览。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">重建指南</a>。</p>
+      </details>
+      <details>
+        <summary>没有安装 ChemDraw 能用吗？</summary>
+        <p>可以使用跨平台的 cdxml-toolkit 运行时生成和检查 CDXML（Windows、macOS、Linux）。原生渲染、ChemScript 检查和 Office 嵌入需要 Windows 上已授权的 ChemDraw。</p>
+      </details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>ChemDraw Skill 采用 MIT 许可证。内置工具包基于 Hiu Fung Kevin Lee 的 <code>cdxml-toolkit</code>。</p>
+      <p>本项目为独立社区项目，与 Revvity、Anthropic、OpenAI、Google、GitHub、Microsoft 等公司不存在隶属关系，也未获得其认可。ChemDraw 是 Revvity 的商标。</p>
+    </div>
+    <nav aria-label="页脚">
+      <a href="https://github.com/ZiChenWang114514/chemdraw-skill">GitHub</a>
+      <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/docs/guide.zh-cn.md">安装与运维文档</a>
+      <a href="en/" hreflang="en" lang="en">English</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+</body>
+</html>

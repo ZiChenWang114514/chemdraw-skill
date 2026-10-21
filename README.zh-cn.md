@@ -27,7 +27,7 @@
 <p align="center">
   <a href="README.md">English</a> · <b>简体中文</b>
   <br>
-  <a href="#快速开始">快速开始</a> · <a href="#作品展示">作品展示</a> · <a href="#支持的工作">支持的工作</a> · <a href="#主打案例">案例</a> · <a href="#平台支持">平台</a> · <a href="#常见问题">常见问题</a> · <a href="docs/guide.zh-cn.md">指南</a>
+  <a href="#快速开始">快速开始</a> · <a href="#作品展示">作品展示</a> · <a href="#支持的工作">支持的工作</a> · <a href="#主打案例">案例</a> · <a href="#平台支持">平台</a> · <a href="#常见问题">常见问题</a> · <a href="docs/guide.zh-cn.md">指南</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/">官网</a>
 </p>
 
 <br>

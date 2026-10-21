@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://zichenwang114514.github.io/chemdraw-skill/sitemap.xml
