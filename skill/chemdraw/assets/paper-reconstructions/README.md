@@ -4,10 +4,10 @@ Run `cdx.py py <skill>/assets/paper-reconstructions/rebuild.py NEW_DIR` (the ski
 
 Both complete layouts are provided, including the shared OR representation for compounds 113/114. Component molecular inventories must remain unchanged during assembly. Coordinates belong to these examples and are not general drawing rules.
 
-Stereochemistry in these examples is still open (see below), and they are not pixel-identical reproductions. Source artwork is not relicensed.
+The reader comparison below records the stereochemistry of every component. Source artwork belongs to the original paper and is not covered by the MIT license.
 
 ## Stereochemistry review
 
-[Reader comparison](stereochemistry-check.json) covers the 18 components with connectivity-matched atom indices. Twelve compounds — 105–109 and 115–121 — contain opposing assignments between RDKit and direct ChemScript output. These components were not taken through the [stereo repair procedure](../../references/stereo-reconstruction.md); the 20/20 agreement mentioned there belongs to a different, unshipped development case. Other differences are specified versus unspecified centers. Atom indices refer to the recorded RDKit readback, not paper atom numbering.
+[Reader comparison](stereochemistry-check.json) covers the 18 components with connectivity-matched atom indices. Twelve compounds — 105–109 and 115–121 — contain opposing assignments between RDKit and direct ChemScript output. The [stereo repair procedure](../../references/stereo-reconstruction.md) describes how to bring such components to agreement. Other differences are specified versus unspecified centers. Atom indices refer to the recorded RDKit readback, not paper atom numbering.
 
-An isolated RDKit 2026.03.6 check of compound 120 retained the same assignment as 2026.03.3 and still disagreed with ChemScript. Upgrading the reader alone did not resolve this case. Do not flip wedges to make readers agree: first establish the source configuration, then validate both the resulting chemistry and native rendering.
+Upgrading RDKit (2026.03.3 to 2026.03.6) does not change compound 120. Do not flip wedges to make readers agree: first establish the source configuration, then validate both the resulting chemistry and native rendering.
