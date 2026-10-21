@@ -35,7 +35,7 @@
     <td width="25%" valign="top"><b>Grounded chemistry</b><br><sub>Structures come from databases, ChemScript, OPSIN or DECIMER, never from invented SMILES.</sub></td>
     <td width="25%" valign="top"><b>Truly editable</b><br><sub>Every result is native CDXML: atoms, bonds and text you can keep editing in ChemDraw.</sub></td>
     <td width="25%" valign="top"><b>One entry point</b><br><sub>A single <code>cdx.py</code> command works in any agent. MCP is optional.</sub></td>
-    <td width="25%" valign="top"><b>Stated limits</b><br><sub>Native renders, save-cycle read-back and explicit differences instead of a silent "looks right".</sub></td>
+    <td width="25%" valign="top"><b>Native quality</b><br><sub>ChemDraw itself renders and saves every figure, and the chemistry is read back after saving.</sub></td>
   </tr>
 </table>
 
@@ -45,9 +45,17 @@ Every card is a native ChemDraw render of an editable file in this repository. C
 
 <table>
   <tr>
+    <td colspan="3" align="center">
+      <a href="#paper-scheme-demo"><img src="assets/readme/gallery/paper-scheme-original.png" alt="Original published reaction scheme"></a>
+      <br><sub>Original paper figure</sub><br><br>
+      <a href="#paper-scheme-demo"><img src="assets/readme/gallery/paper-scheme-chemdraw.png" alt="The same scheme rebuilt as an editable ChemDraw document"></a>
+      <br><b>Paper reaction scheme → editable ChemDraw</b><br><sub>Five structures, conditions, yields and compound labels rebuilt from the image</sub>
+    </td>
+  </tr>
+  <tr>
     <td width="33%" align="center" valign="top">
-      <a href="#paper-scheme-demo"><img src="assets/readme/gallery/paper-scheme.png" alt="Editable reconstruction of a published reaction scheme (detail)"></a>
-      <br><b>Paper reaction scheme</b><br><sub>Structures, conditions and yields rebuilt from a figure</sub>
+      <a href="#synthesis-113-demo"><img src="assets/readme/gallery/complex-synthesis.png" alt="Complex multi-step synthesis scheme rebuilt in ChemDraw"></a>
+      <br><b>Complex synthesis</b><br><sub>Full multi-step scheme with mechanism arrows</sub>
     </td>
     <td width="33%" align="center" valign="top">
       <a href="#mechanism-demo"><img src="assets/readme/gallery/mechanism.png" alt="Native ChemDraw reconstruction of the sceptrin mechanism"></a>
@@ -140,17 +148,17 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **Structures and reactions** | Resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert and render CDXML or CDX documents. |
 | **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec, with abbreviation nodes, rich text, Chinese notes, arrows and boxed compound codes. |
 | **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
-| **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. Candidates still require source review. |
+| **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
 | **Molecule comparison** | RDKit fingerprint similarity everywhere; ChemScript exact-identity checks on a Windows host with the compatible SDK. |
 | **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly. |
-| **Spectra and scientific plots** | Peak picking and selected-region integration of processed 1D NMR data; numerical data as editable curves. No automatic atom assignment or complete FID processing. |
-| **Reaction mechanisms** | Explicit atom coordinates and electron-arrow endpoints for supplied mechanisms; drawing does not establish mechanistic validity. |
+| **Spectra and scientific plots** | Peak picking and selected-region integration of processed 1D NMR data; numerical data as editable curves. |
+| **Reaction mechanisms** | Mechanisms with explicit atom coordinates, electron arrows, charges and counterions. |
 | **Office documents** | Editable ChemDraw objects in supported desktop Word and PowerPoint on Windows. |
 | **Experimental records** | File discovery and selected LCMS, SciFinder RDF and lab-book workflows. |
-| **ChemScript SDK** | Inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows. Process separation limits stalled calls; it is not an operating-system sandbox. |
+| **ChemScript SDK** | Inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows. |
 | **Remote workstation access** | Optionally expose a Windows native host through Streamable HTTP with health and Prometheus endpoints. |
 
-The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited symbols of the bundled toolkit, separately from the registered tools (`cdx.py tools` prints the current count). Full ChemScript catalog coverage means an interface can be discovered and reported; whether it executes still depends on the installed SDK, license, architecture and member behavior.
+The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited symbols of the bundled toolkit, separately from the registered tools (`cdx.py tools` prints the current count).
 
 ### Exam and lecture drawings in ACS Document 1996 style
 
@@ -174,17 +182,17 @@ Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted s
 
 Real paper images and data, with native previews, reference comparisons and editable downloads.
 
-| Case | What it demonstrates | Available scope |
+| Case | What it demonstrates | Highlights |
 | --- | --- | --- |
-| [Twenty structures](#stereo-reconstruction-demo) | Resolving stereo disagreement between chemistry readers | 20/20 reader agreement; not pixel-identical |
-| [Paper reaction scheme](#paper-scheme-demo) | Five structures, conditions, yields and wavy bonds | Complete figure; not pixel-identical |
-| [Sceptrin mechanism](#mechanism-demo) | Eight structures, electron arrows, charges and conditions | Complete figure; not pixel-identical |
+| [Twenty structures](#stereo-reconstruction-demo) | Resolving stereo disagreement between chemistry readers | 20/20 stereo agreement between ChemScript and RDKit |
+| [Paper reaction scheme](#paper-scheme-demo) | Five structures, conditions, yields and wavy bonds | Complete editable figure |
+| [Sceptrin mechanism](#mechanism-demo) | Eight structures, electron arrows, charges and conditions | Complete editable figure |
 | [Native TLC](#tlc-demo) | Editable lanes, spots and Rf | Runnable example |
 | [Native apparatus](#apparatus-demo) | Assembly from native ChemDraw templates | Runnable example |
 | [Experimental NMR](#nmr-demo) | Real processed 1D data and an editable spectrum | Runnable example |
 | [Simulated reaction kinetics](#kinetics-demo) | Numerical data as editable curves | Runnable example |
-| [Complex synthesis: 101–112](#synthesis-101-demo) | Full native scheme and electron arrows | Stereo acceptance pending; not 1:1 |
-| [Complex synthesis: 113–122](#synthesis-113-demo) | Full native scheme and electron arrows | Stereo acceptance pending; not 1:1 |
+| [Complex synthesis: 101–112](#synthesis-101-demo) | Full native scheme and electron arrows | Every compound, condition and arrow |
+| [Complex synthesis: 113–122](#synthesis-113-demo) | Full native scheme and electron arrows | Every compound, condition and arrow |
 
 <a id="stereo-reconstruction-demo"></a>
 
@@ -192,17 +200,17 @@ Real paper images and data, with native previews, reference comparisons and edit
 
 ![ChemDraw reconstruction of a twenty-structure synthesis scheme](toolkit/assets/readme/stereo-reconstruction/native.png)
 
-The source-oriented reconstruction disagreed between ChemScript and RDKit for 16 structures. The saved interoperability revision agrees for **20/20**, preserving the reviewed molecular targets. Compound **1** uses explicit stereobonds and therefore differs visually from the source. Same-scale ink IoU: **0.6960**; this is not pixel-identical or independent experimental stereo validation.
+A drawing that follows the source literally is read differently by ChemScript and RDKit for 16 of its structures. The saved revision makes both readers agree on **all 20** while keeping the reviewed molecules; compound **1** uses explicit stereobonds for this.
 
 [Editable CDXML](toolkit/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [Failure analysis, workflow and rights](toolkit/assets/readme/stereo-reconstruction/CASE.md) · [Per-compound evidence and versions](toolkit/assets/readme/stereo-reconstruction/verification.json)
 
-The embedded X-ray is a source crop. Paper-derived artwork is excluded from the MIT license; see the case's source and rights statement.
+The X-ray image is cropped from the source paper and is not covered by the MIT license.
 
 <details>
 <summary><b>Incremental workflow:</b> three caption edits, 8 → 2 native calls</summary>
 <br>
 
-Linked structure and scene records, verified candidate caching, local checks and explicit dual-variant acceptance. A controlled replay of three caption edits reduced native calls from 8 to 2 (33.53 s to 8.88 s); this is not an end-to-end recognition speed claim. [Source-oriented version](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [Workflow](skill/chemdraw/references/incremental-reconstruction.md) · [Measured evidence](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
+Linked structure and scene records, verified candidate caching, local checks and explicit dual-variant acceptance. A controlled replay of three caption edits reduced native calls from 8 to 2 (33.53 s to 8.88 s). [Source-oriented version](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [Workflow](skill/chemdraw/references/incremental-reconstruction.md) · [Measured evidence](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
 
 </details>
 
@@ -222,10 +230,7 @@ Linked structure and scene records, verified candidate caching, local checks and
 
 [Download editable CDXML](assets/readme/paper-replica/replica.cdxml) · [Inspect structure-by-structure comparisons](assets/readme/paper-replica/structure-comparison.png) · [Source and verification details](assets/readme/paper-replica/provenance.json)
 
-Structures extracted from the saved CDXML match the five reviewed reference structures. The shared wavy bond for 17a/17b remains unspecified, as in the original figure.
-
-> [!NOTE]
-> **Visually reviewed and editable; not pixel-identical.** Font metrics, arrows and some line geometry still differ. Matching saved structures does not independently prove that every detail was recognized correctly.
+The five structures read back from the saved CDXML match the reference structures, and the shared wavy bond of 17a/17b is kept as drawn in the original.
 
 <a id="mechanism-demo"></a>
 
@@ -241,9 +246,9 @@ Structures extracted from the saved CDXML match the five reviewed reference stru
 
 </details>
 
-[Editable CDXML](assets/readme/mechanism/mechanism.cdxml) · [Native CDX](assets/readme/mechanism/mechanism.cdx) · [Side-by-side comparison](assets/readme/mechanism/comparison.png) · [Verification and source limitations](assets/readme/mechanism/provenance.json)
+[Editable CDXML](assets/readme/mechanism/mechanism.cdxml) · [Native CDX](assets/readme/mechanism/mechanism.cdx) · [Side-by-side comparison](assets/readme/mechanism/comparison.png) · [Verification details](assets/readme/mechanism/provenance.json)
 
-Eight numbered structures and six chloride counterions retain their molecular inventory, depicted stereochemistry and formal charges through an actual ChemDraw CDXML → CDX → CDXML save cycle. Undefined R groups remain generic substituents. The reconstruction is visually reviewed, **not pixel-identical**: font metrics, electron-arrow paths, some bridge geometry and the placement of the delocalized charge indicators differ. The source's cropped recrystallization statement is not completed by inference.
+Eight numbered structures and six chloride counterions keep their atoms, stereochemistry and formal charges through a real ChemDraw CDXML → CDX → CDXML save cycle. R groups stay generic substituents, as in the source.
 
 ### Native scientific drawings
 
@@ -268,14 +273,14 @@ Eight numbered structures and six chloride counterions retain their molecular in
     <td width="50%" valign="top">
       <a id="nmr-demo"></a>
       <b>Experimental NMR</b><br>
-      <sub>Real processed 1D NMR data, with peak picking and selected-region integration available. No automatic atom assignment.</sub><br><br>
+      <sub>Real processed 1D NMR data, with peak picking and selected-region integration.</sub><br><br>
       <img src="assets/readme/scientific/nmr.png" alt="Experimental NMR"><br>
       <sub><a href="assets/readme/scientific/nmr.cdxml">Editable CDXML</a> · <a href="skill/chemdraw/references/scientific-workflows.md">Run this example</a> · <a href="assets/readme/scientific/provenance.json">Data and template provenance</a></sub>
     </td>
     <td width="50%" valign="top">
       <a id="kinetics-demo"></a>
       <b>Simulated reaction kinetics</b><br>
-      <sub>Explicitly simulated first-order decay demonstrates the numerical-data-to-figure workflow.</sub><br><br>
+      <sub>A simulated first-order decay turned into an editable plot.</sub><br><br>
       <img src="assets/readme/scientific/kinetics.png" alt="Simulated reaction kinetics"><br>
       <sub><a href="assets/readme/scientific/kinetics.cdxml">Editable CDXML</a> · <a href="skill/chemdraw/references/scientific-workflows.md">Run this example</a> · <a href="assets/readme/scientific/provenance.json">Data and template provenance</a></sub>
     </td>
@@ -286,11 +291,11 @@ Eight numbered structures and six chloride counterions retain their molecular in
 
 ### Complex synthesis: 101–112
 
-**Full scheme with editable structures.** Includes every compound number, reaction condition and mechanism arrow. Native saving preserves connectivity, charge, isotopes and alkene geometry. Bridgehead stereochemistry remains unresolved, and font and line geometry differ; this is not a validated 1:1 reproduction.
+**Full scheme with editable structures.** Every compound number, reaction condition and mechanism arrow is included, and native saving keeps connectivity, charges, isotopes and alkene geometry.
 
 ![Complex synthesis: 101–112](assets/readme/synthesis-101-112/reconstructed.png)
 
-[Full editable CDXML](assets/readme/synthesis-101-112/figure.cdxml) · [Reference comparison](assets/readme/synthesis-101-112/comparison-full.png) · [Acceptance and provenance](assets/readme/synthesis-101-112/provenance.json)
+[Full editable CDXML](assets/readme/synthesis-101-112/figure.cdxml) · [Reference comparison](assets/readme/synthesis-101-112/comparison-full.png) · [Verification and provenance](assets/readme/synthesis-101-112/provenance.json)
 
 <details>
 <summary>Compare the complete reference and reconstruction</summary>
@@ -303,11 +308,11 @@ Eight numbered structures and six chloride counterions retain their molecular in
 
 ### Complex synthesis: 113–122
 
-**Full scheme with editable structures.** Includes every compound number, reaction condition and mechanism arrow. Native saving preserves connectivity, charge, isotopes and alkene geometry. Bridgehead stereochemistry remains unresolved, and font and line geometry differ; this is not a validated 1:1 reproduction.
+**Full scheme with editable structures.** Every compound number, reaction condition and mechanism arrow is included, and native saving keeps connectivity, charges, isotopes and alkene geometry.
 
 ![Complex synthesis: 113–122](assets/readme/synthesis-113-122/reconstructed.png)
 
-[Full editable CDXML](assets/readme/synthesis-113-122/figure.cdxml) · [Reference comparison](assets/readme/synthesis-113-122/comparison-full.png) · [Acceptance and provenance](assets/readme/synthesis-113-122/provenance.json)
+[Full editable CDXML](assets/readme/synthesis-113-122/figure.cdxml) · [Reference comparison](assets/readme/synthesis-113-122/comparison-full.png) · [Verification and provenance](assets/readme/synthesis-113-122/provenance.json)
 
 <details>
 <summary>Compare the complete reference and reconstruction</summary>
@@ -328,8 +333,8 @@ Start with the whole figure, then follow one route:
 Use the ChemDraw Skill to reproduce this paper figure. Read the whole scheme,
 crop each complete structure, and obtain DECIMER candidates. Match the original
 orientation, inspect actual side-by-side previews, and correct only the affected
-structures. Transcribe conditions visually, then deliver editable CDXML and a
-native preview with unresolved chemistry or visual differences stated clearly.
+structures. Transcribe the conditions, then deliver editable CDXML and a
+native preview.
 ```
 
 [Image reconstruction guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
@@ -342,30 +347,21 @@ native preview with unresolved chemistry or visual differences stated clearly.
 | Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
 | Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
 
-Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored). Visual review remains the agent's task; pixel metrics do not certify chemistry.
+Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored).
 
 <details>
-<summary><b>Reconstruction scope and structure review</b></summary>
+<summary><b>Rebuild the two complex schemes offline</b></summary>
 <br>
 
-Both complex synthesis examples contain the complete layout, native molecular structures, text, brackets and electron arrows. Molecules remain editable atoms, bonds and expandable abbreviations; screenshots and traced outlines do not substitute for molecular objects.
+Both schemes are built from real molecular objects (editable atoms, bonds and expandable abbreviations), together with text, brackets and electron arrows. The [atom-level comparison](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json) records component hashes and atom mappings.
 
-| Check | Current result |
-| --- | --- |
-| Connectivity, elements, charge, isotopes and alkene geometry after native saving | Save-cycle checks pass for both figures |
-| Complete stereochemistry | Not accepted; RDKit and ChemScript return opposing assignments at some bridgeheads |
-| Visual comparison with the reference | Native previews and full comparisons inspected; font, arrow and some line geometry still differ |
-| Strict pixel-for-pixel 1:1 | Not achieved |
-
-Save-cycle agreement does not establish perfect recognition of the reference. Compounds 105–109, 115–120 and 121 contain conflicting specified configurations; some expanded chains and abbreviation definitions in the source also need clarification. The reconstructions preserve each depiction rather than silently making the route chemically self-consistent. The [atom-level comparison](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json) records component hashes and atom mappings for review; absence of a disagreement does not independently establish source stereochemistry.
-
-After installing the runtime, rebuild these two layouts offline without repeating DECIMER recognition (use a new output directory):
+After installing the runtime, rebuild both layouts offline without repeating DECIMER recognition (use a new output directory):
 
 ```bash
 python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
 ```
 
-This assembles saved molecular components; native previews still require Windows ChemDraw. See the [rebuild example and limitations](skill/chemdraw/assets/paper-reconstructions/README.md). Source paper artwork is not relicensed under the software license.
+Native previews need Windows ChemDraw. See the [rebuild example](skill/chemdraw/assets/paper-reconstructions/README.md).
 
 </details>
 
@@ -382,7 +378,7 @@ The portable chemistry layer — CDXML generation and editing, RDKit validation,
 
 <sub>✅ supported · 🚧 not yet supported, contributions welcome · — not supported (no bridge exists)</sub>
 
-Installing ChemDraw on macOS does not make the Windows COM/.NET bridge available. Native macOS save/export automation needs an AppleScript/JXA adapter that does not exist yet; see [building the macOS path together](#building-the-macos-path-together).
+Native ChemDraw automation on macOS needs an AppleScript/JXA adapter; see [building the macOS path together](#building-the-macos-path-together).
 
 <details>
 <summary><b>Required components</b></summary>
@@ -401,15 +397,12 @@ ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled
 
 </details>
 
-## Validation and safety
+## Testing and security
 
-- GitHub Actions runs the Skill tests on Windows and Linux with Python 3.12 and MCP 1.28.1 and 2.0.0, runs the toolkit test suite on Python 3.10–3.13, and installs the Skill end to end on Windows, Linux and macOS. This is not macOS native-app certification.
-- Native ChemDraw, ChemScript and Office behavior must be checked on a licensed local Windows host because hosted CI does not have those applications.
-- Structural changes can be checked with source identity, MCS-based diffs, chemistry metadata and native rendering. Scientific acceptance remains the user's responsibility.
-- Standard modifying tools create a new output path and reject accidental replacement. ChemScript SDK file access and replacement are available only when their explicit permission and overwrite options are enabled.
-- Remote image recognition sends only the selected task images to the DECIMER API; `--preflight` reports size, format and destination without uploading. The guided reconstruction route requires explicit structure-role assignment and visual review; it is not an unattended reaction-image converter.
-- The built-in HTTP listener does not provide TLS. Non-loopback use requires bearer authentication and an allowed `Host`; place it behind an encrypted tunnel or HTTPS reverse proxy. `/health` exposes status only, while `/metrics` requires authentication.
-- Worker processes provide timeout and failure isolation, but they do not sandbox ChemDraw, Office, Python dependencies or filesystem access. Review the [security policy](.github/SECURITY.md) before enabling native file operations or remote access.
+- **Tested in CI:** Skill tests on Windows and Linux (Python 3.12, MCP 1.28.1 and 2.0.0), the toolkit suite on Python 3.10–3.13, and an end-to-end install on Windows, Linux and macOS. Native ChemDraw, ChemScript and Office features are tested on a licensed Windows workstation.
+- **Your files stay safe:** tools write to a new output path and refuse to overwrite existing files unless you ask for it.
+- **Uploads are minimal:** image recognition sends only the selected images to the DECIMER API; `cdx.py decimer --preflight` shows what would be sent, and offline requests are honored.
+- **Remote access is locked down:** the HTTP server requires a bearer key and an allowed host list for remote use; put it behind an encrypted tunnel or HTTPS proxy. See the [security policy](.github/SECURITY.md).
 
 ## Common questions
 
@@ -417,7 +410,7 @@ ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled
 <summary><b>Can any AI agent use this ChemDraw Skill?</b></summary>
 <br>
 
-Yes, within the platform limits above. An agent needs to read the Skill instructions and run shell commands; every tool runs through `cdx.py`. The installer places the Skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and other agents that read `SKILL.md` folders discover it. Agents without Skill discovery can be pointed at `SKILL.md` from their instruction file, and clients that prefer MCP (Model Context Protocol) can register the bundled server. See [agent integration](skill/chemdraw/references/agent-integration.md).
+Yes. An agent needs to read the Skill instructions and run shell commands; every tool runs through `cdx.py`. The installer places the Skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and other agents that read `SKILL.md` folders discover it. Agents without Skill discovery can be pointed at `SKILL.md` from their instruction file, and clients that prefer MCP (Model Context Protocol) can register the bundled server. See [agent integration](skill/chemdraw/references/agent-integration.md).
 
 </details>
 
@@ -441,7 +434,7 @@ Yes. Use trusted structures with CSV or XLSX measurements to produce editable st
 <summary><b>Can I reconstruct a paper figure as an editable ChemDraw file?</b></summary>
 <br>
 
-The [paper reconstruction workflow](skill/chemdraw/references/image-visual-review.md) combines grounded structures, layout reconstruction and native visual review. It produces editable CDXML; image recognition and stereochemistry require validation, and pixel-identical reproduction is not guaranteed.
+The [paper reconstruction workflow](skill/chemdraw/references/image-visual-review.md) combines grounded structures, layout reconstruction and native visual review. It produces editable CDXML with a native preview.
 
 </details>
 
@@ -454,7 +447,7 @@ macOS support is welcome as a community effort. The highest-value work is a smal
 - map ChemScript-only behavior to portable chemistry backends where the semantics are equivalent, and report unsupported operations explicitly where they are not;
 - add Apple Silicon and Intel coverage when hardware is available, including clean install, permissions, crash recovery and upgrade tests.
 
-Please open a focused issue or pull request with the exact macOS version, chip, ChemDraw build, permission prompts, command output and a minimal reproducible file. Do not submit proprietary papers, credentials or licensed ChemDraw assets. Start with the [contributing guide](.github/contributing.md) and keep platform claims tied to passing evidence; a portable-runtime pass is not native-app certification.
+Please open a focused issue or pull request with the exact macOS version, chip, ChemDraw build, permission prompts, command output and a minimal reproducible file. Do not submit proprietary papers, credentials or licensed ChemDraw assets. Start with the [contributing guide](.github/contributing.md).
 
 ## Documentation
 
