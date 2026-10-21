@@ -1,4 +1,9 @@
-"""Install the shared, pinned runtime baseline or an explicit local development checkout."""
+"""Install the toolkit runtime into the current Python environment.
+
+Source, in order: --toolkit-path; the `toolkit/` folder of the repository checkout this
+Skill lives in; otherwise the exact commit pinned in runtime.json (this repository's
+`toolkit` subdirectory, fetched by pip).
+"""
 from __future__ import annotations
 
 import argparse
@@ -8,7 +13,19 @@ import re
 import subprocess
 import sys
 
-BASELINE = Path(__file__).resolve().parents[1] / 'runtime.json'
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+BASELINE = SKILL_ROOT / 'runtime.json'
+DISTRIBUTION = 'cdxml-toolkit-community'
+
+
+def _is_toolkit(path: Path) -> bool:
+    return (path / 'pyproject.toml').is_file() and (path / 'cdxml_toolkit').is_dir()
+
+
+def local_toolkit() -> Path | None:
+    """`<repo>/toolkit` when this Skill is the `skill/chemdraw` folder of a checkout."""
+    candidate = SKILL_ROOT.parent.parent / 'toolkit'
+    return candidate.resolve() if SKILL_ROOT.parent.name == 'skill' and _is_toolkit(candidate) else None
 
 
 def requirement(extras: list[str], toolkit_path: str | None = None) -> str:
@@ -17,19 +34,24 @@ def requirement(extras: list[str], toolkit_path: str | None = None) -> str:
     suffix = '[' + ','.join(sorted(set(extras))) + ']' if extras else ''
     if toolkit_path:
         path = Path(toolkit_path).expanduser().resolve()
-        if not (path / 'pyproject.toml').is_file() or not (path / 'cdxml_toolkit').is_dir():
-            raise ValueError('Expected a cdxml-toolkit source checkout')
+        if not _is_toolkit(path):
+            raise ValueError('Expected a toolkit source folder (pyproject.toml and cdxml_toolkit/)')
         return str(path) + suffix
+    local = local_toolkit()
+    if local:
+        return str(local) + suffix
     baseline = json.loads(BASELINE.read_text(encoding='utf-8'))
     if not re.fullmatch(r'[0-9a-f]{40}', baseline['commit']):
         raise ValueError('Runtime baseline must use a full commit SHA')
-    return 'cdxml-toolkit-community' + suffix + ' @ git+' + baseline['repository'] + '@' + baseline['commit']
+    subdirectory = baseline.get('subdirectory')
+    fragment = f'#subdirectory={subdirectory}' if subdirectory else ''
+    return f"{DISTRIBUTION}{suffix} @ git+{baseline['repository']}@{baseline['commit']}{fragment}"
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--extras', nargs='*', default=[])
-    parser.add_argument('--toolkit-path', help='Explicit local checkout for unreleased development')
+    parser.add_argument('--toolkit-path', help='toolkit source folder to install instead (development)')
     parser.add_argument('--print-requirement', action='store_true', help='Print without installing')
     args = parser.parse_args(argv)
     try:

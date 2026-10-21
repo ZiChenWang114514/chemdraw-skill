@@ -1,0 +1,55 @@
+# Showcase 15: Letter Conditions + Serpentine (Publication Style)
+# Combines serpentine wrapping with letter conditions
+
+structures:
+  sm:
+    smiles: "Nc1ccncc1"
+    label: "1"
+  int1:
+    smiles: "CC(C)(C)OC(=O)Nc1ccncc1"
+    label: "2"
+  int2:
+    smiles: "CC(C)(C)OC(=O)Nc1cc(-c2ccccc2)ncc1"
+    label: "3"
+  int3:
+    smiles: "CC(C)(C)OC(=O)Nc1cc(-c2ccccc2)ncc1Br"
+    label: "4"
+  int4:
+    smiles: "CC(C)(C)OC(=O)Nc1cc(-c2ccccc2)ncc1N1CCOCC1"
+    label: "5"
+  product:
+    smiles: "Nc1cc(-c2ccccc2)ncc1N1CCOCC1"
+    label: "6"
+
+steps:
+  - substrates: [sm]
+    products: [int1]
+    below_arrow:
+      text: ["a"]
+  - substrates: [int1]
+    products: [int2]
+    below_arrow:
+      text: ["b"]
+  - substrates: [int2]
+    products: [int3]
+    below_arrow:
+      text: ["c"]
+  - substrates: [int3]
+    products: [int4]
+    below_arrow:
+      text: ["d"]
+  - substrates: [int4]
+    products: [product]
+    below_arrow:
+      text: ["e"]
+
+layout: sequential
+wrap: serpentine
+steps_per_row: 3
+
+condition_key:
+  a: "Boc2O (1.1 eq), Et3N, DCM, RT, 2 h, 95%"
+  b: "PhB(OH)2 (1.5 eq), Pd(dppf)Cl2, K2CO3, dioxane/H2O, 80 C, 88%"
+  c: "NBS (1.0 eq), DMF, 0 C, 2 h, 92%"
+  d: "morpholine (1.2 eq), Pd2(dba)3, BINAP, Cs2CO3, dioxane, reflux, 72%"
+  e: "TFA/DCM (1:1), RT, 1 h, quant."

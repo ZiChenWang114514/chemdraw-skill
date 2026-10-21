@@ -1,0 +1,37 @@
+# Showcase 25: Two-Step with Above-Arrow Structures on Each Step
+# Report-style: drawn coupling partners above each step
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  morph:
+    smiles: "C1COCCN1"
+  int:
+    smiles: "c1ccc2nc(N3CCOCC3)ccc2c1"
+    label: "2"
+  tosylate:
+    smiles: "Cc1ccc(S(=O)(=O)OCC2CCCCC2)cc1"
+  product:
+    smiles: "O(CC1CCCCC1)c1cc2ccccc2nc1N1CCOCC1"
+    label: "3"
+
+steps:
+  - substrates: [sm]
+    above_arrow:
+      structures: [morph]
+      text: ["(1.2 eq)"]
+    below_arrow:
+      text: ["Pd2(dba)3, BINAP", "Cs2CO3, dioxane", "reflux, 24 h"]
+    products: [int]
+    yield_: "72%"
+  - substrates: [int]
+    above_arrow:
+      structures: [tosylate]
+      text: ["(1.5 eq)"]
+    below_arrow:
+      text: ["NaH (2.0 eq)", "DMF, 0 C to RT", "16 h"]
+    products: [product]
+    yield_: "58%"
+
+layout: sequential

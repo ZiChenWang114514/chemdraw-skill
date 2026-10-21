@@ -1,0 +1,66 @@
+# Showcase 13: Serpentine Wrapping - 7 Steps (Long Thesis Synthesis)
+# Row 1 L→R (3 steps), vert, Row 2 R→L (2 steps), vert, Row 3 L→R residual
+
+structures:
+  sm:
+    smiles: "Nc1ccncc1"
+    label: "1"
+  int1:
+    smiles: "CC(C)(C)OC(=O)Nc1ccncc1"
+    label: "2"
+  int2:
+    smiles: "CC(C)(C)OC(=O)Nc1cc(-c2ccccc2)ncc1"
+    label: "3"
+  int3:
+    smiles: "CC(C)(C)OC(=O)Nc1cc(-c2ccccc2)ncc1Br"
+    label: "4"
+  int4:
+    smiles: "CC(C)(C)OC(=O)Nc1cc(-c2ccccc2)ncc1N1CCOCC1"
+    label: "5"
+  int5:
+    smiles: "Nc1cc(-c2ccccc2)ncc1N1CCOCC1"
+    label: "6"
+  int6:
+    smiles: "O=C(Nc1cc(-c2ccccc2)ncc1N1CCOCC1)c1ccccc1"
+    label: "7"
+  product:
+    smiles: "O=C(Nc1cc(-c2ccccc2)ncc1N1CCOCC1)c1ccc(O)cc1"
+    label: "8"
+
+steps:
+  - substrates: [sm]
+    below_arrow:
+      text: ["Boc2O (1.1 eq)", "Et3N, DCM, RT"]
+    products: [int1]
+  - substrates: [int1]
+    below_arrow:
+      text: ["PhB(OH)2, Pd(dppf)Cl2", "K2CO3, dioxane/H2O"]
+    products: [int2]
+  - substrates: [int2]
+    below_arrow:
+      text: ["NBS (1.0 eq)", "DMF, 0 C"]
+    products: [int3]
+  # Vertical transition step
+  - substrates: [int3]
+    below_arrow:
+      text: ["morpholine, Pd2(dba)3", "BINAP, Cs2CO3, dioxane"]
+    products: [int4]
+  # Row 2 (R→L)
+  - substrates: [int4]
+    below_arrow:
+      text: ["TFA/DCM (1:1)", "RT, 1 h"]
+    products: [int5]
+  # Vertical transition step
+  - substrates: [int5]
+    below_arrow:
+      text: ["BzCl (1.1 eq)", "Et3N, DCM, 0 C"]
+    products: [int6]
+  # Row 3 (L→R)
+  - substrates: [int6]
+    below_arrow:
+      text: ["BBr3 (3 eq)", "DCM, -78 to RT"]
+    products: [product]
+
+layout: sequential
+wrap: serpentine
+steps_per_row: 3

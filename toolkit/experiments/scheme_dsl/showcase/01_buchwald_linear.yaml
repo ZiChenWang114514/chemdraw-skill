@@ -1,0 +1,24 @@
+# Showcase 01: Buchwald-Hartley Amination (linear, above-arrow structure)
+# Single-step with drawn reagent structure above arrow
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  morpholine:
+    smiles: "C1COCCN1"
+  product:
+    smiles: "c1ccc2nc(N3CCOCC3)ccc2c1"
+    label: "2"
+
+steps:
+  - substrates: [sm]
+    above_arrow:
+      structures: [morpholine]
+      text: ["(1.2 eq)"]
+    below_arrow:
+      text: ["Pd2(dba)3 (5 mol%)", "rac-BINAP (10 mol%)", "Cs2CO3 (2.0 eq)", "1,4-dioxane", "reflux, 24 h"]
+    products: [product]
+    yield_: "72%"
+
+layout: linear

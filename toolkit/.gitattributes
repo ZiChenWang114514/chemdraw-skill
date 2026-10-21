@@ -1,0 +1,3 @@
+# This native-saved evidence must keep the exact bytes recorded in verification.json.
+/assets/readme/stereo-reconstruction/reconstruction.cdxml -text whitespace=cr-at-eol
+/assets/readme/stereo-reconstruction/source-oriented.cdxml -text whitespace=cr-at-eol

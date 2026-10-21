@@ -2,7 +2,7 @@
 
 ## Scope
 
-Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth for runtime behavior. Root Markdown is intentionally limited to `README.md`, its `README.zh-cn.md` translation, and `AGENTS.md`. Put detailed project guidance and direct translations in `docs/`, and GitHub-only policy in `.github/`; do not create standalone changelog, support, conduct, notice, or release ledgers when an existing authoritative section or GitHub feature is sufficient. Do not add repository-facing documents inside the deployable Skill.
+Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth for Skill behavior, and `toolkit/` as the bundled `cdxml_toolkit` runtime it drives (its own `toolkit/AGENTS.md` adds toolkit rules). The toolkit's history was imported with `git subtree`; keep its `LICENSE` and `NOTICE.md`, and sync upstream as described in `toolkit/docs/maintenance.md`. Root Markdown is intentionally limited to `README.md`, its `README.zh-cn.md` translation, and `AGENTS.md`. Put detailed project guidance and direct translations in `docs/`, toolkit developer documentation in `toolkit/docs/`, and GitHub-only policy in the root `.github/`; do not create standalone changelog, support, conduct, notice, or release ledgers when an existing authoritative section or GitHub feature is sufficient. Do not add repository-facing documents inside the deployable Skill.
 
 ## Skill Design
 
@@ -41,6 +41,12 @@ Run the full Skill suite in the toolkit runtime (`cdx.py py` selects it; `script
 ```powershell
 python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
 python skill/chemdraw/scripts/cdx.py doctor
+```
+
+For changes under `toolkit/`, also run its suite with the runtime Python from inside `toolkit/` (the checkout code is imported first), then rebuild the runtime with `scripts/install.py --runtime --apply` before native or Office checks:
+
+```powershell
+cd toolkit; python -m pytest -m "not network" -q
 ```
 
 For native or Office changes, also validate with an activated ChemDraw installation, native PNG rendering, and open/render checks for DOCX/PPTX outputs. Never report those gates as passed when they were skipped.

@@ -1,0 +1,21 @@
+{
+  "tlc": "Illustrative Rf values; native tlcplate/tlclane/tlcspot objects.",
+  "apparatus": "Assembled from locally installed ChemDraw Clipware templates; full proprietary template libraries are not distributed.",
+  "kinetics": "Explicit simulation: fraction remaining = exp(-0.06 × time in minutes).",
+  "nmr": {
+    "source": "https://nmrglue.readthedocs.io/en/latest/examples/integrate_1d.html",
+    "input": "1d_data.ft",
+    "sha256": "16f173cc5b9995ff73806cb7d787a0ad404869a48e2dc35c1f8335a4885c46bf",
+    "scope": "Real processed 1D NMRPipe spectrum; no automatic atom assignment."
+  },
+  "sha256": {
+    "apparatus.cdxml": "ace48fa19e12e7e4c4776002f86f544724a38faa6683c9183fa082f8ffa1f530",
+    "apparatus.png": "ff41eaf436d9188e36e64cfb0d022aba7d27894544e7cf9cb22066c479463105",
+    "kinetics.cdxml": "8fc3734bdc6ccc58772bce2ade34de8a3b2e6319d5d7c3762e250918ea33a3f9",
+    "kinetics.png": "fedde2b3c3fe784aba595fad4d6fac63aa55ff0e18313c65bc561c52e624ed09",
+    "nmr.cdxml": "37e8b228cf897e62d3db6e0a2afb586e811c9c09d8cc85564830a8a4a62c3905",
+    "nmr.png": "c28d673337337550262b2097296fb960bb56539078210013b2dfffb1cbf869b1",
+    "tlc.cdxml": "9f73d628b1fde8ae2899e486401c5ea3b49e824c1656ba7aa9341d32624b8e7e",
+    "tlc.png": "135229fc4ac56f01617f6172252188400e3a5363841ba13a7540cba8b7b1d160"
+  }
+}

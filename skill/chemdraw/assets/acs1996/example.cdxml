@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd">
-<CDXML BondLength="14.4" LabelFont="3" LabelSize="10" LabelFace="96" CaptionFont="3" CaptionSize="10" LineWidth="0.6" BoldWidth="2" HashSpacing="2.5" MarginWidth="1.6" BondSpacing="18" ChainAngle="120" LabelJustification="Auto" CaptionJustification="Left" color="0" bgcolor="1"><colortable><color r="1" g="1" b="1"/><color r="0" g="0" b="0"/></colortable><fonttable><font id="3" charset="iso-8859-1" name="Arial"/><font id="5" charset="Unicode" name="SimSun"/></fonttable><page id="1">
+<CDXML BoundingBox="34.59 41.19 370.41 111.50" BondLength="14.4" LabelFont="3" LabelSize="10" LabelFace="96" CaptionFont="3" CaptionSize="10" LineWidth="0.6" BoldWidth="2" HashSpacing="2.5" MarginWidth="1.6" BondSpacing="18" ChainAngle="120" LabelJustification="Auto" CaptionJustification="Left" color="0" bgcolor="1"><colortable><color r="1" g="1" b="1"/><color r="0" g="0" b="0"/></colortable><fonttable><font id="3" charset="iso-8859-1" name="Arial"/><font id="5" charset="Unicode" name="SimSun"/></fonttable><page id="1">
 <fragment id="1009">
 <n id="1001" p="117.41 70.81" NodeType="GenericNickname" GenericNickname="C10H21"><t p="117.41 74.31" LabelJustification="Left" LabelAlignment="Left"><s font="3" size="10" face="0">C</s><s font="3" size="10" face="32">10</s><s font="3" size="10" face="0">H</s><s font="3" size="10" face="32">21</s></t></n>
 <n id="1002" p="104.94 63.61"/>
@@ -19,10 +19,10 @@
 <b id="1016" B="1007" E="1008"/>
 </fragment>
 <graphic id="1017" BoundingBox="88.00 107.00 72.00 91.00" GraphicType="Rectangle" RectangleType="RoundEdge"/>
-<t id="1018" p="76.40 103.50"><s font="3" size="10" face="1">A</s></t>
+<t id="1018" p="76.40 103.50" InterpretChemically="no"><s font="3" size="10" face="1">A</s></t>
 <arrow id="1019" FillType="None" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadCenterSize="875" ArrowheadWidth="250" Head3D="245.00 60.00 0" Tail3D="175.00 60.00 0"/>
-<t id="1020" p="210.00 50.00" Justification="Center" CaptionJustification="Center"><s font="3" size="10" face="0">H</s><s font="3" size="10" face="32">2</s><s font="3" size="10" face="0">, Pd/C</s></t>
-<t id="1021" p="210.00 76.00" Justification="Center" CaptionJustification="Center"><s font="3" size="10" face="0">EtOH</s><s font="5" size="10" face="0">，</s><s font="3" size="10" face="0">25 °C</s></t>
+<t id="1020" p="210.00 50.00" Justification="Center" CaptionJustification="Center" InterpretChemically="no"><s font="3" size="10" face="0">H</s><s font="3" size="10" face="32">2</s><s font="3" size="10" face="0">, Pd/C</s></t>
+<t id="1021" p="210.00 76.00" Justification="Center" CaptionJustification="Center" InterpretChemically="no"><s font="3" size="10" face="0">EtOH</s><s font="5" size="10" face="0">，</s><s font="3" size="10" face="0">25 °C</s></t>
 <fragment id="1030">
 <n id="1022" p="362.41 70.81" NodeType="GenericNickname" GenericNickname="C10H21"><t p="362.41 74.31" LabelJustification="Left" LabelAlignment="Left"><s font="3" size="10" face="0">C</s><s font="3" size="10" face="32">10</s><s font="3" size="10" face="0">H</s><s font="3" size="10" face="32">21</s></t></n>
 <n id="1023" p="349.94 63.61"/>
@@ -41,5 +41,5 @@
 <b id="1037" B="1028" E="1029"/>
 </fragment>
 <graphic id="1038" BoundingBox="333.00 107.00 317.00 91.00" GraphicType="Rectangle" RectangleType="RoundEdge"/>
-<t id="1039" p="321.40 103.50"><s font="3" size="10" face="1">B</s></t>
+<t id="1039" p="321.40 103.50" InterpretChemically="no"><s font="3" size="10" face="1">B</s></t>
 </page></CDXML>

@@ -103,6 +103,8 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(runtime["action"], "create")
         self.assertEqual(Path(runtime["venv"]).parts[-2:], ("chemdraw-skill", "venv"))
         self.assertEqual(runtime["extras"], ["publication"])
+        # The runtime is built from the toolkit bundled in this checkout, never from elsewhere.
+        self.assertEqual(Path(runtime["toolkit_path"]), (ROOT / "toolkit").resolve())
 
     def test_runtime_reuses_a_venv_beside_an_existing_skill(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

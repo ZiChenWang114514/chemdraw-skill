@@ -1,0 +1,229 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="20" LineWidth="0.6" BoldWidth="2" MarginWidth="1.5" BondSpacing="18" LabelFont="3" CaptionFont="3" LabelSize="13" CaptionSize="13" LabelFace="96" BoundingBox="0 0 915.5 468.5">
+  <fonttable>
+    <font id="3" charset="iso-8859-1" name="Arial" />
+  </fonttable>
+  <colortable>
+    <color r="1" g="1" b="1" />
+    <color r="0" g="0" b="0" />
+  </colortable>
+  <page id="1251">
+    <fragment id="1000" BoundingBox="269.12 26.57 416.06 216.49" Z="1001">
+      <n id="1018" p="345.88 104.00" Z="1019" />
+      <n id="1020" p="331.25 117.12" Z="1021" />
+      <n id="1022" p="309.62 111.12" Z="1023" />
+      <n id="1024" p="309.62 92.12" Z="1025" />
+      <n id="1026" p="325.50 83.50" Z="1027" Element="8" NumHydrogens="0">
+        <t id="1028" p="320.82 88.18" LabelJustification="Left">
+          <s font="3" size="13" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1034" p="297.50 128.75" Z="1035" />
+      <n id="1036" p="300.50 147.50" Z="1037" />
+      <n id="1060" p="278.62 128.75" Z="1061" />
+      <n id="1062" p="269.12 112.50" Z="1063" />
+      <n id="1064" p="287.75 117.00" Z="1065" />
+      <n id="1075" p="299.50 97.50" Z="1076" />
+      <n id="1077" p="321.38 103.62" Z="1078" />
+      <n id="1079" p="334.38 90.62" Z="1080" />
+      <n id="1081" p="339.25 71.62" Z="1082" />
+      <n id="1083" p="356.00 62.25" Z="1084" />
+      <n id="1095" p="340.62 49.75" Z="1096" Element="8" NumHydrogens="0">
+        <t id="1097" p="335.945 54.43" LabelJustification="Left">
+          <s font="3" size="13" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1098" p="346.75 30.75" Z="1099" />
+      <n id="1100" p="365.88 30.75" Z="1101" />
+      <n id="1102" p="372.00 49.75" Z="1103" Element="8" NumHydrogens="0">
+        <t id="1104" p="367.32 54.43" LabelJustification="Left">
+          <s font="3" size="13" color="3" face="96">O</s>
+        </t>
+      </n>
+      <b id="1129" Z="1130" B="1221" E="1018" />
+      <b id="1131" Z="1132" B="1018" E="1020" Order="2" />
+      <b id="1133" Z="1134" B="1020" E="1022" />
+      <b id="1135" Z="20000" B="1022" E="1024" />
+      <b id="1137" Z="1138" B="1024" E="1026" Order="2" />
+      <b id="1139" Z="1140" B="1024" E="1241" />
+      <b id="1143" Z="1144" B="1022" E="1034" />
+      <b id="1145" Z="1146" B="1034" E="1036" />
+      <b id="1147" Z="1148" B="1036" E="1226" />
+      <b id="1167" Z="20000" B="1034" E="1060" />
+      <b id="1169" Z="1170" B="1060" E="1062" />
+      <b id="1171" Z="1172" B="1062" E="1064" />
+      <b id="1173" Z="1174" B="1064" E="1246" CrossingBonds="1167" />
+      <b id="1179" Z="1180" B="1064" E="1075" />
+      <b id="1181" Z="1182" B="1075" E="1077" Order="2" CrossingBonds="1135" />
+      <b id="1183" Z="1184" B="1077" E="1079" />
+      <b id="1185" Z="1186" B="1079" E="1081" />
+      <b id="1187" Z="1188" B="1081" E="1083" />
+      <b id="1189" Z="1190" B="1083" E="1231" />
+      <b id="1199" Z="1200" B="1083" E="1095" Display="WedgeBegin" />
+      <b id="1201" Z="1202" B="1095" E="1098" />
+      <b id="1203" Z="1204" B="1098" E="1100" />
+      <b id="1205" Z="1206" B="1100" E="1102" />
+      <b id="1207" Z="1208" B="1081" E="1236" Display="WedgeBegin" />
+      <b id="1215" Z="1216" B="1064" E="1022" />
+      <b id="1217" Z="1218" B="1083" E="1102" Display="WedgedHashBegin" />
+      <n id="1221" NodeType="Fragment" p="364.375 110.875" LabelDisplay="Left">
+        <fragment id="1222">
+          <n id="1002" p="321.33 216.49" Z="1003" />
+          <n id="1004" p="335.14 203.81" Z="1005" />
+          <n id="1006" p="331.07 185.51" Z="1007" />
+          <n id="1008" p="344.89 172.83" Z="1009" />
+          <n id="1010" p="340.82 154.53" Z="1011" />
+          <n id="1012" p="354.63 141.85" Z="1013" />
+          <n id="1014" p="350.56 123.55" Z="1015" />
+          <n id="1016" p="364.38 110.88" Z="1017" />
+          <b id="1115" Z="1116" B="1002" E="1004" />
+          <b id="1117" Z="1118" B="1004" E="1006" Order="2" />
+          <b id="1119" Z="1120" B="1006" E="1008" />
+          <b id="1121" Z="1122" B="1008" E="1010" />
+          <b id="1123" Z="1124" B="1010" E="1012" />
+          <b id="1125" Z="1126" B="1012" E="1014" />
+          <b id="1127" Z="1128" B="1014" E="1016" />
+          <n id="1223" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="356.875 110.875" />
+          <b id="1224" B="1223" E="1016" />
+        </fragment>
+        <t id="1225" p="358.75 114.5" LabelJustification="Left" Justification="Left" InterpretChemically="no">
+          <s font="3" size="13" face="0" color="3">C</s>
+          <s font="3" size="13" face="32" color="3">8</s>
+          <s font="3" size="13" face="0" color="3">H</s>
+          <s font="3" size="13" face="32" color="3">15</s>
+        </t>
+      </n>
+      <n id="1226" NodeType="Fragment" p="317.5 156.875" LabelDisplay="Left">
+        <fragment id="1227">
+          <n id="1038" p="317.50 156.88" Z="1039" Element="8" NumHydrogens="0">
+            <t id="1040" p="312.82 161.555" LabelJustification="Left">
+              <s font="3" size="13" color="3" face="96">O</s>
+            </t>
+          </n>
+          <n id="1041" p="330.18 170.69" Z="1042" />
+          <n id="1043" p="348.48 166.62" Z="1044" />
+          <n id="1045" p="361.16 180.43" Z="1046" />
+          <n id="1047" p="379.46 176.36" Z="1048" />
+          <n id="1049" p="385.09 158.48" Z="1050" />
+          <n id="1051" p="403.39 154.41" Z="1052" Element="8" NumHydrogens="0">
+            <t id="1053" p="398.7077848613419 159.08499764942502" LabelJustification="Left">
+              <s font="3" size="13" color="3" face="96">O</s>
+            </t>
+          </n>
+          <n id="1054" p="416.06 168.22" Z="1055" />
+          <n id="1056" p="372.41 144.66" Z="1057" />
+          <n id="1058" p="354.11 148.73" Z="1059" />
+          <b id="1149" Z="1150" B="1038" E="1041" />
+          <b id="1151" Z="1152" B="1041" E="1043" />
+          <b id="1153" Z="1154" B="1043" E="1045" />
+          <b id="1155" Z="1156" B="1045" E="1047" Order="2" DoublePosition="Right" />
+          <b id="1157" Z="1158" B="1047" E="1049" />
+          <b id="1159" Z="1160" B="1049" E="1051" />
+          <b id="1161" Z="1162" B="1051" E="1054" />
+          <b id="1163" Z="1164" B="1049" E="1056" Order="2" DoublePosition="Right" />
+          <b id="1165" Z="1166" B="1056" E="1058" />
+          <b id="1219" Z="1220" B="1058" E="1043" Order="2" DoublePosition="Right" />
+          <n id="1228" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="310.0 156.875" />
+          <b id="1229" B="1228" E="1038" />
+        </fragment>
+        <t id="1230" p="312.875 159.375" LabelJustification="Left" Justification="Left" InterpretChemically="no">
+          <s font="3" size="13" face="0" color="3">OPMB</s>
+        </t>
+      </n>
+      <n id="1231" NodeType="Fragment" p="374.75 74.75" LabelDisplay="Left">
+        <fragment id="1232">
+          <n id="1085" p="374.75 74.75" Z="1086" />
+          <n id="1087" p="367.29 91.95" Z="1088" />
+          <n id="1089" p="378.45 107.01" Z="1090" />
+          <n id="1091" p="370.99 124.21" Z="1092" />
+          <n id="1093" p="382.15 139.28" Z="1094" />
+          <b id="1191" Z="1192" B="1085" E="1087" />
+          <b id="1193" Z="1194" B="1087" E="1089" />
+          <b id="1195" Z="1196" B="1089" E="1091" Order="2" />
+          <b id="1197" Z="1198" B="1091" E="1093" />
+          <n id="1233" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="367.25 74.75" />
+          <b id="1234" B="1233" E="1085" />
+        </fragment>
+        <t id="1235" p="369.125 79.0" LabelJustification="Left" Justification="Left" InterpretChemically="no">
+          <s font="3" size="13" face="0" color="3">C</s>
+          <s font="3" size="13" face="32" color="3">5</s>
+          <s font="3" size="13" face="0" color="3">H</s>
+          <s font="3" size="13" face="32" color="3">9</s>
+        </t>
+      </n>
+      <n id="1236" NodeType="Fragment" p="324.75 64.375" LabelDisplay="Right">
+        <fragment id="1237">
+          <n id="1105" p="324.75 64.38" Z="1106" Element="8" NumHydrogens="0">
+            <t id="1107" p="320.07 69.055" LabelJustification="Left">
+              <s font="3" size="13" color="3" face="96">O</s>
+            </t>
+          </n>
+          <n id="1108" p="340.90 54.85" Z="1109" />
+          <n id="1110" p="340.72 36.10" Z="1111" Element="8" NumHydrogens="0">
+            <t id="1112" p="336.0418514508922 40.77802241697971" LabelJustification="Left">
+              <s font="3" size="13" color="3" face="96">O</s>
+            </t>
+          </n>
+          <n id="1113" p="356.87 26.57" Z="1114" />
+          <b id="1209" Z="1210" B="1105" E="1108" />
+          <b id="1211" Z="1212" B="1108" E="1110" />
+          <b id="1213" Z="1214" B="1110" E="1113" />
+          <n id="1238" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="317.25 64.375" />
+          <b id="1239" B="1238" E="1105" />
+        </fragment>
+        <t id="1240" p="326.25 68.75" LabelJustification="Right" Justification="Right" InterpretChemically="no" LabelAlignment="Right" BoundingBox="25 55.75 326.25 69.75">
+          <s font="3" size="13" face="0" color="3">MOMO</s>
+        </t>
+      </n>
+      <n id="1241" NodeType="Fragment" p="292.75 83.875" LabelDisplay="Right">
+        <fragment id="1242">
+          <n id="1029" p="292.75 83.88" Z="1030" Element="8" NumHydrogens="0">
+            <t id="1031" p="288.07 88.555" LabelJustification="Left">
+              <s font="3" size="13" color="3" face="96">O</s>
+            </t>
+          </n>
+          <n id="1032" p="274.97 89.84" Z="1033" />
+          <b id="1141" Z="1142" B="1029" E="1032" />
+          <n id="1243" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="285.25 83.875" />
+          <b id="1244" B="1243" E="1029" />
+        </fragment>
+        <t id="1245" p="300.375 86.25" LabelJustification="Right" Justification="Right" InterpretChemically="no" LabelAlignment="Right" BoundingBox="25 73.25 300.375 87.25">
+          <s font="3" size="13" face="0" color="3">MeO</s>
+        </t>
+      </n>
+      <n id="1246" NodeType="Fragment" p="287.5 140.75" LabelDisplay="Right">
+        <fragment id="1247">
+          <n id="1066" p="287.50 140.75" Z="1067" Element="8" NumHydrogens="0">
+            <t id="1068" p="282.82 145.43" LabelJustification="Left">
+              <s font="3" size="13" color="3" face="96">O</s>
+            </t>
+          </n>
+          <n id="1069" p="294.96 123.55" Z="1070" Element="12" NumHydrogens="0">
+            <t id="1071" p="290.28433471141733 128.22981955571598" LabelJustification="Left">
+              <s font="3" size="13" color="3" face="96">Mg</s>
+            </t>
+          </n>
+          <n id="1072" p="302.43 106.35" Z="1073" Element="35" NumHydrogens="0">
+            <t id="1074" p="297.74866942283467 111.02963911143198" LabelJustification="Left">
+              <s font="3" size="13" color="3" face="96">Br</s>
+            </t>
+          </n>
+          <b id="1175" Z="1176" B="1066" E="1069" />
+          <b id="1177" Z="1178" B="1069" E="1072" />
+          <n id="1248" NodeType="ExternalConnectionPoint" ExternalConnectionNum="1" p="280.0 140.75" />
+          <b id="1249" B="1248" E="1066" />
+        </fragment>
+        <t id="1250" p="292.0 144.25" LabelJustification="Right" Justification="Right" InterpretChemically="no" LabelAlignment="Right" BoundingBox="25 131.25 292.0 145.25">
+          <s font="3" size="13" face="0" color="3">BrMgO</s>
+        </t>
+      </n>
+    </fragment>
+    <curve id="25000" Z="25000" CurvePoints="309.625 97.335 309.625 97.335 309.625 99.335 309.625 101.335 309.625 103.335 309.625 103.335" FillType="None" color="2" LineWidth="3.0" />
+    <curve id="25001" Z="25001" CurvePoints="309.625 97.335 309.625 97.335 309.625 99.335 309.625 101.335 309.625 103.335 309.625 103.335" FillType="None" color="3" LineWidth="0.6" />
+    <curve id="25002" Z="25002" CurvePoints="284.62631578947367 128.75 284.62631578947367 128.75 286.62631578947367 128.75 288.62631578947367 128.75 290.62631578947367 128.75 290.62631578947367 128.75" FillType="None" color="2" LineWidth="3.0" />
+    <curve id="25003" Z="25003" CurvePoints="284.62631578947367 128.75 284.62631578947367 128.75 286.62631578947367 128.75 288.62631578947367 128.75 290.62631578947367 128.75 290.62631578947367 128.75" FillType="None" color="3" LineWidth="0.6" />
+    <curve id="25004" CurvePoints="305.875 97.5 305.875 97.5 286.375 74.25 266.0 104.625 288.5 106.625 288.5 106.625" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <curve id="25005" CurvePoints="298.75 117.125 298.75 117.125 306.125 146.875 330.25 138.875 322.625 118.625 322.625 118.625" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+    <curve id="25006" CurvePoints="340.75 111.0 340.75 111.0 384.25 91.0 342.25 89.25 324.875 105.0 324.875 105.0" FillType="None" LineWidth="0.6" color="0" ArrowheadHead="Full" ArrowheadType="Solid" />
+  </page>
+</CDXML>

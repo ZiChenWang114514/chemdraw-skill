@@ -1,6 +1,6 @@
 # Office Chemdraw Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../toolkit-office-chemdraw-interfaces.md](../toolkit-office-chemdraw-interfaces.md).
+> Generated from cdxml-toolkit 0.7.0a3. Curated guidance: [../toolkit-office-chemdraw-interfaces.md](../toolkit-office-chemdraw-interfaces.md).
 
 ## `chemdraw._chemscript_server`
 
@@ -73,10 +73,11 @@
 ## `office.ole_embedder`
 
 - **function**, line 87: `batch_convert(cdxml_paths)` - Open ChemDraw once and convert all CDXML files to CDX + EMF.
-- **function**, line 585: `build_docx(items, output_path)` - Create a DOCX with editable ChemDraw OLE objects, one per paragraph.
-- **function**, line 247: `build_ole_compound_file(cdx_data)` - Build a CFB file matching the known-good layout from Office COM.
-- **function**, line 386: `build_pptx(items, output_path)` - Create a PPTX with one editable ChemDraw OLE object per slide.
-- **function**, line 154: `get_cdxml_content_size(cdxml_path, margin_pt = 0.0, scale = 1.02)` - Compute OLE display dimensions from CDXML content BoundingBox.
+- **function**, line 638: `build_docx(items, output_path)` - Create a DOCX with editable ChemDraw OLE objects, one per paragraph.
+- **function**, line 300: `build_ole_compound_file(cdx_data)` - Build a CFB file matching the known-good layout from Office COM.
+- **function**, line 439: `build_pptx(items, output_path)` - Create a PPTX with one editable ChemDraw OLE object per slide.
+- **function**, line 254: `content_size_emu(item, margin_pt = 0.0, scale = 1.02)` - OLE display size for one batch_convert() result.
+- **function**, line 166: `get_cdxml_content_size(cdxml_path, margin_pt = 0.0, scale = 1.02)` - Compute OLE display dimensions from CDXML content BoundingBox.
 
 ## `office.ole_extractor`
 

@@ -1,0 +1,12 @@
+@layout sequential
+
+"1"{Brc1ccc2ccccc2n1} --> "2"{c1ccc2nc(N3CCOCC3)ccc2c1} --> "3"{Brc1cc2ccccc2nc1N1CCOCC1} --> "4"{c1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1}
+
+step 1:
+  below: "morpholine (1.2 eq)", "Pd2(dba)3, BINAP", "Cs2CO3, dioxane, reflux"
+
+step 2:
+  below: "NBS (1.1 eq)", "DMF, 0 C, 2 h"
+
+step 3:
+  below: "PhB(OH)2, Pd(dppf)Cl2", "K2CO3, dioxane/H2O, 80 C"

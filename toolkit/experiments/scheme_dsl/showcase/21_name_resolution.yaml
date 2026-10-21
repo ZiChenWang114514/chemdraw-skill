@@ -1,0 +1,24 @@
+# Showcase 21: Name Resolution via reagent_db
+# Reagent specified by name, not SMILES
+
+structures:
+  sm:
+    smiles: "Brc1ccc2[nH]ccc2c1"
+    label: "1"
+  amine:
+    name: "morpholine"
+  product:
+    smiles: "c1ccc2[nH]ccc2c1N1CCOCC1"
+    label: "2"
+
+steps:
+  - substrates: [sm]
+    above_arrow:
+      structures: [amine]
+      text: ["(1.2 eq)"]
+    below_arrow:
+      text: ["Pd2(dba)3 (5 mol%)", "rac-BINAP (10 mol%)", "Cs2CO3 (2.0 eq)", "dioxane, reflux, 24 h"]
+    products: [product]
+    yield_: "68%"
+
+layout: linear

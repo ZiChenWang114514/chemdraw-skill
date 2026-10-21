@@ -1,0 +1,34 @@
+# Showcase 28: Stacked Rows with Multi-Step Sections
+# Each section has 2+ steps (sequential within section)
+
+structures:
+  sm_a: {smiles: "Nc1ccncc1", label: "1"}
+  int_a: {smiles: "CC(C)(C)OC(=O)Nc1ccncc1", label: "2"}
+  prod_a: {smiles: "CC(C)(C)OC(=O)Nc1cc(-c2ccccc2)ncc1", label: "3"}
+  sm_b: {smiles: "Oc1ccncc1", label: "4"}
+  int_b: {smiles: "c1ccc(COc2ccncc2)cc1", label: "5"}
+  prod_b: {smiles: "O=[N+]([O-])c1cc(OCc2ccccc2)ccn1", label: "6"}
+
+sections:
+  - label: "(a)"
+    steps:
+      - substrates: [sm_a]
+        below_arrow:
+          text: ["Boc2O (1.1 eq)", "Et3N, DCM, RT"]
+        products: [int_a]
+      - substrates: [int_a]
+        below_arrow:
+          text: ["PhB(OH)2, Pd(dppf)Cl2", "K2CO3, dioxane/H2O"]
+        products: [prod_a]
+  - label: "(b)"
+    steps:
+      - substrates: [sm_b]
+        below_arrow:
+          text: ["BnBr (1.2 eq)", "K2CO3 (2 eq)", "DMF, RT, 16 h"]
+        products: [int_b]
+      - substrates: [int_b]
+        below_arrow:
+          text: ["mCPBA (1.3 eq)", "DCM, 0 C, 2 h"]
+        products: [prod_b]
+
+layout: stacked-rows

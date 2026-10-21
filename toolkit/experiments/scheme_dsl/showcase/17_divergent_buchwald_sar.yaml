@@ -1,0 +1,33 @@
+# Showcase 17: Divergent SAR - Buchwald with Different Amines
+# One aryl bromide → 3 products via different coupling partners
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  prod_morph:
+    smiles: "c1ccc2nc(N3CCOCC3)ccc2c1"
+    label: "2a"
+  prod_piper:
+    smiles: "c1ccc2nc(N3CCCCC3)ccc2c1"
+    label: "2b"
+  prod_aniline:
+    smiles: "c1ccc(Nc2ccc3ccccc3n2)cc1"
+    label: "2c"
+
+steps:
+  - substrates: [sm]
+    below_arrow:
+      text: ["morpholine (1.2 eq)", "Pd2(dba)3, BINAP", "Cs2CO3, dioxane", "reflux, 24 h, 72%"]
+    products: [prod_morph]
+  - substrates: [sm]
+    below_arrow:
+      text: ["piperidine (1.2 eq)", "Pd2(dba)3, BINAP", "Cs2CO3, dioxane", "reflux, 24 h, 65%"]
+    products: [prod_piper]
+  - substrates: [sm]
+    below_arrow:
+      text: ["aniline (1.2 eq)", "Pd2(dba)3, BINAP", "Cs2CO3, dioxane", "reflux, 24 h"]
+    products: [prod_aniline]
+    arrow_style: failed
+
+layout: divergent

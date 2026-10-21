@@ -1,0 +1,37 @@
+# Showcase 14: Letter Conditions - 3-Step Synthesis (Thesis Format)
+# Small italic letters on arrows + condition key below
+
+structures:
+  sm:
+    smiles: "Brc1ccc2ccccc2n1"
+    label: "1"
+  int1:
+    smiles: "c1ccc2nc(N3CCOCC3)ccc2c1"
+    label: "2"
+  int2:
+    smiles: "Brc1cc2ccccc2nc1N1CCOCC1"
+    label: "3"
+  product:
+    smiles: "c1ccc(-c2cc3ccccc3nc2N2CCOCC2)cc1"
+    label: "4"
+
+steps:
+  - substrates: [sm]
+    products: [int1]
+    below_arrow:
+      text: ["a"]
+  - substrates: [int1]
+    products: [int2]
+    below_arrow:
+      text: ["b"]
+  - substrates: [int2]
+    products: [product]
+    below_arrow:
+      text: ["c"]
+
+layout: sequential
+
+condition_key:
+  a: "morpholine (1.2 eq), Pd2(dba)3 (5 mol%), rac-BINAP (10 mol%), Cs2CO3 (2 eq), 1,4-dioxane, reflux, 24 h, 72%"
+  b: "NBS (1.1 eq), DMF, 0 C, 2 h, 95%"
+  c: "PhB(OH)2 (1.5 eq), Pd(dppf)Cl2 (3 mol%), K2CO3 (3 eq), dioxane/H2O, 80 C, 16 h, 85%"

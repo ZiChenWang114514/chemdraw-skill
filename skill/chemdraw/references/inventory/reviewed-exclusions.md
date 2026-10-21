@@ -1,6 +1,6 @@
 # Reviewed Exclusions Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../toolkit-reviewed-exclusions.md](../toolkit-reviewed-exclusions.md).
+> Generated from cdxml-toolkit 0.7.0a3. Curated guidance: [../toolkit-reviewed-exclusions.md](../toolkit-reviewed-exclusions.md).
 
 ## `chemistry_diff`
 
@@ -21,21 +21,23 @@
 
 ## `mcp_runtime.artifact_safety`
 
-- **function**, line 229: `artifact_record(path: str | Path) -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 242: `artifact_records(paths: Iterable[str | Path]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 254: `paths_from_value(value: Any) -> list[Path]` - No public docstring in the audited version.
-- **function**, line 200: `publish_directory(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 146: `publish_file(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 184: `publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None` - No public docstring in the audited version.
-- **function**, line 44: `resolve_destination(*, source: str | Path | None, output_path: str | Path | None, tag: str, suffix: str, base_dir: str | Path | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 76: `resolve_directory_destination(*, source: str | Path, output_dir: str | Path | None, tag: str) -> Path` - No public docstring in the audited version.
-- **function**, line 280: `rewrite_paths(value: Any, old_root: str | Path, new_root: str | Path) -> Any` - No public docstring in the audited version.
-- **function**, line 299: `stage_validate_publish(destination: str | Path, writer: Callable[[Path], Any], *, validator: Callable[[Path], Any] = validate_artifact) -> tuple[Any, Path]` - No public docstring in the audited version.
-- **function**, line 135: `staging_directory(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 125: `staging_file(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 98: `validate_artifact(path: str | Path) -> Path` - No public docstring in the audited version.
-- **function**, line 18: `validate_input_file(path: str | Path, *, suffixes: tuple[str, ...] | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 272: `with_artifacts(result: dict[str, Any], paths: Iterable[str | Path]) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 243: `artifact_record(path: str | Path) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 256: `artifact_records(paths: Iterable[str | Path]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **class**, line 18: `OutputExistsError` - An output already exists and the tool will not replace it.
+- **property**, line 28: `OutputExistsError.public_message` - No public docstring in the audited version.
+- **function**, line 268: `paths_from_value(value: Any) -> list[Path]` - No public docstring in the audited version.
+- **function**, line 214: `publish_directory(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 160: `publish_file(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 198: `publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None` - No public docstring in the audited version.
+- **function**, line 58: `resolve_destination(*, source: str | Path | None, output_path: str | Path | None, tag: str, suffix: str, base_dir: str | Path | None = None) -> Path` - No public docstring in the audited version.
+- **function**, line 90: `resolve_directory_destination(*, source: str | Path, output_dir: str | Path | None, tag: str) -> Path` - No public docstring in the audited version.
+- **function**, line 294: `rewrite_paths(value: Any, old_root: str | Path, new_root: str | Path) -> Any` - No public docstring in the audited version.
+- **function**, line 313: `stage_validate_publish(destination: str | Path, writer: Callable[[Path], Any], *, validator: Callable[[Path], Any] = validate_artifact) -> tuple[Any, Path]` - No public docstring in the audited version.
+- **function**, line 149: `staging_directory(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 139: `staging_file(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 112: `validate_artifact(path: str | Path) -> Path` - No public docstring in the audited version.
+- **function**, line 32: `validate_input_file(path: str | Path, *, suffixes: tuple[str, ...] | None = None) -> Path` - No public docstring in the audited version.
+- **function**, line 286: `with_artifacts(result: dict[str, Any], paths: Iterable[str | Path]) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.capabilities`
 
@@ -108,9 +110,9 @@
 
 ## `mcp_runtime.generate_reference`
 
-- **function**, line 32: `manifest(profile: str = <full default profile>) -> dict` - No public docstring in the audited version.
-- **function**, line 55: `render_markdown(profile: str = <full default profile>) -> str` - No public docstring in the audited version.
-- **function**, line 88: `render_reference(profile: str = <full default profile>) -> str` - Compatibility alias used by ChemDraw Skill catalog checks.
+- **function**, line 32: `manifest(profile: str = 'full') -> dict` - No public docstring in the audited version.
+- **function**, line 55: `render_markdown(profile: str = 'full') -> str` - No public docstring in the audited version.
+- **function**, line 88: `render_reference(profile: str = 'full') -> str` - Signature reference used by the Skill's catalog checks.
 
 ## `mcp_runtime.install_decimer_models`
 
@@ -174,14 +176,14 @@
 
 - **function**, line 234: `convert_cdx_cdxml(input_path: str, output_path: Optional[str] = None) -> dict` - Convert CDX/CDXML through a validated no-overwrite staging file.
 - **function**, line 74: `draw_molecule(mol_json: dict, output_path: Optional[str] = None) -> dict` - Draw a molecule through a validated no-overwrite staging file.
-- **function**, line 406: `embed_cdxml_in_office(cdxml_path: str, office_path: str, output_path: str | None = None) -> dict` - Create a new validated PPTX or DOCX and reject all existing targets.
+- **function**, line 408: `embed_cdxml_in_office(cdxml_path: str, office_path: str, output_path: str | None = None) -> dict` - Create a new validated PPTX or DOCX and reject all existing targets.
 - **function**, line 299: `extract_cdxml_from_office(file_path: str, output_dir: Optional[str] = None) -> dict` - Extract every object transactionally; publish nothing on partial failure.
 - **function**, line 281: `format_lab_entry(entries_json: Union[list[dict], dict, str], output_path: Optional[str] = None) -> dict` - Format a lab entry and atomically publish verified text.
 - **function**, line 263: `parse_analysis_file(pdf_path: str, output_path: Optional[str] = None) -> dict` - Parse an analysis file and atomically publish verified JSON.
 - **function**, line 142: `parse_reaction(cdxml: Optional[str] = None, cdx: Optional[str] = None, csv: Optional[str] = None, rxn: Optional[str] = None, input_dir: Optional[str] = None, output_path: Optional[str] = None) -> dict` - Parse a reaction and atomically publish its JSON descriptor.
 - **function**, line 219: `parse_scheme(cdxml_path: str, output_path: Optional[str] = None) -> dict` - Parse a scheme and atomically publish its JSON descriptor.
 - **function**, line 108: `render_scheme(yaml_text: Optional[str] = None, compact_text: Optional[str] = None, json_path: Optional[str] = None, layout: str = 'auto', output_path: Optional[str] = None) -> str` - Render a scheme through a validated no-overwrite staging file.
-- **function**, line 451: `render_to_png(cdxml_path: str, output_path: Optional[str] = None) -> dict` - Render CDXML to a validated PNG through a staging file.
+- **function**, line 453: `render_to_png(cdxml_path: str, output_path: Optional[str] = None) -> dict` - Render CDXML to a validated PNG through a staging file.
 
 ## `mcp_runtime.process_control`
 
@@ -200,8 +202,8 @@
 
 ## `mcp_runtime.resource_lock`
 
-- **function**, line 25: `native_resource_lock(resource_class: str | None, timeout_seconds: int) -> Iterator[None]` - Serialize ChemDraw COM calls across workers in the current user session.
-- **class**, line 13: `ResourceBusyError` - Raised when an exclusive native resource cannot be acquired in time.
+- **function**, line 27: `native_resource_lock(resource_class: str | None, timeout_seconds: int) -> Iterator[None]` - Serialize ChemDraw COM calls across workers in the current user session.
+- **class**, line 15: `ResourceBusyError` - Raised when an exclusive native resource cannot be acquired in time.
 
 ## `mcp_runtime.runtime_diagnostics`
 
@@ -211,7 +213,7 @@
 
 - **class**, line 28: `Discovery` - No public docstring in the audited version.
 - **method**, line 32: `Discovery.to_dict() -> dict[str, str]` - No public docstring in the audited version.
-- **function**, line 300: `find_chemdraw(explicit: str | None = None) -> Discovery` - Find ChemDraw.exe from explicit, environment, COM, then common paths.
+- **function**, line 299: `find_chemdraw(explicit: str | None = None) -> Discovery` - Find ChemDraw.exe from explicit, environment, COM, then common paths.
 - **function**, line 144: `find_python(explicit: str | None = None) -> Discovery` - Find and probe Python using explicit, environment, then implicit paths.
 - **function**, line 185: `find_skill_root(explicit: str | None = None) -> Discovery` - No public docstring in the audited version.
 
@@ -235,7 +237,8 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 101: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 114: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 106: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
 - **class**, line 25: `ToolSpec` - No public docstring in the audited version.
 
 ## `publication.data`

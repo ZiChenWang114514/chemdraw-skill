@@ -174,10 +174,17 @@ def test_builder_spec_writes_acs1996_cdxml(tmp_path):
     out = acs_builder.build_from_spec(spec, tmp_path / 'o.cdxml')
     root = ET.parse(out).getroot()
     assert root.get('BondLength') == '14.4' and root.get('LineWidth') == '0.6'
+    # A root BoundingBox is required by Office embedding (OLE extent) and normal for ChemDraw files.
+    x1, y1, x2, y2 = map(float, root.get('BoundingBox').split())
+    xs = [float(n.get('p').split()[0]) for n in root.iter('n')]
+    assert x1 < min(xs) and max(xs) < x2 and y1 < y2
     nick = root.find('.//n[@NodeType="GenericNickname"]')
     assert nick.get('GenericNickname') == 'C10H21'
     assert [s.text for s in nick.iter('s')][:2] in (['C', '10'], ['H', '21'])
     assert any(s.get('font') == '5' for s in root.iter('s'))
+    # Page captions are annotations: ChemDraw must not turn a code such as "B" into a boron atom.
+    page_text = root.find('page').findall('t')
+    assert page_text and all(t.get('InterpretChemically') == 'no' for t in page_text)
 
 
 def test_manifest_ignores_line_endings(tmp_path):
@@ -214,3 +221,12 @@ def test_loop_guard_is_not_inherited_by_children(monkeypatch):
     monkeypatch.setenv(cdx.REEXEC_FLAG, '1')
     cdx._ensure_runtime([])
     assert cdx.REEXEC_FLAG not in os.environ
+
+
+def test_doctor_paths_name_the_current_worker_log_folder(tmp_path, monkeypatch):
+    monkeypatch.setenv('LOCALAPPDATA', str(tmp_path))
+    (tmp_path / 'chemdraw-skill' / 'logs').mkdir(parents=True)
+    (tmp_path / 'OldClient' / 'chemdraw-mcp' / 'logs').mkdir(parents=True)
+    logs = cdx.runtime_paths()['worker_logs']
+    assert str(tmp_path / 'chemdraw-skill' / 'logs') in logs
+    assert str(tmp_path / 'OldClient' / 'chemdraw-mcp' / 'logs') in logs

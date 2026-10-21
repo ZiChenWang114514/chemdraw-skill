@@ -25,7 +25,7 @@
 
 ## Quick start
 
-You need Python 3.9+ to run the installer and a 64-bit Python 3.10–3.13 for the toolkit runtime; the installer finds one automatically (through the `py` launcher, `uv`-managed interpreters or `python3.x` on PATH). Python 3.14 and newer are not supported by `cdxml-toolkit-community` yet: if that is your only Python, install 3.12 (for example `uv python install 3.12`) or pass `--python <interpreter>`.
+You need Python 3.9+ to run the installer and a 64-bit Python 3.10–3.13 for the toolkit runtime; the installer finds one automatically (through the `py` launcher, `uv`-managed interpreters or `python3.x` on PATH). Python 3.14 and newer are not supported by the bundled toolkit yet: if that is your only Python, install 3.12 (for example `uv python install 3.12`) or pass `--python <interpreter>`.
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
@@ -79,7 +79,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows. Process separation limits stalled calls; it is not an operating-system sandbox.
 - **Remote workstation access:** optionally expose a Windows native host through Streamable HTTP with health and Prometheus endpoints.
 
-The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited `cdxml-toolkit-community` symbols, separately from the registered tools (`cdx.py tools` prints the current count). Full ChemScript catalog coverage means an interface can be discovered and reported; whether it executes still depends on the installed SDK, license, architecture and member behavior.
+The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited symbols of the bundled toolkit, separately from the registered tools (`cdx.py tools` prints the current count). Full ChemScript catalog coverage means an interface can be discovered and reported; whether it executes still depends on the installed SDK, license, architecture and member behavior.
 
 ### Exam and lecture drawings in ACS Document 1996 style
 
@@ -119,15 +119,15 @@ Real paper images and data, with native previews, reference comparisons and edit
 
 ### Twenty structures: resolving stereo-reader disagreement
 
-![ChemDraw reconstruction of a twenty-structure synthesis scheme](https://raw.githubusercontent.com/ZiChenWang114514/cdxml-toolkit-community/main/assets/readme/stereo-reconstruction/native.png)
+![ChemDraw reconstruction of a twenty-structure synthesis scheme](toolkit/assets/readme/stereo-reconstruction/native.png)
 
 The source-oriented reconstruction disagreed between ChemScript and RDKit for 16 structures. The saved interoperability revision agrees for **20/20**, preserving the reviewed molecular targets. Compound **1** uses explicit stereobonds and therefore differs visually from the source. Same-scale ink IoU: **0.6960**; this is not pixel-identical or independent experimental stereo validation.
 
-[Editable CDXML](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [Failure analysis, workflow and rights](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/CASE.md) · [Per-compound evidence and versions](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/verification.json)
+[Editable CDXML](toolkit/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [Failure analysis, workflow and rights](toolkit/assets/readme/stereo-reconstruction/CASE.md) · [Per-compound evidence and versions](toolkit/assets/readme/stereo-reconstruction/verification.json)
 
 The embedded X-ray is a source crop. Paper-derived artwork is excluded from the MIT license; see the case's source and rights statement.
 
-**Incremental workflow:** linked structure and scene records, verified candidate caching, local checks and explicit dual-variant acceptance. A controlled replay of three caption edits reduced native calls from 8 to 2 (33.53 s to 8.88 s); this is not an end-to-end recognition speed claim. [Source-oriented version](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [Workflow](skill/chemdraw/references/incremental-reconstruction.md) · [Measured evidence](https://github.com/ZiChenWang114514/cdxml-toolkit-community/blob/main/assets/readme/stereo-reconstruction/incremental-verification.json)
+**Incremental workflow:** linked structure and scene records, verified candidate caching, local checks and explicit dual-variant acceptance. A controlled replay of three caption edits reduced native calls from 8 to 2 (33.53 s to 8.88 s); this is not an end-to-end recognition speed claim. [Source-oriented version](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [Workflow](skill/chemdraw/references/incremental-reconstruction.md) · [Measured evidence](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
 
 <a id="paper-scheme-demo"></a>
 
@@ -303,7 +303,7 @@ Installing ChemDraw on macOS does not make the Windows COM/.NET bridge available
 
 | Goal | Add to the core setup |
 | --- | --- |
-| Create and edit CDXML | Any agent with shell access, 64-bit Python 3.10–3.13, and `cdxml-toolkit-community` at the pinned commit (installed by `scripts/install.py --runtime`) |
+| Create and edit CDXML | Any agent with shell access, 64-bit Python 3.10–3.13, and the bundled toolkit runtime (built from `toolkit/` by `scripts/install.py --runtime`) |
 | Native PNG, CDX or ChemDraw cleanup | Licensed and activated Windows desktop ChemDraw with working COM automation |
 | Molecule comparison or ChemScript SDK calls | RDKit for portable similarity; compatible ChemScript DLLs on a Windows host for exact checks |
 | Editable Word or PowerPoint objects | Supported desktop Microsoft Word and/or PowerPoint on Windows |
@@ -314,7 +314,7 @@ ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled
 
 ## Validation and safety
 
-- GitHub Actions runs the Skill tests on Windows and Linux with Python 3.12, MCP 1.28.1 and 2.0.0, and `cdxml-toolkit-community` at the pinned commit, and installs the Skill end to end on Windows, Linux and macOS. This is not macOS native-app certification.
+- GitHub Actions runs the Skill tests on Windows and Linux with Python 3.12 and MCP 1.28.1 and 2.0.0, runs the toolkit test suite on Python 3.10–3.13, and installs the Skill end to end on Windows, Linux and macOS. This is not macOS native-app certification.
 - Native ChemDraw, ChemScript and Office behavior must be checked on a licensed local Windows host because hosted CI does not have those applications.
 - Structural changes can be checked with source identity, MCS-based diffs, chemistry metadata and native rendering. Scientific acceptance remains the user's responsibility.
 - Standard modifying tools create a new output path and reject accidental replacement. ChemScript SDK file access and replacement are available only when their explicit permission and overwrite options are enabled.
@@ -358,14 +358,15 @@ Please open a focused issue or pull request with the exact macOS version, chip, 
 - [Agent integration and `cdx.py` command reference](skill/chemdraw/references/agent-integration.md)
 - [Task-oriented workflow catalog](skill/chemdraw/references/workflow-router.md)
 - [Generated tool signatures](skill/chemdraw/references/mcp-signatures.md)
-- [Audited `cdxml-toolkit-community` public inventory](skill/chemdraw/references/toolkit-public-inventory.md)
+- [Audited public inventory of the bundled toolkit](skill/chemdraw/references/toolkit-public-inventory.md)
+- [Toolkit developer reference](toolkit/docs/agent-reference.md) and [generated MCP tool reference](toolkit/docs/mcp-tools.md)
 - [Remote HTTP setup](skill/chemdraw/references/operations.md#remote-http-only-when-asked)
 - [Contributing guide](.github/contributing.md) · [Security policy](.github/SECURITY.md)
 
-The deployable Skill lives in [`skill/chemdraw`](skill/chemdraw). Repository-specific contributor instructions are in [`AGENTS.md`](AGENTS.md).
+The deployable Skill lives in [`skill/chemdraw`](skill/chemdraw). The chemistry runtime it drives, the `cdxml_toolkit` Python package, lives in [`toolkit`](toolkit) with its own tests. Repository-specific contributor instructions are in [`AGENTS.md`](AGENTS.md).
 
 ## License
 
-Repository-authored code and documentation are licensed under the [MIT License](LICENSE). ChemDraw, Microsoft Office, agent clients, `cdxml-toolkit-community`, the MCP Python SDK, RDKit, DECIMER and their dependencies retain their respective licenses and usage terms.
+Repository-authored code and documentation are licensed under the [MIT License](LICENSE). The bundled toolkit in [`toolkit/`](toolkit) is based on Hiu Fung Kevin Lee's original `cdxml-toolkit` and keeps its own [MIT License](toolkit/LICENSE) and [third-party notices](toolkit/NOTICE.md). ChemDraw, Microsoft Office, agent clients, the MCP Python SDK, RDKit, DECIMER and their dependencies retain their respective licenses and usage terms.
 
 This is an independent community project. It is not affiliated with or endorsed by Revvity, Anthropic, OpenAI, Google, GitHub, Microsoft, Anysphere, the OpenCode maintainers, or the maintainers of the upstream `cdxml-toolkit`, the MCP Python SDK, RDKit or DECIMER.

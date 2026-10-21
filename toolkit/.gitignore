@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+dist/
+build/
+
+# Caches
+.cache/
+
+# Logs
+*.log
+
+# Test/debug output
+test_output/
+exploration/test_*
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Pipeline output directories (user-specific)
+output*/
+
+# Deployment config (user-specific, generated from template)
+deploy/config.yaml
+
+# Large deployment binaries (downloaded separately)
+deploy/OpenJDK21U-jre_*.zip
+deploy/jre/
+
+# Temporary files
+py2opsin_temp_input.txt
+experiments/reaction_prediction/FlowER/tmp*.txt
+
+# ML model checkpoints (too large for git — download separately)
+experiments/reaction_prediction/FlowER/checkpoints/
+experiments/reaction_prediction/FlowER/checkpoints.zip
+*.pt
+
+# Nested git repos
+experiments/reaction_prediction/FlowER/.git/
+
+# Claude Code
+.claude/
+
+# ChemScript config (machine-specific)
+.chemscript_config.json
+
+# Findmolecule credentials (contains password)
+fm_credentials.json
+
+# Findmolecule debug output
+fm_debug_*.html
+*.har
+exploration/findmolecule*/Screenshot*
+exploration/findmolecule*/log.txt
+exploration/findmolecule*/har_analysis.txt
+
+# Windows artifacts
+nul
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

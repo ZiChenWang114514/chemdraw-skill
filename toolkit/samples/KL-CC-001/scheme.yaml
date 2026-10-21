@@ -1,0 +1,33 @@
+structures:
+  sp_0:
+    smiles: Brc1ncnc2sccc12
+    label: '1'
+  sp_2:
+    smiles: C1COCCN1
+  sp_3:
+    smiles: c1nc(N2CCOCC2)c2ccsc2n1
+    label: '2'
+steps:
+- substrates:
+  - sp_0
+  products:
+  - sp_3
+  above_arrow:
+    structures:
+    - sp_2
+    text:
+    - (1.2 eq)
+  below_arrow:
+    text:
+    - Pd2(dba)3 (0.05 eq)
+    - rac-BINAP (0.1 eq)
+    - Cs2CO3 (2.0 eq)
+    - Dioxane
+    - 105 °C
+    - 24 h
+layout: linear
+run_arrows:
+- step: 1
+  runs:
+  - input: 2.15 g
+    output: 1.60 g, 72% yield

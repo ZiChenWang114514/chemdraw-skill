@@ -1,0 +1,88 @@
+{
+  "title": "Reflux apparatus \u2014 ChemDraw templates",
+  "width": 580,
+  "height": 620,
+  "template_files": {
+    "glassware": "native-templates/clipware-1.cdxml",
+    "condensers": "native-templates/clipware-2.cdxml"
+  },
+  "components": [
+    {
+      "id": "stand",
+      "template": "glassware",
+      "page": 36,
+      "position": [
+        160,
+        72
+      ],
+      "scale": 1.0
+    },
+    {
+      "id": "flask",
+      "template": "glassware",
+      "page": 14,
+      "position": [
+        230,
+        255
+      ],
+      "scale": 1.25,
+      "ports": {
+        "neck": [
+          0.49,
+          0.025
+        ]
+      },
+      "label": "Round-bottom flask",
+      "label_offset": [
+        115,
+        75
+      ]
+    },
+    {
+      "id": "condenser",
+      "template": "condensers",
+      "page": 4,
+      "scale": 1.1,
+      "ports": {
+        "bottom": [
+          0.2,
+          0.99
+        ]
+      },
+      "attach": {
+        "port": "bottom",
+        "to": "flask.neck"
+      },
+      "label": "Allihn condenser",
+      "label_offset": [
+        105,
+        100
+      ]
+    },
+    {
+      "id": "heater",
+      "template": "glassware",
+      "page": 38,
+      "position": [
+        206,
+        382
+      ],
+      "scale": 0.85,
+      "label": "Magnetic stirrer",
+      "label_offset": [
+        140,
+        35
+      ]
+    },
+    {
+      "id": "clamp",
+      "template": "glassware",
+      "page": 37,
+      "position": [
+        162,
+        166
+      ],
+      "scale": 1.5
+    }
+  ]
+}

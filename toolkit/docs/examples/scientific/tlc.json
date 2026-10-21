@@ -1,0 +1,36 @@
+{
+  "title": "Reaction monitoring by TLC",
+  "width": 210,
+  "height": 210,
+  "solvent": "Ethyl acetate / hexanes 1:3",
+  "measurement_basis": "Illustrative Rf values; not an experimental plate",
+  "lanes": [
+    {
+      "label": "SM",
+      "spots": [
+        {
+          "rf": 0.25
+        }
+      ]
+    },
+    {
+      "label": "Co-spot",
+      "spots": [
+        {
+          "rf": 0.25
+        },
+        {
+          "rf": 0.65
+        }
+      ]
+    },
+    {
+      "label": "Product",
+      "spots": [
+        {
+          "rf": 0.65
+        }
+      ]
+    }
+  ]
+}

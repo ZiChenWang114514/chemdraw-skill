@@ -10,7 +10,7 @@ Load for CDX/CDXML conversion, native rendering, ChemScript operations, editable
 - Native render: tool `render_to_png` or `render_cdxml_files`.
 - Extract editable Office objects: tool `extract_cdxml_from_office`. Extraction validates every object in a staging directory and publishes the directory only when all objects succeed.
 - Inspect objects before targeted edits: tool `inspect_chemdraw_objects_in_office`. It binds each stable object ID to the host XML, OLE relationship, embedding part, preview relationship, host position, and geometry, then emits numbered CDXML and optional PNG previews.
-- Replace selected objects without moving them: tool `replace_chemdraw_objects_in_office`. It replaces the selected ChemDraw OLE and linked EMF preview at their existing package paths while preserving host XML, relationship IDs, order, geometry, and all unselected parts.
+- Replace selected objects without moving them: tool `replace_chemdraw_objects_in_office`. It replaces the selected ChemDraw OLE and linked EMF preview at their existing package paths while preserving host XML, relationship IDs, order, geometry, and all unselected parts. Because the frame is kept, a drawing with a different width-to-height ratio is stretched; the result then carries a warning naming the object.
 - Create a new Office file with one editable object: tool `embed_cdxml_in_office`; it rejects existing Office targets.
 - Create a PPTX/DOCX collection: tool `batch_embed_cdxml_in_office`.
 - Fill a template manifest: tool `fill_office_template`.

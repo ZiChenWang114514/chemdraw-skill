@@ -311,10 +311,11 @@ def cmd_decimer(ns):
 def runtime_paths():
     from cdxml_toolkit.mcp_runtime import official_overrides, resource_lock
     base = os.environ.get('LOCALAPPDATA') or os.environ.get('TEMP') or str(Path.home())
-    logs = sorted(glob.glob(os.path.join(base, '*', 'chemdraw-mcp', 'logs')))
+    # Current runtimes log to <base>/chemdraw-skill/logs; older ones used <base>/<client>/chemdraw-mcp/logs.
+    logs = sorted({*glob.glob(os.path.join(base, 'chemdraw-skill', 'logs')),
+                   *glob.glob(os.path.join(base, '*', 'chemdraw-mcp', 'logs'))})
     return {'python': sys.executable, 'skill_root': str(SKILL_ROOT),
-            'worker_logs': logs or os.path.join(base, '<runtime>', 'chemdraw-mcp', 'logs')
-            + ' (created on first worker failure)',
+            'worker_logs': logs or os.path.join(base, 'chemdraw-skill', 'logs') + ' (created on first worker failure)',
             'native_mutex': resource_lock.CHEMDRAW_COM_MUTEX,
             'native_temp': os.environ.get('CHEMDRAW_NATIVE_TEMP') or str(official_overrides._TEMP_OUTPUT),
             'chemscript_pythonpath': _chemscript_env().get('PYTHONPATH')}

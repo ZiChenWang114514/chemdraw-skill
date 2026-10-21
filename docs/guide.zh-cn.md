@@ -4,7 +4,7 @@
 
 ## 首次安装
 
-构建运行时需要 64 位 Python 3.10–3.13（3.12 为已测试版本）；安装器本身可在任意 Python 3.9+ 上运行。Python 3.14 及更新版本目前尚未被 `cdxml-toolkit-community` 支持：如果你的机器上只有 3.14，请先安装 3.12（例如 `uv python install 3.12`），或用 `--python <解释器>` 指定。可移植的 CDXML/RDKit 工作不需要任何桌面软件，可在 Windows、macOS 和 Linux 上运行。原生输出需要已激活的 Windows ChemDraw；Office 与 ChemScript 只在对应工作流中才需要。
+构建运行时需要 64 位 Python 3.10–3.13（3.12 为已测试版本）；安装器本身可在任意 Python 3.9+ 上运行。Python 3.14 及更新版本目前尚未被内置工具包支持：如果你的机器上只有 3.14，请先安装 3.12（例如 `uv python install 3.12`），或用 `--python <解释器>` 指定。可移植的 CDXML/RDKit 工作不需要任何桌面软件，可在 Windows、macOS 和 Linux 上运行。原生输出需要已激活的 Windows ChemDraw；Office 与 ChemScript 只在对应工作流中才需要。
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
@@ -18,7 +18,7 @@ python scripts/install.py --agent claude agents --runtime --apply    # 安装 Sk
 
 安装器会先暂存并校验每一份副本，把已有安装移到共享备份目录（位于所有 Skill 目录之外），失败时自动还原，然后为所有副本安装一次运行时，并写入 `manifest.json` 以便日后检测漂移。重复运行即升级 Skill 并复用 venv。当 venv 不在 `cdx.py` 默认搜索的位置时，安装器会把 `runtime.local.json` 写入每份副本和当前仓库检出目录（该文件已被 Git 忽略），因此在仓库里直接运行 `cdx.py` 也能找到运行时。
 
-运行时的版本是 [runtime.json](../skill/chemdraw/runtime.json) 中钉住的那个精确提交；CI 安装的也是同一提交。如需手动构建运行时：
+运行时由本仓库的 [`toolkit/`](../toolkit) 目录构建，因此总是与你安装的 Skill 版本一致；CI 也以同样方式构建。没有仓库检出的已安装 Skill 副本会退回到 [runtime.json](../skill/chemdraw/runtime.json) 中钉住的精确提交。如需手动构建运行时：
 
 ```bash
 python3 -m venv <venv>
@@ -26,7 +26,7 @@ python3 -m venv <venv>
 export CHEMDRAW_MCP_PYTHON=<venv>/bin/python      # 仅当 <venv> 不在 cdx.py 搜索的位置时需要
 ```
 
-`install_runtime.py --print-requirement` 只打印依赖声明而不安装；`--toolkit-path <检出目录>`（`install.py` 也接受）用于安装本地 toolkit 检出以便开发。
+`install_runtime.py --print-requirement` 只打印依赖声明而不安装；`--toolkit-path <目录>`（`install.py` 也接受）可从其他 toolkit 源码目录构建。开发 toolkit 时，可在运行时中执行 `python -m pip install -e "./toolkit[dev]"` 进行可编辑安装。
 
 ## 检查安装
 
@@ -50,7 +50,8 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 Word/PowerPoint
 python scripts/validate_distribution.py                           # 仓库检查与安装器测试
 python skill/chemdraw/scripts/cdx.py py -m pip install pytest
 python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
-python skill/chemdraw/scripts/cdx.py regen-signatures             # toolkit 升级后执行
+python skill/chemdraw/scripts/cdx.py regen-signatures             # toolkit 改动后执行
+cd toolkit; python -m pytest -m "not network" -q                 # toolkit 测试（使用运行时 Python）
 ```
 
 请把最终结构回读与视觉比对分开验证。只阅读相关的[工作流](../skill/chemdraw/references/workflow-router.md)；精确接口以[生成的签名](../skill/chemdraw/references/mcp-signatures.md)为准。不要把化学数据、源文件和凭据写进日志或公开仓库。仓库内容采用 [MIT](../LICENSE) 许可；依赖与桌面软件保留各自的条款。

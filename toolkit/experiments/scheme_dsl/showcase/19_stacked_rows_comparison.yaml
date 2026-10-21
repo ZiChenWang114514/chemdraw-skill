@@ -1,0 +1,35 @@
+# Showcase 19: Stacked Rows - Comparing 3 Coupling Conditions
+# Same reaction, different catalyst/ligand systems
+
+structures:
+  sm: {smiles: "Brc1ccc2ccccc2n1", label: "1"}
+  morph: {smiles: "C1COCCN1"}
+  product: {smiles: "c1ccc2nc(N3CCOCC3)ccc2c1", label: "2"}
+
+sections:
+  - steps:
+      - substrates: [sm]
+        above_arrow:
+          structures: [morph]
+          text: ["(1.2 eq)"]
+        below_arrow:
+          text: ["Pd2(dba)3 (5 mol%)", "rac-BINAP (10 mol%)", "Cs2CO3 (2 eq), dioxane", "reflux, 24 h, 72%"]
+        products: [product]
+  - steps:
+      - substrates: [sm]
+        above_arrow:
+          structures: [morph]
+          text: ["(1.2 eq)"]
+        below_arrow:
+          text: ["Pd(OAc)2 (5 mol%)", "XPhos (10 mol%)", "Cs2CO3 (2 eq), toluene", "100 C, 16 h, 85%"]
+        products: [product]
+  - steps:
+      - substrates: [sm]
+        above_arrow:
+          structures: [morph]
+          text: ["(1.2 eq)"]
+        below_arrow:
+          text: ["CuI (10 mol%)", "L-proline (20 mol%)", "K2CO3 (2 eq), DMSO", "120 C, 48 h, 45%"]
+        products: [product]
+
+layout: stacked-rows

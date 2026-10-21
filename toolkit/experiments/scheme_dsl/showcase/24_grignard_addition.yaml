@@ -1,0 +1,18 @@
+# Showcase 24: Grignard Addition (linear)
+
+structures:
+  ketone:
+    smiles: "O=C(c1ccccc1)c1ccccc1"
+    label: "1"
+  product:
+    smiles: "OC(c1ccccc1)(c1ccccc1)C"
+    label: "2"
+
+steps:
+  - substrates: [ketone]
+    below_arrow:
+      text: ["MeMgBr (2.0 eq)", "THF, 0 C, 2 h", "then aq. NH4Cl"]
+    products: [product]
+    yield_: "90%"
+
+layout: linear

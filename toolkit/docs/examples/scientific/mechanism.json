@@ -1,0 +1,183 @@
+{
+  "style": {
+    "bond_length": 28,
+    "font_size": 11
+  },
+  "objects": [
+    {
+      "type": "molecule",
+      "id": "chloride",
+      "smiles": "[Cl-]",
+      "coordinates": [
+        [
+          65,
+          130
+        ]
+      ]
+    },
+    {
+      "type": "molecule",
+      "id": "substrate",
+      "smiles": "CBr",
+      "coordinates": [
+        [
+          135,
+          130
+        ],
+        [
+          169,
+          130
+        ]
+      ]
+    },
+    {
+      "type": "molecule",
+      "id": "product",
+      "smiles": "CCl",
+      "coordinates": [
+        [
+          325,
+          130
+        ],
+        [
+          359,
+          130
+        ]
+      ]
+    },
+    {
+      "type": "molecule",
+      "id": "bromide",
+      "smiles": "[Br-]",
+      "coordinates": [
+        [
+          417,
+          130
+        ]
+      ]
+    },
+    {
+      "type": "text",
+      "position": [
+        101,
+        133
+      ],
+      "text": "+"
+    },
+    {
+      "type": "text",
+      "position": [
+        388,
+        133
+      ],
+      "text": "+"
+    },
+    {
+      "type": "arrow",
+      "start": [
+        218,
+        130
+      ],
+      "end": [
+        275,
+        130
+      ],
+      "id": "reaction"
+    },
+    {
+      "type": "text",
+      "position": [
+        230,
+        112
+      ],
+      "text": "SN2"
+    },
+    {
+      "type": "text",
+      "position": [
+        65,
+        65
+      ],
+      "text": "Atom-anchored electron flow"
+    }
+  ],
+  "electron_arrows": [
+    {
+      "source": {
+        "molecule": "chloride",
+        "atom": 0,
+        "offset": [
+          4,
+          -8
+        ]
+      },
+      "target": {
+        "molecule": "substrate",
+        "atom": 0,
+        "offset": [
+          0,
+          -3
+        ]
+      },
+      "controls": [
+        [
+          89,
+          87
+        ],
+        [
+          123,
+          87
+        ]
+      ],
+      "electrons": 2
+    },
+    {
+      "source": {
+        "molecule": "substrate",
+        "bond": [
+          0,
+          1
+        ],
+        "offset": [
+          0,
+          4
+        ]
+      },
+      "target": {
+        "molecule": "substrate",
+        "atom": 1,
+        "offset": [
+          8,
+          4
+        ]
+      },
+      "controls": [
+        [
+          144,
+          167
+        ],
+        [
+          189,
+          167
+        ]
+      ],
+      "electrons": 2
+    }
+  ],
+  "steps": [
+    {
+      "reactants": [
+        "chloride",
+        "substrate"
+      ],
+      "products": [
+        "product",
+        "bromide"
+      ],
+      "arrows": [
+        "reaction"
+      ],
+      "complete": true
+    }
+  ]
+}

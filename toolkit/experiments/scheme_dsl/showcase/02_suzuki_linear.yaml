@@ -1,0 +1,23 @@
+# Showcase 02: Suzuki Coupling (linear, above-arrow boronic acid)
+
+structures:
+  aryl_br:
+    smiles: "Brc1ccc(C=O)cc1"
+    label: "3"
+  boronic_acid:
+    smiles: "OB(O)c1ccc(OC)cc1"
+  biaryl:
+    smiles: "O=Cc1ccc(-c2ccc(OC)cc2)cc1"
+    label: "4"
+
+steps:
+  - substrates: [aryl_br]
+    above_arrow:
+      structures: [boronic_acid]
+      text: ["(1.5 eq)"]
+    below_arrow:
+      text: ["Pd(dppf)Cl2 (3 mol%)", "K2CO3 (3.0 eq)", "dioxane/H2O (3:1)", "80 C, 16 h"]
+    products: [biaryl]
+    yield_: "88%"
+
+layout: linear

@@ -1,6 +1,6 @@
 # Render Layout Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a2. Curated guidance: [../toolkit-render-layout-interfaces.md](../toolkit-render-layout-interfaces.md).
+> Generated from cdxml-toolkit 0.7.0a3. Curated guidance: [../toolkit-render-layout-interfaces.md](../toolkit-render-layout-interfaces.md).
 
 ## `cdxml_builder`
 

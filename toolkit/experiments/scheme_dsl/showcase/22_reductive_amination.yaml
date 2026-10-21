@@ -1,0 +1,23 @@
+# Showcase 22: Reductive Amination (linear, above-arrow aldehyde)
+
+structures:
+  amine:
+    smiles: "NC1CCCCC1"
+    label: "1"
+  aldehyde:
+    smiles: "O=Cc1ccc(OC)cc1"
+  product:
+    smiles: "C(c1ccc(OC)cc1)NC1CCCCC1"
+    label: "2"
+
+steps:
+  - substrates: [amine]
+    above_arrow:
+      structures: [aldehyde]
+      text: ["(1.1 eq)"]
+    below_arrow:
+      text: ["NaBH(OAc)3 (2.0 eq)", "AcOH (cat.)", "DCE, RT, 16 h"]
+    products: [product]
+    yield_: "75%"
+
+layout: linear
