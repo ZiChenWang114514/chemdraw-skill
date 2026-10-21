@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ChemDraw Skill: editable ChemDraw structures for Claude Code, Codex and any AI agent</title>
-<meta name="description" content="ChemDraw Skill lets Claude Code, Codex, Gemini CLI, Cursor and other AI agents draw editable ChemDraw structures: rebuild paper reaction schemes, turn Excel data into SAR and substrate-scope figures, make ACS 1996 exam drawings and embed ChemDraw in Word and PowerPoint. Open source, MIT.">
+<meta name="description" content="Open-source skill that lets Claude Code, Codex and other AI agents draw editable ChemDraw structures, rebuild paper figures and build SAR and substrate-scope figures from Excel.">
 <link rel="canonical" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
 <link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/">
 <link rel="alternate" hreflang="en" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
@@ -16,9 +16,14 @@
 <meta property="og:description" content="Editable ChemDraw structures, paper figure reconstruction, SAR and substrate-scope figures for Claude Code, Codex and any agent with a shell.">
 <meta property="og:url" content="https://zichenwang114514.github.io/chemdraw-skill/en/">
 <meta property="og:image" content="https://zichenwang114514.github.io/chemdraw-skill/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ChemDraw Skill: editable ChemDraw chemistry for any AI agent">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="stylesheet" href="../styles.css">
 <script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">
@@ -35,6 +40,16 @@
       "license": "https://opensource.org/licenses/MIT",
       "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope",
       "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
+    },
+    {
+      "@type": "HowTo",
+      "name": "Install ChemDraw Skill for Claude Code or Codex",
+      "totalTime": "PT5M",
+      "step": [
+        { "@type": "HowToStep", "name": "Install", "text": "git clone https://github.com/ZiChenWang114514/chemdraw-skill.git, then run python scripts/install.py --agent claude agents --runtime --apply inside the folder." },
+        { "@type": "HowToStep", "name": "See what works on this machine", "text": "Run python ~/.claude/skills/chemdraw/scripts/cdx.py doctor." },
+        { "@type": "HowToStep", "name": "Ask your agent", "text": "Use ChemDraw Skill to draw aspirin as editable CDXML, render it natively in ChemDraw and show me the PNG." }
+      ]
     },
     {
       "@type": "FAQPage",
@@ -69,7 +84,7 @@
       <a class="hide-sm" href="#capabilities">Capabilities</a>
       <a href="#start">Quick start</a>
       <a class="hide-sm" href="#faq">FAQ</a>
-      <a href="../" hreflang="zh-CN" lang="zh-CN">中文</a>
+      <a href="../" hreflang="zh-CN" lang="zh-CN">&#20013;&#25991;</a>
       <a class="gh" href="https://github.com/ZiChenWang114514/chemdraw-skill"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
     </nav>
   </div>
@@ -79,7 +94,7 @@
 <div class="hero">
   <div class="wrap">
     <div>
-      <h1>Editable ChemDraw chemistry<span class="en">for any AI agent</span></h1>
+      <h1>Editable ChemDraw chemistry<span class="en"> for any AI agent</span></h1>
       <p class="lede">ChemDraw Skill teaches AI coding agents to draw chemistry. Ask in plain words and the agent grounds the structure, draws it natively in ChemDraw and reads it back to check. You get CDXML you can keep editing, not a screenshot.</p>
       <div class="install">
         <code id="clone">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
@@ -289,7 +304,7 @@ python scripts/install.py --agent claude agents --runtime --apply</code></pre>
     <nav aria-label="Footer">
       <a href="https://github.com/ZiChenWang114514/chemdraw-skill">GitHub</a>
       <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/docs/guide.md">Setup and operations guide</a>
-      <a href="../" hreflang="zh-CN" lang="zh-CN">中文</a>
+      <a href="../" hreflang="zh-CN" lang="zh-CN">&#20013;&#25991;</a>
     </nav>
   </div>
 </footer>

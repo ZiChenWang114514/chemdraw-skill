@@ -12,6 +12,8 @@ SKILL = ROOT / "skill" / "chemdraw"
 
 class DistributionTests(unittest.TestCase):
     CHINESE_DOCUMENTS = {"README.zh-cn.md", "docs/guide.zh-cn.md", "docs/zh-cn.md"}
+    # The landing page (docs/website.md) has a Chinese home page and error page.
+    CHINESE_PAGES = {"site/index.html", "site/404.html"}
 
     def test_chinese_text_is_limited_to_chinese_documents(self) -> None:
         tracked = subprocess.check_output(
@@ -19,7 +21,7 @@ class DistributionTests(unittest.TestCase):
         ).decode("utf-8").split("\0")
         violations = []
         for name in filter(None, tracked):
-            if name in self.CHINESE_DOCUMENTS:
+            if name in self.CHINESE_DOCUMENTS or name in self.CHINESE_PAGES:
                 continue
             path = ROOT / name
             try:
@@ -86,6 +88,7 @@ class DistributionTests(unittest.TestCase):
                 "docs/guide.md",
                 "docs/guide.zh-cn.md",
                 "docs/zh-cn.md",
+                "docs/website.md",
             },
         )
 
@@ -130,6 +133,7 @@ class DistributionTests(unittest.TestCase):
         # The Skill is client-neutral; agents are named only where users pick an install target.
         brands = re.compile(r"\b(co" + r"dex|open" + r"ai|gemini|copilot|opencode)\b", re.IGNORECASE)
         allowed = {"README.md", "README.zh-cn.md", "docs/guide.md", "docs/guide.zh-cn.md",
+                   "site/index.html", "site/en/index.html",
                    ".github/workflows/validate.yml", "scripts/install.py",
                    "skill/chemdraw/references/agent-integration.md",
                    # The toolkit documents and implements one compatibility alias (`--profile codex`).

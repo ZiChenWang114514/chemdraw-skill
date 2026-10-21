@@ -17,9 +17,14 @@
 <meta property="og:description" content="让 Claude Code、Codex 等任意 AI Agent 产出可编辑的 ChemDraw 化学图：结构式、论文路线复刻、SAR 与底物拓展图。">
 <meta property="og:url" content="https://zichenwang114514.github.io/chemdraw-skill/">
 <meta property="og:image" content="https://zichenwang114514.github.io/chemdraw-skill/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ChemDraw Skill：AI 画出可编辑的 ChemDraw 结构式">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="styles.css">
 <script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">
@@ -37,6 +42,16 @@
       "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope",
       "inLanguage": ["zh-CN", "en"],
       "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
+    },
+    {
+      "@type": "HowTo",
+      "name": "在 Claude Code 或 Codex 中安装 ChemDraw Skill",
+      "totalTime": "PT5M",
+      "step": [
+        { "@type": "HowToStep", "name": "安装", "text": "git clone https://github.com/ZiChenWang114514/chemdraw-skill.git，进入目录后运行 python scripts/install.py --agent claude agents --runtime --apply。" },
+        { "@type": "HowToStep", "name": "检查本机能用哪些功能", "text": "运行 python ~/.claude/skills/chemdraw/scripts/cdx.py doctor。" },
+        { "@type": "HowToStep", "name": "直接对 Agent 说", "text": "用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，用 ChemDraw 原生渲染并给我看 PNG。" }
+      ]
     },
     {
       "@type": "FAQPage",
@@ -81,11 +96,11 @@
 <div class="hero">
   <div class="wrap">
     <div>
-      <h1>让 AI 画出可编辑的<span class="en">ChemDraw 结构式</span></h1>
+      <h1>让 AI 画出可编辑的<span class="en"> ChemDraw 结构式</span></h1>
       <p class="lede">ChemDraw Skill 是给 AI 编程 Agent 用的化学绘图技能。说一句话，Agent 就会确认结构、在 ChemDraw 里原生绘制，再把结果读回来核对。你拿到的是能继续编辑的 CDXML，而不是一张截图。</p>
       <div class="install">
         <code id="clone">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
-        <button class="copy" type="button" data-copy="#clone">复制</button>
+        <button class="copy" type="button" data-done-label="已复制" data-copy="#clone">复制</button>
       </div>
       <div class="actions">
         <a class="btn primary" href="#start">三步安装</a>
@@ -237,13 +252,13 @@
     <ol>
       <li>
         <h3>安装</h3>
-        <pre class="code"><button class="copy" type="button" data-copy="#q1">复制</button><code id="q1">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+        <pre class="code"><button class="copy" type="button" data-done-label="已复制" data-copy="#q1">复制</button><code id="q1">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 cd chemdraw-skill
 python scripts/install.py --agent claude agents --runtime --apply</code></pre>
       </li>
       <li>
         <h3>检查本机能用哪些功能</h3>
-        <pre class="code"><button class="copy" type="button" data-copy="#q2">复制</button><code id="q2">python ~/.claude/skills/chemdraw/scripts/cdx.py doctor</code></pre>
+        <pre class="code"><button class="copy" type="button" data-done-label="已复制" data-copy="#q2">复制</button><code id="q2">python ~/.claude/skills/chemdraw/scripts/cdx.py doctor</code></pre>
       </li>
       <li>
         <h3>直接对 Agent 说</h3>

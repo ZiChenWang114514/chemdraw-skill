@@ -6,7 +6,7 @@ document.querySelectorAll("[data-copy]").forEach((btn) => {
     try {
       await navigator.clipboard.writeText(text);
       btn.dataset.done = "";
-      btn.textContent = btn.dataset.doneLabel || (document.documentElement.lang.startsWith("zh") ? "已复制" : "Copied");
+      btn.textContent = btn.dataset.doneLabel || "Copied";
       setTimeout(() => { btn.textContent = label; delete btn.dataset.done; }, 1600);
     } catch {
       const range = document.createRange();
