@@ -82,7 +82,7 @@ Hosted CI runs these on Python 3.10–3.13 with MCP SDK 1.x and 2.x. Native Chem
 
 ## Provenance and license
 
-The package started as Hiu Fung Kevin Lee's [`cdxml-toolkit`](https://github.com/leehiufung911/cdxml-toolkit), was continued as the community project `cdxml-toolkit-community`, and is now maintained inside this repository. Its complete Git history was imported, so `git log -- toolkit` shows every original commit. The distribution name `cdxml-toolkit-community` and the import package `cdxml_toolkit` are unchanged for compatibility.
+The package started as Hiu Fung Kevin Lee's [`cdxml-toolkit`](https://github.com/leehiufung911/cdxml-toolkit), was continued as the community project `cdxml-toolkit-community`, and is now maintained inside this repository. Its complete Git history was imported with `git subtree`. The original commits stored files at their old repository root, so a path-filtered `git log -- toolkit` does not list them; `git log --oneline "$(git log --format=%H -1 --grep=git-subtree-dir)^2"` does. The distribution name `cdxml-toolkit-community` and the import package `cdxml_toolkit` are unchanged for compatibility.
 
 - Original author: Hiu Fung Kevin Lee ([@leehiufung911](https://github.com/leehiufung911))
 - Maintainer: [ZiChenWang114514](https://github.com/ZiChenWang114514)
