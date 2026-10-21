@@ -25,7 +25,7 @@
 
 ## Quick start
 
-You need Python 3.9+ to run the installer and a 64-bit Python 3.10–3.13 for the toolkit runtime; the installer finds one automatically.
+You need Python 3.9+ to run the installer and a 64-bit Python 3.10–3.13 for the toolkit runtime; the installer finds one automatically (through the `py` launcher, `uv`-managed interpreters or `python3.x` on PATH). Python 3.14 and newer are not supported by `cdxml-toolkit-community` yet: if that is your only Python, install 3.12 (for example `uv python install 3.12`) or pass `--python <interpreter>`.
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
@@ -58,7 +58,7 @@ Use the ChemDraw Skill to draw aspirin as editable CDXML, render it natively and
 Agents call one entry point, which any Python can start; it re-launches itself in the toolkit runtime:
 
 ```bash
-python <skill>/scripts/cdx.py tools                                         # the 39 tools
+python <skill>/scripts/cdx.py tools                                         # the registered tools
 python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
 python <skill>/scripts/cdx.py render figure.cdxml                           # native 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png                              # structure recognition
@@ -79,7 +79,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 - **ChemScript SDK:** inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows. Process separation limits stalled calls; it is not an operating-system sandbox.
 - **Remote workstation access:** optionally expose a Windows native host through Streamable HTTP with health and Prometheus endpoints.
 
-The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited `cdxml-toolkit-community` symbols, separately from the 39 registered tools. Full ChemScript catalog coverage means an interface can be discovered and reported; whether it executes still depends on the installed SDK, license, architecture and member behavior.
+The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited `cdxml-toolkit-community` symbols, separately from the registered tools (`cdx.py tools` prints the current count). Full ChemScript catalog coverage means an interface can be discovered and reported; whether it executes still depends on the installed SDK, license, architecture and member behavior.
 
 ### Exam and lecture drawings in ACS Document 1996 style
 
@@ -353,8 +353,8 @@ Please open a focused issue or pull request with the exact macOS version, chip, 
 
 ## Documentation
 
-- [Setup and first use](docs/zh-cn.md)
 - [Installation, troubleshooting and operations](docs/guide.md)
+- [Quick start in Chinese](docs/zh-cn.md) · [Chinese setup guide](docs/guide.zh-cn.md)
 - [Agent integration and `cdx.py` command reference](skill/chemdraw/references/agent-integration.md)
 - [Task-oriented workflow catalog](skill/chemdraw/references/workflow-router.md)
 - [Generated tool signatures](skill/chemdraw/references/mcp-signatures.md)

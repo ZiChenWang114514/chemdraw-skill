@@ -36,7 +36,7 @@ Run portable validation for every change:
 python .\scripts\validate_distribution.py
 ```
 
-Run the full Skill suite in the toolkit runtime (`cdx.py py` selects it):
+Run the full Skill suite in the toolkit runtime (`cdx.py py` selects it; `scripts/install.py --runtime --apply` records the runtime for this checkout in the ignored `skill/chemdraw/runtime.local.json`, otherwise set `CHEMDRAW_MCP_PYTHON`):
 
 ```powershell
 python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
@@ -51,4 +51,4 @@ Write public documentation and example captions for readers without conversation
 
 ## Language
 
-Use English for all Skill instructions, references, scripts, and repository documentation except `README.zh-cn.md`. Keep non-ASCII test fixtures as Unicode escapes when needed to preserve test behavior.
+Use English for all Skill instructions, references, scripts, and repository documentation except the Chinese translations `README.zh-cn.md`, `docs/guide.zh-cn.md` and `docs/zh-cn.md`, which must be real translations kept in step with their English counterparts. Keep non-ASCII test fixtures as Unicode escapes when needed to preserve test behavior.

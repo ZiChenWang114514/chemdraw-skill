@@ -20,7 +20,7 @@ The report is read-only. A skipped probe is not a verified capability. ChemScrip
 
 ## Requirements by capability
 
-- Portable CDXML and RDKit work: 64-bit Python 3.10–3.13 with `cdxml-toolkit-community`. The pinned source is `runtime.json` (`repository`, `commit`, `toolkit_version`).
+- Portable CDXML and RDKit work: 64-bit Python 3.10–3.13 with `cdxml-toolkit-community` (3.14 and newer are not supported by the toolkit yet; the installer picks an older interpreter or takes `--python`). The pinned source is `runtime.json` (`repository`, `commit`, `toolkit_version`).
 - Native rendering, CDX conversion and ChemDraw cleanup: licensed desktop ChemDraw, .NET Framework 4.8, working `ChemDraw.Application` COM registration. Confirm activation manually once.
 - Molecular comparison and ChemScript SDK: managed and native ChemScript DLLs (`pythonnet`). Keep the main runtime 64-bit; a legacy 32-bit ChemScript needs a separate helper Python (`CHEMSCRIPT_PYTHON`).
 - Editable DOCX/PPTX objects: desktop Word/PowerPoint.
@@ -102,7 +102,7 @@ HTTP 502/503/504 from the remote API indicates a gateway or service failure, not
 
 ## Failure Modes
 
-- `cdx.py: no cdxml-toolkit runtime found`: install one (`scripts/install.py --runtime --apply`) or set `CHEMDRAW_MCP_PYTHON` to the runtime interpreter.
+- `cdx.py: no working cdxml-toolkit runtime found`: install one (`scripts/install.py --runtime --apply`) or set `CHEMDRAW_MCP_PYTHON` to the runtime interpreter. A venv is skipped when its interpreter no longer starts (base Python removed or blocked); re-run the installer to rebuild it.
 - Tool timeout: raise `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS` only after confirming the operation is legitimately long-running. `modify_molecule` is limited to 90 s because ChemScript naming and decomposition can be expensive for fused systems; trusted SMILES can be drawn directly when no modification is needed.
 - Native resource busy: ChemDraw COM operations share one per-user mutex (`cdx.py doctor --paths` shows its name). Let the active render, conversion or Office operation finish; ordinary parsing stays concurrent. Do not start a second COM session to bypass it.
 - `tool_execution_failed` with an `error_id`: read `worker-<id>.log` in the folder printed by `cdx.py doctor --paths`. Detailed exceptions are deliberately kept out of results.

@@ -8,7 +8,9 @@ failure.
 
 --runtime creates (or reuses) one toolkit venv shared by all installed copies
 and installs the cdxml-toolkit revision pinned in runtime.json. scripts/cdx.py
-finds that venv on its own, so any Python can launch the Skill's CLI.
+finds that venv on its own, so any Python can launch the Skill's CLI. When the
+venv lives somewhere cdx.py would not look, runtime.local.json is written into
+every installed copy and into this repository checkout (ignored by Git).
 
 Examples:
     python3 scripts/install.py                                   # proposal for --agent claude
@@ -148,12 +150,15 @@ def runtime_plan(ns, targets):
     if action == 'create':
         base = base_python(ns.python)
         if base is None:
-            raise SystemExit('The runtime needs a 64-bit Python 3.10-3.13 and none was found; '
-                             'pass --python <interpreter>.')
+            raise SystemExit('The runtime needs a 64-bit Python 3.10-3.13 and none was found '
+                             '(Python 3.14 and newer are not supported by the toolkit yet). '
+                             'Install one, e.g. `uv python install 3.12` or the python.org 3.12 '
+                             'installer, then pass --python <interpreter> if it is still not found.')
     extras = ns.extras if ns.extras is not None else \
         [e for e in ALL_EXTRAS if os.name == 'nt' or e not in WINDOWS_ONLY_EXTRAS]
+    # base_python stays a command list: interpreter paths may contain spaces ("Program Files").
     return {'action': action, 'venv': str(venv), 'python': str(venv_python(venv)),
-            'base_python': ' '.join(base) if base else None, 'extras': extras,
+            'base_python': list(base) if base else None, 'extras': extras,
             'toolkit_path': ns.toolkit_path}
 
 
@@ -197,7 +202,7 @@ def install_runtime(plan, skill):
     venv, python = Path(plan['venv']), Path(plan['python'])
     if plan['action'] == 'create':
         venv.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run([*plan['base_python'].split(' '), '-m', 'venv', str(venv)], check=True,
+        subprocess.run([*plan['base_python'], '-m', 'venv', str(venv)], check=True,
                        stdout=sys.stderr)
     command = [str(python), str(skill / 'scripts' / 'install_runtime.py'), '--extras', *plan['extras']]
     if plan['toolkit_path']:
@@ -209,6 +214,20 @@ def needs_local_config(skill, python):
     """True when cdx.py would not find `python` by its default search order."""
     return Path(python).resolve() not in {
         venv_python(skill.parent / 'chemdraw-venv').resolve(), venv_python(cdx.default_runtime_dir()).resolve()}
+
+
+def record_runtime(skills, python):
+    """Write runtime.local.json into every Skill folder that could not find `python` otherwise.
+
+    The repository checkout (SOURCE) is included so `cdx.py` works from the checkout too; the
+    file is ignored by Git and never copied into installations."""
+    written = []
+    for skill in skills:
+        if needs_local_config(skill, python):
+            (skill / 'runtime.local.json').write_text(
+                json.dumps({'runtime_python': str(python)}, indent=2) + '\n', encoding='utf-8')
+            written.append(skill / 'runtime.local.json')
+    return written
 
 
 def parse(argv):
@@ -273,10 +292,9 @@ def main(argv=None):
             runtime.update(status='failed', error=str(exc))
             record['status'] = 'installed_runtime_failed'
             code = 1
+    if ns.runtime and runtime.get('status') == 'installed':
+        runtime['local_config'] = [str(p) for p in record_runtime([*targets, SOURCE], runtime['python'])]
     for target in targets:
-        if ns.runtime and runtime.get('status') == 'installed' and needs_local_config(target, runtime['python']):
-            (target / 'runtime.local.json').write_text(
-                json.dumps({'runtime_python': runtime['python']}, indent=2) + '\n', encoding='utf-8')
         # Record the installed state so check_installation.py / cdx.py doctor detect later drift.
         check_installation.write_manifest(target)
     print(json.dumps(record, indent=2))

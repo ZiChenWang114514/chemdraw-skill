@@ -34,21 +34,27 @@ EXTRAS = {'publication': ['openpyxl'], 'scientific': ['numpy', 'scipy', 'matplot
 
 
 # ------------------------------------------------------------- runtime bootstrap
+def _runs(python, code, timeout):
+    """True when `python -c code` exits 0. A venv whose base interpreter was removed or is
+    blocked fails here (its launcher exits without running Python), so it is skipped instead
+    of producing an opaque launcher error later."""
+    try:
+        probe = subprocess.run([str(python), '-c', code], capture_output=True, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return probe.returncode == 0
+
+
 def _has_toolkit(python):
-    """True when `python` belongs to an environment containing cdxml_toolkit.mcp_runtime."""
+    """True when `python` starts and its environment contains cdxml_toolkit.mcp_runtime."""
     root = Path(python).resolve().parent
     if root.name.lower() in ('scripts', 'bin'):
         root = root.parent
     patterns = ('Lib/site-packages/cdxml_toolkit/mcp_runtime', 'lib/python3*/site-packages/cdxml_toolkit/mcp_runtime')
     if any(glob.glob(str(root / pattern)) for pattern in patterns):
-        return True
+        return _runs(python, 'import sys', 30)
     # Editable (pip -e) installs live outside site-packages: ask the interpreter.
-    try:
-        probe = subprocess.run([str(python), '-c', 'import cdxml_toolkit.mcp_runtime'],
-                               capture_output=True, timeout=60)
-    except (OSError, subprocess.TimeoutExpired):
-        return False
-    return probe.returncode == 0
+    return _runs(python, 'import cdxml_toolkit.mcp_runtime', 60)
 
 
 def _interpreter(env_root):
@@ -109,9 +115,9 @@ def _ensure_runtime(argv):
             env = dict(os.environ, **{REEXEC_FLAG: '1'})
             raise SystemExit(subprocess.call([str(python), str(Path(__file__).resolve()), *argv], env=env))
     sys.stderr.write(
-        'cdx.py: no cdxml-toolkit runtime found.\n'
+        'cdx.py: no working cdxml-toolkit runtime found.\n'
         f'Looked for: CHEMDRAW_MCP_PYTHON, {LOCAL_CONFIG.name}, {SKILL_ROOT.parent / "chemdraw-venv"}, '
-        f'{default_runtime_dir()}, conda env "cdxml".\n'
+        f'{default_runtime_dir()}, conda env "cdxml" (candidates whose interpreter does not start are skipped).\n'
         'Install one with the repository installer (scripts/install.py --runtime --apply) '
         'or set CHEMDRAW_MCP_PYTHON.\n')
     raise SystemExit(2)
@@ -307,7 +313,8 @@ def runtime_paths():
     base = os.environ.get('LOCALAPPDATA') or os.environ.get('TEMP') or str(Path.home())
     logs = sorted(glob.glob(os.path.join(base, '*', 'chemdraw-mcp', 'logs')))
     return {'python': sys.executable, 'skill_root': str(SKILL_ROOT),
-            'worker_logs': logs or f'{base}\\<runtime>\\chemdraw-mcp\\logs (created on first worker failure)',
+            'worker_logs': logs or os.path.join(base, '<runtime>', 'chemdraw-mcp', 'logs')
+            + ' (created on first worker failure)',
             'native_mutex': resource_lock.CHEMDRAW_COM_MUTEX,
             'native_temp': os.environ.get('CHEMDRAW_NATIVE_TEMP') or str(official_overrides._TEMP_OUTPUT),
             'chemscript_pythonpath': _chemscript_env().get('PYTHONPATH')}

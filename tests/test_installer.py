@@ -80,11 +80,7 @@ class InstallerTests(unittest.TestCase):
             skill = home / ".claude" / "skills" / "chemdraw"
             skill.mkdir(parents=True)
             (skill / "SKILL.md").write_text("old", encoding="ascii")
-            sys.path.insert(0, str(ROOT / "scripts"))
-            try:
-                import install
-            finally:
-                sys.path.pop(0)
+            install = self._module()
             real = install.fingerprint(install.SOURCE)
             # The staged copy verifies, the swapped-in copy does not: the old copy must come back.
             with mock.patch.object(install, "fingerprint", side_effect=[real, "corrupted"]):
@@ -120,6 +116,52 @@ class InstallerTests(unittest.TestCase):
             runtime = json.loads(result.stdout)["runtime"]
         self.assertEqual(runtime["action"], "reuse")
         self.assertEqual(Path(runtime["venv"]).name, "chemdraw-venv")
+
+    def _module(self):
+        sys.path.insert(0, str(ROOT / "scripts"))
+        try:
+            import install
+        finally:
+            sys.path.pop(0)
+        return install
+
+    def test_base_python_path_with_spaces_is_passed_as_one_argument(self) -> None:
+        install = self._module()
+        base = r"C:\Program Files\Python312\python.exe" if os.name == "nt" else "/opt/my python/bin/python3"
+        with tempfile.TemporaryDirectory() as tmp:
+            venv = Path(tmp) / "venv"
+            plan = {"action": "create", "venv": str(venv), "python": str(install.venv_python(venv)),
+                    "base_python": [base], "extras": ["publication"], "toolkit_path": None}
+            with mock.patch.object(install.subprocess, "run") as run:
+                run.return_value.returncode = 0
+                install.install_runtime(plan, install.SOURCE)
+        self.assertEqual(run.call_args_list[0].args[0][:3], [base, "-m", "venv"])
+
+    def test_runtime_proposal_keeps_the_base_command_as_a_list(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve()
+            result = run("--runtime", "--python", sys.executable, home=home)
+        if not ((3, 10) <= sys.version_info[:2] <= (3, 13)):
+            self.assertNotEqual(result.returncode, 0)
+            return
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["runtime"]["base_python"], [sys.executable])
+
+    def test_runtime_location_is_recorded_for_installations_and_the_checkout(self) -> None:
+        install = self._module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            copy, checkout = root / "skills" / "chemdraw", root / "repo" / "skill" / "chemdraw"
+            copy.mkdir(parents=True)
+            checkout.mkdir(parents=True)
+            python = root / "elsewhere" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+            written = install.record_runtime([copy, checkout], python)
+            self.assertEqual(written, [copy / "runtime.local.json", checkout / "runtime.local.json"])
+            self.assertEqual(json.loads((checkout / "runtime.local.json").read_text(encoding="utf-8")),
+                             {"runtime_python": str(python)})
+            # A venv in a searched location needs no record.
+            beside = install.venv_python(copy.parent / "chemdraw-venv")
+            self.assertEqual(install.record_runtime([copy], beside), [])
 
     def test_destination_inside_the_source_is_refused(self) -> None:
         result = run("--destination", str(ROOT / "skill" / "chemdraw" / "nested"))
