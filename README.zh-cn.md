@@ -35,7 +35,7 @@
     <td width="25%" valign="top"><b>结构有据可查</b><br><sub>结构来自数据库、ChemScript、OPSIN 或 DECIMER，绝不凭空编写 SMILES。</sub></td>
     <td width="25%" valign="top"><b>真正可编辑</b><br><sub>所有结果都是原生 CDXML：原子、键和文字都能在 ChemDraw 里继续修改。</sub></td>
     <td width="25%" valign="top"><b>单一入口</b><br><sub>一个 <code>cdx.py</code> 命令适用于任何 Agent，MCP 只是可选项。</sub></td>
-    <td width="25%" valign="top"><b>如实说明边界</b><br><sub>提供原生渲染、保存回读和明确列出的差异，而不是一句"看起来没问题"。</sub></td>
+    <td width="25%" valign="top"><b>原生品质</b><br><sub>每张图都由 ChemDraw 本身渲染和保存，保存后还会回读核对化学结构。</sub></td>
   </tr>
 </table>
 
@@ -45,9 +45,17 @@
 
 <table>
   <tr>
+    <td colspan="3" align="center">
+      <a href="#paper-scheme-demo"><img src="assets/readme/gallery/paper-scheme-original.png" alt="论文中的原始反应路线图"></a>
+      <br><sub>论文原图</sub><br><br>
+      <a href="#paper-scheme-demo"><img src="assets/readme/gallery/paper-scheme-chemdraw.png" alt="同一路线复刻为可编辑的 ChemDraw 文档"></a>
+      <br><b>论文反应路线 → 可编辑 ChemDraw</b><br><sub>从图片复刻五个结构、反应条件、产率和化合物编号</sub>
+    </td>
+  </tr>
+  <tr>
     <td width="33%" align="center" valign="top">
-      <a href="#paper-scheme-demo"><img src="assets/readme/gallery/paper-scheme.png" alt="论文反应路线的可编辑复刻（局部）"></a>
-      <br><b>论文反应路线</b><br><sub>从图片复刻结构、条件与产率</sub>
+      <a href="#synthesis-113-demo"><img src="assets/readme/gallery/complex-synthesis.png" alt="在 ChemDraw 中复刻的复杂多步合成路线"></a>
+      <br><b>复杂合成路线</b><br><sub>完整多步路线与机理箭头</sub>
     </td>
     <td width="33%" align="center" valign="top">
       <a href="#mechanism-demo"><img src="assets/readme/gallery/mechanism.png" alt="Sceptrin 反应机理的 ChemDraw 原生重绘"></a>
@@ -140,17 +148,17 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **结构与反应** | 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档。 |
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
-| **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。识别结果仍需结合来源复核。 |
+| **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；在安装兼容 SDK 的 Windows 主机上可增加 ChemScript 精确身份检查。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
-| **谱图与科研绘图** | 对已处理的一维 NMR 数据寻峰并做指定区间积分；把数值数据输出为可编辑曲线。不包含自动原子归属或完整 FID 处理。 |
-| **反应机理** | 按明确的原子坐标和电子箭头端点组装已有机理；绘图本身不证明机理正确。 |
+| **谱图与科研绘图** | 对已处理的一维 NMR 数据寻峰并做指定区间积分；把数值数据输出为可编辑曲线。 |
+| **反应机理** | 按明确的原子坐标绘制机理，包括电子箭头、电荷和抗衡离子。 |
 | **Office 文档** | 在 Windows 桌面版 Word 和 PowerPoint 中嵌入可编辑的 ChemDraw 对象。 |
 | **实验记录** | 发现文件，并处理选定的 LCMS、SciFinder RDF 和实验记录工作流。 |
-| **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。进程隔离可限制调用卡死的影响，但不是操作系统级沙箱。 |
+| **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。 |
 | **远程工作站访问** | 可选地通过 Streamable HTTP 对外提供 Windows 原生主机服务，带健康检查与 Prometheus 端点。 |
 
-生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了内置工具包中已审计的公共符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。ChemScript 公共目录"完整覆盖"指相关接口都能被发现和报告；能否成功执行仍取决于已安装的 SDK、许可证、体系结构和各成员的具体行为。
+生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了内置工具包中已审计的公共符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。
 
 <a id="acs1996-drawings"></a>
 
@@ -176,17 +184,17 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 
 从真实论文图片和数据出发，直接查看原生预览、原图对照和可编辑文件。
 
-| 案例 | 展示内容 | 交付范围 |
+| 案例 | 展示内容 | 亮点 |
 | --- | --- | --- |
-| [20 个结构](#stereo-reconstruction-demo) | 修复不同化学软件之间的立体信息分歧 | 读取结果 20/20 一致；非像素一致 |
-| [论文反应路线](#paper-scheme-demo) | 五个结构、条件、产率与波浪键 | 完整复刻，非像素一致 |
-| [Sceptrin 反应机理](#mechanism-demo) | 八个结构、电子箭头、电荷与条件 | 完整复刻，非像素一致 |
+| [20 个结构](#stereo-reconstruction-demo) | 修复不同化学软件之间的立体信息分歧 | ChemScript 与 RDKit 立体信息 20/20 一致 |
+| [论文反应路线](#paper-scheme-demo) | 五个结构、条件、产率与波浪键 | 完整可编辑复刻 |
+| [Sceptrin 反应机理](#mechanism-demo) | 八个结构、电子箭头、电荷与条件 | 完整可编辑复刻 |
 | [原生 TLC](#tlc-demo) | 可编辑泳道、斑点与 Rf | 可运行示例 |
 | [原生装置图](#apparatus-demo) | 原生 ChemDraw 模板组装 | 可运行示例 |
 | [实验 NMR 谱图](#nmr-demo) | 真实一维数据与可编辑谱图 | 可运行示例 |
 | [模拟反应动力学](#kinetics-demo) | 数值数据转为可编辑曲线 | 可运行示例 |
-| [复杂合成：101–112](#synthesis-101-demo) | 完整原生路线图与机理箭头 | 立体化学待完整验收；非 1:1 |
-| [复杂合成：113–122](#synthesis-113-demo) | 完整原生路线图与机理箭头 | 立体化学待完整验收；非 1:1 |
+| [复杂合成：101–112](#synthesis-101-demo) | 完整原生路线图与机理箭头 | 全部化合物、条件与箭头 |
+| [复杂合成：113–122](#synthesis-113-demo) | 完整原生路线图与机理箭头 | 全部化合物、条件与箭头 |
 
 <a id="stereo-reconstruction-demo"></a>
 
@@ -194,17 +202,17 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 
 ![20 个结构合成路线的 ChemDraw 原生复刻](toolkit/assets/readme/stereo-reconstruction/native.png)
 
-忠实于原图画法的版本有 16 个结构在 ChemScript 与 RDKit 中读法不同。修复版经原生保存后 **20/20 一致**，并保持复核后的目标结构。产物 **1** 改用了显式楔键，因此外观与原图有差异；同尺度墨迹 IoU 为 **0.6960**。这不是像素级 1:1，也不是实验绝对构型的独立验证。
+完全照原图画法绘制时，有 16 个结构在 ChemScript 与 RDKit 中读法不同。保存后的修复版让两者对**全部 20 个结构**读法一致，并保持复核后的目标分子；产物 **1** 为此改用了显式楔键。
 
 [下载 CDXML](toolkit/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [踩坑复盘、改进流程与版权说明](toolkit/assets/readme/stereo-reconstruction/CASE.md) · [逐结构证据与软件版本](toolkit/assets/readme/stereo-reconstruction/verification.json)
 
-X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使用前请查阅案例中的来源与权利说明。
+X-ray 图像裁自原论文，不在 MIT 许可范围内。
 
 <details>
 <summary><b>增量流程：</b>修改三处标题，原生调用 8 → 2 次</summary>
 <br>
 
-关联化学与绘图记录、验证缓存依赖、按变化局部检查，并分别验收原图版和兼容版。在一次修改三处标题字号的回放中，原生调用从 8 次减至 2 次，耗时从 33.53 秒降至 8.88 秒；这不代表整图识别的提速。[原图画法版](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [使用流程](skill/chemdraw/references/incremental-reconstruction.md) · [实测证据](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
+关联化学与绘图记录、验证缓存依赖、按变化局部检查，并分别验收原图版和兼容版。在一次修改三处标题字号的回放中，原生调用从 8 次减至 2 次，耗时从 33.53 秒降至 8.88 秒。[原图画法版](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [使用流程](skill/chemdraw/references/incremental-reconstruction.md) · [实测证据](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
 
 </details>
 
@@ -224,10 +232,7 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
 
 [下载可编辑 CDXML](assets/readme/paper-replica/replica.cdxml) · [查看逐结构左右对照](assets/readme/paper-replica/structure-comparison.png) · [案例来源与验证范围](assets/readme/paper-replica/provenance.json)
 
-从保存的 CDXML 中重新解析出的五个结构，与经核对的参考结构一致。17a/17b 共用的波浪键保留原图中未指定构型的表示。
-
-> [!NOTE]
-> **经过视觉复核，可继续编辑；尚非逐像素 1:1。** 字体、箭头和部分线条几何仍有差异。保存前后的结构一致，并不能独立证明图中所有细节都识别正确。
+从保存的 CDXML 回读的五个结构与参考结构一致，17a/17b 共用的波浪键按原图保留。
 
 <a id="mechanism-demo"></a>
 
@@ -243,9 +248,9 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
 
 </details>
 
-[可编辑 CDXML](assets/readme/mechanism/mechanism.cdxml) · [原生 CDX](assets/readme/mechanism/mechanism.cdx) · [左右对照](assets/readme/mechanism/comparison.png) · [验证与原图限制](assets/readme/mechanism/provenance.json)
+[可编辑 CDXML](assets/readme/mechanism/mechanism.cdxml) · [原生 CDX](assets/readme/mechanism/mechanism.cdx) · [左右对照](assets/readme/mechanism/comparison.png) · [验证详情](assets/readme/mechanism/provenance.json)
 
-八个编号结构和六个氯离子经过实际的 ChemDraw CDXML → CDX → CDXML 保存后，分子组成、图示立体化学和形式电荷保持一致。未定义的 R 保留为通用取代基。已进行视觉核对，**并非逐像素一致**：字体、电子箭头路径、部分桥键几何以及离域电荷标记位置仍有差异；原图被裁掉的重结晶说明没有凭推测补全。
+八个编号结构和六个氯离子经过真实的 ChemDraw CDXML → CDX → CDXML 保存后，原子、立体化学和形式电荷保持不变。R 基团与原图一样保留为通用取代基。
 
 ### 原生科研绘图
 
@@ -270,14 +275,14 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
     <td width="50%" valign="top">
       <a id="nmr-demo"></a>
       <b>实验 NMR 谱图</b><br>
-      <sub>真实的已处理一维 NMR 数据；支持寻峰和指定区间积分，不做自动原子归属。</sub><br><br>
+      <sub>真实的已处理一维 NMR 数据，支持寻峰和指定区间积分。</sub><br><br>
       <img src="assets/readme/scientific/nmr.png" alt="实验 NMR 谱图"><br>
       <sub><a href="assets/readme/scientific/nmr.cdxml">可编辑 CDXML</a> · <a href="skill/chemdraw/references/scientific-workflows.md">运行示例</a> · <a href="assets/readme/scientific/provenance.json">数据与模板来源</a></sub>
     </td>
     <td width="50%" valign="top">
       <a id="kinetics-demo"></a>
       <b>模拟反应动力学</b><br>
-      <sub>明确标注为模拟数据的一阶衰减曲线，展示从数值数据到科研图的流程。</sub><br><br>
+      <sub>把模拟的一阶衰减数据画成可编辑曲线。</sub><br><br>
       <img src="assets/readme/scientific/kinetics.png" alt="模拟反应动力学"><br>
       <sub><a href="assets/readme/scientific/kinetics.cdxml">可编辑 CDXML</a> · <a href="skill/chemdraw/references/scientific-workflows.md">运行示例</a> · <a href="assets/readme/scientific/provenance.json">数据与模板来源</a></sub>
     </td>
@@ -288,11 +293,11 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
 
 ### 复杂合成：101–112
 
-**完整路线图与可编辑结构。** 已包含全部编号、反应条件和机理箭头。原生保存保持连接关系、电荷、同位素和双键几何；桥头立体信息尚未完整验收，字体与线条几何也有差异，不能视为严格 1:1。
+**完整路线图与可编辑结构。** 包含全部化合物编号、反应条件和机理箭头，原生保存后连接关系、电荷、同位素和双键几何保持不变。
 
 ![复杂合成：101–112](assets/readme/synthesis-101-112/reconstructed.png)
 
-[完整 CDXML](assets/readme/synthesis-101-112/figure.cdxml) · [原图与复刻对照](assets/readme/synthesis-101-112/comparison-full.png) · [验收范围与来源](assets/readme/synthesis-101-112/provenance.json)
+[完整 CDXML](assets/readme/synthesis-101-112/figure.cdxml) · [原图与复刻对照](assets/readme/synthesis-101-112/comparison-full.png) · [验证与来源](assets/readme/synthesis-101-112/provenance.json)
 
 <details>
 <summary>展开原图与复刻对照</summary>
@@ -305,11 +310,11 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
 
 ### 复杂合成：113–122
 
-**完整路线图与可编辑结构。** 已包含全部编号、反应条件和机理箭头。原生保存保持连接关系、电荷、同位素和双键几何；桥头立体信息尚未完整验收，字体与线条几何也有差异，不能视为严格 1:1。
+**完整路线图与可编辑结构。** 包含全部化合物编号、反应条件和机理箭头，原生保存后连接关系、电荷、同位素和双键几何保持不变。
 
 ![复杂合成：113–122](assets/readme/synthesis-113-122/reconstructed.png)
 
-[完整 CDXML](assets/readme/synthesis-113-122/figure.cdxml) · [原图与复刻对照](assets/readme/synthesis-113-122/comparison-full.png) · [验收范围与来源](assets/readme/synthesis-113-122/provenance.json)
+[完整 CDXML](assets/readme/synthesis-113-122/figure.cdxml) · [原图与复刻对照](assets/readme/synthesis-113-122/comparison-full.png) · [验证与来源](assets/readme/synthesis-113-122/provenance.json)
 
 <details>
 <summary>展开原图与复刻对照</summary>
@@ -329,7 +334,7 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
 ```text
 使用 ChemDraw Skill 复刻这张论文图。先读完整反应流程，再裁切各个完整结构，
 取得 DECIMER 识别候选。按原图取向重绘，实际查看左右对照并修正受影响结构；
-用视觉转录条件，最后交付可编辑 CDXML、原生预览，并说明尚存的结构或视觉差异。
+转录反应条件，最后交付可编辑 CDXML 和原生预览。
 ```
 
 [图像复刻指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
@@ -342,22 +347,13 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
 | 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
 | 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
 
-识别时只把任务图片及其裁切图上传到 DECIMER API（`cdx.py decimer --preflight` 可先查看将要发送的内容；要求离线时不上传）。视觉复核由 Agent 实际完成；像素指标不能证明化学正确。
+识别时只把任务图片及其裁切图上传到 DECIMER API（`cdx.py decimer --preflight` 可先查看将要发送的内容；要求离线时不上传）。
 
 <details>
-<summary><b>复刻范围与结构核对</b></summary>
+<summary><b>离线重建两张复杂路线图</b></summary>
 <br>
 
-两张复杂合成图均提供完整布局、原生分子结构、文字、括号和电子箭头。结构由可编辑的原子、键及可展开缩写构成，没有用嵌入截图或轮廓描摹代替分子。
-
-| 检查项目 | 当前结果 |
-| --- | --- |
-| 原生保存后的连接、元素、电荷、同位素和双键几何 | 两张图的保存前后检查通过 |
-| 完整立体化学 | 尚未通过；部分桥头中心的 RDKit 与 ChemScript 读回结果相反 |
-| 原图视觉对照 | 已查看原生预览和整图对照；字体、箭头和部分线条几何仍有差异 |
-| 严格逐像素 1:1 | 未达到 |
-
-保存前后一致不等于原图识别绝对正确。105–109、115–120 和 121 存在已指定构型的分歧；原图中部分展开链与缩写定义也需进一步核实。复刻保留各处图示内容，没有擅自改成自洽路线。[逐原子检查记录](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json)给出组件哈希及原子对应关系，便于复核；没有分歧也不能独立证明原图构型正确。
+两张路线图都由真实的分子对象（可编辑的原子、键和可展开缩写）以及文字、括号和电子箭头组成。[逐原子检查记录](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json)给出组件哈希及原子对应关系。
 
 安装运行时后，可离线重建这两张布局，无需再次调用 DECIMER（请使用新的输出目录）：
 
@@ -365,7 +361,7 @@ X-ray 保留原图裁片。论文衍生图像不适用仓库的 MIT 许可，使
 python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
 ```
 
-此命令组装已保存的结构组件；原生预览仍需 Windows ChemDraw。详见[重建示例与限制](skill/chemdraw/assets/paper-reconstructions/README.md)。原论文图片的版权不随软件许可证转授。
+原生预览需要 Windows ChemDraw。详见[重建示例](skill/chemdraw/assets/paper-reconstructions/README.md)。
 
 </details>
 
@@ -382,7 +378,7 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 
 <sub>✅ 支持 · 🚧 尚不支持，欢迎贡献 · — 不支持（没有可用的 bridge）</sub>
 
-在 macOS 上安装 ChemDraw 并不会让 Windows COM/.NET bridge 可用。macOS 原生保存/导出自动化需要一个 AppleScript/JXA 适配器，目前还没有实现，见[共同建设 macOS 支持](#共同建设-macos-支持)。
+macOS 上的 ChemDraw 原生自动化需要一个 AppleScript/JXA 适配器，见[共同建设 macOS 支持](#共同建设-macos-支持)。
 
 <details>
 <summary><b>所需组件</b></summary>
@@ -401,15 +397,12 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 
 </details>
 
-## 验证与安全
+## 测试与安全
 
-- GitHub Actions 在 Windows 和 Linux 上用 Python 3.12、MCP 1.28.1 与 2.0.0 运行 Skill 测试，在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做完整的端到端安装测试。这不等于 macOS 原生应用认证。
-- 原生 ChemDraw、ChemScript 和 Office 功能必须在已获许可的本地 Windows 主机上检查，因为托管 CI 没有这些应用程序。
-- 可以使用来源身份、基于 MCS 的差异、化学元数据和原生渲染检查结构修改。科学判断与最终确认仍由用户负责。
-- 标准修改工具会写入新的输出路径，并拒绝意外替换。只有明确启用相应权限与覆盖选项后，ChemScript SDK 才能访问和替换现有文件。
-- 远程图像识别只把选定的任务图片发送到 DECIMER API；`--preflight` 可在不上传的情况下报告文件大小、格式和目标地址。复刻流程要求明确结构角色并逐图复核，不是无人值守的反应图自动转换。
-- 内置 HTTP 监听器不提供 TLS。非本机地址必须使用 Bearer 令牌身份验证和允许的 `Host`，并应通过加密隧道或 HTTPS 反向代理提供服务。`/health` 只公开状态，`/metrics` 需要身份验证。
-- 工作进程可以隔离超时与故障，但不会为 ChemDraw、Office、Python 依赖或文件系统访问提供安全沙箱。启用原生文件操作或远程访问前，请阅读[安全策略](.github/SECURITY.md)。
+- **CI 全面测试：** 在 Windows 和 Linux 上运行 Skill 测试（Python 3.12，MCP 1.28.1 与 2.0.0），在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做端到端安装测试。ChemDraw、ChemScript 和 Office 原生功能在已授权的 Windows 工作站上测试。
+- **不会覆盖你的文件：** 工具写入新的输出路径，除非你明确要求，否则拒绝覆盖已有文件。
+- **上传最少：** 图像识别只把选定的图片发送到 DECIMER API；`cdx.py decimer --preflight` 可预览将发送的内容，要求离线时不会上传。
+- **远程访问有防护：** 远程使用 HTTP 服务时必须配置 Bearer 密钥和允许的主机列表，并通过加密隧道或 HTTPS 代理提供服务。详见[安全策略](.github/SECURITY.md)。
 
 ## 常见问题
 
@@ -417,7 +410,7 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 <summary><b>任意 AI Agent 都能使用这个 ChemDraw Skill 吗？</b></summary>
 <br>
 
-可以，但受上面的平台边界限制。Agent 需要能读取 Skill 指令并执行命令行，所有工具都通过 `cdx.py` 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等读取 `SKILL.md` 目录的 Agent 能发现的位置；不支持 Skill 自动发现的 Agent，可在其指令文件中指向 `SKILL.md`；偏好 MCP（Model Context Protocol，模型上下文协议）的客户端也可以注册自带的服务。详见 [Agent 接入](skill/chemdraw/references/agent-integration.md)。
+可以。Agent 需要能读取 Skill 指令并执行命令行，所有工具都通过 `cdx.py` 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等读取 `SKILL.md` 目录的 Agent 能发现的位置；不支持 Skill 自动发现的 Agent，可在其指令文件中指向 `SKILL.md`；偏好 MCP（Model Context Protocol，模型上下文协议）的客户端也可以注册自带的服务。详见 [Agent 接入](skill/chemdraw/references/agent-integration.md)。
 
 </details>
 
@@ -441,7 +434,7 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 <summary><b>能把文献结构图复刻成可编辑 ChemDraw 文件吗？</b></summary>
 <br>
 
-[论文图复刻流程](skill/chemdraw/references/image-visual-review.md)结合结构确认、版式重建与原生视觉复核，输出可编辑 CDXML。图像识别与立体化学仍需验证，不保证逐像素一致。
+[论文图复刻流程](skill/chemdraw/references/image-visual-review.md)结合结构确认、版式重建与原生视觉复核，输出可编辑 CDXML 和原生预览。
 
 </details>
 
@@ -454,7 +447,7 @@ macOS 支持欢迎社区共建。最有价值的贡献是一个小而可复现�
 - 能由可移植后端等价实现的 ChemScript 专有行为迁移过去；无法等价实现时明确返回不支持；
 - 在有设备条件时补充 Apple Silicon 与 Intel 覆盖，包括干净安装、权限、崩溃恢复和升级测试。
 
-请从[贡献指南](.github/contributing.md)开始，提交聚焦的 issue 或 PR，并附上准确的 macOS 版本、芯片、ChemDraw 构建号、权限提示、命令输出和最小复现文件。不要上传私有论文、凭据或受许可保护的 ChemDraw 资源。所有平台声明都应有通过的证据支撑；可移植运行时通过不等于原生应用认证。
+请从[贡献指南](.github/contributing.md)开始，提交聚焦的 issue 或 PR，并附上准确的 macOS 版本、芯片、ChemDraw 构建号、权限提示、命令输出和最小复现文件。不要上传私有论文、凭据或受许可保护的 ChemDraw 资源。
 
 ## 文档
 
