@@ -7,7 +7,9 @@
   </picture>
 </p>
 
-<h3 align="center">Editable ChemDraw chemistry for any AI coding agent</h3>
+<h1 align="center">ChemDraw Skill</h1>
+
+<h3 align="center">Editable ChemDraw chemistry for Claude Code, Codex and any AI coding agent</h3>
 
 <p align="center">
   Draw structures, rebuild paper figures, turn spreadsheets into SAR panels and place live ChemDraw objects in Word and PowerPoint.<br>

@@ -7,7 +7,9 @@
   </picture>
 </p>
 
-<h3 align="center">让任意 AI 编程 Agent 都能产出可编辑的 ChemDraw 化学图</h3>
+<h1 align="center">ChemDraw Skill：AI 绘制可编辑化学结构式</h1>
+
+<h3 align="center">让 Claude Code、Codex 等任意 AI 编程 Agent 都能产出可编辑的 ChemDraw 化学图</h3>
 
 <p align="center">
   绘制化学结构、复刻论文图、把表格数据生成 SAR 图，并在 Word 和 PowerPoint 中嵌入可编辑的 ChemDraw 对象。<br>
