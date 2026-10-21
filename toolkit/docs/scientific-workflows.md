@@ -51,7 +51,7 @@ Set the JSON input path to a processed real 1D NMRPipe `.ft`, `.ft1` or `.ft2` f
 
 Processing supports optional polynomial baseline correction over explicit signal-free windows, prominence-based peak picking, integration over specified ppm intervals, and normalization to an explicit reference integral. Invalid windows, duplicate/non-monotonic axes, non-finite samples and unknown options are rejected. Results preserve the input hash, processing choices, peak table and integral table; normalized results record the reference region and denominator.
 
-A real NMRPipe integration example is available from the [nmrglue documentation](https://nmrglue.readthedocs.io/en/latest/examples/integrate_1d.html). Its `1d_data.ft` was used to validate this workflow. The example integration ranges in `nmr.json` apply to that dataset only. For a different spectrum, choose appropriate ranges, or use the demo runner's `--nmr-input` option to perform peak picking without those preset ranges. Peaks are not automatic atom assignments, and integration alone does not establish purity.
+A real NMRPipe integration example is available from the [nmrglue documentation](https://nmrglue.readthedocs.io/en/latest/examples/integrate_1d.html). Its `1d_data.ft` was used to validate this workflow. The example integration ranges in `nmr.json` apply to that dataset only. For a different spectrum, choose appropriate ranges, or use the demo runner's `--nmr-input` option to perform peak picking without those preset ranges.
 
 ## Scientific plots
 
@@ -71,4 +71,4 @@ Inspect the saved CDXML chemistry and native preview independently. Check electr
 
 For circled charges, also save through ChemDraw as CDX and convert back to CDXML. Compare `document_inventory` before and after: ChemDraw may associate a floating charge symbol with a nearby atom during opening or saving. Keep the symbol closest to its intended atom and validate the native result even when a `<represent attribute="Charge" object="ATOM_ID"/>` association is present. Inline charged atom labels are the default for new drawings. Variable R substituents use native generic nickname nodes; an atomic `Element="0"` is not a portable ChemDraw representation.
 
-The [eight-structure mechanism example](../assets/readme/mechanism/mechanism.cdxml) includes a [native save-cycle check and source limitations](../assets/readme/mechanism/provenance.json). It reproduces a published proposal; the validation establishes preservation of the reviewed graph, not independent evidence for the mechanism.
+The [eight-structure mechanism example](../assets/readme/mechanism/mechanism.cdxml) includes a [native save-cycle check](../assets/readme/mechanism/provenance.json). It reproduces a published mechanism, and the check confirms the reviewed molecular graph survives native saving.

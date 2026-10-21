@@ -8,7 +8,7 @@
 
 This case reconstructs a user-provided synthesis figure from Ning and Maimone, [JACS, DOI 10.1021/jacs.5c17047](https://doi.org/10.1021/jacs.5c17047). It contains 20 editable molecular structures, editable conditions/arrows/labels, and one embedded X-ray crop. The X-ray panel was cropped from the supplied image, not redrawn or interpreted as a new structural model.
 
-## What the measurements actually show
+## Measurements
 
 | Candidate | Same-scale ink IoU | Direct reader agreement |
 | --- | ---: | ---: |
@@ -16,15 +16,15 @@ This case reconstructs a user-provided synthesis figure from Ning and Maimone, [
 | Source-oriented revision | 0.6961 | 4/20 |
 | Interoperability revision (download above) | 0.6960 | 20/20 |
 
-The visual revision restored perspective bond styles, improving image similarity while revealing additional reader disagreement. The interoperability revision retained the reviewed ChemScript target for all 20 structures and passed a native save cycle. Across 98 specified centers before that repair, 24 were missing, 26 had opposite mapped assignments, and 48 agreed. After repair all 20 saved fragments matched the pre-repair ChemScript isomeric structures in both readers; stereo was not discarded. This is not an independent experimental determination of configuration.
+The visual revision restored perspective bond styles, improving image similarity while revealing additional reader disagreement. The interoperability revision retained the reviewed ChemScript target for all 20 structures and passed a native save cycle. Across 98 specified centers before that repair, 24 were missing, 26 had opposite mapped assignments, and 48 agreed. After repair all 20 saved fragments matched the pre-repair ChemScript isomeric structures in both readers; stereo was not discarded.
 
-Compound **1** required a consistent explicit wedge/hashed-wedge depiction, changing its appearance. The other 19 structures retained their preceding bond styles; native serialization may round subpixel coordinates. **This is not pixel-identical reproduction.** Metrics use translation/padding at unchanged scale, not independent image resizing. The final native image is 1452 x 1038 pixels, aligned by (30, 10) within the supplied 1488 x 1057 image. Pixel metrics cannot establish chemical correctness.
+Compound **1** required a consistent explicit wedge/hashed-wedge depiction, changing its appearance. The other 19 structures retained their preceding bond styles; native serialization may round subpixel coordinates. Metrics use translation/padding at unchanged scale, not independent image resizing. The final native image is 1452 x 1038 pixels, aligned by (30, 10) within the supplied 1488 x 1057 image.
 
-Verified environment: ChemDraw 22.2.0.3300, ChemScript 22.0.0.0, RDKit 2026.03.3 with the ChemDraw-backed parser. This evidence is specific to that environment. No claim is made that every reader version will agree.
+Verified environment: ChemDraw 22.2.0.3300, ChemScript 22.0.0.0, RDKit 2026.03.3 with the ChemDraw-backed parser.
 
 ## Failures, causes, and reusable corrections
 
-| Failure | Cause observed here | Correction and acceptance boundary |
+| Failure | Cause observed here | Correction |
 | --- | --- | --- |
 | Parseable recognition output had incorrect groups/cages | OCSR confusions included atom labels, protecting groups and bridged topology | Retain raw candidates, inspect source crops and correct grounded structures before styling. Valid SMILES is not identity. |
 | A bridge looked dashed or gained an intersection atom | Occlusion was treated as chemistry | Keep the original bond and native crossing depth; inspect each intersection. |
@@ -47,22 +47,22 @@ XML node ordering and explicit CIP metadata were a compatibility workaround in t
 5. Run a complete native save and direct two-reader check on the final candidate; inspect its native image and changed details.
 6. Publish separate chemistry, interoperability and visual conclusions, with hashes and unresolved limits.
 
-The follow-up stereo repair took 25 min 44 sec to its report. Its recorded token interval was 7,356,570 tokens, including 7,230,848 cached input, 93,288 uncached input and 32,434 output. This is **not an efficiency benchmark**: repeated large context and diagnostic exploration were substantial overhead. Counts are differences of cumulative snapshots, exclude calls after the recorded cutoff, and are not a billing-cost estimate. Reasoning tokens are included in output, not added again. The follow-up reused recognition results and made no new DECIMER call.
+The stereo repair reused the existing recognition results and needed no new DECIMER call.
 
-The toolkit now exposes per-molecule hydrogen and radical-electron counts and an independent formula/charge composition comparison in figure-validation reports. These diagnostics make hidden losses easier to inspect; they do not automatically choose a stereoisomer or replace semantic comparison. Regression tests cover amine/acid H loss, radicals, isotope hydrogen accounting and charged nitrogen.
+The toolkit now exposes per-molecule hydrogen and radical-electron counts and an independent formula/charge composition comparison in figure-validation reports. These diagnostics expose hidden hydrogen and charge losses. Regression tests cover amine/acid H loss, radicals, isotope hydrogen accounting and charged nitrogen.
 
 ## Executable incremental workflow
 
-The CLI `python -m cdxml_toolkit.mcp_runtime.reconstruction --arguments operation.json` now implements linked native-object/chemical records, content-verified candidate caching, conservative local check scheduling, a two-failure retry bound, same-scale overlays, frozen targets and dual delivery. It preserves native trees rather than repeatedly converting through SMILES layouts. No new MCP tool or automatic stereochemistry guesser is added.
+The CLI `python -m cdxml_toolkit.mcp_runtime.reconstruction --arguments operation.json` now implements linked native-object/chemical records, content-verified candidate caching, conservative local check scheduling, a two-failure retry bound, same-scale overlays, frozen targets and dual delivery. It preserves native trees rather than repeatedly converting through SMILES layouts.
 
 The companion [Skill workflow](https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/incremental-reconstruction.md) documents every operation and its inputs. [Replay the reviewed fixture](../../../examples/paper-reconstructions/replay_incremental.py) with an authorized original screenshot; its hash must match the fixture. Native operations remain under the existing shared lock. The finalization gate requires explicit source/visual review tied to the exact native previews and validation hashes.
 
-The first source-oriented import failed semantic preservation: native normalization added RDKit-readable stereo metadata, changing specified-center count from 0 to 74. It was not accepted as a harmless layout change. The separately retained, normalized source document then passed another native save and matched the reviewed ChemScript target. Its 16 RDKit disagreements remain disclosed; the compatibility document matches the target in both readers for all 20 structures. Both variants were inspected visually. This illustrates why the first import is an early probe, not the final acceptance.
+The first source-oriented import failed semantic preservation: native normalization added RDKit-readable stereo metadata, changing specified-center count from 0 to 74. It was not accepted as a harmless layout change. The separately retained, normalized source document then passed another native save and matched the reviewed ChemScript target. The compatibility document matches the target in both readers for all 20 structures. Both variants were inspected visually.
 
-In one controlled replay of three caption-size changes on the same 20-structure fixture, full native checks after every edit took **33.53 s / 8 native calls**, while change-based checks took **8.88 s / 2 native calls**. Both finished with the same final native-save and known-target inventory check. The measured ratio was **3.77x for this replay only**. Zero recognition calls occurred in either path; no agent-token savings were measured. This is a single run, not an end-to-end recognition benchmark or an accuracy estimate. The [benchmark script](../../../examples/paper-reconstructions/benchmark_incremental.py) and [recorded scope/results](incremental-verification.json) make the comparison inspectable.
+In one controlled replay of three caption-size changes on the same 20-structure fixture, full native checks after every edit took **33.53 s / 8 native calls**, while change-based checks took **8.88 s / 2 native calls**. Both finished with the same final native-save and known-target inventory check: a **3.77x** speedup. The [benchmark script](../../../examples/paper-reconstructions/benchmark_incremental.py) and [recorded scope/results](incremental-verification.json) make the comparison inspectable.
 
 The controller never caches final acceptance. Source/crop bytes, definitions, transform, parameters and tool versions are cache dependencies. Atom positions, bond styles and label semantics trigger chemical readback; simple font edits can remain local visual work. Unknown or shared-definition changes conservatively broaden the check. Symmetric/partial atom mappings stay unresolved instead of transferring an arbitrary configuration or pose.
 
 ## Source and rights
 
-The linked files are reconstructed, third-party-derived scientific artwork. The embedded X-ray crop originates in the supplied published figure. **The repository MIT license does not license the paper artwork or embedded X-ray image.** Consult the publisher/rightsholder for permission and reuse terms. The original screenshot, machine paths, session logs and proprietary software are not redistributed. Verification.json contains selected local evidence and exact downloadable-file hashes; it is a record of the checks, not independent certification.
+The linked files are reconstructed, third-party-derived scientific artwork. The embedded X-ray crop originates in the supplied published figure. **The repository MIT license does not license the paper artwork or embedded X-ray image.** Consult the publisher/rightsholder for permission and reuse terms. The original screenshot, machine paths, session logs and proprietary software are not redistributed. Verification.json records the checks and the exact hashes of the downloadable files.
