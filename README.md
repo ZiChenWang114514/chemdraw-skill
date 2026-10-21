@@ -10,8 +10,8 @@
 <h3 align="center">Editable ChemDraw chemistry for any AI coding agent</h3>
 
 <p align="center">
-  Draw structures, rebuild paper figures, turn spreadsheets into SAR panels and place live ChemDraw objects in Word and PowerPoint —<br>
-  from Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode or any agent that can run a shell command.
+  Draw structures, rebuild paper figures, turn spreadsheets into SAR panels and place live ChemDraw objects in Word and PowerPoint.<br>
+  Works with Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and any agent that can run a shell command.
 </p>
 
 <p align="center">
@@ -81,8 +81,8 @@ Every card is a native ChemDraw render of an editable file in this repository. C
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 cd chemdraw-skill
-python scripts/install.py --agent claude agents --runtime          # preview: prints what would be installed
-python scripts/install.py --agent claude agents --runtime --apply  # install the Skill and the shared runtime
+python scripts/install.py --agent claude agents --runtime          # preview only
+python scripts/install.py --agent claude agents --runtime --apply  # install
 ```
 
 **2. Check** what works on this machine:

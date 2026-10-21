@@ -10,7 +10,7 @@
 <h3 align="center">让任意 AI 编程 Agent 都能产出可编辑的 ChemDraw 化学图</h3>
 
 <p align="center">
-  绘制化学结构、复刻论文图、把表格数据生成 SAR 图，并在 Word 和 PowerPoint 中嵌入可编辑的 ChemDraw 对象——<br>
+  绘制化学结构、复刻论文图、把表格数据生成 SAR 图，并在 Word 和 PowerPoint 中嵌入可编辑的 ChemDraw 对象。<br>
   Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 以及任何能执行命令行的 Agent 都能使用。
 </p>
 
@@ -81,8 +81,8 @@
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 cd chemdraw-skill
-python scripts/install.py --agent claude agents --runtime          # 预览：只打印将要安装的内容
-python scripts/install.py --agent claude agents --runtime --apply  # 安装 Skill 和共享运行时
+python scripts/install.py --agent claude agents --runtime          # 仅预览
+python scripts/install.py --agent claude agents --runtime --apply  # 安装
 ```
 
 **2. 检查**本机可用的功能：
