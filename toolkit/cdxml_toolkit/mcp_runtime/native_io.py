@@ -29,7 +29,12 @@ def _ascii(path: Path) -> bool:
 
 
 def normalize_cdxml_staging(path: Path) -> None:
-    """Normalize only a staged XML declaration; preserve document content and source."""
+    """Normalize a staged copy for native use; the source document is never changed.
+
+    The XML declaration is normalized everywhere.  On macOS, fonts the Mac does
+    not have are also renamed to installed equivalents, because ChemDraw for
+    macOS otherwise stops at a blocking font-substitution alert.
+    """
     if path.suffix.lower() != '.cdxml':
         return
     data = path.read_bytes()
@@ -37,6 +42,10 @@ def normalize_cdxml_staging(path: Path) -> None:
     if match and b'encoding="UTF-8"' not in match.group(0):
         data.decode('utf-8')
         path.write_bytes(match.group(1) + b'UTF-8' + match.group(2) + data[match.end():])
+    from ..chemdraw import mac_automation
+
+    if mac_automation.is_macos():
+        mac_automation.substitute_missing_fonts(path)
 
 
 def _windows_short_path(path: Path) -> Path | None:
