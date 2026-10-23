@@ -29,6 +29,9 @@ NATIVE_PROBE_TIMEOUT_SECONDS = 75
 CHEMSCRIPT_PROBE_TIMEOUT_SECONDS = 30
 OFFICE_PROBE_TIMEOUT_SECONDS = 60
 PROBE_HARD_LIMIT_SECONDS = 240
+# macOS has no Job Object to kill what a timed-out stage launched; the audit
+# gets this long to stop those applications itself.
+MAC_TIMEOUT_CLEANUP_SECONDS = 10
 
 
 def _status(available: bool, **details: Any) -> dict[str, Any]:
@@ -86,6 +89,10 @@ def _chemdraw_capabilities() -> tuple[dict[str, Any], dict[str, Any]]:
         executable = _status(True, path=discovery.path, source=discovery.source)
     except RuntimeError as exc:
         executable = _status(False, detail=str(exc))
+    from ..chemdraw import mac_automation
+
+    if mac_automation.is_macos():
+        return executable, _macos_automation_capability()
     command = runtime_discovery._registry_local_server_command()
     registered = bool(command)
     com = _status(
@@ -94,6 +101,15 @@ def _chemdraw_capabilities() -> tuple[dict[str, Any], dict[str, Any]]:
         **({"local_server": command} if command else {}),
     )
     return executable, com
+
+
+def _installed_opsin_folder() -> Path:
+    """Where ``scripts/install.py --opsin`` puts the OPSIN JAR (beside the shared runtime venv)."""
+    if os.name == "nt":
+        base = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
+    else:
+        base = os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
+    return Path(base) / "chemdraw-skill" / "opsin"
 
 
 def _java_opsin_capabilities() -> tuple[dict[str, Any], dict[str, Any]]:
@@ -113,6 +129,7 @@ def _java_opsin_capabilities() -> tuple[dict[str, Any], dict[str, Any]]:
         value = os.environ.get(variable)
         if value:
             opsin_candidates.append(Path(value).expanduser())
+    opsin_candidates.extend(sorted(_installed_opsin_folder().glob("opsin-cli-*.jar"), reverse=True))
     opsin = next((path.resolve() for path in opsin_candidates if path.is_file()), None)
     return (
         _status(java is not None, **({"path": str(java)} if java else {})),
@@ -147,15 +164,43 @@ def _decimer_capability() -> dict[str, Any]:
     return _status(available, root=str(root), models=models)
 
 
+def _macos_automation_capability() -> dict[str, Any]:
+    """ChemDraw for macOS is automated through its AppleScript dictionary."""
+    from ..chemdraw import mac_automation
+
+    bundle = mac_automation.find_application()
+    if bundle is None:
+        return _status(False, automation="applescript", detail="ChemDraw for macOS was not found")
+    info = mac_automation.application_info(bundle)
+    dictionary = bundle / "Contents" / "Resources" / str(info.get("OSAScriptingDefinition") or "ChemDraw.sdef")
+    scriptable = bool(info.get("NSAppleScriptEnabled")) and dictionary.is_file()
+    return _status(
+        scriptable,
+        automation="applescript",
+        application=str(bundle),
+        bundle_identifier=info.get("CFBundleIdentifier"),
+        version=info.get("CFBundleShortVersionString"),
+        **(
+            {}
+            if scriptable
+            else {"detail": "This ChemDraw build has no AppleScript dictionary"}
+        ),
+    )
+
+
 def _office_capability() -> dict[str, Any]:
+    from ..chemdraw import mac_automation
+
     dependencies = {
         "python-pptx": _module_available("pptx"),
         "python-docx": _module_available("docx"),
         "olefile": _module_available("olefile"),
-        "win32com": _module_available("win32com.client"),
     }
+    if not mac_automation.is_macos():
+        # Word and PowerPoint for macOS are automated through AppleScript instead.
+        dependencies["win32com"] = _module_available("win32com.client")
     ready = all(dependencies.values())
-    return {
+    capability = {
         "status": "unverified" if ready else "missing",
         "dependencies": dependencies,
         "detail": (
@@ -164,6 +209,15 @@ def _office_capability() -> dict[str, Any]:
             else "One or more Office/OLE dependencies are missing"
         ),
     }
+    if mac_automation.is_macos():
+        # Embedding needs only ChemDraw; Word and PowerPoint are needed for PDF previews.
+        from cdxml_toolkit.office import mac_office
+
+        capability["pdf_export"] = {
+            label: (str(path) if (path := mac_office.application_path(suffix)) else None)
+            for label, suffix in (("word", ".docx"), ("powerpoint", ".pptx"))
+        }
+    return capability
 
 
 def _native_probe() -> dict[str, Any]:
@@ -293,6 +347,8 @@ def _audit_stage_processes(
     timed_out: bool,
     deadline: float,
 ) -> dict[str, Any]:
+    if timed_out and sys.platform == "darwin":
+        deadline = max(deadline, time.monotonic() + MAC_TIMEOUT_CLEANUP_SECONDS)
     while True:
         remaining = deadline - time.monotonic()
         if remaining <= 0:

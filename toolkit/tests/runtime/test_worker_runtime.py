@@ -133,7 +133,7 @@ class WorkerRuntimeTests(unittest.TestCase):
         for name in ("resolve_name", "modify_molecule", "draw_molecule", "parse_scheme"):
             self.assertIsNone(specs[name].resource_class, name)
 
-    @unittest.skipUnless(os.name == "nt", "Windows named mutex behavior")
+    @unittest.skipUnless(os.name == "nt" or sys.platform == "darwin", "ChemDraw automation platforms")
     def test_named_chemdraw_mutex_serializes_callers(self):
         first_entered = threading.Event()
         release_first = threading.Event()
@@ -161,6 +161,57 @@ class WorkerRuntimeTests(unittest.TestCase):
         second_thread.join(2)
         self.assertFalse(first_thread.is_alive())
         self.assertFalse(second_thread.is_alive())
+
+    @unittest.skipUnless(os.name == "nt" or sys.platform == "darwin", "ChemDraw automation platforms")
+    def test_chemdraw_lock_is_reentrant_within_a_thread(self):
+        with resource_lock.native_resource_lock("chemdraw_com", 2):
+            with resource_lock.native_resource_lock("chemdraw_com", 2):
+                pass
+
+    @unittest.skipUnless(sys.platform == "darwin", "macOS file lock")
+    def test_chemdraw_lock_excludes_other_processes(self):
+        holder = subprocess.Popen(
+            [sys.executable, "-c",
+             "import sys, time\n"
+             "from cdxml_toolkit.mcp_runtime.resource_lock import native_resource_lock\n"
+             "with native_resource_lock('chemdraw_com', 5):\n"
+             "    print('held', flush=True); time.sleep(3)\n"],
+            stdout=subprocess.PIPE, text=True,
+        )
+        try:
+            self.assertEqual(holder.stdout.readline().strip(), "held")
+            with self.assertRaises(resource_lock.ResourceBusyError):
+                with resource_lock.native_resource_lock("chemdraw_com", 1):
+                    pass
+        finally:
+            holder.wait(10)
+            holder.stdout.close()
+        with resource_lock.native_resource_lock("chemdraw_com", 2):
+            pass
+
+    @unittest.skipUnless(sys.platform == "darwin", "macOS file lock")
+    def test_child_processes_share_their_parents_chemdraw_lock(self):
+        with resource_lock.native_resource_lock("chemdraw_com", 2):
+            child = subprocess.run(
+                [sys.executable, "-c",
+                 "from cdxml_toolkit.mcp_runtime.resource_lock import native_resource_lock\n"
+                 "with native_resource_lock('chemdraw_com', 1):\n"
+                 "    print('entered')\n"],
+                capture_output=True, text=True, timeout=20,
+            )
+        self.assertEqual(child.stdout.strip(), "entered", child.stderr)
+        self.assertNotIn(resource_lock.LOCK_HOLDER_ENV, os.environ)
+
+    def test_worker_environment_keeps_the_posix_user_context(self):
+        with mock.patch.dict(os.environ, {"HOME": "/Users/x", "TMPDIR": "/var/folders/t/", "LANG": "en_US.UTF-8"}):
+            environment = mcp_server._worker_environment()
+        for key in ("HOME", "TMPDIR", "LANG"):
+            self.assertIn(key, environment)
+
+    def test_worker_environment_passes_the_lock_holder(self):
+        with mock.patch.dict(os.environ, {resource_lock.LOCK_HOLDER_ENV: "123"}):
+            environment = mcp_server._worker_environment()
+        self.assertEqual(environment.get(resource_lock.LOCK_HOLDER_ENV), "123")
 
     def test_worker_reports_resource_busy_without_diagnostic_log(self):
         error = resource_lock.ResourceBusyError("chemdraw_com", 2)

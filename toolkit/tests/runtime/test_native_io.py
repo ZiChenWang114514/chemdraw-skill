@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import contextlib
 import os
 from pathlib import Path
 import struct
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -323,14 +325,16 @@ class NativeIOIntegrationTests(unittest.TestCase):
                 self.assertTrue(str(native_destination).isascii())
                 Image.new("RGB", (5, 6), "white").save(native_destination)
 
-            with mock.patch("pythoncom.CoInitialize"), mock.patch(
-                "pythoncom.CoUninitialize"
-            ), mock.patch(
-                "cdxml_toolkit.mcp_runtime.office_objects.native_renderer.render_cdxml",
-                side_effect=lambda source, destination, *, dpi: render(
-                    source, destination, png_dpi=dpi
-                ),
-            ):
+            with contextlib.ExitStack() as stack:
+                if sys.platform == "win32":
+                    stack.enter_context(mock.patch("pythoncom.CoInitialize"))
+                    stack.enter_context(mock.patch("pythoncom.CoUninitialize"))
+                stack.enter_context(mock.patch(
+                    "cdxml_toolkit.mcp_runtime.office_objects.native_renderer.render_cdxml",
+                    side_effect=lambda source, destination, *, dpi: render(
+                        source, destination, png_dpi=dpi
+                    ),
+                ))
                 office_objects._render_cdxml_preview(source, destination)
 
             self.assertTrue(destination.is_file())

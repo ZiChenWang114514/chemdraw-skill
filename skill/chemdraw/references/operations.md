@@ -2,15 +2,15 @@
 
 ## When To Load
 
-Load for installation, upgrade, worker timeout, ChemDraw COM, ChemScript, DECIMER, or path problems. Agent setup and the command reference are in [agent integration](agent-integration.md).
+Load for installation, upgrade, worker timeout, ChemDraw COM, ChemDraw for macOS, ChemScript, DECIMER, or path problems. Agent setup and the command reference are in [agent integration](agent-integration.md).
 
 ## Health check
 
 ```bash
 cdx.py doctor                 # toolkit/Python versions, missing extras, signature drift, installation manifest, capability matrix
 cdx.py doctor --paths         # also worker-log folder, native mutex name, native temp root, ChemScript path
-cdx.py doctor --native        # + ChemScript ping and a temporary CDXML -> PNG render through ChemDraw COM
-cdx.py doctor --office        # + Word and PowerPoint ChemDraw-OLE probes
+cdx.py doctor --native        # + ChemScript ping and a temporary CDXML -> PNG render through ChemDraw (COM or macOS)
+cdx.py doctor --office        # + PPTX and DOCX ChemDraw-OLE embedding probes (packages built and validated; Office is not opened)
 cdx.py doctor --full          # include the complete diagnose_runtime() result
 ```
 
@@ -21,9 +21,9 @@ The report is read-only. A skipped probe is not a verified capability. ChemScrip
 ## Requirements by capability
 
 - Portable CDXML and RDKit work: 64-bit Python 3.10–3.13 with the bundled `cdxml_toolkit` runtime (3.14 and newer are not supported by the toolkit yet; the installer picks an older interpreter or takes `--python`). The pinned source is `runtime.json` (`repository`, `commit`, `toolkit_version`).
-- Native rendering, CDX conversion and ChemDraw cleanup: licensed desktop ChemDraw, .NET Framework 4.8, working `ChemDraw.Application` COM registration. Confirm activation manually once.
-- Molecular comparison and ChemScript SDK: managed and native ChemScript DLLs (`pythonnet`). Keep the main runtime 64-bit; a legacy 32-bit ChemScript needs a separate helper Python (`CHEMSCRIPT_PYTHON`).
-- Editable DOCX/PPTX objects: desktop Word/PowerPoint.
+- Native rendering, CDX conversion and ChemDraw cleanup: licensed desktop ChemDraw. Windows: .NET Framework 4.8 and a working `ChemDraw.Application` COM registration. macOS: ChemDraw for macOS in `/Applications` and the Automation permission ([macOS](#macos)). Confirm activation manually once.
+- Molecular comparison and ChemScript: Windows uses the managed and native ChemScript DLLs (`pythonnet`); keep the main runtime 64-bit, and a legacy 32-bit ChemScript needs a separate helper Python (`CHEMSCRIPT_PYTHON`). macOS has no ChemScript; the same commands run on ChemDraw for macOS, OPSIN and RDKit. The raw ChemScript SDK tools are Windows-only.
+- Editable DOCX/PPTX objects: building, inspecting, replacing and extracting them needs only ChemDraw; PDF previews need desktop Word/PowerPoint (activated Microsoft 365 on macOS).
 - Recognition: the remote DECIMER API needs no local weights. Local OCSR needs DECIMER weights (below).
 
 Optional dependency groups (`pip` extras) and what fails without them:
@@ -32,10 +32,10 @@ Optional dependency groups (`pip` extras) and what fails without them:
 | --- | --- | --- |
 | `publication` | openpyxl | XLSX tables in data-driven figures |
 | `scientific` | numpy, scipy, matplotlib, nmrglue | NMR, plots, `assets/scientific` examples |
-| `office` | pywin32, python-docx, python-pptx, olefile | Office extraction, embedding, replacement |
+| `office` | python-docx, python-pptx, olefile (+ pywin32 on Windows) | Office extraction, embedding, replacement |
 | `analysis` | pdfplumber, pymupdf | LCMS/NMR PDF reports |
 | `image` | opencv-python, pytesseract | image segmentation helpers |
-| `chemscript` | pythonnet | ChemScript bridge |
+| `chemscript` | pythonnet (Windows); py2opsin (macOS) | ChemScript bridge |
 | `decimer` | tensorflow, decimer | local OCSR only |
 
 ## Install or upgrade
@@ -46,6 +46,7 @@ From a repository checkout, on any OS (preview first, then `--apply`):
 python scripts/install.py --agent <name> --runtime              # proposal
 python scripts/install.py --agent <name> --runtime --apply      # install; add --python <3.10-3.13> if none is found
 python scripts/install.py --destination <other skills folder>/chemdraw --apply
+python scripts/install.py --runtime --opsin --apply             # also download the OPSIN JAR (SHA-256 verified)
 ```
 
 The installer stages and verifies each copy, moves a previous installation to the shared backup folder, restores it on failure, then (with `--runtime`) creates or reuses the shared venv and installs the pinned toolkit with every extra that applies to the OS. It writes `manifest.json` last. Agent presets, folders and the runtime search order are in [agent integration](agent-integration.md).
@@ -80,7 +81,8 @@ cdx.py py <skill>/scripts/check_installation.py --write-manifest       # accept 
 Runtime selection and workers:
 
 - `CHEMDRAW_MCP_PYTHON` — runtime interpreter for `cdx.py` (otherwise `runtime.local.json`, a sibling `chemdraw-venv`, the shared venv, then a conda env named `cdxml`)
-- `CHEMDRAW_EXE` — explicit ChemDraw executable
+- `CHEMDRAW_EXE` — explicit ChemDraw executable (on macOS the binary inside the `.app` or the bundle; otherwise `/Applications/ChemDraw*.app` is found)
+- `OPSIN_JAR`, `CDXML_TOOLKIT_OPSIN_JAR` — explicit OPSIN JAR (otherwise the one `install.py --opsin` placed beside the shared venv)
 - `CHEMDRAW_NATIVE_TEMP` — writable ASCII-only root for native staging
 - `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`, `CHEMDRAW_MCP_WORKER_INPUT_BYTES`, `CHEMDRAW_MCP_WORKER_OUTPUT_BYTES`
 - `CHEMSCRIPT_PYTHON`, `CHEMSCRIPT_CONFIG_PATH`
@@ -110,7 +112,22 @@ HTTP 502/503/504 from the remote API indicates a gateway or service failure, not
 - Native path failure: inputs are copied into an ASCII-only workspace before COM calls and published transactionally. `native_ascii_workspace_unavailable`, `native_saveas_silent_failure`, `native_output_missing` and `native_output_invalid` identify failures before publication. Set `CHEMDRAW_NATIVE_TEMP` if the default temp path is unusable.
 - `chemdraw_license_unavailable` (HRESULT `-2147221230`): stop native validation and check the product license, Python bitness and COM registration. Showing a hidden window is not an activation fix.
 - ChemScript failure: `cdx.py doctor --chemscript`; for one file `cdx.py chemscript-info FILE`. Do not call the private bridge server protocol.
+- macOS failures (`chemdraw_automation_not_authorized`, `chemdraw_in_use`, `office_not_ready`, ...): see [macOS](#macos).
 - Rendered PNG unchanged after an edit: an old PNG with the same name blocked the write. `cdx.py render` removes it first; other routes must write a new name.
+
+## macOS
+
+ChemDraw for macOS is driven through AppleScript (`osascript`) instead of COM. The tools, arguments and outputs are the same as on Windows; the differences below are what an agent may see.
+
+- **Permission.** The first native call asks macOS to let the terminal or agent app control ChemDraw (and Word/PowerPoint for PDF previews). If it was denied, the call fails with `chemdraw_automation_not_authorized` (`office_automation_not_authorized`); allow the app under System Settings > Privacy & Security > Automation. Do not loop retries.
+- **Hidden instance.** The toolkit launches ChemDraw in the background without a window (`open -g -j`) and quits it afterwards. It records the instances it starts in `~/Library/Caches/chemdraw-skill/launched` and terminates those, and only those, when their owning process died or a quit was blocked by a dialog. A ChemDraw the user opened is never quit or killed. A window may flash briefly while ChemDraw opens a document.
+- **Fonts.** ChemDraw for macOS stops on a "font is not available" alert when a document names a missing Windows font. Staged copies replace missing fonts with installed equivalents (SimSun and its Chinese name → Songti SC, SimHei → Heiti SC, Microsoft YaHei → PingFang SC, Calibri → Helvetica Neue, ...); the source file is not changed.
+- **ChemScript.** There is no ChemScript for macOS. Names → structures use OPSIN first and ChemDraw's Name to Structure as fallback; structure → name, cleanup and conversion use ChemDraw; formula, mass, substructure, MCS and overlay use RDKit. Results can differ from ChemScript in naming style. A name neither OPSIN nor ChemDraw recognizes costs about 6 s, because ChemDraw's alert is cleared by restarting the hidden instance; the rejection is cached for the session, so repeats fail at once. `execute_chemscript_sdk` and `inspect_chemscript_sdk` fail with `chemscript_sdk_windows_only`.
+- **Formats.** ChemDraw for macOS saves CDX, CDXML, PNG (300 dpi), SVG, PDF, TIFF, GIF, JPEG, BMP, EPS, molfile, SDfile, RXN, CML, SKC and TGF. It cannot write EMF, so OLE previews in DOCX/PPTX are a bitmap EMF wrapping the 300 dpi PNG instead of a vector EMF. PPTX objects also carry the picture in the `mc:Choice` branch so Quick Look and PowerPoint without an OLE server show it.
+- **Office.** Building, inspecting, replacing and extracting ChemDraw objects need only ChemDraw. PDF previews of the result run Word/PowerPoint for macOS on a copy in the Office group container; Office must have been started once, signed in and activated. Otherwise the call fails with `office_not_ready` after its timeout: activate Office, or pass `render_pdf_preview=False` where the tool offers it. Double-click editing of embedded objects in Office for macOS depends on Microsoft's OLE support and is not guaranteed.
+- **Captions.** ChemDraw for macOS turns a free caption that reads like a formula (`MeOH`, `Et3N`) into a structure fragment during Clean Up and other menu commands. The toolkit marks captions as plain text in the staged copy for the duration of the command and removes the mark from the output, so reaction roles and caption text are unchanged.
+- **ELN cleanup.** `cleanup_eln_cdx` applies the ACS Document 1996 settings through CDXML (bond length, Arial 10 pt bold captions) before ChemDraw's Clean Up Structure/Reaction, because ChemDraw for macOS cannot apply `.cds` style sheets from AppleScript. A custom `style_path` prints a warning and is skipped.
+- **Errors.** `chemdraw_not_found` (install ChemDraw in `/Applications` or set `CHEMDRAW_EXE`), `chemdraw_in_use` (name conversion only runs in a ChemDraw the toolkit started; close the user's ChemDraw or retry later), `native_timeout` (a dialog is open in ChemDraw), `chemdraw_not_running`, `native_format_unsupported`, `chemdraw_license_unavailable`.
 
 ## Remote HTTP (only when asked)
 

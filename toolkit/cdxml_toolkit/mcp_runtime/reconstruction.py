@@ -15,6 +15,7 @@ from rdkit import Chem, rdBase
 from ..chemistry_semantics import semantic_key, read_molecules
 from . import artifact_safety as safety
 from .figure_validation import inspect_document, validate_figure, _worker
+from . import native_renderer
 
 
 def _json(value):
@@ -355,7 +356,7 @@ def _finalize(package_dir, review_record):
             files.append({'path':name,'sha256':result[key]})
         receipt=_read(folder/(variant+'-render-receipt.json'))
         receipt=receipt.get('result',receipt)
-        if receipt.get('metadata',{}).get('renderer')!='ChemDraw COM':
+        if receipt.get('metadata',{}).get('renderer') not in native_renderer.NATIVE_RENDERERS:
             raise ValueError('Native renderer receipt missing')
         rendered=receipt.get('outputs',{}).get('rendered',[])
         evidence={str(Path(a['path']).resolve()):a['sha256'] for a in receipt.get('metadata',{}).get('artifacts',[])}

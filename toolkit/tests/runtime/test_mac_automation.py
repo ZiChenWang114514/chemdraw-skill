@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -19,8 +20,22 @@ CDXML_WITH_WINDOWS_FONTS = (
     '<font id="5" charset="Unicode" name="SimSun"/>'
     '<font id="6" charset="iso-8859-1" name="Calibri"/>'
     '<font id="7" charset="Unicode" name="&#x5B8B;&#x4F53;"/>'
-    '</fonttable><page><t><s font="5">反应</s></t></page></CDXML>'
+    '</fonttable><page><t><s font="5">\u53cd\u5e94</s></t></page></CDXML>'
 )
+
+_REGISTRY = tempfile.TemporaryDirectory()
+_REGISTRY_PATCH = mock.patch.object(mac_automation, "LAUNCH_REGISTRY", Path(_REGISTRY.name))
+
+
+def setUpModule():
+    # Session launches in these tests must never touch the user's launch registry.
+    _REGISTRY_PATCH.start()
+
+
+def tearDownModule():
+    _REGISTRY_PATCH.stop()
+    _REGISTRY.cleanup()
+
 
 MAC_FAMILIES = frozenset({"Arial", "Helvetica", "Helvetica Neue", "Songti SC", "PingFang SC", "Times New Roman"})
 
@@ -44,7 +59,7 @@ class FontSubstitutionTests(unittest.TestCase):
         self.assertNotIn("Calibri", text)
         self.assertEqual(
             changes,
-            {"SimSun": "Songti SC", "Calibri": "Helvetica Neue", "宋体": "Songti SC"},
+            {"SimSun": "Songti SC", "Calibri": "Helvetica Neue", "\u5b8b\u4f53": "Songti SC"},
         )
 
     def test_installed_fonts_and_document_content_are_preserved(self):
@@ -53,7 +68,7 @@ class FontSubstitutionTests(unittest.TestCase):
         text = self.path.read_text(encoding="utf-8")
         self.assertIn('name="Arial"', text)
         self.assertIn("<!DOCTYPE CDXML", text)
-        self.assertIn('<s font="5">反应</s>', text)
+        self.assertIn('<s font="5">\u53cd\u5e94</s>', text)
 
     def test_unknown_missing_font_falls_back_by_charset(self):
         self.path.write_text(
@@ -191,5 +206,424 @@ class MacNativeRendererTests(unittest.TestCase):
         self.assertEqual(raised.exception.error_code, "chemdraw_automation_not_authorized")
 
 
+class SessionLaunchTests(unittest.TestCase):
+    def test_launch_detaches_chemdraw_from_caller_stdio(self):
+        running = iter([False, True])
+        with mock.patch.object(mac_automation, "find_application", return_value=Path("/Applications/ChemDraw.app")), \
+                mock.patch.object(mac_automation, "bundle_identifier", return_value="com.revvity.ChemDraw"), \
+                mock.patch.object(mac_automation, "is_running", side_effect=lambda _bundle: next(running)), \
+                mock.patch.object(mac_automation, "application_pid", return_value=4242), \
+                mock.patch.object(mac_automation.subprocess, "run") as run:
+            session = mac_automation.MacChemDrawSession(timeout_seconds=5)
+            session.start()
+
+        self.assertTrue(session.launched)
+        kwargs = run.call_args.kwargs
+        for stream in ("stdin", "stdout", "stderr"):
+            self.assertIs(kwargs[stream], mac_automation.subprocess.DEVNULL)
+
+    def test_session_only_quits_chemdraw_it_launched(self):
+        with mock.patch.object(mac_automation, "run_applescript") as run:
+            session = mac_automation.MacChemDrawSession(timeout_seconds=5)
+            session.bundle_id = "com.revvity.ChemDraw"
+            session.launched = False
+            session.close()
+        run.assert_not_called()
+
+    def test_launch_keeps_chemdraw_hidden(self):
+        running = iter([False, True])
+        with mock.patch.object(mac_automation, "find_application", return_value=Path("/Applications/ChemDraw.app")), \
+                mock.patch.object(mac_automation, "bundle_identifier", return_value="com.revvity.ChemDraw"), \
+                mock.patch.object(mac_automation, "is_running", side_effect=lambda _bundle: next(running)), \
+                mock.patch.object(mac_automation, "application_pid", return_value=4242), \
+                mock.patch.object(mac_automation.subprocess, "run") as run:
+            session = mac_automation.MacChemDrawSession(timeout_seconds=5)
+            session.start()
+
+        self.assertIn("-j", run.call_args.args[0])
+        self.assertEqual(session.pid, 4242)
+
+
+def _saved_path(args):
+    """Destination of the save step in a run_steps argument list."""
+    if "save-within" in args:
+        return Path(args[args.index("save-within") + 2])
+    return Path(args[args.index("save") + 1])
+
+
+def _owned_session(launched: bool = True) -> mac_automation.MacChemDrawSession:
+    session = mac_automation.MacChemDrawSession(timeout_seconds=5)
+    session.bundle = Path("/Applications/ChemDraw.app")
+    session.bundle_id = "com.revvity.ChemDraw"
+    session.launched = launched
+    session.pid = 4242 if launched else None
+    return session
+
+
+class SessionRecoveryTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.source = self.root / "x.mol"
+        self.source.write_text("mol", encoding="utf-8")
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def test_owned_chemdraw_is_rehidden_after_opening_a_document(self):
+        session = _owned_session()
+        with mock.patch.object(mac_automation, "run_applescript", return_value="") as run:
+            session.run_steps(self.source, ["select-all"])
+        self.assertEqual(run.call_args.args[1][1:], ["hide", "select-all"])
+
+    def test_every_chemdraw_run_holds_the_native_lock(self):
+        session = _owned_session()
+        held = []
+
+        from contextlib import contextmanager
+
+        @contextmanager
+        def lock(resource_class, timeout_seconds):
+            held.append(resource_class)
+            yield
+
+        with mock.patch.object(mac_automation, "native_resource_lock", lock), \
+                mock.patch.object(mac_automation, "run_applescript", return_value=""):
+            session.run_steps(self.source, ["select-all"])
+        self.assertEqual(held, ["chemdraw_com"])
+
+    def test_users_own_chemdraw_is_never_hidden(self):
+        session = _owned_session(launched=False)
+        with mock.patch.object(mac_automation, "run_applescript", return_value="") as run:
+            session.run_steps(self.source, ["select-all"])
+        self.assertEqual(run.call_args.args[1][1:], ["select-all"])
+
+    def test_owned_chemdraw_trapped_by_an_alert_is_terminated(self):
+        session = _owned_session()
+        timeout = mac_automation.MacAutomationError("native_timeout", "stuck")
+        signals = []
+
+        def kill(pid, sig):
+            signals.append((pid, sig))
+            if sig == 0:
+                raise ProcessLookupError
+
+        with mock.patch.object(mac_automation, "run_applescript", side_effect=timeout), \
+                mock.patch.object(mac_automation.os, "kill", side_effect=kill):
+            with self.assertRaises(mac_automation.MacAutomationError):
+                session.run_steps(self.source, ["select-all"])
+        self.assertEqual(signals[0], (4242, mac_automation.signal.SIGTERM))
+        self.assertIsNone(session.bundle_id)
+        self.assertFalse(session.launched)
+
+    def test_users_own_chemdraw_is_never_terminated(self):
+        session = _owned_session(launched=False)
+        timeout = mac_automation.MacAutomationError("native_timeout", "stuck")
+        with mock.patch.object(mac_automation, "run_applescript", side_effect=timeout), \
+                mock.patch.object(mac_automation.os, "kill") as kill:
+            with self.assertRaises(mac_automation.MacAutomationError):
+                session.run_steps(self.source, ["select-all"])
+        kill.assert_not_called()
+
+    def test_name_conversion_is_refused_in_the_users_chemdraw(self):
+        session = _owned_session(launched=False)
+        with mock.patch.object(mac_automation, "is_running", return_value=True), \
+                mock.patch.object(mac_automation, "run_applescript") as run:
+            with self.assertRaises(mac_automation.MacAutomationError) as raised:
+                session.name_to_structure("aspirin", self.root / "out.cdxml")
+        self.assertEqual(raised.exception.error_code, "chemdraw_in_use")
+        run.assert_not_called()
+
+    def test_unrecognized_name_has_stable_error_code(self):
+        session = _owned_session()
+
+        def unchanged(_script, args, **_kwargs):
+            _saved_path(args).write_text(
+                mac_automation._caption_document("xyz"), encoding="utf-8"
+            )
+            return ""
+
+        with mock.patch.object(mac_automation, "run_applescript", side_effect=unchanged):
+            with self.assertRaises(mac_automation.MacAutomationError) as raised:
+                session.name_to_structure("xyz", self.root / "out.cdxml")
+        self.assertEqual(raised.exception.error_code, "name_not_recognized")
+
+    def test_structure_names_accepts_non_cdxml_sources(self):
+        session = _owned_session()
+
+        def named(_script, args, **_kwargs):
+            _saved_path(args).write_text(
+                mac_automation._caption_document("ethanol"), encoding="utf-8"
+            )
+            return ""
+
+        with mock.patch.object(mac_automation, "run_applescript", side_effect=named):
+            self.assertEqual(session.structure_names(self.source), ["ethanol"])
+
+    def test_structure_names_drop_chemdraws_could_not_name_caption(self):
+        session = _owned_session()
+
+        def unnamed(_script, args, **_kwargs):
+            _saved_path(args).write_text(
+                mac_automation._caption_document("A name could not be generated for this structure."),
+                encoding="utf-8",
+            )
+            return ""
+
+        with mock.patch.object(mac_automation, "run_applescript", side_effect=unnamed):
+            self.assertEqual(session.structure_names(self.source), [])
+
+
+class LaunchRegistryTests(unittest.TestCase):
+    """ChemDraw/Office launched by the toolkit are recorded with their owner process,
+    so instances orphaned by a killed worker are recognized and stopped."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        alive = {4242, os.getpid()}
+        for patch in (
+            mock.patch.object(mac_automation, "LAUNCH_REGISTRY", Path(self.temp.name)),
+            mock.patch.object(mac_automation, "_pid_alive", side_effect=alive.__contains__),
+        ):
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def entries(self):
+        return sorted(path.name for path in Path(self.temp.name).glob("*.json"))
+
+    def test_launch_records_the_owner_and_close_forgets_it(self):
+        running = iter([False, True])
+        with mock.patch.object(mac_automation, "find_application", return_value=Path("/Applications/ChemDraw.app")), \
+                mock.patch.object(mac_automation, "bundle_identifier", return_value="com.revvity.ChemDraw"), \
+                mock.patch.object(mac_automation, "is_running", side_effect=lambda _bundle: next(running)), \
+                mock.patch.object(mac_automation, "application_pid", return_value=4242), \
+                mock.patch.object(mac_automation.subprocess, "run"):
+            session = mac_automation.MacChemDrawSession(timeout_seconds=5)
+            session.start()
+
+        self.assertEqual(self.entries(), ["4242.json"])
+        self.assertEqual(mac_automation.launched_instances()[4242]["owner_pid"], os.getpid())
+        with mock.patch.object(mac_automation, "run_applescript", return_value=""), \
+                mock.patch.object(mac_automation, "_pid_alive", return_value=False), \
+                mock.patch.object(mac_automation, "terminate_process") as terminate:
+            session.close()
+        terminate.assert_not_called()
+        self.assertEqual(self.entries(), [])
+
+    def test_launch_waits_for_the_pid_so_close_can_stop_chemdraw(self):
+        # lsappinfo can lag behind a launch; a session without the pid can neither
+        # record nor stop its ChemDraw, and a quit sent mid-launch is lost.
+        pids = iter([None, None, 4242])
+        with mock.patch.object(mac_automation, "find_application", return_value=Path("/Applications/ChemDraw.app")), \
+                mock.patch.object(mac_automation, "bundle_identifier", return_value="com.revvity.ChemDraw"), \
+                mock.patch.object(mac_automation, "is_running", side_effect=[False, True, True]), \
+                mock.patch.object(mac_automation, "application_pid", side_effect=lambda _bundle: next(pids, 4242)), \
+                mock.patch.object(mac_automation.time, "sleep"), \
+                mock.patch.object(mac_automation.subprocess, "run"):
+            session = mac_automation.MacChemDrawSession(timeout_seconds=5)
+            session.start()
+
+        self.assertEqual(session.pid, 4242)
+        self.assertEqual(self.entries(), ["4242.json"])
+
+    def test_launch_hidden_records_the_new_application(self):
+        pids = iter([None, 4242])
+        with mock.patch.object(mac_automation, "application_pid", side_effect=lambda _bundle: next(pids)), \
+                mock.patch.object(mac_automation.time, "sleep"), \
+                mock.patch.object(mac_automation.subprocess, "run") as run:
+            pid = mac_automation.launch_hidden("com.microsoft.Word")
+
+        self.assertEqual(pid, 4242)
+        self.assertEqual(run.call_args.args[0], ["open", "-g", "-j", "-b", "com.microsoft.Word"])
+        self.assertEqual(mac_automation.launched_instances()[4242]["bundle_id"], "com.microsoft.Word")
+
+    def test_close_waits_until_chemdraw_has_exited(self):
+        # quit is asynchronous: a session started right after close would
+        # otherwise attach to the exiting ChemDraw and lose it mid-run (-609).
+        session = _owned_session()
+        alive = iter([True, True, True, False])
+        with mock.patch.object(mac_automation, "run_applescript", return_value=""), \
+                mock.patch.object(mac_automation, "_pid_alive", side_effect=lambda _pid: next(alive)), \
+                mock.patch.object(mac_automation.time, "sleep") as sleep, \
+                mock.patch.object(mac_automation, "terminate_process") as terminate:
+            session.close()
+
+        self.assertEqual(sleep.call_count, 2)
+        terminate.assert_not_called()
+
+    def test_close_does_not_message_a_chemdraw_that_already_exited(self):
+        # AppleScript relaunches an application to deliver ``quit``; that
+        # instance would belong to no session and stay open.
+        session = _owned_session()
+        with mock.patch.object(mac_automation, "run_applescript") as run, \
+                mock.patch.object(mac_automation, "_pid_alive", return_value=False):
+            session.close()
+
+        run.assert_not_called()
+        self.assertIsNone(session.pid)
+
+    def test_close_terminates_chemdraw_that_never_exits(self):
+        session = _owned_session()
+        clock = iter(range(0, 1000, 5))
+        with mock.patch.object(mac_automation, "run_applescript", return_value=""), \
+                mock.patch.object(mac_automation, "_pid_alive", return_value=True), \
+                mock.patch.object(mac_automation.time, "sleep"), \
+                mock.patch.object(mac_automation.time, "monotonic", side_effect=lambda: next(clock)), \
+                mock.patch.object(mac_automation, "terminate_process") as terminate:
+            session.close()
+
+        terminate.assert_called_once_with(4242)
+
+    def test_close_terminates_chemdraw_that_refuses_to_quit(self):
+        session = _owned_session()
+        mac_automation.register_launch(4242, "com.revvity.ChemDraw")
+        blocked = mac_automation.MacAutomationError("native_automation_failed", "(-128)")
+        with mock.patch.object(mac_automation, "run_applescript", side_effect=blocked), \
+                mock.patch.object(mac_automation, "terminate_process") as terminate:
+            session.close()
+
+        terminate.assert_called_once_with(4242)
+        self.assertEqual(self.entries(), [])
+
+    def test_instances_of_a_dead_owner_are_reaped(self):
+        mac_automation.register_launch(4242, "com.revvity.ChemDraw", owner_pid=_dead_pid())
+        with mock.patch.object(mac_automation, "application_pid", return_value=4242), \
+                mock.patch.object(mac_automation, "terminate_process") as terminate:
+            self.assertEqual(mac_automation.reap_orphans(), [4242])
+
+        terminate.assert_called_once_with(4242)
+        self.assertEqual(self.entries(), [])
+
+    def test_instances_of_a_live_owner_are_kept(self):
+        mac_automation.register_launch(4242, "com.revvity.ChemDraw")
+        with mock.patch.object(mac_automation, "application_pid", return_value=4242), \
+                mock.patch.object(mac_automation, "terminate_process") as terminate:
+            self.assertEqual(mac_automation.reap_orphans(), [])
+
+        terminate.assert_not_called()
+        self.assertEqual(self.entries(), ["4242.json"])
+
+    def test_a_reused_pid_is_forgotten_without_being_killed(self):
+        mac_automation.register_launch(4242, "com.revvity.ChemDraw", owner_pid=_dead_pid())
+        with mock.patch.object(mac_automation, "application_pid", return_value=777), \
+                mock.patch.object(mac_automation, "terminate_process") as terminate:
+            self.assertEqual(mac_automation.reap_orphans(), [])
+
+        terminate.assert_not_called()
+        self.assertEqual(self.entries(), [])
+
+
+def _dead_pid() -> int:
+    return 99999
+
 if __name__ == "__main__":
     unittest.main()
+
+
+CAPTIONED_SCHEME = (
+    '<?xml version="1.0" encoding="UTF-8" ?>\n'
+    '<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >\n'
+    '<CDXML InterpretChemically="yes"><page id="1">'
+    '<fragment id="2"><n id="3" p="0 0"/><n id="4" p="14 0" Element="8">'
+    '<t id="5" p="14 0"><s>OH</s></t></n><b id="6" B="3" E="4"/></fragment>'
+    '<t id="7" p="7 15"><s>MeOH</s></t>'
+    '<t id="8" p="7 30" InterpretChemically="yes"><s>NaOH</s></t>'
+    '<scheme id="9"><step id="10" ReactionStepReactants="2"/></scheme>'
+    '</page></CDXML>'
+)
+
+
+class CaptionProtectionTests(unittest.TestCase):
+    """ChemDraw turns a free caption such as "MeOH" into a nickname fragment and
+    Clean Up Reaction then lists it as an extra reactant."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.path = Path(self.temp.name) / "scheme.cdxml"
+        self.path.write_text(CAPTIONED_SCHEME, encoding="utf-8")
+
+    def interpret(self, text):
+        import xml.etree.ElementTree as ET
+
+        root = ET.fromstring(text.split("\n", 2)[2])
+        return {t.get("id"): t.get("InterpretChemically") for t in root.iter("t")}
+
+    def test_free_captions_are_marked_as_plain_text(self):
+        marked = mac_automation.protect_captions(self.path)
+
+        self.assertEqual(marked, ["7"])
+        flags = self.interpret(self.path.read_text(encoding="utf-8"))
+        self.assertEqual(flags, {"5": None, "7": "no", "8": "yes"})
+        self.assertIn("<!DOCTYPE CDXML", self.path.read_text(encoding="utf-8"))
+
+    def test_marks_are_removed_from_the_saved_result(self):
+        marked = mac_automation.protect_captions(self.path)
+        mac_automation.release_captions(self.path, marked)
+
+        self.assertEqual(self.path.read_text(encoding="utf-8"), CAPTIONED_SCHEME)
+
+    def test_clean_up_reaction_runs_on_protected_captions_and_saves_them_unmarked(self):
+        session = _owned_session()
+        source = Path(self.temp.name) / "in.cdxml"
+        source.write_text(CAPTIONED_SCHEME, encoding="utf-8")
+        seen = []
+
+        def chemdraw(_script, args, **_kwargs):
+            staged = Path(args[0]).read_text(encoding="utf-8")
+            seen.append(self.interpret(staged)["7"])
+            _saved_path(args).write_text(staged, encoding="utf-8")
+            return ""
+
+        output = Path(self.temp.name) / "out.cdxml"
+        with mock.patch.object(mac_automation, "run_applescript", side_effect=chemdraw), \
+                mock.patch.object(mac_automation, "installed_font_families", return_value=frozenset()):
+            session.clean(source, output, reaction=True)
+
+        self.assertEqual(seen, ["no"])
+        self.assertIsNone(self.interpret(output.read_text(encoding="utf-8"))["7"])
+
+    def test_name_to_structure_keeps_captions_chemical(self):
+        session = _owned_session()
+        seen = []
+
+        def chemdraw(_script, args, **_kwargs):
+            seen.append(Path(args[0]).read_text(encoding="utf-8"))
+            _saved_path(args).write_text(
+                mac_automation._caption_document("ethanol"), encoding="utf-8")
+            return ""
+
+        with mock.patch.object(mac_automation, "run_applescript", side_effect=chemdraw):
+            try:
+                session.name_to_structure("ethanol", Path(self.temp.name) / "n.cdxml")
+            except mac_automation.MacAutomationError:
+                pass
+        self.assertNotIn('InterpretChemically="no"', seen[0])
+
+
+class FastNameFailureTests(unittest.TestCase):
+    """ChemDraw answers an unknown name with a modal alert that blocks the menu
+    command's reply; the conversion is sent without waiting and the save is
+    bounded, so a rejected name fails in seconds instead of the whole timeout."""
+
+    def test_conversion_is_sent_without_waiting_and_the_save_is_bounded(self):
+        session = _owned_session()
+
+        def chemdraw(_script, args, **_kwargs):
+            Path(args[args.index("save-within") + 2]).write_text(
+                "<CDXML><page><fragment/></page></CDXML>", encoding="utf-8")
+            return ""
+
+        with tempfile.TemporaryDirectory() as temp, \
+                mock.patch.object(mac_automation, "run_applescript", side_effect=chemdraw) as run:
+            session.name_to_structure("aniline", Path(temp) / "n.cdxml")
+        steps = run.call_args.args[1][1:]
+        self.assertEqual(steps[:5], ["hide", "select-all", "menu-nowait", "Structure", "Convert Name to Structure"])
+        self.assertEqual(steps[5:7], ["save-within", str(mac_automation.NAME_CONVERSION_SECONDS)])
+
+    def test_steps_script_supports_unanswered_menus_and_skips_close_behind_an_alert(self):
+        script = mac_automation._steps_script("com.revvity.ChemDraw")
+        self.assertIn("ignoring application responses", script)
+        self.assertIn("with timeout of", script)
+        self.assertIn("if errorNumber is not -1712 then close doc saving no", script)

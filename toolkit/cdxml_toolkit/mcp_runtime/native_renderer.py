@@ -15,6 +15,15 @@ from . import native_io
 from ..chemdraw import mac_automation
 
 
+# Names recorded as ``metadata.renderer`` in native render receipts.
+NATIVE_RENDERERS = ("ChemDraw COM", "ChemDraw for macOS")
+
+
+def renderer_name() -> str:
+    """The native renderer on this platform, as written in render receipts."""
+    return NATIVE_RENDERERS[1] if mac_automation.is_macos() else NATIVE_RENDERERS[0]
+
+
 class NativeRenderError(RuntimeError):
     """ChemDraw rendering failure with a stable public error code."""
 

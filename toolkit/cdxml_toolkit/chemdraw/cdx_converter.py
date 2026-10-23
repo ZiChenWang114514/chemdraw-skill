@@ -55,7 +55,19 @@ try:
 except (FileNotFoundError, subprocess.TimeoutExpired):
     pass
 
-BACKEND_ORDER = ["com", "pycdxml", "obabel"]
+from . import mac_automation as _mac
+
+HAS_APPLESCRIPT = _mac.is_macos() and _mac.find_application() is not None
+
+
+def _backend_order(is_macos: bool) -> list:
+    """ChemDraw itself first (COM on Windows, AppleScript on macOS), then fallbacks."""
+    if is_macos:
+        return ["applescript", "pycdxml", "obabel"]
+    return ["com", "pycdxml", "obabel"]
+
+
+BACKEND_ORDER = _backend_order(_mac.is_macos())
 
 # ---------------------------------------------------------------------------
 # CDXML sanitiser
@@ -176,6 +188,40 @@ def _com_cdxml_to_cdx(cdxml_data: str) -> bytes:
                 os.unlink(p)
 
 # ---------------------------------------------------------------------------
+# ChemDraw for macOS (AppleScript) backend
+# ---------------------------------------------------------------------------
+
+def _mac_convert_file(input_path: str, output_path: str) -> None:
+    """Convert using ChemDraw for macOS automation."""
+    _mac.convert_file(os.path.abspath(input_path), os.path.abspath(output_path))
+    if output_path.lower().endswith(".cdxml"):
+        sanitise_cdxml_file(output_path)
+
+
+def _mac_cdx_to_cdxml(cdx_data: bytes) -> str:
+    """Convert CDX bytes → CDXML string via ChemDraw for macOS (uses temp files)."""
+    with tempfile.TemporaryDirectory(prefix="cdx-") as directory:
+        tmp_in_path = os.path.join(directory, "input.cdx")
+        tmp_out_path = os.path.join(directory, "output.cdxml")
+        with open(tmp_in_path, "wb") as f:
+            f.write(cdx_data)
+        _mac_convert_file(tmp_in_path, tmp_out_path)
+        with open(tmp_out_path, "r", encoding="utf-8") as f:
+            return f.read()
+
+
+def _mac_cdxml_to_cdx(cdxml_data: str) -> bytes:
+    """Convert CDXML string → CDX bytes via ChemDraw for macOS (uses temp files)."""
+    with tempfile.TemporaryDirectory(prefix="cdx-") as directory:
+        tmp_in_path = os.path.join(directory, "input.cdxml")
+        tmp_out_path = os.path.join(directory, "output.cdx")
+        with open(tmp_in_path, "w", encoding="utf-8") as f:
+            f.write(cdxml_data)
+        _mac_convert_file(tmp_in_path, tmp_out_path)
+        with open(tmp_out_path, "rb") as f:
+            return f.read()
+
+# ---------------------------------------------------------------------------
 # pycdxml backend
 # ---------------------------------------------------------------------------
 
@@ -278,18 +324,21 @@ def _obabel_cdxml_to_cdx(cdxml_data: str) -> bytes:
 
 _FILE_CONVERTERS = {
     "com": _com_convert_file if HAS_COM else None,
+    "applescript": _mac_convert_file if HAS_APPLESCRIPT else None,
     "pycdxml": _pycdxml_convert_file if HAS_PYCDXML else None,
     "obabel": _obabel_convert_file if HAS_OBABEL else None,
 }
 
 _CDX_TO_CDXML = {
     "com": _com_cdx_to_cdxml if HAS_COM else None,
+    "applescript": _mac_cdx_to_cdxml if HAS_APPLESCRIPT else None,
     "pycdxml": _pycdxml_cdx_to_cdxml if HAS_PYCDXML else None,
     "obabel": _obabel_cdx_to_cdxml if HAS_OBABEL else None,
 }
 
 _CDXML_TO_CDX = {
     "com": _com_cdxml_to_cdx if HAS_COM else None,
+    "applescript": _mac_cdxml_to_cdx if HAS_APPLESCRIPT else None,
     "pycdxml": _pycdxml_cdxml_to_cdx if HAS_PYCDXML else None,
     "obabel": _obabel_cdxml_to_cdx if HAS_OBABEL else None,
 }
@@ -304,7 +353,8 @@ def _pick_backend(method: str, dispatch_table: dict):
                 return name, fn
         raise RuntimeError(
             "No conversion backend available. "
-            "Install ChemDraw (COM), pycdxml, or Open Babel."
+            "Install ChemDraw (COM on Windows, AppleScript on macOS), pycdxml, "
+            "or Open Babel."
         )
     fn = dispatch_table.get(method)
     if fn is None:
@@ -381,6 +431,25 @@ def batch_convert_files(
                 app.Quit()
             else:
                 app.Visible = was_visible
+    elif name == "applescript":
+        with _mac.MacChemDrawSession() as session:
+            for inp in input_paths:
+                in_ext = os.path.splitext(inp)[1].lower()
+                out_ext = {".cdx": ".cdxml", ".cdxml": ".cdx"}.get(in_ext)
+                if out_ext is None:
+                    results[inp] = {
+                        "output": None,
+                        "error": f"Unsupported extension: {in_ext}",
+                    }
+                    continue
+                out = os.path.splitext(inp)[0] + out_ext
+                try:
+                    session.export(os.path.abspath(inp), os.path.abspath(out))
+                    if out.lower().endswith(".cdxml"):
+                        sanitise_cdxml_file(out)
+                    results[inp] = {"output": out, "error": None}
+                except Exception as e:
+                    results[inp] = {"output": None, "error": str(e)}
     else:
         # Non-COM: fall back to per-file conversion
         for inp in input_paths:

@@ -25,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
 ]
 dependencies = [
     "lxml>=4.6",
@@ -55,7 +56,8 @@ office = [
     "olefile>=0.46",
 ]
 chemscript = [
-    "pythonnet>=3.0",
+    "pythonnet>=3.0; platform_system == 'Windows'",
+    "py2opsin>=1.0; platform_system == 'Darwin'",
 ]
 analysis = [
     "pdfplumber>=0.7",
@@ -93,7 +95,8 @@ all = [
     "python-pptx>=0.6",
     "python-docx>=0.8",
     "olefile>=0.46",
-    "pythonnet>=3.0",
+    "pythonnet>=3.0; platform_system == 'Windows'",
+    "py2opsin>=1.0; platform_system == 'Darwin'",
     "pdfplumber>=0.7",
     "pymupdf>=1.20",
     "opencv-python>=4.5",

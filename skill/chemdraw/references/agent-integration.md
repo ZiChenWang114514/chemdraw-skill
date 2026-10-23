@@ -1,6 +1,6 @@
 # Agent integration
 
-The Skill follows the open Agent Skills layout (a folder with `SKILL.md`, `references/`, `scripts/`, `assets/`) and needs only two things from an agent: it can read the files and run shell commands. Image reconstruction also needs vision (or a human reviewer). Native ChemDraw output needs a licensed Windows host.
+The Skill follows the open Agent Skills layout (a folder with `SKILL.md`, `references/`, `scripts/`, `assets/`) and needs only two things from an agent: it can read the files and run shell commands. Image reconstruction also needs vision (or a human reviewer). Native ChemDraw output needs licensed desktop ChemDraw: COM on Windows, or ChemDraw for macOS through AppleScript (the first call asks for the macOS Automation permission; see [operations](operations.md#macos)).
 
 ## Install for an agent
 

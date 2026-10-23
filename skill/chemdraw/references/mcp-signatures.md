@@ -120,7 +120,7 @@ Writes provenance, bounded candidate results and truncation status to JSON.
 
 ### `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, typing.Any]`
 
-Render one or more CDXML files through native ChemDraw COM.
+Render one or more CDXML files through native ChemDraw (COM or macOS).
 
 ### `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True) -> dict[str, typing.Any]`
 
@@ -140,10 +140,11 @@ Direction is detected from the file extension:
 - .cdx input  → .cdxml output
 - .cdxml input → .cdx output
 
-Uses available backends in order: ChemDraw COM (best fidelity, Windows) →
-pycdxml (pure Python, partial support) → OpenBabel.
+Uses available backends in order: ChemDraw (best fidelity; COM on Windows,
+AppleScript on macOS) → pycdxml (pure Python, partial support) → OpenBabel.
 
-ChemDraw COM requires ChemDraw to be installed and closed before running.
+ChemDraw COM on Windows requires ChemDraw to be installed and closed before
+running. On macOS the toolkit drives a hidden ChemDraw for macOS instance.
 
 Args:
     input_path:  Path to .cdx or .cdxml file.
@@ -153,7 +154,6 @@ Args:
 Returns:
     Dict with keys: ok, input, output (absolute path to written file).
     Returns {ok: False, error: "..."} if conversion fails.
-
 
 Safety override: Convert CDX/CDXML through a validated no-overwrite staging file.
 
@@ -182,19 +182,18 @@ Returns:
     Dict with keys: ok, cdxml (CDXML document string), and output_path if
     a path was specified. Returns {ok: False, error: "..."} on failure.
 
-
 Safety override: Draw a molecule through a validated no-overwrite staging file.
 
 ### `embed_cdxml_in_office(cdxml_path: str, office_path: str, output_path: str | None = None) -> dict`
 
 Embed a CDXML file as an editable ChemDraw OLE object in PPTX or DOCX.
 
-Converts CDXML → CDX + EMF preview via ChemDraw COM, builds a CFB OLE
+Converts CDXML → CDX + EMF preview via ChemDraw, builds a CFB OLE
 compound file, and injects it into a PPTX slide or DOCX paragraph as a
 double-clickable, editable ChemDraw object.
 
-Requires: ChemDraw COM (Windows, ChemDraw 16+), python-pptx or python-docx.
-ChemDraw must be installed and closed before calling this tool.
+Requires: ChemDraw COM (Windows, ChemDraw 16+; ChemDraw must be closed) or
+ChemDraw for macOS (bitmap EMF preview), plus python-pptx or python-docx.
 
 The output format (.pptx or .docx) is detected from office_path extension.
 If office_path does not exist, a new file is created.
@@ -210,7 +209,6 @@ Returns:
     Dict with keys: ok, input_cdxml, output (absolute path to written
     Office file), format ("pptx" or "docx"), num_objects_embedded.
     Returns {ok: False, error: "..."} if embedding fails.
-
 
 Safety override: Create a new validated PPTX or DOCX and reject all existing targets.
 
@@ -234,7 +232,6 @@ Returns:
     Dict with keys: ok, input, output_dir, objects (list of: source_path,
     cdxml_output, cdx_output, error for each extracted object).
     Returns {ok: False, error: "..."} if extraction fails entirely.
-
 
 Safety override: Extract every object transactionally; publish nothing on partial failure.
 
@@ -329,7 +326,6 @@ Returns:
     Dict with keys: ok, text (formatted lab book entry string).
     When output_path is provided, returns {ok, output_path, size} instead.
 
-
 Safety override: Format a lab entry and atomically publish verified text.
 
 ### `modify_molecule(mol_json: dict, operation: str, add: Optional[List[dict]] = None, remove: Optional[List[str]] = None, new_smiles: Optional[str] = None, new_name: Optional[str] = None, reaction_name: Optional[str] = None, reagent: Optional[dict] = None, smarts: Optional[str] = None, description: Optional[str] = None) -> dict`
@@ -404,7 +400,6 @@ Returns:
     When output_path is provided, returns {ok, output_path, size}.
     Returns {ok: False, error: "..."} if module unavailable or parse fails.
 
-
 Safety override: Parse an analysis file and atomically publish verified JSON.
 
 ### `parse_reaction(cdxml: Optional[str] = None, cdx: Optional[str] = None, csv: Optional[str] = None, rxn: Optional[str] = None, input_dir: Optional[str] = None, output_path: Optional[str] = None) -> dict`
@@ -436,7 +431,6 @@ Returns:
     formula, mw, etc.), conditions, and eln_data.
     When output_path is provided, returns {ok, output_path} instead.
 
-
 Safety override: Parse a reaction and atomically publish its JSON descriptor.
 
 ### `parse_scheme(cdxml_path: str, output_path: Optional[str] = None) -> dict`
@@ -464,7 +458,6 @@ Returns:
     (linear/parallel/convergent/divergent), content_type, narrative
     (human-readable summary), and optionally sub_schemes for multi-panel
     files. When output_path is provided, returns {ok, output_path, size}.
-
 
 Safety override: Parse a scheme and atomically publish its JSON descriptor.
 
@@ -502,7 +495,6 @@ Returns:
     when output_path is provided, or YAML schema reference if called with
     no arguments.
 
-
 Safety override: Render a scheme through a validated no-overwrite staging file.
 
 ### `render_to_png(cdxml_path: str, output_path: Optional[str] = None) -> dict`
@@ -526,7 +518,6 @@ Returns:
     Dict with keys: ok, input, output (absolute path to PNG file).
     Returns {ok: False, error: "..."} if ChemDraw COM is unavailable
     or rendering fails.
-
 
 Safety override: Render CDXML to a validated PNG through a staging file.
 

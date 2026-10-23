@@ -4,7 +4,7 @@ The Skill works with any agent that can read local instructions and run shell co
 
 ## First-time setup
 
-You need a 64-bit Python 3.10–3.13 to build the runtime (3.12 is the tested version); the installer itself runs on any Python 3.9+. Python 3.14 and newer are not supported by the bundled toolkit yet: if that is your only Python, install 3.12 first (for example `uv python install 3.12`) or pass `--python <interpreter>`. Portable CDXML/RDKit work needs no desktop application and runs on Windows, macOS and Linux. Native output requires activated Windows ChemDraw; Office and ChemScript are needed only for their workflows.
+You need a 64-bit Python 3.10–3.13 to build the runtime (3.12 is the tested version); the installer itself runs on any Python 3.9+. Python 3.14 and newer are not supported by the bundled toolkit yet: if that is your only Python, install 3.12 first (for example `uv python install 3.12`) or pass `--python <interpreter>`. Portable CDXML/RDKit work needs no desktop application and runs on Windows, macOS and Linux. Native output requires activated desktop ChemDraw (Windows, or ChemDraw for macOS); Office and ChemScript are needed only for their workflows.
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
@@ -17,6 +17,15 @@ python scripts/install.py --agent claude agents --runtime --apply    # install S
 `--agent` takes one or more of `claude`, `agents` (the shared `~/.agents/skills` folder read by most agents), `gemini`, `copilot`, `cursor` and `opencode`; `--project <repo>` installs project-scoped copies instead, and `--destination <folder>` installs anywhere. `--python <interpreter>` picks the base interpreter when auto-detection finds none, `--extras` chooses toolkit extras (default: every extra that applies to the OS), and `--runtime-dir` moves the shared venv.
 
 The installer stages and verifies each copy, moves an existing installation to the shared backup folder (outside every Skill folder), restores it on failure, installs the runtime once for all copies, and writes `manifest.json` so later drift can be detected. Re-running it upgrades the Skill and reuses the venv. When the venv is not in a location `cdx.py` searches, the installer writes `runtime.local.json` into each copy and into the repository checkout (ignored by Git), so `cdx.py` also works from the checkout.
+
+### macOS
+
+```bash
+python3 scripts/install.py --agent claude agents --runtime --opsin --apply   # also fetch the OPSIN JAR (SHA-256 verified)
+python3 skill/chemdraw/scripts/cdx.py doctor --native --office --chemscript
+```
+
+ChemDraw for macOS is found in `/Applications` without configuration (`CHEMDRAW_EXE` overrides it). The first native call asks macOS to let your terminal or agent app control ChemDraw; allow it once, or later under System Settings > Privacy & Security > Automation. ChemScript is replaced by ChemDraw, OPSIN and RDKit, and Office PDF previews need an activated Microsoft 365. The full list of macOS differences is in [operations](../skill/chemdraw/references/operations.md#macos).
 
 The runtime is built from this repository's [`toolkit/`](../toolkit) folder, so it always matches the Skill you install; CI builds it the same way. An installed Skill copy without a checkout falls back to the exact commit in [runtime.json](../skill/chemdraw/runtime.json). To build a runtime by hand instead:
 
@@ -33,7 +42,7 @@ export CHEMDRAW_MCP_PYTHON=<venv>/bin/python      # only if <venv> is not a loca
 ```bash
 python <skill>/scripts/cdx.py doctor              # versions, extras, drift, capability matrix
 python <skill>/scripts/cdx.py doctor --native     # + ChemScript ping and a native PNG render
-python <skill>/scripts/cdx.py doctor --office     # + Word/PowerPoint OLE probes
+python <skill>/scripts/cdx.py doctor --office     # + PPTX/DOCX ChemDraw-OLE probes
 ```
 
 Any Python can start `cdx.py`; it re-launches itself in the runtime and skips a candidate whose interpreter no longer starts. Skipped probes are not verified features. See [operations](../skill/chemdraw/references/operations.md) for bitness, timeouts, DECIMER and failure codes.

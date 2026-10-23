@@ -49,6 +49,8 @@ For changes under `toolkit/`, also run its suite with the runtime Python from in
 cd toolkit; python -m pytest -m "not network" -q
 ```
 
+On macOS the toolkit suite never starts ChemDraw or Office: `tests/conftest.py` hides ChemDraw and blocks `open`/`osascript`, so ChemScript-marked tests skip. Set `CDXML_LIVE_CHEMDRAW=1` only for a targeted live check (`-k`), after telling the user: the live suite restarts their ChemDraw repeatedly and runs for over an hour.
+
 For native or Office changes, also validate with an activated ChemDraw installation, native PNG rendering, and open/render checks for DOCX/PPTX outputs. Never report those gates as passed when they were skipped.
 
 ## Public-facing language

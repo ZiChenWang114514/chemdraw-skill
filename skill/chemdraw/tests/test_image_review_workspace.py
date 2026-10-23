@@ -65,6 +65,15 @@ def test_native_receipt_hash_must_match(tmp_path):
     assert not (tmp_path/'pair.png').exists()
 
 
+def test_macos_native_receipt_is_accepted(tmp_path):
+    im,_=fixture(tmp_path,[{'id':'A','box':[0,0,5,5]}])
+    proof=tmp_path/'native.json'
+    proof.write_text(json.dumps({'ok':True,'outputs':{'rendered':[str(im)]},
+        'metadata':{'renderer':'ChemDraw for macOS','artifacts':[{'path':str(im),'sha256':digest(im)}]}}))
+    receipt=compare(im,im,tmp_path/'pair.png',100,native_receipt=proof)
+    assert receipt['candidate_provenance']=='native_receipt_matched'
+
+
 def test_aligned_comparison_rejects_clipping(tmp_path):
     im,_=fixture(tmp_path,[{'id':'A','box':[0,0,5,5]}])
     with pytest.raises(ValueError,match='clip'):

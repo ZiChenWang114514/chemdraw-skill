@@ -88,9 +88,9 @@
 
 ## `resolve.jre_manager`
 
-- **function**, line 191: `ensure_java_on_path(download: bool = True) -> bool` - Discover Java and expose its executable directory to subprocesses.
-- **function**, line 165: `get_java(download: bool = True) -> Optional[str]` - Return Java from the system, a verified installation, or an approved download.
-- **function**, line 81: `install_jre_archive(archive_path: str | os.PathLike[str], *, expected_sha256: str | None = None, source: str = 'local') -> Optional[str]` - Verify and install a JRE ZIP without modifying an existing installation.
+- **function**, line 221: `ensure_java_on_path(download: bool = True) -> bool` - Discover Java and expose its executable directory to subprocesses.
+- **function**, line 195: `get_java(download: bool = True) -> Optional[str]` - Return Java from the system, a verified installation, or an approved download.
+- **function**, line 108: `install_jre_archive(archive_path: str | os.PathLike[str], *, expected_sha256: str | None = None, source: str = 'local') -> Optional[str]` - Verify and install a JRE ZIP without modifying an existing installation.
 
 ## `resolve.reagent_db`
 

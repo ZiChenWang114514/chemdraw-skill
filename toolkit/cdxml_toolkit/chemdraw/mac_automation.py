@@ -18,16 +18,21 @@ import ctypes
 import ctypes.util
 from functools import lru_cache
 import html
+import json
 import os
 from pathlib import Path
 import plistlib
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
 import time
 from typing import Iterable, Optional
+from xml.etree import ElementTree
+
+from ..mcp_runtime.resource_lock import native_resource_lock
 
 
 BUNDLE_IDS = (
@@ -59,8 +64,23 @@ SAVE_TYPES = {
     ".tgf": "Transportable Graphics (TGF)",
 }
 
+# How long a quitting ChemDraw may take to exit before it is terminated.
+QUIT_TIMEOUT_SECONDS = 15
+
+# Caption ChemDraw writes instead of a name when Struct=Name fails.
+UNNAMED_CAPTION_PREFIX = "A name could not be generated"
+
 # Native PNG export resolution of ChemDraw for macOS.
 NATIVE_PNG_DPI = 300
+
+# Name to Structure finishes in about a second; longer means an alert is waiting.
+NAME_TIMEOUT_SECONDS = 15
+# How long a converted name may take to save; ChemDraw's "not recognized" alert
+# blocks the save, so a rejected name fails after this instead of the whole timeout.
+NAME_CONVERSION_SECONDS = 5
+
+# How long a ChemDraw run waits for another worker's run to finish.
+NATIVE_LOCK_TIMEOUT_SECONDS = 300
 
 _NOT_AUTHORIZED = (-1743, -10004)
 _NOT_RUNNING = (-600, -609)
@@ -139,15 +159,30 @@ end findDocument
 # are passed as data (argv), never as script source.  The bundle identifier is
 # compiled in as a literal (validated by ``_steps_script``) because ChemDraw's
 # own terms such as ``menu item`` only compile inside a literal application tell.
+#   hide                          hide ChemDraw again when done (opening a document
+#                                 shows it; menu commands need it visible meanwhile)
 #   select-all                    Edit > Select All
 #   menu <menu> <item>            run a ChemDraw menu command on the document
+#   menu-nowait <menu> <item>     send a menu command without waiting for its reply
+#                                 (a modal alert would block the reply)
 #   save <path> <type>            save a copy in the given format
+#   save-within <s> <path> <type> save, failing with -1712 after <s> seconds (an
+#                                 alert left by menu-nowait blocks the save)
 #   query                         append SMILES, formula, weights of the selection
-_STEPS_SCRIPT = _OPEN_DOCUMENT + '''
+_STEPS_SCRIPT = '''use framework "AppKit"
+use scripting additions
+''' + _OPEN_DOCUMENT + '''
+on hideApplication()
+  repeat with runningApp in (current application's NSRunningApplication's runningApplicationsWithBundleIdentifier:"@BUNDLE_ID@")
+    runningApp's hide()
+  end repeat
+end hideApplication
+
 on run argv
   set srcPath to item 1 of argv
   set srcFile to POSIX file srcPath
   set answers to {}
+  set hideWhenDone to false
   tell application id "@BUNDLE_ID@"
     open srcFile
     set doc to my findDocument(srcPath)
@@ -155,12 +190,26 @@ on run argv
       set i to 2
       repeat while i is less than or equal to (count of argv)
         set step to item i of argv
-        if step is "select-all" then
+        if step is "hide" then
+          set hideWhenDone to true
+          set i to i + 1
+        else if step is "select-all" then
           do menu item "Select All" of menu "Edit"
           set i to i + 1
         else if step is "menu" then
           do menu item (item (i + 2) of argv) of menu (item (i + 1) of argv)
           set i to i + 3
+        else if step is "menu-nowait" then
+          ignoring application responses
+            do menu item (item (i + 2) of argv) of menu (item (i + 1) of argv)
+          end ignoring
+          set i to i + 3
+        else if step is "save-within" then
+          set outFile to my posixFile(item (i + 2) of argv)
+          with timeout of ((item (i + 1) of argv) as integer) seconds
+            save doc in outFile as (item (i + 3) of argv)
+          end timeout
+          set i to i + 4
         else if step is "save" then
           set outFile to my posixFile(item (i + 1) of argv)
           save doc in outFile as (item (i + 2) of argv)
@@ -176,11 +225,14 @@ on run argv
         end if
       end repeat
     on error errorMessage number errorNumber
-      close doc saving no
+      -- Behind a modal alert (-1712) close would block as well.
+      if errorNumber is not -1712 then close doc saving no
+      if hideWhenDone then my hideApplication()
       error errorMessage number errorNumber
     end try
     close doc saving no
   end tell
+  if hideWhenDone then my hideApplication()
   set AppleScript's text item delimiters to (character id 31)
   return answers as text
 end run
@@ -383,6 +435,77 @@ def substitute_missing_fonts(path: str | Path, available: Optional[frozenset] = 
     return changes
 
 
+_TEXT_TAG = re.compile(r"<t\b[^>]*>")
+_PLAIN_TEXT_MARK = ' InterpretChemically="no"'
+
+
+def _free_caption_ids(text: str) -> set:
+    """Ids of captions (``<t>`` outside atom labels) that may be interpreted chemically."""
+    start = text.find("<CDXML")
+    try:
+        root = ElementTree.fromstring(text[start:] if start >= 0 else text)
+    except ElementTree.ParseError:
+        return set()
+    labels = {id(t) for node in root.iter("n") for t in node.findall("t")}
+    return {
+        t.get("id") for t in root.iter("t")
+        if t.get("id") and id(t) not in labels and t.get("InterpretChemically") is None
+    }
+
+
+def _tag_id(tag: str) -> Optional[str]:
+    for key, _quoted, double, single in _ATTRIBUTE.findall(tag):
+        if key == "id":
+            return double if double is not None else single
+    return None
+
+
+def protect_captions(path: str | Path) -> list[str]:
+    """Mark free captions in a CDXML file as plain text; return their ids.
+
+    ChemDraw reads a caption such as "MeOH" as a nickname fragment when the
+    document interprets text chemically, and Clean Up Reaction then lists it as
+    an extra reactant.  Only captions without their own ``InterpretChemically``
+    are marked; atom labels are never touched.
+    """
+    target = Path(path)
+    text = target.read_text(encoding="utf-8")
+    wanted = _free_caption_ids(text)
+    marked: list[str] = []
+
+    def mark(match: re.Match) -> str:
+        tag = match.group(0)
+        caption = _tag_id(tag)
+        if caption not in wanted:
+            return tag
+        marked.append(caption)
+        return "<t" + _PLAIN_TEXT_MARK + tag[2:]
+
+    updated = _TEXT_TAG.sub(mark, text)
+    if marked:
+        target.write_text(updated, encoding="utf-8")
+    return marked
+
+
+def release_captions(path: str | Path, ids: Iterable[str]) -> None:
+    """Remove the marks ``protect_captions`` added from a saved CDXML file."""
+    wanted = set(ids)
+    target = Path(path)
+    if not wanted or not target.is_file():
+        return
+    text = target.read_text(encoding="utf-8")
+
+    def release(match: re.Match) -> str:
+        tag = match.group(0)
+        if _tag_id(tag) not in wanted:
+            return tag
+        return re.sub(r'\s+InterpretChemically="no"', "", tag, count=1)
+
+    updated = _TEXT_TAG.sub(release, text)
+    if updated != text:
+        target.write_text(updated, encoding="utf-8")
+
+
 def run_applescript(script: str, args: Iterable[str] = (), *, timeout_seconds: float = 60) -> str:
     """Run an AppleScript through ``osascript`` and return its stdout."""
     try:
@@ -408,6 +531,118 @@ def is_running(bundle_id: str) -> bool:
         return run_applescript(script, timeout_seconds=15) == "true"
     except MacAutomationError:
         return False
+
+
+def application_pid(bundle_id: str) -> Optional[int]:
+    """Process id of the running application, read without Apple events."""
+    try:
+        completed = subprocess.run(
+            ["lsappinfo", "info", "-only", "pid", "-app", bundle_id],
+            capture_output=True, text=True, timeout=10, check=False,
+            stdin=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    match = re.search(r'"pid"\s*=\s*(\d+)', completed.stdout)
+    return int(match.group(1)) if match else None
+
+
+def terminate_process(pid: Optional[int], grace_seconds: float = 5) -> None:
+    """SIGTERM ``pid``, then SIGKILL it if it is still alive after the grace period."""
+    if not pid:
+        return
+    try:
+        os.kill(pid, signal.SIGTERM)
+        deadline = time.monotonic() + grace_seconds
+        while time.monotonic() < deadline:
+            os.kill(pid, 0)
+            time.sleep(0.1)
+        os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    except OSError:
+        pass
+
+
+# Applications this toolkit launched, one JSON record per pid naming the owner
+# process. A worker killed mid-run cannot quit what it launched; the record lets
+# the next session (and the doctor's process audit) recognize and stop it.
+LAUNCH_REGISTRY = Path("~/Library/Caches/chemdraw-skill/launched").expanduser()
+
+
+def _pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def register_launch(pid: int, bundle_id: str, *, owner_pid: Optional[int] = None) -> None:
+    record = {"pid": pid, "bundle_id": bundle_id, "owner_pid": owner_pid or os.getpid()}
+    try:
+        LAUNCH_REGISTRY.mkdir(parents=True, exist_ok=True)
+        (LAUNCH_REGISTRY / f"{pid}.json").write_text(json.dumps(record), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def unregister_launch(pid: Optional[int]) -> None:
+    if pid:
+        try:
+            (LAUNCH_REGISTRY / f"{pid}.json").unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def launched_instances() -> dict[int, dict]:
+    """Recorded launches whose process is still alive (stale records are dropped)."""
+    instances = {}
+    for path in sorted(LAUNCH_REGISTRY.glob("*.json")) if LAUNCH_REGISTRY.is_dir() else []:
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+            pid, owner = int(record["pid"]), int(record["owner_pid"])
+            bundle_id = str(record["bundle_id"])
+        except (OSError, ValueError, KeyError, TypeError):
+            path.unlink(missing_ok=True)
+            continue
+        if not _pid_alive(pid):
+            path.unlink(missing_ok=True)
+            continue
+        instances[pid] = {"pid": pid, "bundle_id": bundle_id, "owner_pid": owner}
+    return instances
+
+
+def launch_hidden(bundle_id: str, *, timeout_seconds: float = 60) -> Optional[int]:
+    """Launch an application in the background and hidden; record and return its pid."""
+    subprocess.run(
+        ["open", "-g", "-j", "-b", bundle_id], check=False, timeout=30,
+        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    )
+    deadline = time.monotonic() + timeout_seconds
+    while (pid := application_pid(bundle_id)) is None:
+        if time.monotonic() > deadline:
+            raise MacAutomationError("native_timeout", f"{bundle_id} did not start in time")
+        time.sleep(0.25)
+    register_launch(pid, bundle_id)
+    return pid
+
+
+def reap_orphans() -> list[int]:
+    """Stop applications the toolkit launched for a process that no longer exists."""
+    reaped = []
+    for pid, record in launched_instances().items():
+        if _pid_alive(record["owner_pid"]):
+            continue
+        if application_pid(record["bundle_id"]) == pid:
+            terminate_process(pid)
+            reaped.append(pid)
+        unregister_launch(pid)
+    return reaped
 
 
 _BUNDLE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.-]{0,254}$")
@@ -443,6 +678,7 @@ class MacChemDrawSession:
         self.bundle = bundle
         self.bundle_id: Optional[str] = None
         self.launched = False
+        self.pid: Optional[int] = None
 
     def __enter__(self):
         return self
@@ -455,8 +691,12 @@ class MacChemDrawSession:
             raise MacAutomationError("chemdraw_not_found", "ChemDraw for macOS was not found")
         self.bundle = bundle
         bundle_id = bundle_identifier(bundle)
+        reap_orphans()
         if not is_running(bundle_id):
-            subprocess.run(["open", "-g", "-b", bundle_id], check=False, timeout=30)
+            # Wait for the pid before anything else: without it this session could
+            # neither record nor stop its ChemDraw (lsappinfo can lag the launch).
+            self.pid = launch_hidden(bundle_id, timeout_seconds=self.timeout_seconds)
+            self.launched = True
             deadline = time.monotonic() + self.timeout_seconds
             while not is_running(bundle_id):
                 if time.monotonic() > deadline:
@@ -464,11 +704,22 @@ class MacChemDrawSession:
                         "native_timeout", "ChemDraw did not start in time"
                     )
                 time.sleep(0.25)
-            self.launched = True
         self.bundle_id = bundle_id
 
-    def _openable(self, source: str | Path, workspace: Path) -> Path:
-        """Return a copy of ``source`` that ChemDraw opens without a font alert."""
+    def _terminate(self) -> None:
+        """Stop the ChemDraw this session launched (a modal alert blocks ``quit``)."""
+        pid = self.pid
+        self.launched = False
+        self.bundle_id = None
+        self.pid = None
+        terminate_process(pid)
+        unregister_launch(pid)
+
+    def _openable(self, source: str | Path, workspace: Path, *, protect: bool = False) -> Path:
+        """Return a copy of ``source`` that ChemDraw opens without a font alert.
+
+        With ``protect``, free captions in the copy are marked as plain text
+        (see ``protect_captions``)."""
         source_path = Path(source).expanduser().resolve()
         if not source_path.is_file():
             raise FileNotFoundError(f"ChemDraw input not found: {source_path}")
@@ -476,18 +727,37 @@ class MacChemDrawSession:
         shutil.copy2(source_path, staged)
         if staged.suffix == ".cdxml":
             substitute_missing_fonts(staged)
+            if protect:
+                protect_captions(staged)
         return staged.resolve()
 
-    def run_steps(self, source: str | Path, steps: Iterable[str]) -> list[str]:
-        """Open ``source`` and run ChemDraw steps on it (see ``_STEPS_SCRIPT``)."""
+    def run_steps(
+        self, source: str | Path, steps: Iterable[str], *, timeout_seconds: Optional[float] = None,
+        protect_captions: bool = False,
+    ) -> list[str]:
+        """Open ``source`` and run ChemDraw steps on it (see ``_STEPS_SCRIPT``).
+
+        A ChemDraw launched by this session is hidden again once the document
+        closes.  If it stops answering (a modal alert), it is terminated so the
+        next call starts a fresh one; a ChemDraw the user started is never touched.
+        """
         steps = [str(step) for step in steps]
         self.start()
-        with tempfile.TemporaryDirectory(prefix="cdx-mac-") as workspace:
-            staged = self._openable(source, Path(workspace))
-            output = run_applescript(
-                _steps_script(self.bundle_id), [str(staged), *steps],
-                timeout_seconds=self.timeout_seconds,
-            )
+        if self.launched:
+            steps.insert(0, "hide")
+        # ChemDraw menu commands act on its front document, so runs never overlap.
+        with native_resource_lock("chemdraw_com", NATIVE_LOCK_TIMEOUT_SECONDS), \
+                tempfile.TemporaryDirectory(prefix="cdx-mac-") as workspace:
+            staged = self._openable(source, Path(workspace), protect=protect_captions)
+            try:
+                output = run_applescript(
+                    _steps_script(self.bundle_id), [str(staged), *steps],
+                    timeout_seconds=timeout_seconds or self.timeout_seconds,
+                )
+            except MacAutomationError as exc:
+                if exc.error_code == "native_timeout" and self.launched:
+                    self._terminate()
+                raise
         return output.split("\x1f") if output else []
 
     def export(self, source: str | Path, *destinations: str | Path) -> list[str]:
@@ -534,13 +804,24 @@ class MacChemDrawSession:
         self, source: str | Path, destination: str | Path, *commands: tuple[str, str],
         select_all: bool = True,
     ) -> str:
-        """Run ChemDraw menu ``commands`` (``(menu, item)`` pairs) and save the result."""
+        """Run ChemDraw menu ``commands`` (``(menu, item)`` pairs) and save the result.
+
+        Free captions stay text: ChemDraw does not turn them into structures or
+        reaction participants, and the saved CDXML carries no extra marks.
+        """
         destination_path = Path(destination).expanduser().resolve()
         steps: list[str] = ["select-all"] if select_all else []
         for menu, item in commands:
             steps += ["menu", menu, item]
         steps += ["save", str(destination_path), save_type_for(destination_path)]
-        self.run_steps(source, steps)
+        source_path = Path(source).expanduser()
+        captions = (
+            _free_caption_ids(source_path.read_text(encoding="utf-8"))
+            if source_path.suffix.lower() == ".cdxml" and source_path.is_file() else set()
+        )
+        self.run_steps(source, steps, protect_captions=True)
+        if destination_path.suffix.lower() == ".cdxml":
+            release_captions(destination_path, captions)
         return str(destination_path)
 
     def clean(self, source: str | Path, destination: str | Path, *, reaction: bool = False) -> str:
@@ -550,28 +831,64 @@ class MacChemDrawSession:
 
     def structure_names(self, source: str | Path) -> list[str]:
         """Names from ChemDraw Structure > Convert Structure to Name, in document order."""
-        before = _caption_texts(Path(source))
         with tempfile.TemporaryDirectory(prefix="cdx-mac-") as workspace:
             named = Path(workspace) / "named.cdxml"
             self.apply_menu(source, named, ("Structure", "Convert Structure to Name"))
-            after = _caption_texts(named)
-        remaining = list(before)
-        names = []
-        for text in after:
-            if text in remaining:
-                remaining.remove(text)
-            else:
-                names.append(text)
-        return names
+            return [
+                caption for caption in new_captions(source, named)
+                if not caption.startswith(UNNAMED_CAPTION_PREFIX)
+            ]
 
     def name_to_structure(self, name: str, destination: str | Path) -> str:
-        """ChemDraw Structure > Convert Name to Structure for one chemical name."""
+        """ChemDraw Structure > Convert Name to Structure for one chemical name, as CDXML.
+
+        ChemDraw answers a name it cannot interpret with a modal alert, so this
+        only runs in a ChemDraw this session launched (hidden, and terminated if
+        the alert appears); it never puts an alert in front of the user's own
+        ChemDraw.
+        """
+        destination_path = Path(destination).expanduser().resolve()
+        if destination_path.suffix.lower() != ".cdxml":
+            raise MacAutomationError("native_format_unsupported", "name conversion writes CDXML")
+        self.start()
+        if not self.launched:
+            raise MacAutomationError(
+                "chemdraw_in_use",
+                "ChemDraw is already open; name conversion only runs in a ChemDraw the toolkit starts",
+            )
         with tempfile.TemporaryDirectory(prefix="cdx-mac-") as workspace:
             source = Path(workspace) / "name.cdxml"
             source.write_text(_caption_document(name), encoding="utf-8")
-            return self.apply_menu(source, destination, ("Structure", "Convert Name to Structure"))
+            steps = ["select-all", "menu-nowait", "Structure", "Convert Name to Structure",
+                     "save-within", str(NAME_CONVERSION_SECONDS), str(destination_path),
+                     save_type_for(destination_path)]
+            try:
+                self.run_steps(source, steps, timeout_seconds=min(self.timeout_seconds, NAME_TIMEOUT_SECONDS))
+            except MacAutomationError as exc:
+                if exc.error_code != "native_timeout":
+                    raise
+                raise MacAutomationError("name_not_recognized", f"ChemDraw did not recognize {name!r}") from exc
+        if "<fragment" not in destination_path.read_text(encoding="utf-8", errors="replace"):
+            destination_path.unlink(missing_ok=True)
+            raise MacAutomationError("name_not_recognized", f"ChemDraw did not recognize {name!r}")
+        return str(destination_path)
+
+    def _wait_for_exit(self) -> None:
+        """Return once our ChemDraw has exited; ``quit`` only starts the shutdown."""
+        if not self.pid:
+            return
+        deadline = time.monotonic() + QUIT_TIMEOUT_SECONDS
+        while _pid_alive(self.pid):
+            if time.monotonic() > deadline:
+                terminate_process(self.pid)
+                return
+            time.sleep(0.1)
 
     def close(self) -> None:
+        if self.launched and self.pid and not _pid_alive(self.pid):
+            # Gone already; a quit event would relaunch ChemDraw to deliver it.
+            self.launched = False
+            unregister_launch(self.pid)
         if self.launched and self.bundle_id:
             try:
                 run_applescript(
@@ -579,9 +896,14 @@ class MacChemDrawSession:
                     timeout_seconds=30,
                 )
             except MacAutomationError:
-                pass
+                # A modal alert refuses ``quit``; never leave our ChemDraw behind.
+                terminate_process(self.pid)
+            else:
+                self._wait_for_exit()
+            unregister_launch(self.pid)
         self.launched = False
         self.bundle_id = None
+        self.pid = None
 
     def __exit__(self, exc_type, exc, traceback):
         self.close()
@@ -605,6 +927,19 @@ def _caption_texts(path: Path) -> list[str]:
 
     walk(root, False)
     return texts
+
+
+def new_captions(source: str | Path, named: str | Path) -> list[str]:
+    """Captions present in ``named`` but not in ``source`` (the names ChemDraw added)."""
+    source = Path(source)
+    remaining = _caption_texts(source) if source.suffix.lower() == ".cdxml" else []
+    names = []
+    for text in _caption_texts(Path(named)):
+        if text in remaining:
+            remaining.remove(text)
+        else:
+            names.append(text)
+    return names
 
 
 def _caption_document(text: str) -> str:

@@ -372,14 +372,14 @@ def _build_embedded_office(source: Path, destination: Path) -> dict[str, Any]:
 
     converted = native_io.batch_convert_cdxml([source], batch_convert)
     if len(converted) != 1 or not isinstance(converted[0], dict):
-        return {"ok": False, "error": "ChemDraw COM conversion returned no output"}
+        return {"ok": False, "error": "ChemDraw conversion returned no output"}
     item = converted[0]
     cdx_data = item.get("cdx_data")
     emf_data = item.get("emf_data")
     if not isinstance(cdx_data, (bytes, bytearray, memoryview)) or not cdx_data:
-        return {"ok": False, "error": "ChemDraw COM conversion returned empty CDX"}
+        return {"ok": False, "error": "ChemDraw conversion returned empty CDX"}
     if not isinstance(emf_data, (bytes, bytearray, memoryview)) or not emf_data:
-        return {"ok": False, "error": "ChemDraw COM conversion returned empty EMF"}
+        return {"ok": False, "error": "ChemDraw conversion returned empty EMF"}
     width, height = content_size_emu({**item, "path": str(source)})
     if width <= 0 or height <= 0:
         return {"ok": False, "error": "Could not determine the drawing size of the CDXML content"}

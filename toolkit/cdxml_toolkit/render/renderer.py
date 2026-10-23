@@ -69,6 +69,8 @@ _DESCENT = 2.0          # baseline to bottom of descenders
 # Fragment bbox padding beyond atom center positions (half of measured excess)
 _FRAG_PAD_W = 3.3       # ±3.3 pt per side (6.6 pt total width excess)
 _FRAG_PAD_H = 1.45      # ±1.45 pt per side (2.9 pt total height excess)
+_LABEL_CHAR_W = 6.0     # Arial 10 pt label character beyond the first
+_LABEL_DIGIT_W = 4.0    # subscript count or charge sign
 
 
 # ---------------------------------------------------------------------------
@@ -836,19 +838,36 @@ def _build_run_arrow(
 # Layout helpers
 # ---------------------------------------------------------------------------
 
+def _label_overhang(atom: Dict) -> float:
+    """Horizontal reach of an atom label beyond its centred first character.
+
+    Labels start on the atom ("Br", "OH") and ChemDraw may flip hydrogens to
+    the left ("HO"), so the extra characters can reach either side.
+    """
+    symbol = atom.get("symbol", "C")
+    hydrogens = atom.get("num_hydrogens") or 0
+    if symbol == "C" and not atom.get("charge") and not atom.get("isotope"):
+        return 0.0
+    extra = _LABEL_CHAR_W * (len(symbol) - 1)
+    if hydrogens:
+        extra += _LABEL_CHAR_W + (_LABEL_DIGIT_W if hydrogens > 1 else 0.0)
+    if atom.get("charge"):
+        extra += _LABEL_DIGIT_W
+    return extra
+
+
 def _fragment_bbox(atoms: List[Dict]) -> Tuple[float, float, float, float]:
     """Compute (min_x, min_y, max_x, max_y) from atom positions.
 
-    Includes padding for bond lines and heteroatom labels that extend
-    beyond atom center positions (measured: +6.6pt width, +2.9pt height).
+    Includes padding for bond lines and the first label character
+    (measured: +6.6pt width, +2.9pt height) plus the width of longer
+    labels such as "Br" or "OH".
     """
-    xs = [a["x"] for a in atoms]
-    ys = [a["y"] for a in atoms]
     return (
-        min(xs) - _FRAG_PAD_W,
-        min(ys) - _FRAG_PAD_H,
-        max(xs) + _FRAG_PAD_W,
-        max(ys) + _FRAG_PAD_H,
+        min(a["x"] - _FRAG_PAD_W - _label_overhang(a) for a in atoms),
+        min(a["y"] for a in atoms) - _FRAG_PAD_H,
+        max(a["x"] + _FRAG_PAD_W + _label_overhang(a) for a in atoms),
+        max(a["y"] for a in atoms) + _FRAG_PAD_H,
     )
 
 
@@ -1458,7 +1477,7 @@ def _layout_divergent(
                 text_y = branch_y - LAYOUT_BELOW_GAP - text_below_baseline
                 txt_xml, txt_id = _build_text_element(
                     above_text, arrow_mid_x, text_y, ids,
-                    use_formatting=False,
+                    use_formatting=True,
                 )
                 xml_parts.append(txt_xml)
                 step_meta["above_ids"].append(txt_id)
@@ -2022,7 +2041,7 @@ def _layout_steps_row(
                 pass  # text_y is already correct
             txt_xml, txt_id = _build_text_element(
                 rs.above_text, arrow_mid_x, text_y, ids,
-                use_formatting=False,
+                use_formatting=True,
             )
             xml_parts.append(txt_xml)
             step_meta["above_ids"].append(txt_id)

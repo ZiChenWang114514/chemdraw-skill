@@ -34,8 +34,20 @@ def _check_chemdraw_com():
         return False, "not registered"
 
 
+def _check_chemdraw_macos():
+    """Find ChemDraw for macOS (without launching it)."""
+    from cdxml_toolkit.chemdraw import mac_automation
+
+    app = mac_automation.find_application()
+    return (True, str(app)) if app else (False, "not found in /Applications or CHEMDRAW_EXE")
+
+
 def _check_chemscript():
     """Check if ChemScript bridge is configured and working."""
+    if sys.platform == "darwin":
+        # ChemScript is Windows-only; ChemDraw for macOS, RDKit and OPSIN answer its commands.
+        ok, info = _check_chemdraw_macos()
+        return (True, "macOS backend (ChemDraw for macOS + RDKit + OPSIN)") if ok else (False, info)
     try:
         from cdxml_toolkit.chemdraw.chemscript_bridge import (
             ChemScriptBridge, _load_config,
@@ -81,13 +93,14 @@ def _print_diagnostics():
     checks = [
         ("RDKit", lambda: __import__("rdkit.Chem", fromlist=["Chem"])),
         ("PyYAML", lambda: __import__("yaml")),
-        ("pywin32", lambda: __import__("win32com.client", fromlist=["client"])),
         ("OPSIN", lambda: __import__("py2opsin")),
         ("DECIMER", lambda: __import__("DECIMER")),
         ("pdfplumber", lambda: __import__("pdfplumber")),
         ("MCP", lambda: __import__("mcp")),
-        ("pythonnet", lambda: __import__("pythonnet")),
     ]
+    if sys.platform != "darwin":
+        checks.insert(2, ("pywin32", lambda: __import__("win32com.client", fromlist=["client"])))
+        checks.append(("pythonnet", lambda: __import__("pythonnet")))
 
     print("  Dependencies:")
     for name, fn in checks:
@@ -95,9 +108,12 @@ def _print_diagnostics():
         status = f"OK ({info})" if ok else f"MISSING ({info})"
         print(f"    {name:14s} {status}")
 
-    # ChemDraw COM
-    ok, info = _check_chemdraw_com()
-    print(f"    {'ChemDraw COM':14s} {'OK' if ok else 'MISSING'} ({info})")
+    if sys.platform == "darwin":
+        ok, info = _check_chemdraw_macos()
+        print(f"    {'ChemDraw':14s} {'OK' if ok else 'MISSING'} ({info})")
+    else:
+        ok, info = _check_chemdraw_com()
+        print(f"    {'ChemDraw COM':14s} {'OK' if ok else 'MISSING'} ({info})")
 
     # ChemScript
     cs_ok, cs_info = _check_chemscript()
@@ -115,6 +131,11 @@ def _setup_chemscript(*, assume_yes=False):
     )
 
     print("=== ChemScript setup ===\n")
+    if sys.platform == "darwin":
+        print("  ChemScript is Windows-only. On macOS the ChemScript commands run through")
+        print("  ChemDraw for macOS, RDKit and OPSIN; no configuration is needed.")
+        print()
+        return
 
     # Find DLLs
     root = _find_chemdraw_root()
