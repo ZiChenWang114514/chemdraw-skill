@@ -60,18 +60,23 @@ def _fake_jdk(root: Path) -> Path:
     return java
 
 
-def test_macos_java_stub_resolves_to_real_jdk(tmp_path, monkeypatch):
-    java = _fake_jdk(tmp_path / "temurin.jdk")
+def _pretend_macos_stub(monkeypatch):
+    """PATH finds the macOS /usr/bin/java stub (realpath kept POSIX on any host)."""
     monkeypatch.setattr(jre_manager.sys, "platform", "darwin")
     monkeypatch.setattr(jre_manager.shutil, "which", lambda _name: "/usr/bin/java")
+    monkeypatch.setattr(jre_manager.os.path, "realpath", lambda path: path)
+
+
+def test_macos_java_stub_resolves_to_real_jdk(tmp_path, monkeypatch):
+    java = _fake_jdk(tmp_path / "temurin.jdk")
+    _pretend_macos_stub(monkeypatch)
     monkeypatch.setattr(jre_manager, "_macos_java_home", lambda: str(java.parents[1]))
 
     assert jre_manager._find_system_java() == str(java)
 
 
 def test_macos_java_stub_without_jdk_is_not_java(tmp_path, monkeypatch):
-    monkeypatch.setattr(jre_manager.sys, "platform", "darwin")
-    monkeypatch.setattr(jre_manager.shutil, "which", lambda _name: "/usr/bin/java")
+    _pretend_macos_stub(monkeypatch)
     monkeypatch.setattr(jre_manager, "_macos_java_home", lambda: None)
     monkeypatch.delenv("JAVA_HOME", raising=False)
 
@@ -80,8 +85,7 @@ def test_macos_java_stub_without_jdk_is_not_java(tmp_path, monkeypatch):
 
 def test_java_home_never_points_at_the_macos_stub(tmp_path, monkeypatch):
     java = _fake_jdk(tmp_path / "temurin.jdk")
-    monkeypatch.setattr(jre_manager.sys, "platform", "darwin")
-    monkeypatch.setattr(jre_manager.shutil, "which", lambda _name: "/usr/bin/java")
+    _pretend_macos_stub(monkeypatch)
     monkeypatch.setattr(jre_manager, "_macos_java_home", lambda: str(java.parents[1]))
     monkeypatch.setattr(jre_manager, "_java_exe", None)
     monkeypatch.setenv("PATH", "/usr/bin")

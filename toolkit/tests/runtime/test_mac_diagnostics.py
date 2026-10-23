@@ -90,7 +90,7 @@ class MacDiscoveryTests(unittest.TestCase):
         self.assertEqual(office["status"], "unverified")
         self.assertEqual(
             office["pdf_export"],
-            {"word": "/Applications/Microsoft Word.app", "powerpoint": None},
+            {"word": str(apps[".docx"]), "powerpoint": None},
         )
 
 
@@ -124,8 +124,7 @@ class OpsinDiscoveryTests(unittest.TestCase):
             jar.parent.mkdir(parents=True)
             jar.write_bytes(b"PK")
             environment = {"XDG_DATA_HOME": temp, "LOCALAPPDATA": temp}
-            with mock.patch.dict(runtime_diagnostics.os.environ, environment), \
-                    mock.patch.object(runtime_diagnostics.os, "name", "posix"):
+            with mock.patch.dict(runtime_diagnostics.os.environ, environment):
                 for variable in ("OPSIN_JAR", "CDXML_TOOLKIT_OPSIN_JAR"):
                     runtime_diagnostics.os.environ.pop(variable, None)
                 _, opsin = runtime_diagnostics._java_opsin_capabilities()
