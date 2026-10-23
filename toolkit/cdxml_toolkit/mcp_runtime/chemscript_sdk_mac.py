@@ -61,6 +61,39 @@ class _Type(_Named):
         return [_Named(name) for name in self._interfaces]
 
 
+def _as_content(data: str, mimetype: Optional[str], *, reaction: bool = False):
+    """Data that the backend can only read as content, never as a file path.
+
+    The backend reads a string naming an existing file as that file, but
+    ChemScript's ``LoadData`` takes data only; files go through ``LoadFile`` and
+    ``ReadFile``, which need ``allow_file_io``.  Data that happens to name a file
+    (a SMILES such as ``CCO`` beside a file of that name) is handed over as a
+    molfile or RXN block instead; anything else naming a file is not data.
+    Returns ``(data, mimetype)``, or ``None`` when the data cannot be loaded.
+    """
+    if not os.path.lexists(data):
+        return data, mimetype
+    from rdkit import Chem, RDLogger
+    from rdkit.Chem import AllChem, rdChemReactions
+
+    RDLogger.DisableLog("rdApp.*")
+    try:
+        if reaction:
+            if ">" in data:
+                rxn = AllChem.ReactionFromSmarts(data, useSmiles=True)
+                return rdChemReactions.ReactionToRxnBlock(rxn), "chemical/x-mdl-rxn"
+            return None
+        mol = Chem.MolFromInchi(data) if data.startswith("InChI=") else Chem.MolFromSmiles(data)
+    except Exception:
+        return None
+    finally:
+        RDLogger.EnableLog("rdApp.*")
+    if mol is None:
+        return None
+    AllChem.Compute2DCoords(mol)
+    return Chem.MolToMolBlock(mol), "chemical/x-mdl-molfile"
+
+
 def _backend():
     from cdxml_toolkit.chemdraw import chemscript_mac
 
@@ -141,8 +174,12 @@ class StructureData(_Emulated):
 
     @classmethod
     def LoadData(cls, data: str, mimetype: Optional[str] = None):
-        if not isinstance(data, str) or not data.strip() or not cls._valid(data, mimetype):
+        if not isinstance(data, str) or not data.strip():
             return None
+        content = _as_content(data, mimetype)
+        if content is None or not cls._valid(*content):
+            return None
+        data, mimetype = content
         structure = cls()
         structure._data, structure._format = data, mimetype
         return structure
@@ -166,9 +203,10 @@ class StructureData(_Emulated):
             except Exception:
                 return False
             text_format = "text/xml"
-        if not self._valid(data, text_format):
+        content = _as_content(data, text_format)
+        if content is None or not self._valid(*content):
             return False
-        self._data, self._format = data, text_format
+        self._data, self._format = content
         return True
 
     @staticmethod
@@ -257,6 +295,10 @@ class ReactionData(_Emulated):
     def LoadData(cls, data: str, mimetype: Optional[str] = None):
         if not isinstance(data, str) or not data.strip():
             return None
+        content = _as_content(data, mimetype, reaction=True)
+        if content is None:
+            return None
+        data, mimetype = content
         reaction = cls()
         try:
             if data.lstrip().startswith("<"):

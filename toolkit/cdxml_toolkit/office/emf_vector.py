@@ -557,6 +557,17 @@ def svg_to_emf(svg: str | Path | bytes) -> bytes:
     else:
         data = svg.encode("utf-8") if isinstance(svg, str) else svg
     try:
+        return _convert(data)
+    except UnsupportedSvg:
+        raise
+    except (ValueError, OverflowError, ArithmeticError, IndexError, KeyError, struct.error) as exc:
+        # Values this converter cannot read (units, percentages, huge numbers)
+        # make the drawing unsupported rather than failing the export.
+        raise UnsupportedSvg(f"unreadable SVG value: {exc}") from exc
+
+
+def _convert(data: bytes) -> bytes:
+    try:
         root = ET.fromstring(data)
     except ET.ParseError as exc:
         raise UnsupportedSvg(f"invalid SVG: {exc}") from exc

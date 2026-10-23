@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -302,6 +303,30 @@ class MacEmulationTests(unittest.TestCase):
                     {"op": "call", "target": "mol", "member": "WriteFile", "args": [str(existing)]},
                 ], allow_file_io=True)
             self.assertEqual(existing.read_text(encoding="utf-8"), "old")
+
+    def test_data_naming_a_file_is_never_read_without_file_permission(self):
+        with tempfile.TemporaryDirectory() as temp:
+            secret = Path(temp) / "secret.mol"
+            secret.write_text("private", encoding="utf-8")
+            named_like_smiles = Path(temp) / "CCO"
+            named_like_smiles.write_text("private", encoding="utf-8")
+            cwd = os.getcwd()
+            os.chdir(temp)
+            try:
+                result = self.run_program([
+                    {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": [str(secret)]},
+                    {"op": "call_static", "type": "ReactionData", "member": "LoadData", "args": [str(secret)]},
+                    {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCO"], "as": "mol"},
+                ])
+            finally:
+                os.chdir(cwd)
+
+        self.assertIsNone(result["results"][0]["value"])
+        self.assertIsNone(result["results"][1]["value"])
+        sources = [str(args.get("source")) for _command, args in self.backend.calls]
+        self.assertNotIn(str(secret), sources)
+        self.assertNotIn("CCO", sources)  # the SMILES reaches the backend as content, not a path
+        self.assertEqual(result["results"][2]["value"]["$type"], "CambridgeSoft.ChemScript16.StructureData")
 
     def test_catalog_lists_exactly_the_emulated_members(self):
         result = chemscript_sdk_runtime.catalog_sdk(self.runtime, {"query": "AtomByAtomSearch"})

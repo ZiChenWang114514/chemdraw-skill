@@ -164,12 +164,13 @@ def _font_id(fonttable: ET.Element, name: str, charset: str) -> str:
     return new_id
 
 
-def apply_style_sheet(cdxml_text: str, style: dict) -> str:
+def apply_style_sheet(cdxml_text: str, style: dict, *, rescale: bool = True) -> str:
     """Write the settings from :func:`read_style_sheet` onto a CDXML document.
 
-    Coordinates are rescaled to the new bond length, as the ACS Document 1996
-    settings are elsewhere in the toolkit; ChemDraw's Clean Up then works to
-    these settings.
+    With ``rescale``, coordinates are rescaled to the new bond length, as the
+    ACS Document 1996 settings are elsewhere in the toolkit.  Without it only
+    the settings change, as with ``ApplySettings`` in ChemDraw for Windows, and
+    ChemDraw's Clean Up then works to them.
     """
     from .chemscript_bridge import _rescale_cdxml_coords
 
@@ -177,7 +178,7 @@ def apply_style_sheet(cdxml_text: str, style: dict) -> str:
     root = ET.fromstring(cdxml_text)
     old_length = float(root.get("BondLength") or 0) or None
     new_length = float(attributes["BondLength"])
-    if old_length and abs(new_length / old_length - 1) > 0.001:
+    if rescale and old_length and abs(new_length / old_length - 1) > 0.001:
         root = ET.fromstring(_rescale_cdxml_coords(cdxml_text, new_length / old_length))
     fonttable = root.find("fonttable")
     if fonttable is None:

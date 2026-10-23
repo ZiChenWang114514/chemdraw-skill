@@ -69,6 +69,7 @@ class LegacyCleanupOnMacTests(unittest.TestCase):
                          [("clean", False), ("clean", True)])
         styled = ET.fromstring(self.session.calls[0][2])
         self.assertEqual(styled.get("BondLength"), "14.40")
+        self.assertEqual([n.get("p") for n in styled.iter("n")], ["100 200", "130 200"])
         arial = next(f.get("id") for f in styled.iter("font") if f.get("name") == "Arial")
         self.assertEqual((styled.get("LabelFont"), styled.get("LabelSize"), styled.get("LabelFace")),
                          (arial, "10", "96"))
@@ -91,7 +92,9 @@ class LegacyCleanupOnMacTests(unittest.TestCase):
 
         styled = ET.fromstring(self.session.calls[0][2])
         self.assertEqual((styled.get("BondLength"), styled.get("LineWidth")), ("17", "0.75"))
-        self.assertEqual([n.get("p") for n in styled.iter("n")], ["56.67 113.33", "73.67 113.33"])
+        # As ApplySettings on Windows: settings change, coordinates (already scaled
+        # by scale_factor) are left to Clean Up.
+        self.assertEqual([n.get("p") for n in styled.iter("n")], ["100 200", "130 200"])
 
     def test_eln_cdx_input_is_converted_by_chemdraw_for_macos(self):
         source = self.root / "eln.cdx"

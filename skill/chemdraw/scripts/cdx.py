@@ -17,6 +17,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -400,22 +401,28 @@ def _office_edit_start(ns):
     workdir = Path(ns.workdir or document.with_name(document.stem + '_chemdraw_edit')).resolve()
     if workdir.exists():
         raise SystemExit(f'Refusing to reuse existing edit folder {workdir}; pass --workdir')
-    result = _worker('inspect_chemdraw_objects_in_office',
-                     {'input_path': str(document), 'output_dir': str(workdir / 'inspection'),
-                      'render_previews': False})
-    if not _summary('inspect_chemdraw_objects_in_office', result)['ok']:
-        return _emit('inspect_chemdraw_objects_in_office', result)
-    manifest = json.loads((workdir / 'inspection' / 'manifest.json').read_text(encoding='utf-8'))
-    objects = manifest['objects']
-    listing = [{'object': item['ordinal'], 'host': item['host'], 'shape': item.get('shape_name')} for item in objects]
-    if ns.object is None and len(objects) > 1:
-        print(json.dumps({'ok': False, 'error': 'choose one object with --object N', 'objects': listing,
-                          'workdir': str(workdir)}, ensure_ascii=False, indent=2))
-        return 2
-    number = ns.object or 1
-    chosen = next((item for item in objects if item['ordinal'] == number), None)
-    if chosen is None:
-        raise SystemExit(f'No ChemDraw object {number}; the document has {len(objects)}')
+    # Inspect into a scratch folder: the edit folder is made only once an object is chosen,
+    # so listing the objects or a wrong --object leaves nothing that blocks the rerun.
+    with tempfile.TemporaryDirectory(prefix='cdx-office-edit-') as scratch:
+        inspection = Path(scratch) / 'inspection'
+        result = _worker('inspect_chemdraw_objects_in_office',
+                         {'input_path': str(document), 'output_dir': str(inspection), 'render_previews': False})
+        if not _summary('inspect_chemdraw_objects_in_office', result)['ok']:
+            return _emit('inspect_chemdraw_objects_in_office', result)
+        manifest = json.loads((inspection / 'manifest.json').read_text(encoding='utf-8'))
+        objects = manifest['objects']
+        listing = [{'object': item['ordinal'], 'host': item['host'], 'shape': item.get('shape_name')}
+                   for item in objects]
+        if ns.object is None and len(objects) > 1:
+            print(json.dumps({'ok': False, 'error': 'choose one object with --object N', 'objects': listing},
+                             ensure_ascii=False, indent=2))
+            return 2
+        number = 1 if ns.object is None else ns.object
+        chosen = next((item for item in objects if item['ordinal'] == number), None)
+        if chosen is None:
+            raise SystemExit(f'No ChemDraw object {number}; the document has {len(objects)} (numbered from 1)')
+        workdir.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(inspection, workdir / 'inspection')
     cdxml = workdir / f'object_{number:03d}.cdxml'
     cdxml.write_bytes((workdir / 'inspection' / chosen['cdxml']).read_bytes())
     (workdir / 'replacements.json').write_text(json.dumps({
@@ -449,8 +456,15 @@ def _office_edit_finish(ns):
     cdxml = workdir / session['cdxml']
     deadline = time.monotonic() + max(0, ns.wait)
     while True:
-        if _sha256(cdxml) != session['cdxml_sha256'] and time.time() - cdxml.stat().st_mtime >= 2:
+        try:
+            saved = _sha256(cdxml) != session['cdxml_sha256']
+            age = time.time() - cdxml.stat().st_mtime
+        except OSError:  # ChemDraw replaces the file while saving
+            saved, age = False, 0
+        if saved and age >= 2:
             break
+        if saved:  # a save just landed: let it settle, whatever --wait says
+            deadline = max(deadline, time.monotonic() + 2 - age)
         if time.monotonic() >= deadline:
             print(json.dumps({'ok': False, 'error': f'{cdxml.name} has not been saved since the edit started',
                               'cdxml': str(cdxml)}, ensure_ascii=False, indent=2))

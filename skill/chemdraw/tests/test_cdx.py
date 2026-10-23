@@ -276,10 +276,17 @@ def test_office_edit_lists_objects_when_the_choice_is_ambiguous(tmp_path, capsys
     deck = tmp_path / 'deck.pptx'
     deck.write_bytes(b'PK')
     with mock.patch.object(cdx, '_worker', side_effect=_fake_inspection(2)), \
-            mock.patch.object(cdx, '_open_in_chemdraw') as opened:
+            mock.patch.object(cdx, '_open_in_chemdraw', return_value=True) as opened:
         assert cdx.main(['office-edit', str(deck)]) == 2
-    assert not opened.called
-    assert [item['object'] for item in json.loads(capsys.readouterr().out)['objects']] == [1, 2]
+        assert not opened.called
+        assert [item['object'] for item in json.loads(capsys.readouterr().out)['objects']] == [1, 2]
+        # The listing leaves nothing behind, so the advised rerun works.
+        assert not (tmp_path / 'deck_chemdraw_edit').exists()
+        for wrong in ('0', '3'):
+            with pytest.raises(SystemExit, match='No ChemDraw object'):
+                cdx.main(['office-edit', str(deck), '--object', wrong])
+            assert not (tmp_path / 'deck_chemdraw_edit').exists()
+        assert cdx.main(['office-edit', str(deck), '--object', '2']) == 0
 
 
 def test_office_edit_finish_writes_back_only_a_saved_drawing_and_resizes_its_frame(tmp_path, capsys):
@@ -326,3 +333,24 @@ def test_office_edit_finish_accepts_the_document_and_finds_its_edit_folder(tmp_p
         assert cdx.main(['office-edit', str(other), '--finish']) == 2
     assert not worker.called
     assert 'office-edit' in capsys.readouterr().out
+
+
+def test_office_edit_finish_waits_for_a_fresh_save_to_settle(tmp_path, capsys):
+    deck = tmp_path / 'deck.pptx'
+    deck.write_bytes(b'PK')
+    with mock.patch.object(cdx, '_worker', side_effect=_fake_inspection(1)), \
+            mock.patch.object(cdx, '_open_in_chemdraw', return_value=True):
+        cdx.main(['office-edit', str(deck)])
+    workdir = tmp_path / 'deck_chemdraw_edit'
+    edited = workdir / 'object_001.cdxml'
+    edited.unlink()  # mid-save
+    capsys.readouterr()
+    with mock.patch.object(cdx, '_worker') as worker:
+        assert cdx.main(['office-edit', '--finish', str(workdir)]) == 1
+    assert not worker.called
+    assert 'has not been saved' in capsys.readouterr().out
+
+    edited.write_text('<CDXML n="edited"/>', encoding='utf-8')  # saved just now
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['office-edit', '--finish', str(workdir)]) == 0
+    assert worker.called

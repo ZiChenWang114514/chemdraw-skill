@@ -247,13 +247,15 @@ def _style_like_pass1_macos(cdxml_text, apply_acs, style_path=None):
     Document 1996 settings with ``apply_acs``) and the Arial 10 pt captions
     and labels are written into the CDXML directly.
     """
-    from cdxml_toolkit.chemdraw.chemscript_bridge import _inject_acs_style
     from cdxml_toolkit.chemdraw.style_sheet import apply_style_sheet, read_style_sheet
+    from cdxml_toolkit.constants import ACS_STYLE
 
+    # Like ApplySettings on Windows, only the settings change: the coordinates
+    # were already scaled by scale_factor and Clean Up works to the new settings.
     if style_path:
-        cdxml_text = apply_style_sheet(cdxml_text, read_style_sheet(style_path))
+        cdxml_text = apply_style_sheet(cdxml_text, read_style_sheet(style_path), rescale=False)
     elif apply_acs:
-        cdxml_text = _inject_acs_style(cdxml_text)
+        cdxml_text = apply_style_sheet(cdxml_text, {"attributes": ACS_STYLE, "fonts": {}}, rescale=False)
     root = ET.fromstring(cdxml_text)
     fonttable = root.find("fonttable")
     if fonttable is None:

@@ -56,45 +56,45 @@
 
 ## `mcp_runtime.chemscript_sdk_mac`
 
-- **class**, line 82: `Atom` - No public docstring in the audited version.
-- **class**, line 104: `AtomMap` - Atom-to-atom map, keyed like a .NET dictionary (``Keys``, ``map[atom]``).
-- **property**, line 115: `AtomMap.Count` - No public docstring in the audited version.
-- **property**, line 111: `AtomMap.Keys` - No public docstring in the audited version.
-- **class**, line 96: `Bond` - No public docstring in the audited version.
-- **class**, line 320: `LargestCommonSubstructure` - No public docstring in the audited version.
-- **method**, line 330: `LargestCommonSubstructure.AtomMapM1() -> AtomMap` - No public docstring in the audited version.
-- **method**, line 333: `LargestCommonSubstructure.AtomMapM2() -> AtomMap` - No public docstring in the audited version.
-- **method**, line 325: `LargestCommonSubstructure.Compute(first: StructureData, second: StructureData)` - No public docstring in the audited version.
-- **class**, line 384: `MacSdkRuntime` - The program runtime interface of ``ChemScriptRuntime``, for the emulation.
-- **method**, line 434: `MacSdkRuntime.catalog() -> tuple[list[dict], list[dict]]` - No public docstring in the audited version.
-- **method**, line 422: `MacSdkRuntime.check_member(owner: Any, member: str, operation: str) -> None` - Refuse anything that is not an emulated public member (no Python internals).
-- **method**, line 419: `MacSdkRuntime.member_is_interop(reflection_type, member: str) -> bool` - No public docstring in the audited version.
-- **method**, line 398: `MacSdkRuntime.python_type(name: str)` - No public docstring in the audited version.
-- **method**, line 389: `MacSdkRuntime.reflection_type(name: str) -> _Type` - No public docstring in the audited version.
-- **method**, line 401: `MacSdkRuntime.resolve_argument(value: Any, aliases: dict[str, Any], *, unsafe: bool)` - No public docstring in the audited version.
-- **class**, line 250: `ReactionData` - No public docstring in the audited version.
-- **method**, line 298: `ReactionData.Formula() -> str` - No public docstring in the audited version.
-- **method**, line 257: `ReactionData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 276: `ReactionData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **property**, line 295: `ReactionData.Products` - No public docstring in the audited version.
-- **property**, line 291: `ReactionData.Reactants` - No public docstring in the audited version.
-- **method**, line 301: `ReactionData.WriteData(mimetype: str = 'chemical/x-mdl-rxn') -> str` - No public docstring in the audited version.
-- **method**, line 308: `ReactionData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
-- **class**, line 128: `StructureData` - No public docstring in the audited version.
-- **method**, line 241: `StructureData.AtomByAtomSearch(target: 'StructureData')` - No public docstring in the audited version.
-- **property**, line 191: `StructureData.Atoms` - No public docstring in the audited version.
-- **property**, line 195: `StructureData.Bonds` - No public docstring in the audited version.
-- **method**, line 187: `StructureData.ChemicalName() -> str` - No public docstring in the audited version.
-- **method**, line 220: `StructureData.CleanupStructure() -> bool` - No public docstring in the audited version.
-- **method**, line 237: `StructureData.ContainsSubstructure(query: 'StructureData') -> bool` - No public docstring in the audited version.
-- **method**, line 184: `StructureData.Formula() -> str` - No public docstring in the audited version.
-- **method**, line 143: `StructureData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 151: `StructureData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 175: `StructureData.MimeTypes()` - No public docstring in the audited version.
-- **method**, line 229: `StructureData.Overlay(target: 'StructureData') -> bool` - No public docstring in the audited version.
-- **method**, line 155: `StructureData.ReadFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
-- **method**, line 199: `StructureData.WriteData(mimetype: str = 'text/xml') -> str` - No public docstring in the audited version.
-- **method**, line 206: `StructureData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **class**, line 115: `Atom` - No public docstring in the audited version.
+- **class**, line 137: `AtomMap` - Atom-to-atom map, keyed like a .NET dictionary (``Keys``, ``map[atom]``).
+- **property**, line 148: `AtomMap.Count` - No public docstring in the audited version.
+- **property**, line 144: `AtomMap.Keys` - No public docstring in the audited version.
+- **class**, line 129: `Bond` - No public docstring in the audited version.
+- **class**, line 362: `LargestCommonSubstructure` - No public docstring in the audited version.
+- **method**, line 372: `LargestCommonSubstructure.AtomMapM1() -> AtomMap` - No public docstring in the audited version.
+- **method**, line 375: `LargestCommonSubstructure.AtomMapM2() -> AtomMap` - No public docstring in the audited version.
+- **method**, line 367: `LargestCommonSubstructure.Compute(first: StructureData, second: StructureData)` - No public docstring in the audited version.
+- **class**, line 426: `MacSdkRuntime` - The program runtime interface of ``ChemScriptRuntime``, for the emulation.
+- **method**, line 476: `MacSdkRuntime.catalog() -> tuple[list[dict], list[dict]]` - No public docstring in the audited version.
+- **method**, line 464: `MacSdkRuntime.check_member(owner: Any, member: str, operation: str) -> None` - Refuse anything that is not an emulated public member (no Python internals).
+- **method**, line 461: `MacSdkRuntime.member_is_interop(reflection_type, member: str) -> bool` - No public docstring in the audited version.
+- **method**, line 440: `MacSdkRuntime.python_type(name: str)` - No public docstring in the audited version.
+- **method**, line 431: `MacSdkRuntime.reflection_type(name: str) -> _Type` - No public docstring in the audited version.
+- **method**, line 443: `MacSdkRuntime.resolve_argument(value: Any, aliases: dict[str, Any], *, unsafe: bool)` - No public docstring in the audited version.
+- **class**, line 288: `ReactionData` - No public docstring in the audited version.
+- **method**, line 340: `ReactionData.Formula() -> str` - No public docstring in the audited version.
+- **method**, line 295: `ReactionData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 318: `ReactionData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **property**, line 337: `ReactionData.Products` - No public docstring in the audited version.
+- **property**, line 333: `ReactionData.Reactants` - No public docstring in the audited version.
+- **method**, line 343: `ReactionData.WriteData(mimetype: str = 'chemical/x-mdl-rxn') -> str` - No public docstring in the audited version.
+- **method**, line 350: `ReactionData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **class**, line 161: `StructureData` - No public docstring in the audited version.
+- **method**, line 279: `StructureData.AtomByAtomSearch(target: 'StructureData')` - No public docstring in the audited version.
+- **property**, line 229: `StructureData.Atoms` - No public docstring in the audited version.
+- **property**, line 233: `StructureData.Bonds` - No public docstring in the audited version.
+- **method**, line 225: `StructureData.ChemicalName() -> str` - No public docstring in the audited version.
+- **method**, line 258: `StructureData.CleanupStructure() -> bool` - No public docstring in the audited version.
+- **method**, line 275: `StructureData.ContainsSubstructure(query: 'StructureData') -> bool` - No public docstring in the audited version.
+- **method**, line 222: `StructureData.Formula() -> str` - No public docstring in the audited version.
+- **method**, line 176: `StructureData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 188: `StructureData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 213: `StructureData.MimeTypes()` - No public docstring in the audited version.
+- **method**, line 267: `StructureData.Overlay(target: 'StructureData') -> bool` - No public docstring in the audited version.
+- **method**, line 192: `StructureData.ReadFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **method**, line 237: `StructureData.WriteData(mimetype: str = 'text/xml') -> str` - No public docstring in the audited version.
+- **method**, line 244: `StructureData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
 
 ## `mcp_runtime.chemscript_sdk_runtime`
 
@@ -210,12 +210,12 @@
 - **function**, line 26: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
 - **function**, line 510: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
 - **function**, line 443: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 617: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 533: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
-- **function**, line 571: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
+- **function**, line 633: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 546: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+- **function**, line 587: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
 - **function**, line 267: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
 - **function**, line 51: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
-- **function**, line 670: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 686: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
 - **function**, line 391: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.official_overrides`

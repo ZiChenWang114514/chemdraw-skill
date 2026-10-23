@@ -517,55 +517,71 @@ def emf_frame_size(data: bytes) -> tuple[int, int] | None:
     return right - left + 1, bottom - top + 1
 
 
-_SCALED_NUMBER = r"(?P<number>\d+(?:\.\d+)?)"
+_RELATIONSHIPS_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+_FRAME_TAGS = {
+    "{http://schemas.openxmlformats.org/presentationml/2006/main}graphicFrame",
+    "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}object",
+}
+_WORD_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 
 
-def _scale_matches(text: str, pattern: str, factor: float, *, decimals: int = 0) -> str:
-    def scale(match: re.Match) -> str:
-        value = float(match.group("number")) * factor
-        number = f"{value:.{decimals}f}" if decimals else str(round(value))
-        start, end = match.span("number")
-        return match.group(0)[: start - match.start()] + number + match.group(0)[end - match.start():]
+def _scaled(value: str, factor: float, decimals: int = 0) -> str:
+    number = float(value) * factor
+    return f"{number:.{decimals}f}" if decimals else str(round(number))
 
-    return re.sub(pattern, scale, text)
+
+def _scale_style(style: str, scale_x: float, scale_y: float) -> str:
+    """Scale ``width``/``height`` of a VML style declaration, keeping their unit."""
+    declarations = []
+    for declaration in style.split(";"):
+        name, separator, value = declaration.partition(":")
+        factor = {"width": scale_x, "height": scale_y}.get(name.strip().lower())
+        match = re.fullmatch(r"\s*(\d+(?:\.\d+)?)([a-z%]*)\s*", value) if factor else None
+        if match:
+            declaration = f"{name}{separator}{_scaled(match.group(1), factor, 2)}{match.group(2)}"
+        declarations.append(declaration)
+    return ";".join(declarations)
 
 
 def resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes:
     """Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
 
     The top-left corner stays where it is, as when Office updates an object
-    after it was edited in ChemDraw. Only the size attributes change; the
-    rest of the XML is kept byte for byte.
+    after it was edited in ChemDraw. Only the size attributes change.
     """
-    text = xml.decode("utf-8")
-    reference = re.compile(r'\b[\w.-]+:id="' + re.escape(relationship_id) + '"')
-    blocks = list(re.finditer(
-        r"<(?P<prefix>[\w.-]+:)?(?P<tag>graphicFrame|object)\b.*?</(?P=prefix)(?P=tag)>", text, re.S,
-    ))
-    edited = 0
-    pieces, last = [], 0
-    for block in blocks:
-        body = block.group(0)
-        if not reference.search(body):
+    from lxml import etree
+
+    root = etree.fromstring(xml)
+    frames = []
+    for element in root.iter():
+        if element.get(f"{{{_RELATIONSHIPS_NS}}}id") != relationship_id:
             continue
-        if block.group("tag") == "graphicFrame":
-            body = _scale_matches(body, r'<[\w.-]*:?ext\b[^>]*?\bcx="' + _SCALED_NUMBER, scale_x)
-            body = _scale_matches(body, r'<[\w.-]*:?ext\b[^>]*?\bcy="' + _SCALED_NUMBER, scale_y)
-            body = _scale_matches(body, r'\bimgW="' + _SCALED_NUMBER, scale_x)
-            body = _scale_matches(body, r'\bimgH="' + _SCALED_NUMBER, scale_y)
-        else:
-            body = _scale_matches(body, r'\bstyle="[^"]*?\bwidth:\s*' + _SCALED_NUMBER, scale_x, decimals=2)
-            body = _scale_matches(body, r'\bstyle="[^"]*?\bheight:\s*' + _SCALED_NUMBER, scale_y, decimals=2)
-            body = _scale_matches(body, r'\b[\w.-]+:dxaOrig="' + _SCALED_NUMBER, scale_x)
-            body = _scale_matches(body, r'\b[\w.-]+:dyaOrig="' + _SCALED_NUMBER, scale_y)
-        pieces.append(text[last:block.start()])
-        pieces.append(body)
-        last = block.end()
-        edited += 1
-    if not edited:
+        frame = next((item for item in element.iterancestors() if item.tag in _FRAME_TAGS), None)
+        if frame is not None and frame not in frames:
+            frames.append(frame)
+    if not frames:
         raise ValueError(f"No frame references OLE relationship {relationship_id}")
-    pieces.append(text[last:])
-    return "".join(pieces).encode("utf-8")
+    for frame in frames:
+        for element in frame.iter():
+            if not isinstance(element.tag, str):
+                continue
+            local = etree.QName(element).localname
+            if local == "ext" and element.get("cx") is not None and element.get("cy") is not None:
+                element.set("cx", _scaled(element.get("cx"), scale_x))
+                element.set("cy", _scaled(element.get("cy"), scale_y))
+            if local == "oleObj":
+                for name, factor in (("imgW", scale_x), ("imgH", scale_y)):
+                    if element.get(name) is not None:
+                        element.set(name, _scaled(element.get(name), factor))
+            if element.get("style") is not None and local == "shape":
+                element.set("style", _scale_style(element.get("style"), scale_x, scale_y))
+        for name, factor in (("dxaOrig", scale_x), ("dyaOrig", scale_y)):
+            attribute = f"{{{_WORD_NS}}}{name}"
+            if frame.get(attribute) is not None:
+                frame.set(attribute, _scaled(frame.get(attribute), factor))
+    body = etree.tostring(root, encoding="UTF-8")
+    declaration = re.match(rb"\s*<\?xml[^>]*\?>\s*", xml)
+    return (declaration.group(0) if declaration else b"") + body
 
 
 def rewrite_office_package(

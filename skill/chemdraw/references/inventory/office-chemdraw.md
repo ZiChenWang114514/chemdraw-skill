@@ -126,7 +126,7 @@
 
 ## `chemdraw.style_sheet`
 
-- **function**, line 167: `apply_style_sheet(cdxml_text: str, style: dict) -> str` - Write the settings from :func:`read_style_sheet` onto a CDXML document.
+- **function**, line 167: `apply_style_sheet(cdxml_text: str, style: dict, *, rescale: bool = True) -> str` - Write the settings from :func:`read_style_sheet` onto a CDXML document.
 - **function**, line 124: `read_style_sheet(path: str | Path) -> dict` - Drawing settings of a ChemDraw style sheet (.cds) or CDX document.
 - **class**, line 59: `StyleSheetError` - The file is not a ChemDraw style sheet this module can read.
 

@@ -89,6 +89,9 @@ class VectorEmfTests(unittest.TestCase):
             '<path fill="#00000080" d="M 0,0 L 1,1 Z"/>',
             '<text transform="rotate(30)">x</text>',
             '<image href="x.png"/>',
+            '<path style="opacity:50%" d="M 0,0 L 1,1 Z"/>',
+            '<path fill-opacity="0.5px" d="M 0,0 L 1,1 Z"/>',
+            '<path stroke="#000" stroke-width="1e999" d="M 0,0 L 1,1"/>',
         ):
             with self.subTest(body=body), self.assertRaises(emf_vector.UnsupportedSvg):
                 emf_vector.svg_to_emf(svg(body))
