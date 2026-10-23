@@ -18,6 +18,7 @@ from .extended_tools import PUBLIC_TOOLS
 from .official_overrides import OFFICIAL_OVERRIDES
 from .remote_tools import REMOTE_TOOLS
 from .figure_tools import FIGURE_TOOLS
+from .markush_tools import MARKUSH_TOOLS
 from .publication_figure import publication_figure
 
 
@@ -49,6 +50,7 @@ CHEMDRAW_COM_TOOLS = {
     "inspect_chemdraw_objects_in_office",
     "replace_chemdraw_objects_in_office",
     "diagnose_runtime",
+    "markush_compile",
 }
 
 
@@ -64,6 +66,8 @@ def _tool_timeout(name: str) -> int | None:
         "inspect_chemscript_sdk": 240,
         "execute_chemscript_sdk": 300,
         "publication_figure": 600,
+        "markush_compile": 180,
+        "markush_detect": 120,
     }.get(name)
 
 
@@ -161,6 +165,9 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     )
     extended_functions = _merge_named_tools(
         extended_functions, {"publication_figure": publication_figure}, source="publication figures"
+    )
+    extended_functions = _merge_named_tools(
+        extended_functions, MARKUSH_TOOLS, source="Markush tools"
     )
     extended = {
         name: ToolSpec(

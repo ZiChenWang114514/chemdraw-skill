@@ -288,6 +288,31 @@ def cmd_build(ns):
     return 0
 
 
+def _markush_render(source, png):
+    """Native render for the Markush driver, through the worker (native lock, timeout)."""
+    result = _worker('render_to_png', {'output_path': str(png)}, [str(source)])
+    return _summary('render_to_png', result)['ok'] and Path(png).is_file()
+
+
+def cmd_markush(ns):
+    from cdxml_toolkit.markush import workflow
+    if ns.action == 'init':
+        if not ns.image:
+            raise SystemExit('init needs --image')
+        crop = [int(v) for v in ns.crop] if ns.crop else None
+        out = workflow.init(ns.workdir, ns.image, text=ns.text, crop=crop, reuse=ns.reuse)
+    elif ns.action == 'next':
+        out = workflow.next_task(ns.workdir, renderer=_markush_render)
+    elif ns.action == 'submit':
+        if not (ns.task and ns.answer):
+            raise SystemExit('submit needs TASK and ANSWER.json')
+        out = workflow.submit(ns.workdir, ns.task, ns.answer, renderer=_markush_render)
+    else:
+        out = workflow.status(ns.workdir)
+    print(json.dumps(out, ensure_ascii=False, indent=2))
+    return 0 if out.get('accepted', True) else 1
+
+
 def cmd_chemscript_info(ns):
     from cdxml_toolkit.mcp_runtime.resource_lock import native_resource_lock
     with native_resource_lock('chemdraw_com', ns.timeout):
@@ -424,6 +449,16 @@ def main(argv=None):
     s.add_argument('--timeout', type=int, default=120)
     s.add_argument('--out', help='new JSON file for the raw recognition result')
     s.set_defaults(fn=cmd_decimer)
+    s = sub.add_parser('markush', help='Markush workflow from an image: init, next task, submit an answer, status')
+    s.add_argument('action', choices=['init', 'next', 'submit', 'status'])
+    s.add_argument('workdir')
+    s.add_argument('task', nargs='?', help='submit: the task id printed by next')
+    s.add_argument('answer', nargs='?', help='submit: JSON answer file')
+    s.add_argument('--image', help='init: the structure image (crop of the figure)')
+    s.add_argument('--text', help='init: claim text (.txt or .pdf) with the variable definitions')
+    s.add_argument('--crop', nargs=4, metavar=('X0', 'Y0', 'X1', 'Y1'), help='init: crop box in image pixels')
+    s.add_argument('--reuse', help='init: earlier workdir whose answers are reused when the task input is unchanged')
+    s.set_defaults(fn=cmd_markush)
     s = sub.add_parser('doctor', help='runtime, extras, signatures, installation and capability report')
     s.add_argument('--paths', action='store_true', help='also print log, lock and temp locations')
     s.add_argument('--native', action='store_true', help='run the native ChemDraw render probe')

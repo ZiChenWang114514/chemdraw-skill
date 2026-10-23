@@ -1,0 +1,15 @@
+1. A compound of formula (I) or a pharmaceutically acceptable salt thereof, wherein:
+Ring A is a 5- to 7-membered saturated heterocycle containing the two nitrogen atoms shown;
+Ring C is phenyl or a 5- or 6-membered heteroaryl;
+G, G1 and G2 are each independently CH or N;
+Y is C1-3 alkoxymethyl;
+Z is methyl or ethyl;
+RA is halogen; n is 0, 1 or 2;
+RB is fluoro or methyl; q is 0, 1 or 2;
+RC is fluoro; p is 0 or 1;
+RD is chloro or methyl;
+RR is methyl;
+L is cyclopropyl;
+L1 is methylene;
+L2 is CH2 or C(CH3)2CH2;
+R2 is methylene.

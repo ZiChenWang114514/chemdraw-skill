@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 39,
+  "tool_count": 43,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -180,6 +180,38 @@
       "resource_class": null,
       "timeout_seconds": 240,
       "description": "Catalog every public ChemScript type/member, with filtering or a complete JSON export."
+    },
+    {
+      "name": "markush_compile",
+      "signature": "(spec_path: str, output_dir: str, layout_path: str | None = None, render: bool = True) -> dict",
+      "group": "extended",
+      "resource_class": "chemdraw_com",
+      "timeout_seconds": 180,
+      "description": "Compile a spec into markush.cxsmiles, markush.mol (V3000), markush.cdxml and a native PNG.\n\n``layout_path`` holds coordinates (for example from the image workflow) so the\ndrawing follows the source figure; without it RDKit coordinates are used.\n``output_dir`` must not exist yet."
+    },
+    {
+      "name": "markush_detect",
+      "signature": "(image_path: str, output_dir: str) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 120,
+      "description": "Find text boxes, bonds and ring circles in a clean Markush drawing.\n\nWrites graph.json (pixel geometry with T# text-box and v# bond-end ids),\nmarks.png (the ids drawn on the image) and labels.png (one enlarged row per\ntext box, for transcription).  No chemistry is guessed here."
+    },
+    {
+      "name": "markush_enumerate",
+      "signature": "(spec_path: str, count: int = 5, seed: int = 0) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Sample concrete members from the definition values of a spec (SMILES)."
+    },
+    {
+      "name": "markush_validate",
+      "signature": "(spec_path: str) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Check a markush.json spec; every error says what to change."
     },
     {
       "name": "merge_reaction_schemes",
