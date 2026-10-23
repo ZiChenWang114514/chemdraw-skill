@@ -55,6 +55,12 @@
     </td>
   </tr>
   <tr>
+    <td colspan="3" align="center">
+      <a href="#markush-demo"><img src="assets/readme/markush/comparison.png" alt="专利 Markush 通式原图与可编辑 ChemDraw 复刻对照"></a>
+      <br><b>专利 Markush 通式 → 可编辑 ChemDraw</b><br><sub>左为专利原图，右为原生复刻：R 基、可变环、多中心键与重复次数</sub>
+    </td>
+  </tr>
+  <tr>
     <td width="33%" align="center" valign="top">
       <a href="#synthesis-113-demo"><img src="assets/readme/gallery/complex-synthesis.png" alt="在 ChemDraw 中复刻的复杂多步合成路线"></a>
       <br><b>复杂合成路线</b><br><sub>完整多步路线与机理箭头</sub>
@@ -154,6 +160,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；在安装兼容 SDK 的 Windows 主机上可增加 ChemScript 精确身份检查。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
 | **谱图与科研绘图** | 对已处理的一维 NMR 数据寻峰并做指定区间积分；把数值数据输出为可编辑曲线。 |
+| **专利 Markush 通式** | 从专利图片和权利要求文本提取通式：R 基、可变环、多中心键与重复次数，保存为 CXSMILES、V3000 molfile 和沿用原图版式的可编辑绘图。 |
 | **反应机理** | 按明确的原子坐标绘制机理，包括电子箭头、电荷和抗衡离子。 |
 | **Office 文档** | 在 Windows 桌面版 Word 和 PowerPoint 中嵌入可编辑的 ChemDraw 对象。 |
 | **实验记录** | 发现文件，并处理选定的 LCMS、SciFinder RDF 和实验记录工作流。 |
@@ -191,6 +198,7 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 | [20 个结构](#stereo-reconstruction-demo) | 修复不同化学软件之间的立体信息分歧 | ChemScript 与 RDKit 立体信息 20/20 一致 |
 | [论文反应路线](#paper-scheme-demo) | 五个结构、条件、产率与波浪键 | 完整可编辑复刻 |
 | [Sceptrin 反应机理](#mechanism-demo) | 八个结构、电子箭头、电荷与条件 | 完整可编辑复刻 |
+| [专利 Markush 通式](#markush-demo) | 从专利图片和权利要求文本提取 R 基、可变环与多中心键 | 结构与参考一致，附 CXSMILES 与 V3000 |
 | [原生 TLC](#tlc-demo) | 可编辑泳道、斑点与 Rf | 可运行示例 |
 | [原生装置图](#apparatus-demo) | 原生 ChemDraw 模板组装 | 可运行示例 |
 | [实验 NMR 谱图](#nmr-demo) | 真实一维数据与可编辑谱图 | 可运行示例 |
@@ -253,6 +261,16 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 [可编辑 CDXML](assets/readme/mechanism/mechanism.cdxml) · [原生 CDX](assets/readme/mechanism/mechanism.cdx) · [左右对照](assets/readme/mechanism/comparison.png) · [验证详情](assets/readme/mechanism/provenance.json)
 
 八个编号结构和六个氯离子经过真实的 ChemDraw CDXML → CDX → CDXML 保存后，原子、立体化学和形式电荷保持不变。R 基团与原图一样保留为通用取代基。
+
+<a id="markush-demo"></a>
+
+### 专利 Markush 通式
+
+![专利 Markush 通式原图（左）与 ChemDraw 原生复刻（右）](assets/readme/markush/comparison.png)
+
+[可编辑 CDXML](assets/readme/markush/markush.cdxml) · [Markush 结构定义](assets/readme/markush/markush.json) · [CXSMILES](assets/readme/markush/markush.cxsmiles) · [V3000 molfile](assets/readme/markush/markush.mol) · [验证与局限](assets/readme/markush/provenance.json) · [工作流程](skill/chemdraw/references/markush.md)
+
+输入是一张专利通式图和一段权利要求文本。结构里有 R 基和连接基、两个可变环、一个可以连在三个环位置之一的基团，以及重复次数。一个小型低成本模型从零上下文开始，只靠本 Skill 和 `cdx.py markush` 完成了整个提取：它负责转录标签、核对读回图、检查左右对照图，并把每条权利要求转成取值。几何、结构和绘图都由代码完成。结果与手写的参考结构逐原子一致，绘图沿用原图版式（墨迹重合度 0.99）。结构同时保存为 CXSMILES 和 V3000 molfile，其他化学软件也能读取。
 
 ### 原生科研绘图
 

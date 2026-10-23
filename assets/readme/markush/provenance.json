@@ -1,0 +1,60 @@
+{
+  "example": "Patent Markush structure: 2-aryl indole macrocycle with variable rings A and C",
+  "source": {
+    "file": "reference.png",
+    "provided_by": "user",
+    "bibliographic_reference": "not supplied",
+    "rights": "The reference figure is not relicensed under the software license."
+  },
+  "claim_text": {
+    "file": "claims.txt",
+    "note": "Illustrative claim wording written for this example; the definitions are not taken from the source patent."
+  },
+  "workflow": {
+    "entry_point": "cdx.py markush init / next / submit",
+    "guide": "skill/chemdraw/references/markush.md",
+    "answering_model": "a small, low-cost language model started with no prior context; it was given only the Skill folder, the image and the claim text",
+    "model_tasks": [
+      "typed the 23 text boxes",
+      "checked the read-back image",
+      "reviewed the side-by-side render",
+      "turned 16 claim clauses into values"
+    ],
+    "rejected_answers": 1,
+    "needs_review": []
+  },
+  "outputs": {
+    "spec": "markush.json",
+    "cxsmiles": "markush.cxsmiles",
+    "molfile_v3000": "markush.mol",
+    "cdxml": "markush.cdxml",
+    "layout": "layout.json",
+    "native_preview": "native.png",
+    "comparison": "comparison.png"
+  },
+  "verification": {
+    "structure_matches_hand_written_reference_spec": true,
+    "comparison": "labelled atom graph and variable-attachment groups compared after canonicalisation",
+    "ink_overlap_with_source": 0.9908,
+    "visual_review": "completed; differences remain",
+    "pixel_identical": false
+  },
+  "limitations": [
+    "The short N-NH dash inside ring A is not drawn; the bond is present in the structure.",
+    "The (RA)n and (RC)p lines end at their ring circles instead of crossing into them, and the open arc of ring A is drawn as a closed circle.",
+    "The detection and drafting code was developed on this figure, so this case does not measure accuracy on unseen figures.",
+    "Ring A, ring C and Y are defined only by class names, so they are kept as text and not enumerated.",
+    "The [*:1]/[*:2] orientation of the L2 value C(CH3)2CH2 follows the bond order in the spec and was not checked against a claim."
+  ],
+  "sha256": {
+    "claims.txt": "0327d02412b30413d7a07b8741013beb7bcbba628ef3fa6e083d09b7d651371a",
+    "comparison.png": "210dfa0e05f9f65ef22445f68c6a590a8793ee48a86523e2c0e0e7dfa8f6b13a",
+    "layout.json": "e3267fd76a61e46cb0a8ffd42a888f99d0150b8e16dd924a023f533cc7568841",
+    "markush.cdxml": "0ec1ad81e501b3aefb6c7a9bbf07295565635fb9eb4c0b3e354049fd2a80e7f9",
+    "markush.cxsmiles": "007cbbc4519049d3244ed10862efc7400b89cc0d9b446bc8754d86370f711815",
+    "markush.json": "63c2fd4d1a0148594dcb876c8fb203d854a43594c20edea310de467275d72ecb",
+    "markush.mol": "75a3a29a937fb54041bd5a51da49c05c99acdec04babf89ac09feddbb16400ef",
+    "native.png": "84706cea5b5d43ad1cb36cfb26f23439e921f7599e206737597c0f9b354a2359",
+    "reference.png": "30ec9290fd7ea9a7b11456b4df39233fe655e75eb736420bc6d3a4087c28c662"
+  }
+}

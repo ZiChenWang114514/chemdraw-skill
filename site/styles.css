@@ -250,6 +250,10 @@ h3 { font-size: 1.08rem; line-height: 1.4; margin: 0 0 6px; letter-spacing: -.00
 .compare input:focus-visible + .seam { box-shadow: 0 0 0 3px var(--teal-wash); }
 .compare-legend { display: flex; justify-content: space-between; font-size: .88rem; color: var(--mute); margin-top: 10px; }
 .compare-legend b { color: var(--ink); font-weight: 600; }
+.markush-head { margin-top: 64px; }
+.markush-head h3 { margin: 0 0 8px; }
+.compare:has(img[src$="markush-original.png"]) { max-width: 760px; margin-inline: auto; }
+.compare:has(img[src$="markush-original.png"]) + .compare-legend { max-width: 760px; margin-inline: auto; }
 
 .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 28px; margin-top: 56px; }
 .gallery figure { margin: 0; }

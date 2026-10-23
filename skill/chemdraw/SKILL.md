@@ -46,6 +46,7 @@ Read only the matching workflow and the needed signature, not the complete catal
 | Exact coordinates, native template edits, arrows, crossings | [Figure manifest](references/publication-figures.md) |
 | Reader stereo disagreement, native-save H loss | [Stereo diagnosis](references/stereo-reconstruction.md) |
 | Saved-file and cross-reader validation | [Figure validation](references/figure-validation.md) |
+| Patent Markush / generic structures (R groups, variable rings, image + claims) | [Markush structures](references/markush.md) |
 | Substrate scope, SAR, table-driven updates | [Data-driven figures](references/data-driven-figures.md) |
 | Office extraction, inspection, replacement or embedding | Office section in [workflow router](references/workflow-router.md) |
 | LCMS/NMR reports, RDF, experiment discovery and lab books | Analysis section in [workflow router](references/workflow-router.md) |
