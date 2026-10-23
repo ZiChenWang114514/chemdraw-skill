@@ -78,6 +78,21 @@ class LegacyCleanupOnMacTests(unittest.TestCase):
         self.assertEqual(label.get("font"), "3")  # atom labels follow LabelFont, not caption styling
         self.assertTrue(output.is_file())
 
+    def test_eln_cleanup_applies_a_custom_style_sheet_on_macos(self):
+        from .test_style_sheet import write_style_sheet
+
+        source = self.root / "eln.cdxml"
+        source.write_text(ELN_CDXML, encoding="utf-8")
+        sheet = self.root / "journal.cds"
+        write_style_sheet(sheet, bond_length=17.0)
+
+        eln_cdx_cleanup.cleanup_eln_cdx(str(source), str(self.root / "out.cdxml"),
+                                        scale_factor=1.0, style_path=str(sheet))
+
+        styled = ET.fromstring(self.session.calls[0][2])
+        self.assertEqual((styled.get("BondLength"), styled.get("LineWidth")), ("17", "0.75"))
+        self.assertEqual([n.get("p") for n in styled.iter("n")], ["56.67 113.33", "73.67 113.33"])
+
     def test_eln_cdx_input_is_converted_by_chemdraw_for_macos(self):
         source = self.root / "eln.cdx"
         source.write_bytes(b"VjCD0100" + b"\0" * 24)

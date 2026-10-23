@@ -354,6 +354,66 @@ class OfficeReplacementTests(unittest.TestCase):
         self.assertIn(first["object_id"], result["warnings"][0])
         self.assertIn("distorted", result["warnings"][0])
 
+    def _framed_emf(self, width_hmm: int, height_hmm: int) -> bytes:
+        data = bytearray(_emf())
+        struct.pack_into("<4i", data, 24, 0, 0, width_hmm - 1, height_hmm - 1)
+        return bytes(data)
+
+    def _replace_resizing(self, suffix: str):
+        source = self.root / f"framed{suffix}"
+        items = [
+            {"ole_data": _ole(f"OBJECT-{i}".encode()), "emf_data": self._framed_emf(1000, 500),
+             "width_emu": 914400, "height_emu": 457200, "name": f"fixture-{i}"}
+            for i in (1, 2)
+        ]
+        (build_pptx if suffix == ".pptx" else build_docx)(items, str(source))
+        inspection = self.root / f"framed-{suffix[1:]}"
+        with mock.patch(
+            "cdxml_toolkit.mcp_runtime.office_objects._convert_cdx_to_cdxml", return_value=MINIMAL_CDXML
+        ):
+            extended_tools.inspect_chemdraw_objects_in_office(str(source), str(inspection), render_previews=False)
+        manifest = json.loads((inspection / "manifest.json").read_text(encoding="utf-8"))
+        first = manifest["objects"][0]
+        replacements = self._write_replacements(
+            manifest, [{"object_id": first["object_id"], "replacement_cdxml": self.replacement.name}])
+        # The edited drawing is twice as wide and as tall as before.
+        self.replacement_emf = self._framed_emf(2000, 500)
+        output = self.root / f"resized{suffix}"
+        with mock.patch(
+            "cdxml_toolkit.office.ole_embedder.batch_convert",
+            return_value=[{"path": str(self.replacement), "name": "replacement",
+                           "cdx_data": b"VjCD0100replacement", "emf_data": self.replacement_emf,
+                           "content_bbox": None}],
+        ), mock.patch.object(extended_tools, "_build_chemdraw_ole", return_value=self.replacement_ole):
+            result = extended_tools.replace_chemdraw_objects_in_office(
+                str(source), str(replacements), str(output), render_pdf_preview=False, resize_frames=True)
+        before, after = _package_parts(source), _package_parts(output)
+        second = manifest["objects"][1]["host_part"]
+        if second != first["host_part"]:
+            self.assertEqual(after[second], before[second])
+        return result, before[first["host_part"]].decode(), after[first["host_part"]].decode()
+
+    def test_resize_frames_scales_the_edited_slide_object_only(self):
+        result, before, after = self._replace_resizing(".pptx")
+
+        self.assertEqual(result["metadata"]["frames_resized"], 1)
+        self.assertEqual(result["warnings"], [])
+        # Both mc:AlternateContent branches (frame and preview picture) grow; the
+        # position and the other slide's object do not change.
+        self.assertEqual(before.count('cx="914400" cy="457200"'), 4)
+        self.assertEqual(after.count('cx="1828800" cy="457200"'), 4)
+        self.assertEqual(after.count('imgW="1828800" imgH="457200"'), 2)
+        self.assertEqual(after.replace("1828800", "914400"), before)
+
+    def test_resize_frames_scales_the_edited_document_object_only(self):
+        result, before, after = self._replace_resizing(".docx")
+
+        self.assertEqual(result["metadata"]["frames_resized"], 1)
+        self.assertIn("width:144.00pt;height:36.00pt", after)
+        self.assertIn("width:72.0pt;height:36.0pt", after)
+        self.assertIn('w:dxaOrig="2880"', after)
+        self.assertIn('w:dxaOrig="1440"', after)
+
     def test_replace_rejects_unsafe_and_ambiguous_manifest_entries(self):
         source, manifest = self._inspection_manifest(".pptx")
         object_id = manifest["objects"][0]["object_id"]

@@ -239,3 +239,90 @@ def test_doctor_extras_follow_the_platform():
     assert 'win32com.client' in windows['office'] and windows['chemscript'] == ['clr']
     assert 'win32com.client' not in mac['office'] and {'docx', 'pptx', 'olefile'} <= set(mac['office'])
     assert mac['chemscript'] == ['py2opsin']
+
+
+def _fake_inspection(objects):
+    def worker(tool, args, *rest):
+        if tool != 'inspect_chemdraw_objects_in_office':
+            raise AssertionError(tool)
+        out = Path(args['output_dir'])
+        (out / 'objects').mkdir(parents=True)
+        records = []
+        for number in range(1, objects + 1):
+            (out / 'objects' / f'object_{number:03d}.cdxml').write_text(f'<CDXML n="{number}"/>', encoding='utf-8')
+            records.append({'ordinal': number, 'object_id': f'chemdraw-{number}', 'host': {'kind': 'slide'},
+                            'cdxml': f'objects/object_{number:03d}.cdxml'})
+        (out / 'manifest.json').write_text(json.dumps({'source_sha256': 'abc', 'objects': records}), encoding='utf-8')
+        return {'ok': True, 'result': {'ok': True}}
+    return worker
+
+
+def test_office_edit_opens_the_chosen_object_and_writes_a_replacement_manifest(tmp_path, capsys):
+    deck = tmp_path / 'deck.pptx'
+    deck.write_bytes(b'PK')
+    with mock.patch.object(cdx, '_worker', side_effect=_fake_inspection(2)), \
+            mock.patch.object(cdx, '_open_in_chemdraw', return_value=True) as opened:
+        assert cdx.main(['office-edit', str(deck), '--object', '2']) == 0
+    workdir = tmp_path / 'deck_chemdraw_edit'
+    assert opened.call_args.args[0] == workdir / 'object_002.cdxml'
+    assert (workdir / 'object_002.cdxml').read_text(encoding='utf-8') == '<CDXML n="2"/>'
+    manifest = json.loads((workdir / 'replacements.json').read_text(encoding='utf-8'))
+    assert manifest == {'schema_version': 1, 'source_sha256': 'abc',
+                        'replacements': [{'object_id': 'chemdraw-2', 'replacement_cdxml': 'object_002.cdxml'}]}
+    assert json.loads(capsys.readouterr().out)['opened_in_chemdraw'] is True
+
+
+def test_office_edit_lists_objects_when_the_choice_is_ambiguous(tmp_path, capsys):
+    deck = tmp_path / 'deck.pptx'
+    deck.write_bytes(b'PK')
+    with mock.patch.object(cdx, '_worker', side_effect=_fake_inspection(2)), \
+            mock.patch.object(cdx, '_open_in_chemdraw') as opened:
+        assert cdx.main(['office-edit', str(deck)]) == 2
+    assert not opened.called
+    assert [item['object'] for item in json.loads(capsys.readouterr().out)['objects']] == [1, 2]
+
+
+def test_office_edit_finish_writes_back_only_a_saved_drawing_and_resizes_its_frame(tmp_path, capsys):
+    deck = tmp_path / 'deck.pptx'
+    deck.write_bytes(b'PK')
+    with mock.patch.object(cdx, '_worker', side_effect=_fake_inspection(1)), \
+            mock.patch.object(cdx, '_open_in_chemdraw', return_value=True):
+        cdx.main(['office-edit', str(deck)])
+    workdir = tmp_path / 'deck_chemdraw_edit'
+    capsys.readouterr()
+    with mock.patch.object(cdx, '_worker') as worker:
+        assert cdx.main(['office-edit', '--finish', str(workdir)]) == 1
+    assert not worker.called
+
+    edited = workdir / 'object_001.cdxml'
+    edited.write_text('<CDXML n="edited"/>', encoding='utf-8')
+    os.utime(edited, (edited.stat().st_atime, edited.stat().st_mtime - 5))
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['office-edit', '--finish', str(workdir), '--output', str(tmp_path / 'new.pptx')]) == 0
+    tool, args = worker.call_args.args[:2]
+    assert tool == 'replace_chemdraw_objects_in_office'
+    assert args == {'input_path': str(deck.resolve()), 'replacements_manifest': str(workdir / 'replacements.json'),
+                    'render_pdf_preview': False, 'resize_frames': True, 'output_path': str(tmp_path / 'new.pptx')}
+
+
+def test_office_edit_finish_accepts_the_document_and_finds_its_edit_folder(tmp_path, capsys):
+    deck = tmp_path / 'deck.pptx'
+    deck.write_bytes(b'PK')
+    custom = tmp_path / 'my edit'
+    with mock.patch.object(cdx, '_worker', side_effect=_fake_inspection(1)), \
+            mock.patch.object(cdx, '_open_in_chemdraw', return_value=True):
+        cdx.main(['office-edit', str(deck), '--workdir', str(custom)])
+    edited = custom / 'object_001.cdxml'
+    edited.write_text('<CDXML n="edited"/>', encoding='utf-8')
+    os.utime(edited, (edited.stat().st_atime, edited.stat().st_mtime - 5))
+    capsys.readouterr()
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['office-edit', str(deck), '--finish', '--workdir', str(custom)]) == 0
+    assert worker.call_args.args[1]['replacements_manifest'] == str(custom.resolve() / 'replacements.json')
+
+    other = tmp_path / 'other.docx'
+    other.write_bytes(b'PK')
+    with mock.patch.object(cdx, '_worker') as worker:
+        assert cdx.main(['office-edit', str(other), '--finish']) == 2
+    assert not worker.called
+    assert 'office-edit' in capsys.readouterr().out

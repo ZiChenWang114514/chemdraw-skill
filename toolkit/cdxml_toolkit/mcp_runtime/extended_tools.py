@@ -934,13 +934,33 @@ def _frame_shape_warning(object_id, record, content_size_emu, converted_item) ->
     )
 
 
+def _frame_scale(source: Path, record, emf_data: bytes) -> tuple[float, float] | None:
+    """How much a drawing grew or shrank, from its old and new EMF preview frames."""
+    import zipfile
+
+    from . import office_objects
+
+    with zipfile.ZipFile(source) as package:
+        old = office_objects.emf_frame_size(package.read(record["preview_part"]))
+    new = office_objects.emf_frame_size(emf_data)
+    if old is None or new is None:
+        return None
+    return new[0] / old[0], new[1] / old[1]
+
+
 def replace_chemdraw_objects_in_office(
     input_path: str,
     replacements_manifest: str,
     output_path: Optional[str] = None,
     render_pdf_preview: bool = True,
+    resize_frames: bool = False,
 ) -> dict[str, Any]:
-    """Replace selected ChemDraw OLE contents and previews without moving them."""
+    """Replace selected ChemDraw OLE contents and previews without moving them.
+
+    With ``resize_frames``, each frame grows or shrinks with its drawing, as
+    Office does after an object is edited in ChemDraw; its top-left corner
+    stays in place. Otherwise frames keep their size.
+    """
     source = _source(input_path, suffixes=(".pptx", ".docx"))
     manifest_path = _source(replacements_manifest, suffixes=(".json",))
     source_package = _validate_office_package(source)
@@ -987,16 +1007,28 @@ def replace_chemdraw_objects_in_office(
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
         record = replacement["record"]
-        shape_warning = _frame_shape_warning(
-            replacement["object_id"], record, content_size_emu, converted_item
-        )
-        if shape_warning:
-            warnings.append(shape_warning)
+        frame_scale = None
+        if resize_frames:
+            frame_scale = _frame_scale(source, record, bytes(emf_data))
+            if frame_scale is None:
+                warnings.append(
+                    f"Object {replacement['object_id']} keeps its frame size: its current "
+                    "preview is not an EMF picture with a known size."
+                )
+        if frame_scale is None:
+            shape_warning = _frame_shape_warning(
+                replacement["object_id"], record, content_size_emu, converted_item
+            )
+            if shape_warning:
+                warnings.append(shape_warning)
         replacement_parts[replacement["object_id"]] = {
             "embedding_part": record["embedding_part"],
             "preview_part": record["preview_part"],
             "ole_data": ole_data,
             "emf_data": bytes(emf_data),
+            "host_part": record["host_part"],
+            "relationship_id": record["relationship_id"],
+            "frame_scale": frame_scale,
         }
 
     staged_outputs: list[tuple[Path, Path]] = []
@@ -1035,6 +1067,7 @@ def replace_chemdraw_objects_in_office(
         metadata={
             "objects_replaced": len(replacements),
             "object_ids": [item["object_id"] for item in replacements],
+            "frames_resized": sum(bool(part["frame_scale"]) for part in replacement_parts.values()),
             "source_sha256": source_sha256,
         },
     )

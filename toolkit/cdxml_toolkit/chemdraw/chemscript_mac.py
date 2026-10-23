@@ -649,6 +649,21 @@ class MacChemScript:
             "query_cdxml": rdkit_to_cdxml(query),
         }
 
+    def cmd_atoms(self, args: dict) -> dict:
+        """Atom names (as in substructure maps) and bonds of one structure."""
+        mol = self._rdkit(args["source"], args.get("format"))
+        if mol is None:
+            return {"ok": False, "error": f"Could not load: {args['source']}"}
+        return {
+            "ok": True,
+            "atoms": [_atom_name(mol, index) for index in range(mol.GetNumAtoms())],
+            "bonds": [
+                [_atom_name(mol, bond.GetBeginAtomIdx()), _atom_name(mol, bond.GetEndAtomIdx()),
+                 bond.GetBondTypeAsDouble()]
+                for bond in mol.GetBonds()
+            ],
+        }
+
     def cmd_mimetypes(self, args: dict) -> dict:
         return {"ok": True, "mimetypes": sorted(_KINDS)}
 

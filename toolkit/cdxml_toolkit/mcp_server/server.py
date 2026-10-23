@@ -1267,7 +1267,7 @@ def embed_cdxml_in_office(
     double-clickable, editable ChemDraw object.
 
     Requires: ChemDraw COM (Windows, ChemDraw 16+; ChemDraw must be closed) or
-    ChemDraw for macOS (bitmap EMF preview), plus python-pptx or python-docx.
+    ChemDraw for macOS (vector EMF preview from its SVG export), plus python-pptx or python-docx.
 
     The output format (.pptx or .docx) is detected from office_path extension.
     If office_path does not exist, a new file is created.

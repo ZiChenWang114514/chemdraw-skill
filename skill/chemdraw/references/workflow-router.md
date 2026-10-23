@@ -48,7 +48,7 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 
 1. Use `inspect_chemdraw_objects_in_office` when object identity, host location, geometry, or selective replacement matters. Use `extract_cdxml_from_office` for simple bulk extraction.
 2. Modify and native-render the extracted CDXML. Keep the inspection manifest; replacements refer to its object IDs.
-3. Use `replace_chemdraw_objects_in_office` to update selected objects in place. Replacement CDXML paths must remain relative to the replacement manifest; inspect the staged PDF preview when requested. Each object keeps its frame, so act on any warning that a replacement will be distorted.
+3. Use `replace_chemdraw_objects_in_office` to update selected objects in place. Replacement CDXML paths must remain relative to the replacement manifest; inspect the staged PDF preview when requested. Each object keeps its frame, so act on any warning that a replacement will be distorted. Pass `resize_frames=True` to size each replaced object's frame to its new drawing instead. To let the user edit one object by hand in ChemDraw (Office for macOS has no double-click editing), use `cdx.py office-edit DOCUMENT --object N`, then `cdx.py office-edit DOCUMENT --finish`.
 4. Create a new one-object file with `embed_cdxml_in_office`, create a new collection with `batch_embed_cdxml_in_office`, or preserve an existing template through `fill_office_template`. The single-object tool rejects an existing Office target because the upstream builder cannot preserve its content.
 5. Verify the OOXML package opens, keeps its OLE relationships and geometry, and contains editable ChemDraw objects rather than flat images.
 

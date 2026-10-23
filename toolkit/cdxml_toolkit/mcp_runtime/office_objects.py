@@ -8,6 +8,7 @@ import json
 from pathlib import Path, PurePosixPath
 import posixpath
 import re
+import struct
 import sys
 from typing import Any
 import xml.etree.ElementTree as ET
@@ -506,14 +507,81 @@ def load_replacement_manifest(
     return resolved
 
 
+def emf_frame_size(data: bytes) -> tuple[int, int] | None:
+    """Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF."""
+    if len(data) < 88 or data[40:44] != b" EMF":
+        return None
+    left, top, right, bottom = struct.unpack_from("<4i", data, 24)
+    if right <= left or bottom <= top:
+        return None
+    return right - left + 1, bottom - top + 1
+
+
+_SCALED_NUMBER = r"(?P<number>\d+(?:\.\d+)?)"
+
+
+def _scale_matches(text: str, pattern: str, factor: float, *, decimals: int = 0) -> str:
+    def scale(match: re.Match) -> str:
+        value = float(match.group("number")) * factor
+        number = f"{value:.{decimals}f}" if decimals else str(round(value))
+        start, end = match.span("number")
+        return match.group(0)[: start - match.start()] + number + match.group(0)[end - match.start():]
+
+    return re.sub(pattern, scale, text)
+
+
+def resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes:
+    """Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+
+    The top-left corner stays where it is, as when Office updates an object
+    after it was edited in ChemDraw. Only the size attributes change; the
+    rest of the XML is kept byte for byte.
+    """
+    text = xml.decode("utf-8")
+    reference = re.compile(r'\b[\w.-]+:id="' + re.escape(relationship_id) + '"')
+    blocks = list(re.finditer(
+        r"<(?P<prefix>[\w.-]+:)?(?P<tag>graphicFrame|object)\b.*?</(?P=prefix)(?P=tag)>", text, re.S,
+    ))
+    edited = 0
+    pieces, last = [], 0
+    for block in blocks:
+        body = block.group(0)
+        if not reference.search(body):
+            continue
+        if block.group("tag") == "graphicFrame":
+            body = _scale_matches(body, r'<[\w.-]*:?ext\b[^>]*?\bcx="' + _SCALED_NUMBER, scale_x)
+            body = _scale_matches(body, r'<[\w.-]*:?ext\b[^>]*?\bcy="' + _SCALED_NUMBER, scale_y)
+            body = _scale_matches(body, r'\bimgW="' + _SCALED_NUMBER, scale_x)
+            body = _scale_matches(body, r'\bimgH="' + _SCALED_NUMBER, scale_y)
+        else:
+            body = _scale_matches(body, r'\bstyle="[^"]*?\bwidth:\s*' + _SCALED_NUMBER, scale_x, decimals=2)
+            body = _scale_matches(body, r'\bstyle="[^"]*?\bheight:\s*' + _SCALED_NUMBER, scale_y, decimals=2)
+            body = _scale_matches(body, r'\b[\w.-]+:dxaOrig="' + _SCALED_NUMBER, scale_x)
+            body = _scale_matches(body, r'\b[\w.-]+:dyaOrig="' + _SCALED_NUMBER, scale_y)
+        pieces.append(text[last:block.start()])
+        pieces.append(body)
+        last = block.end()
+        edited += 1
+    if not edited:
+        raise ValueError(f"No frame references OLE relationship {relationship_id}")
+    pieces.append(text[last:])
+    return "".join(pieces).encode("utf-8")
+
+
 def rewrite_office_package(
     input_path: str | Path,
     output_path: str | Path,
     replacement_parts: dict[str, dict[str, bytes]],
 ) -> None:
+    """Write a copy of an Office package with replaced OLE objects and previews.
+
+    A replacement with ``frame_scale`` (``(x, y)``) also resizes its frame in
+    its ``host_part``.
+    """
     source = Path(input_path).resolve()
     destination = Path(output_path).resolve()
     parts: dict[str, bytes] = {}
+    frames: dict[str, list[tuple[str, float, float]]] = {}
     for object_id, replacement in replacement_parts.items():
         for key in ("embedding_part", "preview_part"):
             part = replacement.get(key)
@@ -523,6 +591,11 @@ def rewrite_office_package(
             if part in parts:
                 raise ValueError(f"Multiple replacements target the same package part: {part}")
             parts[part] = payload
+        if replacement.get("frame_scale"):
+            scale_x, scale_y = replacement["frame_scale"]
+            frames.setdefault(replacement["host_part"], []).append(
+                (replacement["relationship_id"], scale_x, scale_y)
+            )
     seen: set[str] = set()
     with zipfile.ZipFile(source, "r") as package, zipfile.ZipFile(
         destination, "w", allowZip64=True
@@ -530,6 +603,8 @@ def rewrite_office_package(
         output.comment = package.comment
         for information in package.infolist():
             data = parts.get(information.filename, package.read(information.filename))
+            for relationship_id, scale_x, scale_y in frames.get(information.filename, ()):
+                data = resize_ole_frame(data, relationship_id, scale_x, scale_y)
             if information.filename in parts:
                 seen.add(information.filename)
             output.writestr(information, data)

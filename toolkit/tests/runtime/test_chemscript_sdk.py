@@ -161,15 +161,155 @@ class ChemScriptSdkTests(unittest.TestCase):
         self.assertFalse(invoke.call_args.args[0]["allow_unsafe_interop"])
 
 
-    def test_sdk_reflection_reports_windows_only_on_macos(self):
+    def test_sdk_programs_run_in_the_toolkit_python_on_macos(self):
+        completed = mock.Mock(returncode=0, stdout="", stderr="")
+
+        def fake_run(command, **kwargs):
+            response = Path(command[command.index("--response-file") + 1])
+            response.write_text(json.dumps({"ok": True, "assembly": "emulation"}), encoding="utf-8")
+            return completed
+
         with mock.patch.object(chemscript_sdk.sys, "platform", "darwin"), \
+                mock.patch.dict(chemscript_sdk.os.environ, {"CHEMSCRIPT_PYTHON": "/elsewhere/python.exe"}), \
+                mock.patch.object(chemscript_sdk.subprocess, "run", side_effect=fake_run) as run:
+            chemscript_sdk._invoke_runtime({"action": "catalog"})
+
+        self.assertEqual(run.call_args.args[0][0], chemscript_sdk.sys.executable)
+
+    def test_sdk_programs_are_refused_where_neither_sdk_nor_emulation_exists(self):
+        with mock.patch.object(chemscript_sdk.sys, "platform", "linux"), \
                 mock.patch.object(chemscript_sdk.subprocess, "run") as run:
             with self.assertRaises(RuntimeError) as raised:
                 chemscript_sdk.inspect_chemscript_sdk(query="Formula")
 
-        self.assertEqual(raised.exception.error_code, "chemscript_sdk_windows_only")
-        self.assertIn("ChemDraw for macOS", str(raised.exception))
+        self.assertEqual(raised.exception.error_code, "chemscript_sdk_unavailable")
         run.assert_not_called()
+
+
+class FakeBackend:
+    """Canned answers of the macOS ChemScript backend (no ChemDraw)."""
+
+    def __init__(self):
+        self.calls = []
+
+    def call(self, command, args):
+        self.calls.append((command, args))
+        if command == "write_data":
+            if args["source"] == "not a molecule":
+                return {"ok": False, "error": "Could not load"}
+            return {"ok": True, "data": "<CDXML/>" if args["target_format"] == "text/xml" else "CCO"}
+        if command == "get_formula":
+            return {"ok": True, "formula": "C2H6O"}
+        if command == "substructure_search":
+            return {"ok": True, "contains": True, "maps": [{"C1": "C2", "O2": "O3"}]}
+        if command == "largest_common_substructure":
+            return {"ok": True, "atom_map": [{"common": "C1", "mol1": "C1", "mol2": "C4"}]}
+        if command == "load_reaction":
+            return {"ok": True, "formula": "C2H6O >> C2H4O",
+                    "reactants": [{"smiles": "CCO", "formula": "C2H6O"}],
+                    "products": [{"smiles": "CC=O", "formula": "C2H4O"}]}
+        raise AssertionError(command)
+
+
+class MacEmulationTests(unittest.TestCase):
+    def setUp(self):
+        from cdxml_toolkit.mcp_runtime import chemscript_sdk_mac
+
+        self.emulation = chemscript_sdk_mac
+        self.backend = FakeBackend()
+        patch = mock.patch.object(chemscript_sdk_mac, "_backend", return_value=self.backend)
+        patch.start()
+        self.addCleanup(patch.stop)
+        self.runtime = chemscript_sdk_mac.MacSdkRuntime()
+
+    def run_program(self, program, **request):
+        return chemscript_sdk_runtime.execute_program(self.runtime, {"program": program, **request})
+
+    def test_structure_programs_written_for_windows_run_unchanged(self):
+        result = self.run_program([
+            {"op": "call_static", "type": "CambridgeSoft.ChemScript16.StructureData",
+             "member": "LoadData", "args": ["CCO", "chemical/x-smiles"], "as": "mol"},
+            {"op": "call", "target": "mol", "member": "Formula"},
+            {"op": "call", "target": "mol", "member": "WriteData", "args": ["text/xml"]},
+        ])
+
+        self.assertTrue(result["ok"])
+        self.assertIn("macOS emulation", result["assembly"])
+        self.assertEqual(result["results"][0]["value"]["$type"], "CambridgeSoft.ChemScript16.StructureData")
+        self.assertEqual(result["results"][1]["value"], "C2H6O")
+        self.assertEqual(result["results"][2]["value"], "<CDXML/>")
+
+    def test_atom_maps_serialize_like_dotnet_dictionaries(self):
+        result = self.run_program([
+            {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CO"], "as": "query"},
+            {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCO"], "as": "target"},
+            {"op": "call", "target": "query", "member": "AtomByAtomSearch", "args": [{"$ref": "target"}]},
+            {"op": "call_static", "type": "LargestCommonSubstructure", "member": "Compute",
+             "args": [{"$ref": "query"}, {"$ref": "target"}], "as": "lcs"},
+            {"op": "call", "target": "lcs", "member": "AtomMapM2"},
+        ])
+
+        self.assertEqual(result["results"][2]["value"], [[
+            {"key": {"$type": "CambridgeSoft.ChemScript16.Atom", "display": "C1"},
+             "value": {"$type": "CambridgeSoft.ChemScript16.Atom", "display": "C2"}},
+            {"key": {"$type": "CambridgeSoft.ChemScript16.Atom", "display": "O2"},
+             "value": {"$type": "CambridgeSoft.ChemScript16.Atom", "display": "O3"}},
+        ]])
+        self.assertEqual(result["results"][4]["value"][0]["value"]["display"], "C4")
+
+    def test_reactions_expose_reactants_and_products(self):
+        result = self.run_program([
+            {"op": "call_static", "type": "ReactionData", "member": "LoadData", "args": ["CCO>>CC=O"], "as": "rxn"},
+            {"op": "get", "target": "rxn", "member": "Products", "as": "products"},
+            {"op": "get_index", "target": "products", "index": 0, "as": "product"},
+            {"op": "call", "target": "product", "member": "Formula"},
+        ])
+
+        self.assertEqual(result["results"][3]["value"], "C2H6O")
+
+    def test_unloadable_data_returns_null_like_chemscript(self):
+        result = self.run_program([
+            {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["not a molecule"]},
+        ])
+
+        self.assertIsNone(result["results"][0]["value"])
+
+    def test_only_emulated_public_members_are_reachable(self):
+        refused = [
+            [{"op": "call_static", "type": "StructureData", "member": "_valid", "args": ["C", None]}],
+            [{"op": "call_static", "type": "StructureData", "member": "__init__", "args": []}],
+            [{"op": "call_static", "type": "System.IO.File", "member": "Delete", "args": ["x"]}],
+            [{"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCO"], "as": "mol"},
+             {"op": "get", "target": "mol", "member": "__class__"}],
+            [{"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCO"], "as": "mol"},
+             {"op": "set", "target": "mol", "member": "_data", "value": "C"}],
+            [{"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCO"], "as": "mol"},
+             {"op": "call", "target": "mol", "member": "Formula", "as": "text"},
+             {"op": "call", "target": "text", "member": "format"}],
+        ]
+        for program in refused:
+            with self.subTest(program=program[-1]):
+                with self.assertRaises(ValueError):
+                    self.run_program(program)
+
+    def test_file_writes_still_need_permission(self):
+        with tempfile.TemporaryDirectory() as temp:
+            existing = Path(temp) / "out.smi"
+            existing.write_text("old", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                self.run_program([
+                    {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCO"], "as": "mol"},
+                    {"op": "call", "target": "mol", "member": "WriteFile", "args": [str(existing)]},
+                ], allow_file_io=True)
+            self.assertEqual(existing.read_text(encoding="utf-8"), "old")
+
+    def test_catalog_lists_exactly_the_emulated_members(self):
+        result = chemscript_sdk_runtime.catalog_sdk(self.runtime, {"query": "AtomByAtomSearch"})
+
+        self.assertTrue(result["ok"])
+        self.assertIn("macOS emulation", result["assembly"])
+        self.assertEqual([item["name"] for item in result["members"]], ["AtomByAtomSearch"])
+        self.assertEqual(self.backend.calls, [])
 
 
 if __name__ == "__main__":

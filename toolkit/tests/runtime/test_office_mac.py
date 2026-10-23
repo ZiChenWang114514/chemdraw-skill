@@ -105,7 +105,26 @@ class SlidePreviewTests(unittest.TestCase):
         self.assert_both_branches_show_the_preview(element)
 
 
+VECTOR_SVG = (
+    '<svg width="100px" height="50px" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">'
+    '<path fill="#000000" d="M 10,10 L 90,10 L 90,12 L 10,12 Z"/>'
+    '<text x="0" y="0" fill="#000000" transform="matrix(0.05 0 0 0.05 40 40)" '
+    'font-size="200px" font-family="Arial">OH</text></svg>'
+)
+
+
+def emf_record_types(data: bytes) -> list[int]:
+    offset, kinds = 0, []
+    while offset < len(data):
+        kind, size = struct.unpack_from("<II", data, offset)
+        kinds.append(kind)
+        offset += size
+    return kinds
+
+
 class FakeSession:
+    svg = VECTOR_SVG
+
     def __init__(self, *args, **kwargs):
         self.exports = []
         self.closed = False
@@ -125,27 +144,45 @@ class FakeSession:
                 destination.write_text(SAVED_CDXML, encoding="utf-8")
             elif destination.suffix == ".png":
                 write_png(destination)
+            elif destination.suffix == ".svg":
+                destination.write_text(self.svg, encoding="utf-8")
         return [str(item) for item in destinations]
 
 
 class BatchConvertOnMacTests(unittest.TestCase):
-    def test_chemdraw_for_macos_supplies_cdx_bitmap_preview_and_bbox(self):
-        session = FakeSession()
+    def convert(self, session):
         with tempfile.TemporaryDirectory() as temp, \
                 mock.patch.object(mac_automation, "is_macos", return_value=True), \
                 mock.patch.object(mac_automation, "MacChemDrawSession", return_value=session):
             source = Path(temp) / "scheme.cdxml"
             source.write_text(SAVED_CDXML, encoding="utf-8")
-            results = ole_embedder.batch_convert([str(source)])
+            return ole_embedder.batch_convert([str(source)])
+
+    def test_chemdraw_for_macos_supplies_cdx_vector_preview_and_bbox(self):
+        session = FakeSession()
+        results = self.convert(session)
 
         self.assertEqual(len(results), 1)
         item = results[0]
         self.assertEqual(item["name"], "scheme")
         self.assertTrue(item["cdx_data"].startswith(b"VjCD0100"))
         self.assertTrue(native_io._is_structurally_valid_emf(item["emf_data"]))
+        kinds = emf_record_types(item["emf_data"])
+        self.assertIn(62, kinds)  # EMR_FILLPATH
+        self.assertIn(84, kinds)  # EMR_EXTTEXTOUTW
+        self.assertNotIn(81, kinds)  # no bitmap
         self.assertEqual(item["content_bbox"], (10.0, 20.0, 110.0, 70.0))
-        self.assertEqual([path.suffix for path in session.exports[0][1]], [".cdx", ".cdxml", ".png"])
+        self.assertEqual([path.suffix for path in session.exports[0][1]], [".cdx", ".cdxml", ".png", ".svg"])
         self.assertTrue(session.closed)
+
+    def test_drawings_the_vector_converter_cannot_reproduce_get_a_bitmap_preview(self):
+        session = FakeSession()
+        session.svg = VECTOR_SVG.replace("L 90,12", "A 5 5 0 0 1 90,12")
+
+        item = self.convert(session)[0]
+
+        self.assertTrue(native_io._is_structurally_valid_emf(item["emf_data"]))
+        self.assertEqual(emf_record_types(item["emf_data"]), [1, 81, 14])
 
 
 class OfficeHelpersOnMacTests(unittest.TestCase):

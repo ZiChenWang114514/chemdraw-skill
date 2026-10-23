@@ -33,6 +33,9 @@ def _contract(outputs: dict[str, Any], warnings=None, metadata=None) -> dict[str
 
 
 def _runtime_python() -> str:
+    if sys.platform == "darwin":
+        # The macOS emulation runs in the toolkit runtime itself.
+        return sys.executable
     explicit = os.environ.get("CHEMSCRIPT_PYTHON")
     config_path = Path(
         os.environ.get("CHEMSCRIPT_CONFIG_PATH") or (Path.home() / ".chemscript_config.json")
@@ -53,15 +56,17 @@ def _runtime_python() -> str:
 
 
 class ChemScriptSdkUnavailable(RuntimeError):
-    error_code = "chemscript_sdk_windows_only"
+    """ChemScript SDK programs need Windows (the .NET SDK) or macOS (its emulation)."""
+
+    error_code = "chemscript_sdk_unavailable"
 
 
 def _invoke_runtime(request: dict[str, Any]) -> dict[str, Any]:
-    if sys.platform == "darwin":
+    if sys.platform not in ("win32", "darwin"):
         raise ChemScriptSdkUnavailable(
-            "The ChemScript .NET SDK exists only for Windows. On macOS the ChemScript "
-            "operations (names, formulas, clean-up, substructure, conversion) run on "
-            "ChemDraw for macOS, OPSIN and RDKit; use the toolkit tools instead of raw SDK programs."
+            "ChemScript SDK programs run on Windows (the ChemScript .NET SDK) and on macOS "
+            "(an emulation of its StructureData, ReactionData and LargestCommonSubstructure "
+            "members on ChemDraw for macOS, OPSIN and RDKit)."
         )
     payload = json.dumps(request, separators=(",", ":")).encode("utf-8")
     if len(payload) > chemscript_sdk_runtime.MAX_REQUEST_BYTES:

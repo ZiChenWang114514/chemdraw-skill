@@ -64,6 +64,9 @@ SAVE_TYPES = {
     ".tgf": "Transportable Graphics (TGF)",
 }
 
+# Style sheets and stationery, which ChemDraw opens as new untitled documents.
+STATIONERY_SUFFIXES = {".cds", ".cts"}
+
 # How long a quitting ChemDraw may take to exit before it is terminated.
 QUIT_TIMEOUT_SECONDS = 15
 
@@ -723,6 +726,13 @@ class MacChemDrawSession:
         source_path = Path(source).expanduser().resolve()
         if not source_path.is_file():
             raise FileNotFoundError(f"ChemDraw input not found: {source_path}")
+        if source_path.suffix.lower() in STATIONERY_SUFFIXES:
+            # ChemDraw opens these as new untitled documents, which no step can find.
+            raise MacAutomationError(
+                "native_format_unsupported",
+                f"ChemDraw for macOS opens {source_path.suffix} files as stationery; "
+                "read style sheets with cdxml_toolkit.chemdraw.style_sheet",
+            )
         staged = workspace / f"input{source_path.suffix.lower()}"
         shutil.copy2(source_path, staged)
         if staged.suffix == ".cdxml":
@@ -761,15 +771,36 @@ class MacChemDrawSession:
         return output.split("\x1f") if output else []
 
     def export(self, source: str | Path, *destinations: str | Path) -> list[str]:
-        """Open ``source`` and save it to every destination (format from extension)."""
+        """Open ``source`` and save it to every destination (format from extension).
+
+        ChemDraw for macOS cannot write EMF; an ``.emf`` destination is its SVG
+        export replayed as vector EMF, or its PNG export in a bitmap EMF when
+        the drawing has features the vector converter does not reproduce.
+        """
         if not destinations:
             raise ValueError("at least one destination is required")
-        steps, outputs = [], []
-        for destination in destinations:
-            destination_path = Path(destination).expanduser().resolve()
-            steps += ["save", str(destination_path), save_type_for(destination_path)]
-            outputs.append(str(destination_path))
-        self.run_steps(source, steps)
+        steps, outputs, metafiles = [], [], []
+        with tempfile.TemporaryDirectory(prefix="cdx-mac-emf-") as workspace:
+            for index, destination in enumerate(destinations):
+                destination_path = Path(destination).expanduser().resolve()
+                outputs.append(str(destination_path))
+                if destination_path.suffix.lower() == ".emf":
+                    svg = Path(workspace) / f"metafile{index}.svg"
+                    png = Path(workspace) / f"metafile{index}.png"
+                    steps += ["save", str(svg), SAVE_TYPES[".svg"], "save", str(png), SAVE_TYPES[".png"]]
+                    metafiles.append((svg, png, destination_path))
+                    continue
+                steps += ["save", str(destination_path), save_type_for(destination_path)]
+            self.run_steps(source, steps)
+            for svg, png, destination_path in metafiles:
+                from ..office.emf_preview import png_to_emf
+                from ..office.emf_vector import UnsupportedSvg, svg_to_emf
+
+                try:
+                    data = svg_to_emf(svg)
+                except UnsupportedSvg:
+                    data = png_to_emf(png)
+                destination_path.write_bytes(data)
         return outputs
 
     def analyze(self, source: str | Path) -> dict:

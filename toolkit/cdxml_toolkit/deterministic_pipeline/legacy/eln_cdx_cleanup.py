@@ -239,16 +239,20 @@ def _on_macos():
     return mac_automation.is_macos()
 
 
-def _style_like_pass1_macos(cdxml_text, apply_acs):
+def _style_like_pass1_macos(cdxml_text, apply_acs, style_path=None):
     """The document edits pass 1 makes through COM, applied to CDXML text.
 
     ChemDraw for macOS cannot load .cds style sheets or edit captions from
-    AppleScript, so the ACS Document 1996 settings (``apply_acs``) and the
-    Arial 10 pt captions and labels are written into the CDXML directly.
+    AppleScript, so the style sheet's settings (``style_path``, or the ACS
+    Document 1996 settings with ``apply_acs``) and the Arial 10 pt captions
+    and labels are written into the CDXML directly.
     """
     from cdxml_toolkit.chemdraw.chemscript_bridge import _inject_acs_style
+    from cdxml_toolkit.chemdraw.style_sheet import apply_style_sheet, read_style_sheet
 
-    if apply_acs:
+    if style_path:
+        cdxml_text = apply_style_sheet(cdxml_text, read_style_sheet(style_path))
+    elif apply_acs:
         cdxml_text = _inject_acs_style(cdxml_text)
     root = ET.fromstring(cdxml_text)
     fonttable = root.find("fonttable")
@@ -276,13 +280,13 @@ def _style_like_pass1_macos(cdxml_text, apply_acs):
     return '<?xml version="1.0" encoding="UTF-8" ?>\n' + ET.tostring(root, encoding="unicode")
 
 
-def _chemdraw_passes_macos(scaled_path, output_path, tmpdir, apply_acs):
+def _chemdraw_passes_macos(scaled_path, output_path, tmpdir, apply_acs, style_path=None):
     """Passes 1 and 2 with ChemDraw for macOS (AppleScript)."""
     from cdxml_toolkit.chemdraw import mac_automation
 
     styled_path = os.path.join(tmpdir, 'styled.cdxml')
     with open(scaled_path, encoding='utf-8') as f:
-        styled = _style_like_pass1_macos(f.read(), apply_acs)
+        styled = _style_like_pass1_macos(f.read(), apply_acs, style_path)
     with open(styled_path, 'w', encoding='utf-8') as f:
         f.write(styled)
     pass1_path = os.path.join(tmpdir, 'pass1.cdxml')
@@ -329,12 +333,12 @@ def cleanup_eln_cdx(input_path, output_path=None, scale_factor=0.5,
     mac = _on_macos()
     apply_acs = False
     if mac:
-        # ChemDraw for macOS cannot load .cds files; the default ACS Document
-        # 1996 settings are applied to the CDXML instead.
+        # ChemDraw for macOS cannot load .cds files from AppleScript; their
+        # settings (default: ACS Document 1996) are written into the CDXML.
         if style_path is None:
             apply_acs = True
-        else:
-            print("WARNING: ChemDraw for macOS cannot apply style sheets: {}".format(style_path))
+        elif not os.path.exists(style_path):
+            print("WARNING: Style sheet not found: {}".format(style_path))
             print("         Skipping style application.")
             style_path = None
     else:
@@ -381,7 +385,7 @@ def cleanup_eln_cdx(input_path, output_path=None, scale_factor=0.5,
             scaled_path = cdxml_path
 
         if mac:
-            _chemdraw_passes_macos(scaled_path, output_path, tmpdir, apply_acs)
+            _chemdraw_passes_macos(scaled_path, output_path, tmpdir, apply_acs, style_path)
             return output_path
 
         # --- Pass 1: Apply style + Clean Structure + Change fonts ---
