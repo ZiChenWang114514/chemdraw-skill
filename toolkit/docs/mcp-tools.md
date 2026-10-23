@@ -146,9 +146,13 @@ Writes provenance, bounded candidate results and truncation status to JSON.
 
 Render one or more CDXML files through native ChemDraw (COM or macOS).
 
-### `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True) -> dict[str, typing.Any]`
+### `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, typing.Any]`
 
 Replace selected ChemDraw OLE contents and previews without moving them.
+
+With ``resize_frames``, each frame grows or shrinks with its drawing, as
+Office does after an object is edited in ChemDraw; its top-left corner
+stays in place. Otherwise frames keep their size.
 
 ### `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, typing.Any]`
 
@@ -217,7 +221,7 @@ compound file, and injects it into a PPTX slide or DOCX paragraph as a
 double-clickable, editable ChemDraw object.
 
 Requires: ChemDraw COM (Windows, ChemDraw 16+; ChemDraw must be closed) or
-ChemDraw for macOS (bitmap EMF preview), plus python-pptx or python-docx.
+ChemDraw for macOS (vector EMF preview from its SVG export), plus python-pptx or python-docx.
 
 The output format (.pptx or .docx) is detected from office_path extension.
 If office_path does not exist, a new file is created.

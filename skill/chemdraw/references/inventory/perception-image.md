@@ -4,8 +4,8 @@
 
 ## `deterministic_pipeline.legacy.eln_cdx_cleanup`
 
-- **function**, line 307: `cleanup_eln_cdx(input_path, output_path = None, scale_factor = 0.5, style_path = None)` - Clean up a reaction scheme exported from Findmolecule ELN.
-- **function**, line 458: `cleanup_multiple(input_paths, output_dir = None, scale_factor = 0.5, style_path = None)` - Clean up multiple CDX/CDXML files.
+- **function**, line 313: `cleanup_eln_cdx(input_path, output_path = None, scale_factor = 0.5, style_path = None)` - Clean up a reaction scheme exported from Findmolecule ELN.
+- **function**, line 464: `cleanup_multiple(input_paths, output_dir = None, scale_factor = 0.5, style_path = None)` - Clean up multiple CDX/CDXML files.
 - **function**, line 84: `scale_cdxml_coordinates(input_path, output_path, factor = 0.5)` - Scale all coordinates in a CDXML file by the given factor, centered on the centroid of all node/text positions.
 
 ## `deterministic_pipeline.legacy.eln_enrichment`

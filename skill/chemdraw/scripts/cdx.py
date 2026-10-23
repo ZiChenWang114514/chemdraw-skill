@@ -17,6 +17,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -405,6 +406,111 @@ def cmd_doctor(ns):
     return 0 if healthy else 1
 
 
+def _sha256(path):
+    import hashlib
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _open_in_chemdraw(path):
+    """Show one file to the user in ChemDraw (they asked to edit it, so a window is expected)."""
+    if sys.platform == 'darwin':
+        return subprocess.run(['open', '-a', 'ChemDraw', str(path)], capture_output=True).returncode == 0
+    if sys.platform == 'win32':
+        os.startfile(str(path))  # noqa: S606 - ChemDraw is the .cdxml handler
+        return True
+    return False
+
+
+def _office_edit_start(ns):
+    document = Path(ns.target).resolve()
+    workdir = Path(ns.workdir or document.with_name(document.stem + '_chemdraw_edit')).resolve()
+    if workdir.exists():
+        raise SystemExit(f'Refusing to reuse existing edit folder {workdir}; pass --workdir')
+    # Inspect into a scratch folder: the edit folder is made only once an object is chosen,
+    # so listing the objects or a wrong --object leaves nothing that blocks the rerun.
+    with tempfile.TemporaryDirectory(prefix='cdx-office-edit-') as scratch:
+        inspection = Path(scratch) / 'inspection'
+        result = _worker('inspect_chemdraw_objects_in_office',
+                         {'input_path': str(document), 'output_dir': str(inspection), 'render_previews': False})
+        if not _summary('inspect_chemdraw_objects_in_office', result)['ok']:
+            return _emit('inspect_chemdraw_objects_in_office', result)
+        manifest = json.loads((inspection / 'manifest.json').read_text(encoding='utf-8'))
+        objects = manifest['objects']
+        listing = [{'object': item['ordinal'], 'host': item['host'], 'shape': item.get('shape_name')}
+                   for item in objects]
+        if ns.object is None and len(objects) > 1:
+            print(json.dumps({'ok': False, 'error': 'choose one object with --object N', 'objects': listing},
+                             ensure_ascii=False, indent=2))
+            return 2
+        number = 1 if ns.object is None else ns.object
+        chosen = next((item for item in objects if item['ordinal'] == number), None)
+        if chosen is None:
+            raise SystemExit(f'No ChemDraw object {number}; the document has {len(objects)} (numbered from 1)')
+        workdir.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(inspection, workdir / 'inspection')
+    cdxml = workdir / f'object_{number:03d}.cdxml'
+    cdxml.write_bytes((workdir / 'inspection' / chosen['cdxml']).read_bytes())
+    (workdir / 'replacements.json').write_text(json.dumps({
+        'schema_version': 1, 'source_sha256': manifest['source_sha256'],
+        'replacements': [{'object_id': chosen['object_id'], 'replacement_cdxml': cdxml.name}],
+    }, indent=2), encoding='utf-8')
+    (workdir / 'session.json').write_text(json.dumps({
+        'document': str(document), 'object': number, 'object_id': chosen['object_id'],
+        'cdxml': cdxml.name, 'cdxml_sha256': _sha256(cdxml),
+    }, indent=2), encoding='utf-8')
+    opened = False if ns.no_open else _open_in_chemdraw(cdxml)
+    print(json.dumps({'ok': True, 'workdir': str(workdir), 'cdxml': str(cdxml), 'object': number,
+                      'opened_in_chemdraw': opened,
+                      'next': f'edit and save {cdxml.name} in ChemDraw, then: cdx.py office-edit --finish "{workdir}"'},
+                     ensure_ascii=False, indent=2))
+    return 0
+
+
+def _office_edit_finish(ns):
+    target = Path(ns.target).resolve()
+    if target.is_dir():
+        workdir = Path(ns.workdir).resolve() if ns.workdir else target
+    else:  # the document: its edit folder is --workdir or the default one
+        workdir = Path(ns.workdir or target.with_name(target.stem + '_chemdraw_edit')).resolve()
+    if not (workdir / 'session.json').is_file():
+        print(json.dumps({'ok': False, 'error': f'No office-edit session in {workdir}; start one with '
+                          f'cdx.py office-edit DOCUMENT, or pass its folder with --workdir'},
+                         ensure_ascii=False, indent=2))
+        return 2
+    session = json.loads((workdir / 'session.json').read_text(encoding='utf-8'))
+    cdxml = workdir / session['cdxml']
+    deadline = time.monotonic() + max(0, ns.wait)
+    while True:
+        try:
+            saved = _sha256(cdxml) != session['cdxml_sha256']
+            age = time.time() - cdxml.stat().st_mtime
+        except OSError:  # ChemDraw replaces the file while saving
+            saved, age = False, 0
+        if saved and age >= 2:
+            break
+        if saved:  # a save just landed: let it settle, whatever --wait says
+            deadline = max(deadline, time.monotonic() + 2 - age)
+        if time.monotonic() >= deadline:
+            print(json.dumps({'ok': False, 'error': f'{cdxml.name} has not been saved since the edit started',
+                              'cdxml': str(cdxml)}, ensure_ascii=False, indent=2))
+            return 1
+        time.sleep(1)
+    args = {'input_path': session['document'], 'replacements_manifest': str(workdir / 'replacements.json'),
+            'render_pdf_preview': ns.pdf, 'resize_frames': True}
+    if ns.output:
+        args['output_path'] = str(Path(ns.output).resolve())
+    return _emit('replace_chemdraw_objects_in_office', _worker('replace_chemdraw_objects_in_office', args))
+
+
+def cmd_office_edit(ns):
+    """Edit one ChemDraw object of a PPTX/DOCX in ChemDraw and write it back to a new copy.
+
+    Stands in for double-click editing, which Office for macOS does not offer for
+    ChemDraw objects: the frame grows or shrinks with the drawing, the source is kept.
+    """
+    return _office_edit_finish(ns) if ns.finish else _office_edit_start(ns)
+
+
 def cmd_py(ns):
     """Run the toolkit runtime's interpreter, e.g. `cdx.py py -m cdxml_toolkit.scientific ...`."""
     return subprocess.call([sys.executable, *ns.rest], env=_chemscript_env())
@@ -466,6 +572,16 @@ def main(argv=None):
     s.add_argument('--chemscript', action='store_true', help='run the ChemScript bridge ping')
     s.add_argument('--full', action='store_true', help='include the complete diagnose_runtime result')
     s.set_defaults(fn=cmd_doctor)
+    s = sub.add_parser('office-edit', help='edit one ChemDraw object of a PPTX/DOCX in ChemDraw, then --finish')
+    s.add_argument('target', help='the PPTX/DOCX, or with --finish the edit folder')
+    s.add_argument('--object', type=int, help='object number from the listing (needed when there are several)')
+    s.add_argument('--workdir', help='new edit folder (default: <document>_chemdraw_edit beside it)')
+    s.add_argument('--no-open', action='store_true', help='do not open the drawing in ChemDraw')
+    s.add_argument('--finish', action='store_true', help='write the saved drawing back to a new copy')
+    s.add_argument('--output', help='with --finish: new Office file (default: <document>_replaced beside it)')
+    s.add_argument('--wait', type=int, default=0, help='with --finish: seconds to wait for the save')
+    s.add_argument('--pdf', action='store_true', help='with --finish: also export a PDF preview through Office')
+    s.set_defaults(fn=cmd_office_edit)
     s = sub.add_parser('py', help='run the runtime Python: cdx.py py SCRIPT_OR_-m ... (helper scripts, examples)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_py)

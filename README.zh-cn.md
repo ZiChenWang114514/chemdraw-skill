@@ -164,7 +164,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **反应机理** | 按明确的原子坐标绘制机理，包括电子箭头、电荷和抗衡离子。 |
 | **Office 文档** | 在桌面版 Word 和 PowerPoint 文档中嵌入可编辑的 ChemDraw 对象，可在 Windows 或 macOS 上用 ChemDraw 生成。 |
 | **实验记录** | 发现文件，并处理选定的 LCMS、SciFinder RDF 和实验记录工作流。 |
-| **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作）。 |
+| **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作，并模拟核心 SDK 类）。 |
 | **远程工作站访问** | 可选地通过 Streamable HTTP 对外提供 Windows 原生主机服务，带健康检查与 Prometheus 端点。 |
 
 生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了内置工具包中已审计的公共符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。
@@ -394,13 +394,13 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 | CDXML、RDKit、命令行与 MCP 工作流 | ✅ | ✅ | ✅ |
 | ChemDraw 原生渲染、转换与清理 | ✅ <sub>需激活安装</sub> | ✅ <sub>ChemDraw for macOS</sub> | — |
 | ChemScript 操作（命名、分子式、清理、子结构） | ✅ <sub>需兼容 SDK</sub> | ✅ <sub>ChemDraw + OPSIN + RDKit</sub> | — |
-| 原始 ChemScript SDK 程序 | ✅ <sub>需兼容 SDK</sub> | — | — |
-| 可编辑 Office ChemDraw 对象 | ✅ <sub>桌面版 Office</sub> | ✅ <sub>位图预览</sub> | — |
+| 原始 ChemScript SDK 程序 | ✅ <sub>需兼容 SDK</sub> | ✅ <sub>核心 API 模拟</sub> | — |
+| 可编辑 Office ChemDraw 对象 | ✅ <sub>桌面版 Office</sub> | ✅ <sub>矢量预览，`cdx.py office-edit`</sub> | — |
 | Office 文件的 PDF 预览 | ✅ <sub>桌面版 Office</sub> | ✅ <sub>已激活的 Microsoft 365</sub> | — |
 
 <sub>✅ 支持 · — 不支持（没有可用的 bridge）</sub>
 
-macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换、位图 OLE 预览和 ChemScript 替代实现）见[运维说明](skill/chemdraw/references/operations.md#macos)。
+macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换、基于 SVG 的矢量 OLE 预览、以 `office-edit` 代替双击编辑，以及 ChemScript 模拟）见[运维说明](skill/chemdraw/references/operations.md#macos)。
 
 <details>
 <summary><b>所需组件</b></summary>
@@ -465,8 +465,8 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 macOS 适配器通过 ChemDraw for macOS 的 AppleScript 字典驱动 ChemDraw，带超时、按用户的原生锁、暂存临时文件和保存后回读，并把 ChemScript 专有行为映射到 ChemDraw、OPSIN 和 RDKit。仍欢迎以下方面的帮助：
 
 - Intel Mac 和其他 ChemDraw 版本（已测试：macOS 26.6、Apple 芯片上的 ChemDraw 26.0）；
-- 通过已激活的 Microsoft 365 for macOS 生成 PDF 预览，以及在 Office for macOS 中双击编辑嵌入对象；
-- 矢量 OLE 预览（ChemDraw for macOS 无法写出 EMF，预览为位图 EMF）。
+- 通过已激活的 Microsoft 365 for macOS 生成 PDF 预览；
+- 模拟范围（`StructureData`、`ReactionData`、`LargestCommonSubstructure` 核心）之外的 ChemScript SDK 成员。
 
 请从[贡献指南](.github/contributing.md)开始，提交聚焦的 issue 或 PR，并附上准确的 macOS 版本、芯片、ChemDraw 构建号、权限提示、命令输出和最小复现文件。不要上传私有论文、凭据或受许可保护的 ChemDraw 资源。
 

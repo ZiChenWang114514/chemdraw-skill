@@ -164,7 +164,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **Reaction mechanisms** | Mechanisms with explicit atom coordinates, electron arrows, charges and counterions. |
 | **Office documents** | Editable ChemDraw objects in desktop Word and PowerPoint documents, built with ChemDraw on Windows or macOS. |
 | **Experimental records** | File discovery and selected LCMS, SciFinder RDF and lab-book workflows. |
-| **ChemScript SDK** | Inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows (macOS answers the ChemScript operations with ChemDraw, OPSIN and RDKit). |
+| **ChemScript SDK** | Inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows (macOS answers the ChemScript operations and an emulation of the core SDK classes with ChemDraw, OPSIN and RDKit). |
 | **Remote workstation access** | Optionally expose a Windows native host through Streamable HTTP with health and Prometheus endpoints. |
 
 The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited symbols of the bundled toolkit, separately from the registered tools (`cdx.py tools` prints the current count).
@@ -394,13 +394,13 @@ The portable chemistry layer — CDXML generation and editing, RDKit validation,
 | CDXML, RDKit, command-line and MCP workflows | ✅ | ✅ | ✅ |
 | ChemDraw-native rendering, conversion and cleanup | ✅ <sub>activated install</sub> | ✅ <sub>ChemDraw for macOS</sub> | — |
 | ChemScript operations (names, formulas, cleanup, substructure) | ✅ <sub>compatible SDK</sub> | ✅ <sub>ChemDraw + OPSIN + RDKit</sub> | — |
-| Raw ChemScript SDK programs | ✅ <sub>compatible SDK</sub> | — | — |
-| Editable Office ChemDraw objects | ✅ <sub>desktop Office</sub> | ✅ <sub>bitmap preview</sub> | — |
+| Raw ChemScript SDK programs | ✅ <sub>compatible SDK</sub> | ✅ <sub>emulated core API</sub> | — |
+| Editable Office ChemDraw objects | ✅ <sub>desktop Office</sub> | ✅ <sub>vector preview, `cdx.py office-edit`</sub> | — |
 | PDF previews of Office files | ✅ <sub>desktop Office</sub> | ✅ <sub>activated Microsoft 365</sub> | — |
 
 <sub>✅ supported · — not supported (no bridge exists)</sub>
 
-macOS differences — the Automation permission, the hidden ChemDraw instance, font substitution, bitmap OLE previews and ChemScript replacements — are listed in [operations](skill/chemdraw/references/operations.md#macos).
+macOS differences — the Automation permission, the hidden ChemDraw instance, font substitution, SVG-based vector OLE previews, `office-edit` instead of double-click editing, and the ChemScript emulation — are listed in [operations](skill/chemdraw/references/operations.md#macos).
 
 <details>
 <summary><b>Required components</b></summary>
@@ -465,8 +465,8 @@ The [paper reconstruction workflow](skill/chemdraw/references/image-visual-revie
 The macOS adapter drives ChemDraw for macOS through its AppleScript dictionary with timeouts, a per-user native lock, staged temporary files and save-cycle read-back, and maps ChemScript-only behavior to ChemDraw, OPSIN and RDKit. Help is still welcome with:
 
 - Intel Macs and other ChemDraw versions (tested: ChemDraw 26.0 on macOS 26.6, Apple silicon);
-- PDF previews through an activated Microsoft 365 for macOS, and double-click editing of embedded objects in Office for macOS;
-- vector OLE previews (ChemDraw for macOS cannot write EMF; previews are bitmap EMF).
+- PDF previews through an activated Microsoft 365 for macOS;
+- ChemScript SDK members beyond the emulated `StructureData`, `ReactionData` and `LargestCommonSubstructure` core.
 
 Please open a focused issue or pull request with the exact macOS version, chip, ChemDraw build, permission prompts, command output and a minimal reproducible file. Do not submit proprietary papers, credentials or licensed ChemDraw assets. Start with the [contributing guide](.github/contributing.md).
 

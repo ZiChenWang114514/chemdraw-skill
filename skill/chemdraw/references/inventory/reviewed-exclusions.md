@@ -50,9 +50,51 @@
 
 ## `mcp_runtime.chemscript_sdk`
 
-- **class**, line 55: `ChemScriptSdkUnavailable` - No public docstring in the audited version.
-- **function**, line 176: `execute_chemscript_sdk(program: list[dict[str, Any]], allow_file_io: bool = False, allow_overwrite: bool = False, allow_unsafe_interop: bool = False, max_items: int = 100) -> dict[str, Any]` - Execute a declarative ChemScript SDK program in an isolated Python.NET process.
-- **function**, line 118: `inspect_chemscript_sdk(query: Optional[str] = None, type_name: Optional[str] = None, include_infrastructure: bool = False, offset: int = 0, limit: int = 100, output_path: Optional[str] = None) -> dict[str, Any]` - Catalog every public ChemScript type/member, with filtering or a complete JSON export.
+- **class**, line 58: `ChemScriptSdkUnavailable` - ChemScript SDK programs need Windows (the .NET SDK) or macOS (its emulation).
+- **function**, line 181: `execute_chemscript_sdk(program: list[dict[str, Any]], allow_file_io: bool = False, allow_overwrite: bool = False, allow_unsafe_interop: bool = False, max_items: int = 100) -> dict[str, Any]` - Execute a declarative ChemScript SDK program in an isolated Python.NET process.
+- **function**, line 123: `inspect_chemscript_sdk(query: Optional[str] = None, type_name: Optional[str] = None, include_infrastructure: bool = False, offset: int = 0, limit: int = 100, output_path: Optional[str] = None) -> dict[str, Any]` - Catalog every public ChemScript type/member, with filtering or a complete JSON export.
+
+## `mcp_runtime.chemscript_sdk_mac`
+
+- **class**, line 115: `Atom` - No public docstring in the audited version.
+- **class**, line 137: `AtomMap` - Atom-to-atom map, keyed like a .NET dictionary (``Keys``, ``map[atom]``).
+- **property**, line 148: `AtomMap.Count` - No public docstring in the audited version.
+- **property**, line 144: `AtomMap.Keys` - No public docstring in the audited version.
+- **class**, line 129: `Bond` - No public docstring in the audited version.
+- **class**, line 362: `LargestCommonSubstructure` - No public docstring in the audited version.
+- **method**, line 372: `LargestCommonSubstructure.AtomMapM1() -> AtomMap` - No public docstring in the audited version.
+- **method**, line 375: `LargestCommonSubstructure.AtomMapM2() -> AtomMap` - No public docstring in the audited version.
+- **method**, line 367: `LargestCommonSubstructure.Compute(first: StructureData, second: StructureData)` - No public docstring in the audited version.
+- **class**, line 426: `MacSdkRuntime` - The program runtime interface of ``ChemScriptRuntime``, for the emulation.
+- **method**, line 476: `MacSdkRuntime.catalog() -> tuple[list[dict], list[dict]]` - No public docstring in the audited version.
+- **method**, line 464: `MacSdkRuntime.check_member(owner: Any, member: str, operation: str) -> None` - Refuse anything that is not an emulated public member (no Python internals).
+- **method**, line 461: `MacSdkRuntime.member_is_interop(reflection_type, member: str) -> bool` - No public docstring in the audited version.
+- **method**, line 440: `MacSdkRuntime.python_type(name: str)` - No public docstring in the audited version.
+- **method**, line 431: `MacSdkRuntime.reflection_type(name: str) -> _Type` - No public docstring in the audited version.
+- **method**, line 443: `MacSdkRuntime.resolve_argument(value: Any, aliases: dict[str, Any], *, unsafe: bool)` - No public docstring in the audited version.
+- **class**, line 288: `ReactionData` - No public docstring in the audited version.
+- **method**, line 340: `ReactionData.Formula() -> str` - No public docstring in the audited version.
+- **method**, line 295: `ReactionData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 318: `ReactionData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **property**, line 337: `ReactionData.Products` - No public docstring in the audited version.
+- **property**, line 333: `ReactionData.Reactants` - No public docstring in the audited version.
+- **method**, line 343: `ReactionData.WriteData(mimetype: str = 'chemical/x-mdl-rxn') -> str` - No public docstring in the audited version.
+- **method**, line 350: `ReactionData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **class**, line 161: `StructureData` - No public docstring in the audited version.
+- **method**, line 279: `StructureData.AtomByAtomSearch(target: 'StructureData')` - No public docstring in the audited version.
+- **property**, line 229: `StructureData.Atoms` - No public docstring in the audited version.
+- **property**, line 233: `StructureData.Bonds` - No public docstring in the audited version.
+- **method**, line 225: `StructureData.ChemicalName() -> str` - No public docstring in the audited version.
+- **method**, line 258: `StructureData.CleanupStructure() -> bool` - No public docstring in the audited version.
+- **method**, line 275: `StructureData.ContainsSubstructure(query: 'StructureData') -> bool` - No public docstring in the audited version.
+- **method**, line 222: `StructureData.Formula() -> str` - No public docstring in the audited version.
+- **method**, line 176: `StructureData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 188: `StructureData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 213: `StructureData.MimeTypes()` - No public docstring in the audited version.
+- **method**, line 267: `StructureData.Overlay(target: 'StructureData') -> bool` - No public docstring in the audited version.
+- **method**, line 192: `StructureData.ReadFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **method**, line 237: `StructureData.WriteData(mimetype: str = 'text/xml') -> str` - No public docstring in the audited version.
+- **method**, line 244: `StructureData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
 
 ## `mcp_runtime.chemscript_sdk_runtime`
 
@@ -78,19 +120,19 @@
 
 ## `mcp_runtime.extended_tools`
 
-- **function**, line 1081: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, Any]` - Analyze a chronological series of standard LCMS PDF reports.
-- **function**, line 1151: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
+- **function**, line 1114: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, Any]` - Analyze a chronological series of standard LCMS PDF reports.
+- **function**, line 1184: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
 - **function**, line 785: `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, Any]` - Create PPTX or DOCX containing editable ChemDraw OLE objects.
 - **function**, line 470: `clean_scheme_layout(input_path: str, output_path: Optional[str] = None, approach: str = 'chemdraw_mimic', render_preview: bool = True) -> dict[str, Any]` - Clean an existing CDXML reaction layout without changing the source file.
-- **function**, line 1049: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
+- **function**, line 1082: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
 - **function**, line 709: `fill_office_template(template_path: str, manifest_path: str, output_path: Optional[str] = None) -> dict[str, Any]` - Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
 - **function**, line 845: `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, Any]` - Inventory editable ChemDraw objects and extract numbered CDXML previews.
 - **function**, line 490: `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, Any]` - Merge parallel, sequential, or unrelated CDXML reaction schemes.
-- **function**, line 1185: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
+- **function**, line 1218: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
 - **function**, line 570: `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, Any]` - Run the audited deterministic polishing pipeline on a CDXML scheme.
 - **function**, line 602: `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, Any]` - Render one or more CDXML files through native ChemDraw (COM or macOS).
-- **function**, line 937: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
-- **function**, line 1293: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
+- **function**, line 951: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
+- **function**, line 1326: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
 
 ## `mcp_runtime.figure_editing`
 
@@ -172,14 +214,16 @@
 
 ## `mcp_runtime.office_objects`
 
-- **function**, line 25: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
-- **function**, line 442: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 542: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 509: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - No public docstring in the audited version.
-- **function**, line 266: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
-- **function**, line 50: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
-- **function**, line 595: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 390: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 26: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
+- **function**, line 510: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
+- **function**, line 443: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 633: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 546: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+- **function**, line 587: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
+- **function**, line 267: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
+- **function**, line 51: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
+- **function**, line 686: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 391: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.official_overrides`
 

@@ -69,6 +69,7 @@ class LegacyCleanupOnMacTests(unittest.TestCase):
                          [("clean", False), ("clean", True)])
         styled = ET.fromstring(self.session.calls[0][2])
         self.assertEqual(styled.get("BondLength"), "14.40")
+        self.assertEqual([n.get("p") for n in styled.iter("n")], ["100 200", "130 200"])
         arial = next(f.get("id") for f in styled.iter("font") if f.get("name") == "Arial")
         self.assertEqual((styled.get("LabelFont"), styled.get("LabelSize"), styled.get("LabelFace")),
                          (arial, "10", "96"))
@@ -77,6 +78,23 @@ class LegacyCleanupOnMacTests(unittest.TestCase):
         label = styled.find(".//n/t/s")
         self.assertEqual(label.get("font"), "3")  # atom labels follow LabelFont, not caption styling
         self.assertTrue(output.is_file())
+
+    def test_eln_cleanup_applies_a_custom_style_sheet_on_macos(self):
+        from .test_style_sheet import write_style_sheet
+
+        source = self.root / "eln.cdxml"
+        source.write_text(ELN_CDXML, encoding="utf-8")
+        sheet = self.root / "journal.cds"
+        write_style_sheet(sheet, bond_length=17.0)
+
+        eln_cdx_cleanup.cleanup_eln_cdx(str(source), str(self.root / "out.cdxml"),
+                                        scale_factor=1.0, style_path=str(sheet))
+
+        styled = ET.fromstring(self.session.calls[0][2])
+        self.assertEqual((styled.get("BondLength"), styled.get("LineWidth")), ("17", "0.75"))
+        # As ApplySettings on Windows: settings change, coordinates (already scaled
+        # by scale_factor) are left to Clean Up.
+        self.assertEqual([n.get("p") for n in styled.iter("n")], ["100 200", "130 200"])
 
     def test_eln_cdx_input_is_converted_by_chemdraw_for_macos(self):
         source = self.root / "eln.cdx"

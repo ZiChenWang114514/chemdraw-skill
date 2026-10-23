@@ -7,7 +7,7 @@ each structure embedded as a double-clickable, editable ChemDraw OLE object.
 
 Uses binary OLE construction with CDXML BoundingBox sizing for correct
 display dimensions. Requires ChemDraw COM (Windows) or ChemDraw for macOS
-(AppleScript; bitmap EMF preview) for CDX conversion and the preview.
+(AppleScript; vector EMF preview from its SVG export) for CDX conversion and the preview.
 
 Usage:
     # Single structure
@@ -31,6 +31,7 @@ import argparse
 import io
 import json
 import os
+from pathlib import Path
 import struct
 import sys
 import tempfile
@@ -168,11 +169,13 @@ def batch_convert(cdxml_paths):
 def _batch_convert_macos(cdxml_paths):
     """batch_convert for ChemDraw for macOS (AppleScript).
 
-    ChemDraw for macOS cannot save EMF, so the preview is its 300 dpi PNG
-    export, flattened onto white and wrapped in a bitmap EMF.
+    ChemDraw for macOS cannot save EMF, so the preview is its SVG export
+    replayed as a vector EMF. A drawing the converter cannot reproduce exactly
+    gets the 300 dpi PNG export, flattened onto white, in a bitmap EMF instead.
     """
     from cdxml_toolkit.chemdraw import mac_automation
     from cdxml_toolkit.office.emf_preview import png_to_emf
+    from cdxml_toolkit.office.emf_vector import UnsupportedSvg, svg_to_emf
 
     results = []
     with mac_automation.MacChemDrawSession() as session:
@@ -182,9 +185,14 @@ def _batch_convert_macos(cdxml_paths):
                 tmp_cdx = os.path.join(workspace, "object.cdx")
                 tmp_cdxml = os.path.join(workspace, "object.cdxml")
                 tmp_png = os.path.join(workspace, "preview.png")
-                session.export(os.path.abspath(cdxml_path), tmp_cdx, tmp_cdxml, tmp_png)
+                tmp_svg = os.path.join(workspace, "preview.svg")
+                session.export(os.path.abspath(cdxml_path), tmp_cdx, tmp_cdxml, tmp_png, tmp_svg)
                 with open(tmp_cdx, "rb") as f:
                     cdx_data = f.read()
+                try:
+                    emf_data = svg_to_emf(Path(tmp_svg))
+                except UnsupportedSvg:
+                    emf_data = png_to_emf(tmp_png)
                 try:
                     content_bbox = _parse_box(ET.parse(tmp_cdxml).getroot().get('BoundingBox'))
                 except Exception:
@@ -193,7 +201,7 @@ def _batch_convert_macos(cdxml_paths):
                     'path': cdxml_path,
                     'name': name,
                     'cdx_data': cdx_data,
-                    'emf_data': png_to_emf(tmp_png),
+                    'emf_data': emf_data,
                     'content_bbox': content_bbox,
                 })
     return results

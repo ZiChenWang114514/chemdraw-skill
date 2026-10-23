@@ -445,7 +445,7 @@ def _catalog(runtime: ChemScriptRuntime) -> tuple[list[dict[str, Any]], list[dic
 
 
 def catalog_sdk(runtime: ChemScriptRuntime, request: dict[str, Any]) -> dict[str, Any]:
-    types, members = _catalog(runtime)
+    types, members = runtime.catalog() if hasattr(runtime, "catalog") else _catalog(runtime)
     eligible = [item for item in members if item["classification"] == "sdk_api"]
     infrastructure = len(members) - len(eligible)
     coverage = {
@@ -587,11 +587,19 @@ def execute_program(runtime: ChemScriptRuntime, request: dict[str, Any]) -> dict
     aliases: dict[str, Any] = {}
     disposed: set[int] = set()
     results = []
+    # An emulated runtime (macOS) admits only its own public members.
+    check = getattr(runtime, "check_member", lambda owner, member, operation: None)
     try:
         for index, step in enumerate(program):
             operation = step["op"]
             alias = step.get("as")
             value: Any = None
+            if operation in ("call", "get", "set"):
+                check(aliases[step["target"]], step["member"], operation)
+            elif operation == "call_static":
+                check(runtime.reflection_type(step["type"]), step["member"], operation)
+            elif operation == "construct":
+                check(runtime.reflection_type(step["type"]), ".ctor", operation)
             if operation == "construct":
                 reflection_type = runtime.reflection_type(step["type"])
                 if _is_interop_name(reflection_type.FullName) and not allow_unsafe:
@@ -692,7 +700,12 @@ def main() -> int:
     args = parser.parse_args()
     try:
         request = _read_request(args.request_file)
-        runtime = ChemScriptRuntime()
+        if sys.platform == "darwin":
+            from cdxml_toolkit.mcp_runtime.chemscript_sdk_mac import MacSdkRuntime
+
+            runtime = MacSdkRuntime()
+        else:
+            runtime = ChemScriptRuntime()
         action = request.get("action")
         if action == "catalog":
             response = catalog_sdk(runtime, request)

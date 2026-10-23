@@ -8,6 +8,7 @@ import json
 from pathlib import Path, PurePosixPath
 import posixpath
 import re
+import struct
 import sys
 from typing import Any
 import xml.etree.ElementTree as ET
@@ -506,14 +507,97 @@ def load_replacement_manifest(
     return resolved
 
 
+def emf_frame_size(data: bytes) -> tuple[int, int] | None:
+    """Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF."""
+    if len(data) < 88 or data[40:44] != b" EMF":
+        return None
+    left, top, right, bottom = struct.unpack_from("<4i", data, 24)
+    if right <= left or bottom <= top:
+        return None
+    return right - left + 1, bottom - top + 1
+
+
+_RELATIONSHIPS_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+_FRAME_TAGS = {
+    "{http://schemas.openxmlformats.org/presentationml/2006/main}graphicFrame",
+    "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}object",
+}
+_WORD_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+
+
+def _scaled(value: str, factor: float, decimals: int = 0) -> str:
+    number = float(value) * factor
+    return f"{number:.{decimals}f}" if decimals else str(round(number))
+
+
+def _scale_style(style: str, scale_x: float, scale_y: float) -> str:
+    """Scale ``width``/``height`` of a VML style declaration, keeping their unit."""
+    declarations = []
+    for declaration in style.split(";"):
+        name, separator, value = declaration.partition(":")
+        factor = {"width": scale_x, "height": scale_y}.get(name.strip().lower())
+        match = re.fullmatch(r"\s*(\d+(?:\.\d+)?)([a-z%]*)\s*", value) if factor else None
+        if match:
+            declaration = f"{name}{separator}{_scaled(match.group(1), factor, 2)}{match.group(2)}"
+        declarations.append(declaration)
+    return ";".join(declarations)
+
+
+def resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes:
+    """Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+
+    The top-left corner stays where it is, as when Office updates an object
+    after it was edited in ChemDraw. Only the size attributes change.
+    """
+    from lxml import etree
+
+    root = etree.fromstring(xml)
+    frames = []
+    for element in root.iter():
+        if element.get(f"{{{_RELATIONSHIPS_NS}}}id") != relationship_id:
+            continue
+        frame = next((item for item in element.iterancestors() if item.tag in _FRAME_TAGS), None)
+        if frame is not None and frame not in frames:
+            frames.append(frame)
+    if not frames:
+        raise ValueError(f"No frame references OLE relationship {relationship_id}")
+    for frame in frames:
+        for element in frame.iter():
+            if not isinstance(element.tag, str):
+                continue
+            local = etree.QName(element).localname
+            if local == "ext" and element.get("cx") is not None and element.get("cy") is not None:
+                element.set("cx", _scaled(element.get("cx"), scale_x))
+                element.set("cy", _scaled(element.get("cy"), scale_y))
+            if local == "oleObj":
+                for name, factor in (("imgW", scale_x), ("imgH", scale_y)):
+                    if element.get(name) is not None:
+                        element.set(name, _scaled(element.get(name), factor))
+            if element.get("style") is not None and local == "shape":
+                element.set("style", _scale_style(element.get("style"), scale_x, scale_y))
+        for name, factor in (("dxaOrig", scale_x), ("dyaOrig", scale_y)):
+            attribute = f"{{{_WORD_NS}}}{name}"
+            if frame.get(attribute) is not None:
+                frame.set(attribute, _scaled(frame.get(attribute), factor))
+    body = etree.tostring(root, encoding="UTF-8")
+    declaration = re.match(rb"\s*<\?xml[^>]*\?>\s*", xml)
+    return (declaration.group(0) if declaration else b"") + body
+
+
 def rewrite_office_package(
     input_path: str | Path,
     output_path: str | Path,
     replacement_parts: dict[str, dict[str, bytes]],
 ) -> None:
+    """Write a copy of an Office package with replaced OLE objects and previews.
+
+    A replacement with ``frame_scale`` (``(x, y)``) also resizes its frame in
+    its ``host_part``.
+    """
     source = Path(input_path).resolve()
     destination = Path(output_path).resolve()
     parts: dict[str, bytes] = {}
+    frames: dict[str, list[tuple[str, float, float]]] = {}
     for object_id, replacement in replacement_parts.items():
         for key in ("embedding_part", "preview_part"):
             part = replacement.get(key)
@@ -523,6 +607,11 @@ def rewrite_office_package(
             if part in parts:
                 raise ValueError(f"Multiple replacements target the same package part: {part}")
             parts[part] = payload
+        if replacement.get("frame_scale"):
+            scale_x, scale_y = replacement["frame_scale"]
+            frames.setdefault(replacement["host_part"], []).append(
+                (replacement["relationship_id"], scale_x, scale_y)
+            )
     seen: set[str] = set()
     with zipfile.ZipFile(source, "r") as package, zipfile.ZipFile(
         destination, "w", allowZip64=True
@@ -530,6 +619,8 @@ def rewrite_office_package(
         output.comment = package.comment
         for information in package.infolist():
             data = parts.get(information.filename, package.read(information.filename))
+            for relationship_id, scale_x, scale_y in frames.get(information.filename, ()):
+                data = resize_ole_frame(data, relationship_id, scale_x, scale_y)
             if information.filename in parts:
                 seen.add(information.filename)
             output.writestr(information, data)

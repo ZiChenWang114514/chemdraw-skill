@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 from unittest import mock
@@ -110,6 +111,46 @@ class AutomationHelpersTests(unittest.TestCase):
         with self.assertRaises(mac_automation.MacAutomationError) as raised:
             mac_automation.save_type_for(Path("a.emf"))
         self.assertEqual(raised.exception.error_code, "native_format_unsupported")
+
+    def test_style_sheets_are_never_opened_in_chemdraw(self):
+        # ChemDraw opens stationery as an untitled document that stays behind.
+        with tempfile.TemporaryDirectory() as directory:
+            sheet = Path(directory) / "ACS Document 1996.cds"
+            sheet.write_bytes(b"VjCD0100")
+            session = mac_automation.MacChemDrawSession()
+            with self.assertRaises(mac_automation.MacAutomationError) as raised:
+                session._openable(sheet, Path(directory))
+        self.assertEqual(raised.exception.error_code, "native_format_unsupported")
+
+    def test_emf_destinations_are_converted_from_chemdraws_svg_export(self):
+        svg = ('<svg width="20px" height="10px" xmlns="http://www.w3.org/2000/svg">'
+               '<path d="M 1,1 L 19,1 L 19,2 Z"/></svg>')
+
+        def run_steps(source, steps, **_kwargs):
+            for index, step in enumerate(steps):
+                if step == "save":
+                    target = Path(steps[index + 1])
+                    if target.suffix == ".svg":
+                        target.write_text(svg, encoding="utf-8")
+                    elif target.suffix == ".png":
+                        Image.new("RGB", (4, 2), "white").save(target, dpi=(300, 300))
+                    else:
+                        target.write_text("<CDXML/>", encoding="utf-8")
+            return []
+
+        with tempfile.TemporaryDirectory() as directory:
+            session = mac_automation.MacChemDrawSession()
+            out = Path(directory)
+            with mock.patch.object(session, "run_steps", side_effect=run_steps) as ran:
+                written = session.export(out / "in.cdxml", out / "a.emf", out / "b.cdxml")
+            data = (out / "a.emf").read_bytes()
+            saved_types = [steps[i + 2] for steps in [ran.call_args.args[1]]
+                           for i, step in enumerate(steps) if step == "save"]
+
+        self.assertEqual(written, [str((out / "a.emf").resolve()), str((out / "b.cdxml").resolve())])
+        self.assertEqual(data[40:44], b" EMF")
+        self.assertIn(struct.pack("<I", 62), data)  # EMR_FILLPATH: a vector metafile
+        self.assertNotIn("EMF", " ".join(saved_types))
 
     def test_denied_automation_permission_is_classified(self):
         error = mac_automation._classify(1, "execution error: Not authorized to send Apple events (-1743)")
