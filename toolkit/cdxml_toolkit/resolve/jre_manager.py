@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 import shutil
 import stat
+import subprocess
+import sys
 import tempfile
 from typing import Optional
 import urllib.request
@@ -24,8 +26,33 @@ _MAX_EXTRACTED_BYTES = 768 * 1024 * 1024
 _java_exe: Optional[str] = None
 
 
+_MACOS_JAVA_STUB = "/usr/bin/java"
+
+
+def _macos_java_home() -> Optional[str]:
+    """Ask macOS for an installed JDK home; the /usr/bin/java stub alone is not Java."""
+    try:
+        completed = subprocess.run(
+            ["/usr/libexec/java_home"],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    home = completed.stdout.strip()
+    return home if completed.returncode == 0 and home else None
+
+
 def _find_system_java() -> Optional[str]:
     java = shutil.which("java")
+    if java and sys.platform == "darwin" and os.path.realpath(java) == _MACOS_JAVA_STUB:
+        # The stub re-executes $JAVA_HOME/bin/java, so exporting JAVA_HOME=/usr
+        # makes it recurse forever. Resolve the real JDK instead.
+        home = _macos_java_home()
+        candidate = Path(home) / "bin" / "java" if home else None
+        java = str(candidate) if candidate and candidate.is_file() else None
     if java:
         return java
     java_home = os.environ.get("JAVA_HOME")
@@ -125,6 +152,9 @@ def _configured_archive() -> tuple[Path, str | None] | None:
 
 
 def _download_jre() -> Optional[str]:
+    if os.name != "nt":
+        # The Adoptium URL is the Windows x64 build; other systems install Java themselves.
+        return None
     _JRE_BASE.parent.mkdir(parents=True, exist_ok=True)
     request = urllib.request.Request(
         _ADOPTIUM_URL,

@@ -21,6 +21,33 @@ TEST_DATA_ROOT = os.environ.get(
 )
 
 
+# ---------------------------------------------------------------------------
+# On macOS the ChemScript-compatible backend drives the user's real ChemDraw,
+# restarting it for every name it rejects, and ChemScript-marked suites ran
+# for over an hour. Tests see a Mac without ChemDraw unless the run opts in
+# with CDXML_LIVE_CHEMDRAW=1: ChemDraw is not found and the toolkit cannot run
+# `open` or `osascript`. Tests that fake ChemDraw patch those calls themselves.
+# ---------------------------------------------------------------------------
+if sys.platform == "darwin" and os.environ.get("CDXML_LIVE_CHEMDRAW") != "1":
+    import subprocess as _subprocess
+    import types as _types
+
+    from cdxml_toolkit.chemdraw import mac_automation as _mac
+
+    def _no_live_applications(args, *pargs, **kwargs):
+        if args and args[0] in ("open", "osascript"):
+            raise FileNotFoundError("live ChemDraw is disabled in tests; set CDXML_LIVE_CHEMDRAW=1")
+        return _subprocess.run(args, *pargs, **kwargs)
+
+    # A private copy of subprocess, so tests that patch mac_automation.subprocess.run
+    # still replace the guarded run and the rest of the process keeps the real one.
+    _guarded = _types.ModuleType("subprocess")
+    _guarded.__dict__.update(vars(_subprocess))
+    _guarded.run = _no_live_applications
+    _mac.subprocess = _guarded
+    _mac.find_application = lambda *_args, **_kwargs: None
+
+
 @pytest.fixture
 def project_root():
     """Absolute path to the chem-tools project root."""

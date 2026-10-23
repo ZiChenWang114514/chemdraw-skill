@@ -161,5 +161,16 @@ class ChemScriptSdkTests(unittest.TestCase):
         self.assertFalse(invoke.call_args.args[0]["allow_unsafe_interop"])
 
 
+    def test_sdk_reflection_reports_windows_only_on_macos(self):
+        with mock.patch.object(chemscript_sdk.sys, "platform", "darwin"), \
+                mock.patch.object(chemscript_sdk.subprocess, "run") as run:
+            with self.assertRaises(RuntimeError) as raised:
+                chemscript_sdk.inspect_chemscript_sdk(query="Formula")
+
+        self.assertEqual(raised.exception.error_code, "chemscript_sdk_windows_only")
+        self.assertIn("ChemDraw for macOS", str(raised.exception))
+        run.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()

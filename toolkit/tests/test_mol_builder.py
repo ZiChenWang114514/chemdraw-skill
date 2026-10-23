@@ -419,6 +419,7 @@ class TestModifyWithValidation:
 class TestNameToStructure:
     """name_to_structure with ChemScript."""
 
+    @needs_chemscript_bidirectional
     def test_cdxml_output(self):
         result = name_to_structure("morpholine")
         assert result["ok"] is True
@@ -452,6 +453,7 @@ class TestPrefixProbe:
 class TestEndToEnd:
     """Simulate an LLM orchestrator workflow."""
 
+    @needs_chemscript_bidirectional
     def test_draw_substituted_pyridine(self):
         """Workflow: 'Draw 2-chloropyridine with a CF3 on the 3-position'."""
         # Step 1: Get prefix form

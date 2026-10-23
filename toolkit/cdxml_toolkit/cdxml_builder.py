@@ -86,6 +86,18 @@ ELEMENT_NUMBERS: Dict[str, int] = {
     "Se": 34, "Br": 35, "I":  53, "Cs": 55,
 }
 
+
+def element_number(symbol: str) -> int:
+    """Atomic number for *symbol*; 0 only when the symbol is not an element."""
+    if symbol in ELEMENT_NUMBERS:
+        return ELEMENT_NUMBERS[symbol]
+    try:
+        from rdkit import Chem
+        return Chem.GetPeriodicTable().GetAtomicNumber(symbol)
+    except Exception:
+        return 0
+
+
 # Two-character element symbols (need special handling in label alignment)
 WIDE_SYMBOLS = {"Br", "Cl", "Si", "Se", "Cs"}
 
@@ -194,7 +206,7 @@ def _build_abbrev_inner_fragment(
         z = ids.next()
         attrs = [f'id="{aid}"', f'p="{ax:.2f} {ay:.2f}"', f'Z="{z}"']
         if sym != "C":
-            el_num = ELEMENT_NUMBERS.get(sym, 0)
+            el_num = element_number(sym)
             if el_num:
                 attrs.append(f'Element="{el_num}"')
             nh = a.get("num_hydrogens", 0)
@@ -381,7 +393,7 @@ def _build_fragment(
         charge = a.get("charge", 0)
 
         if not is_carbon:
-            el_num = ELEMENT_NUMBERS.get(sym, 0)
+            el_num = element_number(sym)
             if el_num:
                 attrs.append(f'Element="{el_num}"')
             nh = a.get("num_hydrogens", 0)

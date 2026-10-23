@@ -63,7 +63,7 @@
         { "@type": "Question", "name": "Can it turn a structure image from a paper into an editable ChemDraw file?",
           "acceptedAnswer": { "@type": "Answer", "text": "Yes. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review, and outputs editable CDXML with a native ChemDraw preview." } },
         { "@type": "Question", "name": "Does it work without ChemDraw installed?",
-          "acceptedAnswer": { "@type": "Answer", "text": "The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed ChemDraw on Windows." } }
+          "acceptedAnswer": { "@type": "Answer", "text": "The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed desktop ChemDraw on Windows or macOS." } }
       ]
     }
   ]
@@ -230,11 +230,11 @@
       <div><dt>Paper figures</dt><dd>Crop the source, read it with DECIMER, compare side by side, fix the chemistry and assemble the layout.</dd></div>
       <div><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations and boxed labels.</dd></div>
       <div><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.</dd></div>
-      <div><dt>Molecule comparison</dt><dd>RDKit fingerprint similarity everywhere; exact ChemScript identity checks on Windows.</dd></div>
+      <div><dt>Molecule comparison</dt><dd>RDKit fingerprint similarity everywhere; exact identity checks through ChemScript on Windows or ChemDraw on macOS.</dd></div>
       <div><dt>Mechanisms</dt><dd>Electron-pushing arrows, charges and counterions placed from explicit atom coordinates.</dd></div>
       <div><dt>TLC and apparatus</dt><dd>Native TLC plates, lanes, spots and Rf; apparatus assembled from ChemDraw templates.</dd></div>
       <div><dt>Spectra</dt><dd>Peak picking and range integration on 1D NMR; numeric data as editable curves.</dd></div>
-      <div><dt>Word and PowerPoint</dt><dd>Embed live ChemDraw objects that open with a double-click in Windows desktop Office.</dd></div>
+      <div><dt>Word and PowerPoint</dt><dd>Embed live ChemDraw objects in Word and PowerPoint documents, built on Windows or macOS.</dd></div>
       <div><dt>Lab records</dt><dd>File discovery plus LCMS, SciFinder RDF and notebook workflows.</dd></div>
     </dl>
   </div>
@@ -244,7 +244,7 @@
   <div class="wrap start">
     <div class="head">
       <h2>Start in three steps</h2>
-      <p>The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the runtime on Windows, macOS or Linux. Native rendering and Office embedding need licensed ChemDraw on Windows.</p>
+      <p>The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the runtime on Windows, macOS or Linux. Native rendering and Office embedding need licensed desktop ChemDraw on Windows or macOS.</p>
       <p class="note">Installing for Codex, Gemini CLI or Cursor? Replace <code>--agent claude</code> with that agent, or use <code>agents</code> for the shared folder. See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">agent integration</a>.</p>
     </div>
     <ol>
@@ -288,7 +288,7 @@ python scripts/install.py --agent claude agents --runtime --apply</code></pre>
       </details>
       <details>
         <summary>Does it work without ChemDraw installed?</summary>
-        <p>The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed ChemDraw on Windows.</p>
+        <p>The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed desktop ChemDraw on Windows or macOS.</p>
       </details>
     </div>
   </div>

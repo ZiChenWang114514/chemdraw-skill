@@ -15,7 +15,7 @@ Tools:
     extract_cdxml_from_office — PPTX/DOCX/XLS/XLSX → embedded CDXML files
     embed_cdxml_in_office — CDXML → editable OLE object in PPTX/DOCX
     search_compound       — SMILES → exact/similar matches across experiments
-    render_to_png         — CDXML → PNG via ChemDraw COM
+    render_to_png         — CDXML → PNG via ChemDraw (COM on Windows, AppleScript on macOS)
 
 Run:
     python -m cdxml_toolkit.mcp_server                    # stdio (default)
@@ -914,10 +914,11 @@ def convert_cdx_cdxml(
     - .cdx input  → .cdxml output
     - .cdxml input → .cdx output
 
-    Uses available backends in order: ChemDraw COM (best fidelity, Windows) →
-    pycdxml (pure Python, partial support) → OpenBabel.
+    Uses available backends in order: ChemDraw (best fidelity; COM on Windows,
+    AppleScript on macOS) → pycdxml (pure Python, partial support) → OpenBabel.
 
-    ChemDraw COM requires ChemDraw to be installed and closed before running.
+    ChemDraw COM on Windows requires ChemDraw to be installed and closed before
+    running. On macOS the toolkit drives a hidden ChemDraw for macOS instance.
 
     Args:
         input_path:  Path to .cdx or .cdxml file.
@@ -935,7 +936,7 @@ def convert_cdx_cdxml(
             "Examples:\n"
             "  convert_cdx_cdxml(input_path='experiment.cdx')\n"
             "  convert_cdx_cdxml(input_path='scheme.cdxml', output_path='scheme.cdx')\n"
-            "Requires ChemDraw COM (Windows, ChemDraw must be closed)."
+            "Requires ChemDraw (COM on Windows with ChemDraw closed, or ChemDraw for macOS)."
         )
 
     from cdxml_toolkit.chemdraw.cdx_converter import convert_file
@@ -1261,12 +1262,12 @@ def embed_cdxml_in_office(
 ) -> dict:
     """Embed a CDXML file as an editable ChemDraw OLE object in PPTX or DOCX.
 
-    Converts CDXML → CDX + EMF preview via ChemDraw COM, builds a CFB OLE
+    Converts CDXML → CDX + EMF preview via ChemDraw, builds a CFB OLE
     compound file, and injects it into a PPTX slide or DOCX paragraph as a
     double-clickable, editable ChemDraw object.
 
-    Requires: ChemDraw COM (Windows, ChemDraw 16+), python-pptx or python-docx.
-    ChemDraw must be installed and closed before calling this tool.
+    Requires: ChemDraw COM (Windows, ChemDraw 16+; ChemDraw must be closed) or
+    ChemDraw for macOS (bitmap EMF preview), plus python-pptx or python-docx.
 
     The output format (.pptx or .docx) is detected from office_path extension.
     If office_path does not exist, a new file is created.
@@ -1290,7 +1291,7 @@ def embed_cdxml_in_office(
             "Examples:\n"
             "  embed_cdxml_in_office(cdxml_path='scheme.cdxml', office_path='report.pptx')\n"
             "  embed_cdxml_in_office(cdxml_path='scheme.cdxml', office_path='report.docx', output_path='report_v2.docx')\n"
-            "Requires: ChemDraw COM (Windows, ChemDraw must be closed), python-pptx or python-docx."
+            "Requires: ChemDraw (COM on Windows with ChemDraw closed, or ChemDraw for macOS), python-pptx or python-docx."
         )
 
     from cdxml_toolkit.office.ole_embedder import (

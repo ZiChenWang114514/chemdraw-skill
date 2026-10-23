@@ -24,6 +24,66 @@ def run(*args: str, home: Path | None = None) -> subprocess.CompletedProcess:
 
 
 class InstallerTests(unittest.TestCase):
+    def test_chemdraw_extras_are_default_where_chemdraw_runs(self) -> None:
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("chemdraw_install", INSTALLER)
+        installer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(installer)
+
+        for platform in ("win32", "darwin"):
+            self.assertIn("office", installer.default_extras(platform))
+            self.assertIn("chemscript", installer.default_extras(platform))
+        self.assertNotIn("office", installer.default_extras("linux"))
+
+    def _installer(self):
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("chemdraw_install", INSTALLER)
+        installer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(installer)
+        return installer
+
+    def test_opsin_download_is_verified_before_it_is_kept(self) -> None:
+        installer = self._installer()
+        payload = b"opsin jar bytes"
+        digest = __import__("hashlib").sha256(payload).hexdigest()
+
+        class Response:
+            def __init__(self, data):
+                self.data = data
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def read(self, size=-1):
+                data, self.data = (self.data, b"") if size < 0 else (self.data[:size], self.data[size:])
+                return data
+
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp) / "opsin"
+            jar = installer.install_opsin(folder, sha256=digest, opener=lambda url, timeout: Response(payload))
+            self.assertEqual(jar.read_bytes(), payload)
+            self.assertEqual(jar.name, installer.OPSIN_JAR_NAME)
+            jar.unlink()
+            with self.assertRaisesRegex(OSError, "SHA-256"):
+                installer.install_opsin(folder, sha256="0" * 64, opener=lambda url, timeout: Response(payload))
+            self.assertEqual(list(folder.iterdir()), [])
+
+    def test_opsin_proposal_downloads_nothing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve()
+            result = run("--opsin", home=home)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            opsin = json.loads(result.stdout)["opsin"]
+            self.assertEqual(opsin["action"], "download")
+            self.assertTrue(opsin["url"].startswith("https://github.com/dan2097/opsin/releases/download/"))
+            self.assertEqual(Path(opsin["path"]).parent, home / "data" / "chemdraw-skill" / "opsin")
+            self.assertFalse((home / "data" / "chemdraw-skill" / "opsin").exists())
+
     def test_default_proposal_targets_the_claude_skill_folder_and_installs_nothing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             home = Path(tmp).resolve()

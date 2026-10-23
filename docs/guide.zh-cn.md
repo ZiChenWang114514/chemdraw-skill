@@ -4,7 +4,7 @@
 
 ## 首次安装
 
-构建运行时需要 64 位 Python 3.10–3.13（3.12 为已测试版本）；安装器本身可在任意 Python 3.9+ 上运行。Python 3.14 及更新版本目前尚未被内置工具包支持：如果你的机器上只有 3.14，请先安装 3.12（例如 `uv python install 3.12`），或用 `--python <解释器>` 指定。可移植的 CDXML/RDKit 工作不需要任何桌面软件，可在 Windows、macOS 和 Linux 上运行。原生输出需要已激活的 Windows ChemDraw；Office 与 ChemScript 只在对应工作流中才需要。
+构建运行时需要 64 位 Python 3.10–3.13（3.12 为已测试版本）；安装器本身可在任意 Python 3.9+ 上运行。Python 3.14 及更新版本目前尚未被内置工具包支持：如果你的机器上只有 3.14，请先安装 3.12（例如 `uv python install 3.12`），或用 `--python <解释器>` 指定。可移植的 CDXML/RDKit 工作不需要任何桌面软件，可在 Windows、macOS 和 Linux 上运行。原生输出需要已激活的桌面版 ChemDraw（Windows，或 ChemDraw for macOS）；Office 与 ChemScript 只在对应工作流中才需要。
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
@@ -17,6 +17,15 @@ python scripts/install.py --agent claude agents --runtime --apply    # 安装 Sk
 `--agent` 可以同时指定 `claude`、`agents`（大多数 agent 都会读取的共享目录 `~/.agents/skills`）、`gemini`、`copilot`、`cursor` 和 `opencode` 中的一个或多个；`--project <仓库>` 改为安装项目级副本，`--destination <目录>` 可安装到任意位置。自动检测找不到合适解释器时用 `--python <解释器>` 指定基础解释器，`--extras` 选择 toolkit 的可选依赖组（默认安装适用于当前操作系统的全部依赖组），`--runtime-dir` 可改变共享 venv 的位置。
 
 安装器会先暂存并校验每一份副本，把已有安装移到共享备份目录（位于所有 Skill 目录之外），失败时自动还原，然后为所有副本安装一次运行时，并写入 `manifest.json` 以便日后检测漂移。重复运行即升级 Skill 并复用 venv。当 venv 不在 `cdx.py` 默认搜索的位置时，安装器会把 `runtime.local.json` 写入每份副本和当前仓库检出目录（该文件已被 Git 忽略），因此在仓库里直接运行 `cdx.py` 也能找到运行时。
+
+### macOS
+
+```bash
+python3 scripts/install.py --agent claude agents --runtime --opsin --apply   # 同时下载 OPSIN JAR（校验 SHA-256）
+python3 skill/chemdraw/scripts/cdx.py doctor --native --office --chemscript
+```
+
+ChemDraw for macOS 无需配置，会在 `/Applications` 中自动找到（可用 `CHEMDRAW_EXE` 覆盖）。第一次原生调用时，macOS 会询问是否允许终端或 agent 应用控制 ChemDraw；允许一次即可，之后也可在“系统设置 > 隐私与安全性 > 自动化”中修改。ChemScript 由 ChemDraw、OPSIN 和 RDKit 替代，Office 的 PDF 预览需要已激活的 Microsoft 365。macOS 上的全部差异见[运维说明](../skill/chemdraw/references/operations.md#macos)。
 
 运行时由本仓库的 [`toolkit/`](../toolkit) 目录构建，因此总是与你安装的 Skill 版本一致；CI 也以同样方式构建。没有仓库检出的已安装 Skill 副本会退回到 [runtime.json](../skill/chemdraw/runtime.json) 中钉住的精确提交。如需手动构建运行时：
 
@@ -33,7 +42,7 @@ export CHEMDRAW_MCP_PYTHON=<venv>/bin/python      # 仅当 <venv> 不在 cdx.py 
 ```bash
 python <skill>/scripts/cdx.py doctor              # 版本、可选依赖、漂移、能力矩阵
 python <skill>/scripts/cdx.py doctor --native     # 额外执行 ChemScript ping 和一次原生 PNG 渲染
-python <skill>/scripts/cdx.py doctor --office     # 额外执行 Word/PowerPoint OLE 探测
+python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemDraw-OLE 探测
 ```
 
 任何 Python 都可以启动 `cdx.py`，它会自行切换到运行时解释器；无法启动的候选解释器会被跳过。被跳过的探测不算已验证的能力。位数、超时、DECIMER 和故障代码见[运维说明](../skill/chemdraw/references/operations.md)。

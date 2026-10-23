@@ -141,3 +141,40 @@ class TestModuleConstants:
     def test_italic_prefixes_all_end_with_dash(self):
         for prefix in ITALIC_PREFIXES:
             assert prefix.endswith("-"), f"prefix {prefix!r} missing trailing dash"
+
+
+class TestMixedConditionLines:
+    """Formulas keep their subscripts when a line also carries amounts."""
+
+    @staticmethod
+    def subscripts(text):
+        import re
+        return re.findall(r'face="32">([^<]*)<', build_formatted_s_xml(text))
+
+    def test_catalyst_with_mol_percent(self):
+        assert self.subscripts("Pd(PPh3)4 (5 mol%)") == ["3", "4"]
+
+    def test_base_with_equivalents(self):
+        assert self.subscripts("K2CO3 (2.0 equiv)") == ["2", "3"]
+
+    def test_conditions_stay_plain(self):
+        assert self.subscripts("90 °C, 12 h") == []
+        assert self.subscripts("rt, 16h, 95%") == []
+
+
+def test_render_scheme_subscripts_reagents_above_the_arrow():
+    import re
+    from cdxml_toolkit.render.parser import parse_yaml
+    from cdxml_toolkit.render.renderer import render
+
+    scheme = parse_yaml(
+        "structures:\n"
+        "  A: {smiles: 'c1ccccc1Br'}\n"
+        "  B: {smiles: 'c1ccccc1'}\n"
+        "steps:\n"
+        "  - substrates: [A]\n"
+        "    products: [B]\n"
+        "    above_arrow: {text: ['K2CO3']}\n"
+    )
+    xml = render(scheme)
+    assert re.search(r'face="96">K</s><s [^>]*face="32">2</s>', xml)

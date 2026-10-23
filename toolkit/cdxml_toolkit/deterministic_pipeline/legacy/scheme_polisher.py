@@ -1141,16 +1141,28 @@ def _chemdraw_cleanup_reaction(cdxml_path: str, output_path: str,
                                 verbose: bool = False):
     """Run ChemDraw COM "Clean Up Reaction" on the CDXML file.
 
-    Reuses the same COM automation pattern as eln_cdx_cleanup.py.
+    Reuses the same COM automation pattern as eln_cdx_cleanup.py; on macOS
+    ChemDraw is driven through AppleScript.
     Expects the file to already be compacted (see _compact_toward_arrow).
     """
-    import win32com.client
+    from cdxml_toolkit.chemdraw import mac_automation
 
     def log(msg: str):
         if verbose:
             print(f"[scheme_polisher] {msg}", file=sys.stderr)
 
-    log("Running ChemDraw COM cleanup...")
+    if mac_automation.is_macos():
+        log("Running ChemDraw for macOS cleanup...")
+        # Run 3 times — arrow lengths and spacing may not fully converge.
+        with mac_automation.MacChemDrawSession() as session:
+            session.apply_menu(cdxml_path, output_path,
+                               *[("Structure", "Clean Up Reaction")] * 3)
+        log(f"ChemDraw cleanup saved to {output_path}")
+        return
+
+    import win32com.client
+
+    log("Running ChemDraw cleanup...")
 
     # Import COM helpers from eln_cdx_cleanup
     from .eln_cdx_cleanup import (

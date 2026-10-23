@@ -40,6 +40,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..constants import ACS_STYLE
+from . import mac_automation
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -277,9 +278,9 @@ def _rescale_cdxml_coords(cdxml: str, scale: float) -> str:
         return f'{attr}="{scaled}"'
 
     # Scale p="x y" (node positions)
-    cdxml = re.sub(r'(p)="([^"]+)"', _scale_point, cdxml)
+    cdxml = re.sub(r'\b(p)="([^"]+)"', _scale_point, cdxml)
     # Scale BoundingBox="l t r b"
-    cdxml = re.sub(r'(BoundingBox)="([^"]+)"', _scale_point, cdxml)
+    cdxml = re.sub(r'\b(BoundingBox)="([^"]+)"', _scale_point, cdxml)
 
     return cdxml
 
@@ -300,6 +301,18 @@ class ChemScriptBridge:
 
     def __init__(self, python32_path: str = None):
         self._proc: Optional[subprocess.Popen] = None
+        self._mac = None
+        if python32_path is None and mac_automation.is_macos():
+            # ChemScript is Windows-only; ChemDraw for macOS answers the same commands.
+            if mac_automation.find_application() is None:
+                raise RuntimeError(
+                    "ChemDraw for macOS was not found. Install it in /Applications "
+                    "or set CHEMDRAW_EXE to use the ChemScript-compatible backend."
+                )
+            from . import chemscript_mac
+
+            self._mac = chemscript_mac.shared()
+            return
         cfg = _load_config()
         bitness = cfg.get("bitness")
         self._python32 = (python32_path
@@ -322,6 +335,8 @@ class ChemScriptBridge:
 
     def _ensure_server(self):
         """Start the server subprocess if not already running."""
+        if self._mac is not None:
+            return
         if self._proc is not None and self._proc.poll() is None:
             return
         cmd = [self._python32, self._server_script]
@@ -351,6 +366,8 @@ class ChemScriptBridge:
 
     def _call(self, cmd: str, **args) -> dict:
         """Send a command to the server and return the response."""
+        if self._mac is not None:
+            return self._mac.call(cmd, args)
         self._ensure_server()
         request = json.dumps({"cmd": cmd, "args": args})
         self._proc.stdin.write(request + "\n")
@@ -363,7 +380,9 @@ class ChemScriptBridge:
 
     def close(self):
         """Shut down the server."""
-        if self._proc and self._proc.poll() is None:
+        if getattr(self, "_mac", None) is not None:
+            self._mac.close()
+        if getattr(self, "_proc", None) and self._proc.poll() is None:
             try:
                 self._proc.stdin.write(json.dumps({"cmd": "quit"}) + "\n")
                 self._proc.stdin.flush()

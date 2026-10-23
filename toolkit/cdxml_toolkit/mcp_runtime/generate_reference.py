@@ -76,7 +76,7 @@ def render_markdown(profile: str = "full") -> str:
                     "",
                     "\n".join(
                         line.rstrip()
-                        for line in tool["description"].strip().splitlines()
+                        for line in inspect.cleandoc(tool["description"]).splitlines()
                     )
                     or "No public description.",
                     "",

@@ -32,6 +32,7 @@ from .ole_embedder import (
     content_size_emu,
     build_ole_compound_file,
     _ensure_content_types,
+    _preview_pic_xml,
 )
 
 
@@ -89,11 +90,11 @@ def load_manifest(manifest_path):
 
 
 # ---------------------------------------------------------------------------
-# OLE preparation (ChemDraw COM batch conversion)
+# OLE preparation (ChemDraw batch conversion)
 # ---------------------------------------------------------------------------
 
 def prepare_ole_items(cdxml_slots, margin_pt=0.0):
-    """Convert unique CDXML files to OLE data via ChemDraw COM.
+    """Convert unique CDXML files to OLE data via ChemDraw (COM or macOS).
 
     Returns dict: abs_path -> {"ole_data", "emf_data", "width_emu", "height_emu"}
     """
@@ -262,6 +263,7 @@ def _make_pptx_ole_xml(ole_idx, x, y, w, h):
               <p:oleObj name="CS ChemDraw Drawing" r:id="{orel}"
                         imgW="{w}" imgH="{h}" progId="ChemDraw.Document.6.0">
                 <p:embed/>
+                {_preview_pic_xml(bid + 3, f"Preview {ole_idx}", irel, x, y, w, h)}
               </p:oleObj>
             </a:graphicData>
           </a:graphic>
@@ -285,23 +287,7 @@ def _make_pptx_ole_xml(ole_idx, x, y, w, h):
               <p:oleObj name="CS ChemDraw Drawing" r:id="{orel}"
                         imgW="{w}" imgH="{h}" progId="ChemDraw.Document.6.0">
                 <p:embed/>
-                <p:pic>
-                  <p:nvPicPr>
-                    <p:cNvPr id="{bid + 2}" name="Preview {ole_idx}"/>
-                    <p:cNvPicPr/><p:nvPr/>
-                  </p:nvPicPr>
-                  <p:blipFill>
-                    <a:blip r:embed="{irel}"/>
-                    <a:stretch><a:fillRect/></a:stretch>
-                  </p:blipFill>
-                  <p:spPr>
-                    <a:xfrm>
-                      <a:off x="{x}" y="{y}"/>
-                      <a:ext cx="{w}" cy="{h}"/>
-                    </a:xfrm>
-                    <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-                  </p:spPr>
-                </p:pic>
+                {_preview_pic_xml(bid + 2, f"Preview {ole_idx}", irel, x, y, w, h)}
               </p:oleObj>
             </a:graphicData>
           </a:graphic>

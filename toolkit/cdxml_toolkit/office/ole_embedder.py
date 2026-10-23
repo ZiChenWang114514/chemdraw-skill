@@ -6,7 +6,8 @@ Takes one or more CDXML files and creates a PowerPoint or Word document with
 each structure embedded as a double-clickable, editable ChemDraw OLE object.
 
 Uses binary OLE construction with CDXML BoundingBox sizing for correct
-display dimensions. Requires ChemDraw COM for CDX conversion and EMF preview.
+display dimensions. Requires ChemDraw COM (Windows) or ChemDraw for macOS
+(AppleScript; bitmap EMF preview) for CDX conversion and the preview.
 
 Usage:
     # Single structure
@@ -97,6 +98,11 @@ def batch_convert(cdxml_paths):
     ``content_bbox`` is the root BoundingBox ChemDraw writes when it saves the
     document as CDXML: the tight extent of the drawing. Use content_size_emu().
     """
+    from cdxml_toolkit.chemdraw import mac_automation
+
+    if mac_automation.is_macos():
+        return _batch_convert_macos(cdxml_paths)
+
     import win32com.client as win32
 
     results = []
@@ -156,6 +162,40 @@ def batch_convert(cdxml_paths):
         except Exception:
             pass
 
+    return results
+
+
+def _batch_convert_macos(cdxml_paths):
+    """batch_convert for ChemDraw for macOS (AppleScript).
+
+    ChemDraw for macOS cannot save EMF, so the preview is its 300 dpi PNG
+    export, flattened onto white and wrapped in a bitmap EMF.
+    """
+    from cdxml_toolkit.chemdraw import mac_automation
+    from cdxml_toolkit.office.emf_preview import png_to_emf
+
+    results = []
+    with mac_automation.MacChemDrawSession() as session:
+        for cdxml_path in cdxml_paths:
+            name = os.path.splitext(os.path.basename(cdxml_path))[0]
+            with tempfile.TemporaryDirectory(prefix="cdx-ole-") as workspace:
+                tmp_cdx = os.path.join(workspace, "object.cdx")
+                tmp_cdxml = os.path.join(workspace, "object.cdxml")
+                tmp_png = os.path.join(workspace, "preview.png")
+                session.export(os.path.abspath(cdxml_path), tmp_cdx, tmp_cdxml, tmp_png)
+                with open(tmp_cdx, "rb") as f:
+                    cdx_data = f.read()
+                try:
+                    content_bbox = _parse_box(ET.parse(tmp_cdxml).getroot().get('BoundingBox'))
+                except Exception:
+                    content_bbox = None  # sizing falls back to measuring the input file
+                results.append({
+                    'path': cdxml_path,
+                    'name': name,
+                    'cdx_data': cdx_data,
+                    'emf_data': png_to_emf(tmp_png),
+                    'content_bbox': content_bbox,
+                })
     return results
 
 
@@ -310,7 +350,13 @@ def build_ole_compound_file(cdx_data):
         Sector 5:   Mini-FAT sector
         Sector 6:   Mini-stream container (256 bytes)
         Sectors 7+: CONTENTS data (CDX binary)
+
+    CONTENTS always lives in regular sectors, so CDX shorter than the
+    mini-stream cutoff is zero-padded to it: readers look up streams below the
+    cutoff in the mini stream. ChemDraw ignores the trailing zeros.
     """
+    if len(cdx_data) < MINI_STREAM_CUTOFF:
+        cdx_data = bytes(cdx_data).ljust(MINI_STREAM_CUTOFF, b"\0")
     cdx_sectors = (len(cdx_data) + SECTOR_SIZE - 1) // SECTOR_SIZE
     cdx_start = 7
     total_sectors = cdx_start + cdx_sectors
@@ -507,8 +553,34 @@ def _inject_pptx(source_pptx, output_path, items):
                     item['emf_data'])
 
 
+def _preview_pic_xml(shape_id, name, image_rel, x, y, w, h):
+    """The preview picture of a PPTX OLE object (``p:oleObj/p:pic``)."""
+    return f"""<p:pic>
+                  <p:nvPicPr>
+                    <p:cNvPr id="{shape_id}" name="{name}"/>
+                    <p:cNvPicPr/>
+                    <p:nvPr/>
+                  </p:nvPicPr>
+                  <p:blipFill>
+                    <a:blip r:embed="{image_rel}"/>
+                    <a:stretch><a:fillRect/></a:stretch>
+                  </p:blipFill>
+                  <p:spPr>
+                    <a:xfrm>
+                      <a:off x="{x}" y="{y}"/>
+                      <a:ext cx="{w}" cy="{h}"/>
+                    </a:xfrm>
+                    <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+                  </p:spPr>
+                </p:pic>"""
+
+
 def _build_slide_xml(slide_xml, item, ole_idx):
-    """Add OLE mc:AlternateContent to a slide."""
+    """Add OLE mc:AlternateContent to a slide.
+
+    Both branches carry the preview picture: readers that take the VML choice
+    without an OLE server (macOS Quick Look, PowerPoint for macOS) draw it.
+    """
     from lxml import etree
 
     root = etree.fromstring(slide_xml)
@@ -557,6 +629,7 @@ def _build_slide_xml(slide_xml, item, ole_idx):
                         imgW="{w}" imgH="{h}"
                         progId="ChemDraw.Document.6.0">
                 <p:embed/>
+                {_preview_pic_xml(base_id + 3, f"Preview {ole_idx}", img_rel, left, top, w, h)}
               </p:oleObj>
             </a:graphicData>
           </a:graphic>
@@ -582,24 +655,7 @@ def _build_slide_xml(slide_xml, item, ole_idx):
                         imgW="{w}" imgH="{h}"
                         progId="ChemDraw.Document.6.0">
                 <p:embed/>
-                <p:pic>
-                  <p:nvPicPr>
-                    <p:cNvPr id="{base_id + 2}" name="Preview {ole_idx}"/>
-                    <p:cNvPicPr/>
-                    <p:nvPr/>
-                  </p:nvPicPr>
-                  <p:blipFill>
-                    <a:blip r:embed="{img_rel}"/>
-                    <a:stretch><a:fillRect/></a:stretch>
-                  </p:blipFill>
-                  <p:spPr>
-                    <a:xfrm>
-                      <a:off x="{left}" y="{top}"/>
-                      <a:ext cx="{w}" cy="{h}"/>
-                    </a:xfrm>
-                    <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-                  </p:spPr>
-                </p:pic>
+                {_preview_pic_xml(base_id + 2, f"Preview {ole_idx}", img_rel, left, top, w, h)}
               </p:oleObj>
             </a:graphicData>
           </a:graphic>
@@ -809,7 +865,7 @@ def main(argv=None) -> int:
     _log(f"Embedding {n} structure{'s' if n > 1 else ''} into {fmt}...")
 
     # Step 1: Batch convert CDXML -> CDX + EMF
-    _log(f"[1/3] Converting {n} CDXML file{'s' if n > 1 else ''} via ChemDraw COM...")
+    _log(f"[1/3] Converting {n} CDXML file{'s' if n > 1 else ''} via ChemDraw...")
     converted = batch_convert(args.inputs)
     for item in converted:
         _log(f"       {item['name']}: CDX={len(item['cdx_data']):,}B, EMF={len(item['emf_data']):,}B")

@@ -72,7 +72,7 @@ def _worker_environment() -> dict[str, str]:
         "ALL_PROXY", "ALLUSERSPROFILE", "APPDATA",
         "COMMONPROGRAMFILES", "COMMONPROGRAMFILES(X86)", "COMMONPROGRAMW6432",
         "COMPUTERNAME", "COMSPEC", "DRIVERDATA", "HOMEDRIVE", "HOMEPATH",
-        "CONDA_PREFIX", "JAVA_HOME",
+        "CONDA_PREFIX", "JAVA_HOME", "OPSIN_JAR", "CDXML_TOOLKIT_OPSIN_JAR",
         "HTTP_PROXY", "HTTPS_PROXY", "LOCALAPPDATA", "NO_PROXY", "PATH",
         "NUMBER_OF_PROCESSORS", "OS", "PATHEXT",
         "PROCESSOR_ARCHITECTURE", "PROCESSOR_IDENTIFIER",
@@ -81,6 +81,9 @@ def _worker_environment() -> dict[str, str]:
         "PROGRAMW6432", "REQUESTS_CA_BUNDLE", "SSL_CERT_FILE", "SYSTEMROOT",
         "PUBLIC", "SYSTEMDRIVE", "TEMP", "TMP", "USERDOMAIN",
         "USERDOMAIN_ROAMINGPROFILE", "USERNAME", "USERPROFILE", "WINDIR",
+        # POSIX user context (macOS): home, per-user temp directory and locale.
+        "HOME", "TMPDIR", "USER", "LOGNAME", "LANG", "LC_ALL", "LC_CTYPE",
+        "__CF_USER_TEXT_ENCODING",
     }
     prefixes = ("CHEMDRAW_", "CHEMSCRIPT_", "DECIMER_", "TF_")
     credential_markers = ("API_KEY", "TOKEN", "PASSWORD", "SECRET", "CREDENTIAL")

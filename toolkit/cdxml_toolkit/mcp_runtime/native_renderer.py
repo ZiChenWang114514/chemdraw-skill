@@ -1,4 +1,8 @@
-"""Reliable ChemDraw COM rendering with stable public errors."""
+"""Reliable native ChemDraw rendering with stable public errors.
+
+ChemDraw for Windows is driven through COM; ChemDraw for macOS through
+AppleScript (see ``cdxml_toolkit.chemdraw.mac_automation``).
+"""
 
 from __future__ import annotations
 
@@ -8,6 +12,18 @@ import time
 from typing import Iterator
 
 from . import native_io
+from ..chemdraw import mac_automation
+
+
+# Names recorded as ``metadata.renderer`` in native render receipts.
+NATIVE_RENDERERS = ("ChemDraw COM", "ChemDraw for macOS")
+
+
+def renderer_name() -> str:
+    """The native renderer on this platform, as written in render receipts."""
+    return NATIVE_RENDERERS[1] if mac_automation.is_macos() else NATIVE_RENDERERS[0]
+
+
 class NativeRenderError(RuntimeError):
     """ChemDraw rendering failure with a stable public error code."""
 
@@ -89,12 +105,19 @@ class NativeRenderSession:
         self.original_transparent_pngs = None
         self.original_png_resolution = None
         self._apartment = None
+        self._mac_session = None
 
     def __enter__(self):
         return self
 
     def _start(self) -> None:
         if self.application is not None:
+            return
+        if mac_automation.is_macos():
+            self.application = mac_automation.MacChemDrawSession(
+                timeout_seconds=self.timeout_seconds
+            )
+            self._mac_session = self.application
             return
         self._apartment = _com_apartment()
         self._apartment.__enter__()
@@ -119,6 +142,11 @@ class NativeRenderSession:
 
     def _release_application(self) -> None:
         if self.application is None:
+            return
+        if self._mac_session is not None:
+            session, self._mac_session = self._mac_session, None
+            self.application = None
+            session.close()
             return
         if self.launched:
             try:
@@ -148,6 +176,8 @@ class NativeRenderSession:
             raise FileExistsError(f"Refusing to overwrite native render: {destination_path}")
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         self._start()
+        if self._mac_session is not None:
+            return self._render_macos(source_path, destination_path, dpi)
         deadline = time.monotonic() + self.timeout_seconds
         document = None
         try:
@@ -178,6 +208,28 @@ class NativeRenderSession:
                     document.Close(False)
                 except Exception:
                     pass
+
+    def _render_macos(self, source_path: Path, destination_path: Path, dpi: int) -> str:
+        deadline = time.monotonic() + self.timeout_seconds
+        try:
+            self._mac_session.export(source_path, destination_path)
+            if not _wait_until_readable(destination_path, deadline):
+                raise NativeRenderError(
+                    "native_saveas_silent_failure",
+                    "ChemDraw returned from save without creating a valid output",
+                )
+            if destination_path.suffix.lower() == ".png":
+                mac_automation.flatten_png(destination_path, dpi=dpi)
+            native_io.validate_native_output(destination_path)
+            return str(destination_path)
+        except NativeRenderError:
+            raise
+        except mac_automation.MacAutomationError as exc:
+            raise NativeRenderError(exc.error_code, exc.public_message) from exc
+        except native_io.NativeIOError as exc:
+            raise NativeRenderError(exc.error_code, exc.public_message) from exc
+        except Exception as exc:
+            raise _classified_error(exc) from exc
 
     def __exit__(self, exc_type, exc, traceback):
         try:

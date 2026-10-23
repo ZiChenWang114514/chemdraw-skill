@@ -230,3 +230,12 @@ def test_doctor_paths_name_the_current_worker_log_folder(tmp_path, monkeypatch):
     logs = cdx.runtime_paths()['worker_logs']
     assert str(tmp_path / 'chemdraw-skill' / 'logs') in logs
     assert str(tmp_path / 'OldClient' / 'chemdraw-mcp' / 'logs') in logs
+
+
+def test_doctor_extras_follow_the_platform():
+    windows = cdx.extras_for('win32')
+    mac = cdx.extras_for('darwin')
+
+    assert 'win32com.client' in windows['office'] and windows['chemscript'] == ['clr']
+    assert 'win32com.client' not in mac['office'] and {'docx', 'pptx', 'olefile'} <= set(mac['office'])
+    assert mac['chemscript'] == ['py2opsin']
