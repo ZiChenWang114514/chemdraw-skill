@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "title": "2-aryl indole macrocycle with variable rings A and C",
+  "fragments": [
+    {"id": "ind", "template": "indole",
+     "double": [["C2", "C3"], ["C3a", "C7a"], ["C4", "C5"], ["C6", "C7"]]},
+    {"id": "ar", "template": "benzene",
+     "replace": {"3": "G^{1}", "4": "G", "6": "G^{2}"},
+     "double": [["1", "2"], ["3", "4"], ["5", "6"]]}
+  ],
+  "atoms": [
+    {"id": "Y", "label": "Y"},
+    {"id": "RD", "label": "R^{D}"},
+    {"id": "Z", "label": "Z"},
+    {"id": "L2", "label": "L^{2}"},
+    {"id": "R2", "label": "R^{2}"},
+    {"id": "co1", "element": "C"},
+    {"id": "o1", "element": "O"},
+    {"id": "ca", "element": "C"},
+    {"id": "nh", "element": "N", "h": 1},
+    {"id": "na", "element": "N"},
+    {"id": "ringA", "label": "A", "kind": "variable_ring", "members": ["ca", "nh", "na"]},
+    {"id": "cam", "element": "C"},
+    {"id": "o2", "element": "O"},
+    {"id": "ch", "element": "C"},
+    {"id": "L1", "label": "L^{1}"},
+    {"id": "ringC", "label": "C", "kind": "variable_ring"},
+    {"id": "nr", "element": "N"},
+    {"id": "RR", "label": "R^{R}"},
+    {"id": "cl", "element": "C"},
+    {"id": "o3", "element": "O"},
+    {"id": "L", "label": "L"}
+  ],
+  "bonds": [
+    ["ind:C2", "ar:1"], ["ar:2", "Y"], ["ar:5", "RD"], ["ind:N1", "Z"],
+    ["ind:C3", "L2"], ["L2", "R2"], ["R2", "co1"], ["co1", "o1", 2], ["co1", "ca"],
+    {"a": "ca", "b": "nh", "display": "arc"}, ["nh", "na"],
+    ["na", "cam"], ["cam", "o2", 2], ["cam", "ch"], ["ch", "L1"], ["L1", "ringC"],
+    ["ringC", "ind:C5"], ["ch", "nr"], ["nr", "RR"], ["nr", "cl"], ["cl", "o3", 2], ["cl", "L"]
+  ],
+  "variable_position": [
+    {"group": "RA", "label": "(R^{A})_{n}", "count": "n", "on": ["ringA"]},
+    {"group": "RB", "label": "(R^{B})_{q}", "count": "q", "on": ["ind:C4", "ind:C6", "ind:C7"]},
+    {"group": "RC", "label": "(R^{C})_{p}", "count": "p", "on": ["ringC"]}
+  ],
+  "definitions": {
+    "Z": {"text": "illustrative only: C1-3 alkyl", "values": ["[*:1]C", "[*:1]CC"]},
+    "Y": {"text": "illustrative only", "values": ["[*:1]C(C)OC", "[*:1]COC"]},
+    "RD": {"text": "illustrative only", "values": ["[*:1]Cl", "[*:1]C"]},
+    "L2": {"text": "illustrative only", "values": ["[*:1]C[*:2]", "[*:1]C(C)(C)C[*:2]"]},
+    "R2": {"text": "illustrative only", "values": ["[*:1]C[*:2]"]},
+    "L1": {"text": "illustrative only", "values": ["[*:1]C[*:2]"]},
+    "ringA": {"text": "illustrative only: closes a 6-membered ring", "values": ["[*:1]CCC[*:2]"]},
+    "ringC": {"text": "illustrative only", "values": ["[*:1]c1ccc([*:2])cc1", "[*:1]c1csc([*:2])n1"]},
+    "RR": {"text": "illustrative only", "values": ["[*:1]C"]},
+    "L": {"text": "illustrative only", "values": ["[*:1]C1CC1"]},
+    "G1": {"text": "illustrative only", "values": ["C"]},
+    "G": {"text": "illustrative only", "values": ["C", "N"]},
+    "G2": {"text": "illustrative only", "values": ["C", "N"]},
+    "RA": {"text": "illustrative only", "values": ["[*:1]F"], "count_range": [0, 1]},
+    "RB": {"text": "illustrative only", "values": ["[*:1]F", "[*:1]C"], "count_range": [0, 2]},
+    "RC": {"text": "illustrative only", "values": ["[*:1]F"], "count_range": [0, 1]}
+  }
+}

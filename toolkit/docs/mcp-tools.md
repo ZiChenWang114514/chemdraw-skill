@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `39`
+Tools: `43`
 
 ## Extended Tools
 
@@ -79,6 +79,30 @@ Inventory editable ChemDraw objects and extract numbered CDXML previews.
 ### `inspect_chemscript_sdk(query: Optional[str] = None, type_name: Optional[str] = None, include_infrastructure: bool = False, offset: int = 0, limit: int = 100, output_path: Optional[str] = None) -> dict[str, typing.Any]`
 
 Catalog every public ChemScript type/member, with filtering or a complete JSON export.
+
+### `markush_compile(spec_path: str, output_dir: str, layout_path: str | None = None, render: bool = True) -> dict`
+
+Compile a spec into markush.cxsmiles, markush.mol (V3000), markush.cdxml and a native PNG.
+
+``layout_path`` holds coordinates (for example from the image workflow) so the
+drawing follows the source figure; without it RDKit coordinates are used.
+``output_dir`` must not exist yet.
+
+### `markush_detect(image_path: str, output_dir: str) -> dict`
+
+Find text boxes, bonds and ring circles in a clean Markush drawing.
+
+Writes graph.json (pixel geometry with T# text-box and v# bond-end ids),
+marks.png (the ids drawn on the image) and labels.png (one enlarged row per
+text box, for transcription).  No chemistry is guessed here.
+
+### `markush_enumerate(spec_path: str, count: int = 5, seed: int = 0) -> dict`
+
+Sample concrete members from the definition values of a spec (SMILES).
+
+### `markush_validate(spec_path: str) -> dict`
+
+Check a markush.json spec; every error says what to change.
 
 ### `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, typing.Any]`
 

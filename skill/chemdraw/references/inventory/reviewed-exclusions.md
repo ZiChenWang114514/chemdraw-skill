@@ -167,6 +167,13 @@
 - **function**, line 74: `select_models(keys: list[str] | None) -> list[dict[str, str]]` - No public docstring in the audited version.
 - **function**, line 57: `sha256(path: Path) -> str` - No public docstring in the audited version.
 
+## `mcp_runtime.markush_tools`
+
+- **function**, line 30: `markush_compile(spec_path: str, output_dir: str, layout_path: str | None = None, render: bool = True) -> dict` - Compile a spec into markush.cxsmiles, markush.mol (V3000), markush.cdxml and a native PNG.
+- **function**, line 73: `markush_detect(image_path: str, output_dir: str) -> dict` - Find text boxes, bonds and ring circles in a clean Markush drawing.
+- **function**, line 62: `markush_enumerate(spec_path: str, count: int = 5, seed: int = 0) -> dict` - Sample concrete members from the definition values of a spec (SMILES).
+- **function**, line 23: `markush_validate(spec_path: str) -> dict` - Check a markush.json spec; every error says what to change.
+
 ## `mcp_runtime.mcp_compat`
 
 - **function**, line 45: `install_legacy_fastmcp_alias() -> None` - Provide the legacy FastMCP import expected by the core MCP module.
@@ -283,9 +290,9 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 114: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 106: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 25: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 118: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 110: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 26: `ToolSpec` - No public docstring in the audited version.
 
 ## `publication.data`
 

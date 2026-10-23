@@ -1,0 +1,472 @@
+{
+ "version": 1,
+ "title": "Drafted from image",
+ "atoms": [
+  {
+   "id": "v1",
+   "element": "C"
+  },
+  {
+   "id": "v2",
+   "element": "C"
+  },
+  {
+   "id": "v3",
+   "element": "C"
+  },
+  {
+   "id": "v5",
+   "element": "C"
+  },
+  {
+   "id": "v6",
+   "element": "C"
+  },
+  {
+   "id": "v7",
+   "element": "C"
+  },
+  {
+   "id": "v8",
+   "element": "C"
+  },
+  {
+   "id": "v9",
+   "element": "C"
+  },
+  {
+   "id": "v10",
+   "element": "C"
+  },
+  {
+   "id": "v11",
+   "element": "C"
+  },
+  {
+   "id": "v12",
+   "element": "C"
+  },
+  {
+   "id": "v13",
+   "element": "C"
+  },
+  {
+   "id": "v14",
+   "element": "C"
+  },
+  {
+   "id": "v16",
+   "element": "C"
+  },
+  {
+   "id": "v17",
+   "element": "C"
+  },
+  {
+   "id": "v18",
+   "element": "C"
+  },
+  {
+   "id": "T3",
+   "element": "O",
+   "h": 0
+  },
+  {
+   "id": "T4",
+   "element": "O",
+   "h": 0
+  },
+  {
+   "id": "T5",
+   "element": "N",
+   "h": 0
+  },
+  {
+   "id": "T6",
+   "element": "O",
+   "h": 0
+  },
+  {
+   "id": "T7",
+   "element": "N",
+   "h": 1
+  },
+  {
+   "id": "T8",
+   "label": "L^{1}"
+  },
+  {
+   "id": "T9",
+   "element": "N",
+   "h": 0
+  },
+  {
+   "id": "T10",
+   "label": "L"
+  },
+  {
+   "id": "T11",
+   "label": "R^{2}"
+  },
+  {
+   "id": "T12",
+   "label": "R^{R}"
+  },
+  {
+   "id": "T13",
+   "label": "L^{2}"
+  },
+  {
+   "id": "T14",
+   "label": "Y"
+  },
+  {
+   "id": "T16",
+   "label": "G^{1}"
+  },
+  {
+   "id": "T18",
+   "label": "G"
+  },
+  {
+   "id": "T19",
+   "label": "G^{2}"
+  },
+  {
+   "id": "T20",
+   "element": "N",
+   "h": 0
+  },
+  {
+   "id": "T22",
+   "label": "R^{D}"
+  },
+  {
+   "id": "T23",
+   "label": "Z"
+  },
+  {
+   "id": "ringA",
+   "label": "A",
+   "kind": "variable_ring",
+   "members": [
+    "T5",
+    "T7",
+    "v13"
+   ]
+  },
+  {
+   "id": "ringC",
+   "label": "C",
+   "kind": "variable_ring"
+  }
+ ],
+ "bonds": [
+  [
+   "T11",
+   "v1"
+  ],
+  [
+   "v2",
+   "T19",
+   2
+  ],
+  [
+   "v3",
+   "ringC"
+  ],
+  [
+   "v5",
+   "v6"
+  ],
+  [
+   "v7",
+   "v8"
+  ],
+  [
+   "v9",
+   "v3"
+  ],
+  [
+   "v10",
+   "v11"
+  ],
+  [
+   "v10",
+   "T9"
+  ],
+  [
+   "v8",
+   "v3",
+   2
+  ],
+  [
+   "v11",
+   "T4",
+   2
+  ],
+  [
+   "v12",
+   "T13"
+  ],
+  [
+   "v1",
+   "v13"
+  ],
+  [
+   "T9",
+   "v14"
+  ],
+  [
+   "v6",
+   "v12",
+   2
+  ],
+  [
+   "T13",
+   "T11"
+  ],
+  [
+   "v16",
+   "T14"
+  ],
+  [
+   "v17",
+   "v7",
+   2
+  ],
+  [
+   "v17",
+   "v18"
+  ],
+  [
+   "v12",
+   "v7"
+  ],
+  [
+   "T3",
+   "v1",
+   2
+  ],
+  [
+   "T19",
+   "v5"
+  ],
+  [
+   "v6",
+   "T20"
+  ],
+  [
+   "T6",
+   "v14",
+   2
+  ],
+  [
+   "v16",
+   "v5",
+   2
+  ],
+  [
+   "T20",
+   "v17"
+  ],
+  [
+   "ringC",
+   "T8"
+  ],
+  [
+   "T22",
+   "v2"
+  ],
+  [
+   "T5",
+   "v11"
+  ],
+  [
+   "T23",
+   "T20"
+  ],
+  [
+   "v18",
+   "v9",
+   2
+  ],
+  [
+   "T12",
+   "T9"
+  ],
+  [
+   "v14",
+   "T10"
+  ],
+  [
+   "T8",
+   "v10"
+  ],
+  [
+   "T18",
+   "v2"
+  ],
+  [
+   "T16",
+   "v16"
+  ],
+  [
+   "T18",
+   "T16",
+   2
+  ],
+  {
+   "a": "T5",
+   "b": "T7",
+   "display": "arc"
+  },
+  {
+   "a": "T7",
+   "b": "v13",
+   "display": "arc"
+  }
+ ],
+ "variable_position": [
+  {
+   "group": "RA",
+   "label": "(R^{A})_{n}",
+   "count": "n",
+   "on": [
+    "ringA"
+   ]
+  },
+  {
+   "group": "RC",
+   "label": "(R^{C})_{p}",
+   "count": "p",
+   "on": [
+    "ringC"
+   ]
+  },
+  {
+   "group": "RB",
+   "label": "(R^{B})_{q}",
+   "count": "q",
+   "on": [
+    "v8",
+    "v18",
+    "v9"
+   ]
+  }
+ ],
+ "definitions": {
+  "A": {
+   "text": "Ring A is a 5- to 7-membered saturated heterocycle containing the two nitrogen atoms shown;",
+   "values": []
+  },
+  "C": {
+   "text": "Ring C is phenyl or a 5- or 6-membered heteroaryl;",
+   "values": []
+  },
+  "G": {
+   "text": "G, G1 and G2 are each independently CH or N;",
+   "values": [
+    "C",
+    "N"
+   ]
+  },
+  "G1": {
+   "text": "G, G1 and G2 are each independently CH or N;",
+   "values": [
+    "C",
+    "N"
+   ]
+  },
+  "G2": {
+   "text": "G, G1 and G2 are each independently CH or N;",
+   "values": [
+    "C",
+    "N"
+   ]
+  },
+  "L": {
+   "text": "L is cyclopropyl;",
+   "values": [
+    "[*:1]C1CC1"
+   ]
+  },
+  "L1": {
+   "text": "L1 is methylene;",
+   "values": [
+    "[*:1]C[*:2]"
+   ]
+  },
+  "L2": {
+   "text": "L2 is CH2 or C(CH3)2CH2;",
+   "values": [
+    "[*:1]C[*:2]",
+    "[*:1]C(C)(C)C[*:2]"
+   ]
+  },
+  "R2": {
+   "text": "R2 is methylene.",
+   "values": [
+    "[*:1]C[*:2]"
+   ]
+  },
+  "RA": {
+   "text": "RA is halogen; n is 0, 1 or 2;",
+   "values": [
+    "[*:1]F",
+    "[*:1]Cl",
+    "[*:1]Br",
+    "[*:1]I"
+   ],
+   "count_range": [
+    0,
+    2
+   ]
+  },
+  "RB": {
+   "text": "RB is fluoro or methyl; q is 0, 1 or 2",
+   "values": [
+    "[*:1]F",
+    "[*:1]C"
+   ],
+   "count_range": [
+    0,
+    2
+   ]
+  },
+  "RC": {
+   "text": "RC is fluoro; p is 0 or 1;",
+   "values": [
+    "[*:1]F"
+   ],
+   "count_range": [
+    0,
+    1
+   ]
+  },
+  "RD": {
+   "text": "RD is chloro or methyl;",
+   "values": [
+    "[*:1]Cl",
+    "[*:1]C"
+   ]
+  },
+  "RR": {
+   "text": "RR is methyl;",
+   "values": [
+    "[*:1]C"
+   ]
+  },
+  "Y": {
+   "text": "Y is C1-3 alkoxymethyl;",
+   "values": []
+  },
+  "Z": {
+   "text": "Z is methyl or ethyl;",
+   "values": [
+    "[*:1]C",
+    "[*:1]CC"
+   ]
+  }
+ }
+}

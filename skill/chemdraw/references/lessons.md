@@ -27,4 +27,16 @@ Observed failures and the fix that worked. Read only the relevant row.
 | Native open fails with no output or `NoneType ... SaveAs` | The XML declaration said `utf8`; it must be `UTF-8`. |
 | Time lost restyling | Settle structure and depth before typography; reuse unchanged crops. |
 
+## Markush
+
+| Symptom | Fix |
+| --- | --- |
+| Read-back of a Markush CDXML shows carbon for R groups, or loses the variable attachment | Readers turn generic labels into carbon and ignore `MultiAttachment`. Take chemistry from `markush.json` or the CXSMILES, not from the CDXML. |
+| `m:` missing from CXSMILES | RDKit drops `m:` on write. Use `markush_compile`, which writes the CXSMILES itself. |
+| NH label shows as "HN" or the H lands on the wrong side | Use an `N` atom with `h: 1`; the writer adds the H as its own caption on the side of the drawing. |
+| Label flips to the other side of its bond | Set the label display (Left or Right) from the bond direction; the writer does this from the source layout. |
+| `(R^C)_p` or `R^B` sits shifted from its bond end | ChemDraw centres the first character (Left) or the last (Right) on a near-horizontal single bond; `_label_node_x` compensates. Steep bonds keep the stored position. |
+| A bond drawn hugging a ring circle is lost | The detector reads it as part of the circle. Answer the review task with `missing_bonds` for the two marks. |
+| A short double bond between two labels reads as single | Check `bond_orders` in review; short pairs near text are easy to miss. |
+
 For perspective-bond disagreement and abbreviation hydrogen loss, see [stereo diagnosis](stereo-reconstruction.md). Workflows: [image reconstruction](image-visual-review.md), [figure manifest](publication-figures.md), [saved-file validation](figure-validation.md).

@@ -18,6 +18,7 @@ DOMAIN_REFERENCES = {
     "deterministic_pipeline": "toolkit-perception-image-interfaces.md",
     "image": "toolkit-perception-image-interfaces.md",
     "layout": "toolkit-render-layout-interfaces.md",
+    "markush": "markush.md",
     "mcp_server": "toolkit-tools.md",
     "naming": "toolkit-chemistry-resolution-interfaces.md",
     "office": "toolkit-office-chemdraw-interfaces.md",

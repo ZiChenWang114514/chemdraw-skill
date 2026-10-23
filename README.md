@@ -55,6 +55,12 @@ Every card is a native ChemDraw render of an editable file in this repository. C
     </td>
   </tr>
   <tr>
+    <td colspan="3" align="center">
+      <a href="#markush-demo"><img src="assets/readme/markush/comparison.png" alt="Patent Markush figure next to its editable ChemDraw rebuild"></a>
+      <br><b>Patent Markush structure → editable ChemDraw</b><br><sub>Patent figure (left) and native rebuild (right): R groups, variable rings, a multicentre bond and repeat counts</sub>
+    </td>
+  </tr>
+  <tr>
     <td width="33%" align="center" valign="top">
       <a href="#synthesis-113-demo"><img src="assets/readme/gallery/complex-synthesis.png" alt="Complex multi-step synthesis scheme rebuilt in ChemDraw"></a>
       <br><b>Complex synthesis</b><br><sub>Full multi-step scheme with mechanism arrows</sub>
@@ -154,6 +160,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **Molecule comparison** | RDKit fingerprint similarity everywhere; exact-identity checks through ChemScript on Windows or ChemDraw for macOS. |
 | **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly. |
 | **Spectra and scientific plots** | Peak picking and selected-region integration of processed 1D NMR data; numerical data as editable curves. |
+| **Patent Markush structures** | Generic structures from a patent image and claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing that follows the source layout. |
 | **Reaction mechanisms** | Mechanisms with explicit atom coordinates, electron arrows, charges and counterions. |
 | **Office documents** | Editable ChemDraw objects in desktop Word and PowerPoint documents, built with ChemDraw on Windows or macOS. |
 | **Experimental records** | File discovery and selected LCMS, SciFinder RDF and lab-book workflows. |
@@ -189,6 +196,7 @@ Real paper images and data, with native previews, reference comparisons and edit
 | [Twenty structures](#stereo-reconstruction-demo) | Resolving stereo disagreement between chemistry readers | 20/20 stereo agreement between ChemScript and RDKit |
 | [Paper reaction scheme](#paper-scheme-demo) | Five structures, conditions, yields and wavy bonds | Complete editable figure |
 | [Sceptrin mechanism](#mechanism-demo) | Eight structures, electron arrows, charges and conditions | Complete editable figure |
+| [Patent Markush structure](#markush-demo) | R groups, variable rings and a multicentre bond from a patent figure plus claim text | Structure matches the reference; CXSMILES and V3000 included |
 | [Native TLC](#tlc-demo) | Editable lanes, spots and Rf | Runnable example |
 | [Native apparatus](#apparatus-demo) | Assembly from native ChemDraw templates | Runnable example |
 | [Experimental NMR](#nmr-demo) | Real processed 1D data and an editable spectrum | Runnable example |
@@ -251,6 +259,16 @@ The five structures read back from the saved CDXML match the reference structure
 [Editable CDXML](assets/readme/mechanism/mechanism.cdxml) · [Native CDX](assets/readme/mechanism/mechanism.cdx) · [Side-by-side comparison](assets/readme/mechanism/comparison.png) · [Verification details](assets/readme/mechanism/provenance.json)
 
 Eight numbered structures and six chloride counterions keep their atoms, stereochemistry and formal charges through a real ChemDraw CDXML → CDX → CDXML save cycle. R groups stay generic substituents, as in the source.
+
+<a id="markush-demo"></a>
+
+### Patent Markush structure
+
+![Patent Markush figure (left) and its native ChemDraw rebuild (right)](assets/readme/markush/comparison.png)
+
+[Editable CDXML](assets/readme/markush/markush.cdxml) · [Markush spec](assets/readme/markush/markush.json) · [CXSMILES](assets/readme/markush/markush.cxsmiles) · [V3000 molfile](assets/readme/markush/markush.mol) · [Verification and limitations](assets/readme/markush/provenance.json) · [Workflow](skill/chemdraw/references/markush.md)
+
+A generic structure from a patent figure plus claim text: R groups and linkers, two variable rings, a group that can sit on three ring positions, and repeat counts. A small, low-cost model, started with no prior context, ran the whole extraction from the Skill alone with `cdx.py markush`. It typed the labels, checked a read-back image, reviewed the side-by-side render and turned each claim clause into values. Code did the geometry, the structure and the drawing. The result matches a hand-written reference spec atom for atom, and the drawing follows the source layout (ink overlap 0.99). The structure is also saved as CXSMILES and as a V3000 molfile, so other chemistry software can read it.
 
 ### Native scientific drawings
 
