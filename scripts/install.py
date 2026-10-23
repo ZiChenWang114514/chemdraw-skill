@@ -12,9 +12,13 @@ finds that venv on its own, so any Python can launch the Skill's CLI. When the
 venv lives somewhere cdx.py would not look, runtime.local.json is written into
 every installed copy and into this repository checkout (ignored by Git).
 
+--opsin downloads the OPSIN command-line JAR (pinned version, SHA-256 verified) into
+the shared data folder beside the venv, where the runtime diagnostics find it.
+
 Examples:
     python3 scripts/install.py                                   # proposal for --agent claude
     python3 scripts/install.py --agent claude agents --runtime --apply
+    python3 scripts/install.py --runtime --opsin --apply           # also fetch OPSIN
     python3 scripts/install.py --agent copilot --project ~/src/app --apply
     python3 scripts/install.py --destination /opt/skills/chemdraw --apply
 """
@@ -31,6 +35,7 @@ import shutil
 import subprocess
 import sys
 import time
+import urllib.request
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,8 +56,19 @@ AGENTS = {
 # Never copied into an installation; runtime.local.json is written per installation.
 IGNORED = ('__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', '*.pyc', '*.pyo',
            'manifest.json', 'runtime.local.json')
-WINDOWS_ONLY_EXTRAS = ('office', 'chemscript')
+# Extras that drive a local ChemDraw (COM/.NET on Windows, AppleScript on macOS).
+CHEMDRAW_EXTRAS = ('office', 'chemscript')
 ALL_EXTRAS = ('publication', 'scientific', 'office', 'analysis', 'image', 'chemscript')
+# OPSIN command-line JAR for --opsin; the digest is the one GitHub publishes for the release asset.
+OPSIN_VERSION = '2.9.0'
+OPSIN_JAR_NAME = f'opsin-cli-{OPSIN_VERSION}-jar-with-dependencies.jar'
+OPSIN_URL = f'https://github.com/dan2097/opsin/releases/download/{OPSIN_VERSION}/{OPSIN_JAR_NAME}'
+OPSIN_SHA256 = 'c2e29326c281f87b59a05d934d8589adac6e9d17b95b984931b3e739111b360f'
+
+
+def default_extras(platform=sys.platform):
+    chemdraw = platform in ('win32', 'darwin')
+    return [e for e in ALL_EXTRAS if chemdraw or e not in CHEMDRAW_EXTRAS]
 
 
 def _load(name, path):
@@ -79,6 +95,34 @@ def fingerprint(root):
 
 def data_dir():
     return cdx.default_runtime_dir().parent
+
+
+def opsin_plan(ns):
+    if not ns.opsin:
+        return {'action': 'skip'}
+    jar = data_dir() / 'opsin' / OPSIN_JAR_NAME
+    return {'action': 'present' if jar.is_file() else 'download', 'path': str(jar),
+            'url': OPSIN_URL, 'sha256': OPSIN_SHA256}
+
+
+def install_opsin(folder, *, url=OPSIN_URL, sha256=OPSIN_SHA256, opener=urllib.request.urlopen):
+    """Download the OPSIN JAR into `folder`, keeping it only when its SHA-256 matches."""
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    jar = folder / OPSIN_JAR_NAME
+    partial = folder / f'.{OPSIN_JAR_NAME}.{uuid.uuid4().hex}.part'
+    digest = hashlib.sha256()
+    try:
+        with opener(url, timeout=120) as response, partial.open('wb') as out:
+            for block in iter(lambda: response.read(1 << 20), b''):
+                digest.update(block)
+                out.write(block)
+        if digest.hexdigest() != sha256:
+            raise OSError(f'OPSIN download failed its SHA-256 check: {digest.hexdigest()} != {sha256}')
+        os.replace(partial, jar)
+    finally:
+        partial.unlink(missing_ok=True)
+    return jar
 
 
 def destinations(ns):
@@ -155,8 +199,7 @@ def runtime_plan(ns, targets):
                              '(Python 3.14 and newer are not supported by the toolkit yet). '
                              'Install one, e.g. `uv python install 3.12` or the python.org 3.12 '
                              'installer, then pass --python <interpreter> if it is still not found.')
-    extras = ns.extras if ns.extras is not None else \
-        [e for e in ALL_EXTRAS if os.name == 'nt' or e not in WINDOWS_ONLY_EXTRAS]
+    extras = ns.extras if ns.extras is not None else default_extras()
     # base_python stays a command list: interpreter paths may contain spaces ("Program Files").
     return {'action': action, 'venv': str(venv), 'python': str(venv_python(venv)),
             'base_python': list(base) if base else None, 'extras': extras,
@@ -246,6 +289,8 @@ def parse(argv):
     p.add_argument('--runtime-dir', help=f'venv location (default: {cdx.default_runtime_dir()})')
     p.add_argument('--python', help='base interpreter for a new venv (64-bit Python 3.10-3.13)')
     p.add_argument('--extras', nargs='*', help='toolkit extras (default: all that apply to this OS)')
+    p.add_argument('--opsin', action='store_true',
+                   help=f'download the OPSIN {OPSIN_VERSION} JAR (SHA-256 verified) next to the shared venv')
     p.add_argument('--toolkit-path', help='toolkit source folder to build the runtime from (default: toolkit/ of this checkout)')
     p.add_argument('--backup-root', help=f'where replaced installations go (default: {data_dir() / "backups"})')
     p.add_argument('--apply', action='store_true', help='install; without it only the proposal is printed')
@@ -273,6 +318,7 @@ def main(argv=None):
         'backup_root': str(backups),
         'installations': [{'destination': str(t), 'existing': t.exists()} for t in targets],
         'runtime': runtime_plan(ns, targets),
+        'opsin': opsin_plan(ns),
         'status': 'proposal',
     }
     if not ns.apply:
@@ -297,6 +343,14 @@ def main(argv=None):
             code = 1
     if ns.runtime and runtime.get('status') == 'installed':
         runtime['local_config'] = [str(p) for p in record_runtime([*targets, SOURCE], runtime['python'])]
+    opsin = record['opsin']
+    if opsin['action'] == 'download':
+        try:
+            install_opsin(Path(opsin['path']).parent)
+            opsin['status'] = 'installed'
+        except OSError as exc:
+            opsin.update(status='failed', error=str(exc))
+            code = 1
     for target in targets:
         # Record the installed state so check_installation.py / cdx.py doctor detect later drift.
         check_installation.write_manifest(target)

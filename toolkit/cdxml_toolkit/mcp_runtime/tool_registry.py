@@ -120,7 +120,7 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     for tool in upstream.mcp._tool_manager.list_tools():
         override = OFFICIAL_OVERRIDES.get(tool.name)
         function = override or tool.fn
-        upstream_description = tool.description or inspect.getdoc(tool.fn) or tool.name
+        upstream_description = inspect.cleandoc(tool.description or inspect.getdoc(tool.fn) or tool.name)
         description = upstream_description
         if override is not None:
             description = (

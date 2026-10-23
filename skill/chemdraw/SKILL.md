@@ -5,7 +5,7 @@ description: Use ChemDraw and cdxml-toolkit for editable chemical structures, re
 
 # ChemDraw
 
-Editable chemistry through the bundled `cdxml_toolkit` runtime and, on Windows, licensed native ChemDraw. Report chemical identity, reader consistency, native compatibility and visual fidelity separately.
+Editable chemistry through the bundled `cdxml_toolkit` runtime and licensed native ChemDraw (COM on Windows, AppleScript on macOS; macOS differences in [operations](references/operations.md#macos)). Report chemical identity, reader consistency, native compatibility and visual fidelity separately.
 
 ## Quick start (command line)
 

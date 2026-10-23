@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import struct
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -185,6 +186,7 @@ class OfficeInspectionTests(unittest.TestCase):
             list(range(1, 12)),
         )
 
+    @unittest.skipUnless(sys.platform == "win32", "COM apartments exist only on Windows")
     def test_native_conversion_initializes_and_releases_com_apartment(self):
         def convert(native_source, native_destination, *, method):
             self.assertEqual(method, "auto")
@@ -206,6 +208,7 @@ class OfficeInspectionTests(unittest.TestCase):
         initialize.assert_called_once_with()
         uninitialize.assert_called_once_with()
 
+    @unittest.skipUnless(sys.platform == "win32", "COM apartments exist only on Windows")
     def test_native_preview_initializes_and_releases_com_apartment(self):
         from PIL import Image
 
@@ -478,6 +481,21 @@ class OfficeReplacementTests(unittest.TestCase):
             )
 
         apartment.assert_called_once_with()
+
+
+
+class OleCompoundFileTests(unittest.TestCase):
+    def test_small_cdx_is_readable_from_the_compound_file(self):
+        import io
+        import olefile
+        from cdxml_toolkit.office.ole_embedder import build_ole_compound_file
+
+        cdx = b"VjCD0100" + bytes(range(256)) * 10  # 2568 bytes, below the 4096-byte mini-stream cutoff
+        compound = olefile.OleFileIO(io.BytesIO(build_ole_compound_file(cdx)))
+        contents = compound.openstream("CONTENTS").read()
+
+        self.assertTrue(contents.startswith(cdx))
+        self.assertEqual(contents[len(cdx):].strip(b"\0"), b"")
 
 
 if __name__ == "__main__":

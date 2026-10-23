@@ -237,7 +237,8 @@ def test_variant_gate_does_not_treat_report_creation_as_acceptance(drawing,tmp_p
     assert result['acceptance']=='blocked_chemistry_or_native'
 
 
-def test_finalization_rechecks_artifacts_and_requires_both_profiles(drawing,tmp_path):
+@pytest.mark.parametrize('renderer',['ChemDraw COM','ChemDraw for macOS'])
+def test_finalization_rechecks_artifacts_and_requires_both_profiles(drawing,tmp_path,renderer):
     package=tmp_path/'package';package.mkdir()
     (package/'target.json').write_text('{}')
     verification={'target_sha256':r._hash(package/'target.json'),'variants':{}}
@@ -247,7 +248,7 @@ def test_finalization_rechecks_artifacts_and_requires_both_profiles(drawing,tmp_
         validation=package/(variant+'-validation');validation.mkdir();(validation/'report.json').write_text('{}')
         preview=package/(variant+'.png');preview.write_bytes(drawing[0].read_bytes())
         receipt=package/(variant+'-render-receipt.json')
-        receipt.write_text(json.dumps({'metadata':{'renderer':'ChemDraw COM','artifacts':[{'path':str(preview),'sha256':r._hash(preview)}]},'outputs':{'rendered':[str(preview)]}}))
+        receipt.write_text(json.dumps({'metadata':{'renderer':renderer,'artifacts':[{'path':str(preview),'sha256':r._hash(preview)}]},'outputs':{'rendered':[str(preview)]}}))
         verification['variants'][variant]={'chemistry_gate':True,'render_ok':True,'sha256':r._hash(document),
             'validation_sha256':r._hash(validation/'report.json'),'render_receipt_sha256':r._hash(receipt)}
         review['variants'][variant]={'graph_checked':True,'stereo_checked':True,'text_checked':True,

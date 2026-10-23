@@ -65,7 +65,7 @@
         { "@type": "Question", "name": "能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "可以。论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核，输出可编辑 CDXML 和 ChemDraw 原生预览。" } },
         { "@type": "Question", "name": "没有安装 ChemDraw 能用吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以使用跨平台的 cdxml-toolkit 运行时生成和检查 CDXML（Windows、macOS、Linux）。原生渲染、ChemScript 检查和 Office 嵌入需要 Windows 上已授权的 ChemDraw。" } }
+          "acceptedAnswer": { "@type": "Answer", "text": "可以使用跨平台的 cdxml-toolkit 运行时生成和检查 CDXML（Windows、macOS、Linux）。原生渲染、ChemScript 检查和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。" } }
       ]
     }
   ]
@@ -244,11 +244,11 @@
       <div><dt>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对、修正化学，组装条件与版面。</dd></div>
       <div><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释和带框编号。</dd></div>
       <div><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。</dd></div>
-      <div><dt>分子比较</dt><dd>RDKit 指纹相似度；Windows 上可增加 ChemScript 精确身份检查。</dd></div>
+      <div><dt>分子比较</dt><dd>RDKit 指纹相似度；Windows（ChemScript）或 macOS（ChemDraw）上可增加精确身份检查。</dd></div>
       <div><dt>反应机理</dt><dd>按原子坐标绘制电子箭头、电荷和抗衡离子。</dd></div>
       <div><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点和 Rf 计算；ChemDraw 装置模板组装。</dd></div>
       <div><dt>谱图</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线。</dd></div>
-      <div><dt>Word 与 PPT</dt><dd>在 Windows 版 Word、PowerPoint 中嵌入可双击编辑的 ChemDraw 对象。</dd></div>
+      <div><dt>Word 与 PPT</dt><dd>在 Word、PowerPoint 文档中嵌入可编辑的 ChemDraw 对象（Windows 或 macOS 上生成）。</dd></div>
       <div><dt>实验记录</dt><dd>处理 LCMS、SciFinder RDF 和实验记录相关工作流。</dd></div>
     </dl>
   </div>
@@ -258,7 +258,7 @@
   <div class="wrap start">
     <div class="head">
       <h2>三步开始使用</h2>
-      <p>安装脚本需要 Python 3.9 以上，会自动找到 64 位 Python 3.10–3.13 作为运行时，Windows、macOS、Linux 都能装。原生渲染和 Office 嵌入需要 Windows 上已授权的 ChemDraw。</p>
+      <p>安装脚本需要 Python 3.9 以上，会自动找到 64 位 Python 3.10–3.13 作为运行时，Windows、macOS、Linux 都能装。原生渲染和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。</p>
       <p class="note">想装到 Codex、Gemini CLI 或 Cursor？把 <code>--agent claude</code> 换成对应名称，或用 <code>agents</code> 安装到通用目录。详见 <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">Agent 接入说明</a>。</p>
     </div>
     <ol>
@@ -302,7 +302,7 @@ python scripts/install.py --agent claude agents --runtime --apply</code></pre>
       </details>
       <details>
         <summary>没有安装 ChemDraw 能用吗？</summary>
-        <p>可以使用跨平台的 cdxml-toolkit 运行时生成和检查 CDXML（Windows、macOS、Linux）。原生渲染、ChemScript 检查和 Office 嵌入需要 Windows 上已授权的 ChemDraw。</p>
+        <p>可以使用跨平台的 cdxml-toolkit 运行时生成和检查 CDXML（Windows、macOS、Linux）。原生渲染、ChemScript 检查和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。</p>
       </details>
     </div>
   </div>

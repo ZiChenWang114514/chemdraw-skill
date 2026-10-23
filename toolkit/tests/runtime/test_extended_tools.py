@@ -306,6 +306,15 @@ class ExtendedToolContractTests(unittest.TestCase):
             image.load()
             self.assertEqual(image.size, (2, 3))
 
+    def test_render_receipt_names_chemdraw_for_macos_on_macos(self):
+        output_dir = self.root / "renders"
+        with mock.patch.object(extended_tools, "_render_cdxml", side_effect=lambda src, dst, dpi: write_png(dst)), \
+                mock.patch.object(extended_tools.native_renderer.mac_automation, "is_macos", return_value=True):
+            result = extended_tools.render_cdxml_files(
+                [str(self.source)], output_dir=str(output_dir)
+            )
+        self.assertEqual(result["metadata"]["renderer"], "ChemDraw for macOS")
+
     def test_merge_requires_two_inputs(self):
         with self.assertRaisesRegex(ValueError, "at least two"):
             extended_tools.merge_reaction_schemes([str(self.source)], render_preview=False)

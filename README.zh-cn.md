@@ -157,14 +157,14 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
-| **分子比较** | 各平台均可使用 RDKit 指纹相似度；在安装兼容 SDK 的 Windows 主机上可增加 ChemScript 精确身份检查。 |
+| **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
 | **谱图与科研绘图** | 对已处理的一维 NMR 数据寻峰并做指定区间积分；把数值数据输出为可编辑曲线。 |
 | **专利 Markush 通式** | 从专利图片和权利要求文本提取通式：R 基、可变环、多中心键与重复次数，保存为 CXSMILES、V3000 molfile 和沿用原图版式的可编辑绘图。 |
 | **反应机理** | 按明确的原子坐标绘制机理，包括电子箭头、电荷和抗衡离子。 |
-| **Office 文档** | 在 Windows 桌面版 Word 和 PowerPoint 中嵌入可编辑的 ChemDraw 对象。 |
+| **Office 文档** | 在桌面版 Word 和 PowerPoint 文档中嵌入可编辑的 ChemDraw 对象，可在 Windows 或 macOS 上用 ChemDraw 生成。 |
 | **实验记录** | 发现文件，并处理选定的 LCMS、SciFinder RDF 和实验记录工作流。 |
-| **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用。 |
+| **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作）。 |
 | **远程工作站访问** | 可选地通过 Streamable HTTP 对外提供 Windows 原生主机服务，带健康检查与 Prometheus 端点。 |
 
 生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了内置工具包中已审计的公共符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。
@@ -381,24 +381,26 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
 ```
 
-原生预览需要 Windows ChemDraw。详见[重建示例](skill/chemdraw/assets/paper-reconstructions/README.md)。
+原生预览需要桌面版 ChemDraw（Windows 或 macOS）。详见[重建示例](skill/chemdraw/assets/paper-reconstructions/README.md)。
 
 </details>
 
 ## 平台支持
 
-可移植化学层（CDXML 生成与编辑、RDKit 校验、命令行和 MCP）支持 Windows、macOS 和 Linux。ChemDraw 原生渲染与清理、ChemScript bridge 和 Office 对象目前只在 Windows 上验证。
+可移植化学层（CDXML 生成与编辑、RDKit 校验、命令行和 MCP）支持 Windows、macOS 和 Linux。原生 ChemDraw 在 Windows 上通过 COM 驱动，在 macOS 上通过 AppleScript 驱动，工具与输出相同。
 
 | 能力 | Windows | macOS | Linux |
 | --- | :---: | :---: | :---: |
 | CDXML、RDKit、命令行与 MCP 工作流 | ✅ | ✅ | ✅ |
-| ChemDraw 原生渲染与清理 | ✅ <sub>需激活安装</sub> | 🚧 <sub>尚不支持</sub> | — |
-| ChemScript SDK bridge | ✅ <sub>需兼容 SDK</sub> | — | — |
-| 可编辑 Office ChemDraw 对象 | ✅ <sub>桌面版 Office</sub> | 🚧 <sub>尚不支持</sub> | — |
+| ChemDraw 原生渲染、转换与清理 | ✅ <sub>需激活安装</sub> | ✅ <sub>ChemDraw for macOS</sub> | — |
+| ChemScript 操作（命名、分子式、清理、子结构） | ✅ <sub>需兼容 SDK</sub> | ✅ <sub>ChemDraw + OPSIN + RDKit</sub> | — |
+| 原始 ChemScript SDK 程序 | ✅ <sub>需兼容 SDK</sub> | — | — |
+| 可编辑 Office ChemDraw 对象 | ✅ <sub>桌面版 Office</sub> | ✅ <sub>位图预览</sub> | — |
+| Office 文件的 PDF 预览 | ✅ <sub>桌面版 Office</sub> | ✅ <sub>已激活的 Microsoft 365</sub> | — |
 
-<sub>✅ 支持 · 🚧 尚不支持，欢迎贡献 · — 不支持（没有可用的 bridge）</sub>
+<sub>✅ 支持 · — 不支持（没有可用的 bridge）</sub>
 
-macOS 上的 ChemDraw 原生自动化需要一个 AppleScript/JXA 适配器，见[共同建设 macOS 支持](#共同建设-macos-支持)。
+macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换、位图 OLE 预览和 ChemScript 替代实现）见[运维说明](skill/chemdraw/references/operations.md#macos)。
 
 <details>
 <summary><b>所需组件</b></summary>
@@ -407,9 +409,9 @@ macOS 上的 ChemDraw 原生自动化需要一个 AppleScript/JXA 适配器，�
 | 目标 | 在核心安装基础上增加 |
 | --- | --- |
 | 创建和编辑 CDXML | 能执行命令行的任意 Agent、64 位 Python 3.10–3.13，以及内置工具包运行时（由 `scripts/install.py --runtime` 从 `toolkit/` 构建） |
-| 原生 PNG、CDX 或 ChemDraw 清理 | 已获得许可并激活的 Windows 桌面版 ChemDraw，且 COM 自动化可正常工作 |
-| 分子比较或 ChemScript SDK 调用 | 可移植相似度比较使用 RDKit；精确检查需 Windows 主机上的兼容 ChemScript DLL |
-| 可编辑的 Word 或 PowerPoint 对象 | Windows 上受支持的桌面版 Microsoft Word 和/或 PowerPoint |
+| 原生 PNG、CDX 或 ChemDraw 清理 | 已获得许可并激活的桌面版 ChemDraw：Windows 上 COM 自动化可正常工作，或 macOS 上已授予自动化权限的 ChemDraw for macOS |
+| 分子比较或 ChemScript SDK 调用 | 可移植相似度比较使用 RDKit；精确检查和原始 SDK 程序需 Windows 主机上的兼容 ChemScript DLL（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作） |
+| 可编辑的 Word 或 PowerPoint 对象 | 用桌面版 ChemDraw 生成；PDF 预览需桌面版 Word 和/或 PowerPoint（macOS 上需已激活） |
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖 |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络通道 |
 
@@ -419,7 +421,7 @@ macOS 上的 ChemDraw 原生自动化需要一个 AppleScript/JXA 适配器，�
 
 ## 测试与安全
 
-- **CI 全面测试：** 在 Windows 和 Linux 上运行 Skill 测试（Python 3.12，MCP 1.28.1 与 2.0.0），在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做端到端安装测试。ChemDraw、ChemScript 和 Office 原生功能在已授权的 Windows 工作站上测试。
+- **CI 全面测试：** 在 Windows 和 Linux 上运行 Skill 测试（Python 3.12，MCP 1.28.1 与 2.0.0），在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做端到端安装测试。ChemDraw、ChemScript 和 Office 原生功能在已授权的 Windows 工作站上测试，macOS AppleScript 路径在 macOS 26.6（Apple 芯片）和 ChemDraw 26.0 上测试。
 - **不会覆盖你的文件：** 工具写入新的输出路径，除非你明确要求，否则拒绝覆盖已有文件。
 - **上传最少：** 图像识别只把选定的图片发送到 DECIMER API；`cdx.py decimer --preflight` 可预览将发送的内容，要求离线时不会上传。
 - **远程访问有防护：** 远程使用 HTTP 服务时必须配置 Bearer 密钥和允许的主机列表，并通过加密隧道或 HTTPS 代理提供服务。详见[安全策略](.github/SECURITY.md)。
@@ -460,12 +462,11 @@ macOS 上的 ChemDraw 原生自动化需要一个 AppleScript/JXA 适配器，�
 
 ## 共同建设 macOS 支持
 
-macOS 支持欢迎社区共建。最有价值的贡献是一个小而可复现的原生适配器，而不是把整个 Skill 分叉成平台专版：
+macOS 适配器通过 ChemDraw for macOS 的 AppleScript 字典驱动 ChemDraw，带超时、按用户的原生锁、暂存临时文件和保存后回读，并把 ChemScript 专有行为映射到 ChemDraw、OPSIN 和 RDKit。仍欢迎以下方面的帮助：
 
-- 在受支持的 macOS 和 ChemDraw 版本上核实实际的 AppleScript/JXA 脚本字典；
-- 实现隔离的打开、保存和导出操作，加入超时、单实例锁、临时文件、哈希校验和保存后回读；
-- 能由可移植后端等价实现的 ChemScript 专有行为迁移过去；无法等价实现时明确返回不支持；
-- 在有设备条件时补充 Apple Silicon 与 Intel 覆盖，包括干净安装、权限、崩溃恢复和升级测试。
+- Intel Mac 和其他 ChemDraw 版本（已测试：macOS 26.6、Apple 芯片上的 ChemDraw 26.0）；
+- 通过已激活的 Microsoft 365 for macOS 生成 PDF 预览，以及在 Office for macOS 中双击编辑嵌入对象；
+- 矢量 OLE 预览（ChemDraw for macOS 无法写出 EMF，预览为位图 EMF）。
 
 请从[贡献指南](.github/contributing.md)开始，提交聚焦的 issue 或 PR，并附上准确的 macOS 版本、芯片、ChemDraw 构建号、权限提示、命令输出和最小复现文件。不要上传私有论文、凭据或受许可保护的 ChemDraw 资源。
 

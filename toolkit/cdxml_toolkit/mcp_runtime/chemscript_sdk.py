@@ -52,7 +52,17 @@ def _runtime_python() -> str:
     return str(path)
 
 
+class ChemScriptSdkUnavailable(RuntimeError):
+    error_code = "chemscript_sdk_windows_only"
+
+
 def _invoke_runtime(request: dict[str, Any]) -> dict[str, Any]:
+    if sys.platform == "darwin":
+        raise ChemScriptSdkUnavailable(
+            "The ChemScript .NET SDK exists only for Windows. On macOS the ChemScript "
+            "operations (names, formulas, clean-up, substructure, conversion) run on "
+            "ChemDraw for macOS, OPSIN and RDKit; use the toolkit tools instead of raw SDK programs."
+        )
     payload = json.dumps(request, separators=(",", ":")).encode("utf-8")
     if len(payload) > chemscript_sdk_runtime.MAX_REQUEST_BYTES:
         raise ValueError("ChemScript SDK request exceeds the configured limit")

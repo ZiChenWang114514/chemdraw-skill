@@ -8,6 +8,7 @@ import json
 from pathlib import Path, PurePosixPath
 import posixpath
 import re
+import sys
 from typing import Any
 import xml.etree.ElementTree as ET
 import zipfile
@@ -22,7 +23,13 @@ _PT_TO_EMU = 12700
 
 @contextmanager
 def com_apartment():
-    """Initialize COM for the current worker thread and release it symmetrically."""
+    """Initialize COM for the current worker thread and release it symmetrically.
+
+    Off Windows there is no COM: ChemDraw and Office are driven by AppleScript.
+    """
+    if sys.platform != "win32":
+        yield
+        return
     import pythoncom
 
     pythoncom.CoInitialize()
@@ -537,6 +544,11 @@ def render_office_pdf(office_path: str | Path, output_path: str | Path) -> None:
     destination = Path(output_path).resolve()
 
     def export(native_source: Path, native_destination: Path) -> None:
+        if sys.platform == "darwin":
+            from cdxml_toolkit.office import mac_office
+
+            mac_office.export_pdf(native_source, native_destination)
+            return
         import pythoncom
         import win32com.client
 

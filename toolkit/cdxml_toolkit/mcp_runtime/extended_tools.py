@@ -605,7 +605,7 @@ def render_cdxml_files(
     format: str = "png",
     dpi: int = 300,
 ) -> dict[str, Any]:
-    """Render one or more CDXML files through native ChemDraw COM."""
+    """Render one or more CDXML files through native ChemDraw (COM or macOS)."""
     format = format.lower()
     if format not in {"png", "svg"}:
         raise ValueError("format must be 'png' or 'svg'")
@@ -657,7 +657,7 @@ def render_cdxml_files(
                 pass
         raise
 
-    metadata = {"format": format, "dpi": dpi, "renderer": "ChemDraw COM"}
+    metadata = {"format": format, "dpi": dpi, "renderer": native_renderer.renderer_name()}
     if dimensions:
         metadata["dimensions"] = dimensions
     return _contract(

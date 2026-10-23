@@ -297,7 +297,7 @@ def _common_chemdraw_candidates() -> list[Path]:
 
 
 def find_chemdraw(explicit: str | None = None) -> Discovery:
-    """Find ChemDraw.exe from explicit, environment, COM, then common paths."""
+    """Find ChemDraw from explicit, environment, the macOS application, COM, then common paths."""
     if explicit:
         path = _existing_file(explicit)
         if not path:
@@ -310,6 +310,16 @@ def find_chemdraw(explicit: str | None = None) -> Discovery:
         if not path:
             raise RuntimeError(f"CHEMDRAW_EXE points to a missing file: {env_value}")
         return Discovery(str(path), "environment")
+
+    from ..chemdraw import mac_automation
+
+    if mac_automation.is_macos():
+        executable = mac_automation.find_executable()
+        if executable is not None:
+            return Discovery(str(executable), "macos-application")
+        raise RuntimeError(
+            "ChemDraw for macOS not found. Install it in /Applications or set CHEMDRAW_EXE."
+        )
 
     registry_value = _extract_local_server_executable(
         _registry_local_server_command()

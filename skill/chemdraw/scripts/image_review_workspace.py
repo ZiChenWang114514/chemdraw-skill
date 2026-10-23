@@ -88,7 +88,7 @@ def compare(left,right,output_path,height=500,*,native_receipt=None,mode='displa
         meta=proof.get('metadata',{})
         artifacts=meta.get('artifacts',[])
         rendered=proof.get('outputs',{}).get('rendered',[])
-        valid=proof.get('ok') is True and meta.get('renderer')=='ChemDraw COM'
+        valid=proof.get('ok') is True and meta.get('renderer') in ('ChemDraw COM','ChemDraw for macOS')
         valid=valid and str(right.resolve()) in [str(Path(p).resolve()) for p in rendered]
         valid=valid and any(Path(a.get('path','')).resolve()==right.resolve() and a.get('sha256')==digest(right) for a in artifacts)
         if not valid:raise ValueError('Native receipt does not match candidate path, hash, or renderer')

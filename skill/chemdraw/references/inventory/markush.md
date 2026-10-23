@@ -6,8 +6,8 @@
 
 - **function**, line 89: `auto_layout(graph: Graph, style = None) -> dict` - RDKit CoordGen coordinates for atoms the layout does not place.
 - **function**, line 83: `default_style(style = None)` - No public docstring in the audited version.
-- **function**, line 218: `to_points(layout: dict | None) -> dict` - Convert a ``"units": "px"`` layout (image pixels) to points with ``scale``/``offset``.
-- **function**, line 234: `write_cdxml(graph: Graph, layout: dict | None = None) -> str` - No public docstring in the audited version.
+- **function**, line 222: `to_points(layout: dict | None) -> dict` - Convert a ``"units": "px"`` layout (image pixels) to points with ``scale``/``offset``.
+- **function**, line 238: `write_cdxml(graph: Graph, layout: dict | None = None) -> str` - No public docstring in the audited version.
 
 ## `markush.compile`
 
@@ -61,4 +61,4 @@
 - **function**, line 125: `next_task(workdir, renderer: Renderer | None = None) -> dict` - No public docstring in the audited version.
 - **function**, line 57: `parse_answer(text: str)` - Answers may arrive wrapped in a ```json fence or with prose around them.
 - **function**, line 103: `status(workdir) -> dict` - No public docstring in the audited version.
-- **function**, line 261: `submit(workdir, task, answer, renderer: Renderer | None = None, _state = None) -> dict` - No public docstring in the audited version.
+- **function**, line 262: `submit(workdir, task, answer, renderer: Renderer | None = None, _state = None) -> dict` - No public docstring in the audited version.

@@ -28,9 +28,19 @@ SUMMARY_LIMIT = 6000
 REEXEC_FLAG = 'CHEMDRAW_CDX_REEXEC'
 # Written by the installer when the runtime lives somewhere cdx.py would not look.
 LOCAL_CONFIG = SKILL_ROOT / 'runtime.local.json'
-EXTRAS = {'publication': ['openpyxl'], 'scientific': ['numpy', 'scipy', 'matplotlib', 'nmrglue'],
-          'office': ['win32com.client', 'docx', 'pptx', 'olefile'], 'analysis': ['pdfplumber', 'fitz'],
-          'image': ['cv2', 'pytesseract'], 'chemscript': ['clr']}
+
+
+def extras_for(platform):
+    """Modules each toolkit extra needs; ChemDraw is driven by COM/.NET on Windows, AppleScript on macOS."""
+    windows = platform == 'win32'
+    return {'publication': ['openpyxl'], 'scientific': ['numpy', 'scipy', 'matplotlib', 'nmrglue'],
+            'office': (['win32com.client'] if windows else []) + ['docx', 'pptx', 'olefile'],
+            'analysis': ['pdfplumber', 'fitz'], 'image': ['cv2', 'pytesseract'],
+            # macOS answers ChemScript calls with ChemDraw and OPSIN instead of the .NET SDK.
+            'chemscript': ['clr'] if windows else ['py2opsin']}
+
+
+EXTRAS = extras_for(sys.platform)
 
 
 # ------------------------------------------------------------- runtime bootstrap

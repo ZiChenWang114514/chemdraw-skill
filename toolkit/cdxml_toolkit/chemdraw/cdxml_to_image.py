@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-cdxml_to_image.py — Render a CDXML file to PNG or SVG via ChemDraw COM.
+cdxml_to_image.py — Render a CDXML file to PNG or SVG with ChemDraw.
 
-Requires ChemDraw to be installed (ChemDraw Professional 16+).
+Requires ChemDraw to be installed (ChemDraw Professional 16+).  ChemDraw for
+Windows is driven through COM, ChemDraw for macOS through AppleScript.
 ChemDraw does NOT need to be open — it is launched as a hidden background
 process and closed automatically after export.
 
@@ -20,6 +21,8 @@ import json
 import sys
 from pathlib import Path
 from typing import Optional
+
+from cdxml_toolkit.chemdraw.mac_automation import MacChemDrawSession, flatten_png, is_macos
 
 
 # ---------------------------------------------------------------------------
@@ -77,6 +80,10 @@ def cdxml_to_image(
     cdxml_abs = str(src.resolve())
     out_abs   = str(Path(output_path).resolve())
 
+    if is_macos():
+        with MacChemDrawSession() as session:
+            return _render_macos(session, cdxml_abs, out_abs, png_dpi)
+
     app, launched = _get_chemdraw()
     was_visible = app.Visible
     app.Visible = False
@@ -106,6 +113,14 @@ def cdxml_to_image(
             app.Visible = was_visible
 
 
+def _render_macos(session, cdxml_abs: str, out_abs: str, png_dpi: int) -> str:
+    """Export with ChemDraw for macOS; PNGs get the white background COM uses."""
+    session.export(cdxml_abs, out_abs)
+    if out_abs.lower().endswith(".png"):
+        flatten_png(out_abs, dpi=png_dpi)
+    return out_abs
+
+
 def batch_render(
     cdxml_paths: list,
     png_dpi: int = 300,
@@ -117,6 +132,20 @@ def batch_render(
     """
     results = {}
     if not cdxml_paths:
+        return results
+
+    if is_macos():
+        with MacChemDrawSession() as session:
+            for cdxml_path in cdxml_paths:
+                src = Path(cdxml_path)
+                try:
+                    out_abs = _render_macos(
+                        session, str(src.resolve()),
+                        str(src.with_suffix(".png").resolve()), png_dpi,
+                    )
+                    results[cdxml_path] = {"output": out_abs, "error": None}
+                except Exception as e:
+                    results[cdxml_path] = {"output": None, "error": str(e)}
         return results
 
     app, launched = _get_chemdraw()

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -7,7 +8,10 @@ from unittest import mock
 
 from PIL import Image
 
+from cdxml_toolkit.chemdraw import mac_automation
 from cdxml_toolkit.mcp_runtime import native_renderer
+
+
 class _Preferences:
     TransparentPNGs = True
     PNGResolution = 72
@@ -59,12 +63,17 @@ class _ComError(RuntimeError):
         self.hresult = hresult
 
 
+@unittest.skipUnless(os.name == "nt", "ChemDraw COM rendering is Windows-only")
 class NativeRendererTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.source = self.root / "source.cdxml"
         self.source.write_text("<CDXML><page/></CDXML>", encoding="utf-8")
+        # These cases cover the Windows COM path; macOS is covered by test_mac_automation.
+        platform = mock.patch.object(mac_automation, "is_macos", return_value=False)
+        platform.start()
+        self.addCleanup(platform.stop)
 
     def tearDown(self):
         self.temp.cleanup()

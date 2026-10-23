@@ -1,4 +1,9 @@
-"""Shared Windows process containment and attributed automation cleanup."""
+"""Shared process containment and attributed automation cleanup.
+
+Windows attributes ChemDraw/Word/PowerPoint to the stage that started them by
+parent process. On macOS they are children of launchd, so the toolkit's launch
+registry (``mac_automation.LAUNCH_REGISTRY``) names the owner instead.
+"""
 
 from __future__ import annotations
 
@@ -7,11 +12,14 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
 from typing import Any
 
 
 _AUTOMATION_NAMES = {"chemdraw.exe", "winword.exe", "powerpnt.exe"}
+# Executable names of ChemDraw, Word and PowerPoint for macOS.
+_MAC_AUTOMATION_NAMES = {"ChemDraw", "Microsoft Word", "Microsoft PowerPoint"}
 
 
 def _system_executable(relative: str) -> Path | None:
@@ -81,6 +89,12 @@ def _close_job(
 
 
 def terminate_pid(pid: int, timeout_seconds: float = 10) -> bool:
+    if sys.platform == "darwin":
+        from ..chemdraw import mac_automation
+
+        mac_automation.terminate_process(pid, grace_seconds=max(0.0, min(5.0, timeout_seconds)))
+        mac_automation.unregister_launch(pid)
+        return not pid_is_running(pid)
     taskkill = _system_executable(r"System32\taskkill.exe")
     if taskkill is None:
         return False
@@ -152,7 +166,48 @@ def _terminate_process_tree(
             pass
 
 
+def _snapshot_macos(timeout_seconds: float) -> dict[int, dict[str, Any]]:
+    from ..chemdraw import mac_automation
+
+    result = subprocess.run(
+        ["ps", "-axo", "pid=,ppid=,comm="],
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout_seconds,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError("Automation process snapshot failed")
+    owners = {
+        pid: record["owner_pid"] for pid, record in mac_automation.launched_instances().items()
+    }
+    snapshot: dict[int, dict[str, Any]] = {}
+    for line in result.stdout.splitlines():
+        fields = line.split(None, 2)
+        if len(fields) != 3:
+            continue
+        try:
+            pid, parent_pid = int(fields[0]), int(fields[1])
+        except ValueError:
+            continue
+        name = Path(fields[2].strip()).name
+        if name not in _MAC_AUTOMATION_NAMES:
+            continue
+        snapshot[pid] = {
+            "pid": pid,
+            "parent_pid": owners.get(pid, parent_pid),
+            "name": name,
+            "command_line": fields[2].strip(),
+        }
+    return snapshot
+
+
 def snapshot_automation_processes(timeout_seconds: float = 5) -> dict[int, dict[str, Any]]:
+    if sys.platform == "darwin":
+        return _snapshot_macos(timeout_seconds)
     if os.name != "nt":
         return {}
     powershell = _system_executable(
@@ -243,8 +298,8 @@ def cleanup_automation_processes(
     failed: list[int] = []
     for pid in sorted(set(after) - set(before)):
         item = after[pid]
-        name = str(item.get("name") or "").lower()
-        if name not in _AUTOMATION_NAMES:
+        name = str(item.get("name") or "")
+        if name.lower() not in _AUTOMATION_NAMES and name not in _MAC_AUTOMATION_NAMES:
             continue
         parent_pid = item.get("parent_pid")
         attributed = parent_pid == stage_pid

@@ -4,8 +4,9 @@
 
 ## `cdxml_builder`
 
-- **function**, line 605: `build_molecule_cdxml(atoms: List[Dict], bonds: List[Dict], start_id: int = 1000) -> str` - Build a CDXML document containing a single molecule fragment.
-- **function**, line 649: `build_reaction_cdxml(reactants: List[Dict], products: List[Dict], conditions: Optional[Dict] = None, arrow_y: Optional[float] = None, arrow_tail_x: Optional[float] = None, arrow_head_x: Optional[float] = None, start_id: int = 1000) -> str` - Build a CDXML reaction scheme document.
+- **function**, line 617: `build_molecule_cdxml(atoms: List[Dict], bonds: List[Dict], start_id: int = 1000) -> str` - Build a CDXML document containing a single molecule fragment.
+- **function**, line 661: `build_reaction_cdxml(reactants: List[Dict], products: List[Dict], conditions: Optional[Dict] = None, arrow_y: Optional[float] = None, arrow_tail_x: Optional[float] = None, arrow_head_x: Optional[float] = None, start_id: int = 1000) -> str` - Build a CDXML reaction scheme document.
+- **function**, line 90: `element_number(symbol: str) -> int` - Atomic number for *symbol*; 0 only when the symbol is not an element.
 
 ## `cdxml_utils`
 
@@ -93,10 +94,10 @@
 
 ## `render.renderer`
 
-- **function**, line 2427: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
-- **function**, line 2445: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
-- **class**, line 139: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
-- **class**, line 154: `ResolvedStep` - A step with all structures resolved and laid out.
+- **function**, line 2446: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 2464: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **class**, line 141: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
+- **class**, line 156: `ResolvedStep` - A step with all structures resolved and laid out.
 
 ## `render.schema`
 
