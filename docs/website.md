@@ -8,7 +8,8 @@ The project website lives at <https://zichenwang114514.github.io/chemdraw-skill/
 | --- | --- |
 | `site/index.html` | Chinese page, the canonical home. |
 | `site/en/index.html` | English page. Same structure and shared stylesheet; the `<html lang>` drives the copy-button labels. |
-| `site/styles.css`, `site/app.js` | Shared styles (light and dark) and the two behaviours: copy buttons and the before/after slider. |
+| `site/styles.css`, `site/app.js` | Shared styles (light and dark) and the behaviours: copy buttons, the before/after slider and its tabs, the hero replay button and the install picker. The page reads completely without the script. |
+| `site/fonts/` | Self-hosted Latin display face (Schibsted Grotesk, SIL OFL, licence beside it). Chinese text uses system fonts. Google Fonts is not used because it is unreliable from mainland China. |
 | `site/og.png`, `site/favicon.svg`, `site/apple-touch-icon.png` | Social preview image (1200×630) and icons. |
 | `site/sitemap.xml`, `site/robots.txt` | Search engine files. `lastmod` is refreshed on every deploy. |
 | `site/<32 hex chars>.txt` | IndexNow key file. The deploy workflow reads the key from this filename; do not rename it without updating Bing Webmaster Tools. |
@@ -39,7 +40,9 @@ Check both colour schemes and a 390 px viewport before pushing; the hero and the
 
 - Change both language pages together, as for the READMEs.
 - Keep the `<title>` and `meta description` short: the title under 60 characters, the description under about 160.
-- The hero molecule is an inline SVG of aspirin generated from RDKit coordinates; the `--i` custom property on each path orders the draw-in animation. Edit it only to replace the molecule, and keep `prefers-reduced-motion` behaviour (no animation).
+- The hero molecule is an inline SVG of aspirin generated from RDKit coordinates; the `--i` custom property on each path orders the draw-in animation, which runs when `app.js` adds `.play` to the window. Edit it only to replace the molecule, and keep `prefers-reduced-motion` behaviour (no animation, no replay button). The Analysis caption (formula, exact mass, molecular weight) must match the molecule.
+- "How it works" is drawn as a vertical reaction scheme: each step is a reaction arrow with the tool written beside it, leading to the file it produces. Keep the four steps in sync with the README.
+- The install picker in `app.js` takes each agent's installer flag and Skill folder from the radio buttons in the HTML, which mirror `AGENTS` in `scripts/install.py`; update them together. The static commands show the Claude Code and Windows defaults.
 - Do not add analytics or third-party scripts without a note in the footer; the page currently loads nothing from outside the site.
 
 ## Search console
