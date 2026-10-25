@@ -26,7 +26,6 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="styles.css">
-<script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -48,8 +47,8 @@
       "name": "在 Claude Code 或 Codex 中安装 ChemDraw Skill",
       "totalTime": "PT5M",
       "step": [
-        { "@type": "HowToStep", "name": "安装", "text": "git clone https://github.com/ZiChenWang114514/chemdraw-skill.git，进入目录后运行 python scripts/install.py --agent claude agents --runtime --apply。" },
-        { "@type": "HowToStep", "name": "检查本机能用哪些功能", "text": "运行 python ~/.claude/skills/chemdraw/scripts/cdx.py doctor。" },
+        { "@type": "HowToStep", "name": "安装", "text": "git clone https://github.com/ZiChenWang114514/chemdraw-skill.git，进入目录后运行 python scripts/install.py --agent claude --runtime --apply。" },
+        { "@type": "HowToStep", "name": "检查本机能用哪些功能", "text": "运行 python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor。" },
         { "@type": "HowToStep", "name": "直接对 Agent 说", "text": "用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，用 ChemDraw 原生渲染并给我看 PNG。" }
       ]
     },
@@ -96,7 +95,7 @@
 <div class="hero">
   <div class="wrap">
     <div>
-      <h1>让 AI 画出可编辑的<span class="en"> ChemDraw 结构式</span></h1>
+      <h1>让 AI 画出可编辑的 ChemDraw 结构式</h1>
       <p class="lede">ChemDraw Skill 是给 AI 编程 Agent 用的化学绘图技能。说一句话，Agent 就会确认结构、在 ChemDraw 里原生绘制，再把结果读回来核对。你拿到的是能继续编辑的 CDXML，而不是一张截图。</p>
       <div class="install">
         <code id="clone">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
@@ -110,7 +109,19 @@
     </div>
 
     <figure class="doc" aria-label="示例：Agent 把阿司匹林画成可编辑的 ChemDraw 文档">
-      <div class="doc-bar"><i></i><i></i><i></i><span>aspirin.cdxml</span></div>
+      <div class="doc-bar"><i></i><i></i><i></i><span>aspirin.cdxml</span>
+        <button class="replay" type="button" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12.4 1.6v3h-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>重放</button>
+      </div>
+      <ul class="palette" aria-hidden="true">
+        <li><svg viewBox="0 0 20 20"><path class="fill" d="M5 3l10 8.2-4.3.6 2.5 4.6-1.9 1-2.5-4.7L5 15.6z"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><path d="M10 4c3.6 0 6.5 1.8 6.5 4s-2.9 4-6.5 4-6.5-1.8-6.5-4S6.4 4 10 4z" stroke-dasharray="2 2"/><path d="M6.5 11.3c-1 1.4-.6 3 .9 4"/></svg></li>
+        <li class="on"><svg viewBox="0 0 20 20"><path d="M4 16L16 4" stroke-width="2"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><path class="fill" d="M4 16.5L17.2 5.2 14.8 2.8z"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><path d="M5 15.6l.8.8M7.2 12.6l2 2M9.6 9.6l3 3M12 6.6l4 4"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z"/><path d="M10 5.4l4.1 2.4M14.1 12.2L10 14.6M5.9 12.2V7.8"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><text x="5" y="15">A</text></svg></li>
+        <li><svg viewBox="0 0 20 20"><path d="M3 10h11"/><path class="fill" d="M17.5 10l-5.5-3.2 1.4 3.2-1.4 3.2z"/></svg></li>
+      </ul>
       <div class="doc-canvas">
         <svg class="mol" viewBox="0 0 323 262" role="img" aria-label="阿司匹林的骨架结构式">
           <path class="b" style="--i:0" d="M40.0 123.7L88.4 151.8"/>
@@ -142,11 +153,16 @@
             <rect class="handle" x="24" y="242" width="8" height="8"/><rect class="handle" x="165" y="242" width="8" height="8"/><rect class="handle" x="306" y="242" width="8" height="8"/>
           </g>
         </svg>
+        <div class="analysis">
+          <div>Chemical Formula: C<sub>9</sub>H<sub>8</sub>O<sub>4</sub></div>
+          <div>Exact Mass: 180.04</div>
+          <div>Molecular Weight: 180.16</div>
+        </div>
       </div>
       <ol class="log">
         <li class="ask" style="--t:.15">“用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，渲染后给我看。”</li>
         <li style="--t:.45"><span class="k">resolve_name</span><span>aspirin → CC(=O)Oc1ccccc1C(=O)O</span></li>
-        <li style="--t:.8"><span class="k">build</span><span>aspirin.cdxml · ACS Document 1996</span></li>
+        <li style="--t:.8"><span class="k">build</span><span>aspirin.cdxml，ACS Document 1996</span></li>
         <li style="--t:2.2"><span class="k">render</span><span>ChemDraw 原生 PNG，300 dpi</span></li>
         <li style="--t:2.6"><span class="k">readback</span><span>C<sub>9</sub>H<sub>8</sub>O<sub>4</sub> 与输入一致 <span class="ok">✓</span></span></li>
       </ol>
@@ -154,82 +170,106 @@
   </div>
 </div>
 
-<div class="wrap">
-  <div class="tenets">
-    <div><h3>结构有出处</h3><p>结构来自数据库、ChemScript、OPSIN 或 DECIMER 识别，不让模型凭空编 SMILES。</p></div>
-    <div><h3>真正可编辑</h3><p>输出是原生 CDXML，原子、键和文字都能在 ChemDraw 里接着改。</p></div>
-    <div><h3>一个入口</h3><p>所有功能都走 <code>cdx.py</code> 一条命令，任何 Agent 都能调用，MCP 可选。</p></div>
-    <div><h3>原生品质</h3><p>由 ChemDraw 本身渲染和保存，保存后再回读核对化学结构。</p></div>
-  </div>
-</div>
-
 <section id="gallery">
   <div class="wrap">
     <div class="head">
       <h2>从论文图片到可编辑的 ChemDraw 文档</h2>
-      <p>拖动分隔线对比：左边是论文里的原图，右边是 Agent 复刻出的 ChemDraw 文档，五个结构、反应条件、产率和化合物编号都能编辑。</p>
+      <p>拖动分隔线，对比原图和 Agent 复刻出的 ChemDraw 文档。</p>
     </div>
-    <div class="compare" style="--cut:50%">
-      <img src="gallery/paper-scheme-original.png" width="1600" height="275" alt="论文中的原始反应路线图">
-      <div class="after"><img src="gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="同一路线复刻为可编辑的 ChemDraw 文档"></div>
-      <input type="range" min="0" max="100" value="50" aria-label="调整原图与 ChemDraw 复刻的对比位置">
-      <span class="seam"></span>
+    <div class="tabs" role="tablist" aria-label="对比示例">
+      <button type="button" role="tab" id="t-scheme" aria-selected="true" aria-controls="p-scheme">论文反应路线</button>
+      <button type="button" role="tab" id="t-markush" aria-selected="false" aria-controls="p-markush" tabindex="-1">专利 Markush 通式</button>
     </div>
-    <div class="compare-legend"><span><b>论文原图</b>（图片）</span><span><b>ChemDraw 复刻</b>（CDXML）</span></div>
-
-    <div class="head markush-head">
-      <h3>专利 Markush 通式</h3>
+    <div class="panel" id="p-scheme" role="tabpanel" aria-labelledby="t-scheme">
+      <p>左边是论文里的原图，右边是复刻出的 ChemDraw 文档。五个结构、反应条件、产率和化合物编号都能编辑。</p>
+      <div class="compare" style="--cut:50%">
+        <img src="gallery/paper-scheme-original.png" width="1600" height="275" alt="论文中的原始反应路线图">
+        <div class="after"><img src="gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="同一路线复刻为可编辑的 ChemDraw 文档"></div>
+        <input type="range" min="0" max="100" value="50" aria-label="调整原图与 ChemDraw 复刻的对比位置">
+        <span class="seam"></span>
+      </div>
+      <div class="compare-legend"><span><b>论文原图</b>（图片）</span><span><b>ChemDraw 复刻</b>（CDXML）</span></div>
+    </div>
+    <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden>
       <p>专利图中的通式结构：R 基、两个可变环、可连在三个环位置之一的基团以及重复次数。整个提取由一个小型低成本模型完成，结构同时保存为 CXSMILES 和 V3000 molfile。</p>
+      <div class="compare" style="--cut:50%">
+        <img src="gallery/markush-original.png" width="1200" height="900" loading="lazy" alt="专利中的 Markush 通式原图">
+        <div class="after"><img src="gallery/markush-chemdraw.png" width="1200" height="900" loading="lazy" alt="同一通式复刻为可编辑的 ChemDraw 文档"></div>
+        <input type="range" min="0" max="100" value="50" aria-label="调整专利原图与 ChemDraw 复刻的对比位置">
+        <span class="seam"></span>
+      </div>
+      <div class="compare-legend"><span><b>专利原图</b>（图片）</span><span><b>ChemDraw 复刻</b>（CDXML）</span></div>
     </div>
-    <div class="compare" style="--cut:50%">
-      <img src="gallery/markush-original.png" width="1200" height="900" loading="lazy" alt="专利中的 Markush 通式原图">
-      <div class="after"><img src="gallery/markush-chemdraw.png" width="1200" height="900" loading="lazy" alt="同一通式复刻为可编辑的 ChemDraw 文档"></div>
-      <input type="range" min="0" max="100" value="50" aria-label="拖动比较专利原图与 ChemDraw 复刻">
-      <span class="seam"></span>
-    </div>
-    <div class="compare-legend"><span><b>专利原图</b>（图片）</span><span><b>ChemDraw 复刻</b>（CDXML）</span></div>
 
-    <div class="gallery">
-      <figure>
+    <div class="works">
+      <figure class="lg">
         <div class="plate"><img src="gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="在 ChemDraw 中复刻的复杂多步合成路线"></div>
-        <figcaption><h3>复杂合成路线</h3><p>完整多步路线、全部化合物、条件与机理箭头。</p></figcaption>
+        <figcaption><b>复杂合成路线。</b>完整多步路线，全部化合物、条件与机理箭头。</figcaption>
       </figure>
-      <figure>
+      <figure class="lg">
         <div class="plate"><img src="gallery/mechanism.png" width="720" height="450" loading="lazy" alt="Sceptrin 反应机理的 ChemDraw 原生重绘"></div>
-        <figcaption><h3>反应机理</h3><p>Sceptrin 机理：八个结构、电子箭头、电荷与抗衡离子。</p></figcaption>
+        <figcaption><b>反应机理。</b>Sceptrin 机理：八个结构、电子箭头、电荷与抗衡离子。</figcaption>
       </figure>
       <figure>
         <div class="plate"><img src="gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="20 个结构的合成路线 ChemDraw 复刻"></div>
-        <figcaption><h3>20 个结构的合成路线</h3><p>ChemScript 与 RDKit 读取的立体信息 20/20 一致。</p></figcaption>
+        <figcaption><b>20 个结构的路线。</b>ChemScript 与 RDKit 读取的立体信息 20/20 一致。</figcaption>
       </figure>
       <figure>
         <div class="plate"><img src="gallery/acs1996.png" width="720" height="450" loading="lazy" alt="由 JSON 描述生成的 ACS Document 1996 氢化反应图"></div>
-        <figcaption><h3>试卷与讲义插图</h3><p>一小段 JSON 生成 ACS Document 1996 格式，支持 C<sub>10</sub>H<sub>21</sub> 缩写和中文注释。</p></figcaption>
+        <figcaption><b>试卷与讲义插图。</b>一小段 JSON 生成 ACS Document 1996 格式，支持 C<sub>10</sub>H<sub>21</sub> 缩写和中文注释。</figcaption>
       </figure>
       <figure>
         <div class="plate"><img src="gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="原生 TLC 板与回流装置"></div>
-        <figcaption><h3>TLC 与装置图</h3><p>原生 TLC 板、泳道、斑点与 Rf，以及 ChemDraw 装置模板。</p></figcaption>
+        <figcaption><b>TLC 与装置图。</b>原生 TLC 板、泳道、斑点与 Rf，以及 ChemDraw 装置模板。</figcaption>
       </figure>
       <figure>
         <div class="plate"><img src="gallery/nmr.png" width="720" height="450" loading="lazy" alt="可编辑的实验 NMR 谱图"></div>
-        <figcaption><h3>谱图与科研绘图</h3><p>对一维 NMR 数据寻峰、积分，数值数据输出为可编辑曲线。</p></figcaption>
+        <figcaption><b>谱图与科研绘图。</b>对一维 NMR 数据寻峰、积分，数值数据输出为可编辑曲线。</figcaption>
       </figure>
     </div>
   </div>
 </section>
 
 <section id="how">
-  <div class="wrap">
+  <div class="wrap how">
     <div class="head">
-      <h2>每张图都经过四步</h2>
-      <p>化学正确比看起来像更重要。Skill 把每次绘图都拆成能检查的步骤。</p>
+      <h2>每张图都要过四步</h2>
+      <p>化学正确比看起来像更重要。每一步都有明确的输入和产物，出了问题能定位到具体哪一步。</p>
+      <p>所有步骤都走同一个入口 <code>cdx.py</code>，任何能执行命令行的 Agent 都能调用，MCP 可选。</p>
     </div>
-    <ol class="steps">
-      <li><h3>确认结构</h3><p>从名称、标识符、可信 SMILES 或 DECIMER 识别结果出发，记录来源。</p></li>
-      <li><h3>原生绘制</h3><p>生成 CDXML，按 ACS Document 1996 等样式排版，保留立体、电荷和同位素。</p></li>
-      <li><h3>渲染查看</h3><p>由 ChemDraw 输出 300 dpi PNG，Agent 打开图片逐项检查版面。</p></li>
-      <li><h3>回读核对</h3><p>保存后重新读取文件，确认写进去的化学结构就是要画的那个。</p></li>
-    </ol>
+    <div class="scheme">
+      <p class="cpd src">“阿司匹林”</p>
+      <ol>
+        <li class="step">
+          <div class="leg">
+            <p class="rxn"><code>resolve_name</code><span>OPSIN、PubChem</span></p>
+            <div class="why"><h3>确认结构</h3><p>从名称、标识符、可信 SMILES 或 DECIMER 识别结果出发，并记录来源，不让模型凭空编 SMILES。</p></div>
+          </div>
+          <p class="cpd"><code>CC(=O)Oc1ccccc1C(=O)O</code></p>
+        </li>
+        <li class="step">
+          <div class="leg">
+            <p class="rxn"><code>build</code><span>ACS Document 1996</span></p>
+            <div class="why"><h3>原生绘制</h3><p>生成 CDXML，保留立体、电荷和同位素。原子、键和文字都能在 ChemDraw 里接着改。</p></div>
+          </div>
+          <p class="cpd"><code>aspirin.cdxml</code></p>
+        </li>
+        <li class="step">
+          <div class="leg">
+            <p class="rxn"><code>render</code><span>ChemDraw，300 dpi</span></p>
+            <div class="why"><h3>渲染查看</h3><p>由 ChemDraw 本身渲染，Agent 打开图片，逐项检查标签、箭头、电荷和交叉。</p></div>
+          </div>
+          <p class="cpd"><code>aspirin.png</code></p>
+        </li>
+        <li class="step">
+          <div class="leg">
+            <p class="rxn"><code>readback</code><span>ChemScript、RDKit</span></p>
+            <div class="why"><h3>回读核对</h3><p>保存后重新读取文件，确认写进去的就是要画的结构；读取器之间不一致时如实报告。</p></div>
+          </div>
+          <p class="cpd end">C<sub>9</sub>H<sub>8</sub>O<sub>4</sub>，与输入一致 ✓</p>
+        </li>
+      </ol>
+    </div>
   </div>
 </section>
 
@@ -242,14 +282,14 @@
     <dl class="caps">
       <div><dt>结构与反应</dt><dd>解析名称和标识符；绘制、编辑、清理、合并、拆分、转换和渲染 CDXML / CDX。</dd></div>
       <div><dt>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对、修正化学，组装条件与版面。</dd></div>
+      <div><dt>专利 Markush</dt><dd>从专利图和权利要求提取通式，输出 CXSMILES、V3000 molfile 和可编辑 CDXML。</dd></div>
       <div><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释和带框编号。</dd></div>
       <div><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。</dd></div>
       <div><dt>分子比较</dt><dd>RDKit 指纹相似度；Windows（ChemScript）或 macOS（ChemDraw）上可增加精确身份检查。</dd></div>
       <div><dt>反应机理</dt><dd>按原子坐标绘制电子箭头、电荷和抗衡离子。</dd></div>
       <div><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点和 Rf 计算；ChemDraw 装置模板组装。</dd></div>
-      <div><dt>谱图</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线。</dd></div>
+      <div><dt>谱图与实验记录</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线；处理 LCMS、SciFinder RDF 和实验记录。</dd></div>
       <div><dt>Word 与 PPT</dt><dd>在 Word、PowerPoint 文档中嵌入可编辑的 ChemDraw 对象（Windows 或 macOS 上生成）。</dd></div>
-      <div><dt>实验记录</dt><dd>处理 LCMS、SciFinder RDF 和实验记录相关工作流。</dd></div>
     </dl>
   </div>
 </section>
@@ -259,24 +299,47 @@
     <div class="head">
       <h2>三步开始使用</h2>
       <p>安装脚本需要 Python 3.9 以上，会自动找到 64 位 Python 3.10–3.13 作为运行时，Windows、macOS、Linux 都能装。原生渲染和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。</p>
-      <p class="note">想装到 Codex、Gemini CLI 或 Cursor？把 <code>--agent claude</code> 换成对应名称，或用 <code>agents</code> 安装到通用目录。详见 <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">Agent 接入说明</a>。</p>
+      <p class="note">选择 Agent 和系统后，右边的命令会随之改写。安装到项目目录等其他用法见 <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">Agent 接入说明</a>。</p>
     </div>
-    <ol>
-      <li>
-        <h3>安装</h3>
-        <pre class="code"><button class="copy" type="button" data-done-label="已复制" data-copy="#q1">复制</button><code id="q1">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+    <div>
+      <div class="choose" hidden>
+        <fieldset>
+          <legend>Agent</legend>
+          <div class="seg">
+            <label><input type="radio" name="agent" value="claude" data-dir=".claude/skills" checked><span>Claude Code</span></label>
+            <label><input type="radio" name="agent" value="agents" data-dir=".agents/skills"><span>Codex</span></label>
+            <label><input type="radio" name="agent" value="gemini" data-dir=".gemini/skills"><span>Gemini CLI</span></label>
+            <label><input type="radio" name="agent" value="copilot" data-dir=".copilot/skills"><span>GitHub Copilot</span></label>
+            <label><input type="radio" name="agent" value="cursor" data-dir=".cursor/skills"><span>Cursor</span></label>
+            <label><input type="radio" name="agent" value="opencode" data-dir=".config/opencode/skills"><span>OpenCode</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>系统</legend>
+          <div class="seg">
+            <label><input type="radio" name="os" value="windows" checked><span>Windows</span></label>
+            <label><input type="radio" name="os" value="macos"><span>macOS</span></label>
+            <label><input type="radio" name="os" value="linux"><span>Linux</span></label>
+          </div>
+        </fieldset>
+      </div>
+      <ol>
+        <li>
+          <h3>安装</h3>
+          <pre class="code"><button class="copy" type="button" data-done-label="已复制" data-copy="#q1">复制</button><code id="q1">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 cd chemdraw-skill
-python scripts/install.py --agent claude agents --runtime --apply</code></pre>
-      </li>
-      <li>
-        <h3>检查本机能用哪些功能</h3>
-        <pre class="code"><button class="copy" type="button" data-done-label="已复制" data-copy="#q2">复制</button><code id="q2">python ~/.claude/skills/chemdraw/scripts/cdx.py doctor</code></pre>
-      </li>
-      <li>
-        <h3>直接对 Agent 说</h3>
-        <p class="say">用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，用 ChemDraw 原生渲染并给我看 PNG。</p>
-      </li>
-    </ol>
+<span data-var="python">python</span> scripts/install.py --agent <span data-var="agent">claude</span> --runtime --apply</code></pre>
+        </li>
+        <li>
+          <h3>检查本机能用哪些功能</h3>
+          <pre class="code"><button class="copy" type="button" data-done-label="已复制" data-copy="#q2">复制</button><code id="q2"><span data-var="python">python</span> <span data-var="home">$HOME/.claude/skills</span>/chemdraw/scripts/cdx.py doctor</code></pre>
+        </li>
+        <li>
+          <h3>直接对 Agent 说</h3>
+          <p class="say">用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，用 ChemDraw 原生渲染并给我看 PNG。</p>
+        </li>
+      </ol>
+    </div>
   </div>
 </section>
 

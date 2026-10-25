@@ -25,7 +25,6 @@
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="stylesheet" href="../styles.css">
-<script>document.documentElement.classList.add("js")</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -46,8 +45,8 @@
       "name": "Install ChemDraw Skill for Claude Code or Codex",
       "totalTime": "PT5M",
       "step": [
-        { "@type": "HowToStep", "name": "Install", "text": "git clone https://github.com/ZiChenWang114514/chemdraw-skill.git, then run python scripts/install.py --agent claude agents --runtime --apply inside the folder." },
-        { "@type": "HowToStep", "name": "See what works on this machine", "text": "Run python ~/.claude/skills/chemdraw/scripts/cdx.py doctor." },
+        { "@type": "HowToStep", "name": "Install", "text": "git clone https://github.com/ZiChenWang114514/chemdraw-skill.git, then run python scripts/install.py --agent claude --runtime --apply inside the folder." },
+        { "@type": "HowToStep", "name": "See what works on this machine", "text": "Run python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor." },
         { "@type": "HowToStep", "name": "Ask your agent", "text": "Use ChemDraw Skill to draw aspirin as editable CDXML, render it natively in ChemDraw and show me the PNG." }
       ]
     },
@@ -94,7 +93,7 @@
 <div class="hero">
   <div class="wrap">
     <div>
-      <h1>Editable ChemDraw chemistry<span class="en"> for any AI agent</span></h1>
+      <h1>Editable ChemDraw chemistry for any AI agent</h1>
       <p class="lede">ChemDraw Skill teaches AI coding agents to draw chemistry. Ask in plain words and the agent grounds the structure, draws it natively in ChemDraw and reads it back to check. You get CDXML you can keep editing, not a screenshot.</p>
       <div class="install">
         <code id="clone">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
@@ -108,7 +107,19 @@
     </div>
 
     <figure class="doc" aria-label="Example: an agent draws aspirin as an editable ChemDraw document">
-      <div class="doc-bar"><i></i><i></i><i></i><span>aspirin.cdxml</span></div>
+      <div class="doc-bar"><i></i><i></i><i></i><span>aspirin.cdxml</span>
+        <button class="replay" type="button" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12.4 1.6v3h-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Replay</button>
+      </div>
+      <ul class="palette" aria-hidden="true">
+        <li><svg viewBox="0 0 20 20"><path class="fill" d="M5 3l10 8.2-4.3.6 2.5 4.6-1.9 1-2.5-4.7L5 15.6z"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><path d="M10 4c3.6 0 6.5 1.8 6.5 4s-2.9 4-6.5 4-6.5-1.8-6.5-4S6.4 4 10 4z" stroke-dasharray="2 2"/><path d="M6.5 11.3c-1 1.4-.6 3 .9 4"/></svg></li>
+        <li class="on"><svg viewBox="0 0 20 20"><path d="M4 16L16 4" stroke-width="2"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><path class="fill" d="M4 16.5L17.2 5.2 14.8 2.8z"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><path d="M5 15.6l.8.8M7.2 12.6l2 2M9.6 9.6l3 3M12 6.6l4 4"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z"/><path d="M10 5.4l4.1 2.4M14.1 12.2L10 14.6M5.9 12.2V7.8"/></svg></li>
+        <li><svg viewBox="0 0 20 20"><text x="5" y="15">A</text></svg></li>
+        <li><svg viewBox="0 0 20 20"><path d="M3 10h11"/><path class="fill" d="M17.5 10l-5.5-3.2 1.4 3.2-1.4 3.2z"/></svg></li>
+      </ul>
       <div class="doc-canvas">
         <svg class="mol" viewBox="0 0 323 262" role="img" aria-label="Skeletal structure of aspirin">
           <path class="b" style="--i:0" d="M40.0 123.7L88.4 151.8"/>
@@ -140,11 +151,16 @@
             <rect class="handle" x="24" y="242" width="8" height="8"/><rect class="handle" x="165" y="242" width="8" height="8"/><rect class="handle" x="306" y="242" width="8" height="8"/>
           </g>
         </svg>
+        <div class="analysis">
+          <div>Chemical Formula: C<sub>9</sub>H<sub>8</sub>O<sub>4</sub></div>
+          <div>Exact Mass: 180.04</div>
+          <div>Molecular Weight: 180.16</div>
+        </div>
       </div>
       <ol class="log">
         <li class="ask" style="--t:.15">“Use ChemDraw Skill to draw aspirin as editable CDXML and show me the render.”</li>
         <li style="--t:.45"><span class="k">resolve_name</span><span>aspirin → CC(=O)Oc1ccccc1C(=O)O</span></li>
-        <li style="--t:.8"><span class="k">build</span><span>aspirin.cdxml · ACS Document 1996</span></li>
+        <li style="--t:.8"><span class="k">build</span><span>aspirin.cdxml, ACS Document 1996</span></li>
         <li style="--t:2.2"><span class="k">render</span><span>native ChemDraw PNG, 300 dpi</span></li>
         <li style="--t:2.6"><span class="k">readback</span><span>C<sub>9</sub>H<sub>8</sub>O<sub>4</sub> matches the input <span class="ok">✓</span></span></li>
       </ol>
@@ -152,82 +168,106 @@
   </div>
 </div>
 
-<div class="wrap">
-  <div class="tenets">
-    <div><h3>Grounded chemistry</h3><p>Structures come from databases, ChemScript, OPSIN or DECIMER, never from invented SMILES.</p></div>
-    <div><h3>Truly editable</h3><p>Every result is native CDXML: atoms, bonds and text you can keep editing in ChemDraw.</p></div>
-    <div><h3>One entry point</h3><p>A single <code>cdx.py</code> command works in any agent. MCP is optional.</p></div>
-    <div><h3>Native quality</h3><p>ChemDraw itself renders and saves every figure, and the chemistry is read back after saving.</p></div>
-  </div>
-</div>
-
 <section id="gallery">
   <div class="wrap">
     <div class="head">
       <h2>From a paper figure to an editable ChemDraw document</h2>
-      <p>Drag the divider. The left side is the original image from the paper; the right side is the agent's ChemDraw rebuild, with five structures, conditions, yields and compound numbers all editable.</p>
+      <p>Drag the divider to compare the original image with the agent's ChemDraw rebuild.</p>
     </div>
-    <div class="compare" style="--cut:50%">
-      <img src="../gallery/paper-scheme-original.png" width="1600" height="275" alt="Original reaction scheme from a paper">
-      <div class="after"><img src="../gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
-      <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the original and the ChemDraw rebuild">
-      <span class="seam"></span>
+    <div class="tabs" role="tablist" aria-label="Comparison examples">
+      <button type="button" role="tab" id="t-scheme" aria-selected="true" aria-controls="p-scheme">Reaction scheme from a paper</button>
+      <button type="button" role="tab" id="t-markush" aria-selected="false" aria-controls="p-markush" tabindex="-1">Patent Markush structure</button>
     </div>
-    <div class="compare-legend"><span><b>Paper figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
-
-    <div class="head markush-head">
-      <h3>Patent Markush structures</h3>
+    <div class="panel" id="p-scheme" role="tabpanel" aria-labelledby="t-scheme">
+      <p>The left side is the original image from the paper; the right side is the ChemDraw rebuild. Five structures, conditions, yields and compound numbers are all editable.</p>
+      <div class="compare" style="--cut:50%">
+        <img src="../gallery/paper-scheme-original.png" width="1600" height="275" alt="Original reaction scheme from a paper">
+        <div class="after"><img src="../gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
+        <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the original and the ChemDraw rebuild">
+        <span class="seam"></span>
+      </div>
+      <div class="compare-legend"><span><b>Paper figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
+    </div>
+    <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden>
       <p>A generic structure from a patent figure: R groups, two variable rings, a group that can sit on three ring positions, and repeat counts. A small, low-cost model ran the whole extraction; the structure is also saved as CXSMILES and a V3000 molfile.</p>
+      <div class="compare" style="--cut:50%">
+        <img src="../gallery/markush-original.png" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
+        <div class="after"><img src="../gallery/markush-chemdraw.png" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
+        <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the patent figure and the ChemDraw rebuild">
+        <span class="seam"></span>
+      </div>
+      <div class="compare-legend"><span><b>Patent figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
     </div>
-    <div class="compare" style="--cut:50%">
-      <img src="../gallery/markush-original.png" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
-      <div class="after"><img src="../gallery/markush-chemdraw.png" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
-      <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the patent figure and the ChemDraw rebuild">
-      <span class="seam"></span>
-    </div>
-    <div class="compare-legend"><span><b>Patent figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
 
-    <div class="gallery">
-      <figure>
+    <div class="works">
+      <figure class="lg">
         <div class="plate"><img src="../gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="A complex multistep synthesis rebuilt in ChemDraw"></div>
-        <figcaption><h3>Complex synthesis</h3><p>A full multistep route with every compound, condition and mechanism arrow.</p></figcaption>
+        <figcaption><b>Complex synthesis.</b> A full multistep route with every compound, condition and mechanism arrow.</figcaption>
       </figure>
-      <figure>
+      <figure class="lg">
         <div class="plate"><img src="../gallery/mechanism.png" width="720" height="450" loading="lazy" alt="The sceptrin mechanism redrawn natively in ChemDraw"></div>
-        <figcaption><h3>Reaction mechanism</h3><p>Sceptrin: eight structures, electron-pushing arrows, charges and counterions.</p></figcaption>
+        <figcaption><b>Reaction mechanism.</b> Sceptrin: eight structures, electron-pushing arrows, charges and counterions.</figcaption>
       </figure>
       <figure>
         <div class="plate"><img src="../gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="A twenty-structure synthesis rebuilt in ChemDraw"></div>
-        <figcaption><h3>Twenty-structure route</h3><p>ChemScript and RDKit agree on stereochemistry for 20 of 20 structures.</p></figcaption>
+        <figcaption><b>Twenty-structure route.</b> ChemScript and RDKit agree on stereochemistry for 20 of 20 structures.</figcaption>
       </figure>
       <figure>
         <div class="plate"><img src="../gallery/acs1996.png" width="720" height="450" loading="lazy" alt="An ACS Document 1996 hydrogenation drawing built from JSON"></div>
-        <figcaption><h3>Exam and lecture drawings</h3><p>A small JSON file becomes an ACS Document 1996 drawing, with C<sub>10</sub>H<sub>21</sub> abbreviations and annotations.</p></figcaption>
+        <figcaption><b>Exam and lecture drawings.</b> A small JSON file becomes an ACS Document 1996 drawing, with C<sub>10</sub>H<sub>21</sub> abbreviations and annotations.</figcaption>
       </figure>
       <figure>
         <div class="plate"><img src="../gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="A native TLC plate and reflux apparatus"></div>
-        <figcaption><h3>TLC and apparatus</h3><p>Native TLC plates, lanes, spots and Rf values, plus ChemDraw apparatus templates.</p></figcaption>
+        <figcaption><b>TLC and apparatus.</b> Native TLC plates, lanes, spots and Rf values, plus ChemDraw apparatus templates.</figcaption>
       </figure>
       <figure>
         <div class="plate"><img src="../gallery/nmr.png" width="720" height="450" loading="lazy" alt="An editable experimental NMR spectrum"></div>
-        <figcaption><h3>Spectra and plots</h3><p>Peak picking and integration on processed 1D NMR, and numeric data as editable curves.</p></figcaption>
+        <figcaption><b>Spectra and plots.</b> Peak picking and integration on processed 1D NMR, and numeric data as editable curves.</figcaption>
       </figure>
     </div>
   </div>
 </section>
 
 <section id="how">
-  <div class="wrap">
+  <div class="wrap how">
     <div class="head">
       <h2>Every figure goes through four steps</h2>
-      <p>Correct chemistry matters more than a figure that merely looks right, so each drawing is split into steps that can be checked.</p>
+      <p>Correct chemistry matters more than a figure that merely looks right. Each step has a defined input and output, so a problem can be traced to the step that caused it.</p>
+      <p>Every step runs through one entry point, <code>cdx.py</code>, which any agent that can run a shell command can call. MCP is optional.</p>
     </div>
-    <ol class="steps">
-      <li><h3>Ground the structure</h3><p>Start from a name, identifier, trusted SMILES or a DECIMER reading, and record where it came from.</p></li>
-      <li><h3>Draw natively</h3><p>Build CDXML in a style such as ACS Document 1996, keeping stereo, charge and isotope information.</p></li>
-      <li><h3>Render and look</h3><p>ChemDraw writes a 300 dpi PNG and the agent opens it to check the layout.</p></li>
-      <li><h3>Read it back</h3><p>The saved file is read again to confirm the chemistry written is the chemistry intended.</p></li>
-    </ol>
+    <div class="scheme">
+      <p class="cpd src">“aspirin”</p>
+      <ol>
+        <li class="step">
+          <div class="leg">
+            <p class="rxn"><code>resolve_name</code><span>OPSIN, PubChem</span></p>
+            <div class="why"><h3>Ground the structure</h3><p>Start from a name, identifier, trusted SMILES or a DECIMER reading, and record where it came from. The model never invents SMILES.</p></div>
+          </div>
+          <p class="cpd"><code>CC(=O)Oc1ccccc1C(=O)O</code></p>
+        </li>
+        <li class="step">
+          <div class="leg">
+            <p class="rxn"><code>build</code><span>ACS Document 1996</span></p>
+            <div class="why"><h3>Draw natively</h3><p>Build CDXML that keeps stereo, charge and isotope information. Atoms, bonds and text stay editable in ChemDraw.</p></div>
+          </div>
+          <p class="cpd"><code>aspirin.cdxml</code></p>
+        </li>
+        <li class="step">
+          <div class="leg">
+            <p class="rxn"><code>render</code><span>ChemDraw, 300 dpi</span></p>
+            <div class="why"><h3>Render and look</h3><p>ChemDraw itself renders the file, and the agent opens the image to check labels, arrows, charges and crossings.</p></div>
+          </div>
+          <p class="cpd"><code>aspirin.png</code></p>
+        </li>
+        <li class="step">
+          <div class="leg">
+            <p class="rxn"><code>readback</code><span>ChemScript, RDKit</span></p>
+            <div class="why"><h3>Read it back</h3><p>The saved file is read again to confirm the chemistry written is the chemistry intended. When readers disagree, the agent says so.</p></div>
+          </div>
+          <p class="cpd end">C<sub>9</sub>H<sub>8</sub>O<sub>4</sub> matches the input ✓</p>
+        </li>
+      </ol>
+    </div>
   </div>
 </section>
 
@@ -240,14 +280,14 @@
     <dl class="caps">
       <div><dt>Structures and reactions</dt><dd>Resolve names and identifiers; draw, edit, clean, merge, split, convert and render CDXML or CDX.</dd></div>
       <div><dt>Paper figures</dt><dd>Crop the source, read it with DECIMER, compare side by side, fix the chemistry and assemble the layout.</dd></div>
+      <div><dt>Patent Markush</dt><dd>Extract a generic structure from a patent figure and its claims as CXSMILES, a V3000 molfile and editable CDXML.</dd></div>
       <div><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations and boxed labels.</dd></div>
       <div><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.</dd></div>
       <div><dt>Molecule comparison</dt><dd>RDKit fingerprint similarity everywhere; exact identity checks through ChemScript on Windows or ChemDraw on macOS.</dd></div>
       <div><dt>Mechanisms</dt><dd>Electron-pushing arrows, charges and counterions placed from explicit atom coordinates.</dd></div>
       <div><dt>TLC and apparatus</dt><dd>Native TLC plates, lanes, spots and Rf; apparatus assembled from ChemDraw templates.</dd></div>
-      <div><dt>Spectra</dt><dd>Peak picking and range integration on 1D NMR; numeric data as editable curves.</dd></div>
+      <div><dt>Spectra and lab records</dt><dd>Peak picking and range integration on 1D NMR, numeric data as editable curves; LCMS, SciFinder RDF and notebook workflows.</dd></div>
       <div><dt>Word and PowerPoint</dt><dd>Embed live ChemDraw objects in Word and PowerPoint documents, built on Windows or macOS.</dd></div>
-      <div><dt>Lab records</dt><dd>File discovery plus LCMS, SciFinder RDF and notebook workflows.</dd></div>
     </dl>
   </div>
 </section>
@@ -257,24 +297,47 @@
     <div class="head">
       <h2>Start in three steps</h2>
       <p>The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the runtime on Windows, macOS or Linux. Native rendering and Office embedding need licensed desktop ChemDraw on Windows or macOS.</p>
-      <p class="note">Installing for Codex, Gemini CLI or Cursor? Replace <code>--agent claude</code> with that agent, or use <code>agents</code> for the shared folder. See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">agent integration</a>.</p>
+      <p class="note">Pick your agent and system and the commands update to match. For project-level installs and other options, see <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">agent integration</a>.</p>
     </div>
-    <ol>
-      <li>
-        <h3>Install</h3>
-        <pre class="code"><button class="copy" type="button" data-copy="#q1">Copy</button><code id="q1">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+    <div>
+      <div class="choose" hidden>
+        <fieldset>
+          <legend>Agent</legend>
+          <div class="seg">
+            <label><input type="radio" name="agent" value="claude" data-dir=".claude/skills" checked><span>Claude Code</span></label>
+            <label><input type="radio" name="agent" value="agents" data-dir=".agents/skills"><span>Codex</span></label>
+            <label><input type="radio" name="agent" value="gemini" data-dir=".gemini/skills"><span>Gemini CLI</span></label>
+            <label><input type="radio" name="agent" value="copilot" data-dir=".copilot/skills"><span>GitHub Copilot</span></label>
+            <label><input type="radio" name="agent" value="cursor" data-dir=".cursor/skills"><span>Cursor</span></label>
+            <label><input type="radio" name="agent" value="opencode" data-dir=".config/opencode/skills"><span>OpenCode</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>System</legend>
+          <div class="seg">
+            <label><input type="radio" name="os" value="windows" checked><span>Windows</span></label>
+            <label><input type="radio" name="os" value="macos"><span>macOS</span></label>
+            <label><input type="radio" name="os" value="linux"><span>Linux</span></label>
+          </div>
+        </fieldset>
+      </div>
+      <ol>
+        <li>
+          <h3>Install</h3>
+          <pre class="code"><button class="copy" type="button" data-copy="#q1">Copy</button><code id="q1">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 cd chemdraw-skill
-python scripts/install.py --agent claude agents --runtime --apply</code></pre>
-      </li>
-      <li>
-        <h3>See what works on this machine</h3>
-        <pre class="code"><button class="copy" type="button" data-copy="#q2">Copy</button><code id="q2">python ~/.claude/skills/chemdraw/scripts/cdx.py doctor</code></pre>
-      </li>
-      <li>
-        <h3>Ask your agent</h3>
-        <p class="say">Use ChemDraw Skill to draw aspirin as editable CDXML, render it natively in ChemDraw and show me the PNG.</p>
-      </li>
-    </ol>
+<span data-var="python">python</span> scripts/install.py --agent <span data-var="agent">claude</span> --runtime --apply</code></pre>
+        </li>
+        <li>
+          <h3>See what works on this machine</h3>
+          <pre class="code"><button class="copy" type="button" data-copy="#q2">Copy</button><code id="q2"><span data-var="python">python</span> <span data-var="home">$HOME/.claude/skills</span>/chemdraw/scripts/cdx.py doctor</code></pre>
+        </li>
+        <li>
+          <h3>Ask your agent</h3>
+          <p class="say">Use ChemDraw Skill to draw aspirin as editable CDXML, render it natively in ChemDraw and show me the PNG.</p>
+        </li>
+      </ol>
+    </div>
   </div>
 </section>
 
