@@ -47,7 +47,9 @@ python <skill>/scripts/cdx.py doctor --office     # + PPTX/DOCX ChemDraw-OLE pro
 
 Any Python can start `cdx.py`; it re-launches itself in the runtime and skips a candidate whose interpreter no longer starts. Skipped probes are not verified features. See [operations](../skill/chemdraw/references/operations.md) for bitness, timeouts, DECIMER and failure codes.
 
-Allow the `python <skill>/scripts/cdx.py` prefix once in your agent's command allowlist to avoid permission prompts; [agent integration](../skill/chemdraw/references/agent-integration.md#command-permissions) has an example.
+Allow the `python <skill>/scripts/cdx.py` prefix once in your agent's command allowlist to avoid permission prompts; [agent integration](../skill/chemdraw/references/agent-integration.md#command-permissions) has an example. That prefix also covers `cdx.py py`, which runs arbitrary Python in the runtime, so allow individual subcommands instead if that is too broad.
+
+For confidential or offline work set `CHEMDRAW_OFFLINE=1`: PubChem lookups, the Java runtime download and DECIMER image uploads are then refused ([operations](../skill/chemdraw/references/operations.md#environment-variables)).
 
 ## MCP (optional)
 

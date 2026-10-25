@@ -47,7 +47,9 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 任何 Python 都可以启动 `cdx.py`，它会自行切换到运行时解释器；无法启动的候选解释器会被跳过。被跳过的探测不算已验证的能力。位数、超时、DECIMER 和故障代码见[运维说明](../skill/chemdraw/references/operations.md)。
 
-在 agent 的命令白名单中放行一次 `python <skill>/scripts/cdx.py` 前缀即可避免反复弹出权限确认；[agent 集成](../skill/chemdraw/references/agent-integration.md#command-permissions)中有示例。
+在 agent 的命令白名单中放行一次 `python <skill>/scripts/cdx.py` 前缀即可避免反复弹出权限确认；[agent 集成](../skill/chemdraw/references/agent-integration.md#command-permissions)中有示例。该前缀同时涵盖 `cdx.py py`，它能在运行时中执行任意 Python，如果觉得范围太大，请改为逐个放行子命令。
+
+处理保密或需要离线的内容时设置 `CHEMDRAW_OFFLINE=1`：此后 PubChem 查询、Java 运行时下载以及 DECIMER 图片上传都会被拒绝（见 [operations](../skill/chemdraw/references/operations.md#environment-variables)）。
 
 ## MCP（可选）
 
