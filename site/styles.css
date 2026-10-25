@@ -529,6 +529,13 @@ h3 { font-size: 1.08rem; line-height: 1.4; margin: 0 0 6px; letter-spacing: -.00
 @media (max-width: 900px) { .caps { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 480px) { .caps div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
 
+/* Calculator: text on the left, a screenshot of the page on the right (the layout of .how) */
+.head ul { margin: 18px 0 0; padding-left: 1.1rem; color: var(--ink-2); font-size: 1rem; line-height: 1.55; }
+.head li + li { margin-top: 8px; }
+.calc-shot { margin: 0; }
+.calc-shot img { width: 100%; height: auto; display: block; border: 1px solid var(--rule); border-radius: 8px; background: var(--plate); }
+.calc-shot figcaption { margin-top: 12px; font-size: .9rem; line-height: 1.55; color: var(--ink-2); }
+
 /* Quick start */
 .start { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(32px, 5vw, 72px); align-items: start; }
 @media (max-width: 900px) { .start { grid-template-columns: minmax(0, 1fr); } }

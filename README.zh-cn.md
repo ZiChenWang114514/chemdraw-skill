@@ -12,8 +12,9 @@
 <h3 align="center">让 Claude Code、Codex 等任意 AI 编程 Agent 都能产出可编辑的 ChemDraw 化学图</h3>
 
 <p align="center">
-  绘制化学结构、复刻论文图、把表格数据生成 SAR 图，并在 Word 和 PowerPoint 中嵌入可编辑的 ChemDraw 对象。<br>
-  Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 以及任何能执行命令行的 Agent 都能使用。
+  画化学结构、复刻论文图、用表格数据生成 SAR 图，在 Word 和 PowerPoint 里放入可编辑的 ChemDraw 对象。
+  同一个 Skill 还能算反应的投料量、写表征段落、给反应做原子映射。<br>
+  Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 以及任何能执行命令行的 Agent 都可以用。
 </p>
 
 <p align="center">
@@ -27,17 +28,17 @@
 <p align="center">
   <a href="README.md">English</a> · <b>简体中文</b>
   <br>
-  <a href="#快速开始">快速开始</a> · <a href="#作品展示">作品展示</a> · <a href="#支持的工作">支持的工作</a> · <a href="#主打案例">案例</a> · <a href="#平台支持">平台</a> · <a href="#常见问题">常见问题</a> · <a href="docs/guide.zh-cn.md">指南</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/">官网</a>
+  <a href="#快速开始">快速开始</a> · <a href="#作品展示">作品展示</a> · <a href="#支持的工作">支持的工作</a> · <a href="#反应计算器与化学报告">计算器</a> · <a href="#主打案例">案例</a> · <a href="#平台支持">平台</a> · <a href="#常见问题">常见问题</a> · <a href="docs/guide.zh-cn.md">指南</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/">官网</a>
 </p>
 
 <br>
 
 <table>
   <tr>
-    <td width="25%" valign="top"><b>结构有据可查</b><br><sub>结构来自数据库、ChemScript、OPSIN 或 DECIMER，绝不凭空编写 SMILES。</sub></td>
-    <td width="25%" valign="top"><b>真正可编辑</b><br><sub>所有结果都是原生 CDXML：原子、键和文字都能在 ChemDraw 里继续修改。</sub></td>
-    <td width="25%" valign="top"><b>单一入口</b><br><sub>一个 <code>cdx.py</code> 命令适用于任何 Agent，MCP 只是可选项。</sub></td>
-    <td width="25%" valign="top"><b>原生品质</b><br><sub>每张图都由 ChemDraw 本身渲染和保存，保存后还会回读核对化学结构。</sub></td>
+    <td width="25%" valign="top"><b>结构有来源</b><br><sub>结构来自数据库、OPSIN、ChemScript 或 DECIMER，Agent 不凭记忆写 SMILES。</sub></td>
+    <td width="25%" valign="top"><b>输出可编辑</b><br><sub>结果是 CDXML，原子、键和文字之后仍能在 ChemDraw 里修改。</sub></td>
+    <td width="25%" valign="top"><b>一个命令</b><br><sub><code>cdx.py</code> 在任何 Agent 里运行所有工具，MCP 可选。</sub></td>
+    <td width="25%" valign="top"><b>保存后核对</b><br><sub>ChemDraw 渲染并保存文件，再把化学结构读回来与输入比较。</sub></td>
   </tr>
 </table>
 
@@ -116,6 +117,8 @@ python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
 > [!NOTE]
 > 内置工具包目前尚不支持 Python 3.14 及更新版本。如果你只有 3.14，请先安装 3.12（例如 `uv python install 3.12`）或用 `--python <解释器>` 指定。
 
+想先试计算器而不是画图，可以运行 `python ~/.claude/skills/chemdraw/scripts/cdx.py calc`（[说明](#反应计算器与化学报告)）。
+
 <details>
 <summary><b>选择 Agent 与安装位置</b></summary>
 <br>
@@ -158,7 +161,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
-| **性质表与反应核对** | 任意结构的分子式、精确质量、ESI 加合物 m/z、同位素峰型、logP 与类药性；反应的原子和电荷配平检查，给出缺失的副产物、建议系数以及当量/收率表；反应计算器页面（`cdx.py calc`）：在 ChemDraw 中画出反应，编辑当量、mmol、质量和体积，溶剂浓度、收率与原子经济性随之实时更新，并可把用量写回 ChemDraw 流程图的结构下方；高分辨质谱表征句（`HRMS (ESI) m/z calcd for ...`）以及完整的 ACS 表征段落（外观、Rf、熔点、比旋光度、IR、核磁、HRMS），并按结构核对氢积分与碳信号数，只提示不一致，不会擅自改数据；计算器页面与原料表中的试剂安全提示（来自内置常用试剂表的 GHS 图标、H 说明、沸点与闪点，表中没有的物质一律标为“未收录”）；一批反应一次生成实验部分的原料表与操作句；多步路线的总收率、累计过程质量强度（PMI）与 E 因子，计算器页面也显示 PMI；反应原子映射（内置子结构方法，遇到无法判定的原子会如实报告歧义而不是猜测；也可一条命令可选安装 RXNMapper 与 LocalMapper 两个学习型模型，并并排比较各方法的结果；多个反应一次映射完成，原料表还可以列出每个反应的键变化；映射结果还可以给出反应中心的反应 SMARTS、仅凭结构判断反应类型（判断不了就如实标为“未分类”），并把映射编号写在流程图副本的对应原子旁）；把 CDXML/SDF 中的全部结构导出为 SMILES 和 InChI；由 ChemDraw 生成结构名称并回读校验。 |
+| **计算与报告** | 反应计算器（用量、收率、过程质量强度）；HRMS 表征句与完整表征段落；试剂安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
 | **谱图与科研绘图** | 对已处理的一维 NMR 数据寻峰并做指定区间积分；把数值数据输出为可编辑曲线。 |
 | **专利 Markush 通式** | 从专利图片和权利要求文本提取通式：R 基、可变环、多中心键与重复次数，保存为 CXSMILES、V3000 molfile 和沿用原图版式的可编辑绘图。 |
@@ -189,6 +192,55 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 ### 从 CSV / Excel 生成 SAR 图和底物拓展图
 
 将 CSV/XLSX 与可信结构生成底物拓展图或完整结构 SAR 图。化合物 ID 绑定结构和实验指标；在 ChemDraw 手工编辑后更新数据或替换结构，保留无关布局与注释；无法唯一匹配时输出冲突草稿。详见[使用指南与示例](skill/chemdraw/references/data-driven-figures.md)。读取 XLSX 需要工具包的 `publication` 可选依赖。
+
+## 反应计算器与化学报告
+
+这些工具从你给出的结构（SMILES、MOL 或 SDF、CDXML）出发，用 RDKit 做计算和整理。它们不识别、也不修改结构，只有命名工具需要 ChemDraw。每个工具既在回复里给出结果，也可以写成新文件，已有文件不会被覆盖。
+
+| 想做的事 | 工具 | 得到什么 |
+| --- | --- | --- |
+| 每种试剂和溶剂该称多少 | `cdx.py calc`、`reaction_calculator` | 可编辑的用量表、收率、原子经济性、PMI |
+| 把用量写到流程图的结构下方 | 带 `scheme_output` 的 `reaction_calculator` | 加上数字的 CDXML 副本 |
+| 一批反应的 SI 原料表 | `si_materials_tables` | Markdown、CSV、可打印 HTML 或 JSON，最多 100 个反应 |
+| HRMS 与表征文字 | `hrms_line`、`characterization_text` | `HRMS (ESI) m/z calcd for ...` 与按 ACS 顺序排列的段落 |
+| 多步路线的总收率和 PMI | `route_summary` | 线性或汇聚路线的一张表 |
+| 哪个原子变成哪个原子 | `map_reaction_atoms` | 原子映射、键变化、反应中心 SMARTS、反应类型 |
+| 分子式、质量、加合物、logP | `molecule_report` | 性质表 |
+| 反应是否配平 | `check_reaction_balance` | 缺失的副产物与建议系数 |
+| 文件里的全部结构 | `export_structures` | SMILES、InChI、CSV 或 SDF |
+
+### 反应计算器
+
+```bash
+python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1" --scale 1
+```
+
+命令会在浏览器里打开一个页面（由 127.0.0.1 提供，关闭标签页几分钟后自动停止）。**Draw in ChemDraw** 会在 ChemDraw 里打开画布，保存后点 **Load drawing** 把反应读回来。直接改当量、mmol、质量或体积中的任何一格，其余数值跟着变。页面显示溶剂浓度、收率、原子经济性、反应质量效率和过程质量强度（PMI；E 因子等于 PMI 减 1）。质量未知的溶剂不计入 PMI，页面会说明。你没有给出的用量使用默认值（试剂 1 当量、金属催化剂 5 mol %、0.2 M），并标明是假设值。**Amounts into scheme** 会把数字写到你的 ChemDraw 流程图副本的结构下方。
+
+常见溶剂和试剂会带 **Danger** 或 **Warning** 标记，来自内置的约五十种物质的表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示为“未收录”，而不是安全。这张表只是提醒，以供应商的 SDS 为准。
+
+<p align="center"><img src="assets/readme/gallery/calculator.png" width="80%" alt="苯甲醇与乙酰氯的反应计算器页面：可编辑的用量、Danger 与 Warning 标记、PMI 和收率，以及一句实验写法"></p>
+
+### 表征文字
+
+`characterization_text` 为每个化合物写一段，顺序遵循 ACS：外观、Rf、熔点、比旋光度、IR、1H 与 13C 核磁、其他核、HRMS。你给出的数字原样输出，没有提供的内容直接省略。它还会把 1H 积分和 13C 信号数与结构对照，不一致时给出警告，但不会为了通过检查去改任何一个峰。
+
+### 原子映射与反应类型
+
+`map_reaction_atoms` 自带子结构方法。产物原子可能来自多个反应物原子时，它会如实指出，而不替你选一个。RXNMapper 和 LocalMapper 两个学习型映射器可用 `cdx.py install-mappers` 安装；`compare: true` 会把已安装的方法并排比较。多个反应可以一次映射，这很重要，因为每个学习型映射器启动一次要 10 到 35 秒。
+
+映射完成后还可以要求：反应中心的反应 SMARTS（`template`）、仅凭结构判断的反应类型（`classify`，19 个模板，判断不了就是“未分类”），以及把映射编号写在你的图副本的原子旁（`map_numbers_into_scheme`）。遇到 H2N 这类拥挤的原子标签，请看一下图。
+
+### 路线汇总
+
+`route_summary` 按顺序接收合成的各步，每步给出收率以及投入和得到的质量（也可以给计算器格式的反应）。它返回最长线性序列上的总收率和累计 PMI，并把每一步缩放到下一步实际消耗的量。汇聚路线通过 `into` 字段表示。缺少的数字得到 `null` 和警告，不会猜。后处理和纯化溶剂只有算进投入质量才会计入。
+
+```text
+用 ChemDraw Skill 为这个酰胺偶联打开反应计算器，并把用量写到结构下面。
+根据这些核磁峰和这个 HRMS 数值，写出化合物 3a 的表征段落。
+```
+
+完整的输入和规则见[化学报告指南](skill/chemdraw/references/chemistry-reports.md)。
 
 ## 主打案例
 
@@ -231,13 +283,13 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 
 ### 论文反应路线
 
-**将论文反应图转为可编辑的 ChemDraw 文档。** 示例保留了原图中的五个结构、反应条件、产率和化合物编号。
+把一张已发表的反应图复刻成可编辑的 ChemDraw 文档。示例保留了原图中的五个结构、反应条件、产率和化合物编号。
 
 **论文原图**
 
 ![论文原图，包含 13a、14、15、16 及 17a/17b 共用结构](assets/readme/paper-replica/original.png)
 
-**可编辑复刻｜ChemDraw 原生输出**
+**可编辑复刻，由 ChemDraw 保存**
 
 ![ChemDraw 可编辑复刻，保留原图取向、反应条件与化合物编号](assets/readme/paper-replica/replica.png)
 
@@ -422,10 +474,10 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 
 ## 测试与安全
 
-- **CI 全面测试：** 在 Windows 和 Linux 上运行 Skill 测试（Python 3.12，MCP 1.28.1 与 2.0.0），在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做端到端安装测试。ChemDraw、ChemScript 和 Office 原生功能在已授权的 Windows 工作站上测试，macOS AppleScript 路径在 macOS 26.6（Apple 芯片）和 ChemDraw 26.0 上测试。
-- **不会覆盖你的文件：** 工具写入新的输出路径，除非你明确要求，否则拒绝覆盖已有文件。
-- **上传最少：** 图像识别只把选定的图片发送到 DECIMER API；`cdx.py decimer --preflight` 可预览将发送的内容，要求离线时不会上传。
-- **远程访问有防护：** 远程使用 HTTP 服务时必须配置 Bearer 密钥和允许的主机列表，并通过加密隧道或 HTTPS 代理提供服务。详见[安全策略](.github/SECURITY.md)。
+- CI 在 Windows 和 Linux 上运行 Skill 测试（Python 3.12，MCP 1.28.1 与 2.0.0），在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做端到端安装测试。ChemDraw、ChemScript 和 Office 的原生功能在一台已授权的 Windows 工作站上手动测试；macOS 的 AppleScript 路径在 macOS 26.6（Apple 芯片）和 ChemDraw 26.0 上测试过。
+- 工具只写入新的输出路径，除非你明确要求，否则不会覆盖已有文件。
+- 图像识别只把选定的图片发送到 DECIMER API。`cdx.py decimer --preflight` 可以先看将要发送什么，要求离线时不上传。各类报告和映射器在本地运行；计算器只有在名称不在内置表中时才会联网查询，`--offline` 可关闭。
+- 远程使用 HTTP 服务时需要 Bearer 密钥和允许的主机列表，并应放在加密隧道或 HTTPS 代理之后。详见[安全策略](.github/SECURITY.md)。
 
 ## 常见问题
 
@@ -450,6 +502,22 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <br>
 
 可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图。稳定的化合物 ID 保持数据对应，更新项目时保留无关的手工布局修改。详见[数据驱动绘图指南](skill/chemdraw/references/data-driven-figures.md)。
+
+</details>
+
+<details>
+<summary><b>能帮我算每种试剂该称多少吗？</b></summary>
+<br>
+
+可以。`cdx.py calc` 会打开计算器页面，画出或粘贴反应后，改当量、mmol、质量或体积中的任何一个，浓度、收率、原子经济性和 PMI 随之变化。用量可以写到 ChemDraw 流程图的结构下方。你没有给出的用量使用默认值，并标明是假设值。详见[反应计算器与化学报告](#反应计算器与化学报告)。
+
+</details>
+
+<details>
+<summary><b>安全信息可以信到什么程度？</b></summary>
+<br>
+
+它只是提醒，来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示“未收录”，不会显示成安全。表中的数值按常见供应商的分类写成，各家会有出入，请以你实际使用的产品的 SDS 为准。
 
 </details>
 
