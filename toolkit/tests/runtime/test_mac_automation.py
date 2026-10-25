@@ -277,7 +277,9 @@ class SessionLaunchTests(unittest.TestCase):
                 mock.patch.object(mac_automation, "bundle_identifier", return_value="com.revvity.ChemDraw"), \
                 mock.patch.object(mac_automation, "is_running", side_effect=lambda _bundle: next(running)), \
                 mock.patch.object(mac_automation, "application_pid", return_value=4242), \
+                mock.patch.object(mac_automation, "register_launch"), \
                 mock.patch.object(mac_automation.subprocess, "run") as run:
+            # register_launch would probe pid 4242 and write under the user's home folder.
             session = mac_automation.MacChemDrawSession(timeout_seconds=5)
             session.start()
 
