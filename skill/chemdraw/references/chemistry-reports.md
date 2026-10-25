@@ -1,12 +1,15 @@
 # Chemistry reports
 
-Five tools answer the questions people ask after a structure is drawn: what are its numbers, does the reaction balance, how much of everything do I weigh out, what is in this file, and what is it called. They read grounded structures (SMILES, MOL/SDF, CDXML fragments) and never recognize, guess or edit a structure. The first four compute with RDKit; the name tool asks ChemDraw. Exact signatures: [mcp-signatures.md](mcp-signatures.md).
+These tools answer the questions people ask after a structure is drawn: what are its numbers, how do I write its HRMS line, does the reaction balance, which atom becomes which, how much of everything do I weigh out (for one reaction or a whole SI), what is in this file, and what is it called. They read grounded structures (SMILES, MOL/SDF, CDXML fragments) and never recognize, guess or edit a structure. All compute with RDKit except the name tool, which asks ChemDraw. Exact signatures: [mcp-signatures.md](mcp-signatures.md).
 
 | Question | Tool |
 | --- | --- |
 | Formula, masses, expected MS peaks, drug-likeness for one or many structures | `molecule_report` |
 | Does this reaction conserve atoms and charge? What is missing? Amounts for a given scale? | `check_reaction_balance` |
-| How much of each reagent, solvent and product for this reaction? A page I can draw in and type amounts into | `reaction_calculator`, `cdx.py calc` |
+| How much of each reagent, solvent and product for this reaction? A page I can draw in and type amounts into; amounts written under the structures of a ChemDraw scheme | `reaction_calculator` (`scheme_output`), `cdx.py calc` |
+| An HRMS characterization sentence (`HRMS (ESI) m/z calcd for ... [M+Na]+ ...`) | `hrms_line` |
+| The experimental-section materials table and procedure sentence for a batch of reactions | `si_materials_tables` |
+| Which reactant atom does each product atom come from? What bonds change? | `map_reaction_atoms` |
 | Give me every structure in this CDXML/SDF as SMILES, InChI or a table | `export_structures` |
 | What is the name of this structure? | `structure_to_name` (needs ChemScript or ChemDraw for macOS) |
 
@@ -63,6 +66,49 @@ An unbalanced result is a finding about the species as drawn. After an image rec
 - `cdx.py calc [REACTION] [--scale MMOL] [--molarity M] [--offline] [--no-open]` opens the page in the browser from a local server (127.0.0.1, a per-run token in the address, stops a few minutes after the page closes). **Draw in ChemDraw** opens a canvas in ChemDraw (a scheme of the current reaction, or a blank page); after saving it with Ctrl+S, **Load drawing** reads the reaction back and keeps the amounts already typed for structures that are still there. REACTION may be a reaction SMILES, a `.cdxml` file or a JSON record file; with none the page starts empty. `--offline` keeps name lookups local; otherwise a name that is not in the built-in table may be looked up online. The command runs until the page is closed, so start it in the background and give the user the address on its first output line.
 
 The page needs no ChemDraw to calculate; ChemDraw is needed only for the drawing button. Do not invent a molecular weight or a density: when a species is not in the table, ask or take it from the user's data.
+
+### Amounts into a ChemDraw scheme
+
+Add `scheme_output` (a new `.cdxml` path, never overwritten) to `reaction_calculator`, or press **Amounts into scheme** in the `cdx.py calc` page, to write the calculated amounts as text under the drawn structures: `1.00 equiv` / `1.00 mmol` / `108 mg` (`scheme_show` picks any of `equiv`, `mmol`, `mass`, `volume`). Reactants and products get their labels below, agents above the arrow. The source drawing is copied, not modified; structures are matched to rows by their non-isomeric canonical SMILES, and rows with no drawn structure (solvents in a user-drawn file) come back as `unplaced` instead of being guessed onto the canvas. A scheme built from the state also gets the solvent line under the arrow. Check the result with `render_cdxml_files` or in ChemDraw before sending it on.
+
+## HRMS characterization lines
+
+```json
+{"molecules": [{"smiles": "CC(=O)OCc1ccccc1", "label": "3a", "adduct": "[M+Na]+", "found_mz": 173.0570}],
+ "options": {"ionization": "ESI"}}
+```
+
+Per structure the result holds the ion formula, the calculated m/z and the line, for example `HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570` (the ion formula is in Hill order with the attached ion last). The m/z is the monoisotopic mass plus the adduct atoms minus the electron mass; `options.electron_mass: false` ignores the electron, as some calculators do, so say which convention a journal expects. Defaults: `[M+H]+` (`[M-H]-` with `mode: "negative"`, the molecular ion for `ionization: "EI"`, a charged structure is its own ion). A measured `found_mz` adds the error in ppm; more than 5 ppm is flagged. `output_path` ends in `.txt`, `.md`, `.csv` or `.json`. The numbers are calculated: never write a "found" value the user did not give.
+
+## Materials tables for a batch of reactions
+
+```json
+{"reactions": [{"label": "3a", "reaction": "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1"},
+               {"label": "3b", "reaction": {"cdxml": "work/scheme.cdxml"}}],
+ "options": {"scale_mmol": 1.0, "molarity": 0.1},
+ "output_path": "work/si_materials.html"}
+```
+
+Up to 100 reactions per call; each entry is a reaction string, a record, `{"cdxml": path}` (one table per reaction step, labelled `<file>, step N`) or `{"label", "reaction", "options"}`. Options are those of `reaction_calculator` plus `hrms` (default true, the first product's HRMS line), `adduct` and `ionization`. Each table lists material, role, MW, equiv, mmol, mass and volume, the concentration, atom economy and reaction mass efficiency, the product's isolated mass and yield and its HRMS line, and a procedure sentence. A reaction that cannot be read is reported with its error while the rest continue. `output_path` ends in `.md`, `.csv` (long format, one row per material), `.html` (printable, no external loads) or `.json`. **Amounts the user did not give are assumed defaults, listed per reaction in `warnings`; say so.**
+
+## Atom mapping
+
+```json
+{"reaction": "CC(=O)O.OCC>>CC(=O)OCC", "options": {"method": "auto", "compare": false, "include_agents": false},
+ "output_path": "work/mapping.svg"}
+```
+
+`map_reaction_atoms` pairs product heavy atoms with reactant atoms. Hydrogens are not mapped, and the result is bookkeeping, not a mechanism: pericyclic reactions and rearrangements can be mapped differently from the textbook arrows. Three `method` values:
+
+- `mcs` (built in, nothing to install): repeated maximum-common-substructure matching (rings stay rings unless nothing else is left), keeping the pairing with the fewest unmapped product atoms, then the fewest bond changes. It lists atoms with several equally good sources instead of guessing.
+- `localmapper` and `rxnmapper` (optional learned mappers, run locally, nothing is uploaded): LocalMapper is trained on human-corrected reaction-centre labels; RXNMapper reads atom pairing from a transformer's attention. Both decide every atom. RXNMapper returns a `confidence` (a warning is added below 0.8; it is often low for cross-couplings and olefinations) and LocalMapper a `confident` flag: read them before trusting the map.
+- `auto` (default): LocalMapper, then RXNMapper, then `mcs`; a mapper that fails falls back with a warning. `available_methods` in the result lists what is installed. Naming an uninstalled mapper is an error that points to the install command.
+
+Install the learned mappers once with `cdx.py install-mappers` (or `rxnmapper` / `localmapper` alone; `--dry-run` shows the plan, `--status` what is installed), or with `scripts/install.py --runtime --mapping --apply`. Each gets its own environment beside the runtime, so their pinned PyTorch stacks never disturb it: several hundred MB each, about 30 s of start-up per call, and LocalMapper needs Python 3.10 to 3.12 (a suitable interpreter is found, or fetched through `uv` when present). `compare: true` runs every installed method and adds a `comparison` with the product atoms they disagree on; where the methods differ, show the user both and let them decide.
+
+- `mapped_reaction` is the reaction SMILES with atom map numbers; `map` is the per-atom table; `bond_changes` lists formed, broken and order-changed bonds; `unmapped_reactant_atoms` are the leaving groups.
+- `status`: `complete`; `incomplete` when product atoms have no source in the reactants (a reagent may be missing, try `include_agents`, or the reaction is unbalanced); `ambiguous` (`mcs` only) when product atoms could come from several reactant atoms at the same cost. Ambiguous atoms are left unmapped and listed with their candidates; `resolve_ambiguity: true` accepts a fixed tie-break and warns. **Do not present a tie-break as the true mapping, and do not resolve an ambiguity silently.**
+- `output_path` ends in `.json`, `.smi` (the mapped reaction SMILES) or `.svg` (a picture); at most 120 heavy atoms per side.
 
 ## Export every structure in a file
 

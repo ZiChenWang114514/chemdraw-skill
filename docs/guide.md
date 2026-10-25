@@ -22,6 +22,7 @@ The installer stages and verifies each copy, moves an existing installation to t
 
 ```bash
 python3 scripts/install.py --agent claude agents --runtime --opsin --apply   # also fetch the OPSIN JAR (SHA-256 verified)
+python3 scripts/install.py --runtime --mapping --apply                       # optional: RXNMapper and LocalMapper atom mapping (several hundred MB)
 python3 skill/chemdraw/scripts/cdx.py doctor --native --office --chemscript
 ```
 

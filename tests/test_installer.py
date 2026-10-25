@@ -247,6 +247,16 @@ class InstallerTests(unittest.TestCase):
         install_one.assert_not_called()
         self.assertEqual(install_runtime.call_args.args[1], install.SOURCE)
 
+    def test_mapping_flag_plans_the_optional_atom_mapping_backends(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            self.assertEqual(json.loads(run("--runtime-only", home=home).stdout)["mapping"], {"backends": []})
+            both = json.loads(run("--runtime-only", "--mapping", home=home).stdout)
+            self.assertEqual(both["mapping"]["backends"], ["rxnmapper", "localmapper"])
+            one = json.loads(run("--mapping", "localmapper", home=home).stdout)
+            self.assertEqual(one["mapping"]["backends"], ["localmapper"])
+            self.assertTrue(one["runtime"], "--mapping needs the runtime, so it is planned too")
+
     def test_destination_inside_the_source_is_refused(self) -> None:
         result = run("--destination", str(ROOT / "skill" / "chemdraw" / "nested"))
         self.assertNotEqual(result.returncode, 0)

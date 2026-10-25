@@ -15,11 +15,17 @@ every installed copy and into this repository checkout (ignored by Git).
 --opsin downloads the OPSIN command-line JAR (pinned version, SHA-256 verified) into
 the shared data folder beside the venv, where the runtime diagnostics find it.
 
+--mapping adds the optional machine-learning atom-mapping backends (RXNMapper, LocalMapper;
+PyTorch based). Each gets its own environment beside the runtime so their pinned numeric
+stacks cannot disturb it. Nothing needs them: map_reaction_atoms falls back to its built-in
+substructure method. `scripts/cdx.py install-mappers` does the same for an existing runtime.
+
 Examples:
     python3 scripts/install.py                                   # proposal for --agent claude
     python3 scripts/install.py --agent claude agents --runtime --apply
     python3 scripts/install.py --runtime --opsin --apply           # also fetch OPSIN
     python3 scripts/install.py --runtime-only --apply              # runtime for this checkout only
+    python3 scripts/install.py --runtime --mapping --apply         # also RXNMapper + LocalMapper
     python3 scripts/install.py --agent copilot --project ~/src/app --apply
     python3 scripts/install.py --destination /opt/skills/chemdraw --apply
 """
@@ -70,6 +76,19 @@ OPSIN_SHA256 = 'c2e29326c281f87b59a05d934d8589adac6e9d17b95b984931b3e739111b360f
 def default_extras(platform=sys.platform):
     chemdraw = platform in ('win32', 'darwin')
     return [e for e in ALL_EXTRAS if chemdraw or e not in CHEMDRAW_EXTRAS]
+
+
+def mapping_backends(ns):
+    """Backends named by --mapping: [] when absent, both when given without names or with `all`."""
+    if ns.mapping is None:
+        return []
+    return list(dict.fromkeys(ns.mapping)) if ns.mapping and 'all' not in ns.mapping else ['rxnmapper', 'localmapper']
+
+
+def install_mappers(python, backends):
+    """Install the optional atom-mapping backends, each in its own environment, via the Skill's cdx.py."""
+    command = [str(python), str(SOURCE / 'scripts' / 'cdx.py'), 'install-mappers', *backends]
+    return subprocess.run(command, stdout=sys.stderr).returncode
 
 
 def _load(name, path):
@@ -292,6 +311,10 @@ def parse(argv):
     p.add_argument('--runtime-dir', help=f'venv location (default: {cdx.default_runtime_dir()})')
     p.add_argument('--python', help='base interpreter for a new venv (64-bit Python 3.10-3.13)')
     p.add_argument('--extras', nargs='*', help='toolkit extras (default: all that apply to this OS)')
+    p.add_argument('--mapping', nargs='*', choices=['rxnmapper', 'localmapper', 'all'], metavar='BACKEND',
+                   help='also install the optional machine-learning atom-mapping backends, each in its own '
+                        'environment (rxnmapper, localmapper, or all; no name means all; several hundred MB '
+                        'with PyTorch). Without them map_reaction_atoms uses its built-in substructure method')
     p.add_argument('--opsin', action='store_true',
                    help=f'download the OPSIN {OPSIN_VERSION} JAR (SHA-256 verified) next to the shared venv')
     p.add_argument('--toolkit-path', help='toolkit source folder to build the runtime from (default: toolkit/ of this checkout)')
@@ -308,7 +331,7 @@ def main(argv=None):
     ns = parse(argv)
     if not (SOURCE / 'SKILL.md').is_file():
         raise SystemExit(f'Deployable Skill not found: {SOURCE}')
-    if ns.runtime_only:
+    if ns.runtime_only or ns.mapping is not None:
         ns.runtime = True
     targets = [] if ns.runtime_only else destinations(ns)
     backups = backup_root(ns)
@@ -324,6 +347,7 @@ def main(argv=None):
         'installations': [{'destination': str(t), 'existing': t.exists()} for t in targets],
         'runtime': runtime_plan(ns, targets),
         'opsin': opsin_plan(ns),
+        'mapping': {'backends': mapping_backends(ns)},
         'status': 'proposal',
     }
     if not ns.apply:
@@ -348,6 +372,14 @@ def main(argv=None):
             code = 1
     if ns.runtime and runtime.get('status') == 'installed':
         runtime['local_config'] = [str(p) for p in record_runtime([*targets, SOURCE], runtime['python'])]
+    mapping = record['mapping']
+    if mapping['backends']:
+        if runtime.get('status') == 'installed':
+            mapping['status'] = 'installed' if install_mappers(runtime['python'], mapping['backends']) == 0 else 'failed'
+        else:
+            mapping['status'] = 'skipped: the runtime was not installed'
+        if mapping['status'] != 'installed':
+            code = 1
     opsin = record['opsin']
     if opsin['action'] == 'download':
         try:

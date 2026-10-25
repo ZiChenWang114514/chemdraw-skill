@@ -666,6 +666,15 @@ def cmd_calc(ns):
                            env=_chemscript_env())
 
 
+def cmd_install_mappers(ns):
+    """Install RXNMapper / LocalMapper, each in its own environment beside the runtime (several hundred MB).
+
+    map_reaction_atoms works without them (built-in substructure method); with them, method auto
+    prefers the learned mappers. The weights ship inside the packages, so mapping stays local.
+    """
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.mapping_backends', *ns.rest], env=_chemscript_env())
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     # `sig` reads a generated reference and help is static: both work before a runtime exists.
@@ -744,6 +753,11 @@ def main(argv=None):
                                     '[--offline] [--no-open] (runs until the page is closed; start it in the background)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_calc)
+    s = sub.add_parser('install-mappers', help='one-click install of the optional RXNMapper / LocalMapper atom-mapping '
+                                               'backends beside the runtime: cdx.py install-mappers [rxnmapper] [localmapper] '
+                                               '[--dry-run] [--status] (map_reaction_atoms works without them)')
+    s.add_argument('rest', nargs=argparse.REMAINDER)
+    s.set_defaults(fn=cmd_install_mappers)
     s = sub.add_parser('regen-signatures', help='rewrite references/mcp-signatures.md from the live registry '
                                                 '(and, in a checkout, the toolkit fingerprint in runtime.json)')
     s.set_defaults(fn=cmd_regen_signatures)
