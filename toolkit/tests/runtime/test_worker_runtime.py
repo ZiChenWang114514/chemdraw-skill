@@ -354,6 +354,31 @@ class WorkerRuntimeTests(unittest.TestCase):
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["error"]["code"], "unknown_tool")
 
+    def test_local_image_recognition_imports_tensorflow_before_rdkit(self):
+        # With RDKit or OpenCV loaded first, the DECIMER SavedModel loads about four times slower.
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake = Path(temp_dir) / "tensorflow"
+            fake.mkdir()
+            probe = Path(temp_dir) / "probe.txt"
+            (fake / "__init__.py").write_text(
+                "import os, sys\n"
+                "with open(os.environ['TF_ORDER_PROBE'], 'a') as f:\n"
+                "    f.write('rdkit' if 'rdkit' in sys.modules else 'first')\n",
+                encoding="utf-8",
+            )
+            env = dict(os.environ, TF_ORDER_PROBE=str(probe))
+            env["PYTHONPATH"] = os.pathsep.join(filter(None, [temp_dir, env.get("PYTHONPATH")]))
+            for tool in ("extract_structures_from_image", "resolve_name"):
+                subprocess.run(
+                    [sys.executable, "-m", "cdxml_toolkit.mcp_runtime.tool_worker"],
+                    input=json.dumps({"tool": tool, "args": [], "kwargs": {"image_path": ""}}),
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
+                    env=env,
+                )
+            self.assertEqual(probe.read_text(encoding="utf-8"), "first")
+
     def test_registry_rejects_collisions_and_applies_official_override(self):
         from cdxml_toolkit.mcp_runtime import tool_registry
         specs = tool_registry.build_registry()
