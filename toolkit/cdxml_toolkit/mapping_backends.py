@@ -161,11 +161,14 @@ def _create(name: str, env: Path, log) -> Path:
 
 
 def _pip(python, requirements, log):
+    """Install into ``python``'s environment; PyTorch wheels are large, so a slow link gets time and retries."""
     pip = subprocess.run([str(python), '-m', 'pip', '--version'], capture_output=True).returncode == 0
     if not pip and shutil.which('uv'):  # environments made by uv carry no pip
-        subprocess.run(['uv', 'pip', 'install', '--python', str(python), *requirements], check=True, stdout=log)
+        subprocess.run(['uv', 'pip', 'install', '--python', str(python), *requirements], check=True, stdout=log,
+                       env={**os.environ, 'UV_HTTP_TIMEOUT': '300'})
     else:
-        subprocess.run([str(python), '-m', 'pip', 'install', *requirements], check=True, stdout=log)
+        subprocess.run([str(python), '-m', 'pip', 'install', '--default-timeout', '120', '--retries', '8',
+                        *requirements], check=True, stdout=log)
 
 
 def install(name: str, *, dry_run: bool = False, log=None) -> dict:
@@ -185,7 +188,12 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
     try:
         python = interpreter(env) or _create(name, env, log)
         _pip(python, spec['requirements'], log)
-    except (OSError, RuntimeError, subprocess.CalledProcessError) as exc:
+    except subprocess.CalledProcessError as exc:
+        report.update(ok=False, error=f'installation failed: a step exited with status {exc.returncode} (see the '
+                                      'messages above), usually a download that timed out; run the same command '
+                                      'again (finished downloads are cached)')
+        return report
+    except (OSError, RuntimeError) as exc:
         report.update(ok=False, error=f'installation failed: {exc}')
         return report
     try:

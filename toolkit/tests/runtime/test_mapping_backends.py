@@ -175,6 +175,36 @@ def test_install_builds_a_separate_environment_installs_pinned_requirements_and_
     assert pip[0].startswith(str(tmp_path / 'localmapper'))  # never the runtime's own interpreter
 
 
+def test_pip_gets_a_long_timeout_and_retries_for_the_large_downloads(monkeypatch):
+    commands = []
+    monkeypatch.setattr(mapping_backends.subprocess, 'run', lambda command, **kw: commands.append(command) or
+                        mapping_backends.subprocess.CompletedProcess(command, 0, '', ''))
+    mapping_backends._pip('/env/bin/python', ['torch==2.3.0'], mapping_backends.subprocess.DEVNULL)
+    pip = [c for c in commands if c[1:4] == ['-m', 'pip', 'install']][0]
+    assert pip[pip.index('--default-timeout') + 1] == '120' and int(pip[pip.index('--retries') + 1]) >= 5
+    assert pip[-1] == 'torch==2.3.0'
+
+
+def test_a_failed_download_is_reported_with_how_to_retry(tmp_path, monkeypatch):
+    monkeypatch.setenv('CHEMDRAW_MAPPER_HOME', str(tmp_path))
+
+    def failing(command, **kwargs):
+        if command[1:3] == ['-m', 'venv']:
+            (tmp_path / 'rxnmapper' / ('Scripts' if sys.platform == 'win32' else 'bin')).mkdir(parents=True)
+            (tmp_path / 'rxnmapper' / ('Scripts' if sys.platform == 'win32' else 'bin') /
+             ('python.exe' if sys.platform == 'win32' else 'python3')).write_text('')
+            return mapping_backends.subprocess.CompletedProcess(command, 0, '', '')
+        if command[1:4] == ['-m', 'pip', 'install']:
+            raise mapping_backends.subprocess.CalledProcessError(2, command)
+        return mapping_backends.subprocess.CompletedProcess(command, 0, '', '')
+
+    monkeypatch.setattr(mapping_backends, 'find_base', lambda name: '/usr/bin/python3.12')
+    monkeypatch.setattr(mapping_backends.subprocess, 'run', failing)
+    report = mapping_backends.install('rxnmapper', log=mapping_backends.subprocess.DEVNULL)
+    assert report['ok'] is False
+    assert 'status 2' in report['error'] and 'run the same command again' in report['error']
+
+
 def test_install_reports_a_missing_python_instead_of_raising(tmp_path, monkeypatch):
     monkeypatch.setenv('CHEMDRAW_MAPPER_HOME', str(tmp_path))
     monkeypatch.setattr(mapping_backends, 'find_base', lambda name: None)
