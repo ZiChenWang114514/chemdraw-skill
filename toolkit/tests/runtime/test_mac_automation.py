@@ -101,6 +101,59 @@ class FontSubstitutionTests(unittest.TestCase):
         self.assertNotIn("SimSun", self.path.read_text(encoding="utf-8"))
 
 
+def _cdx_with_fonts(fonts) -> bytes:
+    """A minimal CDX: document > font table, one page with a caption property, end."""
+    table = struct.pack("<HH", 0, len(fonts))
+    for font_id, charset, name in fonts:
+        raw = name.encode("cp936" if charset == 936 else "latin-1")
+        table += struct.pack("<HHH", font_id, charset, len(raw)) + raw
+    header = b"VjCD0100" + struct.pack("<I", 0x01020304) + bytes(10)
+    page = struct.pack("<HI", 0x8001, 2) + struct.pack("<HH", 0x0700, 3) + b"abc" + b"\0\0"
+    return (header + struct.pack("<HI", 0x8000, 1) + struct.pack("<HH", 0x0100, len(table)) + table
+            + page + b"\0\0")
+
+
+class CdxFontSubstitutionTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.path = Path(self.temp.name) / "input.cdx"
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def _fonts(self):
+        from cdxml_toolkit.chemdraw import style_sheet
+
+        properties = style_sheet._document_properties(self.path.read_bytes())
+        return {font_id: name for font_id, (name, _charset) in style_sheet._font_table(properties[0x0100]).items()}
+
+    def test_missing_fonts_in_a_binary_cdx_are_renamed(self):
+        self.path.write_bytes(_cdx_with_fonts(
+            [(3, 1252, "Arial"), (5, 936, "SimSun"), (6, 936, "\u5b8b\u4f53"), (7, 1252, "Calibri")]))
+
+        changes = mac_automation.substitute_missing_fonts(self.path, available=MAC_FAMILIES)
+
+        self.assertEqual(changes, {"SimSun": "Songti SC", "\u5b8b\u4f53": "Songti SC", "Calibri": "Helvetica Neue"})
+        self.assertEqual(self._fonts(), {3: "Arial", 5: "Songti SC", 6: "Songti SC", 7: "Helvetica Neue"})
+        # Objects after the font table are kept byte for byte.
+        self.assertTrue(self.path.read_bytes().endswith(_cdx_with_fonts([])[-16:]))
+
+    def test_cdx_without_missing_fonts_is_not_rewritten(self):
+        original = _cdx_with_fonts([(3, 1252, "Arial")])
+        self.path.write_bytes(original)
+
+        self.assertEqual(mac_automation.substitute_missing_fonts(self.path, available=MAC_FAMILIES), {})
+        self.assertEqual(self.path.read_bytes(), original)
+
+    def test_staging_substitutes_cdx_fonts_on_macos(self):
+        self.path.write_bytes(_cdx_with_fonts([(5, 936, "SimSun")]))
+        with mock.patch.object(mac_automation, "is_macos", return_value=True), mock.patch.object(
+            mac_automation, "installed_font_families", return_value=MAC_FAMILIES
+        ):
+            native_io.normalize_cdxml_staging(self.path)
+        self.assertEqual(self._fonts(), {5: "Songti SC"})
+
+
 class AutomationHelpersTests(unittest.TestCase):
     def test_save_types_follow_destination_extension(self):
         self.assertEqual(mac_automation.save_type_for(Path("a.PNG")), "PNG")

@@ -47,3 +47,14 @@ def test_official_tool_descriptions_are_dedented():
     description = build_registry()["convert_cdx_cdxml"].description
     assert "\nDirection is detected" in description
     assert "\n    Direction" not in description
+
+
+def test_reference_is_the_same_on_every_host(monkeypatch):
+    from cdxml_toolkit.mcp_runtime import tool_registry
+
+    references = []
+    for platform in ("win32", "darwin", "linux"):
+        monkeypatch.setattr(tool_registry.sys, "platform", platform)
+        references.append(generate_reference.manifest())
+    assert references[1] == references[0]
+    assert references[2] == references[0]

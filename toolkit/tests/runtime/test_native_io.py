@@ -105,6 +105,28 @@ class NativeIOBridgeTests(unittest.TestCase):
             self.assertEqual(raised.exception.error_code, "native_output_invalid")
             self.assertFalse(destination.exists())
 
+    @unittest.skipIf(os.name == "nt", "POSIX file modes")
+    def test_published_native_output_follows_the_umask(self):
+        from io import BytesIO
+        from PIL import Image
+
+        png = BytesIO()
+        Image.new("RGB", (4, 4), "white").save(png, format="PNG")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source.cdxml"
+            destination = root / "result.png"
+            source.write_text(MINIMAL_CDXML, encoding="utf-8")
+            native_io.bridge_file(
+                source, destination,
+                lambda _source, native_destination: native_destination.write_bytes(png.getvalue()),
+                output_kind="png",
+            )
+            umask = os.umask(0)
+            os.umask(umask)
+            # A private 0600 temporary file must not leak into the published artifact.
+            self.assertEqual(destination.stat().st_mode & 0o777, 0o666 & ~umask)
+
     def test_publish_race_preserves_concurrent_destination(self):
         from PIL import Image
 

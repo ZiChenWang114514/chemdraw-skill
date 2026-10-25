@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import redirect_stdout
+import importlib.util
 import inspect
 import json
 import os
@@ -17,6 +18,8 @@ from .resource_lock import ResourceBusyError, native_resource_lock
 
 
 DEFAULT_WORKER_INPUT_BYTES = 16 * 1024 * 1024
+# Tools that load the local DECIMER model, a TensorFlow SavedModel.
+TENSORFLOW_TOOLS = frozenset({"extract_structures_from_image"})
 
 
 def _write_envelope(payload: dict) -> None:
@@ -24,13 +27,18 @@ def _write_envelope(payload: dict) -> None:
     sys.stdout.write("\n")
 
 
+def worker_log_dir() -> Path:
+    """Folder of ``worker-<id>.log`` files (``cdx.py doctor --paths`` prints it)."""
+    base = os.environ.get("LOCALAPPDATA") or os.environ.get("TEMP")
+    if not base and sys.platform == "darwin":
+        # Not $HOME/chemdraw-skill: that is where the repository is usually cloned.
+        return Path.home() / "Library" / "Logs" / "chemdraw-skill"
+    return Path(base or Path.home()) / "chemdraw-skill" / "logs"
+
+
 def _failure_log(exc: BaseException) -> str:
     error_id = uuid.uuid4().hex
-    root = Path(
-        os.environ.get("LOCALAPPDATA")
-        or os.environ.get("TEMP")
-        or Path.home()
-    ) / "chemdraw-skill" / "logs"
+    root = worker_log_dir()
     try:
         root.mkdir(parents=True, exist_ok=True)
         (root / f"worker-{error_id}.log").write_text(
@@ -40,6 +48,21 @@ def _failure_log(exc: BaseException) -> str:
     except OSError:
         pass
     return error_id
+
+
+def _import_tensorflow_first(tool_name: str) -> None:
+    """Import TensorFlow before RDKit and OpenCV for tools that load a SavedModel.
+
+    With either already loaded, the DECIMER model loads about four times slower
+    (65 s instead of 15 s on an arm64 Mac); TensorFlow itself imports in about 2 s.
+    """
+    if tool_name not in TENSORFLOW_TOOLS or importlib.util.find_spec("tensorflow") is None:
+        return
+    os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
+    try:
+        importlib.import_module("tensorflow")
+    except ImportError:
+        pass  # The tool reports the missing dependency itself.
 
 
 def _jsonable(value):
@@ -157,6 +180,7 @@ def main() -> int:
             })
             return 2
         with redirect_stdout(sys.stderr):
+            _import_tensorflow_first(payload["tool"])
             from rdkit import RDLogger
 
             RDLogger.DisableLog("rdApp.*")

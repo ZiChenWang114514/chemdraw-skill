@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import typing
 
-from .tool_registry import build_registry
+from .tool_registry import _resource_class, build_registry
 
 
 def _signature(function) -> str:
@@ -43,7 +43,9 @@ def manifest(profile: str = "full") -> dict:
                 "name": name,
                 "signature": _signature(spec.function),
                 "group": spec.group,
-                "resource_class": spec.resource_class,
+                # The Windows lock contract, whatever the host: macOS also serializes
+                # the ChemScript tools, which would make the reference differ per host.
+                "resource_class": _resource_class(name, "win32"),
                 "timeout_seconds": spec.timeout_seconds,
                 "description": spec.description,
             }

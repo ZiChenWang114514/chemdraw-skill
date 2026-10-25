@@ -7,6 +7,7 @@ from io import StringIO
 import importlib.util
 import inspect
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -548,6 +549,16 @@ class DecimerAPITests(unittest.TestCase):
                         confirm_upload=True,
                     )
             request.assert_not_called()
+
+    @unittest.skipIf(os.name == "nt", "POSIX file modes")
+    def test_written_result_follows_the_umask(self):
+        client = load_client()
+        with tempfile.TemporaryDirectory() as tmp:
+            destination = Path(tmp) / "result.json"
+            client._atomic_write_json(destination, {"ok": True})
+            umask = os.umask(0)
+            os.umask(umask)
+            self.assertEqual(destination.stat().st_mode & 0o777, 0o666 & ~umask)
 
     def test_atomic_write_does_not_clobber_racing_destination(self):
         client = load_client()

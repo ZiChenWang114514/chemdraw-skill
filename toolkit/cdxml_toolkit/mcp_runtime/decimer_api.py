@@ -20,6 +20,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 import uuid
 import warnings
 
+from cdxml_toolkit.mcp_runtime import artifact_safety
 from cdxml_toolkit.resolve.network_policy import OFFLINE_ENV, network_allowed
 
 
@@ -363,6 +364,7 @@ def _atomic_write_json(destination: Path, payload: dict[str, Any]) -> None:
             stream.write(serialized)
             stream.flush()
             os.fsync(stream.fileno())
+        artifact_safety.apply_default_mode(temporary)
         try:
             os.link(temporary, destination)
         except FileExistsError as exc:

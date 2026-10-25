@@ -1552,6 +1552,14 @@ def main():
     os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
     os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 
+    # TensorFlow first: with RDKit or OpenCV loaded before it, the DECIMER
+    # preload below takes about four times longer.
+    if not args.no_preload_decimer:
+        try:
+            import tensorflow  # noqa: F401
+        except ImportError:
+            pass
+
     # Pre-import RDKit and load the reagent DB before the MCP event loop
     # starts.  On some Windows/Python configurations, importing the RDKit C
     # extension from inside the async event loop's thread causes a hang

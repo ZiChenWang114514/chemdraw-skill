@@ -455,6 +455,10 @@ def load_replacement_manifest(
         raise ValueError("Replacement manifest root must be a JSON object")
     if data.get("schema_version") != 1 or isinstance(data.get("schema_version"), bool):
         raise ValueError("Replacement manifest schema_version must be 1")
+    if not data.get("source_sha256"):
+        raise ValueError(
+            "Replacement manifest requires source_sha256; copy it from the inspection manifest.json"
+        )
     if data.get("source_sha256") != source_sha256:
         raise ValueError("Source Office SHA-256 changed after inspection")
     replacements = data.get("replacements")
