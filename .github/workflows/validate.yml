@@ -115,6 +115,15 @@ jobs:
             python "$skill/scripts/check_installation.py"
           done
 
+      - name: Plan and inspect the optional atom-mapping backends
+        shell: bash
+        run: |
+          python scripts/install.py --agent claude --project "$RUNNER_TEMP/project" --runtime --mapping
+          skill="$RUNNER_TEMP/project/.claude/skills/chemdraw"
+          python -I "$skill/scripts/cdx.py" install-mappers --dry-run
+          python -I "$skill/scripts/cdx.py" install-mappers --status
+          python -I "$skill/scripts/cdx.py" call map_reaction_atoms --json '{"reaction": "CC(=O)Cl.CCN>>CC(=O)NCC", "options": {"method": "mcs"}}'
+
   toolkit-tests:
     name: Toolkit on Python ${{ matrix.python-version }}
     runs-on: windows-latest
