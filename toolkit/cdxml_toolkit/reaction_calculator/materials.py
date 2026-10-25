@@ -9,8 +9,10 @@ import csv
 import html
 import io
 
+from . import hazards
+
 COLUMNS = ['reaction', 'material', 'role', 'mw', 'equiv', 'mmol', 'mass_mg', 'volume_ml', 'density_g_ml',
-           'limiting', 'assumed', 'theory_mg', 'actual_mg', 'yield_percent', 'hrms', 'bond_changes']
+           'limiting', 'assumed', 'theory_mg', 'actual_mg', 'yield_percent', 'hrms', 'bond_changes', 'hazards']
 HEAD = ['Material', 'Role', 'MW', 'equiv', 'mmol', 'mass (mg)', 'volume (mL)']
 
 
@@ -91,7 +93,7 @@ def _footer(entry: dict) -> list[str]:
     mapping = entry.get('mapping')
     if mapping:
         lines.append(f"Bond changes ({mapping['title']}): {mapping['summary']}.")
-    return lines
+    return lines + hazards.lines(entry.get('safety') or [])
 
 
 def markdown(entries: list[dict]) -> str:
@@ -119,9 +121,12 @@ def csv_text(entries: list[dict]) -> str:
         if not entry['ok']:
             writer.writerow({'reaction': entry['label'], 'material': f"not calculated: {entry['error']}"})
             continue
+        safety = {item['id']: item for item in entry.get('safety') or []}
         for row in entry['all_rows']:
             product = row['role'] == 'product'
             writer.writerow({
+                'hazards': (hazards.summary(safety[row['id']]) if safety[row['id']]['listed'] else 'not listed')
+                if row['id'] in safety else '',
                 'reaction': entry['label'], 'material': row['name'], 'role': row['role'], 'mw': trim(row.get('mw'), 4),
                 'equiv': '' if product else trim(row.get('equiv')),
                 'mmol': trim(row.get('theory_mmol') if product else row.get('mmol')),
@@ -166,7 +171,7 @@ def html_text(entries: list[dict]) -> str:
             out.append('<tr>' + ''.join(f'<td>{esc(cell)}</td>' for cell in _cells(row, entry['limiting'])) + '</tr>')
         out.append('</tbody></table>')
         for line in _footer(entry):
-            tag = '<p class="hrms">' if line.startswith('HRMS') else '<p>'
+            tag = '<p class="hrms">' if line.startswith('HRMS') else ('<p class="safety">' if line.startswith('Safety') else '<p>')
             out.append(f'{tag}{esc(line)}</p>')
         out.append(f"<p><b>Procedure.</b> {esc(entry['procedure'])}</p>")
     out.append('</main></body></html>')

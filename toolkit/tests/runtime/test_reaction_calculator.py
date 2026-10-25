@@ -35,6 +35,14 @@ def by_id(result):
     return {r['id']: r for r in result['rows']}
 
 
+def test_every_element_id_in_the_page_is_unique():
+    import re
+    from collections import Counter
+    page = render_page({'limiting': None, 'rows': [], 'title': 'x'})
+    ids = Counter(re.findall(r'\sid="([^"]+)"', page))
+    assert [name for name, count in ids.items() if count > 1] == []
+
+
 # --- engine ---------------------------------------------------------------
 
 def test_amounts_follow_the_limiting_reagent_and_the_fixed_quantities():

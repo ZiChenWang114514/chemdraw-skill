@@ -22,7 +22,7 @@ from pathlib import Path
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-from . import annotate, library
+from . import annotate, hazards, library
 from .engine import compute
 from .page import render_page
 from .state import build_state, depiction
@@ -64,7 +64,7 @@ def resolve(query: str, *, offline: bool = False) -> dict:
     entry = library.by_smiles(smiles)
     return {'ok': True, 'name': entry['name'] if entry else (name or formula), 'smiles': Chem.MolToSmiles(mol),
             'formula': formula, 'mw': round(Descriptors.MolWt(mol), 4), 'density': entry['density'] if entry else None,
-            'svg': depiction(smiles), 'source': source}
+            'svg': depiction(smiles), 'source': source, 'hazard': hazards.badge(smiles)}
 
 
 # --- the ChemDraw canvas --------------------------------------------------------------

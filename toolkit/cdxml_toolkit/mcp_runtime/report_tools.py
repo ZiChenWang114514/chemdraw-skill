@@ -817,7 +817,10 @@ def reaction_calculator(reaction: str | dict, options: dict | None = None,
     solution), purity (percent) and, for a product, isolated_mg or yield_percent.
     Options: scale_mmol (the limiting reactant, default 1), limiting (reactant index, default 0),
     molarity (of the limiting reactant in the first solvent, default 0.2), title, step (id of the
-    CDXML step to use, default the first).
+    CDXML step to use, default the first), reagent_safety (default false: add "safety", the GHS
+    pictograms, H-statements, boiling and flash point of each non-product row from a built-in
+    table of common reagents, or "not listed"; the page shows them as badges whenever the
+    species is in the table; a reminder, not a substitute for the supplier SDS).
     Everything not fixed gets a default (reactants by their coefficients, reagents 1 equiv,
     metal catalysts 0.05 equiv, a 0.2 M solvent); the result lists those rows under "assumed"
     and the page shows them in italics. Liquids show a volume when a density is known (a small
@@ -831,6 +834,7 @@ def reaction_calculator(reaction: str | dict, options: dict | None = None,
     options = dict(options or {})
     step = options.pop('step', None)
     scheme_output = options.pop('scheme_output', None)
+    safety = bool(options.pop('reagent_safety', False))
     scheme_show = tuple(options.pop('scheme_show', None) or annotate.SHOW)
     if set(scheme_show) - set(annotate.SHOW):
         raise ValueError(f'scheme_show may contain {list(annotate.SHOW)}')
@@ -861,6 +865,9 @@ def reaction_calculator(reaction: str | dict, options: dict | None = None,
            'limiting': result['limiting'], 'rows': rows, 'totals': totals,
            'assumed': [row['name'] for row in state['rows'] if row['assumed']], 'warnings': warnings,
            'output_path': str(target)}
+    if safety:
+        from ..reaction_calculator import hazards
+        out['safety'] = hazards.for_rows(result['rows'])
     if scheme_target:
         out.update(scheme_path=str(scheme_target), scheme_unplaced=unplaced)
     return artifact_safety.with_artifacts(out, [target] + ([scheme_target] if scheme_target else []))
@@ -982,10 +989,12 @@ def _calculator_rows(result):
              if row['basis'] else None} for row in result['rows']]
 
 
-def _materials_entry(label, source, options, hrms):
+def _materials_entry(label, source, options, hrms, safety=False):
     from ..characterization import default_adduct, hrms_entry
-    from ..reaction_calculator import build_state, compute, materials
-    sides = {role: _side(source[role], role[:-1]) for role in ('reactants', 'agents', 'products')}
+    from ..reaction_calculator import build_state, compute, hazards, materials
+    options = dict(options)
+    safety = bool(options.pop('reagent_safety', safety))
+    sides ={role: _side(source[role], role[:-1]) for role in ('reactants', 'agents', 'products')}
     state = build_state(sides, options)
     result = compute(state)
     rows = result['rows']
@@ -1011,11 +1020,14 @@ def _materials_entry(label, source, options, hrms):
     for row in rows:
         if first is not None and row['id'] == first['id'] and product and product.get('hrms'):
             row['hrms'] = product['hrms']
-    return {'label': label, 'ok': True, 'title': state['title'], 'limiting': result['limiting'],
-            'rows': _calculator_rows(result), 'all_rows': rows, 'totals': {k: _rounded(v) for k, v in result['totals'].items()
-                                                                             if v is not None},
-            'product': product, 'assumed': assumed, 'warnings': warnings,
-            'procedure': materials.procedure(rows, result['limiting'], result['totals'])}
+    entry = {'label': label, 'ok': True, 'title': state['title'], 'limiting': result['limiting'],
+             'rows': _calculator_rows(result), 'all_rows': rows,
+             'totals': {k: _rounded(v) for k, v in result['totals'].items() if v is not None},
+             'product': product, 'assumed': assumed, 'warnings': warnings,
+             'procedure': materials.procedure(rows, result['limiting'], result['totals'])}
+    if safety:
+        entry['safety'] = hazards.for_rows(rows)
+    return entry
 
 
 def si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict:
@@ -1032,7 +1044,10 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
     ionization (default ESI). map_atoms (default false) adds each reaction's bond changes from
     atom mapping: all reactions go to the mapper in one call, so a learned mapper loads once;
     map_method (default auto, see map_reaction_atoms) picks the method. A reaction that cannot be
-    mapped only loses that line, with a warning.
+    mapped only loses that line, with a warning. reagent_safety (default false) adds, per
+    reaction, "safety": the GHS pictograms, H-statements, boiling and flash point of each reactant,
+    reagent and solvent from a built-in table of common reagents (a reminder, not a substitute for
+    the supplier SDS); a species that is not in the table is reported as not listed, never guessed.
     Per reaction the result holds the amounts table, concentration, atom economy and reaction mass
     efficiency, the first product's formula, isolated mass and yield, its HRMS line and a procedure
     sentence; "assumed" lists the amounts nobody gave (shown in warnings). A reaction that cannot be
@@ -1046,6 +1061,7 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
             'ionization': base.pop('ionization', 'ESI')}
     mapping = bool(base.pop('map_atoms', False))
     map_method = str(base.pop('map_method', 'auto'))
+    safety = bool(base.pop('reagent_safety', False))
     entries, warnings = [], []
     for number, (label, spec, own) in enumerate(_batch_items(reactions), 1):
         name = label or f'Reaction {number}'
@@ -1053,7 +1069,7 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
             for entry_label, source in _labelled_sources(label, spec, name):
                 if len(entries) >= MAX_BATCH:
                     raise ValueError(f'At most {MAX_BATCH} reactions per call')
-                entry = _materials_entry(entry_label, source, {**base, **own}, hrms)
+                entry = _materials_entry(entry_label, source, {**base, **own}, hrms, safety)
                 entry['_source'] = source
                 warnings += [f'{entry_label}: {w}' for w in entry['warnings']]
                 entries.append(entry)

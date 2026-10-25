@@ -87,6 +87,23 @@
   }
   function cell(content, cls) { var td = el('td', { 'class': cls || '' }); if (content) td.appendChild(content); return td; }
 
+  // A reminder badge for species in the built-in hazard table; its tooltip carries the details.
+  function hazardBadge(r) {
+    var h = r.hazard, words = payload.hazard_text || { h: {}, ghs: {} };
+    if (!h || !(h.signal || h.note)) return null;
+    var lines = [h.signal || 'No GHS classification'];
+    if ((h.ghs || []).length) lines.push(h.ghs.map(function (g) { return g + ' ' + (words.ghs[g] || ''); }).join(', '));
+    (h.h || []).forEach(function (code) { lines.push(code + ' ' + (words.h[code] || '')); });
+    var physical = [];
+    if (h.bp_c !== null && h.bp_c !== undefined) physical.push('bp ' + h.bp_c + ' °C');
+    if (h.flash_c !== null && h.flash_c !== undefined) physical.push('flash point ' + h.flash_c + ' °C');
+    if (physical.length) lines.push(physical.join('; '));
+    if (h.note) lines.push(h.note);
+    lines.push('A reminder from a built-in table, not a substitute for the supplier SDS.');
+    var text = lines.join('\n');
+    var label = h.signal || 'note';
+    return el('span', { 'class': 'haz ' + (h.signal === 'Danger' ? 'haz-danger' : h.signal ? 'haz-warn' : ''), tabindex: '0', role: 'note', title: text, 'aria-label': r.name + ': ' + text.replace(/\n/g, '. '), text: label });
+  }
   function reagentRow(r) {
     var tr = el('tr', { 'data-row': r.id });
     var radio = el('input', { type: 'radio', name: 'limiting', 'aria-label': 'Limiting reagent: ' + r.name });
@@ -100,7 +117,10 @@
     tr.appendChild(el('td', { 'class': 'thumb', html: r.svg || '' }));
     var name = el('input', { 'class': 'txt', type: 'text', value: r.name, 'aria-label': 'Name' });
     name.addEventListener('change', function () { apply(function () { find(r.id).name = name.value.trim() || r.formula; }); build(); });
-    tr.appendChild(cell(name, 'l'));
+    var nameCell = cell(name, 'l');
+    var badge = hazardBadge(r);
+    if (badge) nameCell.appendChild(badge);
+    tr.appendChild(nameCell);
     var mw = numInput(r.id, 'mw', 'narrow');
     tr.appendChild(cell(mw));
     if (r.role === 'solvent') {
@@ -297,6 +317,7 @@
     var first = !S.limiting && AMOUNT.indexOf(role) >= 0;
     if (!S.limiting && !first) { say('Add the limiting reactant first.', 'err'); return; }
     var row = { id: id, role: role, name: spec.name, formula: spec.formula || '', smiles: spec.smiles || '', mw: spec.mw, coefficient: 1, svg: spec.svg || null, density: spec.density || null, solution_m: null, purity: 1, assumed: true };
+    if (spec.hazard && role !== 'product') row.hazard = spec.hazard;
     if (role === 'solvent') { row.basis = 'volume'; row.value = 0; }
     else if (role === 'product') { row.basis = null; row.value = null; row.assumed = false; }
     else if (role === 'catalyst') { row.basis = 'equiv'; row.value = 0.05; }
@@ -311,7 +332,7 @@
     if (!text) { say('Type a name, abbreviation or formula first.', 'err'); return; }
     var typedMw = Number($('add-mw').value), typedDensity = Number($('add-density').value) || null;
     var known = libraryFind(text);
-    if (known && !(typedMw > 0)) { addRow({ name: known.name, formula: known.formula, smiles: known.smiles, mw: known.mw, density: typedDensity || known.density, svg: known.svg }); clearAdd(); return; }
+    if (known && !(typedMw > 0)) { addRow({ name: known.name, formula: known.formula, smiles: known.smiles, mw: known.mw, density: typedDensity || known.density, svg: known.svg, hazard: known.hazard }); clearAdd(); return; }
     function finish(spec) { addRow(spec); clearAdd(); }
     if (typedMw > 0) { finish({ name: text, mw: typedMw, density: typedDensity }); return; }
     function viaFormula() {
@@ -322,7 +343,7 @@
     if (!API) { viaFormula(); return; }
     say('Looking up ' + text + '…', '', true);
     post('/api/resolve', { query: text }).then(function (r) {
-      if (r.ok) finish({ name: r.name || text, formula: r.formula, smiles: r.smiles, mw: r.mw, density: typedDensity || r.density, svg: r.svg });
+      if (r.ok) finish({ name: r.name || text, formula: r.formula, smiles: r.smiles, mw: r.mw, density: typedDensity || r.density, svg: r.svg, hazard: r.hazard });
       else viaFormula();
     }).catch(function () { viaFormula(); });
   }
@@ -379,7 +400,7 @@
   }
   function serverButtons() {
     var on = !!API;
-    ['draw', 'load', 'scheme'].forEach(function (id) { $(id).disabled = !on; $(id).title = on ? '' : 'Start the calculator with cdx.py calc to draw in ChemDraw'; });
+    ['draw', 'load', 'amounts'].forEach(function (id) { $(id).disabled = !on; $(id).title = on ? '' : 'Start the calculator with cdx.py calc to draw in ChemDraw'; });
     if (!on) return;
     setInterval(function () { post('/api/ping').catch(function () {}); }, 15000);
     post('/api/ping').catch(function () {});
@@ -430,7 +451,7 @@
       say('Loaded ' + (r.summary || 'the drawing') + '. Amounts you had set were kept for structures that are still there.', 'ok');
     }).catch(function () { say('The calculator server is not running any more.', 'err'); });
   });
-  $('scheme').addEventListener('click', function () {
+  $('amounts').addEventListener('click', function () {
     say('Writing the amounts into a scheme…', '', true);
     post('/api/scheme', { state: plain(S) }).then(function (r) {
       var missing = r.unplaced && r.unplaced.length ? ' Not drawn, so not labelled: ' + r.unplaced.join(', ') + '.' : '';
