@@ -684,6 +684,8 @@ def main(argv=None):
         return cmd_py(argparse.Namespace(rest=argv[1:]))
     if argv[:1] == ['calc']:  # the page's own parser handles every flag, including -h
         return cmd_calc(argparse.Namespace(rest=argv[1:]))
+    if argv[:1] == ['install-mappers']:  # likewise: `--status` or `--dry-run` may come first
+        return cmd_install_mappers(argparse.Namespace(rest=argv[1:]))
     p = argparse.ArgumentParser(prog='cdx.py', description=__doc__.split('\n')[0])
     sub = p.add_subparsers(dest='cmd', required=True)
     s = sub.add_parser('tools', help='list registered tools')
