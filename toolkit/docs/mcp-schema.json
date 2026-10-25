@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 48,
+  "tool_count": 51,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -182,6 +182,14 @@
       "description": "Return runtime identity and diagnostics; detail='summary' omits tool signatures."
     },
     {
+      "name": "hrms_line",
+      "signature": "(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "HRMS characterization lines: \"HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570\".\n\nEach record is a grounded structure (SMILES, molblock or CDXML/MOL/SDF file, optional label).\nThe ion formula and calculated m/z come from the monoisotopic mass of the structure plus the\natoms the adduct adds or removes, with the electron mass included (options.electron_mass=false\nignores it, as some calculators do). A record may carry adduct or adducts (default [M+H]+, or\n[M-H]- with options.mode \"negative\", or the molecular ion for ionization \"EI\"; a charged\nstructure is its own ion) and found_mz: a number for its first adduct or {adduct: number}. A\nmeasured value adds \", found ...\" and the error in ppm; more than 5 ppm is flagged. Options:\nadducts, mode (positive or negative), ionization (ESI, APCI, EI, ESI-TOF and similar labels),\ndecimals (default 4), electron_mass. Supported adducts: [M+H]+, [M+Na]+, [M+K]+, [M+NH4]+,\n[M+Li]+, [M+2H]2+, [M+H-H2O]+, [M-H]-, [M-2H]2-, [M+Cl]-, [M+Br]-, [M+HCOO]-,\n[M+CH3COO]- and the EI molecular ion M+. . Output ends in .txt, .md, .csv or .json and is\nnever overwritten. At most 256 structures. The values are calculated, never measured."
+    },
+    {
       "name": "inspect_chemdraw_objects_in_office",
       "signature": "(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, typing.Any]",
       "group": "extended",
@@ -196,6 +204,14 @@
       "resource_class": null,
       "timeout_seconds": 240,
       "description": "Catalog every public ChemScript type/member, with filtering or a complete JSON export."
+    },
+    {
+      "name": "map_reaction_atoms",
+      "signature": "(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Map each product atom to the reactant atom it comes from (atom-to-atom mapping).\n\nreaction is a reaction SMILES \"reactants>agents>products\", {\"reactants\": [...], \"products\": [...]}\nof structure records, or {\"cdxml\": path, \"steps\": [step id]} (one reaction step). Hydrogens are\nnot mapped. Methods (option method): \"mcs\" is built in and needs nothing installed; it pairs\natoms by repeated maximum-common-substructure matching, keeps the pairing with the fewest\nunmapped product atoms and then the fewest bond changes, and lists product atoms with more\nthan one equally good source as ambiguous instead of deciding. \"rxnmapper\" and \"localmapper\"\nare learned mappers that run locally and need the one-time download made by\n`cdx.py install-mappers`; they decide every atom, and RXNMapper also returns a confidence\n(LocalMapper a confident flag) that you should read before trusting the map. \"auto\" (default)\nuses LocalMapper, then RXNMapper, then \"mcs\", and falls back with a warning if a mapper fails.\nOption compare runs every installed method and adds a \"comparison\" with the product atoms they\ndisagree on. This is bookkeeping, not a mechanism: pericyclic reactions and rearrangements can\nbe mapped differently from the textbook arrows. The result holds the mapped reaction SMILES,\na per-atom table, the bond changes (formed, broken, order changed), reactant atoms with no\nproduct counterpart (leaving groups), product atoms without a source (status \"incomplete\"),\nand, for \"mcs\", product atoms that could come from more than one reactant atom (status\n\"ambiguous\"; left unmapped, never decided silently). Other options: resolve_ambiguity\n(default false, \"mcs\" only) accepts a fixed tie-break for them, with a warning; include_agents\n(default false) also offers the agent structures as atom sources. output_path ends in .json,\n.smi (the mapped reaction SMILES) or .svg (a picture) and is never overwritten. At most 120\nheavy atoms per side."
     },
     {
       "name": "markush_compile",
@@ -372,6 +388,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Segment a disconnected or multi-panel CDXML scheme into logical regions."
+    },
+    {
+      "name": "si_materials_tables",
+      "signature": "(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Materials tables for a batch of reactions, ready for a Supporting Information file.\n\nreactions is a list; each entry is a reaction SMILES \"reactants>agents>products\", a record\n{\"reactants\": [...], \"agents\": [...], \"products\": [...]}, {\"cdxml\": path} (one reaction per\nreaction step in the drawing) or {\"label\": \"3a\", \"reaction\": <any of these>, \"options\": {...}}.\nRecords and options are those of reaction_calculator: amounts are given as equiv, mmol,\nmass_mg or volume_ml, products may carry isolated_mg or yield_percent, and per-reaction\noptions override the call's options. Options: scale_mmol (limiting reactant, default 1),\nlimiting, molarity (default 0.2 of the limiting reagent in the first solvent), hrms (default\ntrue: add the calculated HRMS line of the first product), adduct (default [M+H]+) and\nionization (default ESI).\nPer reaction the result holds the amounts table, concentration, atom economy and reaction mass\nefficiency, the first product's formula, isolated mass and yield, its HRMS line and a procedure\nsentence; \"assumed\" lists the amounts nobody gave (shown in warnings). A reaction that cannot be\nread is reported with its error and the others continue. output_path ends in .md, .csv, .html\nor .json and is never overwritten. At most 100 reactions. Amounts and HRMS values are\ncalculated; nothing here is a measurement."
     },
     {
       "name": "structure_to_name",

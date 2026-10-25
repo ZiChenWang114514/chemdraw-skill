@@ -17,6 +17,8 @@ from collections import Counter
 from rdkit import Chem
 from rdkit.Chem import rdFMCS
 
+from . import mapping_backends
+
 MAX_ATOMS = 120
 LEAF_BUDGET = 24
 BRANCH = 3
@@ -280,34 +282,135 @@ def _numbered(table, numbers):
     return out
 
 
-def map_atoms(left, right, *, resolve_ambiguity: bool = False) -> dict:
-    """Map the heavy atoms of products ``right`` onto reactants ``left`` (lists of (label, mol))."""
-    if sum(m.GetNumAtoms() for _, m in left) > MAX_ATOMS or sum(m.GetNumAtoms() for _, m in right) > MAX_ATOMS:
-        raise ValueError(f'Atom mapping handles at most {MAX_ATOMS} heavy atoms per side')
-    mapper = _Mapper(left, right)
+METHODS = ('auto', 'mcs', 'rxnmapper', 'localmapper')
+LEARNED = ('localmapper', 'rxnmapper')  # preference order of `auto`
+RXNMAPPER_CONFIDENT = 0.8
+DESCRIPTIONS = {
+    'mcs': METHOD,
+    'rxnmapper': ('RXNMapper (IBM, Schwaller et al. 2021): a transformer trained without labels whose attention '
+                  'weights are read as an atom-to-atom mapping. Runs locally; the confidence is the model\'s own '
+                  'score for the whole reaction. Hydrogens are not mapped.'),
+    'localmapper': ('LocalMapper (Chen et al. 2024): a graph network trained on human-corrected reaction-centre '
+                    'labels that maps by local templates. Runs locally; `confident` is false when it could not '
+                    'place every atom with certainty. Hydrogens are not mapped.'),
+}
+TITLES = {'mcs': 'the built-in substructure method', 'rxnmapper': 'RXNMapper', 'localmapper': 'LocalMapper'}
+
+
+def available_methods() -> list:
+    """Methods that can run now: the built-in one plus every installed learned backend."""
+    found = mapping_backends.available()
+    return ['mcs'] + [name for name in LEARNED if found.get(name)]
+
+
+def _smiles(items):
+    return '.'.join(Chem.MolToSmiles(Chem.RemoveHs(mol)) for _, mol in items)
+
+
+def _fragments(table):
+    """Connected pieces of each species as (owner, canonical SMILES without stereo, fragment, global ids)."""
+    out = []
+    for owner, mol in enumerate(table.mols):
+        for atoms in Chem.GetMolFrags(mol):
+            piece = Chem.RWMol()
+            index = {}
+            for k in atoms:
+                index[k] = piece.AddAtom(Chem.Atom(mol.GetAtomWithIdx(k).GetAtomicNum()))
+            for bond in mol.GetBonds():
+                if bond.GetBeginAtomIdx() in index and bond.GetEndAtomIdx() in index:
+                    piece.AddBond(index[bond.GetBeginAtomIdx()], index[bond.GetEndAtomIdx()], bond.GetBondType())
+            for k in atoms:
+                atom = piece.GetAtomWithIdx(index[k])
+                source = mol.GetAtomWithIdx(k)
+                atom.SetFormalCharge(source.GetFormalCharge())
+                atom.SetIsAromatic(source.GetIsAromatic())
+                atom.SetNumExplicitHs(source.GetTotalNumHs())
+                atom.SetNoImplicit(True)
+            for bond in piece.GetBonds():
+                bond.SetIsAromatic(mol.GetBondBetweenAtoms(atoms[bond.GetBeginAtomIdx()], atoms[bond.GetEndAtomIdx()]).GetIsAromatic())
+            fragment = piece.GetMol()
+            Chem.SanitizeMol(fragment)
+            out.append((owner, Chem.MolToSmiles(fragment, isomericSmiles=False), fragment,
+                        [table.offset[owner] + k for k in atoms]))
+    return out
+
+
+def _numbers_on(side, table, what):
+    """{map number: global atom id} read from one side of a mapped reaction SMILES."""
+    pieces = _fragments(table)
+    used, numbers = set(), {}
+    for text in side.split('.'):
+        parsed = Chem.MolFromSmiles(text)
+        if parsed is None:
+            raise ValueError(f'the mapper returned an unreadable {what} "{text}"')
+        marks = {atom.GetIdx(): atom.GetAtomMapNum() for atom in parsed.GetAtoms()}
+        for atom in parsed.GetAtoms():
+            atom.SetAtomMapNum(0)
+        parsed = Chem.RemoveHs(parsed)
+        key = Chem.MolToSmiles(parsed, isomericSmiles=False)
+        for n, (_, other, fragment, gids) in enumerate(pieces):
+            if n in used or other != key:
+                continue
+            match = fragment.GetSubstructMatch(parsed)
+            if len(match) != parsed.GetNumAtoms():
+                continue
+            used.add(n)
+            for query, mark in marks.items():
+                if mark:
+                    if mark in numbers:
+                        raise ValueError(f'the mapper used map number {mark} twice on the {what} side')
+                    numbers[mark] = gids[match[query]]
+            break
+        else:
+            raise ValueError(f'the mapper returned a {what} "{key}" that is not in the reaction')
+    if len(used) != len(pieces):
+        raise ValueError(f'the mapper dropped a {what} of the reaction')
+    return numbers
+
+
+def _from_mapped_smiles(mapper, mapped):
+    """{product gid: reactant gid} from a mapped reaction SMILES of a learned mapper."""
+    parts = mapped.split('>')
+    if len(parts) < 3:
+        raise ValueError('the mapper did not return a reaction SMILES')
+    on_left = _numbers_on(parts[0], mapper.left, 'reactant')
+    on_right = _numbers_on(parts[-1], mapper.right, 'product')
+    p2l, skipped = {}, 0
+    for number, p in on_right.items():
+        l = on_left.get(number)
+        if l is None:
+            continue
+        if mapper.left.element[l] != mapper.right.element[p]:
+            skipped += 1
+            continue
+        p2l[p] = l
+    return p2l, skipped
+
+
+def _describe(mapper, final, alternatives, resolve_ambiguity, name, extra_warnings=()):
+    """The result dict for a finished pairing ``final`` ({product gid: reactant gid})."""
     L, R = mapper.left, mapper.right
-    full = mapper.solve()
-    alternatives = mapper.ambiguity(full)
     ambiguous, resolved = [], []
     for p, others in sorted(alternatives.items()):
         entry = {'product_atom': R.element[p], 'product_species': R.labels[R.owner[p]], 'atom_index': R.local[p],
-                 'candidates': [_where(L, full[p])] + [_where(L, l) for l in others]}
+                 'candidates': [_where(L, final[p])] + [_where(L, l) for l in others]}
         (resolved if resolve_ambiguity else ambiguous).append(entry)
-    final = dict(full)
+    classes = {p: L.klass[l] for p, l in final.items()}
+    skip_left = {l for p, others in alternatives.items() for l in [final[p]] + others} if not resolve_ambiguity else set()
+    final = dict(final)
     if not resolve_ambiguity:
         for p in alternatives:
             del final[p]
     numbers_right, numbers_left = {}, {}
     for number, p in enumerate(sorted(final), 1):
         numbers_right[p], numbers_left[final[p]] = number, number
-    skip_left = {l for p in alternatives for l in [full[p]] + alternatives[p]} if not resolve_ambiguity else set()
     skip_right = set(alternatives) if not resolve_ambiguity else set()
     label = lambda g, table, numbers: (f'{table.element[g]}:{numbers[g]}' if g in numbers else table.element[g])
     l2p = {l: p for p, l in final.items()}
     bond_changes = []
     for kind, lefts, rights, before, after in mapper.changes(final, skip_left, skip_right):
         a, b = lefts
-        pair = sorted([L.element[a], L.element[b]]) if kind == 'broken' else sorted([L.element[a], L.element[b]])
+        pair = sorted([L.element[a], L.element[b]])
         names = [label(a, L, numbers_left), label(b, L, numbers_left)]
         bond_changes.append({'type': kind, 'elements': '-'.join(pair), 'atoms': names,
                              **({'from': ORDER_NAMES.get(before, str(before))} if before is not None else {}),
@@ -317,14 +420,15 @@ def map_atoms(left, right, *, resolve_ambiguity: bool = False) -> dict:
     unmapped_left = [g for g in range(L.size) if g not in l2p]
     coverage = [{'species': R.labels[i], 'mapped': sum(1 for g in final if R.owner[g] == i),
                  'atoms': R.mols[i].GetNumAtoms()} for i in range(len(R.mols))]
-    warnings = []
+    warnings = list(extra_warnings)
     if no_source:
         warnings.append(f"{len(no_source)} product atom(s) have no source atom in the reactants "
                         f"({', '.join(sorted({R.element[g] for g in no_source}))}): the mapping is incomplete; "
                         'a reagent the reaction needs may be missing (try include_agents) or the reaction is not balanced.')
     if ambiguous:
         warnings.append(f'{len(ambiguous)} product atom(s) could come from more than one reactant atom at the same '
-                        'cost and were left unmapped; pass resolve_ambiguity to accept the first choice.')
+                        'cost and were left unmapped; pass resolve_ambiguity to accept the first choice, '
+                        'or use a learned mapper (cdx.py install-mappers).')
     if resolved:
         warnings.append(f'resolve_ambiguity: {len(resolved)} product atom(s) were assigned by a fixed tie-break among '
                         'equally good sources; treat them as a guess.')
@@ -333,11 +437,123 @@ def map_atoms(left, right, *, resolve_ambiguity: bool = False) -> dict:
     if mapper.truncated:
         warnings.append('The search for alternative mappings stopped at its limit; the result is the best one found.')
     status = 'incomplete' if no_source else 'ambiguous' if ambiguous else 'complete'
-    return {'status': status, 'method': METHOD, 'left_mapped': _numbered(L, numbers_left),
-            'right_mapped': _numbered(R, numbers_right), 'map': [
+    return {'status': status, 'method': name, 'method_description': DESCRIPTIONS[name],
+            'left_mapped': _numbered(L, numbers_left), 'right_mapped': _numbered(R, numbers_right), 'map': [
                 {'map': numbers_right[p], 'element': R.element[p], 'reactant': _where(L, final[p]), 'product': _where(R, p)}
                 for p in sorted(final)],
             'ambiguous': ambiguous, 'resolved_ambiguity': resolved, 'bond_changes': bond_changes,
             'unmapped_reactant_atoms': _unmapped(L, unmapped_left),
             'unmapped_product_atoms': _unmapped(R, no_source), 'product_coverage': coverage,
-            'warnings': warnings, 'search': {'alternatives_explored': len(mapper.cache), 'truncated': mapper.truncated}}
+            'warnings': warnings, 'search': {'alternatives_explored': len(mapper.cache), 'truncated': mapper.truncated},
+            '_classes': {p: classes[p] for p in final}}
+
+
+def _run_mcs(left, right, resolve_ambiguity):
+    mapper = _Mapper(left, right)
+    full = mapper.solve()
+    alternatives = mapper.ambiguity(full)
+    return _describe(mapper, full, alternatives, resolve_ambiguity, 'mcs')
+
+
+def _run_learned(name, left, right, resolve_ambiguity):
+    try:
+        item = mapping_backends.run(name, [f'{_smiles(left)}>>{_smiles(right)}'])[0]
+    except mapping_backends.BackendError as exc:
+        raise ValueError(str(exc)) from None
+    if item.get('error') or not item.get('mapped_rxn'):
+        raise ValueError(f'{TITLES[name]} could not map this reaction: {item.get("error") or "empty answer"}')
+    mapper = _Mapper(left, right)
+    try:
+        final, skipped = _from_mapped_smiles(mapper, item['mapped_rxn'])
+    except ValueError as exc:
+        raise ValueError(f'{TITLES[name]}: {exc}') from None
+    notes = []
+    if skipped:
+        notes.append(f'{skipped} atom pair(s) of different elements in the mapper output were dropped.')
+    result = _describe(mapper, final, {}, resolve_ambiguity, name, notes)
+    if 'confidence' in item:
+        result['confidence'] = round(float(item['confidence']), 3)
+        if result['confidence'] < RXNMAPPER_CONFIDENT:
+            result['warnings'].append(f'RXNMapper reports a confidence of {result["confidence"]} (below '
+                                      f'{RXNMAPPER_CONFIDENT}): check the map or compare it with another method.')
+    if 'confident' in item:
+        result['confident'] = bool(item['confident'])
+        if not result['confident']:
+            result['warnings'].append('LocalMapper marked this mapping as not confident: check it or compare it '
+                                      'with another method.')
+    return result
+
+
+def _attempt(name, left, right, resolve_ambiguity):
+    return _run_mcs(left, right, resolve_ambiguity) if name == 'mcs' else _run_learned(name, left, right, resolve_ambiguity)
+
+
+def _compare(results, errors, left, right):
+    """Where the methods disagree: product atoms whose source atom is a different kind of atom (or unmapped)."""
+    table = _Table(right)
+    sources = {name: r['_classes'] for name, r in results.items()}
+    out = []
+    mapped_where = {name: {} for name in results}
+    for name, r in results.items():
+        for entry in r['map']:
+            mapped_where[name][(entry['product']['species'], entry['product']['atom_index'])] = entry['reactant']
+    by_class = {}
+    for p in range(table.size):
+        by_class.setdefault(table.klass[p], []).append(p)
+    for atoms in by_class.values():
+        # symmetry-equivalent product atoms may swap sources without any real difference, so a
+        # class disagrees only when the methods give it different multisets of source atom kinds
+        if len({tuple(sorted(map(repr, (sources[name].get(p) for p in atoms)))) for name in results}) < 2:
+            continue
+        for p in atoms:
+            key = (table.labels[table.owner[p]], table.local[p])
+            out.append({'product_atom': table.element[p], 'product_species': key[0], 'atom_index': key[1],
+                        'source': {name: mapped_where[name].get(key) for name in results}})
+    return {'methods': {name: {'status': r['status'], 'mapped_product_atoms': len(r['map']),
+                               **({'confidence': r['confidence']} if 'confidence' in r else {}),
+                               **({'confident': r['confident']} if 'confident' in r else {})}
+                        for name, r in results.items()},
+            'failed': errors, 'disagreements': out,
+            'agree': not out and len(results) > 1}
+
+
+def map_atoms(left, right, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> dict:
+    """Map the heavy atoms of products ``right`` onto reactants ``left`` (lists of (label, mol)).
+
+    ``method``: ``mcs`` (built in), ``rxnmapper`` or ``localmapper`` (optional, installed with
+    ``cdx.py install-mappers``), or ``auto`` (the best installed learned mapper, else ``mcs``; a
+    learned mapper that fails falls back with a warning). ``compare`` also runs every installed
+    method and reports where they disagree.
+    """
+    if method not in METHODS:
+        raise ValueError(f'Unknown method {method!r}; use one of {", ".join(METHODS)}')
+    if sum(m.GetNumAtoms() for _, m in left) > MAX_ATOMS or sum(m.GetNumAtoms() for _, m in right) > MAX_ATOMS:
+        raise ValueError(f'Atom mapping handles at most {MAX_ATOMS} heavy atoms per side')
+    present = available_methods()
+    if method not in ('auto', 'mcs') and method not in present:
+        raise ValueError(f'{TITLES[method]} is not installed: run `cdx.py install-mappers {method}` '
+                         'or use method "mcs"')
+    order = [method] if method != 'auto' else [n for n in LEARNED if n in present] + ['mcs']
+    warnings, chosen, results, errors = [], None, {}, {}
+    for name in dict.fromkeys(order + (present if compare else [])):
+        try:
+            results[name] = _attempt(name, left, right, resolve_ambiguity)
+        except ValueError as exc:
+            if method != 'auto' and name == method:
+                raise
+            errors[name] = str(exc)
+            if name in order and chosen is None:
+                warnings.append(f'{TITLES[name]} failed ({exc}); trying the next method.')
+            continue
+        if chosen is None and name in order:
+            chosen = name
+        if chosen is not None and not compare:
+            break
+    result = results[chosen]
+    result['warnings'] = warnings + result['warnings']
+    result['available_methods'] = present
+    if compare:
+        result['comparison'] = _compare(results, errors, left, right)
+    for r in results.values():
+        r.pop('_classes', None)
+    return result

@@ -1088,26 +1088,33 @@ def _mapping_picture(mapped):
 
 
 def map_reaction_atoms(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict:
-    """Map each product atom to the reactant atom it comes from (heuristic atom-to-atom mapping).
+    """Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
 
     reaction is a reaction SMILES "reactants>agents>products", {"reactants": [...], "products": [...]}
-    of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). Heavy atoms
-    are paired by repeated maximum-common-substructure matching and the pairing with the fewest
-    unmapped product atoms and then the fewest bond changes is kept; hydrogens are not mapped.
-    This is a bookkeeping heuristic, not a mechanism: pericyclic reactions and rearrangements can
+    of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). Hydrogens are
+    not mapped. Methods (option method): "mcs" is built in and needs nothing installed; it pairs
+    atoms by repeated maximum-common-substructure matching, keeps the pairing with the fewest
+    unmapped product atoms and then the fewest bond changes, and lists product atoms with more
+    than one equally good source as ambiguous instead of deciding. "rxnmapper" and "localmapper"
+    are learned mappers that run locally and need the one-time download made by
+    `cdx.py install-mappers`; they decide every atom, and RXNMapper also returns a confidence
+    (LocalMapper a confident flag) that you should read before trusting the map. "auto" (default)
+    uses LocalMapper, then RXNMapper, then "mcs", and falls back with a warning if a mapper fails.
+    Option compare runs every installed method and adds a "comparison" with the product atoms they
+    disagree on. This is bookkeeping, not a mechanism: pericyclic reactions and rearrangements can
     be mapped differently from the textbook arrows. The result holds the mapped reaction SMILES,
     a per-atom table, the bond changes (formed, broken, order changed), reactant atoms with no
     product counterpart (leaving groups), product atoms without a source (status "incomplete"),
-    and product atoms that could come from more than one reactant atom at the same cost
-    (status "ambiguous"): those are left unmapped, never decided silently. Options:
-    resolve_ambiguity (default false) accepts a fixed tie-break for them, with a warning;
-    include_agents (default false) also offers the agent structures as atom sources.
-    output_path ends in .json, .smi (the mapped reaction SMILES) or .svg (a picture) and is
-    never overwritten. At most 120 heavy atoms per side.
+    and, for "mcs", product atoms that could come from more than one reactant atom (status
+    "ambiguous"; left unmapped, never decided silently). Other options: resolve_ambiguity
+    (default false, "mcs" only) accepts a fixed tie-break for them, with a warning; include_agents
+    (default false) also offers the agent structures as atom sources. output_path ends in .json,
+    .smi (the mapped reaction SMILES) or .svg (a picture) and is never overwritten. At most 120
+    heavy atoms per side.
     """
     from .. import atom_mapping
     options = dict(options or {})
-    unknown = set(options) - {'resolve_ambiguity', 'include_agents'}
+    unknown = set(options) - {'resolve_ambiguity', 'include_agents', 'method', 'compare'}
     if unknown:
         raise ValueError(f'Unknown options: {sorted(unknown)}')
     sources = _reaction_sources(reaction)
@@ -1117,7 +1124,8 @@ def map_reaction_atoms(reaction: str | dict, options: dict | None = None, output
     reactants, agents, products = (_mapping_species(source[role]) for role in ('reactants', 'agents', 'products'))
     include = bool(options.get('include_agents')) and bool(agents)
     outcome = atom_mapping.map_atoms(reactants + (agents if include else []), products,
-                                     resolve_ambiguity=bool(options.get('resolve_ambiguity')))
+                                     resolve_ambiguity=bool(options.get('resolve_ambiguity')),
+                                     method=str(options.get('method') or 'auto'), compare=bool(options.get('compare')))
     left = [Chem.MolToSmiles(m) for m in outcome.pop('left_mapped')]
     shown = left[len(reactants):] if include else [Chem.MolToSmiles(m) for _, m in agents]
     products_smiles = [Chem.MolToSmiles(m) for m in outcome.pop('right_mapped')]

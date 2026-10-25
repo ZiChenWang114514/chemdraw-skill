@@ -143,7 +143,7 @@ class RuntimeDiagnosticsTests(unittest.TestCase):
             result["outputs"]["capabilities"]["mcp_sdk"]["version"],
             importlib.metadata.version("mcp"),
         )
-        self.assertEqual(result["metadata"]["tool_count"], 48)
+        self.assertEqual(result["metadata"]["tool_count"], 51)
         self.assertEqual(
             result["outputs"]["capabilities"]["tool_registry"]["status"],
             "available",
@@ -153,6 +153,20 @@ class RuntimeDiagnosticsTests(unittest.TestCase):
         native_probe.assert_not_called()
         chemscript_probe.assert_not_called()
         office_probe.assert_not_called()
+
+    def test_optional_atom_mappers_are_reported_without_warnings_or_imports(self):
+        from cdxml_toolkit import mapping_backends
+
+        with mock.patch.object(
+            mapping_backends, "available", return_value={"rxnmapper": True, "localmapper": False}
+        ):
+            result = runtime_diagnostics.diagnose_runtime()
+
+        capabilities = result["outputs"]["capabilities"]
+        self.assertEqual(capabilities["rxnmapper"]["status"], "available")
+        self.assertEqual(capabilities["localmapper"]["status"], "missing")
+        self.assertIn("install-mappers", capabilities["localmapper"]["detail"])
+        self.assertFalse([w for w in result["warnings"] if "mapper" in w])
 
     def test_requested_probes_are_reported_in_capability_matrix(self):
         chemscript = {
