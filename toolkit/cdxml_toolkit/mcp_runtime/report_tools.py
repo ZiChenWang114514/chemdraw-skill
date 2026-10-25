@@ -1066,6 +1066,73 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
     return result
 
 
+def _mapping_species(records):
+    out = []
+    for item in (_expand(records, limit=MAX_STRUCTURES) if records else []):
+        _check_grounded(item['mol'], item['label'])
+        record, mol = item['record'], Chem.Mol(item['mol'])
+        for atom in mol.GetAtoms():
+            atom.SetAtomMapNum(0)
+        out.append((record.get('label') or record.get('name') or record.get('smiles')
+                    or rdMolDescriptors.CalcMolFormula(mol), mol))
+    return out
+
+
+def _mapping_picture(mapped):
+    from rdkit.Chem import rdChemReactions
+    from rdkit.Chem.Draw import rdMolDraw2D
+    drawer = rdMolDraw2D.MolDraw2DSVG(960, 320)
+    drawer.DrawReaction(rdChemReactions.ReactionFromSmarts(mapped, useSmiles=True))
+    drawer.FinishDrawing()
+    return drawer.GetDrawingText()
+
+
+def map_reaction_atoms(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict:
+    """Map each product atom to the reactant atom it comes from (heuristic atom-to-atom mapping).
+
+    reaction is a reaction SMILES "reactants>agents>products", {"reactants": [...], "products": [...]}
+    of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). Heavy atoms
+    are paired by repeated maximum-common-substructure matching and the pairing with the fewest
+    unmapped product atoms and then the fewest bond changes is kept; hydrogens are not mapped.
+    This is a bookkeeping heuristic, not a mechanism: pericyclic reactions and rearrangements can
+    be mapped differently from the textbook arrows. The result holds the mapped reaction SMILES,
+    a per-atom table, the bond changes (formed, broken, order changed), reactant atoms with no
+    product counterpart (leaving groups), product atoms without a source (status "incomplete"),
+    and product atoms that could come from more than one reactant atom at the same cost
+    (status "ambiguous"): those are left unmapped, never decided silently. Options:
+    resolve_ambiguity (default false) accepts a fixed tie-break for them, with a warning;
+    include_agents (default false) also offers the agent structures as atom sources.
+    output_path ends in .json, .smi (the mapped reaction SMILES) or .svg (a picture) and is
+    never overwritten. At most 120 heavy atoms per side.
+    """
+    from .. import atom_mapping
+    options = dict(options or {})
+    unknown = set(options) - {'resolve_ambiguity', 'include_agents'}
+    if unknown:
+        raise ValueError(f'Unknown options: {sorted(unknown)}')
+    sources = _reaction_sources(reaction)
+    if len(sources) != 1:
+        raise ValueError(f'The file stores {len(sources)} reaction steps; choose one with {{"cdxml": path, "steps": [step id]}}')
+    source = sources[0]
+    reactants, agents, products = (_mapping_species(source[role]) for role in ('reactants', 'agents', 'products'))
+    include = bool(options.get('include_agents')) and bool(agents)
+    outcome = atom_mapping.map_atoms(reactants + (agents if include else []), products,
+                                     resolve_ambiguity=bool(options.get('resolve_ambiguity')))
+    left = [Chem.MolToSmiles(m) for m in outcome.pop('left_mapped')]
+    shown = left[len(reactants):] if include else [Chem.MolToSmiles(m) for _, m in agents]
+    products_smiles = [Chem.MolToSmiles(m) for m in outcome.pop('right_mapped')]
+    mapped = '.'.join(left[:len(reactants)]) + '>' + '.'.join(shown) + '>' + '.'.join(products_smiles)
+    result = {'ok': True, 'operation': 'map_reaction_atoms', **outcome, 'mapped_reaction': mapped}
+    if output_path:
+        target = _publish(output_path, {
+            '.json': lambda: json.dumps(result, ensure_ascii=False, indent=2),
+            '.smi': lambda: mapped + '\n',
+            '.svg': lambda: _mapping_picture(mapped),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
                                          structure_to_name, reaction_calculator, hrms_line,
-                                         si_materials_tables)}
+                                         si_materials_tables, map_reaction_atoms)}
