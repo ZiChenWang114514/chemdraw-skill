@@ -202,6 +202,15 @@ def test_status_command_lists_each_backend(tmp_path, monkeypatch, capsys):
     assert status['backends']['rxnmapper']['available'] is True and status['backends']['localmapper']['available'] is False
 
 
+def test_command_line_accepts_no_names_and_rejects_unknown_ones(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv('CHEMDRAW_MAPPER_HOME', str(tmp_path))
+    assert mapping_backends.main(['--dry-run']) == 0
+    reports = json.loads(capsys.readouterr().out)['reports']
+    assert [r['backend'] for r in reports] == ['localmapper', 'rxnmapper']
+    with pytest.raises(SystemExit):
+        mapping_backends.main(['--dry-run', 'magic'])
+
+
 def test_map_atoms_validates_method_before_searching():
     with pytest.raises(ValueError, match='Unknown method'):
         atom_mapping.map_atoms([('a', Chem.MolFromSmiles('CO'))], [('b', Chem.MolFromSmiles('CO'))], method='x')

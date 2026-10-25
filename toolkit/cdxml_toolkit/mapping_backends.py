@@ -208,10 +208,13 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog='cdx.py install-mappers', description=(
         'Install the optional learned atom-mapping backends, each in its own environment under '
         f'{home()} (several hundred MB with PyTorch). map_reaction_atoms works without them.'))
-    parser.add_argument('backends', nargs='*', choices=sorted(BACKENDS), help='default: both')
+    parser.add_argument('backends', nargs='*', metavar='BACKEND', help=f'{" or ".join(sorted(BACKENDS))}; default: both')
     parser.add_argument('--dry-run', action='store_true', help='print what would be installed')
     parser.add_argument('--status', action='store_true', help='print which backends are available; install nothing')
     ns = parser.parse_args(argv)
+    unknown = [name for name in ns.backends if name not in BACKENDS]
+    if unknown:  # not argparse `choices`: Python 3.10 and 3.11 check the empty default against them
+        parser.error(f'unknown backend {unknown[0]!r} (choose from {", ".join(sorted(BACKENDS))})')
     names = ns.backends or sorted(BACKENDS)
     if ns.status:
         print(json.dumps(status(), indent=2))
