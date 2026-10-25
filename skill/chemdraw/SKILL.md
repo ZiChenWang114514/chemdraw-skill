@@ -53,6 +53,7 @@ Read only the matching workflow and the needed signature, not the complete catal
 | Processed spectra, plots and mechanisms | [Scientific workflows](references/scientific-workflows.md) |
 | TLC, apparatus and instruments | [Native laboratory drawings](references/native-laboratory-drawings.md) |
 | Atom indices, CIP, MCS or stereo enumeration | [RDKit workbench](references/rdkit-workbench.md) |
+| Formula, masses, MS adducts, logP; reaction balance or stoichiometry; bulk SMILES/InChI export; structure to name | [Chemistry reports](references/chemistry-reports.md) |
 | Installation, upgrade, missing tools or runtime failure | [Operations](references/operations.md) |
 
 For recurring errors, consult [lessons](references/lessons.md). Exact signatures are generated in [mcp-signatures.md](references/mcp-signatures.md) (`cdx.py sig NAME` prints one). Use the [interface catalog](references/interface-catalog.md) only when routing does not identify an entry point.

@@ -20,6 +20,7 @@ from .official_overrides import OFFICIAL_OVERRIDES
 from .remote_tools import REMOTE_TOOLS
 from .figure_tools import FIGURE_TOOLS
 from .markush_tools import MARKUSH_TOOLS
+from .report_tools import REPORT_TOOLS
 from .publication_figure import publication_figure
 
 
@@ -61,6 +62,7 @@ MAC_CHEMDRAW_TOOLS = {
     "compare_molecules",
     "execute_chemscript_sdk",
     "inspect_chemscript_sdk",
+    "structure_to_name",
 }
 
 
@@ -77,6 +79,7 @@ def _tool_timeout(name: str) -> int | None:
         "compare_molecules": 120,
         "batch_compare_molecules": 300,
         "inspect_chemscript_sdk": 240,
+        "structure_to_name": 300,
         "execute_chemscript_sdk": 300,
         "publication_figure": 600,
         "markush_compile": 180,
@@ -110,6 +113,7 @@ PROFILE_EXTENSION_TOOLS = {
         "compare_molecules",
         "execute_chemscript_sdk",
         "inspect_chemscript_sdk",
+        "structure_to_name",
     },
 }
 DEFAULT_PROFILE = "full"
@@ -181,6 +185,9 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     )
     extended_functions = _merge_named_tools(
         extended_functions, MARKUSH_TOOLS, source="Markush tools"
+    )
+    extended_functions = _merge_named_tools(
+        extended_functions, REPORT_TOOLS, source="report tools"
     )
     extended = {
         name: ToolSpec(

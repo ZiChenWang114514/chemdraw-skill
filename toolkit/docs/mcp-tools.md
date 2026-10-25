@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `43`
+Tools: `47`
 
 ## Extended Tools
 
@@ -23,6 +23,25 @@ Compare up to 256 molecule pairs with one ChemScript bridge session.
 ### `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, typing.Any]`
 
 Create PPTX or DOCX containing editable ChemDraw OLE objects.
+
+### `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict`
+
+Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
+
+reaction is a reaction SMILES string "reactants>agents>products" (structures separated by
+'.'), a dict {"reactants": [...], "agents": [...], "products": [...]} of structure records
+(smiles, molblock or file; optional label, coefficient, equiv, density_g_ml, concentration_m,
+isolated_mg), or {"cdxml": path, "steps": [step ids]} to read the <step> elements of a drawn
+scheme. Agents are listed but never counted. Elements are counted with implicit hydrogens;
+isotope-labelled atoms are balanced as separate species, and the charge must balance too.
+For an unbalanced reaction the result names the missing formula (for example H2O),
+and, when exactly one set of whole-number coefficients balances it, suggests them.
+Also reports mass balance and atom economy (options main_product, default the first product).
+options scale_mmol (amount of the limiting reactant, option limiting = its index, default 0)
+adds a stoichiometry table with equivalents, mmol, mass, volume and, for products with
+isolated_mg, the percent yield. A failed balance is a finding about the species as drawn:
+check the structures against their source before trusting the reaction. Generic atoms
+(R groups) are rejected. output_path ends in .json and is never overwritten.
 
 ### `clean_scheme_layout(input_path: str, output_path: Optional[str] = None, approach: str = 'chemdraw_mimic', render_preview: bool = True) -> dict[str, typing.Any]`
 
@@ -63,6 +82,19 @@ Discover and classify files belonging to one experiment.
 ### `execute_chemscript_sdk(program: list[dict[str, typing.Any]], allow_file_io: bool = False, allow_overwrite: bool = False, allow_unsafe_interop: bool = False, max_items: int = 100) -> dict[str, typing.Any]`
 
 Execute a declarative ChemScript SDK program in an isolated Python.NET process.
+
+### `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict`
+
+Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
+
+source is a path to a CDXML, MOL, SDF or SMILES (.smi) file, or a list of structure records
+(smiles, molblock or file; optional label). A CDXML file contributes each top-level fragment
+in document order with its CDXML fragment id; SDF titles and SMILES-file names become
+labels. Binary CDX needs convert_cdx_cdxml first, and Office files need
+extract_cdxml_from_office. Structures with generic atoms (R groups) are listed with their
+SMILES but without InChI, and the result says so. option include_molblock adds a MOL block per
+structure. output_path ends in .csv, .json, .smi, .sdf or .md and is never overwritten.
+At most 2000 structures. Identity comes from the structure as stored; nothing is recognised or edited.
 
 ### `fill_office_template(template_path: str, manifest_path: str, output_path: Optional[str] = None) -> dict[str, typing.Any]`
 
@@ -107,6 +139,20 @@ Check a markush.json spec; every error says what to change.
 ### `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, typing.Any]`
 
 Merge parallel, sequential, or unrelated CDXML reaction schemes.
+
+### `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict`
+
+Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
+
+Each record is a SMILES/CXSMILES, molblock or file (CDXML/MOL/SDF) record with an optional
+label; a bare SMILES string also works. A CDXML or SDF record with all_fragments=true
+contributes every structure in the file. Reports formula, average and monoisotopic mass,
+InChI/InChIKey, ESI adduct m/z values (positive and negative mode, electron mass included),
+the isotope pattern scaled to the tallest peak, Crippen logP, TPSA, H-bond donors and
+acceptors, rotatable bonds, QED, stereocentre counts and Lipinski/Veber rule results.
+Descriptors are computed by RDKit from the structure as given; logP and TPSA are
+calculated estimates, not measurements, and generic atoms (R groups) are rejected.
+output_path ends in .json, .csv or .md and is never overwritten. At most 256 structures.
 
 ### `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, typing.Any]`
 
@@ -157,6 +203,24 @@ stays in place. Otherwise frames keep their size.
 ### `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, typing.Any]`
 
 Segment a disconnected or multi-panel CDXML scheme into logical regions.
+
+### `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict`
+
+Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
+
+Records are SMILES/CXSMILES, molblock or file records (CDXML/MOL/SDF), with an optional
+label; a CDXML or SDF record with all_fragments=true names every structure in the file.
+The name is the one ChemDraw's "Convert Structure to Name" produces (ChemScript on Windows,
+ChemDraw for macOS on a Mac); it is not generated or guessed by this toolkit, and no
+structure leaves the machine. With the default option verify=true each name is parsed
+back to a structure by ChemDraw and compared with the input by InChIKey, component by
+component: roundtrip.status is same, same_connectivity (stereo, charge or isotope layers
+differ), different, unparseable or skipped. Report a name as confirmed only when the status
+is same. Enhanced (and/or) stereo groups cannot be expressed in a name and are warned about.
+One structure that ChemDraw cannot name is reported with its error and does not stop the others.
+Needs ChemScript (Windows) or ChemDraw for macOS, like compare_molecules; there is no
+offline fallback. output_path ends in .csv, .json or .md and is never overwritten.
+At most 256 structures.
 
 ## Official Tools
 
