@@ -175,7 +175,16 @@ product counterpart (leaving groups), product atoms without a source (status "in
 and, for "mcs", product atoms that could come from more than one reactant atom (status
 "ambiguous"; left unmapped, never decided silently). Other options: resolve_ambiguity
 (default false, "mcs" only) accepts a fixed tie-break for them, with a warning; include_agents
-(default false) also offers the agent structures as atom sources. output_path ends in .json,
+(default false) also offers the agent structures as atom sources. Option template adds
+"template": the reaction centre as a reaction SMARTS (the atoms whose bonds change, their
+neighbours and the leaving atoms, written by element with maps renumbered from 1) and whether
+it reproduces the drawn products. Option classify adds "reaction_class": the name of the
+generic template (amide coupling, esterification, Suzuki-type coupling, aryl amination,
+reductive amination, Boc deprotection, ...) that makes the drawn products from the drawn
+structures, every template that fits, and null with a note when none does; it reads the
+structures only, never the conditions. Option map_numbers_into_scheme (one drawn reaction,
+{"cdxml": path}) is the path of a new .cdxml: a copy of the drawing with each map number
+written beside its atom on both sides, never overwriting a file. output_path ends in .json,
 .smi (the mapped reaction SMILES) or .svg (a picture) and is never overwritten. At most 120
 heavy atoms per side.
 
