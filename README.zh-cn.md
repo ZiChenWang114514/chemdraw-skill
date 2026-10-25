@@ -219,7 +219,12 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
 
 常见溶剂和试剂会带 **Danger** 或 **Warning** 标记，来自内置的约五十种物质的表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示为“未收录”，而不是安全。这张表只是提醒，以供应商的 SDS 为准。
 
-<p align="center"><img src="assets/readme/gallery/calculator.png" width="80%" alt="苯甲醇与乙酰氯的反应计算器页面：可编辑的用量、Danger 与 Warning 标记、PMI 和收率，以及一句实验写法"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/gallery/calculator-dark.png">
+    <img src="assets/readme/gallery/calculator-light.png" width="80%" alt="苯甲醇与乙酰氯的反应计算器页面：可编辑的用量、Danger 与 Warning 标记、PMI 和收率，以及一句实验写法">
+  </picture>
+</p>
 
 ### 表征文字
 

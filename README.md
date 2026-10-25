@@ -217,7 +217,12 @@ This opens a page in your browser (served from 127.0.0.1, closed a few minutes a
 
 Common solvents and reagents carry a **Danger** or **Warning** badge from a built-in table of about fifty entries: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
 
-<p align="center"><img src="assets/readme/gallery/calculator.png" width="80%" alt="The reaction calculator page for benzyl alcohol and acetyl chloride: editable amounts, danger and warning badges, PMI and yield, and a write-up sentence"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/gallery/calculator-dark.png">
+    <img src="assets/readme/gallery/calculator-light.png" width="80%" alt="The reaction calculator page for benzyl alcohol and acetyl chloride: editable amounts, danger and warning badges, PMI and yield, and a write-up sentence">
+  </picture>
+</p>
 
 ### Characterization text
 
