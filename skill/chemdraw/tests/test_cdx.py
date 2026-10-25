@@ -500,3 +500,16 @@ def test_doctor_paths_include_the_runtime_log_folder(tmp_path, monkeypatch):
     folder.mkdir(parents=True)
     monkeypatch.setattr(tool_worker, 'worker_log_dir', lambda: folder)
     assert str(folder) in cdx.runtime_paths()['worker_logs']
+
+
+def test_install_mappers_hands_every_argument_to_the_backend_installer():
+    with mock.patch.object(cdx, '_ensure_runtime'), mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
+        assert cdx.main(['install-mappers', 'localmapper', '--dry-run']) == 0
+    assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.mapping_backends', 'localmapper', '--dry-run']
+
+
+def test_calc_hands_every_argument_to_the_calculator_module():
+    with mock.patch.object(cdx, '_ensure_runtime'), mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
+        assert cdx.main(['calc', 'A.B>>C', '--scale', '2', '--no-open', '--offline']) == 0
+    assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.reaction_calculator', 'A.B>>C', '--scale', '2',
+                                          '--no-open', '--offline']

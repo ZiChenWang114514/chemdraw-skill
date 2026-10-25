@@ -140,6 +140,20 @@ def _java_opsin_capabilities() -> tuple[dict[str, Any], dict[str, Any]]:
     )
 
 
+def _mapper_capabilities() -> dict[str, dict[str, Any]]:
+    """Optional learned atom-mapping backends (found without importing PyTorch)."""
+    from .. import mapping_backends
+
+    found = mapping_backends.available()
+    return {
+        name: _status(
+            found[name],
+            **({} if found[name] else {"detail": f"not installed: cdx.py install-mappers {name}"}),
+        )
+        for name in mapping_backends.BACKENDS
+    }
+
+
 def _decimer_capability() -> dict[str, Any]:
     configured = os.environ.get("DECIMER_MODEL_DIR")
     root = (
@@ -531,6 +545,7 @@ def diagnose_runtime(
         "detail": "Enable run_native_probe to validate ChemDraw automation",
     }
     capabilities["java"], capabilities["opsin"] = _java_opsin_capabilities()
+    capabilities.update(_mapper_capabilities())
     capabilities["office"] = _office_capability()
     capabilities["decimer_models"] = _decimer_capability()
 
@@ -592,7 +607,7 @@ def diagnose_runtime(
     ok = all(capabilities[name]["status"] == "available" for name in required)
     warnings = []
     for name, capability in capabilities.items():
-        if capability["status"] == "missing" and name not in {"java", "opsin"}:
+        if capability["status"] == "missing" and name not in {"java", "opsin", "rxnmapper", "localmapper"}:
             warnings.append(
                 f"{name}: {capability.get('detail') or 'capability is unavailable'}"
             )

@@ -22,6 +22,7 @@ python scripts/install.py --agent claude agents --runtime --apply    # 安装 Sk
 
 ```bash
 python3 scripts/install.py --agent claude agents --runtime --opsin --apply   # 同时下载 OPSIN JAR（校验 SHA-256）
+python3 scripts/install.py --runtime --mapping --apply                       # 可选：RXNMapper 与 LocalMapper 原子映射（各数百 MB）
 python3 skill/chemdraw/scripts/cdx.py doctor --native --office --chemscript
 ```
 

@@ -217,7 +217,8 @@ def _adducts(mol, exact):
     charge = Chem.GetFormalCharge(mol)
     if charge:
         z = abs(charge)
-        mz = (exact - charge * ELECTRON) / z
+        from ..characterization import atoms_mass
+        mz = (atoms_mass(mol) - charge * ELECTRON) / z
         sign = '+' if charge > 0 else '-'
         name = f'[M]{sign}' if z == 1 else f'[M]{z}{sign}'
         return [{'name': name, 'mz': round(mz, 5), 'mode': 'positive' if charge > 0 else 'negative'}]
@@ -550,6 +551,19 @@ def _balance_one(reactants, agents, products, options, step_id=None):
     return reaction
 
 
+def _reaction_sources(reaction):
+    """Reaction input -> [{'step_id', 'reactants', 'agents', 'products'}] of structure records."""
+    if isinstance(reaction, str):
+        return [{'step_id': None, **_from_smiles(reaction)}]
+    if isinstance(reaction, dict) and 'cdxml' in reaction:
+        steps = reaction.get('steps')
+        return _from_cdxml(reaction['cdxml'], set(map(str, steps)) if steps else None)
+    if isinstance(reaction, dict) and reaction.get('reactants') and reaction.get('products'):
+        return [{'step_id': None, 'reactants': reaction['reactants'], 'agents': reaction.get('agents') or [],
+                 'products': reaction['products']}]
+    raise ValueError('reaction must be a reaction SMILES, {"reactants": [...], "products": [...]} or {"cdxml": path}')
+
+
 def check_reaction_balance(reaction: str | dict, options: dict | None = None,
                            output_path: str | None = None) -> dict:
     """Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
@@ -573,16 +587,7 @@ def check_reaction_balance(reaction: str | dict, options: dict | None = None,
     unknown = set(options) - {'scale_mmol', 'limiting', 'main_product'}
     if unknown:
         raise ValueError(f'Unknown options: {sorted(unknown)}')
-    if isinstance(reaction, str):
-        sources = [{'step_id': None, **_from_smiles(reaction)}]
-    elif isinstance(reaction, dict) and 'cdxml' in reaction:
-        steps = reaction.get('steps')
-        sources = _from_cdxml(reaction['cdxml'], set(map(str, steps)) if steps else None)
-    elif isinstance(reaction, dict) and reaction.get('reactants') and reaction.get('products'):
-        sources = [{'step_id': None, 'reactants': reaction['reactants'], 'agents': reaction.get('agents') or [],
-                    'products': reaction['products']}]
-    else:
-        raise ValueError('reaction must be a reaction SMILES, {"reactants": [...], "products": [...]} or {"cdxml": path}')
+    sources = _reaction_sources(reaction)
     reactions = []
     for source in sources:
         sides = {}
@@ -790,5 +795,352 @@ def structure_to_name(molecules: list[dict], options: dict | None = None,
     return result
 
 
+# --- reaction_calculator -----------------------------------------------------
+
+CALCULATOR_ROW_KEYS = ('id', 'role', 'name', 'formula', 'smiles', 'mw', 'coefficient', 'basis', 'value',
+                       'assumed', 'density', 'solution_m', 'purity')
+
+
+def _rounded(value, digits=4):
+    return round(value, digits) + 0.0 if isinstance(value, float) else value
+
+
+def reaction_calculator(reaction: str | dict, options: dict | None = None,
+                        output_path: str | None = None) -> dict:
+    """Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
+
+    reaction is the same input as check_reaction_balance: a reaction SMILES
+    "reactants>agents>products", {"reactants": [...], "agents": [...], "products": [...]} of
+    structure records, or {"cdxml": path, "steps": [step ids]}. A record may fix its own amount
+    with one of equiv, mmol, mass_mg or volume_ml (solvents: volume_ml), and may carry name,
+    role (agents: solvent, reagent or catalyst), density_g_ml, concentration_m (a stock
+    solution), purity (percent) and, for a product, isolated_mg or yield_percent.
+    Options: scale_mmol (the limiting reactant, default 1), limiting (reactant index, default 0),
+    molarity (of the limiting reactant in the first solvent, default 0.2), title, step (id of the
+    CDXML step to use, default the first).
+    Everything not fixed gets a default (reactants by their coefficients, reagents 1 equiv,
+    metal catalysts 0.05 equiv, a 0.2 M solvent); the result lists those rows under "assumed"
+    and the page shows them in italics. Liquids show a volume when a density is known (a small
+    library of common solvents and reagents supplies it). The result holds the table and the
+    path of a standalone HTML page in which any quantity can be retyped and the rest recomputes,
+    with a procedure sentence, Markdown and spreadsheet copies. output_path ends in .html and is
+    never overwritten (default reaction-calculator.html). To draw the reaction in ChemDraw and
+    look names up, start the page with `cdx.py calc` instead.
+    """
+    from ..reaction_calculator import annotate, build_state, compute, render_page
+    options = dict(options or {})
+    step = options.pop('step', None)
+    scheme_output = options.pop('scheme_output', None)
+    scheme_show = tuple(options.pop('scheme_show', None) or annotate.SHOW)
+    if set(scheme_show) - set(annotate.SHOW):
+        raise ValueError(f'scheme_show may contain {list(annotate.SHOW)}')
+    sources = _reaction_sources(reaction)
+    if step is not None:
+        sources = [source for source in sources if source['step_id'] == str(step)]
+        if not sources:
+            raise ValueError(f'No reaction step {step} in the file')
+    sides = {role: _side(sources[0][role], role[:-1]) for role in ('reactants', 'agents', 'products')}
+    state = build_state(sides, options)
+    result = compute(state)
+    scheme_text = unplaced = None
+    if scheme_output:
+        scheme_text, unplaced = _annotated_scheme(reaction, state, result, scheme_show)
+    target = _publish(output_path or 'reaction-calculator.html', {'.html': lambda: render_page(state)})
+    scheme_target = _publish(scheme_output, {'.cdxml': lambda: scheme_text}) if scheme_output else None
+    warnings = list(result['warnings'])
+    if len(sources) > 1:
+        warnings.append(f"The file holds {len(sources)} reaction steps; step {sources[0]['step_id']} was used. "
+                        'Pass options.step for another.')
+    rows = [{**{key: _rounded(row.get(key)) for key in ('id', 'role', 'name', 'formula', 'mw', 'equiv', 'mmol',
+                                                        'mass_mg', 'volume_ml', 'theory_mmol', 'theory_mg',
+                                                        'actual_mg', 'yield_percent', 'hrms') if row.get(key) is not None},
+             'fixed': {'basis': row['basis'], 'value': _rounded(row['value']), 'assumed': bool(row['assumed'])}
+             if row['basis'] else None} for row in result['rows']]
+    totals = {key: _rounded(value) for key, value in result['totals'].items() if value is not None}
+    out = {'ok': True, 'operation': 'reaction_calculator', 'title': state['title'],
+           'limiting': result['limiting'], 'rows': rows, 'totals': totals,
+           'assumed': [row['name'] for row in state['rows'] if row['assumed']], 'warnings': warnings,
+           'output_path': str(target)}
+    if scheme_target:
+        out.update(scheme_path=str(scheme_target), scheme_unplaced=unplaced)
+    return artifact_safety.with_artifacts(out, [target] + ([scheme_target] if scheme_target else []))
+
+
+def _annotated_scheme(reaction, state, result, show):
+    """CDXML text of the reaction scheme with the amounts written under each structure."""
+    from ..reaction_calculator.server import annotated_scheme
+    source = None
+    if isinstance(reaction, dict) and reaction.get('cdxml'):
+        source = Path(reaction['cdxml']).expanduser().resolve()
+        if not source.is_file():
+            raise ValueError(f'Input file does not exist: {source}')
+    return annotated_scheme(state, result, show, source)
+
+
+def hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict:
+    """HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
+
+    Each record is a grounded structure (SMILES, molblock or CDXML/MOL/SDF file, optional label).
+    The ion formula and calculated m/z come from the monoisotopic mass of the structure plus the
+    atoms the adduct adds or removes, with the electron mass included (options.electron_mass=false
+    ignores it, as some calculators do). A record may carry adduct or adducts (default [M+H]+, or
+    [M-H]- with options.mode "negative", or the molecular ion for ionization "EI"; a charged
+    structure is its own ion) and found_mz: a number for its first adduct or {adduct: number}. A
+    measured value adds ", found ..." and the error in ppm; more than 5 ppm is flagged. Options:
+    adducts, mode (positive or negative), ionization (ESI, APCI, EI, ESI-TOF and similar labels),
+    decimals (default 4), electron_mass. Supported adducts: [M+H]+, [M+Na]+, [M+K]+, [M+NH4]+,
+    [M+Li]+, [M+2H]2+, [M+H-H2O]+, [M-H]-, [M-2H]2-, [M+Cl]-, [M+Br]-, [M+HCOO]-,
+    [M+CH3COO]- and the EI molecular ion M+. . Output ends in .txt, .md, .csv or .json and is
+    never overwritten. At most 256 structures. The values are calculated, never measured.
+    """
+    from ..characterization import default_adduct, hrms_entry
+    options = dict(options or {})
+    unknown = set(options) - {'adducts', 'mode', 'ionization', 'decimals', 'electron_mass'}
+    if unknown:
+        raise ValueError(f'Unknown option(s): {sorted(unknown)}')
+    mode = options.get('mode', 'positive')
+    if mode not in ('positive', 'negative'):
+        raise ValueError('mode must be positive or negative')
+    ionization = options.get('ionization', 'ESI')
+    decimals = int(options.get('decimals', 4))
+    electron_mass = bool(options.get('electron_mass', True))
+    warnings, results = [], []
+    for item in _expand(molecules, limit=MAX_STRUCTURES):
+        record, mol, label = item['record'], item['mol'], item['label']
+        _check_grounded(mol, label)
+        adducts = (record.get('adducts') or ([record['adduct']] if record.get('adduct') else None)
+                   or options.get('adducts') or [default_adduct(Chem.RemoveHs(mol), mode, ionization)])
+        found = record.get('found_mz')
+        entries = []
+        for index, adduct in enumerate(adducts):
+            value = found.get(adduct) if isinstance(found, dict) else (found if index == 0 else None)
+            entry = hrms_entry(mol, adduct, ionization=ionization, decimals=decimals, found=value,
+                               electron_mass=electron_mass)
+            if entry['error_ppm'] is not None and abs(entry['error_ppm']) > 5:
+                warnings.append(f"{label}: {entry['adduct']} found {entry['found_mz']} is {entry['error_ppm']:+.1f} ppm "
+                                'from the calculated value; check the adduct, the formula and the instrument calibration.')
+            entries.append(entry)
+        if len(Chem.GetMolFrags(mol)) > 1:
+            warnings.append(f'{label}: more than one component; the formula describes the whole record.')
+        results.append({'label': label, 'source': item['source'], 'formula': entries[0]['molecular_formula'],
+                        'entries': entries})
+    rows = [{'label': r['label'], 'formula': r['formula'], **{k: e[k] for k in
+             ('adduct', 'ion_formula', 'calcd_mz', 'found_mz', 'error_ppm', 'line')}}
+            for r in results for e in r['entries']]
+    text = ''.join(f"{row['label']}: {row['line']}" + chr(10) for row in rows)
+    columns = ['label', 'formula', 'adduct', 'ion_formula', 'calcd_mz', 'found_mz', 'error_ppm', 'line']
+    result = {'ok': True, 'operation': 'hrms_line', 'count': len(results), 'results': results,
+              'text': text, 'warnings': warnings}
+    if output_path:
+        target = _publish(output_path, {
+            '.txt': lambda: text,
+            '.md': lambda: _markdown(rows, columns),
+            '.csv': lambda: _csv(rows, columns),
+            '.json': lambda: json.dumps({'results': results}, ensure_ascii=False, indent=2),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
+MAX_BATCH = 100
+
+
+def _batch_items(reactions):
+    """Batch input -> [(label or None, reaction spec, per-reaction options)]."""
+    if isinstance(reactions, (str, dict)):
+        reactions = [reactions]
+    if not reactions:
+        raise ValueError('Provide at least one reaction')
+    if len(reactions) > MAX_BATCH:
+        raise ValueError(f'At most {MAX_BATCH} reactions per call')
+    items = []
+    for item in reactions:
+        if isinstance(item, dict) and 'reaction' in item:
+            items.append((item.get('label'), item['reaction'], dict(item.get('options') or {})))
+        elif isinstance(item, dict):
+            spec = {k: v for k, v in item.items() if k not in ('label', 'options')}
+            items.append((item.get('label'), spec, dict(item.get('options') or {})))
+        else:
+            items.append((None, item, {}))
+    return items
+
+
+def _calculator_rows(result):
+    keys = ('id', 'role', 'name', 'formula', 'mw', 'equiv', 'mmol', 'mass_mg', 'volume_ml', 'theory_mmol',
+            'theory_mg', 'actual_mg', 'yield_percent', 'hrms')
+    return [{**{key: _rounded(row.get(key)) for key in keys if row.get(key) is not None},
+             'fixed': {'basis': row['basis'], 'value': _rounded(row['value']), 'assumed': bool(row['assumed'])}
+             if row['basis'] else None} for row in result['rows']]
+
+
+def _materials_entry(label, source, options, hrms):
+    from ..characterization import default_adduct, hrms_entry
+    from ..reaction_calculator import build_state, compute, materials
+    sides = {role: _side(source[role], role[:-1]) for role in ('reactants', 'agents', 'products')}
+    state = build_state(sides, options)
+    result = compute(state)
+    rows = result['rows']
+    if not hrms.get('enabled', True):
+        for row in rows:
+            row.pop('hrms', None)
+    first = next((r for r in rows if r['role'] == 'product'), None)
+    warnings = list(result['warnings'])
+    product = None
+    if first is not None:
+        product = {key: _rounded(first.get(key)) for key in ('name', 'formula', 'mw', 'theory_mmol', 'theory_mg',
+                                                              'actual_mg', 'yield_percent') if first.get(key) is not None}
+        if hrms.get('enabled', True):
+            mol = Chem.MolFromSmiles(first['smiles'])
+            try:
+                product['hrms'] = hrms_entry(mol, hrms.get('adduct') or default_adduct(mol, 'positive', hrms['ionization']),
+                                             ionization=hrms['ionization'])['line']
+            except ValueError as exc:
+                warnings.append(f'HRMS line not written: {exc}')
+    assumed = [row['name'] for row in state['rows'] if row['assumed']]
+    if assumed:
+        warnings.append(f"amounts assumed (not given) for {', '.join(assumed)}")
+    for row in rows:
+        if first is not None and row['id'] == first['id'] and product and product.get('hrms'):
+            row['hrms'] = product['hrms']
+    return {'label': label, 'ok': True, 'title': state['title'], 'limiting': result['limiting'],
+            'rows': _calculator_rows(result), 'all_rows': rows, 'totals': {k: _rounded(v) for k, v in result['totals'].items()
+                                                                             if v is not None},
+            'product': product, 'assumed': assumed, 'warnings': warnings,
+            'procedure': materials.procedure(rows, result['limiting'], result['totals'])}
+
+
+def si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict:
+    """Materials tables for a batch of reactions, ready for a Supporting Information file.
+
+    reactions is a list; each entry is a reaction SMILES "reactants>agents>products", a record
+    {"reactants": [...], "agents": [...], "products": [...]}, {"cdxml": path} (one reaction per
+    reaction step in the drawing) or {"label": "3a", "reaction": <any of these>, "options": {...}}.
+    Records and options are those of reaction_calculator: amounts are given as equiv, mmol,
+    mass_mg or volume_ml, products may carry isolated_mg or yield_percent, and per-reaction
+    options override the call's options. Options: scale_mmol (limiting reactant, default 1),
+    limiting, molarity (default 0.2 of the limiting reagent in the first solvent), hrms (default
+    true: add the calculated HRMS line of the first product), adduct (default [M+H]+) and
+    ionization (default ESI).
+    Per reaction the result holds the amounts table, concentration, atom economy and reaction mass
+    efficiency, the first product's formula, isolated mass and yield, its HRMS line and a procedure
+    sentence; "assumed" lists the amounts nobody gave (shown in warnings). A reaction that cannot be
+    read is reported with its error and the others continue. output_path ends in .md, .csv, .html
+    or .json and is never overwritten. At most 100 reactions. Amounts and HRMS values are
+    calculated; nothing here is a measurement.
+    """
+    from ..reaction_calculator import materials
+    base = dict(options or {})
+    hrms = {'enabled': bool(base.pop('hrms', True)), 'adduct': base.pop('adduct', None),
+            'ionization': base.pop('ionization', 'ESI')}
+    entries, warnings = [], []
+    for number, (label, spec, own) in enumerate(_batch_items(reactions), 1):
+        name = label or f'Reaction {number}'
+        try:
+            sources = _reaction_sources(spec)
+            stem = Path(spec['cdxml']).stem if isinstance(spec, dict) and spec.get('cdxml') else None
+            for step, source in enumerate(sources, 1):
+                if len(sources) > 1:
+                    entry_label = f'{label or stem}, step {step}'
+                else:
+                    entry_label = label or stem or name
+                if len(entries) >= MAX_BATCH:
+                    raise ValueError(f'At most {MAX_BATCH} reactions per call')
+                entry = _materials_entry(entry_label, source, {**base, **own}, hrms)
+                warnings += [f'{entry_label}: {w}' for w in entry['warnings']]
+                entries.append(entry)
+        except ValueError as exc:
+            entries.append({'label': name, 'ok': False, 'error': str(exc)})
+            warnings.append(f'{name}: {exc}')
+    markdown = materials.markdown(entries)
+    public = [{k: v for k, v in entry.items() if k != 'all_rows'} for entry in entries]
+    result = {'ok': True, 'operation': 'si_materials_tables', 'count': len(entries), 'reactions': public,
+              'markdown': markdown, 'warnings': warnings}
+    if output_path:
+        target = _publish(output_path, {
+            '.md': lambda: markdown,
+            '.csv': lambda: materials.csv_text(entries),
+            '.html': lambda: materials.html_text(entries),
+            '.json': lambda: json.dumps({'reactions': public}, ensure_ascii=False, indent=2),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
+def _mapping_species(records):
+    out = []
+    for item in (_expand(records, limit=MAX_STRUCTURES) if records else []):
+        _check_grounded(item['mol'], item['label'])
+        record, mol = item['record'], Chem.Mol(item['mol'])
+        for atom in mol.GetAtoms():
+            atom.SetAtomMapNum(0)
+        out.append((record.get('label') or record.get('name') or record.get('smiles')
+                    or rdMolDescriptors.CalcMolFormula(mol), mol))
+    return out
+
+
+def _mapping_picture(mapped):
+    from rdkit.Chem import rdChemReactions
+    from rdkit.Chem.Draw import rdMolDraw2D
+    drawer = rdMolDraw2D.MolDraw2DSVG(960, 320)
+    drawer.DrawReaction(rdChemReactions.ReactionFromSmarts(mapped, useSmiles=True))
+    drawer.FinishDrawing()
+    return drawer.GetDrawingText()
+
+
+def map_reaction_atoms(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict:
+    """Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+
+    reaction is a reaction SMILES "reactants>agents>products", {"reactants": [...], "products": [...]}
+    of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). Hydrogens are
+    not mapped. Methods (option method): "mcs" is built in and needs nothing installed; it pairs
+    atoms by repeated maximum-common-substructure matching, keeps the pairing with the fewest
+    unmapped product atoms and then the fewest bond changes, and lists product atoms with more
+    than one equally good source as ambiguous instead of deciding. "rxnmapper" and "localmapper"
+    are learned mappers that run locally and need the one-time download made by
+    `cdx.py install-mappers`; they decide every atom, and RXNMapper also returns a confidence
+    (LocalMapper a confident flag) that you should read before trusting the map. "auto" (default)
+    uses LocalMapper, then RXNMapper, then "mcs", and falls back with a warning if a mapper fails.
+    Option compare runs every installed method and adds a "comparison" with the product atoms they
+    disagree on. This is bookkeeping, not a mechanism: pericyclic reactions and rearrangements can
+    be mapped differently from the textbook arrows. The result holds the mapped reaction SMILES,
+    a per-atom table, the bond changes (formed, broken, order changed), reactant atoms with no
+    product counterpart (leaving groups), product atoms without a source (status "incomplete"),
+    and, for "mcs", product atoms that could come from more than one reactant atom (status
+    "ambiguous"; left unmapped, never decided silently). Other options: resolve_ambiguity
+    (default false, "mcs" only) accepts a fixed tie-break for them, with a warning; include_agents
+    (default false) also offers the agent structures as atom sources. output_path ends in .json,
+    .smi (the mapped reaction SMILES) or .svg (a picture) and is never overwritten. At most 120
+    heavy atoms per side.
+    """
+    from .. import atom_mapping
+    options = dict(options or {})
+    unknown = set(options) - {'resolve_ambiguity', 'include_agents', 'method', 'compare'}
+    if unknown:
+        raise ValueError(f'Unknown options: {sorted(unknown)}')
+    sources = _reaction_sources(reaction)
+    if len(sources) != 1:
+        raise ValueError(f'The file stores {len(sources)} reaction steps; choose one with {{"cdxml": path, "steps": [step id]}}')
+    source = sources[0]
+    reactants, agents, products = (_mapping_species(source[role]) for role in ('reactants', 'agents', 'products'))
+    include = bool(options.get('include_agents')) and bool(agents)
+    outcome = atom_mapping.map_atoms(reactants + (agents if include else []), products,
+                                     resolve_ambiguity=bool(options.get('resolve_ambiguity')),
+                                     method=str(options.get('method') or 'auto'), compare=bool(options.get('compare')))
+    left = [Chem.MolToSmiles(m) for m in outcome.pop('left_mapped')]
+    shown = left[len(reactants):] if include else [Chem.MolToSmiles(m) for _, m in agents]
+    products_smiles = [Chem.MolToSmiles(m) for m in outcome.pop('right_mapped')]
+    mapped = '.'.join(left[:len(reactants)]) + '>' + '.'.join(shown) + '>' + '.'.join(products_smiles)
+    result = {'ok': True, 'operation': 'map_reaction_atoms', **outcome, 'mapped_reaction': mapped}
+    if output_path:
+        target = _publish(output_path, {
+            '.json': lambda: json.dumps(result, ensure_ascii=False, indent=2),
+            '.smi': lambda: mapped + '\n',
+            '.svg': lambda: _mapping_picture(mapped),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
-                                         structure_to_name)}
+                                         structure_to_name, reaction_calculator, hrms_line,
+                                         si_materials_tables, map_reaction_atoms)}

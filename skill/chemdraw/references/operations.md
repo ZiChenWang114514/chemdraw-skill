@@ -50,6 +50,7 @@ python scripts/install.py --agent <name> --runtime --apply      # install; add -
 python scripts/install.py --destination <other skills folder>/chemdraw --apply
 python scripts/install.py --runtime --opsin --apply             # also download the OPSIN JAR (SHA-256 verified)
 python scripts/install.py --runtime-only --apply                # only the runtime; installed Skill copies stay as they are
+python scripts/install.py --runtime --mapping --apply           # also RXNMapper and LocalMapper for map_reaction_atoms (cdx.py install-mappers does the same later)
 ```
 
 The installer stages and verifies each copy, moves a previous installation to the shared backup folder, restores it on failure, then (with `--runtime`) creates or reuses the shared venv and installs the pinned toolkit with every extra that applies to the OS. It writes `manifest.json` last. Agent presets, folders and the runtime search order are in [agent integration](agent-integration.md).
@@ -88,6 +89,7 @@ Runtime selection and workers:
 - `CHEMDRAW_MCP_PYTHON` — runtime interpreter for `cdx.py` (otherwise `runtime.local.json`, a sibling `chemdraw-venv`, the shared venv, then a conda env named `cdxml`)
 - `CHEMDRAW_EXE` — explicit ChemDraw executable (on macOS the binary inside the `.app` or the bundle; otherwise `/Applications/ChemDraw*.app` is found)
 - `OPSIN_JAR`, `CDXML_TOOLKIT_OPSIN_JAR` — explicit OPSIN JAR (otherwise the one `install.py --opsin` placed beside the shared venv)
+- `CHEMDRAW_MAPPER_HOME` — folder with one environment per learned atom-mapping backend (default: `chemdraw-skill/mappers` in the user data folder, beside the shared venv); `cdx.py install-mappers --status` shows what is there
 - `CHEMDRAW_NATIVE_TEMP` — writable ASCII-only root for native staging
 - `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`, `CHEMDRAW_MCP_WORKER_INPUT_BYTES`, `CHEMDRAW_MCP_WORKER_OUTPUT_BYTES`
 - `CHEMSCRIPT_PYTHON`, `CHEMSCRIPT_CONFIG_PATH`

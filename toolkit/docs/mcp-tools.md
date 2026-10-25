@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `47`
+Tools: `51`
 
 ## Extended Tools
 
@@ -104,6 +104,23 @@ Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
 
 Return runtime identity and diagnostics; detail='summary' omits tool signatures.
 
+### `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict`
+
+HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
+
+Each record is a grounded structure (SMILES, molblock or CDXML/MOL/SDF file, optional label).
+The ion formula and calculated m/z come from the monoisotopic mass of the structure plus the
+atoms the adduct adds or removes, with the electron mass included (options.electron_mass=false
+ignores it, as some calculators do). A record may carry adduct or adducts (default [M+H]+, or
+[M-H]- with options.mode "negative", or the molecular ion for ionization "EI"; a charged
+structure is its own ion) and found_mz: a number for its first adduct or {adduct: number}. A
+measured value adds ", found ..." and the error in ppm; more than 5 ppm is flagged. Options:
+adducts, mode (positive or negative), ionization (ESI, APCI, EI, ESI-TOF and similar labels),
+decimals (default 4), electron_mass. Supported adducts: [M+H]+, [M+Na]+, [M+K]+, [M+NH4]+,
+[M+Li]+, [M+2H]2+, [M+H-H2O]+, [M-H]-, [M-2H]2-, [M+Cl]-, [M+Br]-, [M+HCOO]-,
+[M+CH3COO]- and the EI molecular ion M+. . Output ends in .txt, .md, .csv or .json and is
+never overwritten. At most 256 structures. The values are calculated, never measured.
+
 ### `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, typing.Any]`
 
 Inventory editable ChemDraw objects and extract numbered CDXML previews.
@@ -111,6 +128,32 @@ Inventory editable ChemDraw objects and extract numbered CDXML previews.
 ### `inspect_chemscript_sdk(query: Optional[str] = None, type_name: Optional[str] = None, include_infrastructure: bool = False, offset: int = 0, limit: int = 100, output_path: Optional[str] = None) -> dict[str, typing.Any]`
 
 Catalog every public ChemScript type/member, with filtering or a complete JSON export.
+
+### `map_reaction_atoms(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict`
+
+Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+
+reaction is a reaction SMILES "reactants>agents>products", {"reactants": [...], "products": [...]}
+of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). Hydrogens are
+not mapped. Methods (option method): "mcs" is built in and needs nothing installed; it pairs
+atoms by repeated maximum-common-substructure matching, keeps the pairing with the fewest
+unmapped product atoms and then the fewest bond changes, and lists product atoms with more
+than one equally good source as ambiguous instead of deciding. "rxnmapper" and "localmapper"
+are learned mappers that run locally and need the one-time download made by
+`cdx.py install-mappers`; they decide every atom, and RXNMapper also returns a confidence
+(LocalMapper a confident flag) that you should read before trusting the map. "auto" (default)
+uses LocalMapper, then RXNMapper, then "mcs", and falls back with a warning if a mapper fails.
+Option compare runs every installed method and adds a "comparison" with the product atoms they
+disagree on. This is bookkeeping, not a mechanism: pericyclic reactions and rearrangements can
+be mapped differently from the textbook arrows. The result holds the mapped reaction SMILES,
+a per-atom table, the bond changes (formed, broken, order changed), reactant atoms with no
+product counterpart (leaving groups), product atoms without a source (status "incomplete"),
+and, for "mcs", product atoms that could come from more than one reactant atom (status
+"ambiguous"; left unmapped, never decided silently). Other options: resolve_ambiguity
+(default false, "mcs" only) accepts a fixed tie-break for them, with a warning; include_agents
+(default false) also offers the agent structures as atom sources. output_path ends in .json,
+.smi (the mapped reaction SMILES) or .svg (a picture) and is never overwritten. At most 120
+heavy atoms per side.
 
 ### `markush_compile(spec_path: str, output_dir: str, layout_path: str | None = None, render: bool = True) -> dict`
 
@@ -188,6 +231,28 @@ a connectivity-preserving diff. Enumeration creates candidate structures,
 not predictions of populations, reaction products, or experimental ratios.
 Writes provenance, bounded candidate results and truncation status to JSON.
 
+### `reaction_calculator(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict`
+
+Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
+
+reaction is the same input as check_reaction_balance: a reaction SMILES
+"reactants>agents>products", {"reactants": [...], "agents": [...], "products": [...]} of
+structure records, or {"cdxml": path, "steps": [step ids]}. A record may fix its own amount
+with one of equiv, mmol, mass_mg or volume_ml (solvents: volume_ml), and may carry name,
+role (agents: solvent, reagent or catalyst), density_g_ml, concentration_m (a stock
+solution), purity (percent) and, for a product, isolated_mg or yield_percent.
+Options: scale_mmol (the limiting reactant, default 1), limiting (reactant index, default 0),
+molarity (of the limiting reactant in the first solvent, default 0.2), title, step (id of the
+CDXML step to use, default the first).
+Everything not fixed gets a default (reactants by their coefficients, reagents 1 equiv,
+metal catalysts 0.05 equiv, a 0.2 M solvent); the result lists those rows under "assumed"
+and the page shows them in italics. Liquids show a volume when a density is known (a small
+library of common solvents and reagents supplies it). The result holds the table and the
+path of a standalone HTML page in which any quantity can be retyped and the rest recomputes,
+with a procedure sentence, Markdown and spreadsheet copies. output_path ends in .html and is
+never overwritten (default reaction-calculator.html). To draw the reaction in ChemDraw and
+look names up, start the page with `cdx.py calc` instead.
+
 ### `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, typing.Any]`
 
 Render one or more CDXML files through native ChemDraw (COM or macOS).
@@ -203,6 +268,26 @@ stays in place. Otherwise frames keep their size.
 ### `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, typing.Any]`
 
 Segment a disconnected or multi-panel CDXML scheme into logical regions.
+
+### `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict`
+
+Materials tables for a batch of reactions, ready for a Supporting Information file.
+
+reactions is a list; each entry is a reaction SMILES "reactants>agents>products", a record
+{"reactants": [...], "agents": [...], "products": [...]}, {"cdxml": path} (one reaction per
+reaction step in the drawing) or {"label": "3a", "reaction": <any of these>, "options": {...}}.
+Records and options are those of reaction_calculator: amounts are given as equiv, mmol,
+mass_mg or volume_ml, products may carry isolated_mg or yield_percent, and per-reaction
+options override the call's options. Options: scale_mmol (limiting reactant, default 1),
+limiting, molarity (default 0.2 of the limiting reagent in the first solvent), hrms (default
+true: add the calculated HRMS line of the first product), adduct (default [M+H]+) and
+ionization (default ESI).
+Per reaction the result holds the amounts table, concentration, atom economy and reaction mass
+efficiency, the first product's formula, isolated mass and yield, its HRMS line and a procedure
+sentence; "assumed" lists the amounts nobody gave (shown in warnings). A reaction that cannot be
+read is reported with its error and the others continue. output_path ends in .md, .csv, .html
+or .json and is never overwritten. At most 100 reactions. Amounts and HRMS values are
+calculated; nothing here is a measurement.
 
 ### `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict`
 
