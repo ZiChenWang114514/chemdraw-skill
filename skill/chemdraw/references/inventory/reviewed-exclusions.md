@@ -283,13 +283,14 @@
 
 ## `mcp_runtime.report_tools`
 
-- **function**, line 1340: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
+- **function**, line 1470: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
 - **function**, line 567: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
 - **function**, line 629: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
 - **function**, line 887: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
-- **function**, line 1256: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+- **function**, line 1386: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
 - **function**, line 289: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
 - **function**, line 808: `reaction_calculator(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
+- **function**, line 1166: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
 - **function**, line 1033: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
 - **function**, line 445: `signs(species)` - No public docstring in the audited version.
 - **function**, line 722: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
@@ -389,7 +390,7 @@
 ## `reaction_calculator.engine`
 
 - **function**, line 64: `compute(state: dict) -> dict` - Amounts of every row from the limiting row and the quantity fixed on each row.
-- **function**, line 138: `rebase(state: dict, new_limiting: str) -> dict` - The same reaction with another limiting row, every amount unchanged.
+- **function**, line 148: `rebase(state: dict, new_limiting: str) -> dict` - The same reaction with another limiting row, every amount unchanged.
 
 ## `reaction_calculator.hazards`
 
@@ -408,9 +409,9 @@
 
 ## `reaction_calculator.materials`
 
-- **function**, line 116: `csv_text(entries: list[dict]) -> str` - No public docstring in the audited version.
-- **function**, line 158: `html_text(entries: list[dict]) -> str` - No public docstring in the audited version.
-- **function**, line 99: `markdown(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 120: `csv_text(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 162: `html_text(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 103: `markdown(entries: list[dict]) -> str` - No public docstring in the audited version.
 - **function**, line 42: `procedure(rows: list[dict], limiting: str, totals: dict) -> str` - One sentence in the usual experimental style, from computed rows.
 - **function**, line 19: `trim(value, digits: int = 3) -> str` - Significant digits without trailing zeros: 1.00 -> 1, 94.2 -> 94.2.
 - **function**, line 27: `volume_phrase(ml: float) -> str` - No public docstring in the audited version.
@@ -450,6 +451,10 @@
 - **function**, line 171: `reaction_center(mapped_reaction: str) -> dict` - The reaction centre of an atom-mapped reaction SMILES as a reaction SMARTS.
 - **function**, line 223: `reproduces(smarts, reactants, products) -> bool | None` - Whether the template run on ``reactants`` (list of mols) makes one of ``products``; None if it cannot run.
 - **function**, line 335: `write_map_numbers(text: str, numbers: dict) -> tuple[str, list]` - (CDXML text with the map numbers added, warnings).
+
+## `route_metrics`
+
+- **function**, line 57: `summarize(raw) -> dict` - No public docstring in the audited version.
 
 ## `spectral_text`
 
