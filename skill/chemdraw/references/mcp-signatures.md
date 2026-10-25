@@ -129,12 +129,17 @@ Inventory editable ChemDraw objects and extract numbered CDXML previews.
 
 Catalog every public ChemScript type/member, with filtering or a complete JSON export.
 
-### `map_reaction_atoms(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict`
+### `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict`
 
 Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
 
 reaction is a reaction SMILES "reactants>agents>products", {"reactants": [...], "products": [...]}
-of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). Hydrogens are
+of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). A list of
+these (at most 100, each optionally {"label": "3a", "reaction": ...}; a drawing with several
+steps gives one entry per step) maps them all in one pass: a learned mapper loads its model on
+every call, so this takes about as long as one reaction. The answer then holds "reactions", one
+entry per reaction with the fields below (or ok false and an error), and output_path ends in
+.json or .smi (one mapped reaction per line). Hydrogens are
 not mapped. Methods (option method): "mcs" is built in and needs nothing installed; it pairs
 atoms by repeated maximum-common-substructure matching, keeps the pairing with the fewest
 unmapped product atoms and then the fewest bond changes, and lists product atoms with more
@@ -281,7 +286,10 @@ mass_mg or volume_ml, products may carry isolated_mg or yield_percent, and per-r
 options override the call's options. Options: scale_mmol (limiting reactant, default 1),
 limiting, molarity (default 0.2 of the limiting reagent in the first solvent), hrms (default
 true: add the calculated HRMS line of the first product), adduct (default [M+H]+) and
-ionization (default ESI).
+ionization (default ESI). map_atoms (default false) adds each reaction's bond changes from
+atom mapping: all reactions go to the mapper in one call, so a learned mapper loads once;
+map_method (default auto, see map_reaction_atoms) picks the method. A reaction that cannot be
+mapped only loses that line, with a warning.
 Per reaction the result holds the amounts table, concentration, atom economy and reaction mass
 efficiency, the first product's formula, isolated mass and yield, its HRMS line and a procedure
 sentence; "assumed" lists the amounts nobody gave (shown in warnings). A reaction that cannot be

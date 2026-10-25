@@ -965,6 +965,15 @@ def _batch_items(reactions):
     return items
 
 
+def _labelled_sources(label, spec, name):
+    """[(entry label, source)] for one batch item: a drawing that stores several reaction steps gives one per step."""
+    sources = _reaction_sources(spec)
+    stem = Path(spec['cdxml']).stem if isinstance(spec, dict) and spec.get('cdxml') else None
+    if len(sources) > 1:
+        return [(f'{label or stem}, step {step}', source) for step, source in enumerate(sources, 1)]
+    return [(label or stem or name, sources[0])]
+
+
 def _calculator_rows(result):
     keys = ('id', 'role', 'name', 'formula', 'mw', 'equiv', 'mmol', 'mass_mg', 'volume_ml', 'theory_mmol',
             'theory_mg', 'actual_mg', 'yield_percent', 'hrms')
@@ -1020,7 +1029,10 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
     options override the call's options. Options: scale_mmol (limiting reactant, default 1),
     limiting, molarity (default 0.2 of the limiting reagent in the first solvent), hrms (default
     true: add the calculated HRMS line of the first product), adduct (default [M+H]+) and
-    ionization (default ESI).
+    ionization (default ESI). map_atoms (default false) adds each reaction's bond changes from
+    atom mapping: all reactions go to the mapper in one call, so a learned mapper loads once;
+    map_method (default auto, see map_reaction_atoms) picks the method. A reaction that cannot be
+    mapped only loses that line, with a warning.
     Per reaction the result holds the amounts table, concentration, atom economy and reaction mass
     efficiency, the first product's formula, isolated mass and yield, its HRMS line and a procedure
     sentence; "assumed" lists the amounts nobody gave (shown in warnings). A reaction that cannot be
@@ -1032,27 +1044,26 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
     base = dict(options or {})
     hrms = {'enabled': bool(base.pop('hrms', True)), 'adduct': base.pop('adduct', None),
             'ionization': base.pop('ionization', 'ESI')}
+    mapping = bool(base.pop('map_atoms', False))
+    map_method = str(base.pop('map_method', 'auto'))
     entries, warnings = [], []
     for number, (label, spec, own) in enumerate(_batch_items(reactions), 1):
         name = label or f'Reaction {number}'
         try:
-            sources = _reaction_sources(spec)
-            stem = Path(spec['cdxml']).stem if isinstance(spec, dict) and spec.get('cdxml') else None
-            for step, source in enumerate(sources, 1):
-                if len(sources) > 1:
-                    entry_label = f'{label or stem}, step {step}'
-                else:
-                    entry_label = label or stem or name
+            for entry_label, source in _labelled_sources(label, spec, name):
                 if len(entries) >= MAX_BATCH:
                     raise ValueError(f'At most {MAX_BATCH} reactions per call')
                 entry = _materials_entry(entry_label, source, {**base, **own}, hrms)
+                entry['_source'] = source
                 warnings += [f'{entry_label}: {w}' for w in entry['warnings']]
                 entries.append(entry)
         except ValueError as exc:
             entries.append({'label': name, 'ok': False, 'error': str(exc)})
             warnings.append(f'{name}: {exc}')
+    if mapping:
+        _add_bond_changes(entries, warnings, map_method)
     markdown = materials.markdown(entries)
-    public = [{k: v for k, v in entry.items() if k != 'all_rows'} for entry in entries]
+    public = [{k: v for k, v in entry.items() if k not in ('all_rows', '_source')} for entry in entries]
     result = {'ok': True, 'operation': 'si_materials_tables', 'count': len(entries), 'reactions': public,
               'markdown': markdown, 'warnings': warnings}
     if output_path:
@@ -1087,11 +1098,118 @@ def _mapping_picture(mapped):
     return drawer.GetDrawingText()
 
 
-def map_reaction_atoms(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict:
+def _mapping_job(source, include_agents):
+    """One reaction source -> the species lists atom mapping works on."""
+    reactants, agents, products = (_mapping_species(source[role]) for role in ('reactants', 'agents', 'products'))
+    include = include_agents and bool(agents)
+    return {'reactants': reactants, 'agents': agents, 'products': products, 'include': include,
+            'left': reactants + (agents if include else [])}
+
+
+def _mapped_reaction(job, outcome):
+    """The mapped reaction SMILES of a finished mapping; takes the numbered molecules out of ``outcome``."""
+    left = [Chem.MolToSmiles(m) for m in outcome.pop('left_mapped')]
+    count = len(job['reactants'])
+    shown = left[count:] if job['include'] else [Chem.MolToSmiles(m) for _, m in job['agents']]
+    products = [Chem.MolToSmiles(m) for m in outcome.pop('right_mapped')]
+    return '.'.join(left[:count]) + '>' + '.'.join(shown) + '>' + '.'.join(products)
+
+
+def _bond_summary(outcome):
+    """'formed C-N; broken C-Cl' from the bond changes of a mapping (with a note when it is not complete)."""
+    parts = []
+    for change in outcome['bond_changes']:
+        text = f"{change['type'].replace('_', ' ')} {change['elements']}"
+        if 'from' in change and 'to' in change:
+            text += f" ({change['from']} to {change['to']})"
+        if text not in parts:
+            parts.append(text)
+    text = '; '.join(parts) or 'none'
+    return text if outcome['status'] == 'complete' else f"{text} ({outcome['status']} mapping)"
+
+
+def _add_bond_changes(entries, warnings, method):
+    """Add the bond changes of every calculated reaction from one batched mapping call.
+
+    A reaction that cannot be mapped, or a method that is not installed, only costs this line.
+    """
+    from .. import atom_mapping
+    jobs = []
+    for entry in entries:
+        if not entry['ok']:
+            continue
+        try:
+            jobs.append((entry, _mapping_job(entry['_source'], False)))
+        except ValueError as exc:
+            warnings.append(f"{entry['label']}: bond changes not mapped: {exc}")
+    if not jobs:
+        return
+    try:
+        outcomes = atom_mapping.map_atoms_many([(job['left'], job['products']) for _, job in jobs], method=method)
+    except ValueError as exc:
+        warnings.append(f'bond changes not mapped: {exc}')
+        return
+    for (entry, _), outcome in zip(jobs, outcomes):
+        if 'error' in outcome:
+            warnings.append(f"{entry['label']}: bond changes not mapped: {outcome['error']}")
+            continue
+        entry['mapping'] = {'method': outcome['method'], 'title': atom_mapping.TITLES[outcome['method']],
+                            'status': outcome['status'], 'summary': _bond_summary(outcome),
+                            **{key: outcome[key] for key in ('confidence', 'confident') if key in outcome}}
+        warnings += [f"{entry['label']}: {w}" for w in outcome['warnings']]
+
+
+def _map_many(reactions, include_agents, settings, output_path):
+    """map_reaction_atoms for a list of reactions: every installed method gets them in one call."""
+    from .. import atom_mapping
+    items = _batch_items(reactions)
+    if any(own for _, _, own in items):
+        raise ValueError('Options apply to the whole list: pass them in options, not per reaction')
+    entries, jobs, warnings = [], [], []
+    for number, (label, spec, _) in enumerate(items, 1):
+        name = label or f'Reaction {number}'
+        try:
+            for entry_label, source in _labelled_sources(label, spec, name):
+                if len(entries) >= MAX_BATCH:
+                    raise ValueError(f'At most {MAX_BATCH} reactions per call')
+                job = _mapping_job(source, include_agents)
+                entries.append({'label': entry_label})
+                jobs.append((entries[-1], job))
+        except ValueError as exc:
+            entries.append({'label': name, 'ok': False, 'error': str(exc)})
+            warnings.append(f'{name}: {exc}')
+    outcomes = atom_mapping.map_atoms_many([(job['left'], job['products']) for _, job in jobs], **settings)
+    for (entry, job), outcome in zip(jobs, outcomes):
+        if 'error' in outcome:
+            entry.update(ok=False, error=outcome['error'])
+            warnings.append(f"{entry['label']}: {outcome['error']}")
+            continue
+        mapped = _mapped_reaction(job, outcome)
+        entry.update({'ok': True, **outcome, 'mapped_reaction': mapped})
+        warnings += [f"{entry['label']}: {w}" for w in outcome['warnings']]
+    result = {'ok': True, 'operation': 'map_reaction_atoms', 'count': len(entries), 'reactions': entries,
+              'warnings': warnings}
+    if output_path:
+        if Path(output_path).suffix.lower() == '.svg':
+            raise ValueError('A picture is made one reaction at a time: use .json or .smi for several reactions')
+        target = _publish(output_path, {
+            '.json': lambda: json.dumps({'reactions': entries}, ensure_ascii=False, indent=2),
+            '.smi': lambda: ''.join(f"{e['mapped_reaction']}\n" for e in entries if e.get('ok')),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
+def map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict:
     """Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
 
     reaction is a reaction SMILES "reactants>agents>products", {"reactants": [...], "products": [...]}
-    of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). Hydrogens are
+    of structure records, or {"cdxml": path, "steps": [step id]} (one reaction step). A list of
+    these (at most 100, each optionally {"label": "3a", "reaction": ...}; a drawing with several
+    steps gives one entry per step) maps them all in one pass: a learned mapper loads its model on
+    every call, so this takes about as long as one reaction. The answer then holds "reactions", one
+    entry per reaction with the fields below (or ok false and an error), and output_path ends in
+    .json or .smi (one mapped reaction per line). Hydrogens are
     not mapped. Methods (option method): "mcs" is built in and needs nothing installed; it pairs
     atoms by repeated maximum-common-substructure matching, keeps the pairing with the fewest
     unmapped product atoms and then the fewest bond changes, and lists product atoms with more
@@ -1117,19 +1235,16 @@ def map_reaction_atoms(reaction: str | dict, options: dict | None = None, output
     unknown = set(options) - {'resolve_ambiguity', 'include_agents', 'method', 'compare'}
     if unknown:
         raise ValueError(f'Unknown options: {sorted(unknown)}')
+    settings = {'resolve_ambiguity': bool(options.get('resolve_ambiguity')),
+                'method': str(options.get('method') or 'auto'), 'compare': bool(options.get('compare'))}
+    if isinstance(reaction, list):
+        return _map_many(reaction, bool(options.get('include_agents')), settings, output_path)
     sources = _reaction_sources(reaction)
     if len(sources) != 1:
         raise ValueError(f'The file stores {len(sources)} reaction steps; choose one with {{"cdxml": path, "steps": [step id]}}')
-    source = sources[0]
-    reactants, agents, products = (_mapping_species(source[role]) for role in ('reactants', 'agents', 'products'))
-    include = bool(options.get('include_agents')) and bool(agents)
-    outcome = atom_mapping.map_atoms(reactants + (agents if include else []), products,
-                                     resolve_ambiguity=bool(options.get('resolve_ambiguity')),
-                                     method=str(options.get('method') or 'auto'), compare=bool(options.get('compare')))
-    left = [Chem.MolToSmiles(m) for m in outcome.pop('left_mapped')]
-    shown = left[len(reactants):] if include else [Chem.MolToSmiles(m) for _, m in agents]
-    products_smiles = [Chem.MolToSmiles(m) for m in outcome.pop('right_mapped')]
-    mapped = '.'.join(left[:len(reactants)]) + '>' + '.'.join(shown) + '>' + '.'.join(products_smiles)
+    job = _mapping_job(sources[0], bool(options.get('include_agents')))
+    outcome = atom_mapping.map_atoms(job['left'], job['products'], **settings)
+    mapped = _mapped_reaction(job, outcome)
     result = {'ok': True, 'operation': 'map_reaction_atoms', **outcome, 'mapped_reaction': mapped}
     if output_path:
         target = _publish(output_path, {
