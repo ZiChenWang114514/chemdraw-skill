@@ -177,6 +177,21 @@ class ChemScriptSdkTests(unittest.TestCase):
 
         self.assertEqual(run.call_args.args[0][0], chemscript_sdk.sys.executable)
 
+    def test_a_refused_program_reaches_the_caller_as_a_value_error_with_its_reason(self):
+        # The isolated runtime marks request mistakes; the caller must see them as input errors
+        # (invalid_input with the reason), not as a failed tool.
+        def fake_run(command, **kwargs):
+            response = Path(command[command.index("--response-file") + 1])
+            response.write_text(json.dumps({
+                "ok": False,
+                "error": {"code": "invalid_sdk_request", "message": "GetType is a .NET reflection member"},
+            }), encoding="utf-8")
+            return mock.Mock(returncode=2, stdout="", stderr="")
+
+        with mock.patch.object(chemscript_sdk.subprocess, "run", side_effect=fake_run):
+            with self.assertRaisesRegex(ValueError, "reflection member"):
+                chemscript_sdk._invoke_runtime({"action": "catalog"})
+
     def test_sdk_programs_are_refused_where_neither_sdk_nor_emulation_exists(self):
         with mock.patch.object(chemscript_sdk.sys, "platform", "linux"), \
                 mock.patch.object(chemscript_sdk.subprocess, "run") as run:
