@@ -942,5 +942,130 @@ def hrms_line(molecules: list[dict], options: dict | None = None, output_path: s
     return result
 
 
+MAX_BATCH = 100
+
+
+def _batch_items(reactions):
+    """Batch input -> [(label or None, reaction spec, per-reaction options)]."""
+    if isinstance(reactions, (str, dict)):
+        reactions = [reactions]
+    if not reactions:
+        raise ValueError('Provide at least one reaction')
+    if len(reactions) > MAX_BATCH:
+        raise ValueError(f'At most {MAX_BATCH} reactions per call')
+    items = []
+    for item in reactions:
+        if isinstance(item, dict) and 'reaction' in item:
+            items.append((item.get('label'), item['reaction'], dict(item.get('options') or {})))
+        elif isinstance(item, dict):
+            spec = {k: v for k, v in item.items() if k not in ('label', 'options')}
+            items.append((item.get('label'), spec, dict(item.get('options') or {})))
+        else:
+            items.append((None, item, {}))
+    return items
+
+
+def _calculator_rows(result):
+    keys = ('id', 'role', 'name', 'formula', 'mw', 'equiv', 'mmol', 'mass_mg', 'volume_ml', 'theory_mmol',
+            'theory_mg', 'actual_mg', 'yield_percent', 'hrms')
+    return [{**{key: _rounded(row.get(key)) for key in keys if row.get(key) is not None},
+             'fixed': {'basis': row['basis'], 'value': _rounded(row['value']), 'assumed': bool(row['assumed'])}
+             if row['basis'] else None} for row in result['rows']]
+
+
+def _materials_entry(label, source, options, hrms):
+    from ..characterization import default_adduct, hrms_entry
+    from ..reaction_calculator import build_state, compute, materials
+    sides = {role: _side(source[role], role[:-1]) for role in ('reactants', 'agents', 'products')}
+    state = build_state(sides, options)
+    result = compute(state)
+    rows = result['rows']
+    if not hrms.get('enabled', True):
+        for row in rows:
+            row.pop('hrms', None)
+    first = next((r for r in rows if r['role'] == 'product'), None)
+    warnings = list(result['warnings'])
+    product = None
+    if first is not None:
+        product = {key: _rounded(first.get(key)) for key in ('name', 'formula', 'mw', 'theory_mmol', 'theory_mg',
+                                                              'actual_mg', 'yield_percent') if first.get(key) is not None}
+        if hrms.get('enabled', True):
+            mol = Chem.MolFromSmiles(first['smiles'])
+            try:
+                product['hrms'] = hrms_entry(mol, hrms.get('adduct') or default_adduct(mol, 'positive', hrms['ionization']),
+                                             ionization=hrms['ionization'])['line']
+            except ValueError as exc:
+                warnings.append(f'HRMS line not written: {exc}')
+    assumed = [row['name'] for row in state['rows'] if row['assumed']]
+    if assumed:
+        warnings.append(f"amounts assumed (not given) for {', '.join(assumed)}")
+    for row in rows:
+        if first is not None and row['id'] == first['id'] and product and product.get('hrms'):
+            row['hrms'] = product['hrms']
+    return {'label': label, 'ok': True, 'title': state['title'], 'limiting': result['limiting'],
+            'rows': _calculator_rows(result), 'all_rows': rows, 'totals': {k: _rounded(v) for k, v in result['totals'].items()
+                                                                             if v is not None},
+            'product': product, 'assumed': assumed, 'warnings': warnings,
+            'procedure': materials.procedure(rows, result['limiting'], result['totals'])}
+
+
+def si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict:
+    """Materials tables for a batch of reactions, ready for a Supporting Information file.
+
+    reactions is a list; each entry is a reaction SMILES "reactants>agents>products", a record
+    {"reactants": [...], "agents": [...], "products": [...]}, {"cdxml": path} (one reaction per
+    reaction step in the drawing) or {"label": "3a", "reaction": <any of these>, "options": {...}}.
+    Records and options are those of reaction_calculator: amounts are given as equiv, mmol,
+    mass_mg or volume_ml, products may carry isolated_mg or yield_percent, and per-reaction
+    options override the call's options. Options: scale_mmol (limiting reactant, default 1),
+    limiting, molarity (default 0.2 of the limiting reagent in the first solvent), hrms (default
+    true: add the calculated HRMS line of the first product), adduct (default [M+H]+) and
+    ionization (default ESI).
+    Per reaction the result holds the amounts table, concentration, atom economy and reaction mass
+    efficiency, the first product's formula, isolated mass and yield, its HRMS line and a procedure
+    sentence; "assumed" lists the amounts nobody gave (shown in warnings). A reaction that cannot be
+    read is reported with its error and the others continue. output_path ends in .md, .csv, .html
+    or .json and is never overwritten. At most 100 reactions. Amounts and HRMS values are
+    calculated; nothing here is a measurement.
+    """
+    from ..reaction_calculator import materials
+    base = dict(options or {})
+    hrms = {'enabled': bool(base.pop('hrms', True)), 'adduct': base.pop('adduct', None),
+            'ionization': base.pop('ionization', 'ESI')}
+    entries, warnings = [], []
+    for number, (label, spec, own) in enumerate(_batch_items(reactions), 1):
+        name = label or f'Reaction {number}'
+        try:
+            sources = _reaction_sources(spec)
+            stem = Path(spec['cdxml']).stem if isinstance(spec, dict) and spec.get('cdxml') else None
+            for step, source in enumerate(sources, 1):
+                if len(sources) > 1:
+                    entry_label = f'{label or stem}, step {step}'
+                else:
+                    entry_label = label or stem or name
+                if len(entries) >= MAX_BATCH:
+                    raise ValueError(f'At most {MAX_BATCH} reactions per call')
+                entry = _materials_entry(entry_label, source, {**base, **own}, hrms)
+                warnings += [f'{entry_label}: {w}' for w in entry['warnings']]
+                entries.append(entry)
+        except ValueError as exc:
+            entries.append({'label': name, 'ok': False, 'error': str(exc)})
+            warnings.append(f'{name}: {exc}')
+    markdown = materials.markdown(entries)
+    public = [{k: v for k, v in entry.items() if k != 'all_rows'} for entry in entries]
+    result = {'ok': True, 'operation': 'si_materials_tables', 'count': len(entries), 'reactions': public,
+              'markdown': markdown, 'warnings': warnings}
+    if output_path:
+        target = _publish(output_path, {
+            '.md': lambda: markdown,
+            '.csv': lambda: materials.csv_text(entries),
+            '.html': lambda: materials.html_text(entries),
+            '.json': lambda: json.dumps({'reactions': public}, ensure_ascii=False, indent=2),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
-                                         structure_to_name, reaction_calculator, hrms_line)}
+                                         structure_to_name, reaction_calculator, hrms_line,
+                                         si_materials_tables)}
