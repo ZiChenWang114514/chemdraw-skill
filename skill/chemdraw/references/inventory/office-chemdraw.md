@@ -132,13 +132,13 @@
 
 ## `office.doc_from_template`
 
-- **function**, line 521: `create_test_template(output_dir = 'templates')` - Create a minimal 1-slide PPTX template with placeholder text boxes.
-- **function**, line 59: `load_manifest(manifest_path)` - Load JSON manifest. Resolve CDXML paths relative to manifest directory.
-- **function**, line 175: `pass1_docx(template_path, text_slots, temp_path)` - Replace text placeholders in DOCX template. Save to temp_path.
-- **function**, line 155: `pass1_pptx(template_path, text_slots, temp_path)` - Replace text placeholders in PPTX template. Save to temp_path.
-- **function**, line 444: `pass2_docx(input_path, output_path, cdxml_slots, ole_items)` - Replace CDXML placeholder paragraphs with OLE objects in DOCX.
-- **function**, line 301: `pass2_pptx(input_path, output_path, cdxml_slots, ole_items)` - Replace CDXML placeholder text boxes with OLE objects in PPTX.
-- **function**, line 96: `prepare_ole_items(cdxml_slots, margin_pt = 0.0)` - Convert unique CDXML files to OLE data via ChemDraw (COM or macOS).
+- **function**, line 522: `create_test_template(output_dir = 'templates')` - Create a minimal 1-slide PPTX template with placeholder text boxes.
+- **function**, line 60: `load_manifest(manifest_path)` - Load JSON manifest. Resolve CDXML paths relative to manifest directory.
+- **function**, line 176: `pass1_docx(template_path, text_slots, temp_path)` - Replace text placeholders in DOCX template. Save to temp_path.
+- **function**, line 156: `pass1_pptx(template_path, text_slots, temp_path)` - Replace text placeholders in PPTX template. Save to temp_path.
+- **function**, line 445: `pass2_docx(input_path, output_path, cdxml_slots, ole_items)` - Replace CDXML placeholder paragraphs with OLE objects in DOCX.
+- **function**, line 302: `pass2_pptx(input_path, output_path, cdxml_slots, ole_items)` - Replace CDXML placeholder text boxes with OLE objects in PPTX.
+- **function**, line 97: `prepare_ole_items(cdxml_slots, margin_pt = 0.0)` - Convert unique CDXML files to OLE data via ChemDraw (COM or macOS).
 
 ## `office.emf_preview`
 
@@ -157,12 +157,12 @@
 
 ## `office.ole_embedder`
 
-- **function**, line 89: `batch_convert(cdxml_paths)` - Open ChemDraw once and convert all CDXML files to CDX + EMF.
-- **function**, line 702: `build_docx(items, output_path)` - Create a DOCX with editable ChemDraw OLE objects, one per paragraph.
-- **function**, line 348: `build_ole_compound_file(cdx_data)` - Build a CFB file matching the known-good layout from Office COM.
-- **function**, line 493: `build_pptx(items, output_path)` - Create a PPTX with one editable ChemDraw OLE object per slide.
-- **function**, line 302: `content_size_emu(item, margin_pt = 0.0, scale = 1.02)` - OLE display size for one batch_convert() result.
-- **function**, line 214: `get_cdxml_content_size(cdxml_path, margin_pt = 0.0, scale = 1.02)` - Compute OLE display dimensions from CDXML content BoundingBox.
+- **function**, line 91: `batch_convert(cdxml_paths)` - Open ChemDraw once and convert all CDXML files to CDX + EMF.
+- **function**, line 704: `build_docx(items, output_path)` - Create a DOCX with editable ChemDraw OLE objects, one per paragraph.
+- **function**, line 350: `build_ole_compound_file(cdx_data)` - Build a CFB file matching the known-good layout from Office COM.
+- **function**, line 495: `build_pptx(items, output_path)` - Create a PPTX with one editable ChemDraw OLE object per slide.
+- **function**, line 304: `content_size_emu(item, margin_pt = 0.0, scale = 1.02)` - OLE display size for one batch_convert() result.
+- **function**, line 216: `get_cdxml_content_size(cdxml_path, margin_pt = 0.0, scale = 1.02)` - Compute OLE display dimensions from CDXML content BoundingBox.
 
 ## `office.ole_extractor`
 
@@ -172,3 +172,7 @@
 - **function**, line 60: `find_ole_entries(zip_path: str) -> List[str]` - List OLE embedding paths inside a PPTX/DOCX/XLSX ZIP.
 - **function**, line 77: `is_chemdraw_ole(ole: olefile.OleFileIO) -> bool` - Check if an OLE container holds a ChemDraw object.
 - **function**, line 304: `print_summary(results: List[ExtractedObject], input_path: str) -> None` - Print extraction summary to stdout.
+
+## `office.safe_xml`
+
+- **function**, line 10: `fromstring(data)` - No public docstring in the audited version.

@@ -377,15 +377,18 @@ Operations:
                      remove=["methyl"] kwargs.
     "smarts"       — Apply a SMARTS reaction transform. Pass smarts=
                      "reaction SMILES" (e.g. "[c:1][F]>>[c:1][Cl]") or
-                     reaction_name= from list_reactions output.
+                     reaction_name= (a template name; see "reaction").
     "set_smiles"   — Use when you have edited a SMILES and want to verify
                      the change. Pass the original mol_json and new_smiles=.
                      The MCS diff will confirm exactly what was added/removed.
                      Do NOT generate SMILES from scratch — use resolve_name.
     "set_name"     — Set the display name. Pass new_name=.
-    "reaction"     — Apply a named template from list_reactions. Pass
-                     reaction_name= and optionally reagent={"smiles": ...}
-                     for binary reactions (coupling, etc.).
+    "reaction"     — Apply a named template. Pass reaction_name= and
+                     optionally reagent={"smiles": ...} for binary reactions
+                     (coupling, etc.). Template names come from the Python
+                     API cdxml_toolkit.naming.mol_builder.list_reactions()
+                     (not a tool); an operation that names a template, such
+                     as "suzuki", is also matched to it.
 
 Args:
     mol_json: Source molecule dict with at least {"smiles": "..."}.

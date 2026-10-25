@@ -7,7 +7,7 @@ Observed failures and the fix that worked. Read only the relevant row.
 | Symptom | Fix |
 | --- | --- |
 | `No module named cdxml_toolkit.mcp_runtime`, or old toolkit behaviour | A script ran on the wrong interpreter. Start everything through `cdx.py` (it re-launches in the runtime); run other scripts as `cdx.py py SCRIPT`. |
-| Re-rendered PNG did not change | The renderer refuses to overwrite. `cdx.py render` renders to a temporary name and replaces the old PNG only on success; other routes must use a new name. |
+| Re-rendered PNG did not change | The renderer refuses to overwrite. `cdx.py render` replaces a PNG it rendered before, and only after a successful render; a same-named PNG it did not write is refused (render to `--out-dir NEW_DIR`, or pass `--replace` when the user wants it replaced). Other routes must use a new name. |
 | Chinese text shows as boxes | The run needs a CJK font entry (SimSun, font 5). `acs_builder` puts CJK characters in SimSun and keeps Latin text in Arial automatically. |
 | Abbreviation reads "C10H21" on the wrong side of the bond, or digits not subscripted | Use a `GenericNickname` node with a reversed label (H21C10) when the bond leaves to the right; put digits in subscript runs. `acs_builder` does both. |
 | Ylide or resonance form "corrected" by RDKit | Write the nodes explicitly (`coords`/`label_text`, or raw fragment XML) instead of going through SMILES. |
@@ -35,7 +35,7 @@ Observed failures and the fix that worked. Read only the relevant row.
 | `m:` missing from CXSMILES | RDKit drops `m:` on write. Use `markush_compile`, which writes the CXSMILES itself. |
 | NH label shows as "HN" or the H lands on the wrong side | Use an `N` atom with `h: 1`; the writer adds the H as its own caption on the side of the drawing. |
 | Label flips to the other side of its bond | Set the label display (Left or Right) from the bond direction; the writer does this from the source layout. |
-| `(R^C)_p` or `R^B` sits shifted from its bond end | ChemDraw centres the first character (Left) or the last (Right) on a near-horizontal single bond; `_label_node_x` compensates. Steep bonds keep the stored position. |
+| `(R^C)_p` or `R^B` sits shifted from its bond end | ChemDraw centres the first character (Left) or the last (Right) on a near-horizontal single bond; `markush_compile` compensates for this. Steep bonds keep the stored position. |
 | A bond drawn hugging a ring circle is lost | The detector reads it as part of the circle. Answer the review task with `missing_bonds` for the two marks. |
 | A short double bond between two labels reads as single | Check `bond_orders` in review; short pairs near text are easy to miss. |
 

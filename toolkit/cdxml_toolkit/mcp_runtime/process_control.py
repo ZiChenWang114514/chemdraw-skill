@@ -11,6 +11,7 @@ import ctypes
 import json
 import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import time
@@ -154,6 +155,13 @@ def _terminate_process_tree(
     pid = getattr(process, "pid", None)
     if os.name == "nt" and isinstance(pid, int) and (remaining is None or remaining > 0):
         terminate_pid(pid, timeout_seconds=min(10.0, remaining or 10.0))
+    elif os.name != "nt" and isinstance(pid, int):
+        # Workers start in their own session; signal the group so grandchildren go too.
+        try:
+            if os.getpgid(pid) == pid:
+                os.killpg(pid, signal.SIGKILL)
+        except (OSError, AttributeError):
+            pass
     try:
         process.kill()
     except Exception:

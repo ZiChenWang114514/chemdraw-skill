@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 import subprocess
@@ -116,6 +117,16 @@ class DistributionTests(unittest.TestCase):
             if path.is_file() and pattern.search(path.read_text(encoding="utf-8", errors="replace")):
                 offenders.append(name)
         self.assertEqual(offenders, [])
+
+    def test_markush_example_ships_with_the_skill_and_matches_the_toolkit(self) -> None:
+        # An installed Skill has no toolkit/examples, so markush.md points at its own copy.
+        for name in ("indole-macrocycle.json", "indole-macrocycle.layout.json"):
+            bundled = SKILL / "assets" / "markush" / name
+            source = ROOT / "toolkit" / "examples" / "markush" / name
+            self.assertEqual(json.loads(bundled.read_text(encoding="utf-8")),
+                             json.loads(source.read_text(encoding="utf-8")), name)
+        self.assertIn("<skill>/assets/markush/indole-macrocycle.json",
+                      (SKILL / "references" / "markush.md").read_text(encoding="utf-8"))
 
     def test_skill_bundle_is_self_contained(self) -> None:
         self.assertTrue((SKILL / "SKILL.md").is_file())

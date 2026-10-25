@@ -23,9 +23,8 @@ On a large figure, test the hard fragments early: a bridged stereocenter next to
 
 Shared topology does not mean shared coordinates; trace a local outlier instead of re-tuning a wrong template. Double-bond placement and Kekulé choice can differ visually with no change in identity. Charge symbols and electron-arrow heads render larger than their stored bounds; check them in the PNG. An X-ray panel requested as an image is cropped and embedded, never redrawn.
 
-## The two reference cases
+## Practice material
 
-- **Twenty-structure development case (not shipped).** After this procedure, all 20 structures reached RDKit/ChemScript agreement with ChemDraw 22.2.0.3300, ChemScript 22.0.0.0 and RDKit 2026.03.3.
-- **Bundled example ([assets/paper-reconstructions](../assets/paper-reconstructions/README.md)).** Its 18 components were assembled for layout only and were not taken through this procedure. 12 of them (105–109 and 115–121) still have opposing RDKit/ChemScript assignments (`stereochemistry-check.json`). It is useful practice material for this guide.
+This procedure has brought a set of 20 bridged structures to RDKit/ChemScript agreement with ChemDraw 22.2, ChemScript 22.0 and RDKit 2026.03. The bundled example ([assets/paper-reconstructions](../assets/paper-reconstructions/README.md)) was not taken through it: its 18 components were assembled for layout only, and 12 of them (105–109 and 115–121) still have opposing RDKit/ChemScript assignments (`stereochemistry-check.json`). It is useful practice material for this guide.
 
 References: [CDXML cached CIP](https://iupac.github.io/IUPAC-FAIRSpec/cdx_sdk/properties/Atom_CIPStereochemistry.htm), [node label direction](https://iupac.github.io/IUPAC-FAIRSpec/cdx_sdk/properties/Node_LabelDisplay.htm), [bond display](https://iupac.github.io/IUPAC-FAIRSpec/cdx_sdk/properties/Bond_Display.htm), [RDKit ChemDraw reader](https://github.com/rdkit/rdkit/blob/master/External/ChemDraw/utils.cpp).

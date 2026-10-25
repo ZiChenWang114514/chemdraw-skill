@@ -53,6 +53,11 @@ def publication_figure(operation: str, spec_path: str, output_dir: str) -> dict:
         project_file=local_path(spec_file.parent,requested['project_path'])
         project=json.loads(project_file.read_text(encoding='utf-8'))
         if project.get('version')!=1:raise ValueError('Unsupported project version')
+        for page in project.get('pages',[]):
+            # Page files are written into new output folders, so they must be plain names.
+            name=str(page.get('file',''))
+            if not name or name in {'.','..'} or any(c in name for c in '/\\:'):
+                raise ValueError(f'Project page file must be a plain file name: {name!r}')
         base_dir=project_file.parent
         settings=deepcopy(project['settings'])
         settings.update(requested)

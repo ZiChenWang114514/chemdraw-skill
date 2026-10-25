@@ -1,6 +1,6 @@
 # Scientific workflows
 
-Use the toolkit source version containing `cdxml_toolkit.scientific`, with the `scientific` optional dependencies installed. Do not confuse this processed-spectrum interface with the older NMR-report extraction interfaces. Start from the supplied data or grounded molecule; inspect actual outputs before making scientific claims.
+These commands need the `cdxml_toolkit.scientific` module and the `scientific` extra (`cdx.py doctor` lists missing extras). If the module is missing, the runtime is older than this Skill; report the rebuild step from `cdx.py doctor` and change the runtime only when the user asks for installation. Do not confuse this processed-spectrum interface with the older NMR-report extraction interfaces. Start from the supplied data or grounded molecule; inspect actual outputs before making scientific claims.
 
 | Request | Execute | Deliver |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ This produces TLC, substitution-mechanism and simulated kinetic-plot examples. T
 cdx.py py -m cdxml_toolkit.scientific nmr --spec nmr.json --output nmr-results
 ```
 
-The [NMR JSON example](../assets/scientific/nmr.json) uses integration ranges from the real [nmrglue integration example](https://nmrglue.readthedocs.io/en/latest/examples/integrate_1d.html). Set its input path to the downloaded `1d_data.ft`. For another spectrum, replace the ranges or use the example runner, which omits those preset intervals.
+The [NMR JSON example](../assets/scientific/nmr.json) uses integration ranges from the real [nmrglue integration example](https://nmrglue.readthedocs.io/en/latest/examples/integrate_1d.html). Its spectrum is not bundled: download `1d_data.ft` from that page (network access; skip this example for offline work) and set the input path to it. For another spectrum, replace the ranges or use the example runner, which omits those preset intervals.
 
 ## Scientific plots
 
@@ -50,7 +50,7 @@ Use the [complete substitution example](../assets/scientific/mechanism.json). Ea
 
 Use native `symbol` objects for lone pairs and circled charges as described in [publication figures](publication-figures.md). Set formal charges in the molecular graph. ChemDraw can associate a nearby charge symbol with an atom when opening a file: a detached circle is not a safe replacement for a charged atom label. Do not assign a mechanism solely because the drawing is plausible.
 
-For a paper mechanism with circled charges, verify an actual **CDXML → CDX → CDXML** native save cycle with `convert_cdx_cdxml`, then compare `document_inventory` from `cdxml_toolkit.chemistry_semantics` before and after. A valid input CDXML alone misses charge reassignment during native editing. The CDXML `<represent attribute="Charge" object="ATOM_ID"/>` records a charge-symbol association, but placement must still be checked after saving; keep the symbol closest to its intended charged atom. If this prevents an exact visual match, state the difference. Preserve undefined R groups with native `NodeType="GenericNickname" GenericNickname="R"` nodes; `Element="0"` can prevent ChemDraw from opening the document.
+For a paper mechanism with circled charges, verify an actual **CDXML → CDX → CDXML** native save cycle with `convert_cdx_cdxml`, then compare the molecular inventories before and after: `cdx.py py -c "import sys; from cdxml_toolkit.chemistry_semantics import validate_document_preserved as v; print(v(sys.argv[1], sys.argv[2]))" before.cdxml after.cdxml` prints `'status': 'preserved'` or fails with `chemical_semantics_changed`; then find the changed species by comparing the two files. A valid input CDXML alone misses charge reassignment during native editing. The CDXML `<represent attribute="Charge" object="ATOM_ID"/>` records a charge-symbol association, but placement must still be checked after saving; keep the symbol closest to its intended charged atom. If this prevents an exact visual match, state the difference. Preserve undefined R groups with native `NodeType="GenericNickname" GenericNickname="R"` nodes; `Element="0"` can prevent ChemDraw from opening the document.
 
 When the reference shows a separate proton, create a separate chemical `[H+]` species with an `Element="1"`, `Charge="1"` node. Put its H label on that node and associate any circled plus with that node. Plain H text beside a free charge symbol can cause ChemDraw to charge a nearby heteroatom instead. Verify both species separately after native saving: the proton must remain a proton and the neighbouring molecule must retain its intended charge.
 

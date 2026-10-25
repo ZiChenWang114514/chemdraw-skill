@@ -50,31 +50,91 @@ def test_nested_failure_is_reported(tmp_path, capsys):
     assert json.loads(capsys.readouterr().out)['error'] == 'bad input'
 
 
-def test_render_replaces_previous_png(tmp_path, capsys):
+@pytest.fixture
+def render_log(tmp_path, monkeypatch):
+    """Keep the record of rendered PNGs out of the user's data folder."""
+    log = tmp_path / 'state' / 'render-log.json'
+    monkeypatch.setattr(cdx, 'render_log_path', lambda: log)
+    return log
+
+
+def _fake_render(content):
+    def fake(tool, kwargs, args=()):
+        Path(kwargs['output_path']).write_bytes(content)
+        return {'ok': True, 'result': {'ok': True}}
+    return fake
+
+
+def test_render_replaces_a_png_it_rendered_before(tmp_path, render_log, capsys):
     src = tmp_path / 'a.cdxml'
     src.write_text('<CDXML/>')
-    old = tmp_path / 'a.png'
-    old.write_bytes(b'old')
+    with mock.patch.object(cdx, '_worker', side_effect=_fake_render(b'first')):
+        assert cdx.main(['render', str(src)]) == 0
     seen = {}
 
     def fake(tool, kwargs, args=()):
         seen['existed'] = Path(kwargs['output_path']).exists()
-        Path(kwargs['output_path']).write_bytes(b'new')
+        Path(kwargs['output_path']).write_bytes(b'second')
         return {'ok': True, 'result': {'ok': True}}
     with mock.patch.object(cdx, '_worker', side_effect=fake):
         assert cdx.main(['render', str(src)]) == 0
-    assert seen['existed'] is False and old.read_bytes() == b'new'
-    assert sorted(p.name for p in tmp_path.iterdir()) == ['a.cdxml', 'a.png']
+    assert seen['existed'] is False and (tmp_path / 'a.png').read_bytes() == b'second'
+    assert sorted(p.name for p in tmp_path.iterdir()) == ['a.cdxml', 'a.png', 'state']
 
 
-def test_failed_render_keeps_previous_png(tmp_path, capsys):
+def test_render_never_replaces_a_png_it_did_not_write(tmp_path, render_log, capsys):
+    # The user's source screenshot often shares the stem of the reconstructed CDXML.
+    src = tmp_path / 'scheme.cdxml'
+    src.write_text('<CDXML/>')
+    (tmp_path / 'scheme.png').write_bytes(b'source screenshot')
+    with mock.patch.object(cdx, '_worker') as worker:
+        assert cdx.main(['render', str(src)]) == 1
+    worker.assert_not_called()
+    assert (tmp_path / 'scheme.png').read_bytes() == b'source screenshot'
+    report = json.loads(capsys.readouterr().out)
+    assert report['ok'] is False and '--out-dir' in report['error'] and '--replace' in report['error']
+
+
+def test_render_replace_flag_overrides_the_ownership_check(tmp_path, render_log, capsys):
     src = tmp_path / 'a.cdxml'
     src.write_text('<CDXML/>')
     (tmp_path / 'a.png').write_bytes(b'old')
+    with mock.patch.object(cdx, '_worker', side_effect=_fake_render(b'new')):
+        assert cdx.main(['render', str(src), '--replace']) == 0
+    assert (tmp_path / 'a.png').read_bytes() == b'new'
+
+
+def test_render_refuses_two_inputs_with_the_same_png_name(tmp_path, render_log, capsys):
+    (tmp_path / 'x').mkdir()
+    (tmp_path / 'y').mkdir()
+    for folder in ('x', 'y'):
+        (tmp_path / folder / 'a.cdxml').write_text('<CDXML/>')
+    with mock.patch.object(cdx, '_worker') as worker, pytest.raises(SystemExit) as exc:
+        cdx.main(['render', str(tmp_path / 'x' / 'a.cdxml'), str(tmp_path / 'y' / 'a.cdxml'),
+                  '--out-dir', str(tmp_path / 'out')])
+    worker.assert_not_called()
+    assert 'a.png' in str(exc.value)
+
+
+def test_failed_render_keeps_previous_png(tmp_path, render_log, capsys):
+    src = tmp_path / 'a.cdxml'
+    src.write_text('<CDXML/>')
+    with mock.patch.object(cdx, '_worker', side_effect=_fake_render(b'old')):
+        assert cdx.main(['render', str(src)]) == 0
     with mock.patch.object(cdx, '_worker', return_value={'ok': False, 'error': 'COM failure'}):
         assert cdx.main(['render', str(src)]) == 1
     assert (tmp_path / 'a.png').read_bytes() == b'old'
-    assert sorted(p.name for p in tmp_path.iterdir()) == ['a.cdxml', 'a.png']
+    assert sorted(p.name for p in tmp_path.iterdir()) == ['a.cdxml', 'a.png', 'state']
+
+
+def test_build_refuses_an_existing_output(tmp_path):
+    spec = tmp_path / 's.json'
+    spec.write_text(json.dumps({'objects': [{'type': 'text', 'at': [10, 10], 'text': 'A'}]}), encoding='utf-8')
+    out = tmp_path / 'o.cdxml'
+    out.write_text('<CDXML keep="1"/>')
+    with pytest.raises(SystemExit):
+        cdx.main(['build', str(spec), str(out)])
+    assert out.read_text() == '<CDXML keep="1"/>'
 
 
 def test_sig_prints_one_section(capsys):
@@ -99,6 +159,36 @@ def test_without_runtime_the_message_names_the_search_locations(tmp_path):
                           capture_output=True, text=True, env=env)
     assert proc.returncode == 2
     assert 'CHEMDRAW_MCP_PYTHON' in proc.stderr and 'chemdraw-venv' in proc.stderr
+
+
+def _isolated_copy_with_references(tmp_path):
+    script, env = _isolated_copy(tmp_path)
+    skill = script.parents[1]
+    (skill / 'references').mkdir()
+    for name in ('references/mcp-signatures.md', 'runtime.json'):
+        (skill / name).write_bytes((SKILL_ROOT / name).read_bytes())
+    return script, env
+
+
+def test_sig_and_help_work_without_a_runtime(tmp_path):
+    script, env = _isolated_copy_with_references(tmp_path)
+    proc = subprocess.run([sys.executable, '-I', '-S', str(script), 'sig', 'render_cdxml_files'],
+                          capture_output=True, text=True, env=env)
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout.startswith('### `render_cdxml_files(')
+    proc = subprocess.run([sys.executable, '-I', '-S', str(script), '--help'], capture_output=True, text=True, env=env)
+    assert proc.returncode == 0 and 'doctor' in proc.stdout
+
+
+def test_without_runtime_doctor_explains_how_to_install_one(tmp_path):
+    script, env = _isolated_copy_with_references(tmp_path)
+    proc = subprocess.run([sys.executable, '-I', '-S', str(script), 'doctor'], capture_output=True, text=True, env=env)
+    assert proc.returncode == 2
+    report = json.loads(proc.stdout)
+    assert report['runtime'] == 'missing' and report['searched']
+    text = json.dumps(report)
+    # An installed copy has no repository installer: name the Skill's own route and the repository.
+    assert 'install_runtime.py' in text and 'github.com' in text
 
 
 def test_any_python_relaunches_into_the_runtime(tmp_path):
@@ -230,6 +320,46 @@ def test_doctor_paths_name_the_current_worker_log_folder(tmp_path, monkeypatch):
     logs = cdx.runtime_paths()['worker_logs']
     assert str(tmp_path / 'chemdraw-skill' / 'logs') in logs
     assert str(tmp_path / 'OldClient' / 'chemdraw-mcp' / 'logs') in logs
+
+
+def _doctor(monkeypatch, capsys, fingerprint):
+    monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: fingerprint)
+    monkeypatch.setattr(cdx, '_signatures_current', lambda: True)
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'outputs': {}}}):
+        code = cdx.main(['doctor'])
+    return code, json.loads(capsys.readouterr().out)
+
+
+def test_doctor_flags_a_runtime_built_from_another_toolkit_revision(monkeypatch, capsys):
+    code, report = _doctor(monkeypatch, capsys, 'f' * 64)
+    assert code == 1 and report['runtime_matches_skill'] is False
+    assert 'install' in report['runtime_hint']
+
+
+def test_doctor_accepts_a_runtime_built_from_the_pinned_toolkit(monkeypatch, capsys):
+    code, report = _doctor(monkeypatch, capsys, cdx.expected_fingerprint())
+    assert report['runtime_matches_skill'] is True and 'runtime_hint' not in report
+
+
+def test_regen_signatures_refuses_a_runtime_from_another_toolkit_revision(monkeypatch):
+    # Regenerating from a stale runtime would roll the committed reference back.
+    monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: 'f' * 64)
+    with mock.patch.object(cdx, 'write_signatures') as write, pytest.raises(SystemExit) as exc:
+        cdx.main(['regen-signatures'])
+    write.assert_not_called()
+    assert 'runtime' in str(exc.value)
+
+
+def test_unknown_tool_suggests_a_stale_runtime():
+    with pytest.raises(SystemExit) as exc:
+        cdx.main(['call', 'no_such_tool_name'])
+    assert 'doctor' in str(exc.value)
+
+
+def test_tools_listing_names_the_default_timeout(capsys):
+    cdx.main(['tools'])
+    out = capsys.readouterr().out
+    assert 'timeout=Nones' not in out and 'timeout=default' in out
 
 
 def test_doctor_extras_follow_the_platform():

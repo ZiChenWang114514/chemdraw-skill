@@ -19,6 +19,7 @@ Examples:
     python3 scripts/install.py                                   # proposal for --agent claude
     python3 scripts/install.py --agent claude agents --runtime --apply
     python3 scripts/install.py --runtime --opsin --apply           # also fetch OPSIN
+    python3 scripts/install.py --runtime-only --apply              # runtime for this checkout only
     python3 scripts/install.py --agent copilot --project ~/src/app --apply
     python3 scripts/install.py --destination /opt/skills/chemdraw --apply
 """
@@ -286,6 +287,8 @@ def parse(argv):
     p.add_argument('--project', help='install into this project instead of the home folder')
     p.add_argument('--destination', nargs='+', help='explicit Skill folder(s); overrides --agent/--project')
     p.add_argument('--runtime', action='store_true', help='create or reuse the shared toolkit venv')
+    p.add_argument('--runtime-only', action='store_true',
+                   help='only build the runtime for this checkout; installed Skill copies are left alone')
     p.add_argument('--runtime-dir', help=f'venv location (default: {cdx.default_runtime_dir()})')
     p.add_argument('--python', help='base interpreter for a new venv (64-bit Python 3.10-3.13)')
     p.add_argument('--extras', nargs='*', help='toolkit extras (default: all that apply to this OS)')
@@ -305,7 +308,9 @@ def main(argv=None):
     ns = parse(argv)
     if not (SOURCE / 'SKILL.md').is_file():
         raise SystemExit(f'Deployable Skill not found: {SOURCE}')
-    targets = destinations(ns)
+    if ns.runtime_only:
+        ns.runtime = True
+    targets = [] if ns.runtime_only else destinations(ns)
     backups = backup_root(ns)
     for target in targets:
         if target == SOURCE.resolve() or SOURCE.resolve() in target.parents:
@@ -335,7 +340,7 @@ def main(argv=None):
     runtime = record['runtime']
     if ns.runtime:
         try:
-            install_runtime(runtime, targets[0])
+            install_runtime(runtime, targets[0] if targets else SOURCE)
             runtime['status'] = 'installed'
         except (OSError, subprocess.CalledProcessError) as exc:
             runtime.update(status='failed', error=str(exc))

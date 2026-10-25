@@ -38,6 +38,8 @@ import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 
+from cdxml_toolkit.office import safe_xml
+
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -465,7 +467,7 @@ def _ensure_content_types(ct_xml):
     """Ensure .bin and .emf content types are declared."""
     from lxml import etree
 
-    root = etree.fromstring(ct_xml)
+    root = safe_xml.fromstring(ct_xml)
     ct_ns = "http://schemas.openxmlformats.org/package/2006/content-types"
 
     existing = set()
@@ -591,7 +593,7 @@ def _build_slide_xml(slide_xml, item, ole_idx):
     """
     from lxml import etree
 
-    root = etree.fromstring(slide_xml)
+    root = safe_xml.fromstring(slide_xml)
 
     p_ns = "http://schemas.openxmlformats.org/presentationml/2006/main"
     mc_ns = "http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -671,7 +673,7 @@ def _build_slide_xml(slide_xml, item, ole_idx):
       </mc:Fallback>
     </mc:AlternateContent>"""
 
-    sp_tree.append(etree.fromstring(alt_xml))
+    sp_tree.append(safe_xml.fromstring(alt_xml))
     return etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True)
 
 
@@ -679,7 +681,7 @@ def _add_slide_rels(rels_xml, ole_idx):
     """Add OLE + image relationships to a slide's rels."""
     from lxml import etree
 
-    root = etree.fromstring(rels_xml)
+    root = safe_xml.fromstring(rels_xml)
 
     etree.SubElement(root, "Relationship", attrib={
         "Id": f"rIdOle{ole_idx}",
@@ -751,7 +753,7 @@ def _build_docx_xml(doc_xml, items):
     """Build document.xml with OLE objects."""
     from lxml import etree
 
-    root = etree.fromstring(doc_xml)
+    root = safe_xml.fromstring(doc_xml)
     w_ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 
     body = root.find(f"{{{w_ns}}}body")
@@ -796,7 +798,7 @@ def _build_docx_xml(doc_xml, items):
             </w:r>
         </w:p>"""
 
-        ole_elem = etree.fromstring(para_xml)
+        ole_elem = safe_xml.fromstring(para_xml)
 
         if sect_pr is not None:
             sect_pr.addprevious(ole_elem)
@@ -810,7 +812,7 @@ def _add_docx_rels(rels_xml, count):
     """Add OLE + image relationships for all objects."""
     from lxml import etree
 
-    root = etree.fromstring(rels_xml)
+    root = safe_xml.fromstring(rels_xml)
 
     for ole_idx in range(1, count + 1):
         etree.SubElement(root, "Relationship", attrib={

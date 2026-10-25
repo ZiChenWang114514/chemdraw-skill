@@ -226,6 +226,26 @@ def _rewrite_paths(value: Any, replacements: dict[str, str]) -> Any:
     return value
 
 
+# Linked resources of an Office file sit next to it; a large folder (Downloads, a home
+# folder) is not copied at all, and subfolders never are.
+_CONTEXT_MAX_FILES = 200
+_CONTEXT_MAX_BYTES = 256 * 1024 * 1024
+
+
+def _copy_source_context(folder: Path, target: Path) -> None:
+    siblings = []
+    total = 0
+    for entry in folder.iterdir():
+        if not entry.is_file() or entry.is_symlink():
+            continue
+        total += entry.stat().st_size
+        siblings.append(entry)
+        if len(siblings) > _CONTEXT_MAX_FILES or total > _CONTEXT_MAX_BYTES:
+            return
+    for entry in siblings:
+        shutil.copy2(entry, target / entry.name)
+
+
 def bridge_file(
     source: str | Path,
     destination: str | Path,
@@ -247,24 +267,8 @@ def bridge_file(
         native_parent = workspace
         if preserve_source_context:
             native_parent = workspace / "context"
-
-            def ignore_workspace(directory: str, names: list[str]) -> set[str]:
-                current = Path(directory).resolve()
-                ignored = set()
-                for name in names:
-                    candidate = (current / name).resolve()
-                    try:
-                        workspace.resolve().relative_to(candidate)
-                    except ValueError:
-                        continue
-                    ignored.add(name)
-                return ignored
-
-            shutil.copytree(
-                source_path.parent,
-                native_parent,
-                ignore=ignore_workspace,
-            )
+            native_parent.mkdir()
+            _copy_source_context(source_path.parent, native_parent)
         native_source = native_parent / f"input{suffix.lower()}"
         native_destination = workspace / f"output{output_suffix.lower()}"
         shutil.copy2(source_path, native_source)

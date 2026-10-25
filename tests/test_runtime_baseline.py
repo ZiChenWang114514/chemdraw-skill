@@ -2,6 +2,7 @@ import importlib.util
 import json
 from pathlib import Path
 import re
+import subprocess
 import unittest
 from unittest.mock import patch
 
@@ -35,6 +36,33 @@ class RuntimeBaselineTests(unittest.TestCase):
         self.assertEqual(baseline['toolkit_version'], version)
         init = (TOOLKIT / 'cdxml_toolkit' / '__init__.py').read_text(encoding='utf-8')
         self.assertIn(f'"{version}"', init)
+
+    def test_runtime_json_records_the_bundled_toolkit_fingerprint(self):
+        # The version string does not change with every toolkit commit; the fingerprint does,
+        # so `cdx.py doctor` can tell a runtime built from another revision.
+        spec = importlib.util.spec_from_file_location('check_installation', SCRIPT.parent / 'check_installation.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        self.assertEqual(self.baseline()['toolkit_fingerprint'],
+                         module.toolkit_fingerprint(TOOLKIT / 'cdxml_toolkit'),
+                         'update toolkit_fingerprint in runtime.json (see toolkit/docs/maintenance.md)')
+
+    def test_pinned_commit_holds_the_bundled_toolkit(self):
+        # An installed copy outside a checkout builds from this commit: it must contain the
+        # toolkit the Skill documents, not an older one with the same version string.
+        commit = self.baseline()['commit']
+        try:
+            known = subprocess.run(['git', 'cat-file', '-e', f'{commit}^{{commit}}'], cwd=ROOT,
+                                   capture_output=True, timeout=60).returncode == 0
+        except (OSError, subprocess.TimeoutExpired):
+            known = False
+        if not known:
+            self.skipTest('pinned commit not available in this clone (shallow or no git)')
+        diff = subprocess.run(['git', 'diff', '--stat', commit, '--', 'toolkit/cdxml_toolkit',
+                               'toolkit/pyproject.toml'], cwd=ROOT, capture_output=True, text=True, timeout=60)
+        self.assertEqual(diff.stdout.strip(), '',
+                         f'runtime.json pins {commit[:7]}, whose toolkit differs from toolkit/; '
+                         'commit the toolkit change, then pin that commit (toolkit/docs/maintenance.md)')
 
     def test_a_checkout_installs_its_own_toolkit_folder(self):
         module = self.installer()

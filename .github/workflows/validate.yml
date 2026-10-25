@@ -16,6 +16,10 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          # Full history: the runtime baseline test checks that the commit pinned in
+          # skill/chemdraw/runtime.json holds the bundled toolkit.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v7

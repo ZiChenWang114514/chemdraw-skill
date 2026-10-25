@@ -27,6 +27,7 @@ import sys
 import tempfile
 import zipfile
 
+from . import safe_xml
 from .ole_embedder import (
     batch_convert,
     content_size_emu,
@@ -214,7 +215,7 @@ def _add_ole_rels(rels_xml, ole_idx, target_prefix):
     """
     from lxml import etree
 
-    root = etree.fromstring(rels_xml)
+    root = safe_xml.fromstring(rels_xml)
 
     etree.SubElement(root, "Relationship", attrib={
         "Id": f"rIdOle{ole_idx}",
@@ -295,7 +296,7 @@ def _make_pptx_ole_xml(ole_idx, x, y, w, h):
       </mc:Fallback>
     </mc:AlternateContent>"""
 
-    return etree.fromstring(xml_str)
+    return safe_xml.fromstring(xml_str)
 
 
 def pass2_pptx(input_path, output_path, cdxml_slots, ole_items):
@@ -318,7 +319,7 @@ def pass2_pptx(input_path, output_path, cdxml_slots, ole_items):
             if not re.match(r"ppt/slides/slide\d+\.xml$", entry):
                 continue
 
-            root = etree.fromstring(zin.read(entry))
+            root = safe_xml.fromstring(zin.read(entry))
             sp_tree = root.find(f".//{{{P_NS}}}spTree")
             if sp_tree is None:
                 continue
@@ -438,7 +439,7 @@ def _make_docx_ole_para(ole_idx, w_emu, h_emu):
         </w:r>
     </w:p>"""
 
-    return etree.fromstring(xml_str)
+    return safe_xml.fromstring(xml_str)
 
 
 def pass2_docx(input_path, output_path, cdxml_slots, ole_items):
@@ -455,7 +456,7 @@ def pass2_docx(input_path, output_path, cdxml_slots, ole_items):
 
     with zipfile.ZipFile(input_path, "r") as zin:
         doc_xml = zin.read("word/document.xml")
-        root = etree.fromstring(doc_xml)
+        root = safe_xml.fromstring(doc_xml)
         body = root.find(f"{{{W_NS}}}body")
         if body is None:
             shutil.copy2(input_path, output_path)

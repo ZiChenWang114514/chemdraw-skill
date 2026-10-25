@@ -255,12 +255,9 @@ def _resolve_query(query: str, use_network: bool = True) -> Optional[Dict]:
     try:
         from cdxml_toolkit.resolve.jre_manager import ensure_java_on_path
         if ensure_java_on_path():
-            import warnings, tempfile, os
             from py2opsin import py2opsin as _py2opsin
-            tmp = os.path.join(tempfile.gettempdir(), "py2opsin_temp_input.txt")
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", RuntimeWarning)
-                smi = _py2opsin(clean, tmp_fpath=tmp)
+            from cdxml_toolkit.resolve.opsin_call import py2opsin_private
+            smi = py2opsin_private(_py2opsin, clean)
             if smi and Chem.MolFromSmiles(smi):
                 return {"smiles": _rdkit_canonical(smi), "source": "opsin"}
     except (ImportError, FileNotFoundError):
@@ -359,12 +356,9 @@ def _try_validate(name: str, use_network: bool = True) -> Optional[str]:
     try:
         from cdxml_toolkit.resolve.jre_manager import ensure_java_on_path
         if ensure_java_on_path():
-            import warnings, tempfile, os
             from py2opsin import py2opsin as _py2opsin
-            tmp = os.path.join(tempfile.gettempdir(), "py2opsin_temp_input.txt")
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", RuntimeWarning)
-                smi = _py2opsin(name, tmp_fpath=tmp)
+            from cdxml_toolkit.resolve.opsin_call import py2opsin_private
+            smi = py2opsin_private(_py2opsin, name)
             if smi and Chem.MolFromSmiles(smi):
                 return _rdkit_canonical(smi)
     except (ImportError, FileNotFoundError):

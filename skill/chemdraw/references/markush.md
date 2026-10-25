@@ -20,7 +20,7 @@ Take the chemistry from the spec or the CXSMILES, never from reading the CDXML b
 
 ## Spec format
 
-The worked example is `examples/markush/indole-macrocycle.json` in the repository.
+The worked example ships with the Skill: `<skill>/assets/markush/indole-macrocycle.json` and its source layout `indole-macrocycle.layout.json`. Try it with `markush_compile(spec_path="<skill>/assets/markush/indole-macrocycle.json", output_dir="NEW_DIR", layout_path="<skill>/assets/markush/indole-macrocycle.layout.json")`.
 
 ```json
 {"version": 1,

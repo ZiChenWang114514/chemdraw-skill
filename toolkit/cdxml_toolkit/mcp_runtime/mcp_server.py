@@ -152,6 +152,8 @@ def _execute_worker_process(
                 stderr=stderr_file,
                 env=_worker_environment(),
                 creationflags=creationflags,
+                # POSIX: its own session, so the whole tree can be signalled together.
+                start_new_session=os.name != "nt",
             )
             holder["process"] = process
             job = _assign_kill_job(process)
@@ -175,6 +177,12 @@ def _execute_worker_process(
                         "cancelled": _CANCELLED_RETURN_CODE,
                         "output_limit": _OUTPUT_LIMIT_RETURN_CODE,
                     }[status]
+            except BaseException:
+                # An interrupted caller (Ctrl+C, cancelled task) must not leave the worker,
+                # or the ChemDraw it drives, running without an owner.
+                _terminate_process_tree(process, holder.get("job"))
+                holder["job"] = None
+                raise
             finally:
                 holder.pop("process", None)
                 _close_job(holder.pop("job", None))

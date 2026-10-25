@@ -18,6 +18,8 @@ The report is read-only. A skipped probe is not a verified capability. ChemScrip
 
 `cdx.py py <skill>/scripts/smoke_test.py --output-dir NEW_DIR` runs an end-to-end check: name resolution, editable aspirin CDXML, native PNG and raster validation.
 
+On Windows before any runtime exists, `pwsh <skill>/scripts/check_prerequisites.ps1 -Capabilities core,native` prints a read-only host report (Python, ChemDraw, ChemScript, Office); add `-Json` for machine-readable output.
+
 ## Requirements by capability
 
 - Portable CDXML and RDKit work: 64-bit Python 3.10–3.13 with the bundled `cdxml_toolkit` runtime (3.14 and newer are not supported by the toolkit yet; the installer picks an older interpreter or takes `--python`). The pinned source is `runtime.json` (`repository`, `commit`, `toolkit_version`).
@@ -47,6 +49,7 @@ python scripts/install.py --agent <name> --runtime              # proposal
 python scripts/install.py --agent <name> --runtime --apply      # install; add --python <3.10-3.13> if none is found
 python scripts/install.py --destination <other skills folder>/chemdraw --apply
 python scripts/install.py --runtime --opsin --apply             # also download the OPSIN JAR (SHA-256 verified)
+python scripts/install.py --runtime-only --apply                # only the runtime; installed Skill copies stay as they are
 ```
 
 The installer stages and verifies each copy, moves a previous installation to the shared backup folder, restores it on failure, then (with `--runtime`) creates or reuses the shared venv and installs the pinned toolkit with every extra that applies to the OS. It writes `manifest.json` last. Agent presets, folders and the runtime search order are in [agent integration](agent-integration.md).
@@ -55,8 +58,10 @@ A manual runtime works too; point `CHEMDRAW_MCP_PYTHON` at it if it is not in a 
 
 ```bash
 python3 -m venv <venv>
-<venv>/bin/python <skill>/scripts/install_runtime.py --extras publication scientific
+<venv>/bin/python <skill>/scripts/install_runtime.py --extras publication scientific office analysis chemscript
 ```
+
+On Windows the interpreter is `<venv>\Scripts\python.exe` (create the venv with `py -3.12 -m venv <venv>`). Without a checkout, this route installs the toolkit from the repository and commit pinned in `runtime.json`, so it needs Git and network access once.
 
 `install_runtime.py` builds from the repository's `toolkit/` folder when the Skill sits in a checkout, otherwise from the exact commit in `runtime.json`; `--toolkit-path` selects another toolkit source folder and `--print-requirement` only prints the requirement. Never upgrade the runtime unasked. After a toolkit change:
 
@@ -87,6 +92,10 @@ Runtime selection and workers:
 - `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`, `CHEMDRAW_MCP_WORKER_INPUT_BYTES`, `CHEMDRAW_MCP_WORKER_OUTPUT_BYTES`
 - `CHEMSCRIPT_PYTHON`, `CHEMSCRIPT_CONFIG_PATH`
 
+Confidential or offline work:
+
+- `CHEMDRAW_OFFLINE=1` (also `true`, `yes`, `on`) — nothing leaves the machine: PubChem lookups return no result, the Java runtime for OPSIN is not downloaded, and DECIMER uploads are refused (the no-upload preflight still works). Set it in the shell that starts the agent or `cdx.py`; workers inherit it. Local tools (RDKit, OPSIN with an installed Java, ChemDraw, ChemScript, local DECIMER weights) keep working.
+
 DECIMER (see [decimer-api.md](decimer-api.md)):
 
 - `DECIMER_API_URL` — custom endpoint; requires a matching `approved_origin`
@@ -104,16 +113,18 @@ HTTP 502/503/504 from the remote API indicates a gateway or service failure, not
 
 ## Failure Modes
 
-- `cdx.py: no working cdxml-toolkit runtime found`: install one (`scripts/install.py --runtime --apply`) or set `CHEMDRAW_MCP_PYTHON` to the runtime interpreter. A venv is skipped when its interpreter no longer starts (base Python removed or blocked); re-run the installer to rebuild it.
-- Tool timeout: raise `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS` only after confirming the operation is legitimately long-running. `modify_molecule` is limited to 90 s because ChemScript naming and decomposition can be expensive for fused systems; trusted SMILES can be drawn directly when no modification is needed.
-- Native resource busy: ChemDraw COM operations share one per-user mutex (`cdx.py doctor --paths` shows its name). Let the active render, conversion or Office operation finish; ordinary parsing stays concurrent. Do not start a second COM session to bypass it.
+- `cdx.py: no working cdxml-toolkit runtime found` (`cdx.py doctor` reports `"runtime": "missing"`): the message lists the searched locations and the install commands. Install a runtime only when the user asked for installation; otherwise report the commands. A venv is skipped when its interpreter no longer starts (base Python removed or blocked); re-run the installer to rebuild it. `cdx.py sig` and `cdx.py --help` work without a runtime.
+- `runtime_matches_skill: false` in `cdx.py doctor`, or `unknown tool` from `cdx.py call`: the runtime was built from another toolkit revision than this Skill, so tool names and signatures may differ. Rebuild it as `runtime_hint` says; `cdx.py regen-signatures` refuses to run until they match.
+- Tool timeout: raise `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS` only after confirming the operation is legitimately long-running. `modify_molecule` is limited to 90 s because ChemScript naming and decomposition can be expensive for fused systems; trusted SMILES can be drawn directly when no modification is needed. `cdx.py tools` prints each tool's limit (`timeout=default` uses the worker default).
+- `resource_busy` (worker exit code 3): another call holds ChemDraw. All ChemDraw operations share one per-user lock (`cdx.py doctor --paths` shows its name), and on macOS the ChemScript tools take it too, because they drive ChemDraw there. Wait for the other render, conversion or Office call to return, then retry once. In parallel work, run native calls one at a time; parsing, RDKit and CDXML-only calls stay concurrent. Do not raise timeouts, kill ChemDraw or start a second ChemDraw session to get past it.
+- `invalid_input`: the message says what to fix (a bad argument, a missing file, a missing confirmation such as `confirm_pubchem=True`). Correct the call; the `error_id` log has the traceback.
 - `tool_execution_failed` with an `error_id`: read `worker-<id>.log` in the folder printed by `cdx.py doctor --paths`. Detailed exceptions are deliberately kept out of results.
 - COM failure: run `cdx.py doctor --native`. Rendering uses a dedicated automation instance (an open interactive ChemDraw is not reused), waits for a stable file and retries one silent `SaveAs`.
 - Native path failure: inputs are copied into an ASCII-only workspace before COM calls and published transactionally. `native_ascii_workspace_unavailable`, `native_saveas_silent_failure`, `native_output_missing` and `native_output_invalid` identify failures before publication. Set `CHEMDRAW_NATIVE_TEMP` if the default temp path is unusable.
 - `chemdraw_license_unavailable` (HRESULT `-2147221230`): stop native validation and check the product license, Python bitness and COM registration. Showing a hidden window is not an activation fix.
 - ChemScript failure: `cdx.py doctor --chemscript`; for one file `cdx.py chemscript-info FILE`. Do not call the private bridge server protocol.
 - macOS failures (`chemdraw_automation_not_authorized`, `chemdraw_in_use`, `office_not_ready`, ...): see [macOS](#macos).
-- Rendered PNG unchanged after an edit: an old PNG with the same name blocked the write. `cdx.py render` removes it first; other routes must write a new name.
+- Rendered PNG unchanged after an edit: an old PNG with the same name blocked the write. `cdx.py render` replaces a PNG only when it wrote that exact PNG before (it keeps a render log beside the shared runtime folder); any other existing PNG is refused with its path, and only an explicit `--replace` overrides that. Use `--out-dir NEW_DIR` to keep earlier images. Other routes must write a new name.
 
 ## macOS
 
@@ -122,7 +133,13 @@ ChemDraw for macOS is driven through AppleScript (`osascript`) instead of COM. T
 - **Permission.** The first native call asks macOS to let the terminal or agent app control ChemDraw (and Word/PowerPoint for PDF previews). If it was denied, the call fails with `chemdraw_automation_not_authorized` (`office_automation_not_authorized`); allow the app under System Settings > Privacy & Security > Automation. Do not loop retries.
 - **Hidden instance.** The toolkit launches ChemDraw in the background without a window (`open -g -j`) and quits it afterwards. It records the instances it starts in `~/Library/Caches/chemdraw-skill/launched` and terminates those, and only those, when their owning process died or a quit was blocked by a dialog. A ChemDraw the user opened is never quit or killed. A window may flash briefly while ChemDraw opens a document.
 - **Fonts.** ChemDraw for macOS stops on a "font is not available" alert when a document names a missing Windows font. Staged copies replace missing fonts with installed equivalents (SimSun and its Chinese name → Songti SC, SimHei → Heiti SC, Microsoft YaHei → PingFang SC, Calibri → Helvetica Neue, ...); the source file is not changed.
-- **ChemScript.** There is no ChemScript for macOS. Names → structures use OPSIN first and ChemDraw's Name to Structure as fallback; structure → name, cleanup and conversion use ChemDraw; formula, mass, substructure, MCS and overlay use RDKit. Results can differ from ChemScript in naming style. A name neither OPSIN nor ChemDraw recognizes costs about 6 s, because ChemDraw's alert is cleared by restarting the hidden instance; the rejection is cached for the session, so repeats fail at once. `execute_chemscript_sdk` and `inspect_chemscript_sdk` run on an emulation of the ChemScript members the toolkit uses: `StructureData` (`LoadData`, `LoadFile`, `ReadFile`, `MimeTypes`, `Formula`, `ChemicalName`, `WriteData`, `WriteFile`, `CleanupStructure`, `Overlay`, `ContainsSubstructure`, `AtomByAtomSearch`, `Atoms`, `Bonds`), `ReactionData` (`LoadData`, `LoadFile`, `Reactants`, `Products`, `Formula`, `WriteData`, `WriteFile`) and `LargestCommonSubstructure` (`Compute`, `AtomMapM1`, `AtomMapM2`). Programs written against these run unchanged; `inspect_chemscript_sdk` lists exactly these members, and any other type or member is refused.
+- **ChemScript.** There is no ChemScript for macOS; the toolkit substitutes other engines, so naming style can differ from Windows results.
+  - Names → structures: OPSIN first, ChemDraw's Name to Structure as fallback. A name neither recognizes costs about 6 s (ChemDraw's alert is cleared by restarting the hidden instance); the rejection is cached for the session, so repeats fail at once.
+  - Structure → name, cleanup and conversion: ChemDraw. Formula, mass, substructure, MCS and overlay: RDKit.
+  - `execute_chemscript_sdk` and `inspect_chemscript_sdk` run on an emulation of the members the toolkit uses, and take the same ChemDraw lock as other native calls. Programs written against these members run unchanged; `inspect_chemscript_sdk` lists exactly them, and any other type or member is refused:
+    - `StructureData`: `LoadData`, `LoadFile`, `ReadFile`, `MimeTypes`, `Formula`, `ChemicalName`, `WriteData`, `WriteFile`, `CleanupStructure`, `Overlay`, `ContainsSubstructure`, `AtomByAtomSearch`, `Atoms`, `Bonds`
+    - `ReactionData`: `LoadData`, `LoadFile`, `Reactants`, `Products`, `Formula`, `WriteData`, `WriteFile`
+    - `LargestCommonSubstructure`: `Compute`, `AtomMapM1`, `AtomMapM2`
 - **Formats.** ChemDraw for macOS saves CDX, CDXML, PNG (300 dpi), SVG, PDF, TIFF, GIF, JPEG, BMP, EPS, molfile, SDfile, RXN, CML, SKC and TGF. It cannot write EMF; the toolkit converts ChemDraw's SVG export into a vector EMF (paths and text), so OLE previews in DOCX/PPTX and `.emf` outputs stay vector. Drawings whose SVG uses features the converter does not reproduce (arcs, partial transparency, rotated text) fall back to a bitmap EMF wrapping the 300 dpi PNG. PPTX objects also carry the picture in the `mc:Choice` branch so Quick Look and PowerPoint without an OLE server show it.
 - **Office.** Building, inspecting, replacing and extracting ChemDraw objects need only ChemDraw. PDF previews of the result run Word/PowerPoint for macOS on a copy in the Office group container; Office must have been started once, signed in and activated. Otherwise the call fails with `office_not_ready` after its timeout: activate Office, or pass `render_pdf_preview=False` where the tool offers it. Office for macOS cannot open embedded ChemDraw objects by double-click. Edit one with `cdx.py office-edit DOCUMENT [--object N]`: it extracts the drawing to `<document>_chemdraw_edit/object_NNN.cdxml` and opens it in ChemDraw; after saving there, `cdx.py office-edit DOCUMENT --finish [--output NEW]` writes a new document with the object replaced, its preview regenerated and its frame resized to the new drawing (`replace_chemdraw_objects_in_office(resize_frames=True)`). The input document is not changed.
 - **Captions.** ChemDraw for macOS turns a free caption that reads like a formula (`MeOH`, `Et3N`) into a structure fragment during Clean Up and other menu commands. The toolkit marks captions as plain text in the staged copy for the duration of the command and removes the mark from the output, so reaction roles and caption text are unchanged.

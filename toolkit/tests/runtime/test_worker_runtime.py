@@ -67,6 +67,20 @@ class WorkerRuntimeTests(unittest.TestCase):
                 log.assert_not_called()
         self.assertTrue(issubclass(OutputExistsError, ValueError))
 
+    def test_caller_mistakes_reach_the_caller_with_their_message(self):
+        # A wrong argument, a missing file or a missing confirmation is something the
+        # caller can fix, so the reason is returned instead of only a log id.
+        for error in (ValueError("resolve_cas uses PubChem network lookups; set confirm_pubchem=True"),
+                      FileNotFoundError("Input file does not exist: missing.cdxml"),
+                      TypeError("render() got an unexpected keyword argument 'dpi'")):
+            with self.subTest(type(error).__name__):
+                with mock.patch.object(tool_worker, "_failure_log", return_value="abc123"):
+                    envelope, return_code = tool_worker._error_envelope(error)
+                self.assertEqual(return_code, 1)
+                self.assertEqual(envelope["error"]["code"], "invalid_input")
+                self.assertEqual(envelope["error"]["message"], str(error))
+                self.assertEqual(envelope["error"]["id"], "abc123")
+
     def test_replacement_preview_collision_is_an_overwrite_refusal(self):
         from cdxml_toolkit.mcp_runtime import extended_tools
         from cdxml_toolkit.mcp_runtime.artifact_safety import OutputExistsError
@@ -227,6 +241,13 @@ class WorkerRuntimeTests(unittest.TestCase):
         self.assertEqual(tool_worker._resource_timeout(5), 1)
         self.assertEqual(tool_worker._resource_timeout(1), 1)
 
+    def test_macos_chemscript_tools_share_the_chemdraw_lock(self):
+        # The macOS ChemScript emulation drives ChemDraw, so two calls must not overlap.
+        for name in ("execute_chemscript_sdk", "compare_molecules"):
+            self.assertEqual(tool_registry._resource_class(name, "darwin"), "chemdraw_com")
+            self.assertIsNone(tool_registry._resource_class(name, "win32"))
+        self.assertEqual(tool_registry._resource_class("render_to_png", "win32"), "chemdraw_com")
+
     def test_molecule_analysis_has_a_shorter_worker_timeout(self):
         registry = tool_registry.build_registry()
 
@@ -243,6 +264,26 @@ class WorkerRuntimeTests(unittest.TestCase):
         self.assertEqual(result["error"]["code"], "tool_timeout")
         self.assertEqual(result["metadata"]["timeout_seconds"], 2)
         terminate.assert_called_once()
+
+    def test_interrupted_caller_terminates_worker_tree(self):
+        process = mock.Mock()
+        process.poll.return_value = None
+        with mock.patch("cdxml_toolkit.mcp_runtime.mcp_server.subprocess.Popen", return_value=process), mock.patch(
+            "cdxml_toolkit.mcp_runtime.mcp_server._monitor_process", side_effect=KeyboardInterrupt
+        ), mock.patch("cdxml_toolkit.mcp_runtime.mcp_server._terminate_process_tree") as terminate:
+            with self.assertRaises(KeyboardInterrupt):
+                mcp_server._run_worker("resolve_name", [], {}, timeout_seconds=2)
+        terminate.assert_called_once()
+
+    @unittest.skipIf(os.name == "nt", "POSIX process groups")
+    def test_posix_worker_runs_in_its_own_session_so_its_tree_can_be_killed(self):
+        process = mock.Mock()
+        process.poll.return_value = None
+        with mock.patch("cdxml_toolkit.mcp_runtime.mcp_server.subprocess.Popen", return_value=process) as popen, mock.patch(
+            "cdxml_toolkit.mcp_runtime.mcp_server._monitor_process", return_value="timeout"
+        ), mock.patch("cdxml_toolkit.mcp_runtime.mcp_server._terminate_process_tree"):
+            mcp_server._run_worker("resolve_name", [], {}, timeout_seconds=2)
+        self.assertTrue(popen.call_args.kwargs["start_new_session"])
 
     def test_worker_stages_request_instead_of_blocking_on_stdin(self):
         process = mock.Mock()

@@ -17,7 +17,7 @@ For figures with many structures, or when work is split across subagents. Read t
 cdx.py call modify_molecule --args arguments.json --out result.json
 ```
 
-Works for every tool. The full result goes to the file and only a short summary is printed (normally under 4 KB). Read the errors and warnings it points to before continuing.
+Works for every tool. The full result goes to the file and only a short summary is printed (about 6 KB at most). Read the errors and warnings it points to before continuing.
 
 ## Dispatch configuration
 

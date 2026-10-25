@@ -225,3 +225,14 @@ def test_xlsx_preserves_decimal_percent_and_explicit_units(tmp_path):
     p=tmp_path/'units.xlsx';w.save(p)
     row=table_rows(p)[1][0][1]
     assert row=={'percent':'39.7%','activity':'12.30 µM','missing':''}
+
+
+def test_project_page_files_cannot_leave_the_project_folder(tmp_path):
+    spec=request(tmp_path);base=tmp_path/'base';execute(spec,base)
+    p=json.loads((base/'project.json').read_text())
+    (tmp_path/'outside.cdxml').write_bytes((base/p['pages'][0]['file']).read_bytes())
+    p['pages'][0]['file']='../outside.cdxml'
+    (base/'project.json').write_text(json.dumps(p))
+    spec=request(tmp_path,project_path=str(base/'project.json'))
+    with pytest.raises(ValueError,match='page file'):
+        execute(spec,tmp_path/'checked','check')

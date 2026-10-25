@@ -20,7 +20,7 @@ Single-file parsing supports recognized Waters/manual LCMS and MestReNova NMR re
 
 ## Failure Modes
 
-Reject unsupported PDFs, missing experiment identity, nonpositive tolerances, ambiguous acquisition order presented as certain, and inferred peaks or integrations. Expected-mass matches are not confirmed identities. Label FlowER byproducts as predictions and never enable them silently.
+Reject unsupported PDFs, missing experiment identity, nonpositive tolerances, ambiguous acquisition order presented as certain, and inferred peaks or integrations. Expected-mass matches are not confirmed identities. Byproducts from FlowER (a reaction-outcome prediction model, enabled with `predict_byproducts=True`) are predictions: label them so and never enable them silently.
 
 ## Supporting APIs
 

@@ -5,7 +5,7 @@ Contributions should keep the Skill focused, portable, and verifiable on a real 
 ## Development Setup
 
 1. Fork and clone the repository.
-2. Install a runtime: `python scripts/install.py --runtime --apply` (or create one by hand with `install_runtime.py`, see the guide).
+2. Install a runtime: `python scripts/install.py --runtime-only --apply` (or create one by hand with `install_runtime.py`, see the guide).
 3. Run the baseline validation before making changes.
 
 ```powershell

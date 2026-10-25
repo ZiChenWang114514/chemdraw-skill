@@ -225,6 +225,28 @@ class InstallerTests(unittest.TestCase):
             beside = install.venv_python(copy.parent / "chemdraw-venv")
             self.assertEqual(install.record_runtime([copy], beside), [])
 
+    def test_runtime_only_leaves_installed_skill_copies_alone(self) -> None:
+        # Rebuilding the runtime for a checkout must not replace the user's installed Skill.
+        install = self._module()
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve()
+            result = run("--runtime-only", "--python", sys.executable, home=home)
+        if not ((3, 10) <= sys.version_info[:2] <= (3, 13)):
+            self.assertNotEqual(result.returncode, 0)
+            return
+        self.assertEqual(result.returncode, 0, result.stderr)
+        record = json.loads(result.stdout)
+        self.assertEqual(record["installations"], [])
+        self.assertNotEqual(record["runtime"]["action"], "skip")
+        with mock.patch.object(install, "install_one") as install_one, \
+                mock.patch.object(install, "install_runtime") as install_runtime, \
+                mock.patch.object(install, "record_runtime", return_value=[]), \
+                mock.patch.object(install, "runtime_plan", return_value={"action": "reuse", "python": "py"}), \
+                mock.patch("builtins.print"):
+            self.assertEqual(install.main(["--runtime-only", "--apply"]), 0)
+        install_one.assert_not_called()
+        self.assertEqual(install_runtime.call_args.args[1], install.SOURCE)
+
     def test_destination_inside_the_source_is_refused(self) -> None:
         result = run("--destination", str(ROOT / "skill" / "chemdraw" / "nested"))
         self.assertNotEqual(result.returncode, 0)

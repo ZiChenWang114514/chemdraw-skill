@@ -36,14 +36,14 @@ Run portable validation for every change:
 python .\scripts\validate_distribution.py
 ```
 
-Run the full Skill suite in the toolkit runtime (`cdx.py py` selects it; `scripts/install.py --runtime --apply` records the runtime for this checkout in the ignored `skill/chemdraw/runtime.local.json`, otherwise set `CHEMDRAW_MCP_PYTHON`):
+Run the full Skill suite in the toolkit runtime (`cdx.py py` selects it; `scripts/install.py --runtime-only --apply` builds it and records it for this checkout in the ignored `skill/chemdraw/runtime.local.json`, otherwise set `CHEMDRAW_MCP_PYTHON`):
 
 ```powershell
 python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
 python skill/chemdraw/scripts/cdx.py doctor
 ```
 
-For changes under `toolkit/`, also run its suite with the runtime Python from inside `toolkit/` (the checkout code is imported first), then rebuild the runtime with `scripts/install.py --runtime --apply` before native or Office checks:
+For changes under `toolkit/`, also run its suite with the runtime Python from inside `toolkit/` (the checkout code is imported first), then rebuild the runtime with `scripts/install.py --runtime-only --apply` (it leaves installed Skill copies alone; add `--agent ... --runtime` only when the installed copies should be replaced too) before native or Office checks:
 
 ```powershell
 cd toolkit; python -m pytest -m "not network" -q
