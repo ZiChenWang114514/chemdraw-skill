@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 43,
+  "tool_count": 46,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -36,6 +36,14 @@
       "resource_class": "chemdraw_com",
       "timeout_seconds": null,
       "description": "Create PPTX or DOCX containing editable ChemDraw OLE objects."
+    },
+    {
+      "name": "check_reaction_balance",
+      "signature": "(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.\n\nreaction is a reaction SMILES string \"reactants>agents>products\" (structures separated by\n'.'), a dict {\"reactants\": [...], \"agents\": [...], \"products\": [...]} of structure records\n(smiles, molblock or file; optional label, coefficient, equiv, density_g_ml, concentration_m,\nisolated_mg), or {\"cdxml\": path, \"steps\": [step ids]} to read the <step> elements of a drawn\nscheme. Agents are listed but never counted. Elements are counted with implicit hydrogens;\nisotope-labelled atoms are balanced as separate species, and the charge must balance too.\nFor an unbalanced reaction the result names the missing formula (for example H2O),\nand, when exactly one set of whole-number coefficients balances it, suggests them.\nAlso reports mass balance and atom economy (options main_product, default the first product).\noptions scale_mmol (amount of the limiting reactant, option limiting = its index, default 0)\nadds a stoichiometry table with equivalents, mmol, mass, volume and, for products with\nisolated_mg, the percent yield. A failed balance is a finding about the species as drawn:\ncheck the structures against their source before trusting the reaction. Generic atoms\n(R groups) are rejected. output_path ends in .json and is never overwritten."
     },
     {
       "name": "clean_scheme_layout",
@@ -116,6 +124,14 @@
       "resource_class": null,
       "timeout_seconds": 300,
       "description": "Execute a declarative ChemScript SDK program in an isolated Python.NET process."
+    },
+    {
+      "name": "export_structures",
+      "signature": "(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.\n\nsource is a path to a CDXML, MOL, SDF or SMILES (.smi) file, or a list of structure records\n(smiles, molblock or file; optional label). A CDXML file contributes each top-level fragment\nin document order with its CDXML fragment id; SDF titles and SMILES-file names become\nlabels. Binary CDX needs convert_cdx_cdxml first, and Office files need\nextract_cdxml_from_office. Structures with generic atoms (R groups) are listed with their\nSMILES but without InChI, and the result says so. option include_molblock adds a MOL block per\nstructure. output_path ends in .csv, .json, .smi, .sdf or .md and is never overwritten.\nAt most 2000 structures. Identity comes from the structure as stored; nothing is recognised or edited."
     },
     {
       "name": "extract_cdxml_from_office",
@@ -228,6 +244,14 @@
       "resource_class": null,
       "timeout_seconds": 90,
       "description": "Analyze or transform a molecule with structural verification.\n\nIMPORTANT: This is the ONLY correct way to modify a molecule. Never edit\nSMILES strings yourself and pass them directly to draw_molecule — always\ngo through modify_molecule so you get an MCS-based structural diff to\nverify the change was correct.\n\nTakes a molecule dict (at minimum {\"smiles\": \"...\"}) and applies one of 6\noperations. Returns the modified molecule with a structural diff showing\nexactly what atoms/bonds were added, removed, or changed.\n\nOperations:\n    \"analyze\"      — Inspect without modifying: functional groups, IUPAC\n                     names, formula, MW, prefix form. No extra kwargs needed.\n    \"name_surgery\" — Modify via IUPAC name: add/remove substituents.\n                     Pass add=[{\"locant\": \"2\", \"prefix\": \"fluoro\"}] and/or\n                     remove=[\"methyl\"] kwargs.\n    \"smarts\"       — Apply a SMARTS reaction transform. Pass smarts=\n                     \"reaction SMILES\" (e.g. \"[c:1][F]>>[c:1][Cl]\") or\n                     reaction_name= (a template name; see \"reaction\").\n    \"set_smiles\"   — Use when you have edited a SMILES and want to verify\n                     the change. Pass the original mol_json and new_smiles=.\n                     The MCS diff will confirm exactly what was added/removed.\n                     Do NOT generate SMILES from scratch — use resolve_name.\n    \"set_name\"     — Set the display name. Pass new_name=.\n    \"reaction\"     — Apply a named template. Pass reaction_name= and\n                     optionally reagent={\"smiles\": ...} for binary reactions\n                     (coupling, etc.). Template names come from the Python\n                     API cdxml_toolkit.naming.mol_builder.list_reactions()\n                     (not a tool); an operation that names a template, such\n                     as \"suzuki\", is also matched to it.\n\nArgs:\n    mol_json: Source molecule dict with at least {\"smiles\": \"...\"}.\n    operation: One of: \"analyze\", \"name_surgery\", \"smarts\", \"set_smiles\",\n               \"set_name\", \"reaction\".\n    add: For \"name_surgery\" — list of {\"locant\": str, \"prefix\": str} dicts.\n    remove: For \"name_surgery\" — list of prefix strings to remove.\n    new_smiles: For \"set_smiles\" — validated SMILES string.\n    new_name: For \"set_name\" — new display name string.\n    reaction_name: For \"smarts\"/\"reaction\" — template name.\n    reagent: For \"reaction\" — dict with \"smiles\" key for the second reagent.\n    smarts: For \"smarts\" — reaction SMARTS string.\n    description: For \"set_smiles\" — optional context note.\n\nReturns:\n    For \"analyze\": ok, input_smiles, canonical_name, alternative_names,\n    functional_groups, prefix_form, bracket_tree, formula, mw.\n    For modifications: ok, input_smiles, output_smiles, input_name,\n    output_name, aligned_names, diff (atoms_added, atoms_removed,\n    atoms_changed, mcs_smarts, delta_formula, delta_mw), formula, mw."
+    },
+    {
+      "name": "molecule_report",
+      "signature": "(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.\n\nEach record is a SMILES/CXSMILES, molblock or file (CDXML/MOL/SDF) record with an optional\nlabel; a bare SMILES string also works. A CDXML or SDF record with all_fragments=true\ncontributes every structure in the file. Reports formula, average and monoisotopic mass,\nInChI/InChIKey, ESI adduct m/z values (positive and negative mode, electron mass included),\nthe isotope pattern scaled to the tallest peak, Crippen logP, TPSA, H-bond donors and\nacceptors, rotatable bonds, QED, stereocentre counts and Lipinski/Veber rule results.\nDescriptors are computed by RDKit from the structure as given; logP and TPSA are\ncalculated estimates, not measurements, and generic atoms (R groups) are rejected.\noutput_path ends in .json, .csv or .md and is never overwritten. At most 256 structures."
     },
     {
       "name": "parse_analysis_file",

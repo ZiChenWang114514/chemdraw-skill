@@ -29,7 +29,8 @@ def require_supported(mol):
         raise ValueError('unsupported_stereochemistry: atropisomer needs a native template')
 
 
-def read_molecules(value):
+def read_fragments(value):
+    """Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order."""
     root = ET.parse(str(value)).getroot() if isinstance(value, Path) else ET.fromstring(value)
     # Reaction text IDs are not molecules. Parse each top-level fragment separately.
     parents = {child: parent for parent in root.iter() for child in parent}
@@ -48,10 +49,14 @@ def read_molecules(value):
         parsed = Chem.MolsFromCDXML(block)
         if not parsed:
             raise ValueError('unreadable_chemical_fragment: ' + fragment.get('id', '?'))
-        results.extend(parsed)
+        results.extend((fragment.get('id'), mol) for mol in parsed)
     if not results:
         raise ValueError('no_chemical_fragments')
     return results
+
+
+def read_molecules(value):
+    return [mol for _, mol in read_fragments(value)]
 
 
 def validate_fragment(smiles, xml):
