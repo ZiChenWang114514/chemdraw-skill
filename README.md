@@ -12,8 +12,9 @@
 <h3 align="center">Editable ChemDraw chemistry for Claude Code, Codex and any AI coding agent</h3>
 
 <p align="center">
-  Draw structures, rebuild paper figures, turn spreadsheets into SAR panels and place live ChemDraw objects in Word and PowerPoint.<br>
-  Works with Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and any agent that can run a shell command.
+  Draw structures, rebuild paper figures, build SAR panels from a spreadsheet and put live ChemDraw objects into Word and PowerPoint.
+  The same Skill also weighs out reactions, writes characterization paragraphs and maps atoms across a reaction.<br>
+  It runs in Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and any agent that can run a shell command.
 </p>
 
 <p align="center">
@@ -27,17 +28,17 @@
 <p align="center">
   <b>English</b> · <a href="README.zh-cn.md">&#31616;&#20307;&#20013;&#25991;</a>
   <br>
-  <a href="#quick-start">Quick start</a> · <a href="#gallery">Gallery</a> · <a href="#what-it-handles">What it handles</a> · <a href="#featured-demos">Demos</a> · <a href="#platform-support">Platforms</a> · <a href="#common-questions">FAQ</a> · <a href="docs/guide.md">Guide</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/en/">Website</a>
+  <a href="#quick-start">Quick start</a> · <a href="#gallery">Gallery</a> · <a href="#what-it-handles">What it handles</a> · <a href="#reaction-calculator-and-chemistry-reports">Calculator</a> · <a href="#featured-demos">Demos</a> · <a href="#platform-support">Platforms</a> · <a href="#common-questions">FAQ</a> · <a href="docs/guide.md">Guide</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/en/">Website</a>
 </p>
 
 <br>
 
 <table>
   <tr>
-    <td width="25%" valign="top"><b>Grounded chemistry</b><br><sub>Structures come from databases, ChemScript, OPSIN or DECIMER, never from invented SMILES.</sub></td>
-    <td width="25%" valign="top"><b>Truly editable</b><br><sub>Every result is native CDXML: atoms, bonds and text you can keep editing in ChemDraw.</sub></td>
-    <td width="25%" valign="top"><b>One entry point</b><br><sub>A single <code>cdx.py</code> command works in any agent. MCP is optional.</sub></td>
-    <td width="25%" valign="top"><b>Native quality</b><br><sub>ChemDraw itself renders and saves every figure, and the chemistry is read back after saving.</sub></td>
+    <td width="25%" valign="top"><b>Structures with a source</b><br><sub>A structure comes from a database, OPSIN, ChemScript or DECIMER. The agent does not type SMILES from memory.</sub></td>
+    <td width="25%" valign="top"><b>Editable output</b><br><sub>Results are CDXML. Atoms, bonds and text can be changed in ChemDraw afterwards.</sub></td>
+    <td width="25%" valign="top"><b>One command</b><br><sub><code>cdx.py</code> runs every tool in any agent. MCP is optional.</sub></td>
+    <td width="25%" valign="top"><b>Checked after saving</b><br><sub>ChemDraw renders and saves the file, then the chemistry is read back and compared with the input.</sub></td>
   </tr>
 </table>
 
@@ -116,6 +117,8 @@ Use the ChemDraw Skill to draw aspirin as editable CDXML, render it natively and
 > [!NOTE]
 > Python 3.14 and newer are not supported by the bundled toolkit yet. If that is your only Python, install 3.12 (for example `uv python install 3.12`) or pass `--python <interpreter>`.
 
+To try the calculator instead of a drawing, run `python ~/.claude/skills/chemdraw/scripts/cdx.py calc` ([details](#reaction-calculator-and-chemistry-reports)).
+
 <details>
 <summary><b>Choose agents and install locations</b></summary>
 <br>
@@ -158,7 +161,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
 | **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
 | **Molecule comparison** | RDKit fingerprint similarity everywhere; exact-identity checks through ChemScript on Windows or ChemDraw for macOS. |
-| **Property sheets and reaction checks** | Formula, exact mass, ESI adduct m/z, isotope pattern, logP and drug-likeness for any structure; atom and charge balance of a reaction with the missing by-product, suggested coefficients and an equivalents/yield table; a reaction calculator page (`cdx.py calc`) where you draw the reaction in ChemDraw and edit equivalents, mmol, mass and volume with solvent concentration, yield and atom economy updating live, and writes the amounts back under the structures of a ChemDraw scheme; HRMS characterization lines (`HRMS (ESI) m/z calcd for ...`) and whole ACS characterization paragraphs (appearance, Rf, mp, rotation, IR, NMR, HRMS) whose peak counts are checked against the structure and reported, never corrected; safety reminders (GHS pictograms, H-statements, boiling and flash point from a built-in table, "not listed" for anything else) on the calculator page and in the materials tables; materials tables and procedure sentences for a batch of reactions; overall yield, cumulative process mass intensity (PMI) and E-factor of a multi-step route, plus PMI on the calculator page; reaction atom mapping (a built-in substructure method that reports ambiguity instead of guessing, or the learned RXNMapper and LocalMapper models after a one-command optional install, with a side-by-side comparison of the methods; many reactions are mapped in one pass, and the materials tables can list each reaction's bond changes; the mapping can also give the reaction centre as a reaction SMARTS, name the reaction type from the structures or report it as unclassified, and write the map numbers beside the atoms of a copy of the drawing); every structure of a CDXML/SDF file as SMILES and InChI; ChemDraw-generated names checked by parsing them back. |
+| **Calculators and reports** | A reaction calculator for amounts, yield and process mass intensity; HRMS lines and whole characterization paragraphs; reagent safety reminders; overall yield of a route; atom mapping; property sheets, reaction balance and structure export. [Details below](#reaction-calculator-and-chemistry-reports). |
 | **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly. |
 | **Spectra and scientific plots** | Peak picking and selected-region integration of processed 1D NMR data; numerical data as editable curves. |
 | **Patent Markush structures** | Generic structures from a patent image and claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing that follows the source layout. |
@@ -172,7 +175,7 @@ The generated [public inventory](skill/chemdraw/references/toolkit-public-invent
 
 ### Exam and lecture drawings in ACS Document 1996 style
 
-Describe a figure as a small JSON spec — SMILES with abbreviation nodes such as C10H21, conditions, arrows, bold compound codes, Chinese notes — and get editable ACS 1996 CDXML plus a native ChemDraw PNG:
+Write the figure as a small JSON spec: SMILES with abbreviation nodes such as C10H21, conditions, arrows, bold compound codes and Chinese notes. You get editable ACS 1996 CDXML and a native ChemDraw PNG:
 
 ```bash
 python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
@@ -187,6 +190,60 @@ Abbreviations stay real `GenericNickname` nodes with correct subscripts and labe
 ### SAR and substrate-scope figures from CSV or Excel
 
 Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted structures. Stable compound IDs bind measurements to editable ChemDraw objects. Update data or replace a structure after native editing while preserving unrelated layout and annotations; ambiguous matches produce conflict drafts. See the [workflow and examples](skill/chemdraw/references/data-driven-figures.md). XLSX support requires the toolkit `publication` extra.
+
+## Reaction calculator and chemistry reports
+
+These tools start from structures you supply (SMILES, MOL or SDF, CDXML) and do the arithmetic and bookkeeping with RDKit. They do not recognise or edit structures, and only the name tool needs ChemDraw. Each one returns its result in the reply and can also write a new file; an existing file is never overwritten.
+
+| You want | Tool | You get |
+| --- | --- | --- |
+| How much of each reagent and solvent to weigh | `cdx.py calc`, `reaction_calculator` | An editable amounts table, yield, atom economy, PMI |
+| Amounts written under the structures of a scheme | `reaction_calculator` with `scheme_output` | A copy of the CDXML with the numbers added |
+| An SI materials table for many reactions | `si_materials_tables` | Markdown, CSV, printable HTML or JSON, up to 100 reactions |
+| HRMS and characterization text | `hrms_line`, `characterization_text` | `HRMS (ESI) m/z calcd for ...` and ACS-order paragraphs |
+| Overall yield and PMI of a route | `route_summary` | One table for a linear or convergent route |
+| Which atom becomes which | `map_reaction_atoms` | Atom maps, bond changes, reaction-centre SMARTS, reaction type |
+| Formula, mass, adducts, logP | `molecule_report` | A property sheet |
+| Does the reaction balance? | `check_reaction_balance` | The missing by-product and suggested coefficients |
+| Every structure in a file | `export_structures` | SMILES, InChI, CSV or SDF |
+
+### Reaction calculator
+
+```bash
+python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1" --scale 1
+```
+
+This opens a page in your browser (served from 127.0.0.1, closed a few minutes after you close the tab). **Draw in ChemDraw** opens a canvas in ChemDraw; after you save it, **Load drawing** reads the reaction back. Type over any equivalents, mmol, mass or volume cell and the others follow. The page shows solvent concentration, yield, atom economy, reaction mass efficiency and process mass intensity (PMI; E-factor is PMI minus 1). A solvent whose mass is unknown is left out of the PMI, and the page says so. Amounts you did not give are defaults (1 equiv for reagents, 5 mol % for metal catalysts, 0.2 M) and are marked as assumed. **Amounts into scheme** writes the numbers under the structures of a copy of your ChemDraw scheme.
+
+Common solvents and reagents carry a **Danger** or **Warning** badge from a built-in table of about fifty entries: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/gallery/calculator-dark.png">
+    <img src="assets/readme/gallery/calculator-light.png" width="80%" alt="The reaction calculator page for benzyl alcohol and acetyl chloride: editable amounts, danger and warning badges, PMI and yield, and a write-up sentence">
+  </picture>
+</p>
+
+### Characterization text
+
+`characterization_text` writes one paragraph per compound in ACS order: appearance, Rf, mp, rotation, IR, 1H and 13C NMR, other nuclei, HRMS. It prints the digits you give it and leaves out anything you did not supply. It also compares the 1H integral and the 13C signal count with the structure and reports a mismatch as a warning. It does not change a peak to make a check pass.
+
+### Atom mapping and reaction type
+
+`map_reaction_atoms` has a built-in substructure method. Where a product atom could come from several reactant atoms it says so instead of choosing. Two learned mappers, RXNMapper and LocalMapper, can be installed with `cdx.py install-mappers`; `compare: true` runs all installed methods side by side. Many reactions can be mapped in one call, which matters because each learned mapper takes 10 to 35 seconds to start.
+
+With a finished mapping you can also ask for the reaction centre as a reaction SMARTS (`template`), a reaction type read from the structures (`classify`, 19 templates, otherwise "unclassified"), and the map numbers written beside the atoms of a copy of your drawing (`map_numbers_into_scheme`). Check the picture when an atom label such as H2N is crowded.
+
+### Route summary
+
+`route_summary` takes the steps of a synthesis in order, each with a yield and the masses used and obtained (or a reaction in the calculator format). It returns the overall yield along the longest linear sequence and the cumulative PMI, scaling every step to the amount the next step consumes. Convergent routes work through the `into` field. A missing number gives `null` and a warning, not a guess. Work-up and purification solvents count only if you include them in the input mass.
+
+```text
+Use the ChemDraw Skill to open the reaction calculator for this amide coupling and put the amounts under the structures.
+Write the characterization paragraph for compound 3a from these NMR peaks and this HRMS value.
+```
+
+The full inputs and rules are in the [chemistry reports guide](skill/chemdraw/references/chemistry-reports.md).
 
 ## Featured demos
 
@@ -229,13 +286,13 @@ Linked structure and scene records, verified candidate caching, local checks and
 
 ### Paper reaction scheme
 
-**Turn a published reaction scheme into an editable ChemDraw document.** This example preserves the five structures, reaction conditions, yields and compound labels shown in the reference image.
+A published reaction scheme rebuilt as an editable ChemDraw document. The example keeps the five structures, reaction conditions, yields and compound labels of the reference image.
 
 **Original paper figure**
 
 ![Original paper scheme showing compounds 13a, 14, 15, 16 and the shared 17a/17b depiction](assets/readme/paper-replica/original.png)
 
-**Editable reconstruction — ChemDraw-native output**
+**Editable reconstruction, saved by ChemDraw**
 
 ![Editable ChemDraw reconstruction preserving the original scheme orientation, conditions and compound labels](assets/readme/paper-replica/replica.png)
 
@@ -321,7 +378,7 @@ A generic structure from a patent figure plus claim text: R groups and linkers, 
 <details>
 <summary>Compare the complete reference and reconstruction</summary>
 
-![Complex synthesis: 101–112 — comparison](assets/readme/synthesis-101-112/comparison-full.png)
+![Complex synthesis 101–112: reference and reconstruction side by side](assets/readme/synthesis-101-112/comparison-full.png)
 
 </details>
 
@@ -338,7 +395,7 @@ A generic structure from a patent figure plus claim text: R groups and linkers, 
 <details>
 <summary>Compare the complete reference and reconstruction</summary>
 
-![Complex synthesis: 113–122 — comparison](assets/readme/synthesis-113-122/comparison-full.png)
+![Complex synthesis 113–122: reference and reconstruction side by side](assets/readme/synthesis-113-122/comparison-full.png)
 
 </details>
 
@@ -388,7 +445,7 @@ Native previews need desktop ChemDraw (Windows or macOS). See the [rebuild examp
 
 ## Platform support
 
-The portable chemistry layer — CDXML generation and editing, RDKit validation, the command line and MCP — runs on Windows, macOS and Linux. Native ChemDraw is driven through COM on Windows and through AppleScript on macOS, with the same tools and outputs.
+The portable chemistry layer (CDXML generation and editing, RDKit validation, the command line and MCP) runs on Windows, macOS and Linux. Native ChemDraw is driven through COM on Windows and through AppleScript on macOS, with the same tools and outputs.
 
 | Capability | Windows | macOS | Linux |
 | --- | :---: | :---: | :---: |
@@ -422,10 +479,10 @@ ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled
 
 ## Testing and security
 
-- **Tested in CI:** Skill tests on Windows and Linux (Python 3.12, MCP 1.28.1 and 2.0.0), the toolkit suite on Python 3.10–3.13, and an end-to-end install on Windows, Linux and macOS. Native ChemDraw, ChemScript and Office features are tested on a licensed Windows workstation, and the macOS AppleScript path on macOS 26.6 (Apple silicon) with ChemDraw 26.0.
-- **Your files stay safe:** tools write to a new output path and refuse to overwrite existing files unless you ask for it.
-- **Uploads are minimal:** image recognition sends only the selected images to the DECIMER API; `cdx.py decimer --preflight` shows what would be sent, and offline requests are honored.
-- **Remote access is locked down:** the HTTP server requires a bearer key and an allowed host list for remote use; put it behind an encrypted tunnel or HTTPS proxy. See the [security policy](.github/SECURITY.md).
+- CI runs the Skill tests on Windows and Linux (Python 3.12, MCP 1.28.1 and 2.0.0), the toolkit suite on Python 3.10–3.13, and an end-to-end install on Windows, Linux and macOS. Native ChemDraw, ChemScript and Office features are tested by hand on a licensed Windows workstation. The macOS AppleScript path was tested on macOS 26.6 (Apple silicon) with ChemDraw 26.0.
+- Tools write to a new output path and refuse to overwrite an existing file unless you ask.
+- Image recognition sends only the selected images to the DECIMER API. `cdx.py decimer --preflight` shows what would be sent, and an offline request is honored. The reports and the mappers run locally. The calculator looks up a name online only when the name is not in its built-in table, and `--offline` turns that off.
+- The HTTP server needs a bearer key and an allowed host list for remote use, and should sit behind an encrypted tunnel or an HTTPS proxy. See the [security policy](.github/SECURITY.md).
 
 ## Common questions
 
@@ -450,6 +507,22 @@ No. The command line covers every tool and keeps the same worker isolation, nati
 <br>
 
 Yes. Use trusted structures with CSV or XLSX measurements to produce editable structure–activity relationship (SAR) panels or substrate-scope figures. Stable compound IDs retain data binding, and project updates preserve unrelated manual layout changes. See the [data-driven figure workflow](skill/chemdraw/references/data-driven-figures.md).
+
+</details>
+
+<details>
+<summary><b>Can it work out how much of each reagent to weigh?</b></summary>
+<br>
+
+Yes. `cdx.py calc` opens a calculator page where you draw or paste the reaction and edit equivalents, mmol, mass or volume; concentration, yield, atom economy and PMI follow. The amounts can be written under the structures of a ChemDraw scheme. Amounts you did not give are defaults and are marked as assumed. See [reaction calculator and chemistry reports](#reaction-calculator-and-chemistry-reports).
+
+</details>
+
+<details>
+<summary><b>How far can I trust the safety information?</b></summary>
+<br>
+
+It is a reminder from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", never as safe. The values were written from typical supplier classifications and differ between suppliers, so check the SDS of the product you actually use.
 
 </details>
 
