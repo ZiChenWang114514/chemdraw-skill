@@ -27,8 +27,12 @@ def depiction(smiles: str, width: int = 150, height: int = 110) -> str | None:
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None
+    previous = rdDepictor.GetPreferCoordGen()  # process-wide setting: other depictions must not inherit it
     rdDepictor.SetPreferCoordGen(True)
-    rdDepictor.Compute2DCoords(mol)
+    try:
+        rdDepictor.Compute2DCoords(mol)
+    finally:
+        rdDepictor.SetPreferCoordGen(previous)
     drawer = rdMolDraw2D.MolDraw2DSVG(width, height)
     options = drawer.drawOptions()
     options.clearBackground = False

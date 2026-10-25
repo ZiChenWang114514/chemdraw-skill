@@ -220,3 +220,12 @@ def test_page_embeds_state_safely():
     page = render_page(state)
     assert page.count('</script>') == 3  # the payload, the engine and the page script
     assert '<img src=x' not in page
+
+
+def test_structure_pictures_leave_the_process_wide_depiction_setting_alone():
+    from rdkit.Chem import rdDepictor
+    from cdxml_toolkit.reaction_calculator import state
+
+    before = rdDepictor.GetPreferCoordGen()
+    assert state.depiction('CCO').startswith('<svg')
+    assert rdDepictor.GetPreferCoordGen() == before
