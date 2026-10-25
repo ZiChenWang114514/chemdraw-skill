@@ -267,7 +267,10 @@ role (agents: solvent, reagent or catalyst), density_g_ml, concentration_m (a st
 solution), purity (percent) and, for a product, isolated_mg or yield_percent.
 Options: scale_mmol (the limiting reactant, default 1), limiting (reactant index, default 0),
 molarity (of the limiting reactant in the first solvent, default 0.2), title, step (id of the
-CDXML step to use, default the first).
+CDXML step to use, default the first), reagent_safety (default false: add "safety", the GHS
+pictograms, H-statements, boiling and flash point of each non-product row from a built-in
+table of common reagents, or "not listed"; the page shows them as badges whenever the
+species is in the table; a reminder, not a substitute for the supplier SDS).
 Everything not fixed gets a default (reactants by their coefficients, reagents 1 equiv,
 metal catalysts 0.05 equiv, a 0.2 M solvent); the result lists those rows under "assumed"
 and the page shows them in italics. Liquids show a volume when a density is known (a small
@@ -308,7 +311,10 @@ true: add the calculated HRMS line of the first product), adduct (default [M+H]+
 ionization (default ESI). map_atoms (default false) adds each reaction's bond changes from
 atom mapping: all reactions go to the mapper in one call, so a learned mapper loads once;
 map_method (default auto, see map_reaction_atoms) picks the method. A reaction that cannot be
-mapped only loses that line, with a warning.
+mapped only loses that line, with a warning. reagent_safety (default false) adds, per
+reaction, "safety": the GHS pictograms, H-statements, boiling and flash point of each reactant,
+reagent and solvent from a built-in table of common reagents (a reminder, not a substitute for
+the supplier SDS); a species that is not in the table is reported as not listed, never guessed.
 Per reaction the result holds the amounts table, concentration, atom economy and reaction mass
 efficiency, the first product's formula, isolated mass and yield, its HRMS line and a procedure
 sentence; "assumed" lists the amounts nobody gave (shown in warnings). A reaction that cannot be

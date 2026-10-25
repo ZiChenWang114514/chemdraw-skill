@@ -13,7 +13,7 @@ from rdkit import Chem
 from rdkit.Chem import rdDepictor
 from rdkit.Chem.Draw import rdMolDraw2D
 
-from . import library
+from . import hazards, library
 from .engine import compute
 
 AMOUNT_KEYS = {'equiv': 'equiv', 'mmol': 'mmol', 'mass_mg': 'mass', 'volume_ml': 'volume'}
@@ -88,6 +88,8 @@ def _row(species, row_id, role, known):
     row['density'] = float(density) if density else None
     if role == 'product':
         row['hrms'] = _hrms_line(species['smiles'])
+    elif hazards.badge(species['smiles']):
+        row['hazard'] = hazards.badge(species['smiles'])
     if record.get('concentration_m'):
         row['solution_m'] = float(record['concentration_m'])
     if record.get('purity') is not None:

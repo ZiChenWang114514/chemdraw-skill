@@ -49,6 +49,10 @@ td { padding: 4px 6px; border-top: 1px solid var(--line); vertical-align: middle
 tr.hrms-row td { border-top: 0; padding-top: 0; }
 button.hrms { all: unset; cursor: copy; font: 0.78rem var(--mono); color: var(--muted); padding: 0 0 6px; }
 button.hrms:hover, button.hrms:focus-visible { color: var(--accent); text-decoration: underline; }
+.haz { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--line); border-radius: 9px; font-size: 0.72rem; line-height: 1.5; color: var(--muted); cursor: help; vertical-align: middle; white-space: nowrap; }
+.haz-danger { border-color: var(--bad); color: var(--bad); }
+.haz-warn { border-color: var(--fixed-line); color: var(--ink); background: var(--fixed); }
+.haz:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 tr.group td { border-top: 0; padding: 12px 6px 2px; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
 td.thumb { width: 64px; padding: 2px 6px; }
 td.thumb svg { width: 60px; height: 44px; color: var(--ink); display: block; }
