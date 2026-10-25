@@ -59,3 +59,12 @@ def test_package_has_no_client_specific_configuration_writer():
         and re.search(r"\b(codex|openai)\b", path.read_text(encoding="utf-8"), re.IGNORECASE)
     ]
     assert offenders == []
+
+
+def test_macos_failure_logs_go_to_library_logs(tmp_path):
+    env = {k: v for k, v in os.environ.items() if k not in ("LOCALAPPDATA", "TEMP")}
+    with mock.patch.dict(os.environ, env, clear=True), \
+            mock.patch.object(tool_worker.sys, "platform", "darwin"), \
+            mock.patch.object(tool_worker.Path, "home", return_value=tmp_path):
+        # $HOME/chemdraw-skill is where the README clones the repository.
+        assert tool_worker.worker_log_dir() == tmp_path / "Library" / "Logs" / "chemdraw-skill"

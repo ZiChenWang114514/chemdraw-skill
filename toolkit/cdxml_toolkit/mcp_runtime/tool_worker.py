@@ -24,13 +24,18 @@ def _write_envelope(payload: dict) -> None:
     sys.stdout.write("\n")
 
 
+def worker_log_dir() -> Path:
+    """Folder of ``worker-<id>.log`` files (``cdx.py doctor --paths`` prints it)."""
+    base = os.environ.get("LOCALAPPDATA") or os.environ.get("TEMP")
+    if not base and sys.platform == "darwin":
+        # Not $HOME/chemdraw-skill: that is where the repository is usually cloned.
+        return Path.home() / "Library" / "Logs" / "chemdraw-skill"
+    return Path(base or Path.home()) / "chemdraw-skill" / "logs"
+
+
 def _failure_log(exc: BaseException) -> str:
     error_id = uuid.uuid4().hex
-    root = Path(
-        os.environ.get("LOCALAPPDATA")
-        or os.environ.get("TEMP")
-        or Path.home()
-    ) / "chemdraw-skill" / "logs"
+    root = worker_log_dir()
     try:
         root.mkdir(parents=True, exist_ok=True)
         (root / f"worker-{error_id}.log").write_text(

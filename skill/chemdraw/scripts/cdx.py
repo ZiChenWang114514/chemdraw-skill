@@ -432,14 +432,18 @@ def cmd_decimer(ns):
 
 
 def runtime_paths():
-    from cdxml_toolkit.mcp_runtime import official_overrides, resource_lock
+    from cdxml_toolkit.mcp_runtime import official_overrides, resource_lock, tool_worker
     base = os.environ.get('LOCALAPPDATA') or os.environ.get('TEMP') or str(Path.home())
-    # Current runtimes log to <base>/chemdraw-skill/logs; older ones used <base>/<client>/chemdraw-mcp/logs.
-    logs = sorted({*glob.glob(os.path.join(base, 'chemdraw-skill', 'logs')),
+    # The runtime names its folder (~/Library/Logs/chemdraw-skill on macOS); runtimes before
+    # that used <base>/chemdraw-skill/logs, older ones <base>/<client>/chemdraw-mcp/logs.
+    current = str(tool_worker.worker_log_dir()) if hasattr(tool_worker, 'worker_log_dir') \
+        else os.path.join(base, 'chemdraw-skill', 'logs')
+    logs = sorted({*glob.glob(current), *glob.glob(os.path.join(base, 'chemdraw-skill', 'logs')),
                    *glob.glob(os.path.join(base, '*', 'chemdraw-mcp', 'logs'))})
+    native_lock = resource_lock.CHEMDRAW_COM_MUTEX if os.name == 'nt' else str(resource_lock.CHEMDRAW_LOCK_FILE)
     return {'python': sys.executable, 'skill_root': str(SKILL_ROOT),
-            'worker_logs': logs or os.path.join(base, 'chemdraw-skill', 'logs') + ' (created on first worker failure)',
-            'native_mutex': resource_lock.CHEMDRAW_COM_MUTEX,
+            'worker_logs': logs or current + ' (created on first worker failure)',
+            'native_lock': native_lock,
             'native_temp': os.environ.get('CHEMDRAW_NATIVE_TEMP') or str(official_overrides._TEMP_OUTPUT),
             'chemscript_pythonpath': _chemscript_env().get('PYTHONPATH')}
 

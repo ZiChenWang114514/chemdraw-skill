@@ -8,7 +8,7 @@ Load for installation, upgrade, worker timeout, ChemDraw COM, ChemDraw for macOS
 
 ```bash
 cdx.py doctor                 # toolkit/Python versions, missing extras, signature drift, installation manifest, capability matrix
-cdx.py doctor --paths         # also worker-log folder, native mutex name, native temp root, ChemScript path
+cdx.py doctor --paths         # also worker-log folder, native lock (mutex on Windows, lock file elsewhere), native temp root, ChemScript path
 cdx.py doctor --native        # + ChemScript ping and a temporary CDXML -> PNG render through ChemDraw (COM or macOS)
 cdx.py doctor --office        # + PPTX and DOCX ChemDraw-OLE embedding probes (packages built and validated; Office is not opened)
 cdx.py doctor --full          # include the complete diagnose_runtime() result
@@ -144,6 +144,7 @@ ChemDraw for macOS is driven through AppleScript (`osascript`) instead of COM. T
 - **Office.** Building, inspecting, replacing and extracting ChemDraw objects need only ChemDraw. PDF previews of the result run Word/PowerPoint for macOS on a copy in the Office group container; Office must have been started once, signed in and activated. Otherwise the call fails with `office_not_ready` after its timeout: activate Office, or pass `render_pdf_preview=False` where the tool offers it. Office for macOS cannot open embedded ChemDraw objects by double-click. Edit one with `cdx.py office-edit DOCUMENT [--object N]`: it extracts the drawing to `<document>_chemdraw_edit/object_NNN.cdxml` and opens it in ChemDraw; after saving there, `cdx.py office-edit DOCUMENT --finish [--output NEW]` writes a new document with the object replaced, its preview regenerated and its frame resized to the new drawing (`replace_chemdraw_objects_in_office(resize_frames=True)`). The input document is not changed.
 - **Captions.** ChemDraw for macOS turns a free caption that reads like a formula (`MeOH`, `Et3N`) into a structure fragment during Clean Up and other menu commands. The toolkit marks captions as plain text in the staged copy for the duration of the command and removes the mark from the output, so reaction roles and caption text are unchanged.
 - **ELN cleanup.** `cleanup_eln_cdx` applies the ACS Document 1996 settings through CDXML (bond length, Arial 10 pt bold captions) before ChemDraw's Clean Up Structure/Reaction, because ChemDraw for macOS cannot apply style sheets from AppleScript. A custom `.cds` `style_path` is read directly (bond length, angles, line widths, label and caption fonts) and applied the same way. ChemDraw opens `.cds`/`.cts` files as untitled stationery, so the toolkit never opens them in ChemDraw (`native_format_unsupported`).
+- **Lock and logs.** The ChemDraw lock is the file `~/Library/Caches/chemdraw-skill/native.lock` instead of a Windows mutex, and worker failure logs (`worker-<id>.log`) go to `~/Library/Logs/chemdraw-skill`. `cdx.py doctor --paths` prints both.
 - **Errors.** `chemdraw_not_found` (install ChemDraw in `/Applications` or set `CHEMDRAW_EXE`), `chemdraw_in_use` (name conversion only runs in a ChemDraw the toolkit started; close the user's ChemDraw or retry later), `native_timeout` (a dialog is open in ChemDraw), `chemdraw_not_running`, `native_format_unsupported`, `chemdraw_license_unavailable`.
 
 ## Remote HTTP (only when asked)

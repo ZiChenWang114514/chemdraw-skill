@@ -484,3 +484,19 @@ def test_office_edit_finish_waits_for_a_fresh_save_to_settle(tmp_path, capsys):
     with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
         assert cdx.main(['office-edit', '--finish', str(workdir)]) == 0
     assert worker.called
+
+
+def test_doctor_paths_name_the_native_lock_of_this_platform():
+    from cdxml_toolkit.mcp_runtime import resource_lock
+    expected = resource_lock.CHEMDRAW_COM_MUTEX if os.name == 'nt' else str(resource_lock.CHEMDRAW_LOCK_FILE)
+    assert cdx.runtime_paths()['native_lock'] == expected
+
+
+def test_doctor_paths_include_the_runtime_log_folder(tmp_path, monkeypatch):
+    from cdxml_toolkit.mcp_runtime import tool_worker
+    monkeypatch.delenv('LOCALAPPDATA', raising=False)
+    monkeypatch.delenv('TEMP', raising=False)
+    folder = tmp_path / 'Logs' / 'chemdraw-skill'
+    folder.mkdir(parents=True)
+    monkeypatch.setattr(tool_worker, 'worker_log_dir', lambda: folder)
+    assert str(folder) in cdx.runtime_paths()['worker_logs']
