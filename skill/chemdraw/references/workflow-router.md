@@ -52,6 +52,14 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 4. Create a new one-object file with `embed_cdxml_in_office`, create a new collection with `batch_embed_cdxml_in_office`, or preserve an existing template through `fill_office_template`. The single-object tool rejects an existing Office target because the upstream builder cannot preserve its content.
 5. Verify the OOXML package opens, keeps its OLE relationships and geometry, and contains editable ChemDraw objects rather than flat images.
 
+## Report On Structures Or A Reaction
+
+Details and argument examples: [chemistry reports](chemistry-reports.md).
+
+1. `molecule_report` for formula, masses, expected ESI adduct m/z, isotope pattern, logP/TPSA and Lipinski/Veber checks of grounded structures, including every fragment of a CDXML file (`all_fragments`).
+2. `check_reaction_balance` to test that a reaction string, record lists or the steps of a drawn scheme conserve atoms and charge. It names a missing by-product, suggests whole-number coefficients, reports atom economy, and with `scale_mmol` returns an equivalents/mass/volume/yield table. After an image reconstruction, an unbalanced reaction points to a misread species; resolve that before reporting.
+3. `export_structures` to list every structure of a CDXML/MOL/SDF/SMILES file as SMILES, InChI and InChIKey (CSV, JSON, SMI, SDF or Markdown). Use it as an independent read-back of a saved drawing.
+
 ## Analyze Experiments
 
 1. Use `discover_experiment_files` before composing a multi-file workflow.

@@ -8,12 +8,13 @@
 
 ## `chemistry_semantics`
 
-- **function**, line 74: `document_inventory(path)` - No public docstring in the audited version.
-- **function**, line 32: `read_molecules(value)` - No public docstring in the audited version.
+- **function**, line 79: `document_inventory(path)` - No public docstring in the audited version.
+- **function**, line 32: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
+- **function**, line 58: `read_molecules(value)` - No public docstring in the audited version.
 - **function**, line 20: `require_supported(mol)` - No public docstring in the audited version.
 - **function**, line 10: `semantic_key(mol)` - No public docstring in the audited version.
-- **function**, line 78: `validate_document_preserved(source, output)` - No public docstring in the audited version.
-- **function**, line 57: `validate_fragment(smiles, xml)` - No public docstring in the audited version.
+- **function**, line 83: `validate_document_preserved(source, output)` - No public docstring in the audited version.
+- **function**, line 62: `validate_fragment(smiles, xml)` - No public docstring in the audited version.
 
 ## `mcp_runtime`
 
@@ -21,23 +22,24 @@
 
 ## `mcp_runtime.artifact_safety`
 
-- **function**, line 243: `artifact_record(path: str | Path) -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 256: `artifact_records(paths: Iterable[str | Path]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 148: `apply_default_mode(path: str | Path) -> None` - Give a staged file the mode a plain open() would: mkstemp() files are 0600.
+- **function**, line 262: `artifact_record(path: str | Path) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 275: `artifact_records(paths: Iterable[str | Path]) -> list[dict[str, Any]]` - No public docstring in the audited version.
 - **class**, line 18: `OutputExistsError` - An output already exists and the tool will not replace it.
 - **property**, line 28: `OutputExistsError.public_message` - No public docstring in the audited version.
-- **function**, line 268: `paths_from_value(value: Any) -> list[Path]` - No public docstring in the audited version.
-- **function**, line 214: `publish_directory(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 160: `publish_file(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 198: `publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None` - No public docstring in the audited version.
+- **function**, line 287: `paths_from_value(value: Any) -> list[Path]` - No public docstring in the audited version.
+- **function**, line 233: `publish_directory(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 179: `publish_file(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 217: `publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None` - No public docstring in the audited version.
 - **function**, line 58: `resolve_destination(*, source: str | Path | None, output_path: str | Path | None, tag: str, suffix: str, base_dir: str | Path | None = None) -> Path` - No public docstring in the audited version.
 - **function**, line 90: `resolve_directory_destination(*, source: str | Path, output_dir: str | Path | None, tag: str) -> Path` - No public docstring in the audited version.
-- **function**, line 294: `rewrite_paths(value: Any, old_root: str | Path, new_root: str | Path) -> Any` - No public docstring in the audited version.
-- **function**, line 313: `stage_validate_publish(destination: str | Path, writer: Callable[[Path], Any], *, validator: Callable[[Path], Any] = validate_artifact) -> tuple[Any, Path]` - No public docstring in the audited version.
-- **function**, line 149: `staging_directory(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 139: `staging_file(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 313: `rewrite_paths(value: Any, old_root: str | Path, new_root: str | Path) -> Any` - No public docstring in the audited version.
+- **function**, line 332: `stage_validate_publish(destination: str | Path, writer: Callable[[Path], Any], *, validator: Callable[[Path], Any] = validate_artifact) -> tuple[Any, Path]` - No public docstring in the audited version.
+- **function**, line 168: `staging_directory(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 158: `staging_file(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
 - **function**, line 112: `validate_artifact(path: str | Path) -> Path` - No public docstring in the audited version.
 - **function**, line 32: `validate_input_file(path: str | Path, *, suffixes: tuple[str, ...] | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 286: `with_artifacts(result: dict[str, Any], paths: Iterable[str | Path]) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 305: `with_artifacts(result: dict[str, Any], paths: Iterable[str | Path]) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.capabilities`
 
@@ -110,13 +112,13 @@
 
 ## `mcp_runtime.decimer_api`
 
-- **function**, line 74: `build_multipart_body(*, filename: str, mime_type: str, image_bytes: bytes, hand_drawn: bool, boundary: str | None = None) -> tuple[str, bytes]` - Encode the multipart fields declared by the live OpenAPI document.
-- **class**, line 35: `DecimerAPIError` - Raised when the remote DECIMER service cannot return usable SMILES.
-- **method**, line 42: `DecimerAPIError.as_result() -> dict[str, Any]` - No public docstring in the audited version.
-- **class**, line 49: `DecimerUploadRefused` - Raised when upload consent is absent or does not match the prepared upload.
-- **function**, line 53: `normalize_api_payload(payload: Any) -> dict[str, Any]` - Normalize both the documented string and live list response shapes.
-- **function**, line 469: `recognize_image(image_path: str, *, hand_drawn: bool = False, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS, output_path: str | None = None, confirm_upload: bool = False, approved_sha256: str | None = None, approved_origin: str | None = None) -> dict[str, Any]` - Upload one image to DECIMER and return normalized, validated predictions.
-- **function**, line 238: `urlopen(request: Request, *, timeout: int)` - Open a request with redirect checks applied before a redirected upload.
+- **function**, line 75: `build_multipart_body(*, filename: str, mime_type: str, image_bytes: bytes, hand_drawn: bool, boundary: str | None = None) -> tuple[str, bytes]` - Encode the multipart fields declared by the live OpenAPI document.
+- **class**, line 36: `DecimerAPIError` - Raised when the remote DECIMER service cannot return usable SMILES.
+- **method**, line 43: `DecimerAPIError.as_result() -> dict[str, Any]` - No public docstring in the audited version.
+- **class**, line 50: `DecimerUploadRefused` - Raised when upload consent is absent or does not match the prepared upload.
+- **function**, line 54: `normalize_api_payload(payload: Any) -> dict[str, Any]` - Normalize both the documented string and live list response shapes.
+- **function**, line 471: `recognize_image(image_path: str, *, hand_drawn: bool = False, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS, output_path: str | None = None, confirm_upload: bool = False, approved_sha256: str | None = None, approved_origin: str | None = None) -> dict[str, Any]` - Upload one image to DECIMER and return normalized, validated predictions.
+- **function**, line 239: `urlopen(request: Request, *, timeout: int)` - Open a request with redirect checks applied before a redirected upload.
 
 ## `mcp_runtime.extended_tools`
 
@@ -154,8 +156,8 @@
 ## `mcp_runtime.generate_reference`
 
 - **function**, line 32: `manifest(profile: str = 'full') -> dict` - No public docstring in the audited version.
-- **function**, line 55: `render_markdown(profile: str = 'full') -> str` - No public docstring in the audited version.
-- **function**, line 88: `render_reference(profile: str = 'full') -> str` - Signature reference used by the Skill's catalog checks.
+- **function**, line 57: `render_markdown(profile: str = 'full') -> str` - No public docstring in the audited version.
+- **function**, line 90: `render_reference(profile: str = 'full') -> str` - Signature reference used by the Skill's catalog checks.
 
 ## `mcp_runtime.install_decimer_models`
 
@@ -192,17 +194,17 @@
 
 ## `mcp_runtime.native_io`
 
-- **function**, line 145: `ascii_input_directory(source: str | Path, *, suffixes: Sequence[str] = ('.cdxml', '.cdx', '.csv', '.rxn')) -> Iterator[tuple[Path, dict[str, str]]]` - No public docstring in the audited version.
-- **function**, line 128: `ascii_inputs(sources: Sequence[str | Path]) -> Iterator[list[Path]]` - No public docstring in the audited version.
-- **function**, line 111: `ascii_workspace(prefix: str = 'cdx-') -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 377: `batch_convert_cdxml(sources: Sequence[str | Path], batch_convert: Callable[[list[str]], Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 249: `bridge_file(source: str | Path, destination: str | Path, operation: Callable[[Path, Path], Any], *, output_kind: str | None = None, preserve_source_context: bool = False) -> Any` - No public docstring in the audited version.
-- **function**, line 406: `convert_cdx_bytes_to_cdxml(cdx_data: bytes, converter: Callable[..., Any]) -> str` - No public docstring in the audited version.
-- **class**, line 18: `NativeIOError` - Native automation failure with a stable public error code.
-- **function**, line 31: `normalize_cdxml_staging(path: Path) -> None` - Normalize a staged copy for native use; the source document is never changed.
-- **function**, line 469: `rewrite_json_paths(path: str | Path, replacements: dict[str, str]) -> None` - No public docstring in the audited version.
-- **function**, line 172: `validate_native_output(path: str | Path, kind: str | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 427: `write_shadow_manifest(manifest: str | Path, workspace: str | Path) -> tuple[Path, list[Path]]` - No public docstring in the audited version.
+- **function**, line 153: `ascii_input_directory(source: str | Path, *, suffixes: Sequence[str] = ('.cdxml', '.cdx', '.csv', '.rxn')) -> Iterator[tuple[Path, dict[str, str]]]` - No public docstring in the audited version.
+- **function**, line 136: `ascii_inputs(sources: Sequence[str | Path]) -> Iterator[list[Path]]` - No public docstring in the audited version.
+- **function**, line 119: `ascii_workspace(prefix: str = 'cdx-') -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 386: `batch_convert_cdxml(sources: Sequence[str | Path], batch_convert: Callable[[list[str]], Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 257: `bridge_file(source: str | Path, destination: str | Path, operation: Callable[[Path, Path], Any], *, output_kind: str | None = None, preserve_source_context: bool = False) -> Any` - No public docstring in the audited version.
+- **function**, line 415: `convert_cdx_bytes_to_cdxml(cdx_data: bytes, converter: Callable[..., Any]) -> str` - No public docstring in the audited version.
+- **class**, line 20: `NativeIOError` - Native automation failure with a stable public error code.
+- **function**, line 33: `normalize_cdxml_staging(path: Path) -> None` - Normalize a staged copy for native use; the source document is never changed.
+- **function**, line 478: `rewrite_json_paths(path: str | Path, replacements: dict[str, str]) -> None` - No public docstring in the audited version.
+- **function**, line 180: `validate_native_output(path: str | Path, kind: str | None = None) -> Path` - No public docstring in the audited version.
+- **function**, line 436: `write_shadow_manifest(manifest: str | Path, workspace: str | Path) -> tuple[Path, list[Path]]` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_renderer`
 
@@ -215,14 +217,14 @@
 ## `mcp_runtime.office_objects`
 
 - **function**, line 26: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
-- **function**, line 510: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
+- **function**, line 514: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
 - **function**, line 443: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 633: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 546: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
-- **function**, line 587: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
+- **function**, line 637: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 550: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+- **function**, line 591: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
 - **function**, line 267: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
 - **function**, line 51: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
-- **function**, line 686: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 690: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
 - **function**, line 391: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.official_overrides`
@@ -252,6 +254,13 @@
 ## `mcp_runtime.remote_tools`
 
 - **function**, line 10: `extract_structures_via_decimer_api(image_path: str, hand_drawn: bool = False, output_path: Optional[str] = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: Optional[str] = None, approved_origin: Optional[str] = None) -> dict[str, Any]` - Default image-recognition tool: use the remote DECIMER API.
+
+## `mcp_runtime.report_tools`
+
+- **function**, line 552: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
+- **function**, line 623: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
+- **function**, line 287: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
+- **function**, line 443: `signs(species)` - No public docstring in the audited version.
 
 ## `mcp_runtime.resource_lock`
 
@@ -290,9 +299,13 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 131: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 123: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 27: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 132: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 124: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 28: `ToolSpec` - No public docstring in the audited version.
+
+## `mcp_runtime.tool_worker`
+
+- **function**, line 30: `worker_log_dir() -> Path` - Folder of ``worker-<id>.log`` files (``cdx.py doctor --paths`` prints it).
 
 ## `publication.data`
 
