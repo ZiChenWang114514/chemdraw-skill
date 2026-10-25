@@ -6,7 +6,8 @@
 
 - **function**, line 300: `available_methods() -> list` - Methods that can run now: the built-in one plus every installed learned backend.
 - **function**, line 32: `hill(counts) -> str` - No public docstring in the audited version.
-- **function**, line 520: `map_atoms(left, right, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> dict` - Map the heavy atoms of products ``right`` onto reactants ``left`` (lists of (label, mol)).
+- **function**, line 583: `map_atoms(left, right, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> dict` - Map the heavy atoms of products ``right`` onto reactants ``left`` (lists of (label, mol)).
+- **function**, line 529: `map_atoms_many(reactions, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> list[dict]` - Map many reactions at once; ``reactions`` is a list of ``(left, right)`` as in :func:`map_atoms`.
 
 ## `characterization`
 
@@ -35,11 +36,11 @@
 - **function**, line 62: `environment(name: str) -> Path` - No public docstring in the audited version.
 - **function**, line 128: `find_base(name: str) -> str | None` - A Python that can host backend ``name``: this one, else python3.N on PATH, else the Windows launcher.
 - **function**, line 50: `home() -> Path` - Folder that holds one environment per backend (CHEMDRAW_MAPPER_HOME overrides it).
-- **function**, line 171: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create ``environment(name)``, install its pinned requirements and check it with a real mapping.
+- **function**, line 174: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create ``environment(name)``, install its pinned requirements and check it with a real mapping.
 - **function**, line 66: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
 - **function**, line 73: `python_for(name: str) -> Path | None` - Interpreter that can run backend ``name``: its own environment, else this one if it imports.
 - **function**, line 93: `run(name: str, reactions: list, timeout: int = RUN_TIMEOUT) -> list` - Map reaction SMILES with backend ``name``; one dict per reaction (mapped_rxn plus a score).
-- **function**, line 200: `status() -> dict` - No public docstring in the audited version.
+- **function**, line 208: `status() -> dict` - No public docstring in the audited version.
 
 ## `mcp_runtime`
 
@@ -285,10 +286,10 @@
 - **function**, line 567: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
 - **function**, line 629: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
 - **function**, line 880: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
-- **function**, line 1090: `map_reaction_atoms(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+- **function**, line 1203: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
 - **function**, line 289: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
 - **function**, line 808: `reaction_calculator(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
-- **function**, line 1012: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
+- **function**, line 1021: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
 - **function**, line 445: `signs(species)` - No public docstring in the audited version.
 - **function**, line 722: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
 
@@ -375,14 +376,14 @@
 
 ## `reaction_calculator.annotate`
 
-- **function**, line 104: `annotate(path, rows: list[dict], limiting: str | None, show = SHOW) -> tuple[str, list[str]]` - (annotated CDXML text, names of rows that have no structure in the file).
-- **function**, line 39: `equiv_text(value: float) -> str` - No public docstring in the audited version.
-- **function**, line 23: `key(mol_or_smiles) -> str | None` - No public docstring in the audited version.
-- **function**, line 52: `lines_for(row: dict, limiting: bool, show) -> list[str]` - The text lines of one row: amounts for what is added, mass and yield for a product.
-- **function**, line 44: `mass_text(mg: float) -> str` - No public docstring in the audited version.
-- **function**, line 158: `read_fragments_from_text(text: str)` - (id, mol) of each top-level fragment of CDXML text.
-- **function**, line 32: `sig(value: float, digits: int = 3) -> str` - No public docstring in the audited version.
-- **function**, line 48: `volume_text(ml: float) -> str` - No public docstring in the audited version.
+- **function**, line 115: `annotate(path, rows: list[dict], limiting: str | None, show = SHOW) -> tuple[str, list[str]]` - (annotated CDXML text, names of rows that have no structure in the file).
+- **function**, line 41: `equiv_text(value: float) -> str` - No public docstring in the audited version.
+- **function**, line 25: `key(mol_or_smiles) -> str | None` - No public docstring in the audited version.
+- **function**, line 54: `lines_for(row: dict, limiting: bool, show) -> list[str]` - The text lines of one row: amounts for what is added, mass and yield for a product.
+- **function**, line 46: `mass_text(mg: float) -> str` - No public docstring in the audited version.
+- **function**, line 171: `read_fragments_from_text(text: str)` - (id, mol) of each top-level fragment of CDXML text.
+- **function**, line 34: `sig(value: float, digits: int = 3) -> str` - No public docstring in the audited version.
+- **function**, line 50: `volume_text(ml: float) -> str` - No public docstring in the audited version.
 
 ## `reaction_calculator.engine`
 
@@ -397,9 +398,9 @@
 
 ## `reaction_calculator.materials`
 
-- **function**, line 111: `csv_text(entries: list[dict]) -> str` - No public docstring in the audited version.
-- **function**, line 149: `html_text(entries: list[dict]) -> str` - No public docstring in the audited version.
-- **function**, line 94: `markdown(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 114: `csv_text(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 153: `html_text(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 97: `markdown(entries: list[dict]) -> str` - No public docstring in the audited version.
 - **function**, line 40: `procedure(rows: list[dict], limiting: str, totals: dict) -> str` - One sentence in the usual experimental style, from computed rows.
 - **function**, line 17: `trim(value, digits: int = 3) -> str` - Significant digits without trailing zeros: 1.00 -> 1, 94.2 -> 94.2.
 - **function**, line 25: `volume_phrase(ml: float) -> str` - No public docstring in the audited version.
@@ -428,7 +429,7 @@
 
 ## `reaction_calculator.state`
 
-- **function**, line 95: `build_state(sides: dict, options: dict | None = None) -> dict` - Rows for one reaction; ``sides`` maps reactants, agents and products to species dicts.
+- **function**, line 99: `build_state(sides: dict, options: dict | None = None) -> dict` - Rows for one reaction; ``sides`` maps reactants, agents and products to species dicts.
 - **function**, line 25: `depiction(smiles: str, width: int = 150, height: int = 110) -> str | None` - Scalable SVG of a structure that follows the page's text colour.
-- **function**, line 165: `empty_state() -> dict` - A calculator with nothing in it yet; the first species added becomes the limiting reactant.
-- **function**, line 170: `plain_json(value) -> str` - JSON that is safe inside an HTML script element.
+- **function**, line 169: `empty_state() -> dict` - A calculator with nothing in it yet; the first species added becomes the limiting reactant.
+- **function**, line 174: `plain_json(value) -> str` - JSON that is safe inside an HTML script element.
