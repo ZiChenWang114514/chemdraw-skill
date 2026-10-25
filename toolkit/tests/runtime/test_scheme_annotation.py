@@ -80,6 +80,33 @@ steps:
     assert result['scheme_unplaced'] == []
 
 
+def test_amounts_start_below_the_compound_number_drawn_under_a_structure(tmp_path):
+    source = tmp_path / 'labelled.cdxml'
+    api.render_scheme(yaml_text="""layout: linear
+structures:
+  S1: {smiles: "OCc1ccccc1", label: "1"}
+  S2: {smiles: "CC(=O)Cl", label: "2"}
+  S3: {smiles: "CC(=O)OCc1ccccc1", label: "3"}
+steps:
+  - substrates: [S1, S2]
+    products: [S3]
+""", output_path=str(source))
+    out = tmp_path / 'amounts.cdxml'
+    reaction_calculator({'cdxml': str(source)}, options={'scheme_output': str(out)}, output_path=str(tmp_path / 'c.html'))
+    page = ET.parse(source).getroot().find('page')
+    numbers = [tuple(float(v) for v in t.get('BoundingBox').split()) for t in page.findall('t')
+               if [s.text for s in t.findall('s')] in (['1'], ['2'], ['3'])]
+    assert len(numbers) == 3
+    added = [t for t in ET.parse(out).getroot().find('page').findall('t') if t.get('id') not in {x.get('id') for x in page.findall('t')}]
+    assert len(added) >= 2
+    for note in added:
+        box = tuple(float(v) for v in note.get('BoundingBox').split())
+        for number in numbers:
+            overlap_x = box[0] < number[2] and number[0] < box[2]
+            overlap_y = box[1] < number[3] and number[1] < box[3]
+            assert not (overlap_x and overlap_y), 'an amount block sits on top of a compound number'
+
+
 def test_an_existing_output_is_never_replaced(tmp_path):
     out = tmp_path / 'amounts.cdxml'
     out.write_text('keep', encoding='utf-8')

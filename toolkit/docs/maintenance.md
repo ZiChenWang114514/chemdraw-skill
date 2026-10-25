@@ -67,6 +67,25 @@ Hosted CI validates portable behavior. Native software checks must run on a
 licensed local or self-hosted Windows machine and must identify skipped
 applications explicitly.
 
+### Live check on macOS
+
+The test suite never starts ChemDraw on macOS, so the AppleScript path
+(`open -a ChemDraw`, `osascript`) is checked by hand on a Mac with ChemDraw
+activated. Run from the repository root, in a scratch folder, and report each
+step as passed, failed or skipped:
+
+```sh
+python scripts/install.py --runtime-only --apply
+python skill/chemdraw/scripts/cdx.py doctor --native          # opens ChemDraw, renders a probe
+python skill/chemdraw/scripts/cdx.py call render_scheme --json '{"yaml_text": "layout: sequential\nstructures:\n  A: {smiles: \"CC(=O)Cl\", label: \"1\"}\n  B: {smiles: \"CCN\", label: \"2\"}\n  P: {smiles: \"CC(=O)NCC\", label: \"3\"}\nsteps:\n  - substrates: [A, B]\n    products: [P]\n", "output_path": "/tmp/amide.cdxml"}'
+python skill/chemdraw/scripts/cdx.py call reaction_calculator --json '{"reaction": {"cdxml": "/tmp/amide.cdxml"}, "options": {"scheme_output": "/tmp/amide_amounts.cdxml"}, "output_path": "/tmp/amide_calc.html"}'
+python skill/chemdraw/scripts/cdx.py call render_cdxml_files --json '{"input_paths": ["/tmp/amide_amounts.cdxml"], "output_dir": "/tmp/render"}'
+python skill/chemdraw/scripts/cdx.py install-mappers --status
+```
+
+Open `/tmp/render/amide_amounts.png` and check that the amounts sit below the
+compound numbers without touching them.
+
 ## Compatibility policy
 
 - Patch releases repair compatible behavior.

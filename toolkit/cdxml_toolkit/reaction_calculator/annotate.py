@@ -18,6 +18,8 @@ SHOW = ('equiv', 'mmol', 'mass', 'volume')
 LINE = 11.55          # distance between baselines of 10 pt text
 CHAR = 5.4            # average advance of one character
 GAP_BELOW, GAP_ABOVE = 14.0, 5.0
+CLEAR = 12.0          # baseline distance below a caption that already sits under a structure
+CAPTION_REACH = 40.0  # a caption this close under a structure belongs to it (a compound number)
 
 
 def key(mol_or_smiles) -> str | None:
@@ -101,6 +103,15 @@ def _escape(text: str) -> str:
     return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 
+def _label_bottom(captions, x0, x1, y1) -> float:
+    """Bottom of the lowest caption directly under a structure (its compound number), else y1."""
+    bottom = y1
+    for a, b, c, d in captions:
+        if a < x1 and x0 < c and y1 - 2 <= b <= y1 + CAPTION_REACH:
+            bottom = max(bottom, d)
+    return bottom
+
+
 def annotate(path, rows: list[dict], limiting: str | None, show=SHOW) -> tuple[str, list[str]]:
     """(annotated CDXML text, names of rows that have no structure in the file).
 
@@ -124,6 +135,8 @@ def annotate(path, rows: list[dict], limiting: str | None, show=SHOW) -> tuple[s
     for row in rows:
         if row.get('smiles') and row['role'] != 'solvent':
             pool.setdefault(key(row['smiles']), []).append(row)
+    captions = [tuple(float(v) for v in t.get('BoundingBox').split()) for t in page.findall('t')
+                if t.get('BoundingBox')]
     fragments = {ident: mol for ident, mol in read_fragments_from_text(text)}
     placed, additions = set(), []
     ident = _next_id(text)
@@ -143,7 +156,7 @@ def annotate(path, rows: list[dict], limiting: str | None, show=SHOW) -> tuple[s
         if fragment.get('id') in above:
             baseline = y0 - GAP_ABOVE - LINE * (len(lines) - 1)
         else:
-            baseline = y1 + GAP_BELOW
+            baseline = max(y1 + GAP_BELOW, _label_bottom(captions, x0, x1, y1) + CLEAR)
         additions.append((fragment.get('id'), _text_object(ident, lines, cx, baseline, z)))
         ident, z = ident + 1, z + 1
         placed.add(row['id'])
