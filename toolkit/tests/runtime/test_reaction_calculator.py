@@ -175,6 +175,8 @@ def test_tool_tabulates_amounts_and_reports_what_it_assumed(tmp_path):
     assert rows['triethylamine']['volume_ml'] == pytest.approx(1.5 * 101.193 / 726.0, abs=2e-3)
     assert rows['dichloromethane']['volume_ml'] == pytest.approx(10.0, abs=0.01)
     assert rows['benzyl acetate']['yield_percent'] == pytest.approx(130 / 150.177 / 1.0 * 100, abs=0.2)
+    assert rows['benzyl acetate']['hrms'] == 'HRMS (ESI) m/z calcd for C9H11O2 [M+H]+ 151.0754'
+    assert 'calcd for C9H11O2 [M+H]+ 151.0754' in out.read_text(encoding='utf-8')
     assert result['totals']['concentration_m'] == pytest.approx(0.1)
     # the metal is taken as a 5 mol % catalyst, the solvent as a 0.1 M choice; both are said to be assumed
     assert rows['Pd']['fixed'] == {'basis': 'equiv', 'value': 0.05, 'assumed': True}

@@ -65,6 +65,16 @@ def _name(species):
     return known['name'] if known else species['formula']
 
 
+def _hrms_line(smiles):
+    """The calculated HRMS sentence of a product, or None when its ion cannot be written."""
+    from ..characterization import default_adduct, hrms_entry
+    mol = Chem.MolFromSmiles(smiles)
+    try:
+        return hrms_entry(mol, default_adduct(mol))['line']
+    except ValueError:
+        return None
+
+
 def _row(species, row_id, role, known):
     record = species['record']
     row = {'id': row_id, 'role': role, 'name': _name(species), 'formula': species['formula'],
@@ -72,6 +82,8 @@ def _row(species, row_id, role, known):
            'svg': depiction(species['smiles']), 'density': None, 'solution_m': None, 'purity': 1.0}
     density = record.get('density_g_ml') or (known['density'] if known and role != 'product' else None)
     row['density'] = float(density) if density else None
+    if role == 'product':
+        row['hrms'] = _hrms_line(species['smiles'])
     if record.get('concentration_m'):
         row['solution_m'] = float(record['concentration_m'])
     if record.get('purity') is not None:

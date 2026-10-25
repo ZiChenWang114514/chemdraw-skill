@@ -46,6 +46,9 @@ table { border-collapse: collapse; width: 100%; min-width: 860px; }
 th { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); text-align: right; padding: 4px 6px; white-space: nowrap; }
 th.l, td.l { text-align: left; }
 td { padding: 4px 6px; border-top: 1px solid var(--line); vertical-align: middle; text-align: right; }
+tr.hrms-row td { border-top: 0; padding-top: 0; }
+button.hrms { all: unset; cursor: copy; font: 0.78rem var(--mono); color: var(--muted); padding: 0 0 6px; }
+button.hrms:hover, button.hrms:focus-visible { color: var(--accent); text-decoration: underline; }
 tr.group td { border-top: 0; padding: 12px 6px 2px; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
 td.thumb { width: 64px; padding: 2px 6px; }
 td.thumb svg { width: 60px; height: 44px; color: var(--ink); display: block; }

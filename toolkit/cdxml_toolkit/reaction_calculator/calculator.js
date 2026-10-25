@@ -142,6 +142,11 @@
     tr.appendChild(cell(removeButton(r), 'l'));
     return tr;
   }
+  function hrmsRow(r) {
+    var line = el('button', { 'class': 'hrms', type: 'button', title: 'Copy the HRMS line', text: r.hrms });
+    line.addEventListener('click', function () { copy(r.hrms + '.', 'the HRMS line'); });
+    return el('tr', { 'class': 'hrms-row' }, [el('td'), el('td', { colspan: '8', 'class': 'l' }, [line])]);
+  }
   function group(title, colspan) { return el('tr', { 'class': 'group' }, [el('td', { colspan: String(colspan), text: title })]); }
 
   function build() {
@@ -156,7 +161,7 @@
       members.forEach(function (r) { body.appendChild(reagentRow(r)); });
     });
     var made = S.rows.filter(function (r) { return r.role === 'product'; });
-    made.forEach(function (r) { prods.appendChild(productRow(r)); });
+    made.forEach(function (r) { prods.appendChild(productRow(r)); if (r.hrms) prods.appendChild(hrmsRow(r)); });
     $('products-card').hidden = !made.length;
     $('title').textContent = S.title || 'Reaction';
     renderScheme();

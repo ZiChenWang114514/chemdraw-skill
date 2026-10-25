@@ -217,7 +217,8 @@ def _adducts(mol, exact):
     charge = Chem.GetFormalCharge(mol)
     if charge:
         z = abs(charge)
-        mz = (exact - charge * ELECTRON) / z
+        from ..characterization import atoms_mass
+        mz = (atoms_mass(mol) - charge * ELECTRON) / z
         sign = '+' if charge > 0 else '-'
         name = f'[M]{sign}' if z == 1 else f'[M]{z}{sign}'
         return [{'name': name, 'mz': round(mz, 5), 'mode': 'positive' if charge > 0 else 'negative'}]
@@ -844,7 +845,7 @@ def reaction_calculator(reaction: str | dict, options: dict | None = None,
                         'Pass options.step for another.')
     rows = [{**{key: _rounded(row.get(key)) for key in ('id', 'role', 'name', 'formula', 'mw', 'equiv', 'mmol',
                                                         'mass_mg', 'volume_ml', 'theory_mmol', 'theory_mg',
-                                                        'actual_mg', 'yield_percent') if row.get(key) is not None},
+                                                        'actual_mg', 'yield_percent', 'hrms') if row.get(key) is not None},
              'fixed': {'basis': row['basis'], 'value': _rounded(row['value']), 'assumed': bool(row['assumed'])}
              if row['basis'] else None} for row in result['rows']]
     totals = {key: _rounded(value) for key, value in result['totals'].items() if value is not None}
@@ -855,5 +856,70 @@ def reaction_calculator(reaction: str | dict, options: dict | None = None,
     return artifact_safety.with_artifacts(out, [target])
 
 
+def hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict:
+    """HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
+
+    Each record is a grounded structure (SMILES, molblock or CDXML/MOL/SDF file, optional label).
+    The ion formula and calculated m/z come from the monoisotopic mass of the structure plus the
+    atoms the adduct adds or removes, with the electron mass included (options.electron_mass=false
+    ignores it, as some calculators do). A record may carry adduct or adducts (default [M+H]+, or
+    [M-H]- with options.mode "negative", or the molecular ion for ionization "EI"; a charged
+    structure is its own ion) and found_mz: a number for its first adduct or {adduct: number}. A
+    measured value adds ", found ..." and the error in ppm; more than 5 ppm is flagged. Options:
+    adducts, mode (positive or negative), ionization (ESI, APCI, EI, ESI-TOF and similar labels),
+    decimals (default 4), electron_mass. Supported adducts: [M+H]+, [M+Na]+, [M+K]+, [M+NH4]+,
+    [M+Li]+, [M+2H]2+, [M+H-H2O]+, [M-H]-, [M-2H]2-, [M+Cl]-, [M+Br]-, [M+HCOO]-,
+    [M+CH3COO]- and the EI molecular ion M+. . Output ends in .txt, .md, .csv or .json and is
+    never overwritten. At most 256 structures. The values are calculated, never measured.
+    """
+    from ..characterization import default_adduct, hrms_entry
+    options = dict(options or {})
+    unknown = set(options) - {'adducts', 'mode', 'ionization', 'decimals', 'electron_mass'}
+    if unknown:
+        raise ValueError(f'Unknown option(s): {sorted(unknown)}')
+    mode = options.get('mode', 'positive')
+    if mode not in ('positive', 'negative'):
+        raise ValueError('mode must be positive or negative')
+    ionization = options.get('ionization', 'ESI')
+    decimals = int(options.get('decimals', 4))
+    electron_mass = bool(options.get('electron_mass', True))
+    warnings, results = [], []
+    for item in _expand(molecules, limit=MAX_STRUCTURES):
+        record, mol, label = item['record'], item['mol'], item['label']
+        _check_grounded(mol, label)
+        adducts = (record.get('adducts') or ([record['adduct']] if record.get('adduct') else None)
+                   or options.get('adducts') or [default_adduct(Chem.RemoveHs(mol), mode, ionization)])
+        found = record.get('found_mz')
+        entries = []
+        for index, adduct in enumerate(adducts):
+            value = found.get(adduct) if isinstance(found, dict) else (found if index == 0 else None)
+            entry = hrms_entry(mol, adduct, ionization=ionization, decimals=decimals, found=value,
+                               electron_mass=electron_mass)
+            if entry['error_ppm'] is not None and abs(entry['error_ppm']) > 5:
+                warnings.append(f"{label}: {entry['adduct']} found {entry['found_mz']} is {entry['error_ppm']:+.1f} ppm "
+                                'from the calculated value; check the adduct, the formula and the instrument calibration.')
+            entries.append(entry)
+        if len(Chem.GetMolFrags(mol)) > 1:
+            warnings.append(f'{label}: more than one component; the formula describes the whole record.')
+        results.append({'label': label, 'source': item['source'], 'formula': entries[0]['molecular_formula'],
+                        'entries': entries})
+    rows = [{'label': r['label'], 'formula': r['formula'], **{k: e[k] for k in
+             ('adduct', 'ion_formula', 'calcd_mz', 'found_mz', 'error_ppm', 'line')}}
+            for r in results for e in r['entries']]
+    text = ''.join(f"{row['label']}: {row['line']}" + chr(10) for row in rows)
+    columns = ['label', 'formula', 'adduct', 'ion_formula', 'calcd_mz', 'found_mz', 'error_ppm', 'line']
+    result = {'ok': True, 'operation': 'hrms_line', 'count': len(results), 'results': results,
+              'text': text, 'warnings': warnings}
+    if output_path:
+        target = _publish(output_path, {
+            '.txt': lambda: text,
+            '.md': lambda: _markdown(rows, columns),
+            '.csv': lambda: _csv(rows, columns),
+            '.json': lambda: json.dumps({'results': results}, ensure_ascii=False, indent=2),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
-                                         structure_to_name, reaction_calculator)}
+                                         structure_to_name, reaction_calculator, hrms_line)}
