@@ -25,6 +25,7 @@ import plistlib
 import re
 import shutil
 import signal
+import struct
 import subprocess
 import sys
 import tempfile
@@ -404,6 +405,8 @@ def substitute_missing_fonts(path: str | Path, available: Optional[frozenset] = 
     available = installed_font_families() if available is None else frozenset(available)
     if not available:
         return {}
+    if target.suffix.lower() == ".cdx":
+        return _substitute_cdx_fonts(target, available)
     text = target.read_text(encoding="utf-8")
     start = text.find("<fonttable")
     end = text.find("</fonttable>", start)
@@ -435,6 +438,83 @@ def substitute_missing_fonts(path: str | Path, available: Optional[frozenset] = 
     table = _FONT_ELEMENT.sub(rename, text[start:end])
     if changes:
         target.write_text(text[:start] + table + text[end:], encoding="utf-8")
+    return changes
+
+
+_CDX_HEADER = b"VjCD0100"
+_CDX_HEADER_SIZE = 22
+_CDX_FONT_TABLE = 0x0100
+
+
+def _cdx_codec(code_page: int) -> str:
+    return {0: "mac_roman", 65001: "utf-8"}.get(code_page, f"cp{code_page}")
+
+
+def _cdx_font_table_span(data: bytes) -> Optional[tuple]:
+    """(property start, value start, value end) of the document's font table, if any."""
+    if not data.startswith(_CDX_HEADER) or len(data) < _CDX_HEADER_SIZE + 6:
+        return None
+    if struct.unpack_from("<H", data, _CDX_HEADER_SIZE)[0] != 0x8000:
+        return None
+    offset = _CDX_HEADER_SIZE + 6  # document tag and object id
+    while offset + 4 <= len(data):
+        start = offset
+        tag, length = struct.unpack_from("<HH", data, offset)
+        if tag == 0 or tag & 0x8000:
+            return None  # the font table comes before the document's first object
+        offset += 4
+        if length == 0xFFFF:
+            if offset + 4 > len(data):
+                return None
+            length, = struct.unpack_from("<I", data, offset)
+            offset += 4
+        if offset + length > len(data):
+            return None
+        if tag == _CDX_FONT_TABLE:
+            return start, offset, offset + length
+        offset += length
+    return None
+
+
+def _substitute_cdx_fonts(target: Path, available: frozenset) -> dict:
+    """The binary counterpart of the CDXML font-table rewrite (CDX font table property)."""
+    from .style_sheet import _CHARSETS
+
+    data = target.read_bytes()
+    span = _cdx_font_table_span(data)
+    if span is None:
+        return {}
+    start, value_start, value_end = span
+    value = data[value_start:value_end]
+    if len(value) < 4:
+        return {}
+    count, = struct.unpack_from("<H", value, 2)
+    rebuilt = bytearray(value[:4])
+    offset = 4
+    changes: dict = {}
+    for _ in range(count):
+        if offset + 6 > len(value):
+            return {}
+        font_id, code_page, name_length = struct.unpack_from("<HHH", value, offset)
+        raw = value[offset + 6:offset + 6 + name_length]
+        offset += 6 + name_length
+        try:
+            name = raw.decode(_cdx_codec(code_page))
+        except (LookupError, UnicodeDecodeError):
+            name = raw.decode("latin-1")
+        replacement = _replacement_font(name, _CHARSETS.get(code_page, "Unicode"), available)
+        if replacement is not None:
+            changes[name] = replacement
+            raw = replacement.encode("ascii", "replace")
+        rebuilt += struct.pack("<HHH", font_id, code_page, len(raw)) + raw
+    if not changes:
+        return {}
+    rebuilt += value[offset:]
+    if len(rebuilt) < 0xFFFF:
+        property_header = struct.pack("<HH", _CDX_FONT_TABLE, len(rebuilt))
+    else:
+        property_header = struct.pack("<HHI", _CDX_FONT_TABLE, 0xFFFF, len(rebuilt))
+    target.write_bytes(data[:start] + property_header + bytes(rebuilt) + data[value_end:])
     return changes
 
 
@@ -735,10 +815,10 @@ class MacChemDrawSession:
             )
         staged = workspace / f"input{source_path.suffix.lower()}"
         shutil.copy2(source_path, staged)
-        if staged.suffix == ".cdxml":
+        if staged.suffix in (".cdxml", ".cdx"):
             substitute_missing_fonts(staged)
-            if protect:
-                protect_captions(staged)
+        if staged.suffix == ".cdxml" and protect:
+            protect_captions(staged)
         return staged.resolve()
 
     def run_steps(

@@ -12,7 +12,7 @@ Usage:
 import argparse
 import sys
 
-from .procedure_writer import extract_nmr_data
+from .deterministic.procedure_writer import extract_nmr_data
 
 
 def main(argv=None) -> int:

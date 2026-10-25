@@ -177,6 +177,22 @@ class ChemScriptSdkTests(unittest.TestCase):
 
         self.assertEqual(run.call_args.args[0][0], chemscript_sdk.sys.executable)
 
+    def test_a_refused_program_returns_its_reason_as_invalid_input(self):
+        completed = mock.Mock(returncode=2, stdout="", stderr="")
+        reason = "StructureData.Formula (get) is not available in the macOS emulation"
+
+        def fake_run(command, **kwargs):
+            response = Path(command[command.index("--response-file") + 1])
+            response.write_text(json.dumps(
+                {"ok": False, "error": {"code": "invalid_sdk_request", "message": reason}}), encoding="utf-8")
+            return completed
+
+        with mock.patch.object(chemscript_sdk.sys, "platform", "darwin"), \
+                mock.patch.object(chemscript_sdk.subprocess, "run", side_effect=fake_run):
+            # ValueError is what the worker reports as invalid_input, with the message.
+            with self.assertRaisesRegex(ValueError, "Formula \\(get\\)"):
+                chemscript_sdk._invoke_runtime({"action": "execute"})
+
     def test_sdk_programs_are_refused_where_neither_sdk_nor_emulation_exists(self):
         with mock.patch.object(chemscript_sdk.sys, "platform", "linux"), \
                 mock.patch.object(chemscript_sdk.subprocess, "run") as run:

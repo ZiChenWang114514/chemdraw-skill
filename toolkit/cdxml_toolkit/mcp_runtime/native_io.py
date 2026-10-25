@@ -14,6 +14,8 @@ import tempfile
 from typing import Any, Callable, Iterator, Sequence
 import xml.etree.ElementTree as ET
 
+from . import artifact_safety
+
 
 class NativeIOError(RuntimeError):
     """Native automation failure with a stable public error code."""
@@ -32,9 +34,15 @@ def normalize_cdxml_staging(path: Path) -> None:
     """Normalize a staged copy for native use; the source document is never changed.
 
     The XML declaration is normalized everywhere.  On macOS, fonts the Mac does
-    not have are also renamed to installed equivalents, because ChemDraw for
-    macOS otherwise stops at a blocking font-substitution alert.
+    not have are also renamed to installed equivalents (in CDXML and binary CDX),
+    because ChemDraw for macOS otherwise stops at a blocking font-substitution alert.
     """
+    if path.suffix.lower() == '.cdx':
+        from ..chemdraw import mac_automation
+
+        if mac_automation.is_macos():
+            mac_automation.substitute_missing_fonts(path)
+        return
     if path.suffix.lower() != '.cdxml':
         return
     data = path.read_bytes()
@@ -354,6 +362,7 @@ def _publish_exclusive(source: Path, destination: Path, kind: str | None) -> Non
             handle.flush()
             os.fsync(handle.fileno())
         validate_native_output(staging, kind)
+        artifact_safety.apply_default_mode(staging)
         try:
             os.link(staging, destination)
         except FileExistsError:

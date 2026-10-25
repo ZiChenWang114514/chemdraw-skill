@@ -135,6 +135,25 @@ def validate_artifact(path: str | Path) -> Path:
     return artifact
 
 
+def _process_umask() -> int:
+    umask = os.umask(0)
+    os.umask(umask)
+    return umask
+
+
+# Read once, while the process is still single-threaded: os.umask() can only be read by setting it.
+_UMASK = _process_umask()
+
+
+def apply_default_mode(path: str | Path) -> None:
+    """Give a staged file the mode a plain open() would: mkstemp() files are 0600.
+
+    Outputs are hard-linked from their staging file, so its mode is what the user gets.
+    """
+    if os.name != "nt":
+        os.chmod(path, 0o666 & ~_UMASK)
+
+
 @contextmanager
 def staging_file(destination: str | Path) -> Iterator[Path]:
     destination_path = Path(destination).resolve()

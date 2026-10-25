@@ -106,6 +106,9 @@ def _invoke_runtime(request: dict[str, Any]) -> dict[str, Any]:
     if completed.returncode != 0 or not response["ok"]:
         error = response.get("error") if isinstance(response.get("error"), dict) else {}
         message = str(error.get("message") or "ChemScript SDK execution failed")[:1000]
+        if error.get("code") == "invalid_sdk_request":
+            # A refused program or member: the caller can fix the program from the reason.
+            raise ValueError(message)
         raise RuntimeError(message)
     return response
 

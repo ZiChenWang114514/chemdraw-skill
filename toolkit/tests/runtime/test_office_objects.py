@@ -299,6 +299,16 @@ class OfficeReplacementTests(unittest.TestCase):
                 str(source), str(manifest_path), str(output), render_pdf_preview=False
             )
 
+    def test_manifest_without_source_hash_names_the_missing_field(self):
+        source, manifest = self._inspection_manifest(".pptx")
+        path = self.root / "no-hash.json"
+        path.write_text(json.dumps({"schema_version": 1, "replacements": [
+            {"object_id": manifest["objects"][0]["object_id"], "replacement_cdxml": self.replacement.name}]}),
+            encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "source_sha256"):
+            office_objects.load_replacement_manifest(
+                path, source_sha256=manifest["source_sha256"], objects=manifest["objects"])
+
     def _assert_single_object_replaced(self, suffix: str) -> None:
         source, manifest = self._inspection_manifest(suffix)
         first, second = manifest["objects"]
