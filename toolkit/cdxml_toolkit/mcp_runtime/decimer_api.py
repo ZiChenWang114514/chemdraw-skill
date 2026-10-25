@@ -20,6 +20,8 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 import uuid
 import warnings
 
+from cdxml_toolkit.resolve.network_policy import OFFLINE_ENV, network_allowed
+
 
 DEFAULT_ENDPOINT = "https://api.naturalproducts.net/latest/ocsr/process-upload"
 OPENAPI_URL = "https://api.naturalproducts.net/latest/openapi.json"
@@ -430,6 +432,36 @@ def _decode_image(
     return image_format, dimensions, mime_type
 
 
+# Image properties that describe pixels; every other info key (EXIF, XMP, PNG text, comments)
+# can carry names or notes and is removed before upload.
+_PIXEL_INFO = {
+    "dpi", "gamma", "transparency", "interlace", "aspect", "jfif", "jfif_version", "jfif_unit",
+    "jfif_density", "progressive", "progression", "icc_profile", "srgb", "chromaticity",
+    "adobe", "adobe_transform", "compression", "duration", "loop", "background", "version",
+}
+
+
+def _strip_metadata(
+    image_bytes: bytes, image_format: str, mime_type: str
+) -> tuple[bytes, str, str, list[str]]:
+    """Return upload bytes without EXIF/XMP/text metadata; pixels and orientation are kept."""
+    from PIL import Image, ImageOps
+
+    with Image.open(BytesIO(image_bytes)) as image:
+        found = {key for key in image.info if key not in _PIXEL_INFO}
+        if image.getexif():
+            found.add("exif")
+        if not found:
+            return image_bytes, image_format, mime_type, []
+        clean = ImageOps.exif_transpose(image)
+        if clean.mode not in ("1", "L", "LA", "P", "RGB", "RGBA", "I", "I;16"):
+            clean = clean.convert("RGBA")
+        clean.info = {}
+        output = BytesIO()
+        clean.save(output, format="PNG")
+    return output.getvalue(), "PNG", "image/png", sorted(found)
+
+
 def _refuse_upload(message: str, preflight: dict[str, Any]) -> None:
     raise DecimerUploadRefused(message, preflight=preflight)
 
@@ -459,6 +491,13 @@ def recognize_image(
     image_format, dimensions, mime_type = _decode_image(
         image_bytes, source, max_pixels=max_pixels
     )
+    image_bytes, image_format, mime_type, metadata_removed = _strip_metadata(
+        image_bytes, image_format, mime_type
+    )
+    if len(image_bytes) > max_bytes:
+        raise DecimerAPIError("Image without metadata exceeds DECIMER_API_MAX_IMAGE_BYTES")
+    # The service needs the bytes, not the local name, which can reveal unpublished work.
+    upload_filename = "image." + {"JPEG": "jpg"}.get(image_format, image_format.lower())
     destination = _prepare_destination(output_path, source) if output_path else None
     endpoint = os.environ.get("DECIMER_API_URL", DEFAULT_ENDPOINT).strip()
     api_origin = _canonical_origin(endpoint)
@@ -475,6 +514,8 @@ def recognize_image(
         "api_url": public_api_url,
         "api_origin": api_origin,
         "hand_drawn": hand_drawn,
+        "upload_filename": upload_filename,
+        "metadata_removed": metadata_removed,
     }
     if destination is not None:
         preflight["output_path"] = str(destination)
@@ -485,6 +526,8 @@ def recognize_image(
             "sending this exact image to the preflight DECIMER destination",
             preflight,
         )
+    if not network_allowed():
+        _refuse_upload(f"Remote upload refused: {OFFLINE_ENV} is set (offline work)", preflight)
 
     if approved_sha256 is not None:
         normalized_sha256 = approved_sha256.strip().lower()
@@ -507,7 +550,7 @@ def recognize_image(
         )
 
     content_type, body = build_multipart_body(
-        filename=source.name,
+        filename=upload_filename,
         mime_type=mime_type,
         image_bytes=image_bytes,
         hand_drawn=hand_drawn,
@@ -592,6 +635,8 @@ def recognize_image(
         "mime_type": mime_type,
         "image_dimensions": list(dimensions),
         "hand_drawn": hand_drawn,
+        "upload_filename": upload_filename,
+        "metadata_removed": metadata_removed,
         "reference": normalized["reference"],
         "structures": structures,
         "warnings": warnings,

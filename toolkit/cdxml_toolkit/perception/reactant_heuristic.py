@@ -317,7 +317,6 @@ def _opsin_name_to_smiles(name: str) -> Optional[str]:
     if _opsin_available is False:
         return None
     try:
-        import warnings
         from py2opsin import py2opsin
 
         # Ensure Java is discoverable by py2opsin's subprocess call.
@@ -333,11 +332,8 @@ def _opsin_name_to_smiles(name: str) -> Optional[str]:
                 java_home = os.path.dirname(java_bin_dir)
                 os.environ["JAVA_HOME"] = java_home
 
-        import tempfile
-        tmp = os.path.join(tempfile.gettempdir(), "py2opsin_temp_input.txt")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            result = py2opsin(name, tmp_fpath=tmp)
+        from cdxml_toolkit.resolve.opsin_call import py2opsin_private
+        result = py2opsin_private(py2opsin, name)
         if result:
             _opsin_available = True
             return result

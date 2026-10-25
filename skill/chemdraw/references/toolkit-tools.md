@@ -10,7 +10,7 @@ Exact signatures are generated in [mcp-signatures.md](mcp-signatures.md). This f
 - Prefer extended tools for complete layout, merge, polish, batch render, Office, RDF, and experiment workflows.
 - Use the comparison tools for ChemScript-grounded identity plus RDKit similarity. Use the SDK tools only after inspecting the relevant public member.
 - Use the remote DECIMER tool (`cdx.py decimer`) by default for task images under the upload rule in SKILL.md.
-- New extended tools return `{ok, outputs, warnings, metadata}`. Existing official tools retain their upstream fields and add `metadata.artifacts` after a successful writelisting the written files.
+- New extended tools return `{ok, outputs, warnings, metadata}`. Existing official tools retain their upstream fields and add `metadata.artifacts`, listing the written files, after a successful write.
 
 ## Failures
 

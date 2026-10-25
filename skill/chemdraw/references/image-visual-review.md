@@ -29,7 +29,7 @@ A parseable SMILES is only a candidate. Before any typography, fix connectivity,
 cdx.py call modify_molecule --json '{"mol_json": {"smiles": "<recognized>"}, "operation": "set_smiles", "new_smiles": "<corrected>", "description": "A: source shows OH, recognized as methyl"}'
 ```
 
-Read the returned diff status: a null MCS or `partial`/`not_completed` does not mean "no change".
+`<corrected>` is the recognized SMILES with only the change you can point to in the image (here one methyl replaced by OH); do not write a new SMILES from memory. Prefer an operation that states the change (`name_surgery`, `smarts`) when one fits. When the compound has a name or number in the source text, `resolve_name` gives an independent structure to compare with. Read the returned diff status: the diff must show exactly the intended change, and a null MCS or `partial`/`not_completed` does not mean "no change".
 
 At every crossing decide: occluded solid bond (keep one bond, set depth with `crossings`), dashed bond, or hashed wedge. A crossing never creates an atom. See [publication figures](publication-figures.md) for `crossings` and bond-display edits.
 

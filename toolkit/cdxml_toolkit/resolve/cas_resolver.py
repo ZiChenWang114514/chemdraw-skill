@@ -22,6 +22,8 @@ import urllib.request
 import urllib.error
 from typing import Dict, Any, List, Optional
 
+from cdxml_toolkit.resolve.network_policy import network_allowed, offline_reason
+
 # ---------------------------------------------------------------------------
 # PubChem API base
 # ---------------------------------------------------------------------------
@@ -113,6 +115,9 @@ def _validate_cas(cas: str) -> bool:
 
 def _fetch_properties(cas: str) -> Optional[Dict[str, Any]]:
     """Fetch compound properties from PubChem by CAS number."""
+    if not network_allowed():
+        print(f"  CAS {cas}: {offline_reason('PubChem lookup')}", file=sys.stderr)
+        return None
     url = f"{PUBCHEM_BASE}/compound/name/{cas}/property/{PROPERTIES}/JSON"
 
     try:
@@ -144,6 +149,9 @@ def _fetch_2d_coords(cid: int) -> Optional[Dict[str, Any]]:
         Dict with 'atoms' list of {symbol, x, y} and 'bonds' list of
         {atom1, atom2, order}.
     """
+    if not network_allowed():
+        print(f"  CID {cid}: {offline_reason('PubChem lookup')}", file=sys.stderr)
+        return None
     url = f"{PUBCHEM_BASE}/compound/cid/{cid}/record/SDF/?record_type=2d"
 
     try:
@@ -317,6 +325,9 @@ def resolve_name_to_smiles(name: str) -> Optional[str]:
 
     Returns a SMILES string, or None on failure.
     """
+    if not network_allowed():
+        print(f"  Name: {offline_reason('PubChem lookup')}", file=sys.stderr)
+        return None
     import urllib.parse
 
     _rate_limit()

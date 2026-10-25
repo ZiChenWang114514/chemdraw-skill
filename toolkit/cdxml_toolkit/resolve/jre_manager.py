@@ -15,6 +15,8 @@ from typing import Optional
 import urllib.request
 import zipfile
 
+from cdxml_toolkit.resolve.network_policy import network_allowed, offline_reason
+
 
 _JRE_BASE = Path.home() / ".cdxml-toolkit" / "jre"
 _ADOPTIUM_URL = (
@@ -155,6 +157,9 @@ def _download_jre() -> Optional[str]:
     if os.name != "nt":
         # The Adoptium URL is the Windows x64 build; other systems install Java themselves.
         return None
+    if not network_allowed():
+        print(offline_reason("Java runtime download"), file=sys.stderr)
+        return None
     _JRE_BASE.parent.mkdir(parents=True, exist_ok=True)
     request = urllib.request.Request(
         _ADOPTIUM_URL,
@@ -171,6 +176,9 @@ def _download_jre() -> Optional[str]:
             temporary = Path(target.name)
             with urllib.request.urlopen(request, timeout=120) as response:
                 expected = response.headers.get("X-Checksum-Sha256")
+                if not expected:
+                    # A runtime that will be executed is installed only against a published digest.
+                    raise ValueError("JRE download has no published SHA-256 checksum")
                 written = 0
                 while True:
                     block = response.read(1024 * 1024)

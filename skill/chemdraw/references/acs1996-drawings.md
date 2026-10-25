@@ -24,6 +24,8 @@ cdx.py build spec.json out.cdxml --render
 
 This is [assets/acs1996/example.json](../assets/acs1996/example.json); its native render is `assets/acs1996/example.png`.
 
+This build spec is not the figure manifest of [publication figures](publication-figures.md), although both list typed objects: the build spec places objects with `at` and rich text with `{sub:...}` markup, while the manifest uses `position`, `runs` and a `version` field. Do not mix fields between them.
+
 | Object | Fields |
 | --- | --- |
 | `molecule` | `smiles`; `at` (centre); `labels` map from dummy-atom map number to abbreviation; optional `rotate` (degrees), `flip`, `displays` (bond index → `WedgeBegin`/`WedgedHashBegin`/`Bold`/…), `radicals` (atom indices), `lone_pairs` (`[atom, "left"|"right"|"up"|"down"]`), `hide_charge_label` |

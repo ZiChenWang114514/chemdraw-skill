@@ -32,6 +32,15 @@ def file_hashes(root):
             and p.suffix not in {'.pyc', '.pyo'} and p.relative_to(root).as_posix() != MANIFEST}
 
 
+def toolkit_fingerprint(package_dir):
+    """SHA-256 over the toolkit package's .py and .json files (LF-normalized).
+
+    The same for a checkout's toolkit/cdxml_toolkit and for a runtime installed from it, and
+    different for a runtime built from another revision even when the version string matches."""
+    hashes = {name: digest for name, digest in file_hashes(package_dir).items() if name.endswith(('.py', '.json'))}
+    return hashlib.sha256(json.dumps(hashes, sort_keys=True).encode('utf-8')).hexdigest()
+
+
 def _diff(expected, actual):
     missing = sorted(expected.keys() - actual.keys())
     extra = sorted(actual.keys() - expected.keys())

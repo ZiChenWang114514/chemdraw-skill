@@ -2,12 +2,12 @@
 
 Use ChemDraw's native representations for TLC, laboratory apparatus and instruments. TLC uses `tlcplate`, `tlclane` and `tlcspot`; equipment uses editable objects copied from installed ChemDraw templates. Retain template curves, groups, colors and object references. Do not silently replace equipment with generated bitmap images or approximate outlines.
 
-These commands require the toolkit's `cdxml_toolkit.scientific` module. Native conversion and preview also require an activated ChemDraw installation. If the module is unavailable, update the toolkit before attempting the workflow.
+These commands require the toolkit's `cdxml_toolkit.scientific` module. Native conversion and preview also require an activated ChemDraw installation. If `cdx.py py -m cdxml_toolkit.scientific --help` fails, the runtime is older than this Skill: report it with the rebuild step from `cdx.py doctor` (`runtime_hint`) and change the runtime only when the user asks for installation.
 
 ## Apparatus and instruments
 
 1. Inspect the requested arrangement and list the components and joints.
-2. Locate the installed ChemDraw Items directory. Depending on the installation, it may be under the vendor's ProgramData directory. Locate Clipware `.ctp` files or a user-provided native template; preserve the original files. Do not assume a template's page numbers are identical across installations.
+2. Locate the installed ChemDraw Items directory. On Windows it is usually under `C:\ProgramData\` in the vendor's ChemOffice or ChemDraw folder; on macOS it is inside the ChemDraw application bundle or `/Library/Application Support/`. Search for `*.ctp` there rather than assuming one path. Locate Clipware `.ctp` files or a user-provided native template; preserve the original files. Do not assume a template's page numbers are identical across installations.
 3. Copy each required binary CTP to a new working `.cdx` file and convert that copy to CDXML using the existing native conversion tool. Use `cdx.py call convert_cdx_cdxml`.
 4. Inspect the converted template pages and their native previews. Use `template_catalog` below to obtain zero-based page indexes. Select the actual equipment artwork, including flask, condenser, funnel, stand, clamp or other available instrument. If the requested component is absent, report that gap or use a user-supplied native template; do not claim a generic replacement is a built-in instrument.
 5. Assemble a JSON specification, preserving aspect ratio. Attach components through normalized ports. Place supporting components behind the glassware by listing them first. Port attachment describes drawing geometry, not an engineering compatibility assessment.

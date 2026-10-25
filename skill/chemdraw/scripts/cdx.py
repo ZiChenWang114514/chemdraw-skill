@@ -25,6 +25,7 @@ import time
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 SIGNATURES = SKILL_ROOT / 'references' / 'mcp-signatures.md'
+BASELINE = SKILL_ROOT / 'runtime.json'
 SUMMARY_LIMIT = 6000
 REEXEC_FLAG = 'CHEMDRAW_CDX_REEXEC'
 # Written by the installer when the runtime lives somewhere cdx.py would not look.
@@ -111,6 +112,29 @@ def runtime_candidates():
     return found
 
 
+def _baseline():
+    try:
+        value = json.loads(BASELINE.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def install_help():
+    """How to get a runtime, from a repository checkout or from the Skill folder alone."""
+    python = 'Scripts\\python.exe' if os.name == 'nt' else 'bin/python'
+    venv = default_runtime_dir()
+    return [
+        'Repository checkout: python scripts/install.py --runtime --apply '
+        '(add --agent/--destination to choose where the Skill is installed).',
+        f'Skill folder only: python -m venv "{venv}", then '
+        f'"{venv / python}" "{Path(__file__).resolve().parent / "install_runtime.py"}" '
+        '--extras publication scientific office analysis image chemscript',
+        f'Repository: {_baseline().get("repository", "see runtime.json")}',
+        'Or point CHEMDRAW_MCP_PYTHON at an interpreter that has the toolkit installed.',
+    ]
+
+
 def _ensure_runtime(argv):
     try:
         import cdxml_toolkit.mcp_runtime  # noqa: F401
@@ -125,12 +149,18 @@ def _ensure_runtime(argv):
         if python.is_file() and _has_toolkit(python):
             env = dict(os.environ, **{REEXEC_FLAG: '1'})
             raise SystemExit(subprocess.call([str(python), str(Path(__file__).resolve()), *argv], env=env))
+    searched = ['CHEMDRAW_MCP_PYTHON', str(LOCAL_CONFIG), str(SKILL_ROOT.parent / 'chemdraw-venv'),
+                str(default_runtime_dir()), 'conda env "cdxml"']
+    if argv[:1] == ['doctor']:
+        print(json.dumps({'runtime': 'missing', 'python': sys.version.split()[0], 'searched': searched,
+                          'install': install_help(),
+                          'note': 'The runtime needs a 64-bit Python 3.10-3.13; cdx.py itself runs on 3.9+.'},
+                         ensure_ascii=False, indent=2))
+        raise SystemExit(2)
     sys.stderr.write(
         'cdx.py: no working cdxml-toolkit runtime found.\n'
-        f'Looked for: CHEMDRAW_MCP_PYTHON, {LOCAL_CONFIG.name}, {SKILL_ROOT.parent / "chemdraw-venv"}, '
-        f'{default_runtime_dir()}, conda env "cdxml" (candidates whose interpreter does not start are skipped).\n'
-        'Install one with the repository installer (scripts/install.py --runtime --apply) '
-        'or set CHEMDRAW_MCP_PYTHON.\n')
+        f'Looked for: {", ".join(searched)} (candidates whose interpreter does not start are skipped).\n'
+        + ''.join(f'- {line}\n' for line in install_help()))
     raise SystemExit(2)
 
 
@@ -163,7 +193,8 @@ def _worker(tool, kwargs, args=()):
     from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
     spec = build_registry().get(tool)
     if spec is None:
-        raise SystemExit(f'Unknown tool {tool!r}; run `cdx.py tools`.')
+        raise SystemExit(f'Unknown tool {tool!r}; run `cdx.py tools`. If the Skill documents it, the runtime '
+                         'may be older than the Skill: `cdx.py doctor` reports runtime_matches_skill.')
     return _run_worker(tool, list(args), kwargs, timeout_seconds=spec.timeout_seconds)
 
 
@@ -182,6 +213,17 @@ def _layers(result):
     return out
 
 
+def _error_id(result):
+    """{'error_id': ...} when the worker logged the failure (read worker-<id>.log, see `doctor --paths`)."""
+    for layer in _layers(result):
+        error, meta = layer.get('error'), layer.get('metadata')
+        found = (error.get('id') if isinstance(error, dict) else None) or \
+            (meta.get('error_id') if isinstance(meta, dict) else None)
+        if found:
+            return {'error_id': found}
+    return {}
+
+
 def _summary(tool, result, path=None):
     layers = _layers(result)
     failed = any(x.get('ok') is False or x.get('error') for x in layers)
@@ -192,6 +234,7 @@ def _summary(tool, result, path=None):
            'warning_count': warnings}
     if errors:
         out['error'] = errors[-1]
+    out.update(_error_id(result))
     if path:
         out['evidence'] = str(path)
     return out
@@ -237,7 +280,8 @@ def cmd_tools(ns):
     for name in sorted(reg):
         spec = reg[name]
         native = ' [native lock]' if getattr(spec, 'resource_class', None) else ''
-        print(f'{name:42s} timeout={spec.timeout_seconds}s{native}')
+        timeout = f'{spec.timeout_seconds}s' if spec.timeout_seconds else 'default'
+        print(f'{name:42s} timeout={timeout}{native}')
     print(f'-- {len(reg)} tools; `cdx.py sig <tool>` prints a signature')
     return 0
 
@@ -255,26 +299,67 @@ def cmd_call(ns):
     return _emit(ns.tool, _worker(ns.tool, _load_args(ns)), ns.out)
 
 
+def render_log_path():
+    """PNGs written by `cdx.py render` and their SHA-256; only these may be replaced without --replace."""
+    return default_runtime_dir().parent / 'render-log.json'
+
+
+def _render_log():
+    try:
+        value = json.loads(render_log_path().read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _record_render(png):
+    log = _render_log()
+    log.pop(str(png), None)
+    log[str(png)] = _sha256(png)
+    path = render_log_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    staged = path.with_name(f'.{path.name}.{os.getpid()}')
+    staged.write_text(json.dumps(dict(list(log.items())[-5000:]), indent=0), encoding='utf-8')
+    os.replace(staged, path)
+
+
 def cmd_render(ns):
-    status = 0
+    jobs = []
     for src in ns.files:
         source = Path(src).resolve()
         out_dir = Path(ns.out_dir).resolve() if ns.out_dir else source.parent
+        jobs.append((source, out_dir, out_dir / (source.stem + '.png')))
+    targets = [png for _, _, png in jobs]
+    clashes = sorted({str(png) for png in targets if targets.count(png) > 1})
+    if clashes:
+        raise SystemExit(f'Several inputs would render to the same file: {", ".join(clashes)}; render them separately')
+    status = 0
+    for source, out_dir, png in jobs:
+        # Replace only a PNG this command wrote and nobody changed since: next to a
+        # reconstructed CDXML, the same name is often the user's source image.
+        if png.exists() and not ns.replace and _render_log().get(str(png)) != _sha256(png):
+            status = 1
+            print(json.dumps({'source': str(source), 'png': None, 'ok': False,
+                              'error': f'{png} exists and was not written by cdx.py render (it may be the source '
+                                       'image); choose another folder with --out-dir, or pass --replace if it '
+                                       'is safe to overwrite'}, ensure_ascii=False))
+            continue
         out_dir.mkdir(parents=True, exist_ok=True)
-        png = out_dir / (source.stem + '.png')
         # The renderer refuses existing outputs: render to a fresh name, then
         # replace, so a failed render never destroys the previous PNG.
         staged = out_dir / f'.{source.stem}.{os.getpid()}.rendering.png'
         staged.unlink(missing_ok=True)
         result = _worker('render_to_png', {'output_path': str(staged)}, [str(source)])
-        ok = _summary('render_to_png', result)['ok'] and staged.is_file()
+        summary = _summary('render_to_png', result)
+        ok = summary['ok'] and staged.is_file()
         if ok:
             os.replace(staged, png)
+            _record_render(png)
         else:
             staged.unlink(missing_ok=True)
         status |= 0 if ok else 1
         print(json.dumps({'source': str(source), 'png': str(png) if ok else None, 'ok': ok,
-                          **({} if ok else {'error': _summary('render_to_png', result).get('error')})},
+                          **({} if ok else {k: summary[k] for k in ('error', 'error_id') if k in summary})},
                          ensure_ascii=False))
     return status
 
@@ -282,10 +367,12 @@ def cmd_render(ns):
 def cmd_build(ns):
     sys.path.insert(0, str(Path(__file__).parent))
     import acs_builder
+    if Path(ns.output).exists():
+        raise SystemExit(f'Refusing to overwrite existing {Path(ns.output).resolve()}; choose a new output name')
     out = acs_builder.build_from_spec(ns.spec, ns.output)
     print(json.dumps({'cdxml': str(out), 'ok': True}))
     if ns.render:
-        return cmd_render(argparse.Namespace(files=[str(out)], out_dir=None))
+        return cmd_render(argparse.Namespace(files=[str(out)], out_dir=None, replace=False))
     return 0
 
 
@@ -357,6 +444,36 @@ def runtime_paths():
             'chemscript_pythonpath': _chemscript_env().get('PYTHONPATH')}
 
 
+def _check_installation():
+    sys.path.insert(0, str(Path(__file__).parent))
+    import check_installation
+    return check_installation
+
+
+def checkout_toolkit():
+    """`<repo>/toolkit/cdxml_toolkit` when this Skill is the skill/chemdraw folder of a checkout."""
+    package = SKILL_ROOT.parent.parent / 'toolkit' / 'cdxml_toolkit'
+    return package if SKILL_ROOT.parent.name == 'skill' and package.is_dir() else None
+
+
+def expected_fingerprint():
+    """Toolkit this Skill documents: the checkout's toolkit/ source, else the one pinned in runtime.json."""
+    package = checkout_toolkit()
+    if package:
+        return _check_installation().toolkit_fingerprint(package)
+    return _baseline().get('toolkit_fingerprint')
+
+
+def runtime_fingerprint():
+    import cdxml_toolkit
+    return _check_installation().toolkit_fingerprint(Path(cdxml_toolkit.__file__).resolve().parent)
+
+
+def runtime_hint():
+    return ('The runtime was built from another toolkit revision than this Skill documents, so tools may be '
+            'missing or behave differently. Rebuild it: ' + ' | '.join(install_help()[:2]))
+
+
 def _signatures_current():
     from cdxml_toolkit.mcp_runtime import generate_reference
     return normalize_signatures(generate_reference.render_reference()) == \
@@ -366,6 +483,21 @@ def _signatures_current():
 def normalize_signatures(text):
     text = re.sub(r'^(Distribution|Profile): .*\n', '', text, flags=re.M)
     return '\n'.join(line.strip() for line in text.splitlines() if line.strip())
+
+
+def cmd_regen_signatures(ns):
+    # Regenerating from a stale runtime would roll the committed reference back to its tool set.
+    if runtime_fingerprint() != expected_fingerprint():
+        raise SystemExit('cdx.py: refusing to regenerate signatures. ' + runtime_hint())
+    write_signatures()
+    print(SIGNATURES)
+    package = checkout_toolkit()
+    if package:  # keep runtime.json's fingerprint in step with the toolkit source it pins
+        baseline = _baseline()
+        baseline['toolkit_fingerprint'] = expected_fingerprint()
+        BASELINE.write_bytes((json.dumps(baseline, indent=2) + '\n').encode('utf-8'))
+        print(BASELINE)
+    return 0
 
 
 def write_signatures():
@@ -384,9 +516,12 @@ def cmd_doctor(ns):
                         for k, v in EXTRAS.items()}
     if ns.paths:
         report['paths'] = runtime_paths()
+    expected = expected_fingerprint()
+    report['runtime_matches_skill'] = None if expected is None else runtime_fingerprint() == expected
+    if report['runtime_matches_skill'] is False:
+        report['runtime_hint'] = runtime_hint()
     report['signatures_current'] = _signatures_current()
-    sys.path.insert(0, str(Path(__file__).parent))
-    import check_installation
+    check_installation = _check_installation()
     if (SKILL_ROOT / check_installation.MANIFEST).is_file():
         inst = check_installation.check_manifest(SKILL_ROOT)
         report['installation'] = 'ok' if inst['ok'] else {k: inst[k] for k in ('missing', 'modified', 'extra')}
@@ -402,7 +537,8 @@ def cmd_doctor(ns):
     if ns.full:
         report['diagnose_runtime'] = inner
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    healthy = report['signatures_current'] and not isinstance(report['installation'], dict)
+    healthy = report['signatures_current'] and not isinstance(report['installation'], dict) \
+        and report['runtime_matches_skill'] is not False
     return 0 if healthy else 1
 
 
@@ -518,7 +654,9 @@ def cmd_py(ns):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
-    _ensure_runtime(argv)
+    # `sig` reads a generated reference and help is static: both work before a runtime exists.
+    if argv[:1] not in (['sig'], ['-h'], ['--help'], []):
+        _ensure_runtime(argv)
     if argv[:1] == ['py']:  # pass everything through untouched (argparse would eat -m/-c)
         return cmd_py(argparse.Namespace(rest=argv[1:]))
     p = argparse.ArgumentParser(prog='cdx.py', description=__doc__.split('\n')[0])
@@ -535,9 +673,10 @@ def main(argv=None):
     s.add_argument('--args', help='keyword arguments in a JSON file')
     s.add_argument('--out', help='new evidence file for the full result')
     s.set_defaults(fn=cmd_call)
-    s = sub.add_parser('render', help='native 300 dpi PNG next to each CDXML (replaces an old PNG)')
+    s = sub.add_parser('render', help='native 300 dpi PNG next to each CDXML (replaces only its own earlier render)')
     s.add_argument('files', nargs='+')
     s.add_argument('--out-dir')
+    s.add_argument('--replace', action='store_true', help='also replace a same-named PNG this command did not write')
     s.set_defaults(fn=cmd_render)
     s = sub.add_parser('build', help='ACS Document 1996 CDXML from a JSON spec (acs_builder)')
     s.add_argument('spec')
@@ -585,8 +724,9 @@ def main(argv=None):
     s = sub.add_parser('py', help='run the runtime Python: cdx.py py SCRIPT_OR_-m ... (helper scripts, examples)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_py)
-    s = sub.add_parser('regen-signatures', help='rewrite references/mcp-signatures.md from the live registry')
-    s.set_defaults(fn=lambda ns: (write_signatures(), print(SIGNATURES))[0] or 0)
+    s = sub.add_parser('regen-signatures', help='rewrite references/mcp-signatures.md from the live registry '
+                                                '(and, in a checkout, the toolkit fingerprint in runtime.json)')
+    s.set_defaults(fn=cmd_regen_signatures)
     ns = p.parse_args(argv)
     return ns.fn(ns)
 

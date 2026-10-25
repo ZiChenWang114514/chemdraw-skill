@@ -16,10 +16,12 @@ Use `rdkit_workbench(molecules, operation, options, output_path)` for batch chem
 Example arguments for an already grounded MOL file:
 
 ```json
-{"molecules":[{"file":"C:/research/verified.mol"}],
+{"molecules":[{"file":"work/verified.mol"}],
  "operation":"inspect","options":{"include_molblock":true},
- "output_path":"C:/research/inspection.json"}
+ "output_path":"work/inspection.json"}
 ```
+
+Relative paths resolve against the directory `cdx.py` runs in; absolute paths work on every OS (forward slashes are fine on Windows).
 
 First inspect, then select exact atom indices for set_stereo. Inspect its before/after CIP diff and `connectivity_preserved` before drawing. A structural change using another operation still routes through `modify_molecule` and its MCS diff. `set_stereo` rejects enhanced-group inputs because a local R/S edit can alter group meaning. Enumeration is deliberate candidate generation and must not be described as an observed mixture or assigned product.
 

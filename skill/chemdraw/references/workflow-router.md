@@ -36,7 +36,7 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 1. Default to the DECIMER API (`cdx.py decimer CROP.png`), including when local weights are installed, following the upload rule in SKILL.md.
 2. Use `extract_structures_from_image` only when the user explicitly requests local or offline recognition. Do not install local models or silently switch to them after an API failure; follow the bounded retry guidance in [decimer-api.md](decimer-api.md).
 3. Inspect every candidate and validation warning; never select by position alone.
-4. For complete reaction screenshots, use `reaction_image_to_cdxml` only when it appears in `cdx.py tools`. It remains withheld when structure-role mapping cannot be verified.
+4. For a complete reaction screenshot, crop and recognize each species as above, then rebuild the reaction with `render_scheme`. No tool assigns reactant, reagent and product roles from an image, so read them from the arrow layout yourself and state any role you could not decide.
 
 ## Convert Or Render
 
@@ -62,11 +62,11 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 
 ## Install Or Upgrade
 
-Read [operations.md](operations.md). Run `cdx.py doctor` first and identify the requested feature set: portable CDXML, native ChemDraw, ChemScript, Office, local DECIMER, or remote HTTP. Keep the main Python 64-bit; configure any legacy 32-bit ChemScript helper separately. Change the runtime only when installation was requested, then rerun `cdx.py doctor` with the matching probes.
+Read [operations.md](operations.md). Run `cdx.py doctor` first; when it reports `"runtime": "missing"`, follow the install commands it prints. Identify the requested feature set: portable CDXML, native ChemDraw, ChemScript, Office, local DECIMER, or remote HTTP. Keep the main Python 64-bit; configure any legacy 32-bit ChemScript helper separately. Change the runtime only when installation was requested, then rerun `cdx.py doctor` with the matching probes.
 
 ## Diagnose Runtime
 
-Read [operations.md](operations.md). Start with `cdx.py doctor` and add only the probe needed for the failing capability (`--native`, `--office`, `--chemscript`).
+Read [operations.md](operations.md). Start with `cdx.py doctor` and add only the probe needed for the failing capability (`--native`, `--office`, `--chemscript`). When `runtime_matches_skill` is false, rebuild the runtime as `runtime_hint` says before trusting tool names or signatures.
 
 ## Substrate scope, SAR, or hand-edited publication updates
 

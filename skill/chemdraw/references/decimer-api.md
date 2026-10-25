@@ -121,6 +121,8 @@ The built-in endpoint needs nothing else. For a **custom endpoint**, set `DECIME
 DECIMER_API_URL=https://ocsr.example.org/process cdx.py call extract_structures_via_decimer_api --json '{"image_path": "<abs>/crop.png", "confirm_upload": true, "approved_origin": "https://ocsr.example.org", "approved_sha256": "<sha256 from --preflight>"}'
 ```
 
+In PowerShell, set the variable first (`$env:DECIMER_API_URL = "https://ocsr.example.org/process"`) and pass the arguments with `--args file.json`. `cdx.py decimer` has no origin option, so while `DECIMER_API_URL` names another server its uploads are refused ("Custom DECIMER destinations require approved_origin"); use the `call` form above. The preflight `sha256` is computed over the bytes actually sent: the file name is replaced by `image.<ext>` and embedded metadata (EXIF, PNG text) is removed first, as the preflight's `upload_filename` and `metadata_removed` fields show.
+
 Limits: `DECIMER_API_MAX_IMAGE_BYTES` (25 MiB), `DECIMER_API_MAX_IMAGE_PIXELS` (40,000,000), `DECIMER_API_MAX_RESPONSE_BYTES` (2 MiB).
 
 ## Diagnosing failed requests

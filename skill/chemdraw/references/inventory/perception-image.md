@@ -107,12 +107,12 @@
 
 ## `perception.reactant_heuristic`
 
-- **function**, line 839: `classify_from_cdxml(cdxml_path: str, mcs_threshold: float = 0.3, use_rxnmapper: bool = False) -> Dict[str, Any]` - Parse a CDXML reaction file and classify all reagents.
-- **function**, line 958: `classify_from_smiles(reagent_smiles: List[str], product_smiles: str, reagent_names: Optional[List[str]] = None, mcs_threshold: float = 0.3, use_rxnmapper: bool = True) -> Dict[str, Any]` - Classify reagents given as SMILES strings.
-- **function**, line 714: `classify_reagents(reagents: List[ReagentInfo], product_smiles: str, mcs_threshold: float = 0.3, use_rxnmapper: bool = True) -> List[ReagentInfo]` - Classify each reagent using a two-tier strategy.
-- **function**, line 461: `mcs_ratio(reagent_smiles: str, product_smiles: str) -> Optional[float]` - Compute MCS heavy-atom ratio: MCS_atoms / reagent_heavy_atoms.
+- **function**, line 835: `classify_from_cdxml(cdxml_path: str, mcs_threshold: float = 0.3, use_rxnmapper: bool = False) -> Dict[str, Any]` - Parse a CDXML reaction file and classify all reagents.
+- **function**, line 954: `classify_from_smiles(reagent_smiles: List[str], product_smiles: str, reagent_names: Optional[List[str]] = None, mcs_threshold: float = 0.3, use_rxnmapper: bool = True) -> Dict[str, Any]` - Classify reagents given as SMILES strings.
+- **function**, line 710: `classify_reagents(reagents: List[ReagentInfo], product_smiles: str, mcs_threshold: float = 0.3, use_rxnmapper: bool = True) -> List[ReagentInfo]` - Classify each reagent using a two-tier strategy.
+- **function**, line 457: `mcs_ratio(reagent_smiles: str, product_smiles: str) -> Optional[float]` - Compute MCS heavy-atom ratio: MCS_atoms / reagent_heavy_atoms.
 - **class**, line 33: `ReagentInfo` - Information about a single reagent being classified.
-- **function**, line 397: `role_lookup(smiles: Optional[str], name: Optional[str]) -> Optional[Tuple[str, str]]` - Tier 1 classification.  Returns (role, method) or None.
+- **function**, line 393: `role_lookup(smiles: Optional[str], name: Optional[str]) -> Optional[Tuple[str, str]]` - Tier 1 classification.  Returns (role, method) or None.
 
 ## `perception.reaction_parser`
 

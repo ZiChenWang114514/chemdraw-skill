@@ -35,6 +35,24 @@ checks when affected modules use ChemDraw, ChemScript, or Office. Merge the
 sync branch through a pull request with a merge commit, not a squash, so the
 pinned commit in `skill/chemdraw/runtime.json` stays reachable. Do not force-push `main`.
 
+## Re-pinning the runtime
+
+An installed Skill copy outside a checkout builds its runtime from the `commit`
+recorded in `skill/chemdraw/runtime.json`, and the checkout detects a stale runtime
+through `toolkit_fingerprint` in the same file. After any change under
+`toolkit/cdxml_toolkit`:
+
+1. Commit the toolkit change.
+2. Run `python skill/chemdraw/scripts/cdx.py regen-signatures`; it refreshes the
+   generated references and writes the new `toolkit_fingerprint`.
+3. Set `commit` to the commit from step 1 and commit `runtime.json` separately.
+
+`tests/test_runtime_baseline.py` fails when the fingerprint is stale or when the
+pinned commit's toolkit differs from `toolkit/`; it needs full history, so CI checks
+out with `fetch-depth: 0`. Merge such pull requests with a merge commit. After a
+squash merge the pinned commit is not on `main`: repeat step 3 on `main` with the
+squashed commit.
+
 ## Supported environments
 
 | Capability | Maintained environment |

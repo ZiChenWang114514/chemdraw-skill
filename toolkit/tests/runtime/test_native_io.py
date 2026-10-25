@@ -27,6 +27,13 @@ def _valid_emf() -> bytes:
     return bytes(data)
 
 
+PDF_BYTES = (
+    b"%PDF-1.4\n1 0 obj<< /Type /Catalog >>endobj\n"
+    b"xref\n0 1\n0000000000 65535 f \ntrailer<< /Root 1 0 R >>\n"
+    b"startxref\n45\n%%EOF\n"
+)
+
+
 class NativeIOBridgeTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(native_io, "native_io bridge module is required")
@@ -181,6 +188,31 @@ class NativeIOBridgeTests(unittest.TestCase):
                 )
 
             self.assertTrue(destination.is_file())
+
+    def test_source_context_never_copies_subfolders_or_an_oversized_folder(self):
+        # Exporting a deck that sits in Downloads or a home folder must not copy that folder.
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "docs" / "deck.pptx"
+            source.parent.mkdir()
+            source.write_bytes(b"office")
+            (source.parent / "linked.csv").write_text("linked", encoding="utf-8")
+            (source.parent / "projects").mkdir()
+            (source.parent / "projects" / "big.bin").write_bytes(b"x" * 64)
+            seen = {}
+
+            def export(native_source: Path, native_destination: Path):
+                seen["names"] = sorted(p.name for p in native_source.parent.iterdir())
+                native_destination.write_bytes(PDF_BYTES)
+
+            with mock.patch.dict(os.environ, {"CHEMDRAW_NATIVE_TEMP": str(root / "native-temp")}):
+                native_io.bridge_file(source, root / "a.pdf", export, output_kind="pdf",
+                                      preserve_source_context=True)
+                self.assertEqual(seen["names"], ["deck.pptx", "input.pptx", "linked.csv"])
+                with mock.patch.object(native_io, "_CONTEXT_MAX_BYTES", 10):
+                    native_io.bridge_file(source, root / "b.pdf", export, output_kind="pdf",
+                                          preserve_source_context=True)
+                self.assertEqual(seen["names"], ["input.pptx"])
 
     def test_shadow_manifest_rechecks_path_containment(self):
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import inspect
+import sys
 from typing import Any, Callable
 
 from . import mcp_compat
@@ -54,8 +55,20 @@ CHEMDRAW_COM_TOOLS = {
 }
 
 
-def _resource_class(name: str) -> str | None:
-    return "chemdraw_com" if name in CHEMDRAW_COM_TOOLS else None
+# ChemScript runs in-process on Windows; the macOS emulation drives ChemDraw itself.
+MAC_CHEMDRAW_TOOLS = {
+    "batch_compare_molecules",
+    "compare_molecules",
+    "execute_chemscript_sdk",
+    "inspect_chemscript_sdk",
+}
+
+
+def _resource_class(name: str, platform: str | None = None) -> str | None:
+    platform = platform or sys.platform
+    if name in CHEMDRAW_COM_TOOLS or (platform == "darwin" and name in MAC_CHEMDRAW_TOOLS):
+        return "chemdraw_com"
+    return None
 
 
 def _tool_timeout(name: str) -> int | None:

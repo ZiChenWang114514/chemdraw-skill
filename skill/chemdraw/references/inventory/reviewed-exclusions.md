@@ -105,18 +105,18 @@
 - **method**, line 187: `ChemScriptRuntime.reflection_type(name: str)` - No public docstring in the audited version.
 - **method**, line 224: `ChemScriptRuntime.resolve_argument(value: Any, aliases: dict[str, Any], *, unsafe: bool)` - No public docstring in the audited version.
 - **method**, line 213: `ChemScriptRuntime.system_python_type(name: str)` - No public docstring in the audited version.
-- **function**, line 575: `execute_program(runtime: ChemScriptRuntime, request: dict[str, Any]) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 603: `execute_program(runtime: ChemScriptRuntime, request: dict[str, Any]) -> dict[str, Any]` - No public docstring in the audited version.
 - **function**, line 63: `validate_program(program: list[dict[str, Any]], *, allow_file_io: bool = True, allow_unsafe_interop: bool = False) -> list[dict[str, Any]]` - Validate the declarative SDK program without loading Python.NET.
 
 ## `mcp_runtime.decimer_api`
 
-- **function**, line 72: `build_multipart_body(*, filename: str, mime_type: str, image_bytes: bytes, hand_drawn: bool, boundary: str | None = None) -> tuple[str, bytes]` - Encode the multipart fields declared by the live OpenAPI document.
-- **class**, line 33: `DecimerAPIError` - Raised when the remote DECIMER service cannot return usable SMILES.
-- **method**, line 40: `DecimerAPIError.as_result() -> dict[str, Any]` - No public docstring in the audited version.
-- **class**, line 47: `DecimerUploadRefused` - Raised when upload consent is absent or does not match the prepared upload.
-- **function**, line 51: `normalize_api_payload(payload: Any) -> dict[str, Any]` - Normalize both the documented string and live list response shapes.
-- **function**, line 437: `recognize_image(image_path: str, *, hand_drawn: bool = False, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS, output_path: str | None = None, confirm_upload: bool = False, approved_sha256: str | None = None, approved_origin: str | None = None) -> dict[str, Any]` - Upload one image to DECIMER and return normalized, validated predictions.
-- **function**, line 236: `urlopen(request: Request, *, timeout: int)` - Open a request with redirect checks applied before a redirected upload.
+- **function**, line 74: `build_multipart_body(*, filename: str, mime_type: str, image_bytes: bytes, hand_drawn: bool, boundary: str | None = None) -> tuple[str, bytes]` - Encode the multipart fields declared by the live OpenAPI document.
+- **class**, line 35: `DecimerAPIError` - Raised when the remote DECIMER service cannot return usable SMILES.
+- **method**, line 42: `DecimerAPIError.as_result() -> dict[str, Any]` - No public docstring in the audited version.
+- **class**, line 49: `DecimerUploadRefused` - Raised when upload consent is absent or does not match the prepared upload.
+- **function**, line 53: `normalize_api_payload(payload: Any) -> dict[str, Any]` - Normalize both the documented string and live list response shapes.
+- **function**, line 469: `recognize_image(image_path: str, *, hand_drawn: bool = False, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS, output_path: str | None = None, confirm_upload: bool = False, approved_sha256: str | None = None, approved_origin: str | None = None) -> dict[str, Any]` - Upload one image to DECIMER and return normalized, validated predictions.
+- **function**, line 238: `urlopen(request: Request, *, timeout: int)` - Open a request with redirect checks applied before a redirected upload.
 
 ## `mcp_runtime.extended_tools`
 
@@ -183,26 +183,26 @@
 
 ## `mcp_runtime.mcp_server`
 
-- **class**, line 518: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
-- **function**, line 716: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
-- **function**, line 655: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
-- **function**, line 684: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
-- **function**, line 582: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
-- **function**, line 754: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
+- **class**, line 526: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
+- **function**, line 724: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
+- **function**, line 663: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
+- **function**, line 692: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
+- **function**, line 590: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
+- **function**, line 762: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_io`
 
 - **function**, line 145: `ascii_input_directory(source: str | Path, *, suffixes: Sequence[str] = ('.cdxml', '.cdx', '.csv', '.rxn')) -> Iterator[tuple[Path, dict[str, str]]]` - No public docstring in the audited version.
 - **function**, line 128: `ascii_inputs(sources: Sequence[str | Path]) -> Iterator[list[Path]]` - No public docstring in the audited version.
 - **function**, line 111: `ascii_workspace(prefix: str = 'cdx-') -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 373: `batch_convert_cdxml(sources: Sequence[str | Path], batch_convert: Callable[[list[str]], Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 229: `bridge_file(source: str | Path, destination: str | Path, operation: Callable[[Path, Path], Any], *, output_kind: str | None = None, preserve_source_context: bool = False) -> Any` - No public docstring in the audited version.
-- **function**, line 402: `convert_cdx_bytes_to_cdxml(cdx_data: bytes, converter: Callable[..., Any]) -> str` - No public docstring in the audited version.
+- **function**, line 377: `batch_convert_cdxml(sources: Sequence[str | Path], batch_convert: Callable[[list[str]], Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 249: `bridge_file(source: str | Path, destination: str | Path, operation: Callable[[Path, Path], Any], *, output_kind: str | None = None, preserve_source_context: bool = False) -> Any` - No public docstring in the audited version.
+- **function**, line 406: `convert_cdx_bytes_to_cdxml(cdx_data: bytes, converter: Callable[..., Any]) -> str` - No public docstring in the audited version.
 - **class**, line 18: `NativeIOError` - Native automation failure with a stable public error code.
 - **function**, line 31: `normalize_cdxml_staging(path: Path) -> None` - Normalize a staged copy for native use; the source document is never changed.
-- **function**, line 465: `rewrite_json_paths(path: str | Path, replacements: dict[str, str]) -> None` - No public docstring in the audited version.
+- **function**, line 469: `rewrite_json_paths(path: str | Path, replacements: dict[str, str]) -> None` - No public docstring in the audited version.
 - **function**, line 172: `validate_native_output(path: str | Path, kind: str | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 423: `write_shadow_manifest(manifest: str | Path, workspace: str | Path) -> tuple[Path, list[Path]]` - No public docstring in the audited version.
+- **function**, line 427: `write_shadow_manifest(manifest: str | Path, workspace: str | Path) -> tuple[Path, list[Path]]` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_renderer`
 
@@ -240,10 +240,10 @@
 
 ## `mcp_runtime.process_control`
 
-- **function**, line 287: `cleanup_automation_processes(before: dict[int, dict[str, Any]], after: dict[int, dict[str, Any]], *, stage_pid: int, terminate: bool = True, deadline: float | None = None) -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 118: `pid_is_running(pid: int) -> bool` - No public docstring in the audited version.
-- **function**, line 208: `snapshot_automation_processes(timeout_seconds: float = 5) -> dict[int, dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 91: `terminate_pid(pid: int, timeout_seconds: float = 10) -> bool` - No public docstring in the audited version.
+- **function**, line 295: `cleanup_automation_processes(before: dict[int, dict[str, Any]], after: dict[int, dict[str, Any]], *, stage_pid: int, terminate: bool = True, deadline: float | None = None) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 119: `pid_is_running(pid: int) -> bool` - No public docstring in the audited version.
+- **function**, line 216: `snapshot_automation_processes(timeout_seconds: float = 5) -> dict[int, dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 92: `terminate_pid(pid: int, timeout_seconds: float = 10) -> bool` - No public docstring in the audited version.
 
 ## `mcp_runtime.publication_figure`
 
@@ -290,9 +290,9 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 118: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 110: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 26: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 131: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 123: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 27: `ToolSpec` - No public docstring in the audited version.
 
 ## `publication.data`
 

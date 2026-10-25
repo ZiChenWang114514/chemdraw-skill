@@ -337,5 +337,84 @@ class MacEmulationTests(unittest.TestCase):
         self.assertEqual(self.backend.calls, [])
 
 
+class _NetType:
+    def __init__(self, full_name):
+        self.FullName = full_name
+
+
+class _NetObject:
+    """Stands in for a Python.NET object: a .NET type name plus a few members."""
+
+    def __init__(self, full_name, **members):
+        self._type = _NetType(full_name)
+        self.__dict__.update(members)
+
+    def GetType(self):
+        return self._type
+
+
+class _WindowsLikeRuntime:
+    """The Windows runtime has no check_member of its own (unlike the macOS emulation)."""
+
+    assembly = _NetType("CambridgeSoft.ChemScript, Version=22.0.0.0")
+
+    def __init__(self, written):
+        self.written = written
+
+    def reflection_type(self, name):
+        return _NetType(f"CambridgeSoft.ChemScript.{name}")
+
+    def python_type(self, name):
+        written = self.written
+
+        class StructureData:
+            @staticmethod
+            def LoadData(text, mime):
+                return _NetObject("CambridgeSoft.ChemScript.StructureData", Formula="C2H6O",
+                                  WriteFile=lambda *args: written.append(args) or True)
+        return StructureData
+
+    def member_is_interop(self, reflection_type, member):
+        return False
+
+    def resolve_argument(self, item, aliases, *, unsafe=False):
+        return aliases[item["$ref"]] if isinstance(item, dict) and "$ref" in item else item
+
+
+class WindowsSdkMemberPolicyTests(unittest.TestCase):
+    load = {"op": "call_static", "type": "StructureData", "member": "LoadData",
+            "args": ["CCO", "chemical/x-smiles"], "as": "mol"}
+
+    def run_program(self, program, written=None, **request):
+        runtime = _WindowsLikeRuntime([] if written is None else written)
+        return chemscript_sdk_runtime.execute_program(runtime, {"program": program, **request})
+
+    def test_ordinary_sdk_members_still_work(self):
+        result = self.run_program([self.load, {"op": "get", "target": "mol", "member": "Formula"}])
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["results"][1]["value"], "C2H6O")
+
+    def test_reflection_members_are_refused_on_sdk_objects(self):
+        for member in ("GetType", "Invoke", "GetMethod", "InvokeMember"):
+            with self.assertRaisesRegex(ValueError, "reflection"):
+                self.run_program([self.load, {"op": "call", "target": "mol", "member": member, "args": []}])
+
+    def test_members_of_non_sdk_objects_are_refused(self):
+        with self.assertRaisesRegex(ValueError, "not part of the ChemScript SDK"):
+            self.run_program([self.load, {"op": "get", "target": "mol", "member": "Formula", "as": "f"},
+                              {"op": "get", "target": "f", "member": "Length"}])
+
+    def test_overwrite_check_covers_every_path_argument(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            existing = Path(tmp) / "out.cdxml"
+            existing.write_text("<CDXML/>")
+            written = []
+            with self.assertRaisesRegex(ValueError, "allow_overwrite"):
+                self.run_program([self.load, {"op": "call", "target": "mol", "member": "WriteFile",
+                                              "args": ["chemical/x-cdxml", str(existing)]}],
+                                 written, allow_file_io=True)
+            self.assertEqual(written, [])
+
+
 if __name__ == "__main__":
     unittest.main()

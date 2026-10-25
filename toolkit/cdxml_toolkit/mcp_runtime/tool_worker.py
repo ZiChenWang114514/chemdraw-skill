@@ -105,6 +105,15 @@ def _error_envelope(exc: BaseException) -> tuple[dict, int]:
         )
     error_id = _failure_log(exc)
     error_code = getattr(exc, "error_code", None)
+    if error_code is None and isinstance(exc, (ValueError, FileNotFoundError, TypeError)):
+        # Bad arguments, missing inputs and missing confirmations: the caller can act on the reason.
+        return (
+            {
+                "ok": False,
+                "error": {"code": "invalid_input", "message": str(exc)[:1000], "id": error_id},
+            },
+            1,
+        )
     if isinstance(error_code, str) and re.fullmatch(r"[a-z0-9_]{1,100}", error_code):
         public_message = str(
             getattr(exc, "public_message", None)

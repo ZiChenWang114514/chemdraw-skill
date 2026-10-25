@@ -554,13 +554,41 @@ def _serialize(value: Any, *, alias: str | None = None, max_items: int = 100, de
     return {"$type": _dotnet_type_name(value), "display": str(value)[:500]}
 
 
-def _check_file_call(member: str, args: list[Any], *, allow_overwrite: bool) -> None:
-    if not _is_file_member(member) or not args or not isinstance(args[0], str):
+# Members that lead from an SDK object into .NET reflection, and from there to any type.
+_REFLECTION_MEMBERS = {
+    "gettype", "invoke", "invokemember", "dynamicinvoke", "getmethod", "getmethods", "getproperty",
+    "getproperties", "getfield", "getfields", "getmember", "getmembers", "getconstructor",
+    "getconstructors", "getevent", "getevents", "getinterface", "getinterfaces", "createinstance",
+    "createdelegate", "assembly", "module", "basetype", "declaringtype", "reflectedtype",
+    "underlyingsystemtype", "typehandle", "methodhandle", "memberwiseclone",
+}
+_SDK_NAMESPACE = "CambridgeSoft."
+# Read-only sizes of the collections SDK members return.
+_COLLECTION_MEMBERS = {"Count", "Length"}
+
+
+def _check_sdk_member(owner: Any, member: str, operation: str) -> None:
+    """Keep programs on ChemScript's own types; the macOS emulation adds its own allow-list."""
+    if str(member).lower() in _REFLECTION_MEMBERS:
+        raise ValueError(f"{member} is a .NET reflection member and is not available to SDK programs")
+    if operation in ("call_static", "construct"):
+        return  # reflection_type() only resolves types of the ChemScript assembly
+    type_name = _dotnet_type_name(owner)
+    if type_name.startswith(_SDK_NAMESPACE):
         return
-    path = Path(args[0]).expanduser()
+    if operation == "get" and member in _COLLECTION_MEMBERS and type_name.startswith("System.Collections"):
+        return
+    raise ValueError(f"Members of {type_name} are not part of the ChemScript SDK")
+
+
+def _check_file_call(member: str, args: list[Any], *, allow_overwrite: bool) -> None:
+    if not _is_file_member(member):
+        return
     if re.match(r"(?:Write|Save|Append)File\Z", member, re.IGNORECASE):
-        if path.exists() and not allow_overwrite:
-            raise ValueError("ChemScript file output already exists; set allow_overwrite to replace it")
+        # The path is not always the first argument, so check every string argument.
+        for value in args:
+            if isinstance(value, str) and value and Path(value).expanduser().exists() and not allow_overwrite:
+                raise ValueError("ChemScript file output already exists; set allow_overwrite to replace it")
 
 
 def _check_file_constructor(type_name: str, args: list[Any], *, allow_overwrite: bool) -> None:
@@ -587,8 +615,9 @@ def execute_program(runtime: ChemScriptRuntime, request: dict[str, Any]) -> dict
     aliases: dict[str, Any] = {}
     disposed: set[int] = set()
     results = []
-    # An emulated runtime (macOS) admits only its own public members.
-    check = getattr(runtime, "check_member", lambda owner, member, operation: None)
+    # An emulated runtime (macOS) admits only its own public members; the .NET SDK is held
+    # to ChemScript types and never reaches reflection.
+    check = getattr(runtime, "check_member", None) or _check_sdk_member
     try:
         for index, step in enumerate(program):
             operation = step["op"]
