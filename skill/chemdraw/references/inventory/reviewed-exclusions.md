@@ -283,6 +283,7 @@
 
 ## `mcp_runtime.report_tools`
 
+- **function**, line 1259: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
 - **function**, line 567: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
 - **function**, line 629: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
 - **function**, line 880: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
@@ -433,3 +434,15 @@
 - **function**, line 25: `depiction(smiles: str, width: int = 150, height: int = 110) -> str | None` - Scalable SVG of a structure that follows the page's text colour.
 - **function**, line 169: `empty_state() -> dict` - A calculator with nothing in it yet; the first species added becomes the limiting reactant.
 - **function**, line 174: `plain_json(value) -> str` - JSON that is safe inside an HTML script element.
+
+## `spectral_text`
+
+- **function**, line 258: `describe(record: dict, mol, label: str) -> dict` - The paragraph (without HRMS) of one compound, with the checks that were run and their warnings.
+- **function**, line 147: `distinct_carbons(mol) -> int` - Carbons that differ by symmetry (what a decoupled 13C spectrum can show at most).
+- **function**, line 115: `format_peak(peak: dict) -> str` - No public docstring in the audited version.
+- **function**, line 123: `format_peaks(peaks) -> str` - No public docstring in the audited version.
+- **function**, line 143: `formula_hydrogens(mol) -> int` - No public docstring in the audited version.
+- **function**, line 127: `known_multiplicity(mult: str) -> bool` - No public docstring in the audited version.
+- **function**, line 92: `normalize_peaks(items, decimals: int) -> list[dict]` - Peaks given as text, numbers or dicts -> the dicts :func:`parse_peaks` returns.
+- **function**, line 132: `nucleus_ok(name: str) -> bool` - No public docstring in the audited version.
+- **function**, line 66: `parse_peaks(text: str) -> list[dict]` - Peaks of an NMR list such as ``7.40-7.30 (m, 5H), 5.11 (s, 2H)`` as dicts.

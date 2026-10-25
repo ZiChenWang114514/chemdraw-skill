@@ -1256,6 +1256,76 @@ def map_reaction_atoms(reaction: str | dict | list, options: dict | None = None,
     return result
 
 
+def characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict:
+    """ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
+
+    Each record is a grounded structure (SMILES, molblock or CDXML/MOL/SDF file, optional label)
+    with any of: appearance (text), rf ({value, eluent}), mp (number, "112-114" or [low, high]),
+    optical_rotation ({value, c, solvent, temperature}), ir ({medium, values} or a list), nmr
+    ({"1H": {frequency, solvent, text | peaks}, "13C": {...}, "19F": {...}}), and the HRMS fields
+    of hrms_line (adduct, adducts, found_mz; "hrms": false leaves HRMS out). NMR peaks are text
+    such as "7.40-7.30 (m, 5H), 5.11 (s, 2H)" or a list of numbers, strings and
+    {shift | range, mult, J, n}; the digits you give are printed unchanged and ranges get an en
+    dash. The paragraph reads: appearance; Rf; mp; [a]D; IR; 1H; 13C; other nuclei; HRMS.
+    Checks never change a value; they add warnings: the 1H integral against the hydrogens of the
+    formula, the 13C signal count against the symmetry-distinct carbons, a residual-solvent
+    signal in a 13C list, an unusual multiplicity code, a wide melting range, a rotation without
+    c or solvent, and an HRMS error over 5 ppm. Options are those of hrms_line (adducts, mode,
+    ionization, decimals, electron_mass). Output ends in .txt, .md or .json and is never
+    overwritten. At most 256 structures.
+    """
+    from .. import spectral_text
+    from ..characterization import default_adduct, hrms_entry
+    options = dict(options or {})
+    unknown = set(options) - {'adducts', 'mode', 'ionization', 'decimals', 'electron_mass'}
+    if unknown:
+        raise ValueError(f'Unknown option(s): {sorted(unknown)}')
+    mode = options.get('mode', 'positive')
+    if mode not in ('positive', 'negative'):
+        raise ValueError('mode must be positive or negative')
+    ionization = options.get('ionization', 'ESI')
+    decimals = int(options.get('decimals', 4))
+    electron_mass = bool(options.get('electron_mass', True))
+    warnings, results = [], []
+    for item in _expand(compounds, limit=MAX_STRUCTURES):
+        record, mol, label = item['record'], item['mol'], item['label']
+        _check_grounded(mol, label)
+        described = spectral_text.describe(record, mol, label)
+        parts, found_line = described['parts'], None
+        warnings += described['warnings']
+        if record.get('hrms', True) is not False:
+            adduct = record.get('adduct') or (record.get('adducts') or options.get('adducts') or [None])[0] \
+                or default_adduct(Chem.RemoveHs(mol), mode, ionization)
+            found = record.get('found_mz')
+            value = found.get(adduct) if isinstance(found, dict) else found
+            entry = hrms_entry(mol, adduct, ionization=ionization, decimals=decimals, found=value,
+                               electron_mass=electron_mass)
+            if value is None:
+                warnings.append(f'{label}: no found HRMS value was given, so only the calculated value is written.')
+            elif abs(entry['error_ppm']) > 5:
+                warnings.append(f"{label}: {entry['adduct']} found {entry['found_mz']} is {entry['error_ppm']:+.1f} ppm "
+                                'from the calculated value; check the adduct, the formula and the instrument calibration.')
+            parts.append(entry['line'])
+            found_line = entry
+        if not parts:
+            raise ValueError(f'{label}: give at least one of appearance, rf, mp, optical_rotation, ir, nmr or HRMS data')
+        if len(Chem.GetMolFrags(mol)) > 1:
+            warnings.append(f'{label}: more than one component; the formula and the NMR checks describe the whole record.')
+        results.append({'label': label, 'source': item['source'], 'paragraph': '; '.join(parts) + '.',
+                        'checks': described['checks'], 'hrms': found_line})
+    text = ''.join(f"{r['label']}: {r['paragraph']}\n" for r in results)
+    result = {'ok': True, 'operation': 'characterization_text', 'count': len(results), 'compounds': results,
+              'text': text, 'warnings': warnings}
+    if output_path:
+        target = _publish(output_path, {
+            '.txt': lambda: text,
+            '.md': lambda: ''.join(f"**{r['label']}** {r['paragraph']}\n\n" for r in results).rstrip('\n') + '\n',
+            '.json': lambda: json.dumps({'compounds': results}, ensure_ascii=False, indent=2),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
                                          structure_to_name, reaction_calculator, hrms_line,
-                                         si_materials_tables, map_reaction_atoms)}
+                                         si_materials_tables, map_reaction_atoms, characterization_text)}

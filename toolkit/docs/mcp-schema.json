@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 51,
+  "tool_count": 52,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -36,6 +36,14 @@
       "resource_class": "chemdraw_com",
       "timeout_seconds": null,
       "description": "Create PPTX or DOCX containing editable ChemDraw OLE objects."
+    },
+    {
+      "name": "characterization_text",
+      "signature": "(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.\n\nEach record is a grounded structure (SMILES, molblock or CDXML/MOL/SDF file, optional label)\nwith any of: appearance (text), rf ({value, eluent}), mp (number, \"112-114\" or [low, high]),\noptical_rotation ({value, c, solvent, temperature}), ir ({medium, values} or a list), nmr\n({\"1H\": {frequency, solvent, text | peaks}, \"13C\": {...}, \"19F\": {...}}), and the HRMS fields\nof hrms_line (adduct, adducts, found_mz; \"hrms\": false leaves HRMS out). NMR peaks are text\nsuch as \"7.40-7.30 (m, 5H), 5.11 (s, 2H)\" or a list of numbers, strings and\n{shift | range, mult, J, n}; the digits you give are printed unchanged and ranges get an en\ndash. The paragraph reads: appearance; Rf; mp; [a]D; IR; 1H; 13C; other nuclei; HRMS.\nChecks never change a value; they add warnings: the 1H integral against the hydrogens of the\nformula, the 13C signal count against the symmetry-distinct carbons, a residual-solvent\nsignal in a 13C list, an unusual multiplicity code, a wide melting range, a rotation without\nc or solvent, and an HRMS error over 5 ppm. Options are those of hrms_line (adducts, mode,\nionization, decimals, electron_mass). Output ends in .txt, .md or .json and is never\noverwritten. At most 256 structures."
     },
     {
       "name": "check_reaction_balance",
