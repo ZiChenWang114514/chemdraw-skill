@@ -1,12 +1,13 @@
 # Chemistry reports
 
-Three deterministic tools answer the questions people ask after a structure is drawn: what are its numbers, does the reaction balance, and what is in this file. They read grounded structures (SMILES, MOL/SDF, CDXML fragments), compute with RDKit and never recognize, guess or edit a structure. Exact signatures: [mcp-signatures.md](mcp-signatures.md).
+Four tools answer the questions people ask after a structure is drawn: what are its numbers, does the reaction balance, what is in this file, and what is it called. They read grounded structures (SMILES, MOL/SDF, CDXML fragments) and never recognize, guess or edit a structure. The first three compute with RDKit; the name tool asks ChemDraw. Exact signatures: [mcp-signatures.md](mcp-signatures.md).
 
 | Question | Tool |
 | --- | --- |
 | Formula, masses, expected MS peaks, drug-likeness for one or many structures | `molecule_report` |
 | Does this reaction conserve atoms and charge? What is missing? Amounts for a given scale? | `check_reaction_balance` |
 | Give me every structure in this CDXML/SDF as SMILES, InChI or a table | `export_structures` |
+| What is the name of this structure? | `structure_to_name` (needs ChemScript or ChemDraw for macOS) |
 
 All three accept `output_path` (never overwritten) and return their data inline, so a small result needs no file. Run one as `cdx.py call TOOL --args args.json`.
 
@@ -52,4 +53,24 @@ An unbalanced result is a finding about the species as drawn. After an image rec
 
 Structures with R groups or other generic atoms are listed without an InChI and the result says so. Binary CDX needs `convert_cdx_cdxml`, Office files need `extract_cdxml_from_office`. Because the fragments come from the saved file, this also works as a read-back: export, then compare with the SMILES the drawing was built from.
 
-Limits: 256 structures for `molecule_report` and `check_reaction_balance`, 2000 for `export_structures`, 1000 atoms per structure.
+## Structure to name
+
+```json
+{"molecules": [{"smiles": "O=C(O)[C@@H]1CCCN1", "label": "L-proline"}]}
+```
+
+The name is produced by ChemDraw's own "Convert Structure to Name" engine (ChemScript on Windows, ChemDraw for macOS on a Mac); this toolkit does not generate or guess names, and nothing is uploaded. There is no offline fallback: on a host without ChemScript or ChemDraw the tool fails with a message saying so, and the name must come from the user or a published source.
+
+Each name is checked by default: ChemDraw parses it back into a structure and the result is compared with your input by InChIKey, component by component. Read `roundtrip.status`:
+
+| Status | Meaning |
+| --- | --- |
+| `same` | The name describes exactly the input, stereochemistry and charges included. Safe to report as confirmed. |
+| `same_connectivity` | Same skeleton, but a stereo, charge or isotope layer differs. Do not report; inspect the difference. |
+| `different` | The name describes another structure. Do not use it. |
+| `unparseable` | ChemDraw could not read its own name back. Report the name as unverified. |
+| `skipped` | `verify` was false, there was no name, or no InChI could be made for the comparison. |
+
+ChemDraw writes its own style of name (for example `isobutyl`, `phenethyl` and `tert-butyl` in place of the current IUPAC preferred forms); say so when a strict IUPAC name is required. Enhanced (and/or) stereo groups cannot be expressed in a name and produce a warning. One structure that ChemDraw cannot name is reported with its error and does not stop the others. `all_fragments` names every structure of a CDXML or SDF file; `output_path` writes `.csv`, `.json` or `.md`. On macOS each name drives the real ChemDraw application, so a long list takes minutes.
+
+Limits: 256 structures for `molecule_report`, `check_reaction_balance` and `structure_to_name`, 2000 for `export_structures`, 1000 atoms per structure.
