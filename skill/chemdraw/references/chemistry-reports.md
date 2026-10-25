@@ -1,15 +1,16 @@
 # Chemistry reports
 
-Four tools answer the questions people ask after a structure is drawn: what are its numbers, does the reaction balance, what is in this file, and what is it called. They read grounded structures (SMILES, MOL/SDF, CDXML fragments) and never recognize, guess or edit a structure. The first three compute with RDKit; the name tool asks ChemDraw. Exact signatures: [mcp-signatures.md](mcp-signatures.md).
+Five tools answer the questions people ask after a structure is drawn: what are its numbers, does the reaction balance, how much of everything do I weigh out, what is in this file, and what is it called. They read grounded structures (SMILES, MOL/SDF, CDXML fragments) and never recognize, guess or edit a structure. The first four compute with RDKit; the name tool asks ChemDraw. Exact signatures: [mcp-signatures.md](mcp-signatures.md).
 
 | Question | Tool |
 | --- | --- |
 | Formula, masses, expected MS peaks, drug-likeness for one or many structures | `molecule_report` |
 | Does this reaction conserve atoms and charge? What is missing? Amounts for a given scale? | `check_reaction_balance` |
+| How much of each reagent, solvent and product for this reaction? A page I can draw in and type amounts into | `reaction_calculator`, `cdx.py calc` |
 | Give me every structure in this CDXML/SDF as SMILES, InChI or a table | `export_structures` |
 | What is the name of this structure? | `structure_to_name` (needs ChemScript or ChemDraw for macOS) |
 
-All three accept `output_path` (never overwritten) and return their data inline, so a small result needs no file. Run one as `cdx.py call TOOL --args args.json`.
+All of them accept `output_path` (never overwritten) and return their data inline, so a small result needs no file. Run one as `cdx.py call TOOL --args args.json`.
 
 ## Property sheet and MS peaks
 
@@ -42,6 +43,26 @@ What comes back: `balanced`, the per-side composition, charge, mass balance, ato
 With `scale_mmol` (the limiting reactant, `limiting` index, default the first) you also get a stoichiometry table: equivalents, mmol, mg, mL from a density or molarity, theoretical mass for each product and percent yield from `isolated_mg`.
 
 An unbalanced result is a finding about the species as drawn. After an image reconstruction it often means a misread structure, a lost counterion or a missing by-product; check the structures against the source before treating the gap as chemistry. A balanced result confirms conservation only, not that the reaction works.
+
+## Reaction calculator
+
+`reaction_calculator` turns a reaction into an interactive amounts table and writes it as one standalone HTML page that works offline; `cdx.py calc` serves the same page and adds a ChemDraw canvas to draw on.
+
+```json
+{"reaction": {"reactants": [{"smiles": "OCc1ccccc1", "mass_mg": 108.14}, {"smiles": "CC(=O)Cl", "equiv": 1.2}],
+              "agents": [{"smiles": "CCN(CC)CC", "equiv": 1.5}, {"smiles": "ClCCl"}],
+              "products": [{"smiles": "CC(=O)OCc1ccccc1", "isolated_mg": 120}]},
+ "options": {"molarity": 0.2},
+ "output_path": "work/acetylation.html"}
+```
+
+- `reaction` takes the same forms as `check_reaction_balance`: a reaction string, record lists, or `{"cdxml": ...}`. A record carries one amount: `equiv`, `mmol`, `mass_mg` or `volume_ml`, plus optional `density_g_ml`, `concentration_m` (a stock solution), `purity` and `coefficient`. Products take `isolated_mg` or `yield_percent`.
+- `options`: `scale_mmol` (limiting reactant, default 1), `limiting` (reactant index, default 0), `molarity` (of the limiting reagent in the first solvent, default 0.2) and `title`. Common solvents and liquid reagents get a density from a built-in table; others are weighed by mass until a density is typed in.
+- The result lists every row with its amounts, the totals (concentration, solvent volume, input mass, atom economy, reaction mass efficiency), `warnings` (for example a yield above 100%), and `assumed`: the rows whose amount is a default (reagents 1 equiv, metal catalysts 5 mol %, the first solvent 0.2 M, further solvents 0 mL). **Say which amounts were assumed rather than presenting them as the user's numbers.**
+- In the page every number is editable: type over any equivalents, mmol, mass or volume cell and the rest follow; "Make limiting" re-bases the reaction on another row while keeping all amounts. Species can be added by name, abbreviation, SMILES or formula; the page offers Markdown/TSV copy, a procedure sentence, JSON save/open, undo, print and a dark theme.
+- `cdx.py calc [REACTION] [--scale MMOL] [--molarity M] [--offline] [--no-open]` opens the page in the browser from a local server (127.0.0.1, a per-run token in the address, stops a few minutes after the page closes). **Draw in ChemDraw** opens a canvas in ChemDraw (a scheme of the current reaction, or a blank page); after saving it with Ctrl+S, **Load drawing** reads the reaction back and keeps the amounts already typed for structures that are still there. REACTION may be a reaction SMILES, a `.cdxml` file or a JSON record file; with none the page starts empty. `--offline` keeps name lookups local; otherwise a name that is not in the built-in table may be looked up online. The command runs until the page is closed, so start it in the background and give the user the address on its first output line.
+
+The page needs no ChemDraw to calculate; ChemDraw is needed only for the drawing button. Do not invent a molecular weight or a density: when a species is not in the table, ask or take it from the user's data.
 
 ## Export every structure in a file
 

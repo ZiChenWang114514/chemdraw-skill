@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full (default)`
-Tools: `47`
+Tools: `48`
 
 ## Extended Tools
 
@@ -187,6 +187,28 @@ R/S/unspecified} for one molecule, verifies the achieved CIP labels, and emits
 a connectivity-preserving diff. Enumeration creates candidate structures,
 not predictions of populations, reaction products, or experimental ratios.
 Writes provenance, bounded candidate results and truncation status to JSON.
+
+### `reaction_calculator(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict`
+
+Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
+
+reaction is the same input as check_reaction_balance: a reaction SMILES
+"reactants>agents>products", {"reactants": [...], "agents": [...], "products": [...]} of
+structure records, or {"cdxml": path, "steps": [step ids]}. A record may fix its own amount
+with one of equiv, mmol, mass_mg or volume_ml (solvents: volume_ml), and may carry name,
+role (agents: solvent, reagent or catalyst), density_g_ml, concentration_m (a stock
+solution), purity (percent) and, for a product, isolated_mg or yield_percent.
+Options: scale_mmol (the limiting reactant, default 1), limiting (reactant index, default 0),
+molarity (of the limiting reactant in the first solvent, default 0.2), title, step (id of the
+CDXML step to use, default the first).
+Everything not fixed gets a default (reactants by their coefficients, reagents 1 equiv,
+metal catalysts 0.05 equiv, a 0.2 M solvent); the result lists those rows under "assumed"
+and the page shows them in italics. Liquids show a volume when a density is known (a small
+library of common solvents and reagents supplies it). The result holds the table and the
+path of a standalone HTML page in which any quantity can be retyped and the rest recomputes,
+with a procedure sentence, Markdown and spreadsheet copies. output_path ends in .html and is
+never overwritten (default reaction-calculator.html). To draw the reaction in ChemDraw and
+look names up, start the page with `cdx.py calc` instead.
 
 ### `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, typing.Any]`
 

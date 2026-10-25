@@ -656,6 +656,16 @@ def cmd_py(ns):
     return subprocess.call([sys.executable, *ns.rest], env=_chemscript_env())
 
 
+def cmd_calc(ns):
+    """Serve the reaction calculator page (draw in ChemDraw, enter amounts, read every quantity).
+
+    Runs until the page is closed, so an agent starts it in the background and reports the
+    address printed on the first line.
+    """
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.reaction_calculator', *ns.rest],
+                           env=_chemscript_env())
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     # `sig` reads a generated reference and help is static: both work before a runtime exists.
@@ -663,6 +673,8 @@ def main(argv=None):
         _ensure_runtime(argv)
     if argv[:1] == ['py']:  # pass everything through untouched (argparse would eat -m/-c)
         return cmd_py(argparse.Namespace(rest=argv[1:]))
+    if argv[:1] == ['calc']:  # the page's own parser handles every flag, including -h
+        return cmd_calc(argparse.Namespace(rest=argv[1:]))
     p = argparse.ArgumentParser(prog='cdx.py', description=__doc__.split('\n')[0])
     sub = p.add_subparsers(dest='cmd', required=True)
     s = sub.add_parser('tools', help='list registered tools')
@@ -728,6 +740,10 @@ def main(argv=None):
     s = sub.add_parser('py', help='run the runtime Python: cdx.py py SCRIPT_OR_-m ... (helper scripts, examples)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_py)
+    s = sub.add_parser('calc', help='reaction calculator page: cdx.py calc [REACTION] [--scale MMOL] [--molarity M] '
+                                    '[--offline] [--no-open] (runs until the page is closed; start it in the background)')
+    s.add_argument('rest', nargs=argparse.REMAINDER)
+    s.set_defaults(fn=cmd_calc)
     s = sub.add_parser('regen-signatures', help='rewrite references/mcp-signatures.md from the live registry '
                                                 '(and, in a checkout, the toolkit fingerprint in runtime.json)')
     s.set_defaults(fn=cmd_regen_signatures)

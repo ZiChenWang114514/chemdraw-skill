@@ -257,11 +257,12 @@
 
 ## `mcp_runtime.report_tools`
 
-- **function**, line 553: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
-- **function**, line 624: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
+- **function**, line 566: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
+- **function**, line 628: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
 - **function**, line 288: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
+- **function**, line 807: `reaction_calculator(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
 - **function**, line 444: `signs(species)` - No public docstring in the audited version.
-- **function**, line 717: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
+- **function**, line 721: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
 
 ## `mcp_runtime.resource_lock`
 
@@ -339,3 +340,45 @@
 - **function**, line 56: `replace_text(node, old, new)` - Preserve unchanged rich runs; single-run labels retain all their style.
 - **function**, line 86: `replacement_fragment(old_fragment, new_smiles, atom_map, stage, root, cid)` - No public docstring in the audited version.
 - **function**, line 151: `update_pages(base_project, base_dir, records, spec, spec_dir, stage)` - No public docstring in the audited version.
+
+## `reaction_calculator.__main__`
+
+- **function**, line 14: `load_state(source: str | None, scale: float, molarity: float | None)` - State for a reaction SMILES, a .cdxml scheme or a JSON reaction record file; empty without one.
+
+## `reaction_calculator.engine`
+
+- **function**, line 64: `compute(state: dict) -> dict` - Amounts of every row from the limiting row and the quantity fixed on each row.
+- **function**, line 138: `rebase(state: dict, new_limiting: str) -> dict` - The same reaction with another limiting row, every amount unchanged.
+
+## `reaction_calculator.library`
+
+- **function**, line 100: `by_name(text: str) -> dict | None` - The library entry for a name or common abbreviation (case-insensitive).
+- **function**, line 90: `by_smiles(smiles: str) -> dict | None` - The library entry for a structure, matched on canonical SMILES (stereo and isotopes ignored).
+- **function**, line 105: `entries() -> list[dict]` - Every entry once, for pages that resolve typed names offline.
+
+## `reaction_calculator.page`
+
+- **function**, line 28: `render_page(state: dict, *, token: str | None = None) -> str` - HTML for a state; ``token`` switches on the buttons that talk to the local server.
+
+## `reaction_calculator.server`
+
+- **function**, line 72: `blank_canvas() -> str` - No public docstring in the audited version.
+- **class**, line 191: `CalculatorApp` - No public docstring in the audited version.
+- **method**, line 235: `CalculatorApp.handler()` - No public docstring in the audited version.
+- **method**, line 224: `CalculatorApp.load_canvas(previous: dict | None) -> dict` - No public docstring in the audited version.
+- **method**, line 206: `CalculatorApp.open_canvas(state: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 287: `CalculatorApp.route(path: str, body: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 298: `CalculatorApp.serve(*, port: int = 0, open_browser: bool = True, announce = print) -> None` - No public docstring in the audited version.
+- **function**, line 35: `canonical(smiles: str) -> str | None` - No public docstring in the audited version.
+- **function**, line 132: `load_drawing(path: Path, previous: dict | None, options: dict | None = None) -> tuple[dict, str]` - Calculator state for the reaction in a saved CDXML file, keeping the amounts already entered.
+- **function**, line 151: `merge_states(old: dict, new: dict) -> dict` - The new rows, with the amounts, names and properties of rows whose structure was already there.
+- **function**, line 103: `open_in_chemdraw(path: Path) -> bool` - Show a file in ChemDraw (the user asked to draw, so a window is expected).
+- **function**, line 40: `resolve(query: str, *, offline: bool = False) -> dict` - A name, abbreviation, SMILES or formula as {ok, name, smiles, formula, mw, density, svg, source}.
+- **function**, line 78: `scheme_yaml(state: dict) -> str | None` - A scheme of the state's reactants and products, with agents as structures above the arrow.
+
+## `reaction_calculator.state`
+
+- **function**, line 83: `build_state(sides: dict, options: dict | None = None) -> dict` - Rows for one reaction; ``sides`` maps reactants, agents and products to species dicts.
+- **function**, line 25: `depiction(smiles: str, width: int = 150, height: int = 110) -> str | None` - Scalable SVG of a structure that follows the page's text colour.
+- **function**, line 153: `empty_state() -> dict` - A calculator with nothing in it yet; the first species added becomes the limiting reactant.
+- **function**, line 158: `plain_json(value) -> str` - JSON that is safe inside an HTML script element.

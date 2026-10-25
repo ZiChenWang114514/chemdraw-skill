@@ -59,7 +59,8 @@ Details and argument examples: [chemistry reports](chemistry-reports.md).
 1. `molecule_report` for formula, masses, expected ESI adduct m/z, isotope pattern, logP/TPSA and Lipinski/Veber checks of grounded structures, including every fragment of a CDXML file (`all_fragments`).
 2. `check_reaction_balance` to test that a reaction string, record lists or the steps of a drawn scheme conserve atoms and charge. It names a missing by-product, suggests whole-number coefficients, reports atom economy, and with `scale_mmol` returns an equivalents/mass/volume/yield table. After an image reconstruction, an unbalanced reaction points to a misread species; resolve that before reporting.
 3. `export_structures` to list every structure of a CDXML/MOL/SDF/SMILES file as SMILES, InChI and InChIKey (CSV, JSON, SMI, SDF or Markdown). Use it as an independent read-back of a saved drawing.
-4. `structure_to_name` for a name of a drawn or supplied structure, from ChemDraw's own engine (ChemScript on Windows, ChemDraw for macOS). Report a name as confirmed only when `roundtrip.status` is `same`; without ChemScript or ChemDraw the tool cannot run and no name may be invented.
+4. `reaction_calculator` for a reaction equivalents calculator: a standalone HTML page with editable equiv/mmol/mass/volume per species, solvent concentration, theoretical and isolated yield, atom economy and RME. For a page the user can draw in, run `cdx.py calc` in the background (add `--offline` to keep name lookups local) and give the user the printed address; the page can open ChemDraw and read the saved drawing back. Say which amounts are defaults (`assumed`).
+5. `structure_to_name` for a name of a drawn or supplied structure, from ChemDraw's own engine (ChemScript on Windows, ChemDraw for macOS). Report a name as confirmed only when `roundtrip.status` is `same`; without ChemScript or ChemDraw the tool cannot run and no name may be invented.
 
 ## Analyze Experiments
 
