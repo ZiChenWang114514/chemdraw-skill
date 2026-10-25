@@ -29,7 +29,7 @@ Users do not install this folder by hand. `python scripts/install.py --runtime -
 
 | Profile | Tools | Focus |
 | --- | ---: | --- |
-| `full` (default) | 47 | Complete local and remote collection |
+| `full` (default) | 48 | Complete local and remote collection |
 | `core` | 16 | Compatible core tools plus capability discovery |
 | `office` | 21 | Office inspection, replacement, templates and batch embedding |
 | `analysis` | 20 | Experiment discovery, LCMS series, lab books and SciFinder RDF |

@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 47,
+  "tool_count": 48,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -308,6 +308,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Analyze grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo.\n\nInput records accept smiles/CXSMILES, molblock, or file (CDXML/MOL/SDF).\nAtom indices are zero-based and refer to each input's atom order. Options:\nmax_results (1..128), only_unassigned (stereoisomers, default true),\ninclude_molblock, timeout (MCS, 1..30 seconds). R-group decomposition uses\nmolecules[0] as the explicit core. set_stereo takes configurations={index:\nR/S/unspecified} for one molecule, verifies the achieved CIP labels, and emits\na connectivity-preserving diff. Enumeration creates candidate structures,\nnot predictions of populations, reaction products, or experimental ratios.\nWrites provenance, bounded candidate results and truncation status to JSON."
+    },
+    {
+      "name": "reaction_calculator",
+      "signature": "(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.\n\nreaction is the same input as check_reaction_balance: a reaction SMILES\n\"reactants>agents>products\", {\"reactants\": [...], \"agents\": [...], \"products\": [...]} of\nstructure records, or {\"cdxml\": path, \"steps\": [step ids]}. A record may fix its own amount\nwith one of equiv, mmol, mass_mg or volume_ml (solvents: volume_ml), and may carry name,\nrole (agents: solvent, reagent or catalyst), density_g_ml, concentration_m (a stock\nsolution), purity (percent) and, for a product, isolated_mg or yield_percent.\nOptions: scale_mmol (the limiting reactant, default 1), limiting (reactant index, default 0),\nmolarity (of the limiting reactant in the first solvent, default 0.2), title, step (id of the\nCDXML step to use, default the first).\nEverything not fixed gets a default (reactants by their coefficients, reagents 1 equiv,\nmetal catalysts 0.05 equiv, a 0.2 M solvent); the result lists those rows under \"assumed\"\nand the page shows them in italics. Liquids show a volume when a density is known (a small\nlibrary of common solvents and reagents supplies it). The result holds the table and the\npath of a standalone HTML page in which any quantity can be retyped and the rest recomputes,\nwith a procedure sentence, Markdown and spreadsheet copies. output_path ends in .html and is\nnever overwritten (default reaction-calculator.html). To draw the reaction in ChemDraw and\nlook names up, start the page with `cdx.py calc` instead."
     },
     {
       "name": "render_cdxml_files",

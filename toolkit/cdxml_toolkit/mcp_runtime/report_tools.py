@@ -550,6 +550,19 @@ def _balance_one(reactants, agents, products, options, step_id=None):
     return reaction
 
 
+def _reaction_sources(reaction):
+    """Reaction input -> [{'step_id', 'reactants', 'agents', 'products'}] of structure records."""
+    if isinstance(reaction, str):
+        return [{'step_id': None, **_from_smiles(reaction)}]
+    if isinstance(reaction, dict) and 'cdxml' in reaction:
+        steps = reaction.get('steps')
+        return _from_cdxml(reaction['cdxml'], set(map(str, steps)) if steps else None)
+    if isinstance(reaction, dict) and reaction.get('reactants') and reaction.get('products'):
+        return [{'step_id': None, 'reactants': reaction['reactants'], 'agents': reaction.get('agents') or [],
+                 'products': reaction['products']}]
+    raise ValueError('reaction must be a reaction SMILES, {"reactants": [...], "products": [...]} or {"cdxml": path}')
+
+
 def check_reaction_balance(reaction: str | dict, options: dict | None = None,
                            output_path: str | None = None) -> dict:
     """Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
@@ -573,16 +586,7 @@ def check_reaction_balance(reaction: str | dict, options: dict | None = None,
     unknown = set(options) - {'scale_mmol', 'limiting', 'main_product'}
     if unknown:
         raise ValueError(f'Unknown options: {sorted(unknown)}')
-    if isinstance(reaction, str):
-        sources = [{'step_id': None, **_from_smiles(reaction)}]
-    elif isinstance(reaction, dict) and 'cdxml' in reaction:
-        steps = reaction.get('steps')
-        sources = _from_cdxml(reaction['cdxml'], set(map(str, steps)) if steps else None)
-    elif isinstance(reaction, dict) and reaction.get('reactants') and reaction.get('products'):
-        sources = [{'step_id': None, 'reactants': reaction['reactants'], 'agents': reaction.get('agents') or [],
-                    'products': reaction['products']}]
-    else:
-        raise ValueError('reaction must be a reaction SMILES, {"reactants": [...], "products": [...]} or {"cdxml": path}')
+    sources = _reaction_sources(reaction)
     reactions = []
     for source in sources:
         sides = {}
@@ -790,5 +794,66 @@ def structure_to_name(molecules: list[dict], options: dict | None = None,
     return result
 
 
+# --- reaction_calculator -----------------------------------------------------
+
+CALCULATOR_ROW_KEYS = ('id', 'role', 'name', 'formula', 'smiles', 'mw', 'coefficient', 'basis', 'value',
+                       'assumed', 'density', 'solution_m', 'purity')
+
+
+def _rounded(value, digits=4):
+    return round(value, digits) + 0.0 if isinstance(value, float) else value
+
+
+def reaction_calculator(reaction: str | dict, options: dict | None = None,
+                        output_path: str | None = None) -> dict:
+    """Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
+
+    reaction is the same input as check_reaction_balance: a reaction SMILES
+    "reactants>agents>products", {"reactants": [...], "agents": [...], "products": [...]} of
+    structure records, or {"cdxml": path, "steps": [step ids]}. A record may fix its own amount
+    with one of equiv, mmol, mass_mg or volume_ml (solvents: volume_ml), and may carry name,
+    role (agents: solvent, reagent or catalyst), density_g_ml, concentration_m (a stock
+    solution), purity (percent) and, for a product, isolated_mg or yield_percent.
+    Options: scale_mmol (the limiting reactant, default 1), limiting (reactant index, default 0),
+    molarity (of the limiting reactant in the first solvent, default 0.2), title, step (id of the
+    CDXML step to use, default the first).
+    Everything not fixed gets a default (reactants by their coefficients, reagents 1 equiv,
+    metal catalysts 0.05 equiv, a 0.2 M solvent); the result lists those rows under "assumed"
+    and the page shows them in italics. Liquids show a volume when a density is known (a small
+    library of common solvents and reagents supplies it). The result holds the table and the
+    path of a standalone HTML page in which any quantity can be retyped and the rest recomputes,
+    with a procedure sentence, Markdown and spreadsheet copies. output_path ends in .html and is
+    never overwritten (default reaction-calculator.html). To draw the reaction in ChemDraw and
+    look names up, start the page with `cdx.py calc` instead.
+    """
+    from ..reaction_calculator import build_state, compute, render_page
+    options = dict(options or {})
+    step = options.pop('step', None)
+    sources = _reaction_sources(reaction)
+    if step is not None:
+        sources = [source for source in sources if source['step_id'] == str(step)]
+        if not sources:
+            raise ValueError(f'No reaction step {step} in the file')
+    sides = {role: _side(sources[0][role], role[:-1]) for role in ('reactants', 'agents', 'products')}
+    state = build_state(sides, options)
+    result = compute(state)
+    target = _publish(output_path or 'reaction-calculator.html', {'.html': lambda: render_page(state)})
+    warnings = list(result['warnings'])
+    if len(sources) > 1:
+        warnings.append(f"The file holds {len(sources)} reaction steps; step {sources[0]['step_id']} was used. "
+                        'Pass options.step for another.')
+    rows = [{**{key: _rounded(row.get(key)) for key in ('id', 'role', 'name', 'formula', 'mw', 'equiv', 'mmol',
+                                                        'mass_mg', 'volume_ml', 'theory_mmol', 'theory_mg',
+                                                        'actual_mg', 'yield_percent') if row.get(key) is not None},
+             'fixed': {'basis': row['basis'], 'value': _rounded(row['value']), 'assumed': bool(row['assumed'])}
+             if row['basis'] else None} for row in result['rows']]
+    totals = {key: _rounded(value) for key, value in result['totals'].items() if value is not None}
+    out = {'ok': True, 'operation': 'reaction_calculator', 'title': state['title'],
+           'limiting': result['limiting'], 'rows': rows, 'totals': totals,
+           'assumed': [row['name'] for row in state['rows'] if row['assumed']], 'warnings': warnings,
+           'output_path': str(target)}
+    return artifact_safety.with_artifacts(out, [target])
+
+
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
-                                         structure_to_name)}
+                                         structure_to_name, reaction_calculator)}

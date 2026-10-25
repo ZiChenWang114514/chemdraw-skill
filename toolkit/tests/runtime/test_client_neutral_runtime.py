@@ -20,7 +20,7 @@ def test_full_profile_is_the_default_and_codex_stays_an_alias():
     # Existing client configurations that pass --profile codex keep working unchanged.
     assert set(tool_registry.build_registry("codex")) == set(default)
     assert tool_registry.normalize_profile(" Codex ") == "full"
-    assert len(default) == 47
+    assert len(default) == 48
 
 
 def test_unknown_profile_is_still_rejected():
@@ -37,7 +37,7 @@ def test_environment_default_profile_is_neutral():
     with mock.patch.dict(os.environ, {}, clear=False):
         os.environ.pop("CHEMDRAW_MCP_PROFILE", None)
         assert mcp_server.parse_args([]).profile == "full"
-        assert capabilities.get_toolkit_capabilities(detail="summary")["outputs"]["tool_count"] == 47
+        assert capabilities.get_toolkit_capabilities(detail="summary")["outputs"]["tool_count"] == 48
 
 
 def test_failure_logs_and_native_temp_use_neutral_folders(tmp_path):
