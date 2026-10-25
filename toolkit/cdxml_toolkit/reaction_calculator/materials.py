@@ -10,7 +10,7 @@ import html
 import io
 
 COLUMNS = ['reaction', 'material', 'role', 'mw', 'equiv', 'mmol', 'mass_mg', 'volume_ml', 'density_g_ml',
-           'limiting', 'assumed', 'theory_mg', 'actual_mg', 'yield_percent', 'hrms']
+           'limiting', 'assumed', 'theory_mg', 'actual_mg', 'yield_percent', 'hrms', 'bond_changes']
 HEAD = ['Material', 'Role', 'MW', 'equiv', 'mmol', 'mass (mg)', 'volume (mL)']
 
 
@@ -88,6 +88,9 @@ def _footer(entry: dict) -> list[str]:
         lines.append(f"Isolated {product['name']}: {trim(product['actual_mg'])} mg, {trim(product['yield_percent'])}% yield.")
     if product.get('hrms'):
         lines.append(product['hrms'] + '.')
+    mapping = entry.get('mapping')
+    if mapping:
+        lines.append(f"Bond changes ({mapping['title']}): {mapping['summary']}.")
     return lines
 
 
@@ -128,7 +131,8 @@ def csv_text(entries: list[dict]) -> str:
                 'assumed': 'yes' if row.get('assumed') else '',
                 'theory_mg': trim(row.get('theory_mg')) if product else '', 'actual_mg': trim(row.get('actual_mg')) if product else '',
                 'yield_percent': trim(row.get('yield_percent')) if product else '',
-                'hrms': row.get('hrms') or '' if product else ''})
+                'hrms': row.get('hrms') or '' if product else '',
+                'bond_changes': (entry.get('mapping') or {}).get('summary', '') if product else ''})
     return buffer.getvalue()
 
 

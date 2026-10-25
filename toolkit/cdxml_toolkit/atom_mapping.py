@@ -455,11 +455,20 @@ def _run_mcs(left, right, resolve_ambiguity):
     return _describe(mapper, full, alternatives, resolve_ambiguity, 'mcs')
 
 
-def _run_learned(name, left, right, resolve_ambiguity):
+def _fetch(name, pairs):
+    """One backend call for every ``(left, right)`` pair: a list with a backend answer or a ValueError for each."""
     try:
-        item = mapping_backends.run(name, [f'{_smiles(left)}>>{_smiles(right)}'])[0]
+        items = mapping_backends.run(name, [f'{_smiles(left)}>>{_smiles(right)}' for left, right in pairs])
     except mapping_backends.BackendError as exc:
-        raise ValueError(str(exc)) from None
+        return [ValueError(str(exc))] * len(pairs)
+    if len(items) != len(pairs):
+        return [ValueError(f'{TITLES[name]} answered {len(items)} of {len(pairs)} reactions')] * len(pairs)
+    return items
+
+
+def _run_learned(name, left, right, resolve_ambiguity, item):
+    if isinstance(item, ValueError):
+        raise item
     if item.get('error') or not item.get('mapped_rxn'):
         raise ValueError(f'{TITLES[name]} could not map this reaction: {item.get("error") or "empty answer"}')
     mapper = _Mapper(left, right)
@@ -484,8 +493,8 @@ def _run_learned(name, left, right, resolve_ambiguity):
     return result
 
 
-def _attempt(name, left, right, resolve_ambiguity):
-    return _run_mcs(left, right, resolve_ambiguity) if name == 'mcs' else _run_learned(name, left, right, resolve_ambiguity)
+def _attempt(name, left, right, resolve_ambiguity, item=None):
+    return _run_mcs(left, right, resolve_ambiguity) if name == 'mcs' else _run_learned(name, left, right, resolve_ambiguity, item)
 
 
 def _compare(results, errors, left, right):
@@ -517,6 +526,60 @@ def _compare(results, errors, left, right):
             'agree': not out and len(results) > 1}
 
 
+def map_atoms_many(reactions, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> list[dict]:
+    """Map many reactions at once; ``reactions`` is a list of ``(left, right)`` as in :func:`map_atoms`.
+
+    A learned mapper loads its model on every call, so each installed method receives all the
+    reactions that still need it in a single call. The answer holds one entry per reaction, in
+    order: the result of :func:`map_atoms`, or ``{"error": text}`` for a reaction that could not
+    be mapped (too large, or the requested method failed on it) while the others carry on.
+    """
+    if method not in METHODS:
+        raise ValueError(f'Unknown method {method!r}; use one of {", ".join(METHODS)}')
+    present = available_methods()
+    if method not in ('auto', 'mcs') and method not in present:
+        raise ValueError(f'{TITLES[method]} is not installed: run `cdx.py install-mappers {method}` '
+                         'or use method "mcs"')
+    order = [method] if method != 'auto' else [n for n in LEARNED if n in present] + ['mcs']
+    slots = [{'results': {}, 'errors': {}, 'warnings': [], 'chosen': None, 'failed': None} for _ in reactions]
+    for slot, (left, right) in zip(slots, reactions):
+        if sum(m.GetNumAtoms() for _, m in left) > MAX_ATOMS or sum(m.GetNumAtoms() for _, m in right) > MAX_ATOMS:
+            slot['failed'] = f'Atom mapping handles at most {MAX_ATOMS} heavy atoms per side'
+    for name in dict.fromkeys(order + (present if compare else [])):
+        live = [i for i, slot in enumerate(slots) if slot['failed'] is None and (compare or slot['chosen'] is None)]
+        if not live:
+            break
+        items = [None] * len(live) if name == 'mcs' else _fetch(name, [reactions[i] for i in live])
+        for i, item in zip(live, items):
+            slot, (left, right) = slots[i], reactions[i]
+            try:
+                slot['results'][name] = _attempt(name, left, right, resolve_ambiguity, item)
+            except ValueError as exc:
+                if method != 'auto' and name == method:
+                    slot['failed'] = str(exc)
+                    continue
+                slot['errors'][name] = str(exc)
+                if name in order and slot['chosen'] is None:
+                    slot['warnings'].append(f'{TITLES[name]} failed ({exc}); trying the next method.')
+                continue
+            if slot['chosen'] is None and name in order:
+                slot['chosen'] = name
+    out = []
+    for slot, (left, right) in zip(slots, reactions):
+        if slot['failed'] is not None or slot['chosen'] is None:
+            out.append({'error': slot['failed'] or '; '.join(slot['errors'].values()) or 'no method could map this reaction'})
+            continue
+        result = slot['results'][slot['chosen']]
+        result['warnings'] = slot['warnings'] + result['warnings']
+        result['available_methods'] = present
+        if compare:
+            result['comparison'] = _compare(slot['results'], slot['errors'], left, right)
+        for r in slot['results'].values():
+            r.pop('_classes', None)
+        out.append(result)
+    return out
+
+
 def map_atoms(left, right, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> dict:
     """Map the heavy atoms of products ``right`` onto reactants ``left`` (lists of (label, mol)).
 
@@ -525,35 +588,7 @@ def map_atoms(left, right, *, resolve_ambiguity: bool = False, method: str = 'au
     learned mapper that fails falls back with a warning). ``compare`` also runs every installed
     method and reports where they disagree.
     """
-    if method not in METHODS:
-        raise ValueError(f'Unknown method {method!r}; use one of {", ".join(METHODS)}')
-    if sum(m.GetNumAtoms() for _, m in left) > MAX_ATOMS or sum(m.GetNumAtoms() for _, m in right) > MAX_ATOMS:
-        raise ValueError(f'Atom mapping handles at most {MAX_ATOMS} heavy atoms per side')
-    present = available_methods()
-    if method not in ('auto', 'mcs') and method not in present:
-        raise ValueError(f'{TITLES[method]} is not installed: run `cdx.py install-mappers {method}` '
-                         'or use method "mcs"')
-    order = [method] if method != 'auto' else [n for n in LEARNED if n in present] + ['mcs']
-    warnings, chosen, results, errors = [], None, {}, {}
-    for name in dict.fromkeys(order + (present if compare else [])):
-        try:
-            results[name] = _attempt(name, left, right, resolve_ambiguity)
-        except ValueError as exc:
-            if method != 'auto' and name == method:
-                raise
-            errors[name] = str(exc)
-            if name in order and chosen is None:
-                warnings.append(f'{TITLES[name]} failed ({exc}); trying the next method.')
-            continue
-        if chosen is None and name in order:
-            chosen = name
-        if chosen is not None and not compare:
-            break
-    result = results[chosen]
-    result['warnings'] = warnings + result['warnings']
-    result['available_methods'] = present
-    if compare:
-        result['comparison'] = _compare(results, errors, left, right)
-    for r in results.values():
-        r.pop('_classes', None)
+    result = map_atoms_many([(left, right)], resolve_ambiguity=resolve_ambiguity, method=method, compare=compare)[0]
+    if 'error' in result:
+        raise ValueError(result['error'])
     return result
