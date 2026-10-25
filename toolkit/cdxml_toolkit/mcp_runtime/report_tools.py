@@ -1094,15 +1094,19 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
 
 
 def _mapping_species(records):
-    out = []
+    """([(label, mol)], {label: drawing fragment id}) of the structures of one side."""
+    out, drawn = [], {}
     for item in (_expand(records, limit=MAX_STRUCTURES) if records else []):
         _check_grounded(item['mol'], item['label'])
         record, mol = item['record'], Chem.Mol(item['mol'])
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(0)
-        out.append((record.get('label') or record.get('name') or record.get('smiles')
-                    or rdMolDescriptors.CalcMolFormula(mol), mol))
-    return out
+        label = (record.get('label') or record.get('name') or record.get('smiles')
+                 or rdMolDescriptors.CalcMolFormula(mol))
+        out.append((label, mol))
+        if item['source'].get('fragment_id'):
+            drawn[label] = item['source']['fragment_id']
+    return out, drawn
 
 
 def _mapping_picture(mapped):
@@ -1116,10 +1120,42 @@ def _mapping_picture(mapped):
 
 def _mapping_job(source, include_agents):
     """One reaction source -> the species lists atom mapping works on."""
-    reactants, agents, products = (_mapping_species(source[role]) for role in ('reactants', 'agents', 'products'))
+    found = [_mapping_species(source[role]) for role in ('reactants', 'agents', 'products')]
+    (reactants, agents, products), drawn = [f[0] for f in found], {k: v for f in found for k, v in f[1].items()}
     include = include_agents and bool(agents)
     return {'reactants': reactants, 'agents': agents, 'products': products, 'include': include,
-            'left': reactants + (agents if include else [])}
+            'left': reactants + (agents if include else []), 'drawn': drawn}
+
+
+def _template_extras(result, job, options):
+    """The reaction class and reaction-centre template a mapping was asked for, added to ``result``."""
+    from .. import reaction_templates
+    if options['classify']:
+        result['reaction_class'] = reaction_templates.classify(job['reactants'], job['agents'], job['products'])
+    if options['template']:
+        template = reaction_templates.reaction_center(result['mapped_reaction'])
+        template['reproduces'] = template['smarts'] and reaction_templates.reproduces(
+            template['smarts'], [mol for _, mol in job['left']], [mol for _, mol in job['products']])
+        if not template['smarts']:
+            template['note'] = (f"No bond change was found between the mapped atoms (the mapping is {result['status']}, "
+                                'and the atoms that differ are left unmapped), so there is no template to extract; '
+                                'try resolve_ambiguity or a learned mapper.')
+        elif result['status'] != 'complete':
+            template['note'] = (f"The mapping is {result['status']}: atoms left unmapped are treated as leaving "
+                                'or new atoms, so check the template against the drawn reaction before reusing it.')
+        result['template'] = template
+
+
+def _numbered_scheme(path, job, outcome):
+    """(CDXML text of the drawing at ``path`` with the map numbers of ``outcome`` beside the atoms, warnings)."""
+    from .. import reaction_templates
+    numbers = {}
+    for entry in outcome['map']:
+        for side in ('reactant', 'product'):
+            fragment = job['drawn'].get(entry[side]['species'])
+            if fragment is not None:
+                numbers.setdefault(fragment, {})[entry[side]['atom_index']] = entry['map']
+    return reaction_templates.write_map_numbers(Path(path).read_text(encoding='utf-8'), numbers)
 
 
 def _mapped_reaction(job, outcome):
@@ -1175,7 +1211,7 @@ def _add_bond_changes(entries, warnings, method):
         warnings += [f"{entry['label']}: {w}" for w in outcome['warnings']]
 
 
-def _map_many(reactions, include_agents, settings, output_path):
+def _map_many(reactions, include_agents, settings, extras, output_path):
     """map_reaction_atoms for a list of reactions: every installed method gets them in one call."""
     from .. import atom_mapping
     items = _batch_items(reactions)
@@ -1202,6 +1238,7 @@ def _map_many(reactions, include_agents, settings, output_path):
             continue
         mapped = _mapped_reaction(job, outcome)
         entry.update({'ok': True, **outcome, 'mapped_reaction': mapped})
+        _template_extras(entry, job, extras)
         warnings += [f"{entry['label']}: {w}" for w in outcome['warnings']]
     result = {'ok': True, 'operation': 'map_reaction_atoms', 'count': len(entries), 'reactions': entries,
               'warnings': warnings}
@@ -1242,19 +1279,38 @@ def map_reaction_atoms(reaction: str | dict | list, options: dict | None = None,
     and, for "mcs", product atoms that could come from more than one reactant atom (status
     "ambiguous"; left unmapped, never decided silently). Other options: resolve_ambiguity
     (default false, "mcs" only) accepts a fixed tie-break for them, with a warning; include_agents
-    (default false) also offers the agent structures as atom sources. output_path ends in .json,
+    (default false) also offers the agent structures as atom sources. Option template adds
+    "template": the reaction centre as a reaction SMARTS (the atoms whose bonds change, their
+    neighbours and the leaving atoms, written by element with maps renumbered from 1) and whether
+    it reproduces the drawn products. Option classify adds "reaction_class": the name of the
+    generic template (amide coupling, esterification, Suzuki-type coupling, aryl amination,
+    reductive amination, Boc deprotection, ...) that makes the drawn products from the drawn
+    structures, every template that fits, and null with a note when none does; it reads the
+    structures only, never the conditions. Option map_numbers_into_scheme (one drawn reaction,
+    {"cdxml": path}) is the path of a new .cdxml: a copy of the drawing with each map number
+    written beside its atom on both sides, never overwriting a file. output_path ends in .json,
     .smi (the mapped reaction SMILES) or .svg (a picture) and is never overwritten. At most 120
     heavy atoms per side.
     """
     from .. import atom_mapping
     options = dict(options or {})
-    unknown = set(options) - {'resolve_ambiguity', 'include_agents', 'method', 'compare'}
+    unknown = set(options) - {'resolve_ambiguity', 'include_agents', 'method', 'compare', 'template', 'classify',
+                              'map_numbers_into_scheme'}
     if unknown:
         raise ValueError(f'Unknown options: {sorted(unknown)}')
     settings = {'resolve_ambiguity': bool(options.get('resolve_ambiguity')),
                 'method': str(options.get('method') or 'auto'), 'compare': bool(options.get('compare'))}
+    extras = {'template': bool(options.get('template')), 'classify': bool(options.get('classify'))}
+    scheme_output = options.get('map_numbers_into_scheme')
+    if scheme_output:
+        if isinstance(reaction, list):
+            raise ValueError('map_numbers_into_scheme writes into one drawn reaction: pass {"cdxml": path}, not a list')
+        if not (isinstance(reaction, dict) and reaction.get('cdxml')):
+            raise ValueError('map_numbers_into_scheme needs a drawn reaction: pass {"cdxml": path}')
+        if Path(str(scheme_output)).suffix.lower() != '.cdxml':
+            raise ValueError('map_numbers_into_scheme must be the path of a new .cdxml file')
     if isinstance(reaction, list):
-        return _map_many(reaction, bool(options.get('include_agents')), settings, output_path)
+        return _map_many(reaction, bool(options.get('include_agents')), settings, extras, output_path)
     sources = _reaction_sources(reaction)
     if len(sources) != 1:
         raise ValueError(f'The file stores {len(sources)} reaction steps; choose one with {{"cdxml": path, "steps": [step id]}}')
@@ -1262,14 +1318,23 @@ def map_reaction_atoms(reaction: str | dict | list, options: dict | None = None,
     outcome = atom_mapping.map_atoms(job['left'], job['products'], **settings)
     mapped = _mapped_reaction(job, outcome)
     result = {'ok': True, 'operation': 'map_reaction_atoms', **outcome, 'mapped_reaction': mapped}
+    _template_extras(result, job, extras)
+    scheme_target = None
+    if scheme_output:
+        text, notes = _numbered_scheme(Path(reaction['cdxml']).expanduser().resolve(), job, outcome)
+        scheme_target = _publish(scheme_output, {'.cdxml': lambda: text})
+        result['scheme_path'] = str(scheme_target)
+        result['warnings'] = list(result['warnings']) + notes
+    targets = [scheme_target] if scheme_target else []
     if output_path:
         target = _publish(output_path, {
             '.json': lambda: json.dumps(result, ensure_ascii=False, indent=2),
             '.smi': lambda: mapped + '\n',
             '.svg': lambda: _mapping_picture(mapped),
         })
-        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
-    return result
+        result = {**result, 'output_path': str(target)}
+        targets.append(target)
+    return artifact_safety.with_artifacts(result, targets) if targets else result
 
 
 def characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict:

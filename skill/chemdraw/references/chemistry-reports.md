@@ -135,6 +135,14 @@ Measured on a laptop CPU (a 43-atom peptide coupling and larger): `mcs` takes un
 - `status`: `complete`; `incomplete` when product atoms have no source in the reactants (a reagent may be missing, try `include_agents`, or the reaction is unbalanced); `ambiguous` (`mcs` only) when product atoms could come from several reactant atoms at the same cost. Ambiguous atoms are left unmapped and listed with their candidates; `resolve_ambiguity: true` accepts a fixed tie-break and warns. **Do not present a tie-break as the true mapping, and do not resolve an ambiguity silently.**
 - `output_path` ends in `.json`, `.smi` (the mapped reaction SMILES) or `.svg` (a picture); at most 120 heavy atoms per side.
 
+### What the mapping can be used for
+
+Three options build on a finished mapping (they also work on each entry of a list):
+
+- `template: true` adds `template`: the **reaction centre** as a reaction SMARTS. It keeps the atoms whose bonds or charge change, their neighbours and the unmapped atoms next to them (leaving groups, new atoms), writes the changing atoms by element and the unchanged neighbours as any atom, and numbers the maps from 1, so it fits other substituents. `reproduces` says whether running it on the drawn reactants gives the drawn products. With an `ambiguous` or `incomplete` mapping the differing atoms are unmapped, so the template may be missing (`smarts: null` with a note) or incomplete; resolve the ambiguity first.
+- `classify: true` adds `reaction_class`: the first of 19 generic templates (amide formation or coupling, sulfonamide, ester formation, esterification, anhydride acylation, Suzuki-type coupling, aryl amination, N- and O-alkylation, reductive amination, carbonyl reduction, alcohol oxidation, ester hydrolysis, Boc deprotection, nitro reduction, C=C hydrogenation, azide-alkyne cycloaddition, Diels-Alder) that makes the drawn products from the drawn structures, with `matches` (every template that fits and the species it used). Reagents drawn as agents can take part. It reads structures only, never conditions, so "Aryl amination (SNAr or Pd/Cu-catalysed C-N coupling)" is a label for the bond change, not a claim about the catalyst. No fitting template gives `name: null` and "unclassified"; say so, do not name a reaction type yourself. Salt or tautomer forms of the products are not matched.
+- `map_numbers_into_scheme: "work/scheme-mapped.cdxml"` (one drawn reaction, `{"cdxml": path}`) writes a copy of the drawing with each map number as a small label beside its atom on both sides, placed in the free space around atoms, bonds and text. The original is untouched and the file is never overwritten; `scheme_path` in the answer names it. Check the picture (`render_cdxml_files`) when an atom label such as H2N is crowded.
+
 ## Export every structure in a file
 
 ```json

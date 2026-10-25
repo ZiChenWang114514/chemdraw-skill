@@ -283,11 +283,11 @@
 
 ## `mcp_runtime.report_tools`
 
-- **function**, line 1275: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
+- **function**, line 1340: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
 - **function**, line 567: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
 - **function**, line 629: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
 - **function**, line 887: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
-- **function**, line 1219: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+- **function**, line 1256: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
 - **function**, line 289: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
 - **function**, line 808: `reaction_calculator(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
 - **function**, line 1033: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
@@ -443,6 +443,13 @@
 - **function**, line 25: `depiction(smiles: str, width: int = 150, height: int = 110) -> str | None` - Scalable SVG of a structure that follows the page's text colour.
 - **function**, line 171: `empty_state() -> dict` - A calculator with nothing in it yet; the first species added becomes the limiting reactant.
 - **function**, line 176: `plain_json(value) -> str` - JSON that is safe inside an HTML script element.
+
+## `reaction_templates`
+
+- **function**, line 105: `classify(reactants, agents, products) -> dict` - Name the reaction by the generic template that makes the drawn products from its structures.
+- **function**, line 171: `reaction_center(mapped_reaction: str) -> dict` - The reaction centre of an atom-mapped reaction SMILES as a reaction SMARTS.
+- **function**, line 223: `reproduces(smarts, reactants, products) -> bool | None` - Whether the template run on ``reactants`` (list of mols) makes one of ``products``; None if it cannot run.
+- **function**, line 335: `write_map_numbers(text: str, numbers: dict) -> tuple[str, list]` - (CDXML text with the map numbers added, warnings).
 
 ## `spectral_text`
 
