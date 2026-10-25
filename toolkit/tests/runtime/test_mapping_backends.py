@@ -211,6 +211,12 @@ def test_command_line_accepts_no_names_and_rejects_unknown_ones(tmp_path, monkey
         mapping_backends.main(['--dry-run', 'magic'])
 
 
+def test_every_backend_environment_installs_rdkit_itself():
+    # each sidecar environment is isolated from the runtime, so nothing is inherited from it
+    for name, spec in mapping_backends.BACKENDS.items():
+        assert any(r.split('<')[0].split('=')[0].split('>')[0] == 'rdkit' for r in spec['requirements']), name
+
+
 def test_map_atoms_validates_method_before_searching():
     with pytest.raises(ValueError, match='Unknown method'):
         atom_mapping.map_atoms([('a', Chem.MolFromSmiles('CO'))], [('b', Chem.MolFromSmiles('CO'))], method='x')

@@ -31,7 +31,7 @@ BACKENDS = {
     'rxnmapper': {
         'title': 'RXNMapper',
         'module': 'rxnmapper',
-        'requirements': ['rxnmapper>=0.4.3', 'setuptools<81'],
+        'requirements': ['rxnmapper>=0.4.3', 'rdkit', 'setuptools<81'],
         'python': 'Python 3.10 to 3.13',
         'minor': (10, 13),
     },
