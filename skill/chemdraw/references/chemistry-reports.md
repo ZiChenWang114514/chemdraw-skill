@@ -8,6 +8,7 @@ These tools answer the questions people ask after a structure is drawn: what are
 | Does this reaction conserve atoms and charge? What is missing? Amounts for a given scale? | `check_reaction_balance` |
 | How much of each reagent, solvent and product for this reaction? A page I can draw in and type amounts into; amounts written under the structures of a ChemDraw scheme | `reaction_calculator` (`scheme_output`), `cdx.py calc` |
 | An HRMS characterization sentence (`HRMS (ESI) m/z calcd for ... [M+Na]+ ...`) | `hrms_line` |
+| A whole characterization paragraph (appearance, Rf, mp, rotation, IR, 1H/13C NMR, HRMS) in ACS order, with the peak counts checked | `characterization_text` |
 | The experimental-section materials table and procedure sentence for a batch of reactions | `si_materials_tables` |
 | Which reactant atom does each product atom come from? What bonds change? | `map_reaction_atoms` |
 | Give me every structure in this CDXML/SDF as SMILES, InChI or a table | `export_structures` |
@@ -79,6 +80,24 @@ Add `scheme_output` (a new `.cdxml` path, never overwritten) to `reaction_calcul
 ```
 
 Per structure the result holds the ion formula, the calculated m/z and the line, for example `HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570` (the ion formula is in Hill order with the attached ion last). The m/z is the monoisotopic mass plus the adduct atoms minus the electron mass; `options.electron_mass: false` ignores the electron, as some calculators do, so say which convention a journal expects. Defaults: `[M+H]+` (`[M-H]-` with `mode: "negative"`, the molecular ion for `ionization: "EI"`, a charged structure is its own ion). A measured `found_mz` adds the error in ppm; more than 5 ppm is flagged. `output_path` ends in `.txt`, `.md`, `.csv` or `.json`. The numbers are calculated: never write a "found" value the user did not give.
+
+## Characterization paragraphs
+
+```json
+{"compounds": [{"label": "3a", "smiles": "CC(=O)OCc1ccccc1", "appearance": "colorless oil",
+                "ir": {"medium": "neat", "values": [3034, 1738, 1229]},
+                "nmr": {"1H": {"frequency": 400, "solvent": "CDCl3", "text": "7.40-7.30 (m, 5H), 5.11 (s, 2H), 2.10 (s, 3H)"},
+                        "13C": {"frequency": 101, "solvent": "CDCl3", "peaks": ["171.0", "136.0", "128.6", "128.3", "128.2", "66.4", "21.1"]}},
+                "adduct": "[M+Na]+", "found_mz": 173.0572}],
+ "output_path": "work/characterization.txt"}
+```
+
+`characterization_text` writes one paragraph per compound in the order of the ACS Style Guide: appearance; Rf; mp; [α]D; IR; 1H NMR; 13C NMR; other nuclei (`19F`, `31P`, `11B` ...); HRMS (the `hrms_line` sentence; `"hrms": false` leaves it out). Every item is optional, and missing instrument details (frequency, solvent) are left out, never filled in.
+
+- NMR peaks are text (`7.40-7.30 (m, 5H), 7.55 (dd, J = 8.0, 2.0 Hz, 1H)`), a list of numbers or strings, or `{shift | range, mult, J, n}` dicts. The digits you give are printed unchanged (`2.10` stays `2.10`), a range gets an en dash, and `J=7.1` becomes `J = 7.1 Hz`. A peak the parser cannot read is an error that names it.
+- The tool reports mismatches as `warnings` and in each compound's `checks`; it never edits a value. Checked: the 1H integral against the hydrogens of the structure (exchangeable OH/NH protons are often missing); the 13C signal count against the symmetry-distinct carbons (quaternary carbons overlap, C-F or C-P coupling adds lines); a residual solvent signal in a 13C list (CDCl3 77.16, DMSO-d6 39.52, CD3OD 49.00, acetone-d6, C6D6, CD2Cl2, CD3CN); an unusual multiplicity code; a melting range wider than 5 °C; a rotation without concentration or solvent; an HRMS error over 5 ppm; a missing found mass.
+- Read the warnings with the user before the paragraph goes into a manuscript. **A warning is a question about the data, not a correction: do not add, drop or round a peak to make a check pass.**
+- `output_path` ends in `.txt` (one line per compound), `.md` or `.json`, and is never overwritten.
 
 ## Materials tables for a batch of reactions
 

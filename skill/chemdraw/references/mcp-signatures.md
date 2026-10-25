@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full (default)`
-Tools: `51`
+Tools: `52`
 
 ## Extended Tools
 
@@ -23,6 +23,25 @@ Compare up to 256 molecule pairs with one ChemScript bridge session.
 ### `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, typing.Any]`
 
 Create PPTX or DOCX containing editable ChemDraw OLE objects.
+
+### `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict`
+
+ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
+
+Each record is a grounded structure (SMILES, molblock or CDXML/MOL/SDF file, optional label)
+with any of: appearance (text), rf ({value, eluent}), mp (number, "112-114" or [low, high]),
+optical_rotation ({value, c, solvent, temperature}), ir ({medium, values} or a list), nmr
+({"1H": {frequency, solvent, text | peaks}, "13C": {...}, "19F": {...}}), and the HRMS fields
+of hrms_line (adduct, adducts, found_mz; "hrms": false leaves HRMS out). NMR peaks are text
+such as "7.40-7.30 (m, 5H), 5.11 (s, 2H)" or a list of numbers, strings and
+{shift | range, mult, J, n}; the digits you give are printed unchanged and ranges get an en
+dash. The paragraph reads: appearance; Rf; mp; [a]D; IR; 1H; 13C; other nuclei; HRMS.
+Checks never change a value; they add warnings: the 1H integral against the hydrogens of the
+formula, the 13C signal count against the symmetry-distinct carbons, a residual-solvent
+signal in a 13C list, an unusual multiplicity code, a wide melting range, a rotation without
+c or solvent, and an HRMS error over 5 ppm. Options are those of hrms_line (adducts, mode,
+ionization, decimals, electron_mass). Output ends in .txt, .md or .json and is never
+overwritten. At most 256 structures.
 
 ### `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict`
 
