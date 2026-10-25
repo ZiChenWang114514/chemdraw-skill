@@ -48,6 +48,16 @@ if sys.platform == "darwin" and os.environ.get("CDXML_LIVE_CHEMDRAW") != "1":
     _mac.find_application = lambda *_args, **_kwargs: None
 
 
+@pytest.fixture(autouse=True)
+def _no_installed_mappers(monkeypatch, tmp_path_factory):
+    """Atom mapping stays on the built-in method unless a test points at a mapper home.
+
+    A machine that installed LocalMapper or RXNMapper would otherwise change what the
+    default ``auto`` method returns.
+    """
+    monkeypatch.setenv("CHEMDRAW_MAPPER_HOME", str(tmp_path_factory.getbasetemp() / "no-mappers"))
+
+
 @pytest.fixture
 def project_root():
     """Absolute path to the chem-tools project root."""
