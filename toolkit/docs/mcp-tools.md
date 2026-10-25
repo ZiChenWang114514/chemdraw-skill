@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `52`
+Tools: `53`
 
 ## Extended Tools
 
@@ -300,6 +300,28 @@ Replace selected ChemDraw OLE contents and previews without moving them.
 With ``resize_frames``, each frame grows or shrinks with its drawing, as
 Office does after an object is edited in ChemDraw; its top-left corner
 stays in place. Otherwise frames keep their size.
+
+### `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict`
+
+Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
+
+steps are listed in the order they are run; the last one makes the final product. A step is a
+reaction as in si_materials_tables (a reaction SMILES, {"reactants": ..., "products": ...}
+records, {"cdxml": path} or {"label": "2", "reaction": ..., "options": {...}}, whose amounts,
+isolated mass or yield come from the reaction calculator) or just numbers: {"label": "2",
+"yield_percent": 85, "input_mg": 1500, "product_mg": 340, "used_mg": 300}. input_mg is
+everything put into the step (reagents, catalysts, solvents), product_mg the isolated mass of
+its product; a reaction takes both from the calculator (a solvent with no density has no mass
+and makes the PMI a lower bound), and either can be given on the step to override. A step
+feeds the next one; "into": "<later step label>" makes the route convergent. used_mg is the
+mass of a step's product that the step it feeds consumes: it is read from the structures when
+both steps are reactions and the product is drawn as a reactant of the next, and is otherwise
+required once the masses are given. Overall yield is the product of the step yields along the
+longest linear sequence. Cumulative PMI is the mass put into all steps over the mass of the
+final product, each step scaled so that it makes exactly what the next one uses (scale);
+E-factor is PMI - 1. Work-up, extraction and purification solvents count only if you include
+them in input_mg; a missing number is reported in warnings, never assumed. output_path ends in
+.md, .csv or .json and is never overwritten. At most 100 steps.
 
 ### `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, typing.Any]`
 

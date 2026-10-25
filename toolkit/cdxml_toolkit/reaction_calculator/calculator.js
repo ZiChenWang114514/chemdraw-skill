@@ -257,6 +257,7 @@
       ['Concentration', t.concentration_m ? fmt(t.concentration_m) + ' M' : '—', t.solvent_ml ? fmt(t.solvent_ml) + ' mL solvent' : 'no solvent set', ''],
       ['Mass in', fmt(t.input_mg) + ' mg', 'reactants, reagents, catalysts', ''],
       ['Atom economy', t.atom_economy_percent === undefined ? '—' : fmt(t.atom_economy_percent) + ' %', 'first product over reactants', ''],
+      ['PMI', t.pmi === undefined ? '—' : fmt(t.pmi), t.pmi === undefined ? 'needs the isolated mass' : 'E-factor ' + fmt(t.e_factor) + (t.solvents_without_mass ? ', solvent mass missing' : ''), ''],
       ['Theoretical yield', main ? fmt(main.theory_mg) + ' mg' : '—', main ? main.name : '', ''],
       ['Yield', main && main.yield_percent !== null ? fmt(main.yield_percent) + ' %' : '—', main && main.actual_mg !== null ? fmt(main.actual_mg) + ' mg isolated' : 'enter isolated mass', main && main.yield_percent !== null ? 'good' : '']
     ];

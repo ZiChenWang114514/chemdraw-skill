@@ -124,6 +124,10 @@ def compute(state: dict) -> dict:
     totals = {'concentration_m': base / solvent_ml if solvent_ml else None, 'solvent_ml': solvent_ml or None,
               'limiting_mmol': base,
               'input_mg': sum(r['mass_mg'] for r in rows if r['role'] in AMOUNT_ROLES)}
+    solvents = [r for r in rows if r['role'] == 'solvent']
+    solvent_mg = sum(r['mass_mg'] for r in solvents if r['mass_mg'] is not None)
+    totals['solvent_mg'] = solvent_mg or None
+    totals['solvents_without_mass'] = sum(1 for r in solvents if r['mass_mg'] is None)
     reactant_mass = sum(r['mw'] * (_number(r, 'coefficient', positive=True, default=1.0)) for r in reactants)
     if products and reactant_mass:
         main = products[0]
@@ -132,6 +136,12 @@ def compute(state: dict) -> dict:
         if main['actual_mg'] is not None:
             weighed = sum(r['mass_mg'] for r in reactants)
             totals['reaction_mass_efficiency_percent'] = main['actual_mg'] / weighed * 100.0
+    if products and products[0]['actual_mg']:
+        # process mass intensity of the reaction step: everything put in per mass of isolated product
+        actual = products[0]['actual_mg']
+        totals['pmi'] = (totals['input_mg'] + solvent_mg) / actual
+        totals['e_factor'] = totals['pmi'] - 1.0
+        totals['pmi_no_solvent'] = totals['input_mg'] / actual
     return {'limiting': limiting['id'], 'rows': rows, 'totals': totals, 'warnings': warnings}
 
 

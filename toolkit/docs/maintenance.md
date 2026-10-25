@@ -122,7 +122,7 @@ and Trusted Publishing is configured with an approved GitHub environment.
 - `cdxml_toolkit.mcp_server` retains the 15 compatible core tools.
 - `cdxml_toolkit.mcp_runtime` owns worker isolation, native resource coordination,
   artifact validation, HTTP security, metrics, and the complete tool registry.
-- The `full` profile (default) contains 52 tools; `codex` is a compatibility alias.
+- The `full` profile (default) contains 53 tools; `codex` is a compatibility alias.
   Smaller profiles are tested by exact count.
 - The runtime is client-neutral: no agent-specific configuration writers or
   defaults. The ChemDraw COM mutex keeps its historical name so that older and
