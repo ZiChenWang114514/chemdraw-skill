@@ -827,9 +827,13 @@ def reaction_calculator(reaction: str | dict, options: dict | None = None,
     never overwritten (default reaction-calculator.html). To draw the reaction in ChemDraw and
     look names up, start the page with `cdx.py calc` instead.
     """
-    from ..reaction_calculator import build_state, compute, render_page
+    from ..reaction_calculator import annotate, build_state, compute, render_page
     options = dict(options or {})
     step = options.pop('step', None)
+    scheme_output = options.pop('scheme_output', None)
+    scheme_show = tuple(options.pop('scheme_show', None) or annotate.SHOW)
+    if set(scheme_show) - set(annotate.SHOW):
+        raise ValueError(f'scheme_show may contain {list(annotate.SHOW)}')
     sources = _reaction_sources(reaction)
     if step is not None:
         sources = [source for source in sources if source['step_id'] == str(step)]
@@ -838,7 +842,11 @@ def reaction_calculator(reaction: str | dict, options: dict | None = None,
     sides = {role: _side(sources[0][role], role[:-1]) for role in ('reactants', 'agents', 'products')}
     state = build_state(sides, options)
     result = compute(state)
+    scheme_text = unplaced = None
+    if scheme_output:
+        scheme_text, unplaced = _annotated_scheme(reaction, state, result, scheme_show)
     target = _publish(output_path or 'reaction-calculator.html', {'.html': lambda: render_page(state)})
+    scheme_target = _publish(scheme_output, {'.cdxml': lambda: scheme_text}) if scheme_output else None
     warnings = list(result['warnings'])
     if len(sources) > 1:
         warnings.append(f"The file holds {len(sources)} reaction steps; step {sources[0]['step_id']} was used. "
@@ -853,7 +861,20 @@ def reaction_calculator(reaction: str | dict, options: dict | None = None,
            'limiting': result['limiting'], 'rows': rows, 'totals': totals,
            'assumed': [row['name'] for row in state['rows'] if row['assumed']], 'warnings': warnings,
            'output_path': str(target)}
-    return artifact_safety.with_artifacts(out, [target])
+    if scheme_target:
+        out.update(scheme_path=str(scheme_target), scheme_unplaced=unplaced)
+    return artifact_safety.with_artifacts(out, [target] + ([scheme_target] if scheme_target else []))
+
+
+def _annotated_scheme(reaction, state, result, show):
+    """CDXML text of the reaction scheme with the amounts written under each structure."""
+    from ..reaction_calculator.server import annotated_scheme
+    source = None
+    if isinstance(reaction, dict) and reaction.get('cdxml'):
+        source = Path(reaction['cdxml']).expanduser().resolve()
+        if not source.is_file():
+            raise ValueError(f'Input file does not exist: {source}')
+    return annotated_scheme(state, result, show, source)
 
 
 def hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict:

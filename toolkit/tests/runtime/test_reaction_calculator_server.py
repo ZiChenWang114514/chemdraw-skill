@@ -1,6 +1,7 @@
 import http.client
 import json
 import re
+from pathlib import Path
 import threading
 import time
 from urllib.parse import urlparse
@@ -94,6 +95,22 @@ def test_load_before_drawing_and_a_blank_drawing_give_actionable_errors(tmp_path
     assert 'Save the drawing in ChemDraw' in app.load_canvas(None)['error']
     refused = server.CalculatorApp(state_of(), workdir=tmp_path / 'x', opener=lambda path: False)
     assert refused.open_canvas(refused.state)['ok'] is False
+
+
+def test_amounts_are_written_into_a_copy_of_the_drawing_and_the_canvas_is_left_alone(tmp_path):
+    opened = []
+    app = server.CalculatorApp(state_of(), workdir=tmp_path, opener=lambda path: opened.append(path) or True)
+    assert app.write_scheme({'rows': []})['ok'] is False
+    fresh = app.write_scheme(app.state)                      # no drawing yet: the scheme is drawn from the state
+    assert fresh['ok'] and fresh['unplaced'] == [] and 'dichloromethane (5.00 mL' in open(fresh['path'], encoding='utf-8').read()
+    app.open_canvas(app.state)
+    before = app.canvas.read_text(encoding='utf-8')
+    again = app.write_scheme(app.state)                      # a drawing exists: its copy is annotated
+    assert again['ok'] and again['path'] != fresh['path'] and again['unplaced'] == ['dichloromethane']
+    assert app.canvas.read_text(encoding='utf-8') == before
+    assert '108 mg' in open(again['path'], encoding='utf-8').read() and str(opened[-1]) == again['path']
+    refused = server.CalculatorApp(state_of(), workdir=tmp_path / 'z', opener=lambda path: False)
+    assert refused.write_scheme(refused.state)['ok'] is False
 
 
 def test_command_line_inputs_become_the_starting_state(tmp_path):

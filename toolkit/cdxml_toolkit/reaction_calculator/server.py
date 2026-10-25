@@ -22,7 +22,7 @@ from pathlib import Path
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
-from . import library
+from . import annotate, library
 from .engine import compute
 from .page import render_page
 from .state import build_state, depiction
@@ -75,8 +75,11 @@ def blank_canvas() -> str:
     return _header('0 0 0 0') + _PAGE_OPEN.format(page_id=1) + '</page>' + CDXML_FOOTER
 
 
-def scheme_yaml(state: dict) -> str | None:
-    """A scheme of the state's reactants and products, with agents as structures above the arrow."""
+def scheme_yaml(state: dict, computed: dict | None = None) -> str | None:
+    """A scheme of the state's reactants and products, with agents as structures above the arrow.
+
+    With ``computed`` (the result of ``compute``) the solvent text under the arrow carries its volume
+    and the concentration of the limiting reagent."""
     rows = state.get('rows', [])
     structures, ids = {}, {}
     for row in rows:
@@ -88,7 +91,18 @@ def scheme_yaml(state: dict) -> str | None:
     if not reactants or not products:
         return None
     agents = [ids[r['id']] for r in rows if r['role'] in ('reagent', 'catalyst') and r['id'] in ids]
-    below = ', '.join(r['name'] for r in rows if r['role'] == 'solvent')
+    amounts = {r['id']: r for r in (computed or {}).get('rows', [])}
+    molarity = (computed or {}).get('totals', {}).get('concentration_m')
+
+    def solvent_text(row):
+        found = amounts.get(row['id'])
+        if not found or not found.get('volume_ml'):
+            return row['name']
+        extra = f"{annotate.volume_text(found['volume_ml'])}"
+        if molarity and row is next(r for r in rows if r['role'] == 'solvent'):
+            extra += f", {annotate.sig(molarity, 2)} M"
+        return f"{row['name']} ({extra})"
+    below = ', '.join(solvent_text(r) for r in rows if r['role'] == 'solvent')
     lines = ['layout: linear', 'structures:']
     for key, value in structures.items():
         lines += [f'  {key}:', f"    smiles: {json.dumps(value['smiles'])}"]
@@ -98,6 +112,25 @@ def scheme_yaml(state: dict) -> str | None:
     if below:
         lines += ['    below_arrow:', f'      text: [{json.dumps(below)}]']
     return '\n'.join(lines) + '\n'
+
+
+def annotated_scheme(state: dict, computed: dict, show=annotate.SHOW, source: Path | None = None) -> tuple[str, list[str]]:
+    """(CDXML text, rows without a drawn structure) of the scheme with the amounts written on it.
+
+    ``source`` is a drawing to annotate (it is only read); without one the scheme is drawn from the
+    state, with the solvent volume and concentration written under the arrow."""
+    if source is not None:
+        return annotate.annotate(source, computed['rows'], state['limiting'], show)
+    yaml_text = scheme_yaml(state, computed)
+    if yaml_text is None:
+        raise ValueError('A scheme needs at least one reactant and one product with a structure')
+    from cdxml_toolkit.mcp_runtime import official_overrides as api
+    with tempfile.TemporaryDirectory(prefix='cdx-scheme-') as folder:
+        drawn = Path(folder) / 'scheme.cdxml'
+        api.render_scheme(yaml_text=yaml_text, output_path=str(drawn))
+        text, unplaced = annotate.annotate(drawn, computed['rows'], state['limiting'], show)
+    solvents = {row['name'] for row in computed['rows'] if row['role'] == 'solvent'}
+    return text, [name for name in unplaced if name not in solvents]  # solvents are written under the arrow
 
 
 def open_in_chemdraw(path: Path) -> bool:
@@ -231,6 +264,20 @@ class CalculatorApp:
                                           'the reactants and the products, then press Load drawing again.'}
         return {'ok': True, 'state': state, 'summary': summary}
 
+    def write_scheme(self, state: dict) -> dict:
+        """A new file with the amounts written on the scheme (the drawing being edited is only read)."""
+        if not state or not state.get('rows'):
+            return {'ok': False, 'error': 'Add the reaction first.'}
+        computed = compute(state)
+        with self.lock:
+            source = self.canvas if self.canvas is not None and self.canvas.exists() else None
+            text, unplaced = annotated_scheme(state, computed, annotate.SHOW, source)
+            target = self.workdir / f'amounts-{len(list(self.workdir.glob("amounts-*.cdxml"))) + 1}.cdxml'
+            target.write_text(text, encoding='utf-8')
+        if not self.opener(target):
+            return {'ok': False, 'error': f'ChemDraw could not be opened on this system. The scheme is at {target}.'}
+        return {'ok': True, 'path': str(target), 'unplaced': unplaced}
+
     # -- serving
     def handler(self):
         app = self
@@ -291,6 +338,8 @@ class CalculatorApp:
             return resolve(str(body.get('query', '')), offline=self.offline)
         if path == '/api/canvas':
             return self.open_canvas(body.get('state') or {'rows': []})
+        if path == '/api/scheme':
+            return self.write_scheme(body.get('state'))
         if path == '/api/canvas/load':
             return self.load_canvas(body.get('state'))
         return {'ok': False, 'error': 'unknown endpoint'}

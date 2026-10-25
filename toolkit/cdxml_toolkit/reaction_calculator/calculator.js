@@ -379,7 +379,7 @@
   }
   function serverButtons() {
     var on = !!API;
-    ['draw', 'load'].forEach(function (id) { $(id).disabled = !on; $(id).title = on ? '' : 'Start the calculator with cdx.py calc to draw in ChemDraw'; });
+    ['draw', 'load', 'scheme'].forEach(function (id) { $(id).disabled = !on; $(id).title = on ? '' : 'Start the calculator with cdx.py calc to draw in ChemDraw'; });
     if (!on) return;
     setInterval(function () { post('/api/ping').catch(function () {}); }, 15000);
     post('/api/ping').catch(function () {});
@@ -428,6 +428,13 @@
       if (!r.ok) { say(r.error || 'Could not read the drawing.', 'err'); return; }
       snapshot(); S = r.state; build();
       say('Loaded ' + (r.summary || 'the drawing') + '. Amounts you had set were kept for structures that are still there.', 'ok');
+    }).catch(function () { say('The calculator server is not running any more.', 'err'); });
+  });
+  $('scheme').addEventListener('click', function () {
+    say('Writing the amounts into a scheme…', '', true);
+    post('/api/scheme', { state: plain(S) }).then(function (r) {
+      var missing = r.unplaced && r.unplaced.length ? ' Not drawn, so not labelled: ' + r.unplaced.join(', ') + '.' : '';
+      say(r.ok ? 'A copy with the amounts is open in ChemDraw (' + r.path + ').' + missing : (r.error || 'Could not write the scheme.'), r.ok ? 'ok' : 'err', true);
     }).catch(function () { say('The calculator server is not running any more.', 'err'); });
   });
   $('title').addEventListener('change', function () { S.title = $('title').textContent.trim(); });
