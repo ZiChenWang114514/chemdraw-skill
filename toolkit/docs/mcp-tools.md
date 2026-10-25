@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `46`
+Tools: `47`
 
 ## Extended Tools
 
@@ -140,7 +140,7 @@ Check a markush.json spec; every error says what to change.
 
 Merge parallel, sequential, or unrelated CDXML reaction schemes.
 
-### `molecule_report(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict`
+### `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict`
 
 Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
 
@@ -203,6 +203,24 @@ stays in place. Otherwise frames keep their size.
 ### `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, typing.Any]`
 
 Segment a disconnected or multi-panel CDXML scheme into logical regions.
+
+### `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict`
+
+Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
+
+Records are SMILES/CXSMILES, molblock or file records (CDXML/MOL/SDF), with an optional
+label; a CDXML or SDF record with all_fragments=true names every structure in the file.
+The name is the one ChemDraw's "Convert Structure to Name" produces (ChemScript on Windows,
+ChemDraw for macOS on a Mac); it is not generated or guessed by this toolkit, and no
+structure leaves the machine. With the default option verify=true each name is parsed
+back to a structure by ChemDraw and compared with the input by InChIKey, component by
+component: roundtrip.status is same, same_connectivity (stereo, charge or isotope layers
+differ), different, unparseable or skipped. Report a name as confirmed only when the status
+is same. Enhanced (and/or) stereo groups cannot be expressed in a name and are warned about.
+One structure that ChemDraw cannot name is reported with its error and does not stop the others.
+Needs ChemScript (Windows) or ChemDraw for macOS, like compare_molecules; there is no
+offline fallback. output_path ends in .csv, .json or .md and is never overwritten.
+At most 256 structures.
 
 ## Official Tools
 

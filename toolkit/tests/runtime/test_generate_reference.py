@@ -24,7 +24,7 @@ def test_current_reference_interface_writes_markdown_and_json(tmp_path):
         == 0
     )
     assert markdown.read_text(encoding="utf-8") == generate_reference.render_markdown()
-    assert json.loads(schema.read_text(encoding="utf-8"))["tool_count"] == 46
+    assert json.loads(schema.read_text(encoding="utf-8"))["tool_count"] == 47
 
 
 def test_descriptions_are_dedented_on_every_python_version(monkeypatch):

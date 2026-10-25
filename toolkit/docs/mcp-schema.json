@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 46,
+  "tool_count": 47,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -247,7 +247,7 @@
     },
     {
       "name": "molecule_report",
-      "signature": "(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict",
+      "signature": "(molecules: list[dict], output_path: str | None = None) -> dict",
       "group": "extended",
       "resource_class": null,
       "timeout_seconds": null,
@@ -364,6 +364,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Segment a disconnected or multi-panel CDXML scheme into logical regions."
+    },
+    {
+      "name": "structure_to_name",
+      "signature": "(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 300,
+      "description": "Name grounded structures with ChemDraw's own structure-to-name engine and check each name.\n\nRecords are SMILES/CXSMILES, molblock or file records (CDXML/MOL/SDF), with an optional\nlabel; a CDXML or SDF record with all_fragments=true names every structure in the file.\nThe name is the one ChemDraw's \"Convert Structure to Name\" produces (ChemScript on Windows,\nChemDraw for macOS on a Mac); it is not generated or guessed by this toolkit, and no\nstructure leaves the machine. With the default option verify=true each name is parsed\nback to a structure by ChemDraw and compared with the input by InChIKey, component by\ncomponent: roundtrip.status is same, same_connectivity (stereo, charge or isotope layers\ndiffer), different, unparseable or skipped. Report a name as confirmed only when the status\nis same. Enhanced (and/or) stereo groups cannot be expressed in a name and are warned about.\nOne structure that ChemDraw cannot name is reported with its error and does not stop the others.\nNeeds ChemScript (Windows) or ChemDraw for macOS, like compare_molecules; there is no\noffline fallback. output_path ends in .csv, .json or .md and is never overwritten.\nAt most 256 structures."
     },
     {
       "name": "summarize_reaction",

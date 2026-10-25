@@ -1,4 +1,4 @@
-"""Deterministic chemistry reports: property sheets, reaction balance and bulk structure export.
+"""Deterministic chemistry reports: property sheets, reaction balance, structure export and names.
 
 Every number comes from RDKit applied to a grounded structure (SMILES, MOL/SDF or a CDXML
 fragment read back from the file). Nothing here recognises, guesses or edits structures.
@@ -20,6 +20,7 @@ from rdkit.Chem import Crippen
 
 from ..chemistry_semantics import read_fragments
 from . import artifact_safety
+from .chemistry_compare import _bridge_factory
 from .figure_tools import _mol as _single_molecule
 
 MAX_STRUCTURES = 256
@@ -674,4 +675,120 @@ def export_structures(source: str | list, options: dict | None = None,
     return result
 
 
-REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures)}
+# --- structure_to_name -------------------------------------------------------
+
+def _component_keys(mol):
+    keys = [_inchi(fragment)[1] for fragment in Chem.GetMolFrags(Chem.RemoveHs(mol), asMols=True)]
+    return None if any(key is None for key in keys) else sorted(keys)
+
+
+def _component_keys_of_all(fragments):
+    keys = []
+    for _, mol in fragments:
+        part = _component_keys(mol)
+        if part is None:
+            return None
+        keys.extend(part)
+    return sorted(keys)
+
+
+def _roundtrip(bridge, name, expected):
+    """Parse the name back to a structure with ChemDraw and compare it with the input by InChIKey."""
+    try:
+        cdxml = bridge.name_to_cdxml(name)
+        parsed = _component_keys_of_all(read_fragments(cdxml))
+    except Exception as exc:
+        return {'status': 'unparseable', 'note': f'ChemDraw could not turn the name back into a structure: {exc}'}
+    if expected is None or parsed is None:
+        return {'status': 'skipped', 'note': 'An InChI could not be generated for the comparison.'}
+    result = {'inchikey_input': '.'.join(expected), 'inchikey_from_name': '.'.join(parsed)}
+    if expected == parsed:
+        return {'status': 'same', **result}
+    if [k[:14] for k in expected] == [k[:14] for k in parsed]:
+        return {'status': 'same_connectivity', **result,
+                'note': 'Connectivity matches but the stereochemistry, charge or isotope layers differ.'}
+    return {'status': 'different', **result,
+            'note': 'The name describes another structure than the one supplied.'}
+
+
+NAME_COLUMNS = ['label', 'name', 'formula', 'roundtrip_status', 'smiles']
+
+
+def structure_to_name(molecules: list[dict], options: dict | None = None,
+                      output_path: str | None = None) -> dict:
+    """Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
+
+    Records are SMILES/CXSMILES, molblock or file records (CDXML/MOL/SDF), with an optional
+    label; a CDXML or SDF record with all_fragments=true names every structure in the file.
+    The name is the one ChemDraw's "Convert Structure to Name" produces (ChemScript on Windows,
+    ChemDraw for macOS on a Mac); it is not generated or guessed by this toolkit, and no
+    structure leaves the machine. With the default option verify=true each name is parsed
+    back to a structure by ChemDraw and compared with the input by InChIKey, component by
+    component: roundtrip.status is same, same_connectivity (stereo, charge or isotope layers
+    differ), different, unparseable or skipped. Report a name as confirmed only when the status
+    is same. Enhanced (and/or) stereo groups cannot be expressed in a name and are warned about.
+    One structure that ChemDraw cannot name is reported with its error and does not stop the others.
+    Needs ChemScript (Windows) or ChemDraw for macOS, like compare_molecules; there is no
+    offline fallback. output_path ends in .csv, .json or .md and is never overwritten.
+    At most 256 structures.
+    """
+    options = options or {}
+    unknown = set(options) - {'verify'}
+    if unknown:
+        raise ValueError(f'Unknown options: {sorted(unknown)}')
+    verify = bool(options.get('verify', True))
+    items = _expand(molecules, limit=MAX_STRUCTURES)
+    for item in items:
+        _check_grounded(item['mol'], item['label'])
+    warnings, rows = [], []
+    bridge = _bridge_factory()
+    try:
+        for item in items:
+            mol = Chem.RemoveHs(item['mol'])
+            row = {'label': item['label'], 'source': item['source'], 'smiles': _smiles(mol),
+                   'formula': rdMolDescriptors.CalcMolFormula(mol), 'name': None}
+            if mol.GetStereoGroups():
+                warnings.append(f"{row['label']}: carries an enhanced stereo group (and/or); the name cannot "
+                                'express it and describes the drawn absolute configuration only.')
+            plain = Chem.Mol(mol)
+            plain.RemoveAllConformers()
+            try:
+                named = bridge.get_info(Chem.MolToSmiles(plain)).get('name')
+                if not named:
+                    raise RuntimeError('ChemDraw returned no name')
+                row['name'] = named
+            except Exception as exc:
+                row['error'] = str(exc)
+                row['roundtrip'] = {'status': 'skipped', 'note': 'No name to check.'}
+                warnings.append(f"{row['label']}: ChemDraw could not name this structure ({exc}).")
+                rows.append(row)
+                continue
+            if verify:
+                row['roundtrip'] = _roundtrip(bridge, named, _component_keys(mol))
+                status = row['roundtrip']['status']
+                if status == 'different':
+                    warnings.append(f"{row['label']}: the name does not parse back to the same structure; do not use it.")
+                elif status == 'unparseable':
+                    warnings.append(f"{row['label']}: the name could not be parsed back, so it is unverified.")
+                elif status == 'same_connectivity':
+                    warnings.append(f"{row['label']}: the name matches in connectivity only; check stereochemistry.")
+            else:
+                row['roundtrip'] = {'status': 'skipped', 'note': 'verify=false'}
+            rows.append(row)
+    finally:
+        bridge.close()
+    flat = [{**row, 'roundtrip_status': row['roundtrip']['status']} for row in rows]
+    result = {'ok': True, 'operation': 'structure_to_name', 'count': len(rows), 'results': rows,
+              'warnings': warnings}
+    if output_path:
+        target = _publish(output_path, {
+            '.json': lambda: json.dumps({'results': rows}, ensure_ascii=False, indent=2),
+            '.csv': lambda: _csv(flat, NAME_COLUMNS),
+            '.md': lambda: _markdown(flat, NAME_COLUMNS),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
+REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
+                                         structure_to_name)}

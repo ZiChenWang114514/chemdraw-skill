@@ -62,6 +62,7 @@ MAC_CHEMDRAW_TOOLS = {
     "compare_molecules",
     "execute_chemscript_sdk",
     "inspect_chemscript_sdk",
+    "structure_to_name",
 }
 
 
@@ -78,6 +79,7 @@ def _tool_timeout(name: str) -> int | None:
         "compare_molecules": 120,
         "batch_compare_molecules": 300,
         "inspect_chemscript_sdk": 240,
+        "structure_to_name": 300,
         "execute_chemscript_sdk": 300,
         "publication_figure": 600,
         "markush_compile": 180,
@@ -111,6 +113,7 @@ PROFILE_EXTENSION_TOOLS = {
         "compare_molecules",
         "execute_chemscript_sdk",
         "inspect_chemscript_sdk",
+        "structure_to_name",
     },
 }
 DEFAULT_PROFILE = "full"
