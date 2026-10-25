@@ -25,6 +25,10 @@
   --teal-ink: #005c62;
   --teal-wash: #e2f1f1;
   --oxygen: #cf3a31;
+  --nitrogen: #2a5bd7;
+  --sulfur: #a77b00;
+  --halogen: #2b9246;
+  --bromine: #9b4a14;
   --plate: #ffffff;
   --code-bg: #16232a;
   --code-ink: #e6eef0;
@@ -48,6 +52,7 @@
   color-scheme: light;
 }
 
+/* Dark follows the system unless the visitor chose a theme with the header button */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --ink: #e7eef0;
@@ -61,6 +66,10 @@
     --teal-ink: #72d1d5;
     --teal-wash: #113539;
     --oxygen: #ff7a6e;
+    --nitrogen: #7ea6ff;
+    --sulfur: #e3bb45;
+    --halogen: #5fd47d;
+    --bromine: #e0955f;
     --plate: #ffffff;
     --code-bg: #0a1216;
     --code-ink: #dbe6e9;
@@ -69,6 +78,30 @@
     --on-teal: #062226;
     color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --ink: #e7eef0;
+  --ink-2: #b8c6cb;
+  --mute: #8b9da4;
+  --canvas: #0f191e;
+  --sheet: #15222a;
+  --grid: #1c2b32;
+  --rule: #2a3c44;
+  --teal: #3fb7bd;
+  --teal-ink: #72d1d5;
+  --teal-wash: #113539;
+  --oxygen: #ff7a6e;
+  --nitrogen: #7ea6ff;
+  --sulfur: #e3bb45;
+  --halogen: #5fd47d;
+  --bromine: #e0955f;
+  --plate: #ffffff;
+  --code-bg: #0a1216;
+  --code-ink: #dbe6e9;
+  --code-mute: #7f949b;
+  --code-line: #23343b;
+  --on-teal: #062226;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -122,6 +155,14 @@ button { font: inherit; color: inherit; }
   color: var(--ink); border: 1px solid var(--rule); border-radius: 999px; padding: 5px 13px;
 }
 .nav .gh svg { width: 17px; height: 17px; }
+.theme {
+  display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  border: 1px solid var(--rule); border-radius: 50%; background: none; color: var(--ink-2); cursor: pointer;
+}
+.theme:hover { color: var(--ink); border-color: var(--ink-2); }
+.theme[hidden] { display: none; }
+.theme svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.theme[data-mode="dark"] .moon, .theme[data-mode="light"] .sun { display: none; }
 @media (max-width: 760px) { .nav .hide-sm { display: none; } .nav { gap: 14px; } }
 
 /* Hero: the pitch on the left, a ChemDraw window on the right */
@@ -192,7 +233,7 @@ button { font: inherit; color: inherit; }
 .doc {
   margin: 0;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   background: var(--canvas);
   border: 1px solid var(--rule);
   border-radius: 12px;
@@ -207,6 +248,21 @@ button { font: inherit; color: inherit; }
 }
 .doc-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--rule); }
 .doc-bar span { margin-left: 6px; }
+.doc.live { grid-template-columns: 36px minmax(0, 1fr); }
+.doc-tabs { display: flex; gap: 2px; margin-left: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.doc-tabs::-webkit-scrollbar { display: none; }
+.doc-tabs[hidden] { display: none; }
+.doc-tabs button {
+  border: 0; background: none; color: var(--mute); font: inherit;
+  padding: 3px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+}
+.doc-tabs button:hover { color: var(--ink); background: var(--canvas); }
+.doc-tabs button[aria-selected="true"] { color: var(--ink); background: var(--canvas); box-shadow: 0 0 0 1px var(--rule); }
+.doc-tabs button[aria-selected="true"]::after { content: ".cdxml"; color: var(--mute); }
+.doc-tabs button[data-edited]::before {
+  content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px;
+  border-radius: 50%; background: var(--teal); vertical-align: 1px;
+}
 .replay {
   margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid transparent; background: none; color: var(--mute);
@@ -217,12 +273,22 @@ button { font: inherit; color: inherit; }
 .replay[hidden] { display: none; }
 
 .palette {
-  margin: 0; padding: 8px 0; list-style: none;
+  margin: 0; padding: 8px 0;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   background: var(--sheet); border-right: 1px solid var(--grid);
 }
-.palette li { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 4px; color: var(--ink-2); }
-.palette li.on { background: var(--teal-wash); color: var(--teal-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--teal) 45%, transparent); }
+.palette[hidden] { display: none; }
+.palette button {
+  width: 26px; height: 26px; padding: 0; display: grid; place-items: center;
+  border: 0; border-radius: 4px; background: none; color: var(--ink-2); cursor: pointer;
+}
+.palette button:hover:not(:disabled) { background: var(--grid); color: var(--ink); }
+.palette button[aria-pressed="true"] {
+  background: var(--teal-wash); color: var(--teal-ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--teal) 45%, transparent);
+}
+.palette button:disabled { opacity: .35; cursor: default; }
+.palette [data-undo] { margin-top: auto; }
 .palette svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .palette .fill { fill: currentColor; stroke: none; }
 .palette text { fill: currentColor; stroke: none; font: 700 13px var(--chem); }
@@ -232,15 +298,50 @@ button { font: inherit; color: inherit; }
   background-image: radial-gradient(var(--rule) 1px, transparent 1.2px);
   background-size: 14px 14px;
 }
-.mol { width: 100%; max-width: 350px; margin: 0 auto; display: block; overflow: visible; }
+.mol { width: 100%; max-width: 350px; margin: 0 auto; display: block; overflow: visible; user-select: none; -webkit-user-select: none; }
 .mol .b { stroke: var(--ink); stroke-width: 2.1; stroke-linecap: round; fill: none; }
 .mol .a { fill: var(--oxygen); font: 600 19px var(--chem); }
+.mol .el-C { fill: var(--ink); }
+.mol .el-N { fill: var(--nitrogen); }
+.mol .el-S { fill: var(--sulfur); }
+.mol .el-F, .mol .el-Cl { fill: var(--halogen); }
+.mol .el-Br { fill: var(--bromine); }
 .mol .sel { fill: none; stroke: var(--teal); stroke-width: 1.2; stroke-dasharray: 5 4; }
 .mol .handle { fill: var(--canvas); stroke: var(--teal); stroke-width: 1.2; }
+.mol .warn { fill: none; stroke: var(--oxygen); stroke-width: 1.4; stroke-dasharray: 3 3; }
+
+/* What the editor clicks on: wide, invisible targets over every bond and atom */
+.mol .hit { cursor: pointer; }
+.mol .hit path { fill: none; stroke: transparent; stroke-width: 15; stroke-linecap: round; }
+.mol .hit circle { fill: transparent; }
+.doc.live .hit path:hover { stroke: color-mix(in srgb, var(--teal) 30%, transparent); }
+.doc.live .hit circle:hover { fill: color-mix(in srgb, var(--teal) 24%, transparent); }
+.doc[data-tool="move"] .hit path { pointer-events: none; }
+.doc[data-tool="move"] .hit { cursor: grab; }
+.doc[data-tool="move"] .mol { touch-action: none; }
+.doc.dragging .hit, .doc.dragging .hit * { cursor: grabbing; }
+
+/* A dot that snaps to the drawing grid under the pointer */
+.snap {
+  position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; z-index: 1;
+  border-radius: 50%; background: var(--teal); opacity: .5; pointer-events: none;
+}
+.snap[hidden] { display: none; }
+@media (prefers-reduced-motion: no-preference) { .snap { transition: transform .06s linear; } }
+
+.foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 6px 16px; margin-top: 2px; }
+.side { flex: 1 1 12rem; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.status { margin: 0; min-height: 2.8em; font: .76rem/1.4 var(--sans); color: var(--mute); }
+.status[data-state="warn"] { color: var(--oxygen); }
+.reset {
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font: .76rem/1.4 var(--sans); color: var(--teal-ink); text-decoration: underline; text-underline-offset: 3px;
+}
+.reset[hidden] { display: none; }
 
 /* ChemDraw's Analysis caption, as it lands on the page from Structure > Analysis */
 .analysis {
-  margin: 2px 0 0 auto; width: fit-content;
+  width: fit-content;
   font: 400 12px/1.45 var(--chem); color: var(--ink);
 }
 .analysis div { white-space: nowrap; }
@@ -254,10 +355,11 @@ button { font: inherit; color: inherit; }
 .log li { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 10px; }
 .log .k { color: var(--teal-ink); }
 .log .ok { color: var(--teal-ink); font-weight: 700; }
-.log .ask { grid-template-columns: minmax(0, 1fr); color: var(--ink); font-family: var(--sans); font-size: .9rem; padding-bottom: 6px; margin-bottom: 4px; border-bottom: 1px dashed var(--grid); }
+.log .no { color: var(--oxygen); font-weight: 700; }
+.log .ask { grid-template-columns: minmax(0, 1fr); align-content: start; min-height: 3.6em; color: var(--ink); font-family: var(--sans); font-size: .9rem; padding-bottom: 6px; margin-bottom: 4px; border-bottom: 1px dashed var(--grid); }
 
 /* One orchestrated load sequence: bonds draw, labels and selection follow, the
-   Analysis caption appears with the readback line. app.js sets .play. */
+   Analysis caption appears with the readback line. editor.js sets .play. */
 @media (prefers-reduced-motion: no-preference) {
   .play .mol .b { stroke-dasharray: 80; stroke-dashoffset: 80; animation: draw .32s ease-out forwards; animation-delay: calc(.5s + var(--i) * .11s); }
   .play .mol .a { opacity: 0; animation: show .3s ease-out forwards; animation-delay: calc(.5s + var(--i) * .11s); }
@@ -385,6 +487,40 @@ h3 { font-size: 1.08rem; line-height: 1.4; margin: 0 0 6px; letter-spacing: -.00
   .why { padding: 10px 0 0; }
 }
 
+/* Each step can show the command it ran and what came back */
+.cmd { margin-top: 10px; }
+.cmd summary {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer; list-style: none;
+  font-size: .86rem; color: var(--teal-ink);
+}
+.cmd summary::-webkit-details-marker { display: none; }
+.cmd summary::before {
+  content: ""; width: 6px; height: 6px; margin-right: 1px;
+  border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: rotate(-45deg);
+  transition: transform .15s;
+}
+.cmd[open] summary::before { transform: rotate(45deg); }
+.cmd pre {
+  margin: 8px 0 0; padding: 12px 14px; overflow-x: auto;
+  background: var(--code-bg); color: var(--code-ink); border: 1px solid var(--code-line); border-radius: 8px;
+  font-size: .76rem; line-height: 1.65;
+}
+.cmd .run { color: var(--code-var); }
+.cmd .out { display: block; margin-top: 4px; color: var(--code-mute); }
+
+/* Scroll in: each reaction arrow draws, then the compound it leads to appears.
+   Only when scripts run (app.js sets .reveal) and motion is welcome; otherwise it is all just there. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal .step .rxn::before, .reveal .step .leg::before { transform: scaleY(0); transform-origin: top; transition: transform .7s cubic-bezier(.3, .7, .2, 1); }
+  .reveal .step .rxn::after, .reveal .step .leg::after { opacity: 0; transition: opacity .2s .6s; }
+  .reveal .step .rxn > *, .reveal .step .why { opacity: 0; transition: opacity .5s .25s; }
+  .reveal .step > .cpd { opacity: 0; transform: translateY(6px); transition: opacity .45s .7s, transform .45s .7s; }
+  .reveal .step.in .rxn::before, .reveal .step.in .leg::before { transform: none; }
+  .reveal .step.in .rxn::after, .reveal .step.in .leg::after { opacity: 1; }
+  .reveal .step.in .rxn > *, .reveal .step.in .why { opacity: 1; }
+  .reveal .step.in > .cpd { opacity: 1; transform: none; }
+}
+
 /* Capabilities: a definition list, read like a reference table */
 .caps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 56px; margin: 0; }
 .caps div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 16px; padding: 16px 0; border-top: 1px solid var(--grid); }
@@ -459,11 +595,13 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
   .top .wrap { gap: 12px; }
   .nav { gap: 12px; font-size: .88rem; }
   .nav .gh { padding: 4px 10px; }
-  .doc { grid-template-columns: 30px minmax(0, 1fr); }
-  .palette li { width: 22px; height: 22px; }
+  .nav a[href="#start"] { display: none; }
+  .doc.live { grid-template-columns: 30px minmax(0, 1fr); }
+  .palette button { width: 22px; height: 22px; }
   .palette svg { width: 15px; height: 15px; }
   .doc-canvas { padding: 12px 10px 10px; }
   .analysis { font-size: 10.5px; }
+  .status { min-height: 4.2em; }
   .log { padding-inline: 14px; font-size: .74rem; }
   .log li { grid-template-columns: 5.4rem minmax(0, 1fr); gap: 6px; }
   .log li span { overflow-wrap: anywhere; }

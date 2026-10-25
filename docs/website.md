@@ -8,7 +8,8 @@ The project website lives at <https://zichenwang114514.github.io/chemdraw-skill/
 | --- | --- |
 | `site/index.html` | Chinese page, the canonical home. |
 | `site/en/index.html` | English page. Same structure and shared stylesheet; the `<html lang>` drives the copy-button labels. |
-| `site/styles.css`, `site/app.js` | Shared styles (light and dark) and the behaviours: copy buttons, the before/after slider and its tabs, the hero replay button and the install picker. The page reads completely without the script. |
+| `site/styles.css`, `site/app.js` | Shared styles (light and dark) and the page behaviours: copy buttons, the before/after slider (it swings once when first seen) and its tabs, the theme switch, the scroll-in of the reaction arrows and the install picker. The page reads completely without the script. |
+| `site/editor.js` | The hero structure editor: five molecules you can bond, rename, grow, move and erase, with the Analysis caption and the readback line recomputed from the canvas. Its words come from the `<script type="application/json" id="i18n">` block in each page, so the two languages share one script. |
 | `site/fonts/` | Self-hosted Latin display face (Schibsted Grotesk, SIL OFL, licence beside it). Chinese text uses system fonts. Google Fonts is not used because it is unreliable from mainland China. |
 | `site/og.png`, `site/favicon.svg`, `site/apple-touch-icon.png` | Social preview image (1200×630) and icons. |
 | `site/sitemap.xml`, `site/robots.txt` | Search engine files. `lastmod` is refreshed on every deploy. |
@@ -40,9 +41,13 @@ Check both colour schemes and a 390 px viewport before pushing; the hero and the
 
 - Change both language pages together, as for the READMEs.
 - Keep the `<title>` and `meta description` short: the title under 60 characters, the description under about 160.
-- The hero molecule is an inline SVG of aspirin generated from RDKit coordinates; the `--i` custom property on each path orders the draw-in animation, which runs when `app.js` adds `.play` to the window. Edit it only to replace the molecule, and keep `prefers-reduced-motion` behaviour (no animation, no replay button). The Analysis caption (formula, exact mass, molecular weight) must match the molecule.
+- The hero window starts as a static SVG of aspirin, which is what readers see without scripts. With scripts, `editor.js` redraws the canvas from its molecule table. Every molecule in the table, the formula it declares and the caption it produces are checked by `tests/test_site.py`; the caption masses use the same atomic weights as `resolve_name`, so they agree with the numbers in the "How it works" command panels.
+- The draw-in animation runs when `editor.js` adds `.play` to the window (on load, on a tab switch and on Replay) and ends at the first edit, so redrawing the canvas never restarts it. The `--i` property on each bond orders it. Keep `prefers-reduced-motion` behaviour: no animation and no Replay button.
+- Add a molecule by adding a `data-mol` tab to both pages, a name in both `i18n` tables and an entry in `MOLS`. The entry is a name, the SMILES that `cdx.py call resolve_name` returns for it, its formula, atoms `[symbol, x, y]` and bonds `[from, to, order]` in Kekule form, on a 323 by 262 canvas. Coordinates came from RDKit (`Compute2DCoords` with CoordGen, principal axis horizontal, bond length 62 shrunk to fit with a margin); aspirin keeps ChemDraw's own layout. Only C, N, O, S, F, Cl and Br are supported.
+- The command panels in "How it works" hold output that was produced by running the bundled runtime on aspirin. Paths are shortened with an ellipsis and `resolve_name` is abridged; rerun the commands and update both pages if a tool's output changes.
 - "How it works" is drawn as a vertical reaction scheme: each step is a reaction arrow with the tool written beside it, leading to the file it produces. Keep the four steps in sync with the README.
 - The install picker in `app.js` takes each agent's installer flag and Skill folder from the radio buttons in the HTML, which mirror `AGENTS` in `scripts/install.py`; update them together. The static commands show the Claude Code and Windows defaults.
+- The theme switch follows the system until it is used, then keeps the visitor's choice in `localStorage`; a one-line script in each page's `<head>` applies it before first paint. Dark colours are defined twice in `styles.css` (system preference and explicit choice); change both.
 - Do not add analytics or third-party scripts without a note in the footer; the page currently loads nothing from outside the site.
 
 ## Search console
