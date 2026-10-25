@@ -79,6 +79,27 @@ def test_coefficients_scale_the_theoretical_yield():
     assert by_id(compute(state))['p']['theory_mmol'] == pytest.approx(4.0)
 
 
+def test_process_mass_intensity_counts_every_input_and_solvent_over_the_isolated_product():
+    totals = compute(esterification())['totals']
+    # inputs 200 + 150 + 400 mg, 10 mL of solvent at 1.325 g/mL, 240 mg isolated
+    assert totals['solvent_mg'] == pytest.approx(13250.0)
+    assert totals['solvents_without_mass'] == 0
+    assert totals['pmi'] == pytest.approx((750.0 + 13250.0) / 240.0)
+    assert totals['e_factor'] == pytest.approx(totals['pmi'] - 1.0)
+    assert totals['pmi_no_solvent'] == pytest.approx(750.0 / 240.0)
+
+
+def test_no_isolated_mass_means_no_pmi_and_a_solvent_without_density_is_counted_as_missing():
+    state = esterification()
+    state['rows'][-1].update(basis=None, value=None)
+    assert 'pmi' not in compute(state)['totals']
+    state = esterification()
+    state['rows'][3]['density'] = None
+    totals = compute(state)['totals']
+    assert totals['solvents_without_mass'] == 1 and totals['solvent_mg'] is None
+    assert totals['pmi'] == pytest.approx(750.0 / 240.0)
+
+
 def test_changing_the_limiting_reagent_keeps_every_amount():
     before = compute(esterification())
     after = compute(rebase(esterification(), 'b'))
@@ -118,6 +139,8 @@ def test_invalid_states_are_refused_with_the_reason():
 CASES = {
     'esterification': esterification(),
     'rebased': rebase(esterification(), 'c'),
+    'no_solvent_density': {**esterification(), 'rows': [dict(r, density=None) if r['id'] == 's' else r
+                                                         for r in esterification()['rows']]},
     'stock': {'limiting': 'a', 'rows': [row('a', 'reactant', 'mass', 100.0, purity=0.8),
                                         row('b', 'reagent', 'volume', 0.4, solution_m=2.5),
                                         row('p', 'product', 'yield', 75.0, mw=250.0, coefficient=2)]},

@@ -107,6 +107,13 @@
       limiting_mmol: base,
       input_mg: input
     };
+    var solventMg = 0, withoutMass = 0;
+    rows.forEach(function (r) {
+      if (r.role !== 'solvent') return;
+      if (r.mass_mg === null) withoutMass += 1; else solventMg += r.mass_mg;
+    });
+    totals.solvent_mg = solventMg || null;
+    totals.solvents_without_mass = withoutMass;
     var reactantMass = 0, weighed = 0;
     reactants.forEach(function (r) {
       reactantMass += r.mw * num(r, 'coefficient', true, 1);
@@ -116,6 +123,11 @@
       var main = products[0];
       totals.atom_economy_percent = main.mw * num(main, 'coefficient', true, 1) / reactantMass * 100;
       if (main.actual_mg !== null) totals.reaction_mass_efficiency_percent = main.actual_mg / weighed * 100;
+    }
+    if (products.length && products[0].actual_mg) {
+      totals.pmi = (input + solventMg) / products[0].actual_mg;
+      totals.e_factor = totals.pmi - 1;
+      totals.pmi_no_solvent = input / products[0].actual_mg;
     }
     return { limiting: limiting.id, rows: rows, totals: totals, warnings: warnings };
   }

@@ -10,6 +10,7 @@ These tools answer the questions people ask after a structure is drawn: what are
 | An HRMS characterization sentence (`HRMS (ESI) m/z calcd for ... [M+Na]+ ...`) | `hrms_line` |
 | A whole characterization paragraph (appearance, Rf, mp, rotation, IR, 1H/13C NMR, HRMS) in ACS order, with the peak counts checked | `characterization_text` |
 | The experimental-section materials table and procedure sentence for a batch of reactions | `si_materials_tables` |
+| Overall yield and cumulative PMI / E-factor of a multi-step route | `route_summary` |
 | Which reactant atom does each product atom come from? What bonds change? | `map_reaction_atoms` |
 | Give me every structure in this CDXML/SDF as SMILES, InChI or a table | `export_structures` |
 | What is the name of this structure? | `structure_to_name` (needs ChemScript or ChemDraw for macOS) |
@@ -62,7 +63,7 @@ An unbalanced result is a finding about the species as drawn. After an image rec
 
 - `reaction` takes the same forms as `check_reaction_balance`: a reaction string, record lists, or `{"cdxml": ...}`. A record carries one amount: `equiv`, `mmol`, `mass_mg` or `volume_ml`, plus optional `density_g_ml`, `concentration_m` (a stock solution), `purity` and `coefficient`. Products take `isolated_mg` or `yield_percent`.
 - `options`: `scale_mmol` (limiting reactant, default 1), `limiting` (reactant index, default 0), `molarity` (of the limiting reagent in the first solvent, default 0.2) and `title`. Common solvents and liquid reagents get a density from a built-in table; others are weighed by mass until a density is typed in.
-- The result lists every row with its amounts, the totals (concentration, solvent volume, input mass, atom economy, reaction mass efficiency), `warnings` (for example a yield above 100%), and `assumed`: the rows whose amount is a default (reagents 1 equiv, metal catalysts 5 mol %, the first solvent 0.2 M, further solvents 0 mL). **Say which amounts were assumed rather than presenting them as the user's numbers.**
+- The result lists every row with its amounts, the totals (concentration, solvent volume, input mass, atom economy, reaction mass efficiency, solvent mass, process mass intensity `pmi` and `e_factor` = PMI - 1, which need the product's isolated mass or yield and count a solvent only when its mass is known: `solvents_without_mass` lists the others and the page then says so), `warnings` (for example a yield above 100%), and `assumed`: the rows whose amount is a default (reagents 1 equiv, metal catalysts 5 mol %, the first solvent 0.2 M, further solvents 0 mL). **Say which amounts were assumed rather than presenting them as the user's numbers.**
 - In the page every number is editable: type over any equivalents, mmol, mass or volume cell and the rest follow; "Make limiting" re-bases the reaction on another row while keeping all amounts. Species can be added by name, abbreviation, SMILES or formula; the page offers Markdown/TSV copy, a procedure sentence, JSON save/open, undo, print and a dark theme.
 - `cdx.py calc [REACTION] [--scale MMOL] [--molarity M] [--offline] [--no-open]` opens the page in the browser from a local server (127.0.0.1, a per-run token in the address, stops a few minutes after the page closes). **Draw in ChemDraw** opens a canvas in ChemDraw (a scheme of the current reaction, or a blank page); after saving it with Ctrl+S, **Load drawing** reads the reaction back and keeps the amounts already typed for structures that are still there. REACTION may be a reaction SMILES, a `.cdxml` file or a JSON record file; with none the page starts empty. `--offline` keeps name lookups local; otherwise a name that is not in the built-in table may be looked up online. The command runs until the page is closed, so start it in the background and give the user the address on its first output line.
 
@@ -113,6 +114,22 @@ Per structure the result holds the ion formula, the calculated m/z and the line,
 ```
 
 Up to 100 reactions per call; each entry is a reaction string, a record, `{"cdxml": path}` (one table per reaction step, labelled `<file>, step N`) or `{"label", "reaction", "options"}`. Options are those of `reaction_calculator` plus `hrms` (default true, the first product's HRMS line), `adduct` and `ionization`, and `map_atoms` (default false) with `map_method` (default `auto`) to add a "Bond changes" line from atom mapping; every reaction goes to the mapper in one call (see Atom mapping), and `reagent_safety` (default false) adds a "Safety reminders" block (GHS pictograms, H-statements, boiling and flash point per reactant, reagent and solvent, with the species not in the table listed as not listed) and a `hazards` CSV column. Each table lists material, role, MW, equiv, mmol, mass and volume, the concentration, atom economy and reaction mass efficiency, the product's isolated mass and yield and its HRMS line, and a procedure sentence. A reaction that cannot be read is reported with its error while the rest continue. `output_path` ends in `.md`, `.csv` (long format, one row per material), `.html` (printable, no external loads) or `.json`. **Amounts the user did not give are assumed defaults, listed per reaction in `warnings`; say so.**
+
+## Route summary: overall yield and cumulative PMI
+
+```json
+{"steps": [{"label": "1", "yield_percent": 80, "input_mg": 1000, "product_mg": 200, "used_mg": 100},
+           {"label": "2", "yield_percent": 50, "input_mg": 500, "product_mg": 40}],
+ "output_path": "work/route.md"}
+```
+
+Steps are listed in the order they are run; the last one makes the final product. A step feeds the next one unless `into` names a later step by label, which makes the route convergent. Up to 100 steps per call.
+
+- **Overall yield** is the product of the step yields along the longest linear sequence (`longest_sequence`), as usual for a convergent route.
+- **Cumulative PMI** is the mass put into every step over the mass of the final product. Each step is scaled to make exactly the amount of product the next step uses: `scale = scale_next x used_mg / product_mg`. `used_mg` is read from the next step's reaction by matching the structure of the intermediate, or given explicitly; the tool asks for it rather than assuming it. E-factor is PMI - 1.
+- A step is `{label, yield_percent, input_mg, product_mg, used_mg, into}` or `{label, reaction, options}` where `reaction` is anything `reaction_calculator` accepts and the numbers come from its totals. Put work-up and purification solvents into `input_mg` if they should count: the calculator includes only the solvents of the reaction itself.
+- A missing yield or mass gives `null` for that figure plus a warning, never a guess. If a solvent has no known mass (no density) the PMI is flagged `lower_bound`. **Say so when quoting the number.**
+- `output_path` ends in `.md`, `.csv` (one row per step), or `.json`, and is never overwritten.
 
 ## Atom mapping
 

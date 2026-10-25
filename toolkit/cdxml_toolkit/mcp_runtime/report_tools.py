@@ -1093,6 +1093,136 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
     return result
 
 
+ROUTE_META = ('label', 'options', 'into', 'used_mg', 'reaction')
+ROUTE_NUMBERS = ('yield_percent', 'input_mg', 'product_mg')
+
+
+def _route_step(item, number):
+    """One route step -> (fields for route_metrics, calculator rows or None)."""
+    from ..reaction_calculator import annotate
+    if isinstance(item, str):
+        item = {'reaction': item}
+    if not isinstance(item, dict):
+        raise ValueError(f'step {number}: a step is a reaction or a dict of numbers')
+    label = str(item.get('label') or number)
+    drawn = 'reaction' in item or any(k in item for k in ('cdxml', 'reactants', 'products'))
+    fields = {'label': label, 'into': item.get('into'), 'used_mg': item.get('used_mg')}
+    if not drawn:
+        fields.update({key: item.get(key) for key in ROUTE_NUMBERS})
+        return fields, None
+    spec = item['reaction'] if 'reaction' in item else {k: v for k, v in item.items() if k not in ROUTE_META}
+    try:
+        sources = _reaction_sources(spec)
+        if len(sources) != 1:
+            raise ValueError('the drawing stores several reaction steps: choose one with {"cdxml": path, "steps": [step id]}')
+        entry = _materials_entry(label, sources[0], dict(item.get('options') or {}), {'enabled': False})
+    except ValueError as exc:
+        raise ValueError(f'step {label}: {exc}') from exc
+    rows = entry['all_rows']
+    main = next((r for r in rows if r['role'] == 'product'), None)
+    totals = entry['totals']
+    fields.update(
+        yield_percent=main.get('yield_percent') if main else None,
+        product_mg=main.get('actual_mg') if main else None,
+        input_mg=totals.get('input_mg', 0.0) + totals.get('solvent_mg', 0.0),
+        solvents_without_mass=totals.get('solvents_without_mass', 0))
+    for key in ROUTE_NUMBERS:
+        if item.get(key) is not None:
+            fields[key] = item[key]
+    keyed = {'product': annotate.key(main['smiles']) if main and main.get('smiles') else None,
+             'fed': [(annotate.key(r['smiles']), r['mmol'] * r['mw']) for r in rows
+                     if r['role'] in ('reactant', 'reagent', 'catalyst') and r.get('smiles') and r.get('mmol')]}
+    return fields, keyed
+
+
+def _round_all(value):
+    if isinstance(value, float):
+        return _rounded(value)
+    if isinstance(value, dict):
+        return {k: _round_all(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_round_all(v) for v in value]
+    return value
+
+
+def _route_markdown(result):
+    head = ['Step', 'Into', 'Yield (%)', 'Input (mg)', 'Product (mg)', 'Used by next (mg)', 'Scale', 'Step PMI']
+    cell = lambda v: '' if v is None else (f'{v:.4g}' if isinstance(v, float) else str(v))
+    lines = ['| ' + ' | '.join(head) + ' |', '| --- | --- | ' + ' | '.join('---:' for _ in head[2:]) + ' |']
+    for s in result['steps']:
+        lines.append('| ' + ' | '.join(cell(s[k]) for k in ('label', 'into', 'yield_percent', 'input_mg', 'product_mg',
+                                                           'used_mg', 'scale', 'step_pmi')) + ' |')
+    out = ['\n'.join(lines), '']
+    if result['overall_yield_percent'] is not None:
+        out.append(f"Overall yield {cell(result['overall_yield_percent'])}% over the longest linear sequence "
+                   f"({' > '.join(result['longest_sequence'])}).")
+    if result['cumulative_pmi'] is not None:
+        bound = ' (lower bound: a solvent has no known mass)' if result['lower_bound'] else ''
+        out.append(f"Cumulative PMI {cell(result['cumulative_pmi'])}, E-factor {cell(result['cumulative_e_factor'])}{bound}.")
+    out += [f'Note: {w}.' for w in result['warnings']]
+    return '\n'.join(out) + '\n'
+
+
+def route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict:
+    """Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
+
+    steps are listed in the order they are run; the last one makes the final product. A step is a
+    reaction as in si_materials_tables (a reaction SMILES, {"reactants": ..., "products": ...}
+    records, {"cdxml": path} or {"label": "2", "reaction": ..., "options": {...}}, whose amounts,
+    isolated mass or yield come from the reaction calculator) or just numbers: {"label": "2",
+    "yield_percent": 85, "input_mg": 1500, "product_mg": 340, "used_mg": 300}. input_mg is
+    everything put into the step (reagents, catalysts, solvents), product_mg the isolated mass of
+    its product; a reaction takes both from the calculator (a solvent with no density has no mass
+    and makes the PMI a lower bound), and either can be given on the step to override. A step
+    feeds the next one; "into": "<later step label>" makes the route convergent. used_mg is the
+    mass of a step's product that the step it feeds consumes: it is read from the structures when
+    both steps are reactions and the product is drawn as a reactant of the next, and is otherwise
+    required once the masses are given. Overall yield is the product of the step yields along the
+    longest linear sequence. Cumulative PMI is the mass put into all steps over the mass of the
+    final product, each step scaled so that it makes exactly what the next one uses (scale);
+    E-factor is PMI - 1. Work-up, extraction and purification solvents count only if you include
+    them in input_mg; a missing number is reported in warnings, never assumed. output_path ends in
+    .md, .csv or .json and is never overwritten. At most 100 steps.
+    """
+    from .. import route_metrics
+    options = dict(options or {})
+    if options:
+        raise ValueError(f'Unknown options: {sorted(options)}')
+    if isinstance(steps, (str, dict)):
+        steps = [steps]
+    if not steps:
+        raise ValueError('Provide at least one step')
+    if len(steps) > MAX_BATCH:
+        raise ValueError(f'At most {MAX_BATCH} steps per call')
+    fields, keyed = zip(*(_route_step(item, number) for number, item in enumerate(steps, 1)))
+    fields = [dict(f) for f in fields]
+    labels = [f['label'] for f in fields]
+    for index, (step, info) in enumerate(zip(fields, keyed)):
+        if step.get('used_mg') is not None or info is None or index == len(fields) - 1:
+            continue
+        target = step.get('into')
+        target_index = labels.index(str(target)) if target is not None and str(target) in labels else index + 1
+        other = keyed[target_index] if target_index > index else None
+        if other is not None and info['product']:
+            used = [mass for key, mass in other['fed'] if key == info['product']]
+            if len(used) == 1:
+                step['used_mg'] = used[0]
+    summary = route_metrics.summarize(fields)
+    markdown = _route_markdown(summary)
+    result = {'ok': True, 'operation': 'route_summary', **_round_all(summary), 'markdown': markdown}
+    if output_path:
+        columns = ['step', 'into', 'yield_percent', 'input_mg', 'product_mg', 'used_mg', 'scale', 'step_pmi',
+                   'on_longest_sequence']
+        rows = [{'step': s['label'], **{k: s[k] for k in columns[1:]}} for s in summary['steps']]
+        target = _publish(output_path, {
+            '.md': lambda: markdown,
+            '.csv': lambda: _csv(rows, columns),
+            '.json': lambda: json.dumps({k: v for k, v in result.items() if k != 'markdown'}, ensure_ascii=False, indent=2),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
 def _mapping_species(records):
     """([(label, mol)], {label: drawing fragment id}) of the structures of one side."""
     out, drawn = [], {}
@@ -1409,4 +1539,5 @@ def characterization_text(compounds: list[dict], options: dict | None = None, ou
 
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
                                          structure_to_name, reaction_calculator, hrms_line,
-                                         si_materials_tables, map_reaction_atoms, characterization_text)}
+                                         si_materials_tables, map_reaction_atoms, characterization_text,
+                                         route_summary)}

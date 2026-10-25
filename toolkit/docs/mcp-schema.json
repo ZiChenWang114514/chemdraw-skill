@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 52,
+  "tool_count": 53,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -380,6 +380,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Resolve any chemical identifier to a rich molecule descriptor.\n\nConverts a name, abbreviation, condensed formula, or CAS number into a\nstructured molecule dict with SMILES, formula, MW, exact mass, IUPAC name,\nreagent role, and display text. Uses a 4-tier resolution chain: curated\nreagent DB → condensed formula parser → ChemScript IUPAC → PubChem.\n\nDo NOT hand-construct SMILES — use this tool instead. The returned dict can\nbe passed directly to modify_molecule, draw_molecule, or used to build a\nrender_scheme input.\n\nArgs:\n    query: Chemical identifier — common name, IUPAC name, abbreviation,\n           condensed formula (e.g. \"PhB(OH)2\"), or CAS number. Examples:\n           \"aspirin\", \"Cs2CO3\", \"2-chloropyridine\", \"534-17-8\", \"Et3N\".\n    use_network: Allow PubChem lookup (requires internet). Default True.\n\nReturns:\n    Dict with keys: ok, name, smiles, formula, mw, exact_mass, iupac_name,\n    source (which tier resolved it), role (if in reagent DB), display_text,\n    prefix_form (IUPAC substituent prefix, if applicable).\n    Returns {ok: False, error: \"...\"} if unresolvable."
+    },
+    {
+      "name": "route_summary",
+      "signature": "(steps: list, options: dict | None = None, output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Overall yield and cumulative process mass intensity (PMI) of a synthetic route.\n\nsteps are listed in the order they are run; the last one makes the final product. A step is a\nreaction as in si_materials_tables (a reaction SMILES, {\"reactants\": ..., \"products\": ...}\nrecords, {\"cdxml\": path} or {\"label\": \"2\", \"reaction\": ..., \"options\": {...}}, whose amounts,\nisolated mass or yield come from the reaction calculator) or just numbers: {\"label\": \"2\",\n\"yield_percent\": 85, \"input_mg\": 1500, \"product_mg\": 340, \"used_mg\": 300}. input_mg is\neverything put into the step (reagents, catalysts, solvents), product_mg the isolated mass of\nits product; a reaction takes both from the calculator (a solvent with no density has no mass\nand makes the PMI a lower bound), and either can be given on the step to override. A step\nfeeds the next one; \"into\": \"<later step label>\" makes the route convergent. used_mg is the\nmass of a step's product that the step it feeds consumes: it is read from the structures when\nboth steps are reactions and the product is drawn as a reactant of the next, and is otherwise\nrequired once the masses are given. Overall yield is the product of the step yields along the\nlongest linear sequence. Cumulative PMI is the mass put into all steps over the mass of the\nfinal product, each step scaled so that it makes exactly what the next one uses (scale);\nE-factor is PMI - 1. Work-up, extraction and purification solvents count only if you include\nthem in input_mg; a missing number is reported in warnings, never assumed. output_path ends in\n.md, .csv or .json and is never overwritten. At most 100 steps."
     },
     {
       "name": "search_compound",

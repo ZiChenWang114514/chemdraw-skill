@@ -84,6 +84,10 @@ def _footer(entry: dict) -> list[str]:
         facts.append(f"atom economy {trim(totals['atom_economy_percent'])}%")
     if totals.get('reaction_mass_efficiency_percent') is not None:
         facts.append(f"reaction mass efficiency {trim(totals['reaction_mass_efficiency_percent'])}%")
+    if totals.get('pmi') is not None:
+        bound = ' (solvent mass not counted for ' + str(totals['solvents_without_mass']) + ' solvent(s))' \
+            if totals.get('solvents_without_mass') else ''
+        facts.append(f"process mass intensity {trim(totals['pmi'])} (E-factor {trim(totals['e_factor'])}){bound}")
     if facts:
         lines.append('; '.join(facts).capitalize() + '.')
     if product.get('actual_mg') is not None:
