@@ -21,6 +21,8 @@ python scripts/install.py --destination <any skills folder>/chemdraw --apply
 | `copilot` | `~/.copilot/skills/` | `.github/skills/` | GitHub Copilot (VS Code and CLI) |
 | `cursor` | `~/.cursor/skills/` | `.cursor/skills/` | Cursor |
 | `opencode` | `~/.config/opencode/skills/` | `.opencode/skills/` | OpenCode |
+| `kimi` | `~/.kimi-code/skills/` | `.kimi-code/skills/` | Kimi CLI; also reads `~/.agents/skills/` |
+| `pi` | `~/.pi/agent/skills/` | `.pi/skills/` | pi; also reads `~/.agents/skills/`; runs shell commands without asking |
 
 Discovery folders change between agent releases; check your agent's documentation when a copy is not picked up, and use `--destination` for any folder not listed. An agent that reads several of these folders may list the Skill once per copy; keep only the copies it needs.
 

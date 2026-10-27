@@ -14,7 +14,7 @@ python scripts/install.py --agent claude agents --runtime            # preview
 python scripts/install.py --agent claude agents --runtime --apply    # install Skill copies + shared runtime
 ```
 
-`--agent` takes one or more of `claude`, `agents` (the shared `~/.agents/skills` folder read by most agents), `gemini`, `copilot`, `cursor` and `opencode`; `--project <repo>` installs project-scoped copies instead, and `--destination <folder>` installs anywhere. `--python <interpreter>` picks the base interpreter when auto-detection finds none, `--extras` chooses toolkit extras (default: every extra that applies to the OS), and `--runtime-dir` moves the shared venv.
+`--agent` takes one or more of `claude`, `agents` (the shared `~/.agents/skills` folder read by most agents), `gemini`, `copilot`, `cursor`, `opencode`, `kimi` and `pi`; `--project <repo>` installs project-scoped copies instead, and `--destination <folder>` installs anywhere. `--python <interpreter>` picks the base interpreter when auto-detection finds none, `--extras` chooses toolkit extras (default: every extra that applies to the OS), and `--runtime-dir` moves the shared venv.
 
 The installer stages and verifies each copy, moves an existing installation to the shared backup folder (outside every Skill folder), restores it on failure, installs the runtime once for all copies, and writes `manifest.json` so later drift can be detected. Re-running it upgrades the Skill and reuses the venv. When the venv is not in a location `cdx.py` searches, the installer writes `runtime.local.json` into each copy and into the repository checkout (ignored by Git), so `cdx.py` also works from the checkout.
 

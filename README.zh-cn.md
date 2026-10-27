@@ -127,7 +127,7 @@ python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
 | --- | --- | --- |
 | `claude` | `~/.claude/skills/` | Claude Code（GitHub Copilot 和 OpenCode 也会读取） |
 | `agents` | `~/.agents/skills/` | Agent Skills 通用目录：Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等 |
-| `gemini`、`copilot`、`cursor`、`opencode` | 各 Agent 自己的目录 | 需要装到专属目录时使用 |
+| `gemini`、`copilot`、`cursor`、`opencode`、`kimi`、`pi` | 各 Agent 自己的目录 | 需要装到专属目录时使用 |
 
 - `--project <仓库>` 安装到项目级目录（`.claude/skills/`、`.agents/skills/`、`.github/skills/` 等）；`--destination <目录>` 可装到任意位置。
 - 不支持自动发现 Skill 的 Agent，只需在它的指令文件里加一行指向 `SKILL.md`。

@@ -25,8 +25,8 @@ FORBIDDEN = [
     "controlled replay",
     "started with no prior context",
     "rxn-experiments",
-    "三处标题字号的回放",
-    "从零上下文开始",
+    "\u4e09\u5904\u6807\u9898\u5b57\u53f7\u7684\u56de\u653e",
+    "\u4ece\u96f6\u4e0a\u4e0b\u6587\u5f00\u59cb",
 ]
 # Test-data identifiers stay out of the landing pages (README galleries may name the paper compound).
 HOMEPAGE_FORBIDDEN = ["Sceptrin"]

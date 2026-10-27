@@ -127,7 +127,7 @@ To try the calculator instead of a drawing, run `python ~/.claude/skills/chemdra
 | --- | --- | --- |
 | `claude` | `~/.claude/skills/` | Claude Code (also GitHub Copilot and OpenCode) |
 | `agents` | `~/.agents/skills/` | The shared Agent Skills folder: Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and others |
-| `gemini`, `copilot`, `cursor`, `opencode` | each agent's own folder | when you prefer the agent-specific location |
+| `gemini`, `copilot`, `cursor`, `opencode`, `kimi`, `pi` | each agent's own folder | when you prefer the agent-specific location |
 
 - `--project <repo>` installs project-scoped copies (`.claude/skills/`, `.agents/skills/`, `.github/skills/`, ...); `--destination <folder>` installs anywhere.
 - Agents without Skill discovery need one line in their instruction file pointing at `SKILL.md`.
