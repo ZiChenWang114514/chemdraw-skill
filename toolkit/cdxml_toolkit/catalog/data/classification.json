@@ -13,7 +13,8 @@
   "com.enum": "Enumeration of constants used as arguments to COM members.",
   "com.coclass": "Class identifier that creates the interfaces listed beside it.",
   "menu.default": "No tool runs menu commands on Windows yet.",
-  "cdxml.default": "Documented element; no tool reads or writes it through a typed model yet.",
+  "cdxml.default": "Named in ChemDraw's own files but never seen in a document here; chemdraw_object accepts it, untested.",
+ "cdxml.object": "chemdraw_object lists, reads, changes, adds and deletes it with catalog-checked attributes; the edit is structural, not a layout.",
   "cdxml.unconfirmed": "Name from the CDXML format with no evidence in this installation."
  },
  "overrides": [

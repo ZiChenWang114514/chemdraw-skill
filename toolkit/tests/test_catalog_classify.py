@@ -38,7 +38,8 @@ CLASSIFICATION = {
         "chemscript.interop": "plumbing", "chemscript.collection": "wrapper",
         "chemscript.unverified": "no recipe yet", "com.default": "no generic COM tool",
         "com.enum": "enum values", "com.coclass": "class id", "menu.default": "no menu tool",
-        "cdxml.default": "no tool", "cdxml.unconfirmed": "no evidence",
+        "cdxml.default": "never observed", "cdxml.unconfirmed": "no evidence",
+        "cdxml.object": "edited by the object tool",
     },
     "overrides": [
         {"layer": "com", "symbol": "IChemDrawDocument.SaveAs", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "used"},
@@ -89,7 +90,9 @@ def test_menu_and_cdxml_rows():
     assert found["menu:Structure/Clean Up Structure"]["command_id"] == 356
     assert found["menu:Structure/Enhanced Stereochemistry"]["kind"] == "popup"
     assert found["cdxml:fragment"]["tier"] == "T1" and found["cdxml:fragment"]["tool"] == "draw_molecule"
-    assert found["cdxml:bioshape"]["tier"] == "T3"
+    assert found["cdxml:bioshape"]["tier"] == "T1" and found["cdxml:bioshape"]["tool"] == "chemdraw_object"
+    assert found["cdxml:geometry"]["tier"] == "T3" and found["cdxml:geometry"]["via"] == "chemdraw_object"
+    assert found["cdxml:geometry"]["reason"] == "never observed"
     assert found["cdxml:splitter"]["reason"] == "no evidence"
 
 
@@ -112,7 +115,7 @@ def test_summary_counts_rows_per_layer_and_tier():
     summary = classify.summarize(rows())
 
     assert summary["chemscript"] == {"T1": 0, "T2": 1, "T3": 4}
-    assert summary["cdxml"]["T1"] == 1
+    assert summary["cdxml"] == {"T1": 2, "T2": 0, "T3": 2}
 
 
 def test_committed_classification_is_consistent_with_the_committed_catalogs_and_the_registry():

@@ -114,9 +114,15 @@ def _cdxml_rows(catalog, reasons) -> list[dict[str, Any]]:
     rows = []
     for element in catalog["elements"]:
         evidence = element["evidence"]
-        reason = reasons["cdxml.default"] if evidence else reasons["cdxml.unconfirmed"]
-        rows.append(_row("cdxml", element["name"], "element", "T3", reason=reason,
-                         evidence=",".join(evidence) or None))
+        joined = ",".join(evidence) or None
+        if "observed" in evidence:
+            rows.append(_row("cdxml", element["name"], "element", "T1", tool="chemdraw_object",
+                             note=reasons["cdxml.object"], evidence=joined))
+        elif evidence:
+            rows.append(_row("cdxml", element["name"], "element", "T3", via="chemdraw_object",
+                             reason=reasons["cdxml.default"], evidence=joined))
+        else:
+            rows.append(_row("cdxml", element["name"], "element", "T3", reason=reasons["cdxml.unconfirmed"]))
     return rows
 
 

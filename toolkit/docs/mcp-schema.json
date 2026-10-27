@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 54,
+  "tool_count": 56,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -52,6 +52,22 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.\n\nreaction is a reaction SMILES string \"reactants>agents>products\" (structures separated by\n'.'), a dict {\"reactants\": [...], \"agents\": [...], \"products\": [...]} of structure records\n(smiles, molblock or file; optional label, coefficient, equiv, density_g_ml, concentration_m,\nisolated_mg), or {\"cdxml\": path, \"steps\": [step ids]} to read the <step> elements of a drawn\nscheme. Agents are listed but never counted. Elements are counted with implicit hydrogens;\nisotope-labelled atoms are balanced as separate species, and the charge must balance too.\nFor an unbalanced reaction the result names the missing formula (for example H2O),\nand, when exactly one set of whole-number coefficients balances it, suggests them.\nAlso reports mass balance and atom economy (options main_product, default the first product).\noptions scale_mmol (amount of the limiting reactant, option limiting = its index, default 0)\nadds a stoichiometry table with equivalents, mmol, mass, volume and, for products with\nisolated_mg, the percent yield. A failed balance is a finding about the species as drawn:\ncheck the structures against their source before trusting the reaction. Generic atoms\n(R groups) are rejected. output_path ends in .json and is never overwritten."
+    },
+    {
+      "name": "chemdraw_inventory",
+      "signature": "(layer: str | None = None, query: str | None = None, tier: str | None = None, kind: str | None = None, limit: int = 50) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Look up ChemDraw's own interfaces and how far this Skill covers each one.\n\nThe catalog lists what ChemDraw 22.2 reports about itself: ChemScript SDK members\n(layer chemscript), COM automation objects (com), CDXML elements (cdxml) and menu\ncommands with their command ids (menu). Every row has a tier: T1 a dedicated tool does\nit (tool names it), T2 a generic tool reaches it with a recipe that was run and checked\n(recipe, tool), T3 it is documented only (reason says why). Filter by layer, tier, kind\n(for example method, property, element, command, enum) and query, a case-insensitive\ntext found in the row id or its documentation; limit caps the rows returned. The summary\ncounts every row per layer and tier whatever the filter. Nothing here talks to ChemDraw."
+    },
+    {
+      "name": "chemdraw_object",
+      "signature": "(op: str, input_path: str, selector: str | None = None, tag: str | None = None, props: dict | None = None, children: list | None = None, text: str | None = None, output_path: str | None = None, allow_unknown: bool = False, dry_run: bool = False, verify: bool = True, limit: int = 200) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "List, read, change, add or delete any object in a CDXML file, without touching the input.\n\nop is list, get, set, add or delete. selector picks elements: steps joined by \">\" of\ntag#id[Attr=value] (for example \"fragment > n[Element=8]\", \"b#5\", \"*[id=6]\"); the first step\nmatches anywhere, later steps match direct children. list without a selector counts the\nelements by tag; with one it describes up to limit matches. get needs a selector and\nreturns the attributes and children count of each match. set changes the attributes in\nprops ({name: value}, null removes one) on every match; an attribute the ChemDraw catalog\ndoes not list for that element is refused unless the element already carries it or\nallow_unknown is true, and integer/number/list values are checked. add appends a new tag\nto the one element that selector matches, with props, optional text and nested children\n[{tag, props, text, children}]; an id is assigned when the element type has one. delete\nremoves the matched objects with their contents and refuses objects that other objects\nstill point at (a bond's atoms, a bracket's members). Every other element, attribute and\ncomment of the file is kept as read, in order, including ones this tool does not know.\nChanges are written to a new CDXML (output_path, or a fresh name beside the input);\nan existing file is never replaced. dry_run reports the changes and writes nothing.\nverify (default true) re-reads what would be written and checks the element count, that\nobjects outside the edit are unchanged and that no duplicate id or dangling reference\nappeared; a failed check writes nothing. The edit is structural: render the result\nwith ChemDraw before treating it as a final figure."
     },
     {
       "name": "clean_scheme_layout",
