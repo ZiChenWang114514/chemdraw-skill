@@ -26,7 +26,7 @@ A tool written as `tool(arg=value)` in the references runs as `cdx.py call tool 
 ## Core Rules
 
 1. Ground connectivity in trusted user structures, a resolver, parser, or reviewed OCSR candidate. Valid SMILES syntax is not recognition accuracy. Route intentional structural corrections through `modify_molecule` and read its comparison status, not just empty change lists. Use `rdkit_workbench` for explicit atom-index stereo edits.
-2. Never overwrite inputs. Write new outputs and check what was actually written.
+2. Never overwrite or move an existing file, even at a destination the user named: save beside it as `result-2.cdxml`, say so, and check the output.
 3. Image recognition uses the DECIMER API (`cdx.py decimer IMAGE`) for task images and their crops without a separate upload question. Ask once first when the source is marked unpublished, under review, confidential or a patent draft; never upload when the user asks for offline or no-upload work, and set `CHEMDRAW_OFFLINE=1` on every command then ([operations](references/operations.md#environment-variables)). Do not silently switch models or endpoints after a failure.
 4. A crossing does not create an atom. Distinguish an occluded solid bond, a repeated dash and a stereochemical hashed wedge. Check narrow ends and foreground/background against the image.
 5. Layout edits must preserve the molecular inventory, including stereo, charge and isotope information. A bond-display edit that changes semantic readback is not layout-only.

@@ -108,7 +108,8 @@ class NativeRendererTests(unittest.TestCase):
     def test_application_acquisition_uses_a_dedicated_instance(self):
         application = _Application(_Document())
 
-        with mock.patch(
+        environment = {key: value for key, value in os.environ.items() if key != "CHEMDRAW_EXE"}
+        with mock.patch.dict(os.environ, environment, clear=True), mock.patch(
             "win32com.client.DispatchEx", return_value=application
         ) as dispatch_ex, mock.patch(
             "win32com.client.GetActiveObject"

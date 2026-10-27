@@ -145,7 +145,7 @@ class DistributionTests(unittest.TestCase):
         brands = re.compile(r"\b(co" + r"dex|open" + r"ai|gemini|copilot|opencode)\b", re.IGNORECASE)
         allowed = {"README.md", "README.zh-cn.md", "docs/guide.md", "docs/guide.zh-cn.md",
                    "site/index.html", "site/en/index.html",
-                   ".github/workflows/validate.yml", "scripts/install.py",
+                   ".github/workflows/validate.yml", "scripts/install.py", "scripts/agent_eval.py",
                    "skill/chemdraw/references/agent-integration.md",
                    # The toolkit documents and implements one compatibility alias (`--profile codex`).
                    "toolkit/README.md", "toolkit/AGENTS.md", "toolkit/docs/maintenance.md",

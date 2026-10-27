@@ -37,6 +37,25 @@ def write_valid_office(path: str | Path) -> None:
 
 
 class WorkerRuntimeTests(unittest.TestCase):
+    def test_a_scratch_folder_that_cannot_be_removed_does_not_fail_the_call(self):
+        # A restricted sandbox can create the worker's temp folder yet refuse to list or delete it.
+        def refuse(*args, **kwargs):
+            raise PermissionError(13, "Access is denied")
+
+        with mock.patch.object(mcp_server.shutil, "rmtree", refuse):
+            result = mcp_server._run_worker("get_toolkit_capabilities", [], {}, timeout_seconds=120)
+
+        self.assertNotEqual(result.get("error", {}).get("code"), "worker_launch_failed", result)
+
+    def test_launch_failure_names_the_operating_system_reason(self):
+        with mock.patch.object(
+            mcp_server, "_execute_worker_process", side_effect=PermissionError(13, "Access is denied")
+        ):
+            result = mcp_server._run_worker("get_toolkit_capabilities", [], {})
+
+        self.assertEqual(result["error"]["code"], "worker_launch_failed")
+        self.assertIn("Access is denied", result["error"]["message"])
+
     def test_worker_preserves_structured_native_error_code_and_error_id(self):
         error = native_io.NativeIOError(
             "native_saveas_silent_failure",

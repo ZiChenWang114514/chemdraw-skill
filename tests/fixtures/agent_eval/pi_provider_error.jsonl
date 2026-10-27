@@ -1,0 +1,6 @@
+{"type": "session", "version": 3, "id": "x", "cwd": "<work>"}
+{"type": "agent_start"}
+{"type": "turn_start"}
+{"type": "message_end", "message": {"role": "user", "content": [{"type": "text", "text": "Reply with the single word ok."}]}}
+{"type": "message_end", "message": {"role": "assistant", "content": [], "provider": "openrouter", "model": "z-ai/glm-5.3-flash", "stopReason": "error", "errorMessage": "402: This request requires more credits, or fewer max_tokens."}}
+{"type": "agent_settled", "aborted": false}

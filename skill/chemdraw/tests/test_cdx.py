@@ -1,4 +1,5 @@
 """Unified CLI, ACS-1996 builder and installation-manifest contracts."""
+import argparse
 import json
 import re
 import os
@@ -23,6 +24,26 @@ def test_call_uses_registered_timeout(tmp_path):
                            return_value=(0, b'{"ok":true,"result":{"ok":true}}', b'')) as process:
         cdx.main(['call', 'modify_molecule', '--json', '{}', '--out', str(tmp_path / 'r.json')])
     assert process.call_args.kwargs['timeout_seconds'] == 90
+
+
+def test_args_and_json_each_take_inline_json_or_a_file(tmp_path):
+    arguments = tmp_path / 'a.json'
+    arguments.write_text('﻿{"x": 1}', encoding='utf-8')
+    def load(**given):
+        return cdx._load_args(argparse.Namespace(**{'json': None, 'args': None, **given}))
+
+    assert load(args='{"x": 1}') == {'x': 1}
+    assert load(json=str(arguments)) == {'x': 1}
+    assert load(args=str(arguments)) == {'x': 1}
+    assert load(json='{"y": 2}') == {'y': 2}
+    assert load() == {}
+
+
+def test_arguments_that_are_neither_json_nor_a_file_get_a_plain_message(tmp_path):
+    ns = argparse.Namespace(json=None, args=str(tmp_path / 'missing.json'))
+    with pytest.raises(SystemExit) as error:
+        cdx._load_args(ns)
+    assert '--json' in str(error.value) and 'missing.json' in str(error.value)
 
 
 def test_large_result_goes_to_evidence_file_and_summary_is_small(tmp_path, capsys):
