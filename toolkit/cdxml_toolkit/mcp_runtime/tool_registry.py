@@ -20,6 +20,7 @@ from .official_overrides import OFFICIAL_OVERRIDES
 from .remote_tools import REMOTE_TOOLS
 from .figure_tools import FIGURE_TOOLS
 from .markush_tools import MARKUSH_TOOLS
+from .object_tools import OBJECT_TOOLS
 from .report_tools import REPORT_TOOLS
 from .figure_draw import draw_figure
 from .publication_figure import publication_figure
@@ -188,6 +189,9 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     )
     extended_functions = _merge_named_tools(
         extended_functions, {"draw_figure": draw_figure}, source="figure drawing"
+    )
+    extended_functions = _merge_named_tools(
+        extended_functions, OBJECT_TOOLS, source="object and catalog tools"
     )
     extended_functions = _merge_named_tools(
         extended_functions, MARKUSH_TOOLS, source="Markush tools"

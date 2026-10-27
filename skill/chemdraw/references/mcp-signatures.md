@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full (default)`
-Tools: `54`
+Tools: `56`
 
 ## Extended Tools
 
@@ -61,6 +61,43 @@ adds a stoichiometry table with equivalents, mmol, mass, volume and, for product
 isolated_mg, the percent yield. A failed balance is a finding about the species as drawn:
 check the structures against their source before trusting the reaction. Generic atoms
 (R groups) are rejected. output_path ends in .json and is never overwritten.
+
+### `chemdraw_inventory(layer: str | None = None, query: str | None = None, tier: str | None = None, kind: str | None = None, limit: int = 50) -> dict`
+
+Look up ChemDraw's own interfaces and how far this Skill covers each one.
+
+The catalog lists what ChemDraw 22.2 reports about itself: ChemScript SDK members
+(layer chemscript), COM automation objects (com), CDXML elements (cdxml) and menu
+commands with their command ids (menu). Every row has a tier: T1 a dedicated tool does
+it (tool names it), T2 a generic tool reaches it with a recipe that was run and checked
+(recipe, tool), T3 it is documented only (reason says why). Filter by layer, tier, kind
+(for example method, property, element, command, enum) and query, a case-insensitive
+text found in the row id or its documentation; limit caps the rows returned. The summary
+counts every row per layer and tier whatever the filter. Nothing here talks to ChemDraw.
+
+### `chemdraw_object(op: str, input_path: str, selector: str | None = None, tag: str | None = None, props: dict | None = None, children: list | None = None, text: str | None = None, output_path: str | None = None, allow_unknown: bool = False, dry_run: bool = False, verify: bool = True, limit: int = 200) -> dict`
+
+List, read, change, add or delete any object in a CDXML file, without touching the input.
+
+op is list, get, set, add or delete. selector picks elements: steps joined by ">" of
+tag#id[Attr=value] (for example "fragment > n[Element=8]", "b#5", "*[id=6]"); the first step
+matches anywhere, later steps match direct children. list without a selector counts the
+elements by tag; with one it describes up to limit matches. get needs a selector and
+returns the attributes and children count of each match. set changes the attributes in
+props ({name: value}, null removes one) on every match; an attribute the ChemDraw catalog
+does not list for that element is refused unless the element already carries it or
+allow_unknown is true, and integer/number/list values are checked. add appends a new tag
+to the one element that selector matches, with props, optional text and nested children
+[{tag, props, text, children}]; an id is assigned when the element type has one. delete
+removes the matched objects with their contents and refuses objects that other objects
+still point at (a bond's atoms, a bracket's members). Every other element, attribute and
+comment of the file is kept as read, in order, including ones this tool does not know.
+Changes are written to a new CDXML (output_path, or a fresh name beside the input);
+an existing file is never replaced. dry_run reports the changes and writes nothing.
+verify (default true) re-reads what would be written and checks the element count, that
+objects outside the edit are unchanged and that no duplicate id or dangling reference
+appeared; a failed check writes nothing. The edit is structural: render the result
+with ChemDraw before treating it as a final figure.
 
 ### `clean_scheme_layout(input_path: str, output_path: Optional[str] = None, approach: str = 'chemdraw_mimic', render_preview: bool = True) -> dict[str, typing.Any]`
 

@@ -8,61 +8,61 @@ ChemDraw ships no DTD, so this model is empirical, verified on 22.2.0/win. It sc
 Evidence: `observed` the element appears in documents ChemDraw wrote; `binary` the name occurs in ChemDraw's own files but in no observed document; `none` a name of the format this installation gave no evidence for.
 Attribute values are summarised by shape (integer, number, numbers, a short list of values), never by document text. Preserve attributes you do not understand when editing a document.
 
-Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a generic tool, with a recipe that was run and checked. **T3** Documented. Not opened as a tool, or reachable only through a generic tool without a verified recipe. Rows: T1 12, T2 0, T3 38.
+Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a generic tool, with a recipe that was run and checked. **T3** Documented. Not opened as a tool, or reachable only through a generic tool without a verified recipe. Rows: T1 37, T2 0, T3 13.
 
 ## Elements
 
 | Element | Evidence | Tier | Tool | Occurrences | Parents |
 | --- | --- | --- | --- | ---: | --- |
 | `CDXML` | observed | T1 | draw_figure | 689 |  |
-| `altgroup` | observed | T3 |  | 1 | page |
-| `annotation` | observed | T3 |  | 538 | group, n, page |
+| `altgroup` | observed | T1 | chemdraw_object | 1 | page |
+| `annotation` | observed | T1 | chemdraw_object | 538 | group, n, page |
 | `arrow` | observed | T1 | draw_figure | 1271 | group, marker, page |
 | `b` | observed | T1 | draw_molecule | 12306 | fragment |
-| `bioshape` | observed | T3 |  | 90 | group, page |
-| `border` | observed | T3 |  | 204 | page |
-| `bracketattachment` | observed | T3 |  | 2 | bracketedgroup |
-| `bracketedgroup` | observed | T3 |  | 1 | page |
-| `chemicalproperty` | observed | T3 |  | 58 | page |
+| `bioshape` | observed | T1 | chemdraw_object | 90 | group, page |
+| `border` | observed | T1 | chemdraw_object | 204 | page |
+| `bracketattachment` | observed | T1 | chemdraw_object | 2 | bracketedgroup |
+| `bracketedgroup` | observed | T1 | chemdraw_object | 1 | page |
+| `chemicalproperty` | observed | T1 | chemdraw_object | 58 | page |
 | `color` | observed | T1 | draw_figure | 4758 | colortable |
 | `colortable` | observed | T1 | draw_figure | 689 | CDXML |
 | `constraint` | binary | T3 |  |  |  |
 | `crossingbond` | binary | T3 |  |  |  |
-| `curve` | observed | T3 |  | 4526 | bioshape, fragment, group, page, plasmidmarker |
-| `embeddedobject` | observed | T3 |  | 23 | page |
+| `curve` | observed | T1 | chemdraw_object | 4526 | bioshape, fragment, group, page, plasmidmarker |
+| `embeddedobject` | observed | T1 | chemdraw_object | 23 | page |
 | `font` | observed | T1 | draw_figure | 1297 | fonttable |
 | `fonttable` | observed | T1 | draw_figure | 689 | CDXML |
 | `fragment` | observed | T1 | draw_molecule | 1732 | group, n, page |
 | `geometry` | binary | T3 |  |  |  |
-| `gepband` | observed | T3 |  | 16 | geplane |
-| `geplane` | observed | T3 |  | 2 | gepplate |
-| `gepplate` | observed | T3 |  | 1 | page |
-| `graphic` | observed | T3 |  | 2889 | fragment, group, page, plasmidmap |
-| `group` | observed | T3 |  | 686 | group, page |
-| `marker` | observed | T3 |  | 11 | gepband |
+| `gepband` | observed | T1 | chemdraw_object | 16 | geplane |
+| `geplane` | observed | T1 | chemdraw_object | 2 | gepplate |
+| `gepplate` | observed | T1 | chemdraw_object | 1 | page |
+| `graphic` | observed | T1 | chemdraw_object | 2889 | fragment, group, page, plasmidmap |
+| `group` | observed | T1 | chemdraw_object | 686 | group, page |
+| `marker` | observed | T1 | chemdraw_object | 11 | gepband |
 | `mixedprotein` | none | T3 |  |  |  |
 | `n` | observed | T1 | draw_molecule | 13301 | fragment |
-| `objecttag` | observed | T3 |  | 230 | b, bioshape, graphic, group, n |
+| `objecttag` | observed | T1 | chemdraw_object | 230 | b, bioshape, graphic, group, n |
 | `page` | observed | T1 | draw_figure | 744 | CDXML, table |
-| `plasmidmap` | observed | T3 |  | 3 | group, page |
-| `plasmidmarker` | observed | T3 |  | 16 | plasmidmap |
-| `plasmidregion` | observed | T3 |  | 95 | plasmidmap |
+| `plasmidmap` | observed | T1 | chemdraw_object | 3 | group, page |
+| `plasmidmarker` | observed | T1 | chemdraw_object | 16 | plasmidmap |
+| `plasmidregion` | observed | T1 | chemdraw_object | 95 | plasmidmap |
 | `regenerationclass` | none | T3 |  |  |  |
-| `represent` | observed | T3 |  | 85 | graphic |
+| `represent` | observed | T1 | chemdraw_object | 85 | graphic |
 | `s` | observed | T1 | draw_figure | 6279 | t |
-| `scheme` | observed | T3 |  | 68 | page |
+| `scheme` | observed | T1 | chemdraw_object | 68 | page |
 | `sgcomponent` | binary | T3 |  |  |  |
 | `sgdatum` | binary | T3 |  |  |  |
 | `spectrum` | binary | T3 |  |  |  |
 | `splitter` | binary | T3 |  |  |  |
-| `step` | observed | T3 |  | 290 | scheme |
+| `step` | observed | T1 | chemdraw_object | 290 | scheme |
 | `stereocenter` | binary | T3 |  |  |  |
-| `stoichiometrygrid` | observed | T3 |  | 1 | page |
+| `stoichiometrygrid` | observed | T1 | chemdraw_object | 1 | page |
 | `t` | observed | T1 | draw_figure | 5950 | altgroup, fragment, group, marker, n, objecttag, page, plasmidmap, plasmidmarker |
-| `table` | observed | T3 |  | 2 | page |
+| `table` | observed | T1 | chemdraw_object | 2 | page |
 | `templategrid` | binary | T3 |  |  |  |
 | `tlclane` | binary | T3 |  |  |  |
-| `tlcplate` | observed | T3 |  | 1 | page |
+| `tlcplate` | observed | T1 | chemdraw_object | 1 | page |
 | `tlcspot` | binary | T3 |  |  |  |
 
 ## Attributes

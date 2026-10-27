@@ -9,6 +9,7 @@ Exact signatures are generated in [mcp-signatures.md](mcp-signatures.md). This f
 - Prefer official molecule/reaction tools for ordinary drawing and parsing.
 - Prefer extended tools for complete layout, merge, polish, batch render, Office, RDF, and experiment workflows.
 - Use the comparison tools for ChemScript-grounded identity plus RDKit similarity. Use the SDK tools only after inspecting the relevant public member.
+- Use `chemdraw_object` to read or edit CDXML elements the drawing tools do not cover, and `chemdraw_inventory` to ask which ChemDraw interfaces (ChemScript members, COM objects, CDXML elements, menu commands) exist and which tier covers them. Neither starts ChemDraw.
 - Use the remote DECIMER tool (`cdx.py decimer`) by default for task images under the upload rule in SKILL.md.
 - New extended tools return `{ok, outputs, warnings, metadata}`. Existing official tools retain their upstream fields and add `metadata.artifacts`, listing the written files, after a successful write.
 

@@ -292,7 +292,8 @@ def main() -> int:
         index_path.write_text(index, encoding="utf-8", newline="\n")
         expected = set(shards)
         for stale in shard_dir.glob("*.md"):
-            if stale.name not in expected:
+            # Only shards this script wrote; the ChemDraw catalog pages share the folder.
+            if stale.name not in expected and stale.read_text(encoding="utf-8").split("\n", 1)[0].endswith("Public Symbols"):
                 stale.unlink()
         for name, content in shards.items():
             (shard_dir / name).write_text(content, encoding="utf-8", newline="\n")

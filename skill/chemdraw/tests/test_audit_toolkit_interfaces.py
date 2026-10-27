@@ -158,6 +158,27 @@ class InterfaceAuditTests(unittest.TestCase):
             for path in generated:
                 self.assertNotIn(b"\r\n", path.read_bytes(), path.name)
 
+    def test_stale_shards_are_removed_but_the_catalog_shards_are_left_alone(self):
+        auditor = load_auditor()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "sample_pkg"
+            root.mkdir()
+            (root / "example.py").write_text("def useful() -> bool:\n    return True\n", encoding="utf-8")
+            shard_dir = Path(temp_dir) / "references" / "inventory"
+            shard_dir.mkdir(parents=True)
+            stale = shard_dir / "gone.md"
+            stale.write_text("# Gone Public Symbols\n\n- old\n", encoding="utf-8")
+            catalog = shard_dir / "com-1.md"
+            catalog.write_text("# ChemDraw COM members (part 1 of 4)\n", encoding="utf-8")
+            with mock.patch.object(
+                sys, "argv",
+                ["audit_toolkit_interfaces.py", "--package-root", str(root),
+                 "--output-dir", str(shard_dir.parent), "--version", "0.0.0"],
+            ):
+                self.assertEqual(auditor.main(), 0)
+            self.assertFalse(stale.exists())
+            self.assertTrue(catalog.exists())
+
     def test_scientific_interfaces_route_to_the_runnable_guide(self) -> None:
         auditor = load_auditor()
         for module in ("scientific.tlc", "scientific.apparatus", "scientific.spectra",
