@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/ZiChenWang114514/chemdraw-skill.git",
   "subdirectory": "toolkit",
-  "commit": "dca413e6729fc9ed74cbda57652eb70aafc4285e",
+  "commit": "814ebab94216e930df53c7a7582ab6c30a0ba81e",
   "toolkit_version": "0.7.0a3",
-  "toolkit_fingerprint": "257e59864927b7d1fd7f15f7903a68ff19d4a0b227efab789d8589c866c67cd9"
+  "toolkit_fingerprint": "25e96b688d419fbfb2719f53be668917ad165d006a4187e74816204f97d64439"
 }
