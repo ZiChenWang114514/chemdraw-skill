@@ -44,6 +44,15 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 2. Render one file with `render_to_png` or a collection/PNG/SVG with `render_cdxml_files`. Batch rendering reuses one ChemDraw application session and stops on the first failed export.
 3. Require native ChemDraw output for reaction and Office fidelity checks.
 
+## Inspect Or Edit CDXML Objects
+
+For any object other than the molecules and schemes the drawing tools produce (text, shapes, tables, bioshapes, plasmid maps, annotations, chemical properties), or to change one attribute of an existing file:
+
+1. Find the element in [interface-cdxml-model.md](interface-cdxml-model.md) (or `chemdraw_inventory(layer="cdxml", query=...)`); the page lists the attributes seen in real ChemDraw documents.
+2. `chemdraw_object(op="list", input_path=...)` counts elements by tag; add a `selector` such as `fragment > n[Element=8]` to describe matches, and `get` for full attributes.
+3. `set`, `add` and `delete` write a new CDXML (never the input) and keep every element, attribute and comment they do not touch, in order. Use `dry_run` first on a large selector. An attribute the catalog does not list is refused unless `allow_unknown` is set; delete refuses an object that a bond, bracket or graphic still points at.
+4. The result is a structural edit. Render it with `render_to_png`, look at the image, and compare molecules with `compare_molecules` when atoms or bonds changed.
+
 ## Work With Office
 
 1. Use `inspect_chemdraw_objects_in_office` when object identity, host location, geometry, or selective replacement matters. Use `extract_cdxml_from_office` for simple bulk extraction.

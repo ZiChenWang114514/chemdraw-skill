@@ -57,6 +57,7 @@ Read only the matching workflow and the needed signature, not the complete catal
 | Atom indices, CIP, MCS or stereo enumeration | [RDKit workbench](references/rdkit-workbench.md) |
 | Formula, masses, MS adducts, logP; reaction balance or stoichiometry; reaction equivalents calculator (draw, enter amounts, read every quantity, write amounts into a scheme); HRMS lines; SI materials tables for batches of reactions; reaction atom mapping; bulk SMILES/InChI export; structure to name | [Chemistry reports](references/chemistry-reports.md) |
 | ChemDraw's own interfaces: ChemScript SDK members, COM automation objects, CDXML elements and attributes, menu commands, and which of them have a tool or a verified recipe | [Interface catalog](references/interface-catalog.md) |
+| Read or change any other CDXML object (text, shapes, tables, bioshapes, one attribute) in an existing file | [Inspect or edit CDXML objects](references/workflow-router.md#inspect-or-edit-cdxml-objects) |
 | Installation, upgrade, missing tools or runtime failure | [Operations](references/operations.md) |
 
 For recurring errors, consult [lessons](references/lessons.md). Exact signatures are generated in [mcp-signatures.md](references/mcp-signatures.md) (`cdx.py sig NAME` prints one). Use the [interface catalog](references/interface-catalog.md) only when routing does not identify an entry point.

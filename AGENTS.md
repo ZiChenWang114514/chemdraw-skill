@@ -26,8 +26,8 @@ Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth fo
 
 ```powershell
 python .\skill\chemdraw\scripts\cdx.py regen-signatures
-python .\skill\chemdraw\scripts\cdx.py regen-catalog
 python .\skill\chemdraw\scripts\cdx.py py .\skill\chemdraw\scripts\audit_toolkit_interfaces.py --output-dir .\skill\chemdraw\references
+python .\skill\chemdraw\scripts\cdx.py regen-catalog
 ```
 
 ## Verification

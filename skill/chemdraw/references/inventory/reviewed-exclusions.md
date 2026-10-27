@@ -9,6 +9,58 @@
 - **function**, line 583: `map_atoms(left, right, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> dict` - Map the heavy atoms of products ``right`` onto reactants ``left`` (lists of (label, mol)).
 - **function**, line 529: `map_atoms_many(reactions, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> list[dict]` - Map many reactions at once; ``reactions`` is a list of ``(left, right)`` as in :func:`map_atoms`.
 
+## `catalog.cdxml`
+
+- **function**, line 100: `binary_names(paths: Iterable[Path], names: Iterable[str]) -> set[str]` - Names that occur as standalone ASCII strings in the given binaries.
+- **function**, line 112: `build_catalog(observed: dict[str, Any], *, binary_names: set[str], candidates: Iterable[str] = CANDIDATES, fixtures: Optional[list[dict[str, Any]]] = None, verified_on: str = 'unverified') -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 267: `dump(catalog: dict[str, Any]) -> str` - No public docstring in the audited version.
+- **function**, line 244: `extract_live(workdir, *, verified_on: Optional[str] = None) -> dict[str, Any]` - Scan the CDXML ChemDraw installs, plus what it writes for the bundled CDX files and fixtures.
+- **function**, line 54: `scan_documents(paths: Iterable[Path]) -> dict[str, Any]` - Collect elements, attributes, nesting and value shapes from CDXML files.
+- **function**, line 41: `summarise_values(values: set[str]) -> dict[str, Any]` - Describe the shape of an attribute's observed values without keeping free text.
+
+## `catalog.chemscript`
+
+- **function**, line 87: `build_catalog(reflection: dict[str, Any], docs: dict[str, str], *, verified_on: str = 'unverified', bases: Optional[dict[str, str]] = None) -> dict[str, Any]` - Join a reflection dump (``include_infrastructure`` on) with XML summaries.
+- **function**, line 204: `dump(catalog: dict[str, Any]) -> str` - No public docstring in the audited version.
+- **function**, line 188: `extract_live(reflection_path, *, verified_on: Optional[str] = None) -> dict[str, Any]` - Read the installed SDK (Windows) and build the catalog; ``reflection_path`` must not exist.
+- **function**, line 40: `parse_xml_docs(path) -> dict[str, str]` - Map each ``T:``/``M:``/``P:``/``F:`` key of the SDK's XML docs to its one-line summary.
+- **function**, line 175: `read_bases() -> dict[str, str]` - Full name of each exported type's base type, read in-process through Python.NET.
+
+## `catalog.classify`
+
+- **function**, line 155: `all_rows() -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 129: `classify(catalogs: dict[str, dict[str, Any]], recipes: list[dict[str, Any]], classification: dict[str, Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 162: `find_row(rows: Iterable[dict[str, Any]], row_id: str) -> Optional[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 29: `load_catalog(layer: str) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 33: `load_classification() -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 148: `summarize(rows: Iterable[dict[str, Any]]) -> dict[str, dict[str, int]]` - No public docstring in the audited version.
+
+## `catalog.com`
+
+- **function**, line 212: `dump(catalog: dict[str, Any]) -> str` - No public docstring in the audited version.
+- **function**, line 189: `extract_live(*, verified_on: Optional[str] = None) -> dict[str, Any]` - Read the type libraries of the installed ChemDraw (Windows); ChemDraw is not started.
+- **function**, line 71: `merge_properties(members: list[dict[str, Any]]) -> list[dict[str, Any]]` - Fold a property's get/put/putref accessors into one ``property`` member, in first-seen order.
+- **function**, line 159: `read_typelib(path) -> dict[str, Any]` - Describe every type of the type library at ``path`` (an .exe, .dll, .ocx or .tlb).
+- **function**, line 35: `type_name(desc, info) -> str` - Readable name of a TYPEDESC as pythoncom returns it: an int, or ``(vt, inner)``.
+
+## `catalog.menu`
+
+- **function**, line 24: `build_catalog(raw: list[dict[str, Any]], *, verified_on: str = 'unverified') -> dict[str, Any]` - Turn the raw ``[{menu, items: [{caption, command_id}]}]`` walk into the committed shape.
+- **function**, line 108: `dump(catalog: dict[str, Any]) -> str` - No public docstring in the audited version.
+- **function**, line 82: `extract_live(*, verified_on: Optional[str] = None) -> dict[str, Any]` - Start a private ChemDraw (Windows), read its menus and quit it.
+- **function**, line 57: `find_command(catalog: dict[str, Any], caption: str) -> Optional[tuple[str, int]]` - Return ``(menu caption, command id)`` for a menu item caption, ignoring case.
+
+## `catalog.recipes`
+
+- **function**, line 32: `check(recipe: dict[str, Any], results: list[dict[str, Any]]) -> list[str]` - Return one message per expectation the results do not meet.
+- **function**, line 46: `declaring_type(catalog: dict[str, Any], type_name: str, member: str) -> Optional[str]` - The type of the ChemScript catalog that declares ``member``, following base types.
+- **function**, line 15: `load() -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 58: `run(recipe: dict[str, Any]) -> list[str]` - Execute a ChemScript recipe on the installed SDK and return its failures.
+
+## `catalog.render`
+
+- **function**, line 338: `render_all(catalogs: dict[str, dict[str, Any]] | None = None, recipes: list[dict[str, Any]] | None = None, classification: dict[str, Any] | None = None) -> dict[str, str]` - No public docstring in the audited version.
+
 ## `characterization`
 
 - **function**, line 60: `atoms_mass(mol) -> float` - Sum of the monoisotopic (or labelled-isotope) atom masses, without any electron correction.
@@ -256,6 +308,11 @@
 - **function**, line 241: `render_cdxml(source: str | Path, destination: str | Path, *, dpi: int = 300, timeout_seconds: int = 30) -> str` - No public docstring in the audited version.
 - **function**, line 22: `renderer_name() -> str` - The native renderer on this platform, as written in render receipts.
 
+## `mcp_runtime.object_tools`
+
+- **function**, line 217: `chemdraw_inventory(layer: str | None = None, query: str | None = None, tier: str | None = None, kind: str | None = None, limit: int = 50) -> dict` - Look up ChemDraw's own interfaces and how far this Skill covers each one.
+- **function**, line 73: `chemdraw_object(op: str, input_path: str, selector: str | None = None, tag: str | None = None, props: dict | None = None, children: list | None = None, text: str | None = None, output_path: str | None = None, allow_unknown: bool = False, dry_run: bool = False, verify: bool = True, limit: int = 200) -> dict` - List, read, change, add or delete any object in a CDXML file, without touching the input.
+
 ## `mcp_runtime.office_objects`
 
 - **function**, line 26: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
@@ -348,13 +405,34 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 138: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 130: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 29: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 139: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 131: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 30: `ToolSpec` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_worker`
 
 - **function**, line 30: `worker_log_dir() -> Path` - Folder of ``worker-<id>.log`` files (``cdx.py doctor --paths`` prints it).
+
+## `model.document`
+
+- **function**, line 30: `catalog_index() -> dict[str, dict[str, dict[str, Any]]]` - Catalog elements as ``{element: {attribute: {kind, values?}}}``.
+- **class**, line 72: `Document` - A parsed CDXML file; ``prologue`` is the text before the root element.
+- **method**, line 236: `Document.add(parent: ET.Element, tag: str, props: Optional[dict[str, Any]] = None, *, children: Optional[list[dict[str, Any]]] = None, text: Optional[str] = None, allow_unknown: bool = False) -> ET.Element` - Append a new element (and nested ``children``) to ``parent``; ids are assigned.
+- **method**, line 154: `Document.check() -> list[dict[str, Any]]` - Structural problems: duplicate ids and references to objects that do not exist.
+- **method**, line 274: `Document.delete(element: ET.Element) -> int` - Remove ``element`` and its subtree; refuse the root and objects other objects point at.
+- **method**, line 137: `Document.describe(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> dict[str, Any]` - No public docstring in the audited version.
+- **method**, line 297: `Document.dump_bytes() -> bytes` - No public docstring in the audited version.
+- **method**, line 290: `Document.dumps() -> str` - No public docstring in the audited version.
+- **method**, line 81: `Document.elements() -> Iterable[ET.Element]` - No public docstring in the audited version.
+- **method**, line 91: `Document.ids() -> set[str]` - No public docstring in the audited version.
+- **method**, line 232: `Document.next_id() -> int` - No public docstring in the audited version.
+- **method**, line 84: `Document.parent_map() -> dict[int, ET.Element]` - ``{id(child): parent}`` for the whole tree; rebuild it after an edit.
+- **method**, line 88: `Document.parent_of(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> Optional[ET.Element]` - No public docstring in the audited version.
+- **method**, line 128: `Document.path_of(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> str` - No public docstring in the audited version.
+- **method**, line 94: `Document.select(selector: str) -> list[ET.Element]` - Elements matching ``step > step ...``; a step is ``tag#id[Attr=value]...``.
+- **method**, line 208: `Document.set_properties(element: ET.Element, props: dict[str, Any], *, allow_unknown: bool = False) -> dict[str, tuple]` - Set, replace or (with ``None``) remove attributes; returns ``{name: (old, new)}``.
+- **function**, line 319: `load(path: str | Path) -> Document` - No public docstring in the audited version.
+- **function**, line 301: `parse(source: str | bytes) -> Document` - Parse CDXML text or bytes; the root must be ``CDXML``.
 
 ## `publication.data`
 
