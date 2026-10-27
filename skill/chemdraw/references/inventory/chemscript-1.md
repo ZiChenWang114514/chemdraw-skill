@@ -108,7 +108,7 @@ Contents: Atom, Atom+RadicalCodeEnum, Bond, BondCode, BondGStereo, BondOrder, Ch
 - `ContainsSubstructure` method ×2
 - `CreateSearchQuery` method ×2
 - `Dispose` method
-- `Formula` method ×2 **T2** (recipe `chemscript-structure-properties`)
+- `Formula` method ×2 **T1** (recipe `chemscript-structure-properties`)
 - `FormulaHTML` property
 - `GetCanonicalCode` method
 - `GetDataItem` method
@@ -504,7 +504,7 @@ Inherits the members of `ChemicalData`.
 - `BondedAtomsOf` method — Get bonded atoms of an Atom
 - `BondedBondsOf` method — Get bonded bonds of an Atom
 - `Bonds` property — Get a list of all the bonds.
-- `ChemicalName` method ×2 **T2** (recipe `chemscript-name-and-lipophilicity`) — Return the chemical name. It equals WriteData('name').
+- `ChemicalName` method ×2 **T1** (recipe `chemscript-name-and-lipophilicity`) — Return the chemical name. It equals WriteData('name').
 - `CleanupStructure` method ×4 **T2** (recipe `chemscript-cleanup-to-cdxml`) — Convert this structure to a 2D representation.
 - `Clear` method — Remove everything from this object
 - `ClearZCoordinates` method — Set all Z coordinates to 0
@@ -522,8 +522,8 @@ Inherits the members of `ChemicalData`.
 - `Dispose` method
 - `ElectronDonatingAtoms` property — Get the central atoms in electron-donating groups as a list 1. --M where M is an element more electropositive than hydrogen. Principal instances include: --MgX --SiR3 Alkyl is also electron donating to another carbon, a…
 - `ElectronWithdrawingAtoms` property — Get the central atoms in electron-withdrawing groups as a list 1. --X=Y where X is an element more electronegative than hydrogen, and Y is an element more electronegative than hydrogen (inc. C). Principal instances incl…
-- `ElementalAnalysis` property — Get the mol elemental analysis
-- `ExactMass` property **T2** (recipe `chemscript-structure-properties`) — Get the exact mass
+- `ElementalAnalysis` property **T1** — Get the mol elemental analysis
+- `ExactMass` property **T1** (recipe `chemscript-structure-properties`) — Get the exact mass
 - `FindBond` method ×2 — Find the bond between a1 and a2 Find the bond between two atoms whose atom IDs are id1 and id2
 - `GeometricCenter` method — Returns the unweighted geometric center of all atoms
 - `GetBound` method — Get the bound of this StructureData.
@@ -549,10 +549,10 @@ Inherits the members of `ChemicalData`.
 - `Neutralize` method — Adds and removes protons so as to neutralize charged acidic and basic atoms
 - `NormalizeStructure` method ×3 — Convert differently drawn representations of the same structure into a single normalized form.
 - `Overlay` method ×2 — Adjust the position and orientation of the structure in order to achieve the best possible overlay of the structure onto the target (or scaffold). This is a "rigid-body" overlay. During this procedure, the internal geom…
-- `PartitionCoefficient` property **T2** (recipe `chemscript-name-and-lipophilicity`) — Compute partition coefficient (Log P) using ClogP
+- `PartitionCoefficient` property **T1** (recipe `chemscript-name-and-lipophilicity`) — Compute partition coefficient (Log P) using ClogP
 - `ReadData` method ×2 — Reads string data into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full…
 - `ReadFile` method ×2 — Loads a file into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full mime…
-- `Refractivity` property **T2** (recipe `chemscript-name-and-lipophilicity`) — Compute StructureData refractivity using ClogP
+- `Refractivity` property **T1** (recipe `chemscript-name-and-lipophilicity`) — Compute StructureData refractivity using ClogP
 - `RemoveAtom` method — Remove an atom
 - `RemoveBond` method ×2 — Remove a bond
 - `ResetAtomIDs` method — Reset atom ID. When some atoms are removed, the atom IDs are not continuous, this method must be called to reassign a continuous IDs.
@@ -565,7 +565,7 @@ Inherits the members of `ChemicalData`.
 - `TotalNegativeCharges` property — Get the total negative charges of the StructureData
 - `TotalPositiveCharges` property — Get the total positive charges of the StructureData
 - `TranslateCoordinates` method — Translate all atom positions by offset
-- `Weight` property **T2** (recipe `chemscript-structure-properties`) — Get the mol weight
+- `Weight` property **T1** (recipe `chemscript-structure-properties`) — Get the mol weight
 
 ## StructureData+DekekMode
 

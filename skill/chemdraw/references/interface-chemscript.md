@@ -12,7 +12,7 @@ Installed SDK `CambridgeSoft.ChemScript` 22.0.0.0, verified on 22.2.0/win.
 - Verified programs are in [recipes-chemdraw.md](recipes-chemdraw.md). Windows reads the installed SDK; macOS answers an emulated subset of the core classes ([operations.md](operations.md)).
 - Members of a base type are available on its subtypes: `StructureData` and `ReactionData` inherit `ChemicalData`.
 
-Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a generic tool, with a recipe that was run and checked. **T3** Documented. Not opened as a tool, or reachable only through a generic tool without a verified recipe. Members: T1 0, T2 15, T3 561.
+Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a generic tool, with a recipe that was run and checked. **T3** Documented. Not opened as a tool, or reachable only through a generic tool without a verified recipe. Members: T1 7, T2 9, T3 560.
 
 ## API types
 
@@ -25,7 +25,7 @@ Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a ge
 | BondGStereo | CppWrapper | 5 | 0 | class of BondGStereo. structure to hold GStereoCode information. |
 | BondOrder | CppWrapper | 5 | 0 | struct of BondOrder. structure to hold bond order information. |
 | ChemScript |  | 3 | 0 |  |
-| ChemicalData | ChemScriptBase | 29 | 2 |  |
+| ChemicalData | ChemScriptBase | 29 | 1 |  |
 | CombiChem | ChemScriptBase | 14 | 0 | CombiChem is a utility class that provides functionality for combinatorial chemisty enumeration. A generic reaction is provided for the enumeration during construction. Candidate structures can be associated with each o… |
 | Element | CppWrapper | 17 | 0 | Class of Element. Users cannot create Element object directly. Use PeriodicTable.GetElement() to get an Element object. |
 | Environment | ChemScriptBase | 16 | 0 |  |
@@ -49,7 +49,7 @@ Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a ge
 | SaltTable | ChemScriptBase | 37 | 0 | Provide a customized way when do StructureData.SplitSalt(). |
 | SearchOptions | ChemScriptBase | 25 | 0 | class of Atom-By-Atom Search Options: Option Meanings ---------------------------------------------------------------------------- _3D : 3-D search mode. absHitsRelative : If set, in non-Identity/Rel.Tet.Ster mode, an :… |
 | SearchQuery | ChemScriptBase | 8 | 0 | class of SearchQuery List all atom-by-atom map from this StructureData to "target" StructureData. If any hit found, it returns true, else return false. |
-| StructureData | ChemicalData | 70 | 9 |  |
+| StructureData | ChemicalData | 70 | 4 |  |
 | StructureData+DekekMode |  | 18 | 0 |  |
 | StructureData+SaltsOptions |  | 6 | 0 |  |
 | Topology | ChemScriptBase | 30 | 0 |  |

@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `57`
+Tools: `58`
 
 ## Extended Tools
 
@@ -61,6 +61,20 @@ adds a stoichiometry table with equivalents, mmol, mass, volume and, for product
 isolated_mg, the percent yield. A failed balance is a finding about the species as drawn:
 check the structures against their source before trusting the reaction. Generic atoms
 (R groups) are rejected. output_path ends in .json and is never overwritten.
+
+### `chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict`
+
+Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
+
+Records are SMILES/CXSMILES, molblock or file records (CDXML/MOL/SDF), with an optional
+label; a CDXML or SDF record with all_fragments=true reports every structure in the file.
+Every value is read from ChemDraw's own chemical properties engine (ChemScript StructureData:
+Formula, Weight, ExactMass, ElementalAnalysis, PartitionCoefficient and Refractivity);
+log_p and molar_refractivity are ChemDraw's ClogP estimates, in its units. Nothing is computed
+by RDKit or any other substitute: a property ChemDraw cannot give is null with the reason in
+that row's errors, and without ChemScript (Windows) the call fails instead of falling back.
+Use molecule_report for the deterministic RDKit sheet. Generic atoms (R groups, *) are refused.
+output_path ends in .csv, .json or .md and is never overwritten. At most 256 structures.
 
 ### `chemdraw_com_call(program: list[dict[str, typing.Any]], allow_file_io: bool = False, allow_overwrite: bool = False, max_items: int = 100) -> dict[str, typing.Any]`
 

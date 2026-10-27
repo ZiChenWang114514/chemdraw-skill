@@ -160,3 +160,14 @@ def test_the_macos_emulation_only_offers_members_the_windows_sdk_has():
             missing.append(f"{owner}.{name}")
     assert missing == []
 
+
+def test_property_members_are_tier_one_through_the_property_tool():
+    found = {row["id"]: row for row in classify.all_rows()}
+
+    for symbol in ("ChemicalData.Formula", "StructureData.Weight", "StructureData.ExactMass",
+                   "StructureData.ElementalAnalysis", "StructureData.PartitionCoefficient",
+                   "StructureData.Refractivity"):
+        row = found[f"chemscript:{symbol}"]
+        assert (row["tier"], row["tool"]) == ("T1", "chemdraw_chemical_properties"), symbol
+    assert found["chemscript:StructureData.ChemicalName"]["tool"] == "structure_to_name"
+

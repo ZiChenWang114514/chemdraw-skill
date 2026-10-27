@@ -64,6 +64,7 @@ CHEMDRAW_COM_TOOLS = {
 # ChemScript runs in-process on Windows; the macOS emulation drives ChemDraw itself.
 MAC_CHEMDRAW_TOOLS = {
     "batch_compare_molecules",
+    "chemdraw_chemical_properties",
     "compare_molecules",
     "execute_chemscript_sdk",
     "inspect_chemscript_sdk",
@@ -89,6 +90,7 @@ def _tool_timeout(name: str) -> int | None:
         "publication_figure": 600,
         "draw_figure": 300,
         "chemdraw_com_call": 240,
+        "chemdraw_chemical_properties": 600,
         "markush_compile": 180,
         "markush_detect": 120,
     }.get(name)
@@ -117,6 +119,7 @@ PROFILE_EXTENSION_TOOLS = {
     },
     "chemscript": {
         "batch_compare_molecules",
+        "chemdraw_chemical_properties",
         "compare_molecules",
         "execute_chemscript_sdk",
         "inspect_chemscript_sdk",

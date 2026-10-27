@@ -364,15 +364,16 @@
 
 ## `mcp_runtime.report_tools`
 
-- **function**, line 1470: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
+- **function**, line 1610: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
 - **function**, line 567: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
+- **function**, line 844: `chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict` - Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
 - **function**, line 629: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
-- **function**, line 887: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
-- **function**, line 1386: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+- **function**, line 1027: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
+- **function**, line 1526: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
 - **function**, line 289: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
-- **function**, line 808: `reaction_calculator(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
-- **function**, line 1166: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
-- **function**, line 1033: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
+- **function**, line 948: `reaction_calculator(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
+- **function**, line 1306: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
+- **function**, line 1173: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
 - **function**, line 445: `signs(species)` - No public docstring in the audited version.
 - **function**, line 722: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
 
@@ -413,8 +414,8 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 142: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 134: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **function**, line 145: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 137: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
 - **class**, line 31: `ToolSpec` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_worker`

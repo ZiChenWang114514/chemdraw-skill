@@ -795,6 +795,146 @@ def structure_to_name(molecules: list[dict], options: dict | None = None,
     return result
 
 
+# --- chemdraw_chemical_properties ---------------------------------------------
+
+# ChemScript StructureData member, how it is read, and the row key it fills
+CHEMDRAW_PROPERTIES = (
+    ('Formula', 'call', 'formula'),
+    ('Weight', 'get', 'average_mass'),
+    ('ExactMass', 'get', 'exact_mass'),
+    ('ElementalAnalysis', 'get', 'elemental_analysis'),
+    ('PartitionCoefficient', 'get', 'log_p'),
+    ('Refractivity', 'get', 'molar_refractivity'),
+)
+PROPERTY_COLUMNS = ['label', 'smiles', 'formula', 'average_mass', 'exact_mass', 'elemental_analysis',
+                    'log_p', 'molar_refractivity']
+# One structure takes a load step plus one step per property; ChemScript programs hold 256 steps.
+PROPERTY_BATCH = 32
+
+
+def _property_program(smiles_list, properties):
+    program = []
+    for index, smiles in enumerate(smiles_list):
+        alias = f'm{index}'
+        program.append({'op': 'call_static', 'type': 'StructureData', 'member': 'LoadData',
+                        'args': [smiles, 'chemical/x-smiles'], 'as': alias})
+        for member, how, _ in properties:
+            program.append({'op': how, 'target': alias, 'member': member})
+    return program
+
+
+def _read_properties(smiles_list, properties):
+    """Run one ChemScript program for the structures; returns ([{member: value}], assembly)."""
+    from . import chemscript_sdk
+
+    response = chemscript_sdk.execute_chemscript_sdk(program=_property_program(smiles_list, properties))
+    results = {item['step']: item['value'] for item in response['outputs']['results']}
+    width = len(properties) + 1
+    rows = [{member: results.get(index * width + 1 + offset)
+             for offset, (member, _, _) in enumerate(properties)} for index in range(len(smiles_list))]
+    return rows, response['outputs'].get('assembly')
+
+
+def _valid_property(member, value):
+    if member in ('Formula', 'ElementalAnalysis'):
+        return isinstance(value, str) and bool(value)
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict:
+    """Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
+
+    Records are SMILES/CXSMILES, molblock or file records (CDXML/MOL/SDF), with an optional
+    label; a CDXML or SDF record with all_fragments=true reports every structure in the file.
+    Every value is read from ChemDraw's own chemical properties engine (ChemScript StructureData:
+    Formula, Weight, ExactMass, ElementalAnalysis, PartitionCoefficient and Refractivity);
+    log_p and molar_refractivity are ChemDraw's ClogP estimates, in its units. Nothing is computed
+    by RDKit or any other substitute: a property ChemDraw cannot give is null with the reason in
+    that row's errors, and without ChemScript (Windows) the call fails instead of falling back.
+    Use molecule_report for the deterministic RDKit sheet. Generic atoms (R groups, *) are refused.
+    output_path ends in .csv, .json or .md and is never overwritten. At most 256 structures.
+    """
+    from . import chemscript_sdk
+
+    unavailable = chemscript_sdk.ChemScriptSdkUnavailable
+    items = _expand(molecules, limit=MAX_STRUCTURES)
+    for item in items:
+        _check_grounded(item['mol'], item['label'])
+    prepared = []
+    for item in items:
+        mol = Chem.RemoveHs(item['mol'])
+        plain = Chem.Mol(mol)
+        plain.RemoveAllConformers()
+        prepared.append({'label': item['label'], 'source': item['source'], 'smiles': _smiles(mol),
+                         'load': Chem.MolToSmiles(plain)})
+    values = [{} for _ in prepared]
+    errors = [dict() for _ in prepared]
+    assembly = []
+
+    def attempt(positions, properties):
+        rows, seen = _read_properties([prepared[i]['load'] for i in positions], properties)
+        if seen and not assembly:
+            assembly.append(seen)
+        return rows
+
+    for start in range(0, len(prepared), PROPERTY_BATCH):
+        positions = list(range(start, min(start + PROPERTY_BATCH, len(prepared))))
+        try:
+            for position, row in zip(positions, attempt(positions, CHEMDRAW_PROPERTIES)):
+                values[position] = row
+            continue
+        except unavailable:
+            raise
+        except Exception:
+            pass  # isolate the structure or property that ChemDraw rejects
+        for position in positions:
+            try:
+                values[position] = attempt([position], CHEMDRAW_PROPERTIES)[0]
+                continue
+            except unavailable:
+                raise
+            except Exception:
+                pass
+            for prop in CHEMDRAW_PROPERTIES:
+                try:
+                    values[position].update(attempt([position], (prop,))[0])
+                except unavailable:
+                    raise
+                except Exception as exc:
+                    errors[position][prop[2]] = f'{prop[0]}: {str(exc)[:200]}'
+
+    rows, warnings = [], []
+    for position, entry in enumerate(prepared):
+        row = {'label': entry['label'], 'source': entry['source'], 'smiles': entry['smiles']}
+        for member, _, key in CHEMDRAW_PROPERTIES:
+            value = values[position].get(member)
+            if key in errors[position]:
+                value = None
+            elif not _valid_property(member, value):
+                reason = 'ChemDraw returned no value' if value is None else f'unexpected value {value!r}'
+                errors[position][key] = f'{member}: {reason}'
+                value = None
+            row[key] = round(value, 6) if isinstance(value, float) else value
+        if errors[position]:
+            row['errors'] = errors[position]
+            warnings.append(f"{entry['label']}: ChemDraw gave no value for {', '.join(errors[position])}.")
+        rows.append(row)
+    result = {'ok': True, 'operation': 'chemdraw_chemical_properties', 'count': len(rows), 'results': rows,
+              'provenance': {'engine': 'ChemDraw ChemScript', 'assembly': assembly[0] if assembly else None,
+                             'note': 'log_p and molar_refractivity are ChemDraw ClogP estimates; '
+                                     'no value comes from RDKit or another substitute.'},
+              'warnings': warnings}
+    if output_path:
+        target = _publish(output_path, {
+            '.json': lambda: json.dumps({'provenance': result['provenance'], 'results': rows},
+                                        ensure_ascii=False, indent=2),
+            '.csv': lambda: _csv(rows, PROPERTY_COLUMNS),
+            '.md': lambda: _markdown(rows, PROPERTY_COLUMNS),
+        })
+        result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
+    return result
+
+
 # --- reaction_calculator -----------------------------------------------------
 
 CALCULATOR_ROW_KEYS = ('id', 'role', 'name', 'formula', 'smiles', 'mw', 'coefficient', 'basis', 'value',
@@ -1538,6 +1678,6 @@ def characterization_text(compounds: list[dict], options: dict | None = None, ou
 
 
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
-                                         structure_to_name, reaction_calculator, hrms_line,
+                                         structure_to_name, chemdraw_chemical_properties, reaction_calculator, hrms_line,
                                          si_materials_tables, map_reaction_atoms, characterization_text,
                                          route_summary)}
