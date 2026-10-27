@@ -376,6 +376,19 @@ def cmd_build(ns):
     return 0
 
 
+def cmd_draw(ns):
+    """Brief (JSON file or '-' for stdin) -> checked CDXML through the draw_figure tool."""
+    text = sys.stdin.read() if ns.brief == '-' else Path(ns.brief).read_text(encoding='utf-8')
+    try:
+        brief = json.loads(text)
+    except ValueError as exc:
+        raise SystemExit(f'The brief is not valid JSON: {exc}')
+    kwargs = {'brief': brief, 'render': ns.render}
+    if ns.output:
+        kwargs['output_path'] = ns.output
+    return _emit('draw_figure', _worker('draw_figure', kwargs), ns.out)
+
+
 def _markush_render(source, png):
     """Native render for the Markush driver, through the worker (native lock, timeout)."""
     result = _worker('render_to_png', {'output_path': str(png)}, [str(source)])
@@ -710,6 +723,13 @@ def main(argv=None):
     s.add_argument('output')
     s.add_argument('--render', action='store_true')
     s.set_defaults(fn=cmd_build)
+    s = sub.add_parser('draw', help='checked reaction scheme from a brief (JSON file or -): '
+                                    'cdx.py draw BRIEF [OUTPUT.cdxml] [--render]')
+    s.add_argument('brief')
+    s.add_argument('output', nargs='?', help='new .cdxml path (default: a fresh name in the temp folder)')
+    s.add_argument('--render', action='store_true', help='also render a native PNG')
+    s.add_argument('--out', help='new evidence file for the full report')
+    s.set_defaults(fn=cmd_draw)
     s = sub.add_parser('chemscript-info', help='ChemScript reading of a saved file, under the native lock')
     s.add_argument('source')
     s.add_argument('--timeout', type=int, default=120)

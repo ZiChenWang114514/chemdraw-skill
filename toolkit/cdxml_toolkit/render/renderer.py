@@ -1127,19 +1127,23 @@ def _auto_steps_per_row(
     geometry check has to flag the overflow.
     """
     steps = scheme.steps
-    for per_row in range(len(steps), 0, -1):
-        rows = (_split_serpentine_rows(steps, per_row)[0]
-                if scheme.wrap == "serpentine"
-                else _split_into_rows(steps, per_row))
-        widest = 0.0
-        for row in rows:
-            _, _, edge_x, _ = _layout_steps_row(
-                scheme, row, _IDGen(1), start_x=_ROW_START_X, arrow_y=300.0,
-                source_data=source_data, reference_mol=reference_mol)
-            widest = max(widest, edge_x - _ROW_START_X)
-        if widest <= budget:
-            return per_row
-    return 1
+    token = _fragment_receipts.set(None)  # trial rows are not part of the drawing
+    try:
+        for per_row in range(len(steps), 0, -1):
+            rows = (_split_serpentine_rows(steps, per_row)[0]
+                    if scheme.wrap == "serpentine"
+                    else _split_into_rows(steps, per_row))
+            widest = 0.0
+            for row in rows:
+                _, _, edge_x, _ = _layout_steps_row(
+                    scheme, row, _IDGen(1), start_x=_ROW_START_X, arrow_y=300.0,
+                    source_data=source_data, reference_mol=reference_mol)
+                widest = max(widest, edge_x - _ROW_START_X)
+            if widest <= budget:
+                return per_row
+        return 1
+    finally:
+        _fragment_receipts.reset(token)
 
 
 def _layout_sequential(
@@ -1235,8 +1239,8 @@ def _layout_serpentine(
     rows, transitions = _split_serpentine_rows(scheme.steps, steps_per_row)
 
     bond_len = ACS_BOND_LENGTH
-    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS
+    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
+    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale
 
     xml_parts: List[str] = []
     arrow_y = 300.0
@@ -1427,8 +1431,8 @@ def _layout_divergent(
         return StructureRef(id=sid)
 
     bond_len = ACS_BOND_LENGTH
-    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS
+    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
+    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale
     min_arrow_len = 5.0 * bond_len
 
     start_x = 100.0
@@ -1816,8 +1820,8 @@ def _layout_steps_row(
     """
     is_rtl = (direction == "rtl")
     bond_len = ACS_BOND_LENGTH
-    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS    # gap between fragment and arrow
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS   # gap between adjacent fragments
+    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale    # gap between fragment and arrow
+    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale   # gap between adjacent fragments
 
     # --- Phase 1: Resolve all structures ---
     def _get_ref(sid: str) -> StructureRef:

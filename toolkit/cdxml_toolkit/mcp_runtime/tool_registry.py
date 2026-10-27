@@ -21,6 +21,7 @@ from .remote_tools import REMOTE_TOOLS
 from .figure_tools import FIGURE_TOOLS
 from .markush_tools import MARKUSH_TOOLS
 from .report_tools import REPORT_TOOLS
+from .figure_draw import draw_figure
 from .publication_figure import publication_figure
 
 
@@ -41,6 +42,7 @@ CHEMDRAW_COM_TOOLS = {
     "parse_reaction",
     "convert_cdx_cdxml",
     "render_to_png",
+    "draw_figure",
     "extract_cdxml_from_office",
     "embed_cdxml_in_office",
     "clean_scheme_layout",
@@ -82,6 +84,7 @@ def _tool_timeout(name: str) -> int | None:
         "structure_to_name": 300,
         "execute_chemscript_sdk": 300,
         "publication_figure": 600,
+        "draw_figure": 300,
         "markush_compile": 180,
         "markush_detect": 120,
     }.get(name)
@@ -182,6 +185,9 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     )
     extended_functions = _merge_named_tools(
         extended_functions, {"publication_figure": publication_figure}, source="publication figures"
+    )
+    extended_functions = _merge_named_tools(
+        extended_functions, {"draw_figure": draw_figure}, source="figure drawing"
     )
     extended_functions = _merge_named_tools(
         extended_functions, MARKUSH_TOOLS, source="Markush tools"

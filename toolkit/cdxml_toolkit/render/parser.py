@@ -500,6 +500,10 @@ def _parse_scheme(data: Dict[str, Any]) -> SchemeDescriptor:
         if max_row_width <= 0:
             raise SchemeParseError("max_row_width must be > 0")
 
+    gap_scale = float(data.get("gap_scale", 1.0))
+    if gap_scale <= 0:
+        raise SchemeParseError("gap_scale must be > 0")
+
     # --- Title ---
     title = data.get("title")
     if title is not None:
@@ -524,6 +528,7 @@ def _parse_scheme(data: Dict[str, Any]) -> SchemeDescriptor:
         wrap=wrap,
         steps_per_row=steps_per_row,
         max_row_width=max_row_width,
+        gap_scale=gap_scale,
         title=title,
         run_arrows=run_arrows,
         condition_key=condition_key,

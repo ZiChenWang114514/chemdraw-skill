@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full (default)`
-Tools: `53`
+Tools: `54`
 
 ## Extended Tools
 
@@ -97,6 +97,26 @@ Report local runtime capabilities; native probes are explicit and temporary.
 ### `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, typing.Any]`
 
 Discover and classify files belonging to one experiment.
+
+### `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict`
+
+Draw a reaction scheme from a brief and check it, in one call.
+
+brief is an object (or its JSON text) the caller writes from the user's request:
+species [{id, smiles or name, label?}], steps [{substrates [ids], products [ids],
+above [lines], below [lines], yield, arrow solid|dashed|failed}], optional max_width
+(points, default 504, the width of a double-column ACS page) and title; kind defaults
+to "scheme" and style to "acs1996". Only the conditions in the brief are drawn; a
+step without any is reported, never filled in. Structures given as SMILES are used
+as they are; names go through the curated reagent table and, when the network is
+allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked
+for atom balance (a missing by-product is named, not drawn), the layout is measured
+for overlaps, tiny text and width, and one automatic re-layout is tried if that
+fails; the report says what changed and what still fails. The saved file is read back
+and its structures compared with the brief. render=True also renders a PNG with
+ChemDraw and returns its path; without ChemDraw the report says native: not_run. The
+file is never written over an existing one: without output_path a fresh name is made
+in the temp directory, and an existing output_path is refused.
 
 ### `execute_chemscript_sdk(program: list[dict[str, typing.Any]], allow_file_io: bool = False, allow_overwrite: bool = False, allow_unsafe_interop: bool = False, max_items: int = 100) -> dict[str, typing.Any]`
 

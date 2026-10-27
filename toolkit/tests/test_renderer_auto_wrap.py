@@ -61,6 +61,19 @@ def test_an_explicit_steps_per_row_wins_over_the_budget(tmp_path):
     assert _rows(root) == 1
 
 
+def test_trial_layouts_leave_no_validation_receipts(tmp_path):
+    # Measuring row widths lays rows out several times; only the final drawing is receipted.
+    source = tmp_path / "scheme.yaml"
+    source.write_text(FOUR_STEPS.format(extra="max_row_width: 420"), encoding="utf-8")
+
+    cdxml = renderer.render(parse_yaml(str(source)))
+
+    drawn = {f.get("id") for f in ET.fromstring(cdxml[cdxml.index("<CDXML"):]).iter("fragment")}
+    receipted = [str(r["fragment_id"]) for r in cdxml.chemistry_validation["fragments"]]
+    assert set(receipted) == drawn and len(receipted) == len(drawn)
+    assert cdxml.chemistry_validation["status"] == "preserved"
+
+
 def test_compact_text_accepts_the_budget():
     text = "@max_row_width 400\nA{c1ccccc1C(=O)O} --> B{c1ccccc1C(=O)OC} --> C{c1ccccc1C(=O)N}"
     scheme = parse_compact(text)

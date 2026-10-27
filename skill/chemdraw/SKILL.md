@@ -15,6 +15,7 @@ Editable chemistry through the bundled `cdxml_toolkit` runtime and licensed nati
 python <skill>/scripts/cdx.py tools                              # list the registered tools
 python <skill>/scripts/cdx.py render a.cdxml                     # native 300 dpi PNG beside it
 python <skill>/scripts/cdx.py build spec.json out.cdxml --render # ACS 1996 drawing from a spec
+python <skill>/scripts/cdx.py draw brief.json out.cdxml --render # checked reaction scheme from a brief
 python <skill>/scripts/cdx.py doctor                             # what works on this host
 ```
 
@@ -39,7 +40,7 @@ Read only the matching workflow and the needed signature, not the complete catal
 | Task | Start here |
 | --- | --- |
 | Exam, lecture or paper drawings in ACS 1996 style (abbreviations like C10H21, Chinese notes, compound codes) | [ACS 1996 drawings](references/acs1996-drawings.md) |
-| New reaction scheme or route from known structures, with conditions and yields | [Scheme drawing](references/scheme-drawing.md) |
+| New reaction scheme or route from a request (structures, user-given conditions and yields); one call draws, checks and reports | [Scheme drawing](references/scheme-drawing.md) (`cdx.py draw`) |
 | Publication image or reaction screenshot | [Image reconstruction](references/image-visual-review.md) |
 | Small-context models, result files, local task packets | [Efficient reconstruction](references/efficient-reconstruction.md) |
 | Repeated local repairs, candidate caching, dual-variant delivery | [Incremental reconstruction](references/incremental-reconstruction.md) |
