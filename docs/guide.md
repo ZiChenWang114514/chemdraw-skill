@@ -52,6 +52,25 @@ Allow the `python <skill>/scripts/cdx.py` prefix once in your agent's command al
 
 For confidential or offline work set `CHEMDRAW_OFFLINE=1`: PubChem lookups, the Java runtime download and DECIMER image uploads are then refused ([operations](../skill/chemdraw/references/operations.md#environment-variables)).
 
+## ChemDraw interface coverage
+
+The Skill catalogues what ChemDraw 22.2 exposes on Windows and states, for every entry, how far it is supported. Four layers are covered: the ChemScript SDK, ChemDraw's COM automation objects, the CDXML document model and the menu commands. Each entry has a tier:
+
+- **T1**: a dedicated tool does the operation (for example `chemdraw_object` for CDXML elements, `chemdraw_chemical_properties` for ChemDraw's own formula, masses and ClogP, `structure_to_name`, `convert_cdx_cdxml`).
+- **T2**: reachable through a generic tool (`execute_chemscript_sdk` or `chemdraw_com_call`) with a recipe that was run against ChemDraw and checked.
+- **T3**: documented only, with the reason (internal plumbing, a hidden or blocked member, or no recipe has been run yet). Do not treat a T3 entry as verified.
+
+| Layer | Entries | T1 | T2 | T3 |
+| --- | --- | --- | --- | --- |
+| ChemScript SDK | 576 | 7 | 9 | 560 |
+| COM automation objects | 1,666 | 8 | 17 | 1,641 |
+| CDXML elements | 50 | 37 | 0 | 13 |
+| Menu commands | 159 | 0 | 0 | 159 |
+
+Ask the catalog with `chemdraw_inventory(layer, query, tier)`, or open the generated pages under `skill/chemdraw/references` (`interface-chemscript.md`, `interface-com.md`, `interface-cdxml-model.md`, `interface-menu.md`, `recipes-chemdraw.md`). The pages are rebuilt with `python <skill>/scripts/cdx.py regen-catalog`.
+
+What this does not claim: the numbers were checked on ChemDraw 22.2.0 for Windows only. macOS answers the ChemScript operations and a subset of the SDK, other ChemDraw versions may differ, binary CDX files are converted through ChemDraw rather than edited directly, and menu commands (for example NMR prediction) are not opened as tools because ChemDraw runs them only from a visible window. `chemdraw_com_call` refuses printing, the clipboard, menu objects and preference changes, and writes a file only when file access is allowed explicitly.
+
 ## MCP (optional)
 
 The command line covers every tool, so no server is required. Clients that prefer MCP can register `<runtime-python> -m cdxml_toolkit.mcp_runtime` (no profile flag needed); `cdx.py doctor` prints the runtime path. For a remote Windows host, see the HTTP section of [operations](../skill/chemdraw/references/operations.md#remote-http-only-when-asked).
