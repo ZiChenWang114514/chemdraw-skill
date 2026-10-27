@@ -34,6 +34,9 @@ CORPUS = ROOT / "toolkit" / "tests" / "runtime" / "draw_corpus"
 # Tools that put a file on disk without going through the shell.
 WRITE_TOOLS = {"write", "edit", "strreplace", "str_replace", "multiedit", "create"}
 PATH_KEYS = ("path", "file_path", "filePath", "file")
+# Where agents keep their own installed copies; the copy under test is always passed in explicitly.
+FOREIGN_SKILL = re.compile(r"(?:\.codex/skills|\.claude/skills|\.kimi-code/skills|\.pi/agent/skills"
+                           r"|Users/[^/\s'\"]+/\.agents/skills|plugins/cache/[^\s'\"]*/skills)/chemdraw", re.I)
 USAGE_ERROR = re.compile(r"(?m)^usage: |unrecognized arguments|invalid choice|Traceback \(most recent|unknown tool")
 
 
@@ -68,6 +71,10 @@ class Run:
 
     def cdx_usage_errors(self) -> int:
         return sum(1 for c in self.cdx_commands() if USAGE_ERROR.search(c.result))
+
+    def foreign_skill_use(self) -> bool:
+        """The agent read or ran a copy of the Skill installed elsewhere, so the run says nothing about this build."""
+        return any(FOREIGN_SKILL.search(c.text.replace("\\", "/")) for c in self.commands)
 
 
 def _write_target(name: str, arguments: dict) -> Optional[str]:
@@ -354,8 +361,10 @@ CELLS = {
 def other_installed_copies() -> list:
     """Skill copies already installed for the user; an agent that finds them would test those, not this build."""
     home = Path.home()
-    return [p for p in (home / ".codex" / "skills" / "chemdraw" / "SKILL.md",
-                        home / ".agents" / "skills" / "chemdraw" / "SKILL.md") if p.is_file()]
+    found = [home / ".codex" / "skills" / "chemdraw" / "SKILL.md",
+             home / ".agents" / "skills" / "chemdraw" / "SKILL.md"]
+    found += (home / ".codex" / "plugins" / "cache").glob("*/*/*/skills/chemdraw/SKILL.md")
+    return [p for p in found if p.is_file()]
 
 
 def place_skill(cell: Cell, work: Path, skills: Path) -> None:
@@ -457,9 +466,11 @@ def run_one(name: str, cell: Cell, task: Task, rep: int, skills: Path, out: Path
     if not run.error and rc != 0 and not run.final:
         run.error = (stderr.strip().splitlines() or [f"exit code {rc}"])[-1][:300]
     # A transport glitch after the agent finished (an answer exists) still leaves files worth scoring.
-    unusable = timed_out or (run.error and not run.final)
+    contaminated = run.foreign_skill_use()
+    unusable = timed_out or contaminated or (run.error and not run.final)
     checks = [] if unusable else score(task, work, run, missing)
-    status = "timeout" if timed_out else "harness_error" if unusable else "pass" if all(c.ok for c in checks) else "fail"
+    status = ("timeout" if timed_out else "contaminated" if contaminated else "harness_error" if unusable
+              else "pass" if all(c.ok for c in checks) else "fail")
     result = {
         "cell": name, "task": task.id, "rep": rep, "status": status, "seconds": seconds,
         "checks": [vars(c) for c in checks], "error": run.error, "tool_calls": len(run.commands),

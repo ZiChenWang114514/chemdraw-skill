@@ -182,6 +182,14 @@ class TaskAndCommandTests(unittest.TestCase):
         self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", codex)
         self.assertEqual(codex[-1], "PROMPT")
 
+    def test_a_run_that_used_another_installed_copy_is_not_scored(self) -> None:
+        own = _run(("python .agents/skills/chemdraw/scripts/cdx.py doctor", "{}"))
+        theirs = _run(("python C:\\Users\\x\\.codex\\skills\\chemdraw\\scripts\\cdx.py doctor", "{}"))
+        plugin = _run(("Get-Content C:/Users/x/.codex/plugins/cache/p/spreadsheets/1/skills/chemdraw/SKILL.md", ""))
+        self.assertFalse(own.foreign_skill_use())
+        self.assertTrue(theirs.foreign_skill_use())
+        self.assertTrue(plugin.foreign_skill_use())
+
     def test_codex_gets_the_skill_inside_the_working_folder_and_no_other_copy(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             skills, work = Path(tmp) / "skills", Path(tmp) / "work"
