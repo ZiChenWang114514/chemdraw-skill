@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 58,
+  "tool_count": 59,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -428,6 +428,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Overall yield and cumulative process mass intensity (PMI) of a synthetic route.\n\nsteps are listed in the order they are run; the last one makes the final product. A step is a\nreaction as in si_materials_tables (a reaction SMILES, {\"reactants\": ..., \"products\": ...}\nrecords, {\"cdxml\": path} or {\"label\": \"2\", \"reaction\": ..., \"options\": {...}}, whose amounts,\nisolated mass or yield come from the reaction calculator) or just numbers: {\"label\": \"2\",\n\"yield_percent\": 85, \"input_mg\": 1500, \"product_mg\": 340, \"used_mg\": 300}. input_mg is\neverything put into the step (reagents, catalysts, solvents), product_mg the isolated mass of\nits product; a reaction takes both from the calculator (a solvent with no density has no mass\nand makes the PMI a lower bound), and either can be given on the step to override. A step\nfeeds the next one; \"into\": \"<later step label>\" makes the route convergent. used_mg is the\nmass of a step's product that the step it feeds consumes: it is read from the structures when\nboth steps are reactions and the product is drawn as a reactant of the next, and is otherwise\nrequired once the masses are given. Overall yield is the product of the step yields along the\nlongest linear sequence. Cumulative PMI is the mass put into all steps over the mass of the\nfinal product, each step scaled so that it makes exactly what the next one uses (scale);\nE-factor is PMI - 1. Work-up, extraction and purification solvents count only if you include\nthem in input_mg; a missing number is reported in warnings, never assumed. output_path ends in\n.md, .csv or .json and is never overwritten. At most 100 steps."
+    },
+    {
+      "name": "scientific_workflow",
+      "signature": "(operation: str, spec_path: str, output_path: str) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Draw or analyse a scientific figure from a JSON spec file: tlc, apparatus, mechanism, nmr or plot.\n\ntlc, apparatus and mechanism write one editable .cdxml at output_path; nmr and plot write\na new directory (figures, the full data as CSV and a JSON analysis with the source file's\nSHA-256). Relative file names inside the spec resolve against the spec's folder. The spec\nformats are in the scientific workflows reference (examples for each operation ship with\nthe toolkit). Nothing is recognised or invented: peaks and integrals come from the supplied\nprocessed spectrum, plots from the supplied columns. Output is written to a staging\nlocation and published only when the workflow succeeds; an existing output_path is never\nreplaced."
     },
     {
       "name": "search_compound",

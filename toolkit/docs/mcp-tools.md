@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `58`
+Tools: `59`
 
 ## Extended Tools
 
@@ -437,6 +437,19 @@ final product, each step scaled so that it makes exactly what the next one uses 
 E-factor is PMI - 1. Work-up, extraction and purification solvents count only if you include
 them in input_mg; a missing number is reported in warnings, never assumed. output_path ends in
 .md, .csv or .json and is never overwritten. At most 100 steps.
+
+### `scientific_workflow(operation: str, spec_path: str, output_path: str) -> dict[str, typing.Any]`
+
+Draw or analyse a scientific figure from a JSON spec file: tlc, apparatus, mechanism, nmr or plot.
+
+tlc, apparatus and mechanism write one editable .cdxml at output_path; nmr and plot write
+a new directory (figures, the full data as CSV and a JSON analysis with the source file's
+SHA-256). Relative file names inside the spec resolve against the spec's folder. The spec
+formats are in the scientific workflows reference (examples for each operation ship with
+the toolkit). Nothing is recognised or invented: peaks and integrals come from the supplied
+processed spectrum, plots from the supplied columns. Output is written to a staging
+location and published only when the workflow succeeds; an existing output_path is never
+replaced.
 
 ### `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, typing.Any]`
 

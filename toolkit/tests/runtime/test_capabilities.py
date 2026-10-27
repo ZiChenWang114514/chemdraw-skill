@@ -9,9 +9,9 @@ from cdxml_toolkit.mcp_runtime import capabilities, mcp_server, tool_registry
 def test_profiles_are_stable_and_capability_aware():
     expected_counts = {
         "core": 16,
-        "full": 58,
+        "full": 59,
         "office": 21,
-        "analysis": 20,
+        "analysis": 21,
         "chemscript": 22,
     }
     assert {
@@ -35,7 +35,7 @@ def test_capability_report_is_content_free_and_has_schema_digest():
 
     assert result["ok"] is True
     assert result["metadata"] == {"content_free": True}
-    assert result["outputs"]["tool_count"] == 58
+    assert result["outputs"]["tool_count"] == 59
     assert len(result["outputs"]["tool_schema_sha256"]) == 64
     assert "request_payload" not in result["outputs"]
 
