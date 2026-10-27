@@ -43,7 +43,7 @@ from ..constants import (
     LAYOUT_FRAG_GAP_BONDS,
     LAYOUT_INTER_GAP_BONDS,
 )
-from ..text_formatting import build_formatted_s_xml
+from ..text_formatting import build_formatted_s_xml, normalize_condition_text
 
 from .schema import (
     ArrowContent,
@@ -993,7 +993,7 @@ def _resolve_structure(
 
     if name:
         try:
-            from ..reagent_db import get_reagent_db
+            from ..resolve.reagent_db import get_reagent_db
             db = get_reagent_db()
             entry = db.entry_for_name(name.lower())
             if entry and entry.get("smiles"):
@@ -1021,7 +1021,7 @@ def _resolve_structure(
 
     # Tier 4: Try the ID itself as a compound name in reagent_db
     try:
-        from ..reagent_db import get_reagent_db
+        from ..resolve.reagent_db import get_reagent_db
         db = get_reagent_db()
         entry = db.entry_for_name(ref.id.lower())
         if entry and entry.get("smiles"):
@@ -1110,6 +1110,38 @@ def _split_serpentine_rows(
     return rows, transitions
 
 
+_ROW_START_X = 80.0
+
+
+def _auto_steps_per_row(
+    scheme: SchemeDescriptor,
+    budget: float,
+    source_data: Optional[Dict[str, Dict]],
+    reference_mol: Optional[Any],
+) -> int:
+    """Largest steps-per-row whose widest row still fits in ``budget`` pt.
+
+    Rows are measured by laying them out on a throwaway id counter, so the
+    result matches what the real layout will produce. When even one step per
+    row is wider than the budget, one step per row is returned and the caller's
+    geometry check has to flag the overflow.
+    """
+    steps = scheme.steps
+    for per_row in range(len(steps), 0, -1):
+        rows = (_split_serpentine_rows(steps, per_row)[0]
+                if scheme.wrap == "serpentine"
+                else _split_into_rows(steps, per_row))
+        widest = 0.0
+        for row in rows:
+            _, _, edge_x, _ = _layout_steps_row(
+                scheme, row, _IDGen(1), start_x=_ROW_START_X, arrow_y=300.0,
+                source_data=source_data, reference_mol=reference_mol)
+            widest = max(widest, edge_x - _ROW_START_X)
+        if widest <= budget:
+            return per_row
+    return 1
+
+
 def _layout_sequential(
     scheme: SchemeDescriptor,
     ids: _IDGen,
@@ -1127,6 +1159,10 @@ def _layout_sequential(
     """
     wrap = scheme.wrap
     steps_per_row = scheme.steps_per_row
+    if (steps_per_row is None and scheme.max_row_width
+            and wrap in ("repeat", "serpentine") and len(scheme.steps) > 1):
+        steps_per_row = _auto_steps_per_row(
+            scheme, scheme.max_row_width, source_data, reference_mol)
 
     # Single row: no wrapping needed
     if (wrap not in ("repeat", "serpentine")
@@ -1810,13 +1846,13 @@ def _layout_steps_row(
                 above_structs.append(
                     _resolve_structure(_get_ref(sid), source_data=source_data,
                                       reference_mol=reference_mol))
-            above_text = step.above_arrow.text[:]
+            above_text = [normalize_condition_text(t) for t in step.above_arrow.text]
         if step.below_arrow:
             for sid in step.below_arrow.structures:
                 below_structs.append(
                     _resolve_structure(_get_ref(sid), source_data=source_data,
                                       reference_mol=reference_mol))
-            below_text = step.below_arrow.text[:]
+            below_text = [normalize_condition_text(t) for t in step.below_arrow.text]
 
         # Add yield to below-arrow text if present
         if step.yield_:
@@ -2419,7 +2455,8 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
     if scheme.condition_key:
         key_y = lowest_y + 20.0
         key_xml, _ = _build_condition_key(
-            scheme.condition_key, 80.0, key_y, ids,
+            {k: normalize_condition_text(v) for k, v in scheme.condition_key.items()},
+            80.0, key_y, ids,
         )
         inner_xml += "\n" + key_xml
 

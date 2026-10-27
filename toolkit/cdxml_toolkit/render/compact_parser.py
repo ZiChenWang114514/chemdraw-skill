@@ -599,6 +599,15 @@ def parse_compact(text: str) -> SchemeDescriptor:
         except ValueError:
             raise ParseError(f"steps_per_row must be integer: {directives['steps_per_row']!r}")
 
+    max_row_width: float | None = None
+    if 'max_row_width' in directives:
+        try:
+            max_row_width = float(directives['max_row_width'])
+        except ValueError:
+            raise ParseError(f"max_row_width must be a number: {directives['max_row_width']!r}")
+        if max_row_width <= 0:
+            raise ParseError("max_row_width must be > 0")
+
     title = directives.get('title')
 
     cond_key = condition_key_entries if condition_key_entries else None
@@ -620,6 +629,7 @@ def parse_compact(text: str) -> SchemeDescriptor:
         layout=layout,
         wrap=wrap,
         steps_per_row=steps_per_row,
+        max_row_width=max_row_width,
         title=title,
         run_arrows=run_arrows,
         condition_key=cond_key,

@@ -24,7 +24,7 @@ For exam or lecture figures with abbreviations, Chinese notes or compound codes,
 ## Create Or Edit A Reaction
 
 1. Ground every drawn species.
-2. Use `render_scheme` for a new reaction and check its per-fragment `chemistry_validation` status. For exact coordinates, curved arrows, grids or native-template replication, use [publication-figures.md](publication-figures.md).
+2. Use `render_scheme` for a new reaction ([scheme drawing](scheme-drawing.md) has the compact syntax and the row-width setting) and check its per-fragment `chemistry_validation` status. For exact coordinates, curved arrows, grids or native-template replication, use [publication-figures.md](publication-figures.md).
 3. Use `parse_scheme` or `parse_reaction` for an existing CDXML/CDX workflow.
 4. Use `clean_scheme_layout`, `merge_reaction_schemes`, or `polish_reaction_scheme` for existing schemes. Explicit and auto-detected sequential plans are checked for linear chemical links; any `force_sequential=true` override requires manual review.
 5. Render the resulting CDXML through `render_cdxml_files` and visually inspect all labels, wedges, arrows and plus signs. Cleanup/polish preserves molecular inventory but still needs visual acceptance.

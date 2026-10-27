@@ -430,24 +430,9 @@ def _format_label_with_equiv(
 
 
 def _normalize_conditions(conditions: List[str]) -> List[str]:
-    """Normalize condition strings for display.
-
-    Fixes temperature formatting:
-      "80 C"  → "80 °C"
-      "105C"  → "105 °C"
-      "80°C"  → "80 °C"
-      "-78 °C" → "-78 °C" (no change)
-    """
-    result = []
-    for cond in conditions:
-        # "80 C" or "-78 C" → "80 °C" (missing degree symbol)
-        cond = re.sub(r"(-?\d+\.?\d*)\s+C\b", r"\1 °C", cond)
-        # "80C" or "105C" → "80 °C" (no space, no degree)
-        cond = re.sub(r"(-?\d+\.?\d*)C\b", r"\1 °C", cond)
-        # "80°C" → "80 °C" (no space before degree)
-        cond = re.sub(r"(-?\d+\.?\d*)°C", r"\1 °C", cond)
-        result.append(cond)
-    return result
+    """Normalize condition strings for display (see ``normalize_condition_text``)."""
+    from ..text_formatting import normalize_condition_text
+    return [normalize_condition_text(cond) for cond in conditions]
 
 
 def _has_unit(value: str) -> bool:
