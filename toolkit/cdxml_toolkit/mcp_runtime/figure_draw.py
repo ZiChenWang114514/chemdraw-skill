@@ -182,9 +182,10 @@ def _scheme(brief: dict, grounded: list[dict], max_width: float | None, gap_scal
     )
 
 
-def _draw(brief: dict, grounded: list[dict], max_width: float, gap_scale: float):
-    cdxml = renderer.render(_scheme(brief, grounded, max_width, gap_scale))
-    return cdxml, figure_lint.lint_cdxml(cdxml, max_width=max_width)
+def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float):
+    """Lay out with ``layout_width`` but always measure against the requested ``budget``."""
+    cdxml = renderer.render(_scheme(brief, grounded, layout_width, gap_scale))
+    return cdxml, figure_lint.lint_cdxml(cdxml, max_width=budget)
 
 
 def _relayout(issues: list[dict], max_width: float, gap_scale: float) -> tuple[float, float, list[str]]:
@@ -279,13 +280,13 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     max_width = float(brief.get("max_width") or DEFAULT_MAX_WIDTH)
     gap_scale = 1.0
     try:
-        cdxml, issues = _draw(brief, grounded, max_width, gap_scale)
+        cdxml, issues = _draw(brief, grounded, max_width, gap_scale, max_width)
         relayout = None
         if issues:
             first_issues = issues
             new_width, new_gap, changed = _relayout(issues, max_width, gap_scale)
             if changed:
-                cdxml, issues = _draw(brief, grounded, new_width, new_gap)
+                cdxml, issues = _draw(brief, grounded, new_width, new_gap, max_width)
                 relayout = {"changed": changed, "first_issues": first_issues}
     except Exception as exc:
         return _failure([f"The layout failed: {exc}"], warnings=warnings)

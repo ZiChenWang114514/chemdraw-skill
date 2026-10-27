@@ -216,6 +216,18 @@ def test_a_failed_check_triggers_one_relayout_and_says_what_changed(tmp_path, mo
     assert report["ok"] is True
 
 
+def test_a_width_that_cannot_be_met_is_judged_against_the_requested_budget(tmp_path):
+    # One reaction cannot wrap: the relayout narrows the layout budget, but the
+    # report must keep measuring against what the user asked for.
+    report = draw_figure(_brief(ASPIRIN, max_width=250), output_path=str(tmp_path / "out.cdxml"))
+
+    assert report["checks_passed"] is False
+    assert report["lint"]["relayout"]["changed"]
+    remaining = [i for i in report["lint"]["issues"] if i["kind"] == "too_wide"]
+    assert remaining and remaining[0]["budget"] == 250
+    assert report["lint"]["max_width"] == 250
+
+
 def test_remaining_issues_after_the_relayout_are_reported_not_hidden(tmp_path, monkeypatch):
     issue = {"kind": "overlap", "ids": ["1", "2"], "message": "still overlapping"}
     monkeypatch.setattr(figure_draw.figure_lint, "lint_cdxml", lambda text, max_width=None: [issue])
