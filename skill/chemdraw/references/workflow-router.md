@@ -51,7 +51,7 @@ For any object other than the molecules and schemes the drawing tools produce (t
 1. Find the element in [interface-cdxml-model.md](interface-cdxml-model.md) (or `chemdraw_inventory(layer="cdxml", query=...)`); the page lists the attributes seen in real ChemDraw documents.
 2. `chemdraw_object(op="list", input_path=...)` counts elements by tag; add a `selector` such as `fragment > n[Element=8]` to describe matches, and `get` for full attributes.
 3. `set`, `add` and `delete` write a new CDXML (never the input) and keep every element, attribute and comment they do not touch, in order. Use `dry_run` first on a large selector. An attribute the catalog does not list is refused unless `allow_unknown` is set; delete refuses an object that a bond, bracket or graphic still points at.
-4. The result is a structural edit. Render it with `render_to_png`, look at the image, and compare molecules with `compare_molecules` when atoms or bonds changed.
+4. The result is a structural edit. ChemDraw draws an atom's saved label text as it is, so changing `Charge`, `Element` or `NumHydrogens` on a labelled atom does not change what is drawn (the result warns about it); edit the label's `s` text as well. Render the result with `render_to_png`, look at the image, and compare molecules with `compare_molecules` when atoms or bonds changed.
 
 ## Work With Office
 
