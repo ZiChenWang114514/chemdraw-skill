@@ -519,3 +519,45 @@ def test_calc_hands_every_argument_to_the_calculator_module():
         assert cdx.main(['calc', 'A.B>>C', '--scale', '2', '--no-open', '--offline']) == 0
     assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.reaction_calculator', 'A.B>>C', '--scale', '2',
                                           '--no-open', '--offline']
+
+
+def test_draw_hands_the_brief_and_options_to_draw_figure(tmp_path, capsys):
+    brief = {'species': [{'id': 'A', 'smiles': 'C'}], 'steps': [{'substrates': ['A'], 'products': ['A']}]}
+    path = tmp_path / 'brief.json'
+    path.write_text(json.dumps(brief), encoding='utf-8')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['draw', str(path), str(tmp_path / 'out.cdxml'), '--render']) == 0
+    tool, kwargs = worker.call_args.args
+    assert tool == 'draw_figure'
+    assert kwargs == {'brief': brief, 'output_path': str(tmp_path / 'out.cdxml'), 'render': True}
+
+
+def test_draw_without_an_output_lets_the_tool_choose_a_fresh_name(tmp_path):
+    path = tmp_path / 'brief.json'
+    path.write_text('{}', encoding='utf-8')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        cdx.main(['draw', str(path)])
+    assert worker.call_args.args[1] == {'brief': {}, 'render': False}
+
+
+def test_draw_reads_the_brief_from_standard_input(monkeypatch):
+    import io
+    monkeypatch.setattr(sys, 'stdin', io.StringIO('{"species": []}'))
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        cdx.main(['draw', '-'])
+    assert worker.call_args.args[1]['brief'] == {'species': []}
+
+
+def test_draw_rejects_a_brief_that_is_not_json(tmp_path):
+    path = tmp_path / 'brief.json'
+    path.write_text('species: [', encoding='utf-8')
+    with pytest.raises(SystemExit, match='not valid JSON'):
+        cdx.main(['draw', str(path)])
+
+
+def test_draw_failure_sets_the_exit_code(tmp_path, capsys):
+    path = tmp_path / 'brief.json'
+    path.write_text('{}', encoding='utf-8')
+    failed = {'ok': True, 'result': {'ok': False, 'errors': ['steps: give at least one step']}}
+    with mock.patch.object(cdx, '_worker', return_value=failed):
+        assert cdx.main(['draw', str(path)]) == 1

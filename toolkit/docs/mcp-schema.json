@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 53,
+  "tool_count": 54,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -108,6 +108,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Discover and classify files belonging to one experiment."
+    },
+    {
+      "name": "draw_figure",
+      "signature": "(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict",
+      "group": "extended",
+      "resource_class": "chemdraw_com",
+      "timeout_seconds": 300,
+      "description": "Draw a reaction scheme from a brief and check it, in one call.\n\nbrief is an object (or its JSON text) the caller writes from the user's request:\nspecies [{id, smiles or name, label?}], steps [{substrates [ids], products [ids],\nabove [lines], below [lines], yield, arrow solid|dashed|failed}], optional max_width\n(points, default 504, the width of a double-column ACS page) and title; kind defaults\nto \"scheme\" and style to \"acs1996\". Only the conditions in the brief are drawn; a\nstep without any is reported, never filled in. Structures given as SMILES are used\nas they are; names go through the curated reagent table and, when the network is\nallowed, PubChem; a name that cannot be resolved stops the run. Each step is checked\nfor atom balance (a missing by-product is named, not drawn), the layout is measured\nfor overlaps, tiny text and width, and one automatic re-layout is tried if that\nfails; the report says what changed and what still fails. The saved file is read back\nand its structures compared with the brief. render=True also renders a PNG with\nChemDraw and returns its path; without ChemDraw the report says native: not_run. The\nfile is never written over an existing one: without output_path a fresh name is made\nin the temp directory, and an existing output_path is refused."
     },
     {
       "name": "draw_molecule",

@@ -1235,8 +1235,8 @@ def _layout_serpentine(
     rows, transitions = _split_serpentine_rows(scheme.steps, steps_per_row)
 
     bond_len = ACS_BOND_LENGTH
-    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS
+    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
+    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale
 
     xml_parts: List[str] = []
     arrow_y = 300.0
@@ -1427,8 +1427,8 @@ def _layout_divergent(
         return StructureRef(id=sid)
 
     bond_len = ACS_BOND_LENGTH
-    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS
+    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
+    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale
     min_arrow_len = 5.0 * bond_len
 
     start_x = 100.0
@@ -1816,8 +1816,8 @@ def _layout_steps_row(
     """
     is_rtl = (direction == "rtl")
     bond_len = ACS_BOND_LENGTH
-    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS    # gap between fragment and arrow
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS   # gap between adjacent fragments
+    frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale    # gap between fragment and arrow
+    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale   # gap between adjacent fragments
 
     # --- Phase 1: Resolve all structures ---
     def _get_ref(sid: str) -> StructureRef:

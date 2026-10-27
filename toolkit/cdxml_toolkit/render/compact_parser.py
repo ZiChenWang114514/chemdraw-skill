@@ -608,6 +608,15 @@ def parse_compact(text: str) -> SchemeDescriptor:
         if max_row_width <= 0:
             raise ParseError("max_row_width must be > 0")
 
+    gap_scale = 1.0
+    if 'gap_scale' in directives:
+        try:
+            gap_scale = float(directives['gap_scale'])
+        except ValueError:
+            raise ParseError(f"gap_scale must be a number: {directives['gap_scale']!r}")
+        if gap_scale <= 0:
+            raise ParseError("gap_scale must be > 0")
+
     title = directives.get('title')
 
     cond_key = condition_key_entries if condition_key_entries else None
@@ -630,6 +639,7 @@ def parse_compact(text: str) -> SchemeDescriptor:
         wrap=wrap,
         steps_per_row=steps_per_row,
         max_row_width=max_row_width,
+        gap_scale=gap_scale,
         title=title,
         run_arrows=run_arrows,
         condition_key=cond_key,
