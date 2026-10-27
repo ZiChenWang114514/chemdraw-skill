@@ -12,6 +12,8 @@ from . import artifact_safety
 
 OPERATIONS = ("list", "get", "set", "add", "delete")
 MAX_TARGETS = 1000
+# Atom attributes whose value also appears in the saved label text.
+LABEL_ATTRIBUTES = {"Element", "Charge", "Isotope", "NumHydrogens", "Radical"}
 
 
 def _failure(errors: list[str], **extra: Any) -> dict:
@@ -182,9 +184,18 @@ def chemdraw_object(
                             verification=verification)
 
     report: dict[str, Any] = {"ok": True, "operation": "chemdraw_object", "op": op, "input_path": str(source),
-                              "matched": len(matches), "verification": verification}
+                              "matched": len(matches), "verification": verification, "warnings": []}
     if op == "set":
         report["changes"] = changes
+        stale = sorted(
+            change["id"] for change, node in ((c, n) for c in changes for n in matches if n.get("id") == c["id"])
+            if change["tag"] == "n" and LABEL_ATTRIBUTES & set(change["attributes"]) and node.find("t") is not None
+        )
+        if stale:
+            report["warnings"].append(
+                f"Atoms {', '.join(stale)} keep their old label text: ChemDraw draws the label as stored, so a "
+                "changed element, charge, isotope, hydrogen count or radical shows only after the label is edited "
+                "(set it on the <t>/<s> text) or the structure is redrawn.")
     elif op == "add":
         report["added"] = added
     else:

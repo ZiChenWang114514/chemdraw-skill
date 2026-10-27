@@ -66,6 +66,20 @@ def test_set_writes_a_new_file_and_leaves_the_input_alone(source, tmp_path):
     assert [a["path"] for a in result["metadata"]["artifacts"]] == [result["output_path"]]
 
 
+def test_chemistry_edits_on_labelled_atoms_warn_that_the_label_text_is_unchanged(tmp_path):
+    labelled = tmp_path / "labelled.cdxml"
+    labelled.write_text(SAMPLE.replace('<n id="3" p="10 10" Element="8"/>',
+                                       '<n id="3" p="10 10" Element="8"><t id="9"><s font="3">O</s></t></n>'),
+                        encoding="utf-8")
+    result = object_tools.chemdraw_object("set", str(labelled), selector="n", props={"Charge": "-1"}, dry_run=True)
+    assert result["ok"] is True
+    assert any("label text" in warning and "3" in warning for warning in result["warnings"])
+    plain = object_tools.chemdraw_object("set", str(labelled), selector="n#4", props={"Charge": "-1"}, dry_run=True)
+    assert plain["warnings"] == []
+    layout = object_tools.chemdraw_object("set", str(labelled), selector="n#3", props={"Z": "5"}, dry_run=True)
+    assert layout["warnings"] == []
+
+
 def test_default_output_is_a_new_name_beside_the_input(source):
     first = object_tools.chemdraw_object("set", str(source), selector="b", props={"Order": "2"})
     second = object_tools.chemdraw_object("set", str(source), selector="b", props={"Order": "3"})
