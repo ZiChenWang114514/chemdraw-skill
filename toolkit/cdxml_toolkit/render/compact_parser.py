@@ -80,6 +80,8 @@ def _split_respecting(text: str, delimiter: str) -> list[str]:
 # Arrow regex fragments (compiled once)
 _ARROW_PATTERNS = [
     # order matters: longer/more-specific first
+    (re.compile(r"<=>"), "reversible"),  # equilibrium arrow
+    (re.compile(r"<->"), "resonance"),   # double-headed resonance arrow
     (re.compile(r"==>"), "solid"),       # parallel (arrow style is solid; layout implies parallel)
     (re.compile(r"\.\.>"), "dashed"),
     (re.compile(r"-->"), "solid"),

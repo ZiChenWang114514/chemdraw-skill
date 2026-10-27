@@ -164,7 +164,7 @@
 
 ## `mcp_runtime.figure_draw`
 
-- **function**, line 240: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 260: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
 
 ## `mcp_runtime.figure_editing`
 

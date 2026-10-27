@@ -83,8 +83,8 @@
 
 ## `render.compact_parser`
 
-- **function**, line 292: `parse_compact(text: str) -> SchemeDescriptor` - Parse compact syntax text into a :class:`SchemeDescriptor`.
-- **function**, line 649: `parse_compact_file(path: str) -> SchemeDescriptor` - Read a file and parse it as compact syntax.
+- **function**, line 294: `parse_compact(text: str) -> SchemeDescriptor` - Parse compact syntax text into a :class:`SchemeDescriptor`.
+- **function**, line 651: `parse_compact_file(path: str) -> SchemeDescriptor` - Read a file and parse it as compact syntax.
 - **class**, line 32: `ParseError` - Syntax or semantic error with optional line number.
 
 ## `render.parser`
@@ -94,10 +94,15 @@
 
 ## `render.renderer`
 
-- **function**, line 2487: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
-- **function**, line 2505: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
-- **class**, line 141: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
-- **class**, line 156: `ResolvedStep` - A step with all structures resolved and laid out.
+- **function**, line 2529: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 2547: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **class**, line 142: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
+- **class**, line 157: `ResolvedStep` - A step with all structures resolved and laid out.
+
+## `render.route_graph`
+
+- **function**, line 48: `classify_route(steps: list[StepDescriptor]) -> tuple[str, list[int]]` - Return ``(kind, order)``: kind is linear, convergent or divergent, order the step indices to draw.
+- **function**, line 69: `convergent_sections(steps: list[StepDescriptor]) -> list[list[StepDescriptor]]` - Rows of a convergent route: each arm first, then the merge row (with any chain after it).
 
 ## `render.schema`
 

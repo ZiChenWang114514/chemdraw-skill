@@ -19,6 +19,7 @@ from rdkit import Chem
 
 from ..chemistry_semantics import document_inventory, semantic_key
 from ..render import renderer
+from ..render.route_graph import classify_route
 from ..render.schema import ArrowContent, SchemeDescriptor, StepDescriptor, StructureRef
 from ..resolve.network_policy import network_allowed
 from . import artifact_safety, figure_lint, official_overrides
@@ -27,7 +28,7 @@ from .report_tools import check_reaction_balance
 DEFAULT_MAX_WIDTH = 504.0  # a double-column ACS page, 7 in
 RELAYOUT_GAP_SCALE = 1.4
 RELAYOUT_WIDTH_FACTOR = 0.75
-ARROWS = ("solid", "dashed", "failed")
+ARROWS = ("solid", "dashed", "failed", "reversible", "resonance")
 BRIEF_KEYS = {"kind", "species", "steps", "max_width", "title", "style"}
 
 
@@ -95,6 +96,11 @@ def _validate(brief: dict) -> list[str]:
                     errors.append(f"Step {number} names {member!r} in {side}, which is not in species.")
         if step.get("arrow", "solid") not in ARROWS:
             errors.append(f"Step {number}: arrow must be one of {list(ARROWS)}.")
+    if steps and not errors:
+        try:
+            _route_layout(_step_descriptors(brief))
+        except ValueError as exc:
+            errors.append(str(exc))
     return errors
 
 
@@ -164,8 +170,17 @@ def _scheme(brief: dict, grounded: list[dict], max_width: float | None, gap_scal
         g["id"]: StructureRef(id=g["id"], smiles=g["smiles"], label=(str(g["label"]) if g["label"] else None))
         for g in grounded
     }
+    steps = _step_descriptors(brief)
+    layout, order = _route_layout(steps)
+    return SchemeDescriptor(
+        structures=structures, steps=[steps[i] for i in order], layout=layout,
+        max_row_width=max_width, gap_scale=gap_scale, title=brief.get("title"),
+    )
+
+
+def _step_descriptors(brief: dict) -> list[StepDescriptor]:
     steps = []
-    for step in brief["steps"]:
+    for number, step in enumerate(brief["steps"], 1):
         above, below = [str(t) for t in _as_list(step.get("above"))], [str(t) for t in _as_list(step.get("below"))]
         steps.append(StepDescriptor(
             substrates=[str(i) for i in _as_list(step["substrates"])],
@@ -174,12 +189,17 @@ def _scheme(brief: dict, grounded: list[dict], max_width: float | None, gap_scal
             below_arrow=ArrowContent(text=below) if below else None,
             yield_=(str(step["yield"]) if step.get("yield") not in (None, "") else None),
             arrow_style=step.get("arrow", "solid"),
+            id=str(number),
         ))
-    return SchemeDescriptor(
-        structures=structures, steps=steps,
-        layout="sequential" if len(steps) > 1 else "linear",
-        max_row_width=max_width, gap_scale=gap_scale, title=brief.get("title"),
-    )
+    return steps
+
+
+def _route_layout(steps: list[StepDescriptor]) -> tuple[str, list[int]]:
+    """Renderer layout name and the order to draw the steps in; ValueError if the route fits none."""
+    kind, order = classify_route(steps)
+    if kind == "linear":
+        return ("sequential" if len(steps) > 1 else "linear"), order
+    return kind, order
 
 
 def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float):
@@ -242,9 +262,12 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
 
     brief is an object (or its JSON text) the caller writes from the user's request:
     species [{id, smiles or name, label?}], steps [{substrates [ids], products [ids],
-    above [lines], below [lines], yield, arrow solid|dashed|failed}], optional max_width
-    (points, default 504, the width of a double-column ACS page) and title; kind defaults
-    to "scheme" and style to "acs1996". Only the conditions in the brief are drawn; a
+    above [lines], below [lines], yield, arrow solid|dashed|failed|reversible|resonance}],
+    optional max_width (points, default 504, the width of a double-column ACS page) and
+    title; kind defaults to "scheme" and style to "acs1996". The steps may form a linear
+    route, a convergent route (arms that merge) or one starting material with several
+    products, in any order; the report names the layout used, and steps that fit none of
+    these are refused. Only the conditions in the brief are drawn; a
     step without any is reported, never filled in. Structures given as SMILES are used
     as they are; names go through the curated reagent table and, when the network is
     allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked
@@ -330,6 +353,7 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         "ok": True,
         "operation": "draw_figure",
         "output_path": str(target),
+        "layout": _route_layout(_step_descriptors(brief))[0],
         "species": [{k: g[k] for k in ("id", "label", "name", "smiles", "source")} for g in grounded],
         "steps": balance,
         "lint": {"issues": issues, "relayout": relayout, "max_width": max_width},

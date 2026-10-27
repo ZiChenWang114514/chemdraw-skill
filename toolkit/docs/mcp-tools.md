@@ -104,9 +104,12 @@ Draw a reaction scheme from a brief and check it, in one call.
 
 brief is an object (or its JSON text) the caller writes from the user's request:
 species [{id, smiles or name, label?}], steps [{substrates [ids], products [ids],
-above [lines], below [lines], yield, arrow solid|dashed|failed}], optional max_width
-(points, default 504, the width of a double-column ACS page) and title; kind defaults
-to "scheme" and style to "acs1996". Only the conditions in the brief are drawn; a
+above [lines], below [lines], yield, arrow solid|dashed|failed|reversible|resonance}],
+optional max_width (points, default 504, the width of a double-column ACS page) and
+title; kind defaults to "scheme" and style to "acs1996". The steps may form a linear
+route, a convergent route (arms that merge) or one starting material with several
+products, in any order; the report names the layout used, and steps that fit none of
+these are refused. Only the conditions in the brief are drawn; a
 step without any is reported, never filled in. Structures given as SMILES are used
 as they are; names go through the curated reagent table and, when the network is
 allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked

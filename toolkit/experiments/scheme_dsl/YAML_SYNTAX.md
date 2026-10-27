@@ -116,7 +116,9 @@ steps:
 | Style | Description |
 |-------|-------------|
 | `solid` | Normal reaction arrow (default) |
-| `dashed` | Dashed arrow (equilibrium, reversible, or tentative) |
+| `dashed` | Dashed arrow (tentative or unproven step) |
+| `reversible` | Equilibrium arrow (two half-headed shafts) |
+| `resonance` | Double-headed arrow between resonance forms |
 | `failed` | Arrow with X overlay (reaction did not work) |
 
 ```yaml
