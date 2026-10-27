@@ -56,7 +56,7 @@ def _validate(brief: dict) -> list[str]:
         errors.append(f"Unknown brief keys: {unknown}")
     kind = brief.get("kind", "scheme")
     if kind != "scheme":
-        errors.append(f"kind {kind!r} is not available yet; only 'scheme' can be drawn.")
+        errors.append(f"kind {kind!r} is not available yet; only 'scheme' and 'scope' can be drawn.")
     if brief.get("style", "acs1996") != "acs1996":
         errors.append("style: only 'acs1996' is available.")
     width = brief.get("max_width")
@@ -278,8 +278,20 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     ChemDraw and returns its path; without ChemDraw the report says native: not_run. The
     file is never written over an existing one: without output_path a fresh name is made
     in the temp directory, and an existing output_path is refused.
+
+    kind "scope" draws a substrate-scope panel instead: species [{id, smiles or name,
+    label?, group?, values {field: text}}], optional fields [{key, label?, unit?}] (default:
+    the keys used in values), conditions, footnotes, title, width_mm and height_mm. The
+    structures are packed onto as many editable pages as needed, grouped in first-seen
+    order, each label and value bound to its structure; a missing value is drawn as a
+    dash and listed in the notes. output_path is then a new folder (page-001.cdxml, ...;
+    PNGs in png/ with render=True) and the report lists the pages.
     """
     brief, errors = _read_brief(brief)
+    if brief is not None and brief.get("kind") == "scope":
+        from .figure_scope import draw_scope
+
+        return draw_scope(brief, output_path, render)
     if brief is not None:
         errors = _validate(brief)
     if errors:

@@ -6,15 +6,15 @@ Use this when the structures are known and the figure does not exist yet: a reac
 
 | Need | Use |
 | --- | --- |
-| A reaction or linear route from a request, drawn and checked in one call | `draw_figure` / `cdx.py draw` (next section) |
+| A reaction, route or substrate-scope panel from a request, drawn and checked in one call | `draw_figure` / `cdx.py draw` (next sections) |
 | Reactants, reagents, products, conditions and yields laid out by hand-written compact text | `render_scheme` (below) |
 | Exam or lecture drawing with abbreviations (C10H21), Chinese notes, boxed compound codes, hand-placed objects | [ACS 1996 drawings](acs1996-drawings.md), `cdx.py build` |
 | Exact coordinates, curved arrows, grids, equilibrium arrows | [Figure manifest](publication-figures.md), `compose_chemical_figure` |
-| Many compounds in a table (scope, SAR) | [Data-driven figures](data-driven-figures.md) |
+| Many compounds already in a CSV/XLSX table (scope, SAR), or an edit of such a figure | [Data-driven figures](data-driven-figures.md) |
 
 ## One call: draw_figure
 
-Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products; substrate-scope grids and mechanisms are not available yet and are refused, not approximated.
+Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products. Mechanisms are not available yet and are refused, not approximated. A substrate-scope panel has its own brief, described after the report table below.
 
 ```json
 {
@@ -48,6 +48,30 @@ Read the report before you answer:
 | `notes`, `warnings` | steps without conditions, unused species, balance and layout problems that remain |
 
 `ok` means a file was written; `checks_passed` means the layout and readback checks both passed. Open the PNG and look at it even then. The output is never written over an existing file: without an output path a fresh name is made in the temp folder.
+
+### Substrate-scope panel
+
+`"kind": "scope"` draws many compounds with their labels and the numbers the user gave, packed onto as many editable pages as needed:
+
+```json
+{
+  "kind": "scope",
+  "title": "Substrate scope",
+  "conditions": "As supplied by the user",
+  "footnotes": ["a Isolated yield."],
+  "fields": [{"key": "yield", "label": "Yield"}, {"key": "ee", "label": "ee"}],
+  "species": [
+    {"id": "3a", "smiles": "Cc1ccc(cc1)C(=O)N", "label": "3a", "group": "para", "values": {"yield": "88%", "ee": "95%"}},
+    {"id": "3b", "name": "benzamide", "label": "3b", "values": {"yield": "91%"}}
+  ]
+}
+```
+
+- `fields` is optional; without it the keys used in `values` become the columns, in first-seen order. A `unit` is added after the value, so do not repeat it in the text.
+- `group` makes a heading; groups and compounds keep first-seen order. A value you were not given is left out: the panel shows a dash, never zero, and the report names the compound.
+- `width_mm` and `height_mm` set the page (default 180 x 240 mm); more compounds continue on further pages, labels and values staying with their structure.
+- `output` is a new folder: `page-001.cdxml`, ... and, with `--render`, `png/page-001.png`, ... The report lists `pages`, `native.png_paths`, and the same `species`, `lint`, `readback`, `checks_passed`, `notes` and `warnings` as above, plus `checks.data_binding` (each label and value found next to its structure). Pages are packed from measured sizes, so there is no automatic re-layout.
+- To change a panel after the user edits it in ChemDraw, use `publication_figure update` ([data-driven figures](data-driven-figures.md)).
 
 ## render_scheme
 

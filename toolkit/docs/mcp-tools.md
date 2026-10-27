@@ -121,6 +121,14 @@ ChemDraw and returns its path; without ChemDraw the report says native: not_run.
 file is never written over an existing one: without output_path a fresh name is made
 in the temp directory, and an existing output_path is refused.
 
+kind "scope" draws a substrate-scope panel instead: species [{id, smiles or name,
+label?, group?, values {field: text}}], optional fields [{key, label?, unit?}] (default:
+the keys used in values), conditions, footnotes, title, width_mm and height_mm. The
+structures are packed onto as many editable pages as needed, grouped in first-seen
+order, each label and value bound to its structure; a missing value is drawn as a
+dash and listed in the notes. output_path is then a new folder (page-001.cdxml, ...;
+PNGs in png/ with render=True) and the report lists the pages.
+
 ### `execute_chemscript_sdk(program: list[dict[str, typing.Any]], allow_file_io: bool = False, allow_overwrite: bool = False, allow_unsafe_interop: bool = False, max_items: int = 100) -> dict[str, typing.Any]`
 
 Execute a declarative ChemScript SDK program in an isolated Python.NET process.

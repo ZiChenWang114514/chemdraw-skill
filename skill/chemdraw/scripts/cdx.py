@@ -723,10 +723,11 @@ def main(argv=None):
     s.add_argument('output')
     s.add_argument('--render', action='store_true')
     s.set_defaults(fn=cmd_build)
-    s = sub.add_parser('draw', help='checked reaction scheme from a brief (JSON file or -): '
-                                    'cdx.py draw BRIEF [OUTPUT.cdxml] [--render]')
+    s = sub.add_parser('draw', help='checked reaction scheme or scope panel from a brief (JSON file or -): '
+                                    'cdx.py draw BRIEF [OUTPUT] [--render]')
     s.add_argument('brief')
-    s.add_argument('output', nargs='?', help='new .cdxml path (default: a fresh name in the temp folder)')
+    s.add_argument('output', nargs='?', help='new .cdxml path, or a new folder for kind "scope" '
+                                              '(default: a fresh name in the temp folder)')
     s.add_argument('--render', action='store_true', help='also render a native PNG')
     s.add_argument('--out', help='new evidence file for the full report')
     s.set_defaults(fn=cmd_draw)

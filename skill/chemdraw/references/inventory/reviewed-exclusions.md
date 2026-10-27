@@ -175,6 +175,10 @@
 
 - **function**, line 54: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
 
+## `mcp_runtime.figure_scope`
+
+- **function**, line 160: `draw_scope(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a scope panel; called by draw_figure for ``kind: scope``.
+
 ## `mcp_runtime.figure_tools`
 
 - **function**, line 606: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
