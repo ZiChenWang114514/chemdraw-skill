@@ -89,8 +89,13 @@ def build_catalog(
     docs: dict[str, str],
     *,
     verified_on: str = "unverified",
+    bases: Optional[dict[str, str]] = None,
 ) -> dict[str, Any]:
-    """Join a reflection dump (``include_infrastructure`` on) with XML summaries."""
+    """Join a reflection dump (``include_infrastructure`` on) with XML summaries.
+
+    ``bases`` maps a full type name to its base type; reflection lists only the members a
+    type declares itself, so the base is how a reader finds the inherited ones.
+    """
     index = _doc_index(docs)
     by_type: dict[str, list[dict[str, Any]]] = {}
     for member in reflection["members"]:
@@ -103,6 +108,9 @@ def build_catalog(
         members = by_type.get(full, [])
         api = [m for m in members if m["classification"] == "sdk_api"]
         entry: dict[str, Any] = {"name": _short(full), "kind": record["kind"]}
+        base = (bases or {}).get(full, "")
+        if base.startswith(NAMESPACE):
+            entry["base"] = _short(base)
         summary = docs.get("T:" + full)
         if summary:
             entry["doc"] = summary
@@ -164,6 +172,19 @@ def _dll_dir() -> Path:
     return Path(str(configured)).expanduser()
 
 
+def read_bases() -> dict[str, str]:
+    """Full name of each exported type's base type, read in-process through Python.NET."""
+    from ..mcp_runtime import chemscript_sdk_runtime
+
+    runtime = chemscript_sdk_runtime.ChemScriptRuntime()
+    bases = {}
+    for full_name, sdk_type in runtime.types.items():
+        base = sdk_type.BaseType
+        if base is not None:
+            bases[full_name] = str(base.FullName)
+    return bases
+
+
 def extract_live(reflection_path, *, verified_on: Optional[str] = None) -> dict[str, Any]:
     """Read the installed SDK (Windows) and build the catalog; ``reflection_path`` must not exist."""
     from ..mcp_runtime import chemscript_sdk
@@ -172,7 +193,12 @@ def extract_live(reflection_path, *, verified_on: Optional[str] = None) -> dict[
     reflection = json.loads(Path(reflection_path).read_text(encoding="utf-8"))
     xml_path = _dll_dir() / XML_NAME
     docs = parse_xml_docs(xml_path) if xml_path.is_file() else {}
-    return build_catalog(reflection, docs, verified_on=verified_on or os.environ.get("CDX_VERIFIED_ON", "unverified"))
+    return build_catalog(
+        reflection,
+        docs,
+        verified_on=verified_on or os.environ.get("CDX_VERIFIED_ON", "unverified"),
+        bases=read_bases(),
+    )
 
 
 def dump(catalog: dict[str, Any]) -> str:
