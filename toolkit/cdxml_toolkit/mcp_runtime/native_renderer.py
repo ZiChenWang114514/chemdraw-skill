@@ -7,6 +7,7 @@ AppleScript (see ``cdxml_toolkit.chemdraw.mac_automation``).
 from __future__ import annotations
 
 from contextlib import contextmanager
+import os
 from pathlib import Path
 import time
 from typing import Iterator
@@ -54,6 +55,11 @@ def _classified_error(exc: BaseException) -> NativeRenderError:
 
 
 def _acquire_application():
+    # COM would start whichever ChemDraw is registered, whatever CHEMDRAW_EXE says; a path that points
+    # nowhere means "no ChemDraw here", so stop before any automation instance starts.
+    configured = os.environ.get("CHEMDRAW_EXE")
+    if configured and not Path(configured).is_file():
+        raise NativeRenderError("chemdraw_not_found", f"CHEMDRAW_EXE points to a missing file: {configured}")
     import win32com.client as win32
 
     dispatch_ex = getattr(win32, "DispatchEx", None)
