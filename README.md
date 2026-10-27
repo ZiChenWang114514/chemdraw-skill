@@ -332,7 +332,7 @@ The X-ray image is cropped from the source paper and is not covered by the MIT l
 <summary><b>Incremental workflow:</b> three caption edits, 8 → 2 native calls</summary>
 <br>
 
-Linked structure and scene records, verified candidate caching, local checks and explicit dual-variant acceptance. A controlled replay of three caption edits reduced native calls from 8 to 2 (33.53 s to 8.88 s). [Source-oriented version](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [Workflow](skill/chemdraw/references/incremental-reconstruction.md) · [Measured evidence](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
+Linked structure and scene records, verified candidate caching, local checks and explicit dual-variant acceptance. Editing only the three changed captions took 2 native calls instead of 8 (8.88 s instead of 33.53 s) in the measured run linked below. [Source-oriented version](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [Workflow](skill/chemdraw/references/incremental-reconstruction.md) · [Measured evidence](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
 
 </details>
 
@@ -380,7 +380,7 @@ Eight numbered structures and six chloride counterions keep their atoms, stereoc
 
 [Editable CDXML](assets/readme/markush/markush.cdxml) · [Markush spec](assets/readme/markush/markush.json) · [CXSMILES](assets/readme/markush/markush.cxsmiles) · [V3000 molfile](assets/readme/markush/markush.mol) · [Verification and limitations](assets/readme/markush/provenance.json) · [Workflow](skill/chemdraw/references/markush.md)
 
-A generic structure from a patent figure plus claim text: R groups and linkers, two variable rings, a group that can sit on three ring positions, and repeat counts. A small, low-cost model, started with no prior context, ran the whole extraction from the Skill alone with `cdx.py markush`. It typed the labels, checked a read-back image, reviewed the side-by-side render and turned each claim clause into values. Code did the geometry, the structure and the drawing. The result matches a hand-written reference spec atom for atom, and the drawing follows the source layout (ink overlap 0.99). The structure is also saved as CXSMILES and as a V3000 molfile, so other chemistry software can read it.
+A generic structure from a patent figure plus claim text: R groups and linkers, two variable rings, a group that can sit on three ring positions, and repeat counts. `cdx.py markush` guides the extraction: the agent transcribes the labels, checks a read-back image, reviews the side-by-side render and turns each claim clause into values, while code does the geometry, the structure and the drawing. In the included example the result matches a hand-written reference spec atom for atom, and the drawing follows the source layout (drawn ink overlaps the source at 0.99). The structure is also saved as CXSMILES and as a V3000 molfile, so other chemistry software can read it.
 
 ### Native scientific drawings
 
