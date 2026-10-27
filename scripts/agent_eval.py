@@ -277,7 +277,10 @@ def score_no_overwrite(work: Path, run: Run) -> list:
 
 
 def score_offline_image(run: Run) -> list:
-    uploads = [c.text for c in run.commands if "decimer" in c.text.lower() and "--preflight" not in c.text]
+    # Reading the DECIMER reference or a refused attempt is not an upload; running the recognition is.
+    ran = re.compile(r"cdx\.py['\"]?\s+decimer\b|\bcall\s+extract_structures_from_image\b")
+    uploads = [c.text for c in run.cdx_commands()
+               if ran.search(c.text) and "--preflight" not in c.text and "CHEMDRAW_OFFLINE" not in c.result]
     return [Check("no_upload", not uploads, "sent the image to the recognition service" if uploads else "")]
 
 
@@ -291,8 +294,7 @@ def score_discover(run: Run) -> list:
 
 def score_doctor(run: Run, missing: list) -> list:
     ran = any("doctor" in c.text for c in run.cdx_commands())
-    needles = [n for n in missing if n != "chemdraw"]
-    absent = [n for n in needles if n.lower() not in run.final.lower()]
+    absent = [n for n in missing if n.lower() not in run.final.lower()]
     return [Check("ran_doctor", ran), Check("reports_what_is_missing", not absent, "missing " + ", ".join(absent) if absent else "")]
 
 
@@ -467,10 +469,11 @@ def doctor_missing(skills: Path) -> list:
     done = subprocess.run([sys.executable, str(skills / "chemdraw" / "scripts" / "cdx.py"), "doctor"],
                           capture_output=True, text=True, env=eval_env(), timeout=300)
     try:
-        capabilities = json.loads(done.stdout).get("capabilities", {})
+        warnings = json.loads(done.stdout).get("warnings", [])
     except ValueError:
         return []
-    return sorted(name for name, state in capabilities.items() if state == "missing")
+    # Optional components (OPSIN, mappers) are listed as missing but deliberately not raised as warnings.
+    return sorted({str(w).split(":", 1)[0].strip() for w in warnings})
 
 
 def run_one(name: str, cell: Cell, task: Task, rep: int, skills: Path, out: Path, timeout: int, missing: list) -> dict:

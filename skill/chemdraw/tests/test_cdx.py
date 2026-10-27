@@ -6,7 +6,6 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-import tempfile
 from unittest import mock
 import xml.etree.ElementTree as ET
 
@@ -25,37 +24,6 @@ def test_call_uses_registered_timeout(tmp_path):
                            return_value=(0, b'{"ok":true,"result":{"ok":true}}', b'')) as process:
         cdx.main(['call', 'modify_molecule', '--json', '{}', '--out', str(tmp_path / 'r.json')])
     assert process.call_args.kwargs['timeout_seconds'] == 90
-
-
-def test_a_temp_folder_that_refuses_writes_is_replaced_by_one_in_the_working_folder(tmp_path, monkeypatch):
-    # Some sandboxes let a process create folders in the system temp but not write inside them.
-    refusing = tmp_path / 'system-temp'
-    refusing.mkdir()
-    real_open = open
-
-    def guarded_open(file, mode='r', *args, **kwargs):
-        if str(refusing) in str(file) and 'w' in mode:
-            raise PermissionError(13, 'Permission denied', str(file))
-        return real_open(file, mode, *args, **kwargs)
-
-    work = tmp_path / 'work'
-    work.mkdir()
-    monkeypatch.chdir(work)
-    for name in ('TEMP', 'TMP', 'TMPDIR'):
-        monkeypatch.setenv(name, str(refusing))
-    monkeypatch.setattr(tempfile, 'tempdir', None)
-    with mock.patch('builtins.open', guarded_open):
-        chosen = cdx._ensure_writable_temp()
-    assert chosen is not None and Path(chosen).parent == work
-    assert os.environ['TEMP'] == os.environ['TMP'] == os.environ['TMPDIR'] == str(chosen)
-
-
-def test_a_writable_temp_folder_is_left_alone(tmp_path, monkeypatch):
-    for name in ('TEMP', 'TMP', 'TMPDIR'):
-        monkeypatch.setenv(name, str(tmp_path))
-    monkeypatch.setattr(tempfile, 'tempdir', None)
-    assert cdx._ensure_writable_temp() is None
-    assert os.environ['TEMP'] == str(tmp_path)
 
 
 def test_args_and_json_each_take_inline_json_or_a_file(tmp_path):

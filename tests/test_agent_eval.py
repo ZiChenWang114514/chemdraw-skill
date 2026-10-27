@@ -164,6 +164,10 @@ class ScorerTests(unittest.TestCase):
         self.assertFalse(agent_eval.score_offline_image(upload)[0].ok)
         self.assertTrue(agent_eval.score_offline_image(preflight)[0].ok)
         self.assertTrue(agent_eval.score_offline_image(_run())[0].ok)
+        reading = _run(("sed -n 1,80p references/decimer-api.md", "# DECIMER 2 API Reference"))
+        refused = _run(("CHEMDRAW_OFFLINE=1 python cdx.py decimer scheme.png", "refused: CHEMDRAW_OFFLINE is set"))
+        self.assertTrue(agent_eval.score_offline_image(reading)[0].ok)
+        self.assertTrue(agent_eval.score_offline_image(refused)[0].ok)
 
     def test_the_tool_question_needs_the_tool_and_its_exact_parameters(self) -> None:
         good = _run(final="embed_cdxml_in_office(cdxml_path, office_path, output_path)")
