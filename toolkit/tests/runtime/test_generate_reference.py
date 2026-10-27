@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
+
+import pytest
 
 from cdxml_toolkit.mcp_runtime import generate_reference, tool_registry
 
@@ -30,6 +33,10 @@ def test_current_reference_interface_writes_markdown_and_json(tmp_path):
     )
 
 
+@pytest.mark.skipif(
+    sys.version_info[:2] != (3, 12),
+    reason="annotation text in the committed reference is rendered on Python 3.12 (as in CI)",
+)
 def test_committed_reference_files_are_current():
     docs = Path(__file__).resolve().parents[2] / "docs"
     committed = (docs / "mcp-tools.md").read_text(encoding="utf-8")
