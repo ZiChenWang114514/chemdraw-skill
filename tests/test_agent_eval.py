@@ -166,6 +166,10 @@ class ScorerTests(unittest.TestCase):
         self.assertTrue(agent_eval.score_offline_image(_run())[0].ok)
         reading = _run(("sed -n 1,80p references/decimer-api.md", "# DECIMER 2 API Reference"))
         refused = _run(("CHEMDRAW_OFFLINE=1 python cdx.py decimer scheme.png", "refused: CHEMDRAW_OFFLINE is set"))
+        hosted = _run(("python cdx.py call extract_structures_via_decimer_api --args a.json", "{}"))
+        local = _run(("python cdx.py call extract_structures_from_image --args a.json", "{}"))
+        self.assertFalse(agent_eval.score_offline_image(hosted)[0].ok)
+        self.assertTrue(agent_eval.score_offline_image(local)[0].ok)
         self.assertTrue(agent_eval.score_offline_image(reading)[0].ok)
         self.assertTrue(agent_eval.score_offline_image(refused)[0].ok)
 

@@ -107,3 +107,15 @@ On a shell that does not pass JSON quotes through intact (Windows PowerShell 5, 
 ## Subagents
 
 Subagents load the same Skill. Give them the `cdx.py` command form, never a guessed interpreter path. Native work is serialized by the ChemDraw lock however many agents run.
+
+## Tested agents
+
+`scripts/agent_eval.py` in the repository runs ten offline tasks (six scheme drawings, tool discovery, `doctor`, refusing to overwrite, and no upload when offline) through an agent CLI in an empty folder on a host without ChemDraw, and scores the files and commands each run produced. Last run October 2026 on Windows:
+
+| Agent CLI | Version | Model | Result |
+| --- | --- | --- | --- |
+| Codex CLI | 0.164.0 | gpt-6.1-terra | all tasks passed |
+| Kimi CLI | 2.3.0 | kimi-code/k3-256k | all tasks passed |
+| pi | 1.4.0 | bailian-ds/deepseek-v4.1-flash | all but one drawing run passed (a reagent label was left off) |
+
+Notes from those runs: Codex's Windows sandbox needs Python 3.12's temp-folder workaround that the runtime applies itself (see [operations](operations.md#failure-modes)); pi needs `--approve` to load a project-level Skill; a model without vision still finishes drawing tasks from the numeric checks.
