@@ -1,0 +1,712 @@
+{
+ "schema": 1,
+ "layer": "menu",
+ "verified_on": "22.2.0/win",
+ "sources": [
+  "com"
+ ],
+ "counts": {
+  "menus": 12,
+  "items": 159,
+  "commands": 140,
+  "popups": 19,
+  "separators": 31
+ },
+ "menus": [
+  {
+   "caption": "File",
+   "items": [
+    {
+     "caption": "New ACS Document 1996",
+     "command_id": 14
+    },
+    {
+     "caption": "Open...",
+     "command_id": 15
+    },
+    {
+     "caption": "Open Style Sheets",
+     "popup": true
+    },
+    {
+     "caption": "Open Templates",
+     "popup": true
+    },
+    {
+     "caption": "Open Samples",
+     "popup": true
+    },
+    {
+     "caption": "ChemDraw Cloud",
+     "popup": true
+    },
+    {
+     "caption": "Close",
+     "command_id": 17
+    },
+    {
+     "caption": "Save",
+     "command_id": 21
+    },
+    {
+     "caption": "Save As",
+     "command_id": 22
+    },
+    {
+     "caption": "Revert",
+     "command_id": 23
+    },
+    {
+     "caption": "Run ChemScript",
+     "command_id": 19
+    },
+    {
+     "caption": "Re-run Previously Selected ChemScript",
+     "command_id": 20
+    },
+    {
+     "caption": "ChemScripts",
+     "popup": true
+    },
+    {
+     "caption": "Page Setup...",
+     "command_id": 24
+    },
+    {
+     "caption": "Print...",
+     "command_id": 25
+    },
+    {
+     "caption": "Document Settings...",
+     "command_id": 26
+    },
+    {
+     "caption": "Document Annotations...",
+     "command_id": 33
+    },
+    {
+     "caption": "Document Properties...",
+     "command_id": 35
+    },
+    {
+     "caption": "Apply Document Settings from",
+     "popup": true
+    }
+   ]
+  },
+  {
+   "caption": "Edit",
+   "items": [
+    {
+     "caption": "Undo",
+     "command_id": 48
+    },
+    {
+     "caption": "Redo",
+     "command_id": 49
+    },
+    {
+     "caption": "Cut",
+     "command_id": 50
+    },
+    {
+     "caption": "Copy",
+     "command_id": 51
+    },
+    {
+     "caption": "Paste",
+     "command_id": 52
+    },
+    {
+     "caption": "Clear",
+     "command_id": 53
+    },
+    {
+     "caption": "Select All",
+     "command_id": 54
+    },
+    {
+     "caption": "Invert Selection",
+     "command_id": 55
+    },
+    {
+     "caption": "Repeat not available",
+     "command_id": 56
+    },
+    {
+     "caption": "Copy As",
+     "popup": true
+    },
+    {
+     "caption": "Paste Special",
+     "popup": true
+    },
+    {
+     "caption": "Insert File...",
+     "command_id": 63
+    },
+    {
+     "caption": "Insert Object...",
+     "command_id": 64
+    },
+    {
+     "caption": "Object",
+     "command_id": 65
+    }
+   ]
+  },
+  {
+   "caption": "View",
+   "items": [
+    {
+     "caption": "Show Crosshair",
+     "command_id": 80
+    },
+    {
+     "caption": "Show Rulers",
+     "command_id": 81
+    },
+    {
+     "caption": "Show Main Toolbar",
+     "command_id": 24727
+    },
+    {
+     "caption": "Show HELM Monomer Toolbar",
+     "command_id": 86
+    },
+    {
+     "caption": "Show BioDraw Toolbar",
+     "command_id": 24728
+    },
+    {
+     "caption": "Show General Toolbar",
+     "command_id": 24729
+    },
+    {
+     "caption": "Show Style Toolbar",
+     "command_id": 24730
+    },
+    {
+     "caption": "Show Object Toolbar",
+     "command_id": 24731
+    },
+    {
+     "caption": "Show Structure Toolbar",
+     "command_id": 24732
+    },
+    {
+     "caption": "Show Highlight Colors Toolbar",
+     "command_id": 24710
+    },
+    {
+     "caption": "Show Ring Fill Colors Toolbar",
+     "command_id": 24711
+    },
+    {
+     "caption": "Show Add-ins Toolbar",
+     "command_id": 24708
+    },
+    {
+     "caption": "Show Analysis Window",
+     "command_id": 87
+    },
+    {
+     "caption": "Show Chemical Properties Window",
+     "command_id": 88
+    },
+    {
+     "caption": "Show Info Window",
+     "command_id": 89
+    },
+    {
+     "caption": "Show Periodic Table Window",
+     "command_id": 90
+    },
+    {
+     "caption": "Show Character Map Window",
+     "command_id": 91
+    },
+    {
+     "caption": "Show Chem3D HotLink Window",
+     "command_id": 100
+    },
+    {
+     "caption": "Other Toolbars",
+     "popup": true
+    },
+    {
+     "caption": "Templates",
+     "popup": true
+    },
+    {
+     "caption": "Show Chemical Warnings",
+     "command_id": 93
+    },
+    {
+     "caption": "Show Reaction Interpretation",
+     "command_id": 101
+    },
+    {
+     "caption": "Actual Size",
+     "command_id": 94
+    },
+    {
+     "caption": "Show Document",
+     "command_id": 95
+    },
+    {
+     "caption": "Magnify",
+     "command_id": 96
+    }
+   ]
+  },
+  {
+   "caption": "Object",
+   "items": [
+    {
+     "caption": "Object Settings...",
+     "command_id": 224
+    },
+    {
+     "caption": "Apply Object Settings from",
+     "popup": true
+    },
+    {
+     "caption": "Fixed &Lengths",
+     "command_id": 226
+    },
+    {
+     "caption": "Fixed Angles",
+     "command_id": 227
+    },
+    {
+     "caption": "Show Stereochemistry",
+     "command_id": 228
+    },
+    {
+     "caption": "Attach Data...",
+     "command_id": 229
+    },
+    {
+     "caption": "Annotate...",
+     "command_id": 246
+    },
+    {
+     "caption": "Center on Page",
+     "command_id": 230
+    },
+    {
+     "caption": "Align",
+     "popup": true
+    },
+    {
+     "caption": "Distribute",
+     "popup": true
+    },
+    {
+     "caption": "Add Frame",
+     "popup": true
+    },
+    {
+     "caption": "Group",
+     "command_id": 234
+    },
+    {
+     "caption": "Ungroup",
+     "command_id": 235
+    },
+    {
+     "caption": "Join",
+     "command_id": 236
+    },
+    {
+     "caption": "Bring to Front",
+     "command_id": 237
+    },
+    {
+     "caption": "Send to Back",
+     "command_id": 238
+    },
+    {
+     "caption": "Flatten",
+     "command_id": 245
+    },
+    {
+     "caption": "Flip Horizontal",
+     "command_id": 239
+    }
+   ]
+  },
+  {
+   "caption": "Structure",
+   "items": [
+    {
+     "caption": "Atom Properties...",
+     "command_id": 352
+    },
+    {
+     "caption": "Bond Properties...",
+     "command_id": 353
+    },
+    {
+     "caption": "Bracket Properties...",
+     "command_id": 354
+    },
+    {
+     "caption": "Check Structure",
+     "command_id": 355
+    },
+    {
+     "caption": "Clean Up Structure",
+     "command_id": 356
+    },
+    {
+     "caption": "Clean Up Reaction",
+     "command_id": 368
+    },
+    {
+     "caption": "Clean Up Biopolymer",
+     "command_id": 2160
+    },
+    {
+     "caption": "3D Clean Up",
+     "command_id": 2161
+    },
+    {
+     "caption": "Expand Label",
+     "command_id": 357
+    },
+    {
+     "caption": "Contract Label",
+     "command_id": 358
+    },
+    {
+     "caption": "Expand Generic Structure",
+     "command_id": 373
+    },
+    {
+     "caption": "Expand Generic Structure to SDF...",
+     "command_id": 374
+    },
+    {
+     "caption": "Toggle Aromatic Display",
+     "command_id": 382
+    },
+    {
+     "caption": "Toggle Hydrogen Display",
+     "command_id": 2145
+    },
+    {
+     "caption": "Structure Perspective",
+     "command_id": 383
+    },
+    {
+     "caption": "Add Multi-Center Attachment",
+     "command_id": 359
+    },
+    {
+     "caption": "Add Variable Attachment",
+     "command_id": 360
+    },
+    {
+     "caption": "R-Logic Query...",
+     "command_id": 377
+    },
+    {
+     "caption": "Add 3D Property",
+     "popup": true
+    },
+    {
+     "caption": "Enhanced Stereochemistry",
+     "popup": true
+    },
+    {
+     "caption": "Map Reaction Atoms",
+     "command_id": 362
+    },
+    {
+     "caption": "Clear Reaction Map",
+     "command_id": 363
+    },
+    {
+     "caption": "Analyze Stoichiometry",
+     "command_id": 367
+    },
+    {
+     "caption": "Autonumber Reaction",
+     "command_id": 379
+    },
+    {
+     "caption": "Clear Reaction Numbers",
+     "command_id": 380
+    },
+    {
+     "caption": "Predict ¹H-NMR Shifts",
+     "command_id": 370
+    },
+    {
+     "caption": "Predict ¹³C-NMR Shifts",
+     "command_id": 371
+    },
+    {
+     "caption": "Make Spectrum-Structure Assignment",
+     "command_id": 364
+    },
+    {
+     "caption": "Add Structure to Dictionary...",
+     "command_id": 381
+    }
+   ]
+  },
+  {
+   "caption": "Text",
+   "items": [
+    {
+     "caption": "Font",
+     "popup": true
+    },
+    {
+     "caption": "Style",
+     "popup": true
+    },
+    {
+     "caption": "Size",
+     "popup": true
+    },
+    {
+     "caption": "Flush Left",
+     "command_id": 259
+    },
+    {
+     "caption": "Centered",
+     "command_id": 260
+    },
+    {
+     "caption": "Flush Right",
+     "command_id": 261
+    },
+    {
+     "caption": "Justified",
+     "command_id": 262
+    },
+    {
+     "caption": "Stacked Above",
+     "command_id": 263
+    },
+    {
+     "caption": "Automatic",
+     "command_id": 264
+    }
+   ]
+  },
+  {
+   "caption": "Curves",
+   "items": [
+    {
+     "caption": "Plain",
+     "command_id": 192
+    },
+    {
+     "caption": "Dashed",
+     "command_id": 193
+    },
+    {
+     "caption": "Bold",
+     "command_id": 194
+    },
+    {
+     "caption": "Doubled",
+     "command_id": 195
+    },
+    {
+     "caption": "Full Arrow at Start",
+     "command_id": 196
+    },
+    {
+     "caption": "Full Arrow at End",
+     "command_id": 197
+    },
+    {
+     "caption": "Half Arrow at Start Left",
+     "command_id": 198
+    },
+    {
+     "caption": "Half Arrow at Start Right",
+     "command_id": 199
+    },
+    {
+     "caption": "Half Arrow at End Left",
+     "command_id": 200
+    },
+    {
+     "caption": "Half Arrow at End Right",
+     "command_id": 201
+    },
+    {
+     "caption": "Closed",
+     "command_id": 202
+    },
+    {
+     "caption": "Filled",
+     "command_id": 203
+    },
+    {
+     "caption": "Shaded",
+     "command_id": 204
+    },
+    {
+     "caption": "Faded",
+     "command_id": 206
+    }
+   ]
+  },
+  {
+   "caption": "Colors",
+   "items": [
+    {
+     "caption": "Other...",
+     "command_id": 209
+    },
+    {
+     "caption": "By Element",
+     "command_id": 210
+    },
+    {
+     "caption": "Show Highlight Colors Toolbar",
+     "command_id": 24710
+    },
+    {
+     "caption": "Show Ring Fill Colors Toolbar",
+     "command_id": 24711
+    }
+   ]
+  },
+  {
+   "caption": "Search",
+   "items": [
+    {
+     "caption": "Search Reaxys...",
+     "command_id": 2069
+    },
+    {
+     "caption": "Search SciFinder",
+     "command_id": 5023
+    },
+    {
+     "caption": "Browse PerkinElmer Signals Notebook Individual Edition",
+     "command_id": 5024
+    },
+    {
+     "caption": "Browse PerkinElmer Informatics Store",
+     "command_id": 5025
+    },
+    {
+     "caption": "Browse Lead Discovery Special Offer",
+     "command_id": 5026
+    },
+    {
+     "caption": "Browse PerkinElmer.Com",
+     "command_id": 5027
+    },
+    {
+     "caption": "Browse PerkinElmer Documentation",
+     "command_id": 5028
+    },
+    {
+     "caption": "Browse PerkinElmer Downloads",
+     "command_id": 5029
+    },
+    {
+     "caption": "Register Online",
+     "command_id": 5030
+    },
+    {
+     "caption": "Browse ChemOffice SDK",
+     "command_id": 5031
+    },
+    {
+     "caption": "Browse TIBCO Spotfire",
+     "command_id": 5032
+    }
+   ]
+  },
+  {
+   "caption": "Add-ins",
+   "items": []
+  },
+  {
+   "caption": "Window",
+   "items": [
+    {
+     "caption": "Cascade",
+     "command_id": 288
+    },
+    {
+     "caption": "Tile Vertical",
+     "command_id": 289
+    },
+    {
+     "caption": "Tile Horizontal",
+     "command_id": 290
+    },
+    {
+     "caption": "Arrange Icons",
+     "command_id": 291
+    }
+   ]
+  },
+  {
+   "caption": "Help",
+   "items": [
+    {
+     "caption": "Contents",
+     "command_id": 1
+    },
+    {
+     "caption": "Getting Started",
+     "command_id": 3
+    },
+    {
+     "caption": "Tutorials",
+     "command_id": 6
+    },
+    {
+     "caption": "ChemDraw Basics",
+     "command_id": 9
+    },
+    {
+     "caption": "ChemScript",
+     "command_id": 7
+    },
+    {
+     "caption": "Querying SciFinder®",
+     "command_id": 8
+    },
+    {
+     "caption": "Add-in Developer Guide",
+     "command_id": 13
+    },
+    {
+     "caption": "Recent Additions",
+     "command_id": 4
+    },
+    {
+     "caption": "Hotkeys Cheat Sheet",
+     "command_id": 2
+    },
+    {
+     "caption": "Shortcuts Cheat Sheet",
+     "command_id": 2144
+    },
+    {
+     "caption": "Contact Support",
+     "command_id": 24709
+    },
+    {
+     "caption": "Activate ChemDraw...",
+     "command_id": 10
+    }
+   ]
+  }
+ ]
+}

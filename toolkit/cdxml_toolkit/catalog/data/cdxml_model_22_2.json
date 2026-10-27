@@ -1,0 +1,3649 @@
+{
+ "schema": 1,
+ "layer": "cdxml",
+ "verified_on": "22.2.0/win",
+ "sources": [
+  "chemdraw_authored_documents",
+  "binary_strings"
+ ],
+ "limits": "Empirical: no DTD ships with ChemDraw, so absence of an element or attribute proves nothing.",
+ "documents_scanned": 689,
+ "documents_unparsable": 2,
+ "fixtures": [
+  {
+   "name": "caption",
+   "status": "ok"
+  },
+  {
+   "name": "spline",
+   "status": "ok"
+  },
+  {
+   "name": "arrow",
+   "status": "ok"
+  },
+  {
+   "name": "rectangle",
+   "status": "ok"
+  },
+  {
+   "name": "ellipse",
+   "status": "ok"
+  },
+  {
+   "name": "bracket",
+   "status": "ok"
+  },
+  {
+   "name": "symbol",
+   "status": "ok"
+  },
+  {
+   "name": "orbital",
+   "status": "ok"
+  },
+  {
+   "name": "table",
+   "status": "ok"
+  },
+  {
+   "name": "altgroup",
+   "status": "ok"
+  },
+  {
+   "name": "geometry",
+   "status": "ok"
+  },
+  {
+   "name": "constraint",
+   "status": "ok"
+  },
+  {
+   "name": "tlcplate",
+   "status": "ok"
+  },
+  {
+   "name": "stoichiometrygrid",
+   "status": "ok"
+  },
+  {
+   "name": "plasmidmap",
+   "status": "ok"
+  }
+ ],
+ "counts": {
+  "elements": 50,
+  "attributes": 410,
+  "elements_observed": 37,
+  "elements_binary_only": 11,
+  "elements_unconfirmed": 2
+ },
+ "elements": [
+  {
+   "name": "CDXML",
+   "evidence": [
+    "observed"
+   ],
+   "count": 689,
+   "documents": 689,
+   "attributes": [
+    {
+     "name": "AminoAcidTermini",
+     "count": 643,
+     "documents": 643,
+     "kind": "string"
+    },
+    {
+     "name": "BoldWidth",
+     "count": 689,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "BondLength",
+     "count": 689,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "BondSpacing",
+     "count": 689,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "BoundingBox",
+     "count": 689,
+     "documents": 689,
+     "kind": "numbers"
+    },
+    {
+     "name": "CaptionFont",
+     "count": 689,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "CaptionJustification",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "Left"
+     ]
+    },
+    {
+     "name": "CaptionSize",
+     "count": 689,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "ChainAngle",
+     "count": 689,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "ChemPropAnalysis",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropBoilingPt",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropCLogP",
+     "count": 113,
+     "documents": 113,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropCMR",
+     "count": 113,
+     "documents": 113,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropCritPres",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropCritTemp",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropCritVol",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropEForm",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropExactMass",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropFormula",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropFragmentLabel",
+     "count": 27,
+     "documents": 27,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropGibbs",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropHenry",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropID",
+     "count": 82,
+     "documents": 82,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropLogP",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropLogS",
+     "count": 112,
+     "documents": 112,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropMOverZ",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropMR",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropMeltingPt",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropMolWt",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropName",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "ChemPropPKa",
+     "count": 110,
+     "documents": 110,
+     "kind": "string"
+    },
+    {
+     "name": "ChemProptPSA",
+     "count": 128,
+     "documents": 128,
+     "kind": "string"
+    },
+    {
+     "name": "CreationProgram",
+     "count": 689,
+     "documents": 689,
+     "kind": "string"
+    },
+    {
+     "name": "FixInPlaceExtent",
+     "count": 18,
+     "documents": 18,
+     "kind": "numbers"
+    },
+    {
+     "name": "FractionalWidths",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "HashSpacing",
+     "count": 689,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "HideImplicitHydrogens",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "InterpretChemically",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "LabelFace",
+     "count": 689,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "LabelFont",
+     "count": 689,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "LabelJustification",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "Auto",
+      "Best"
+     ]
+    },
+    {
+     "name": "LabelSize",
+     "count": 689,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "LineWidth",
+     "count": 689,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "MacPrintInfo",
+     "count": 520,
+     "documents": 520,
+     "kind": "string"
+    },
+    {
+     "name": "Magnification",
+     "count": 11,
+     "documents": 11,
+     "kind": "integer"
+    },
+    {
+     "name": "MarginWidth",
+     "count": 689,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "Name",
+     "count": 520,
+     "documents": 520,
+     "kind": "string"
+    },
+    {
+     "name": "NumberResidueBlocks",
+     "count": 134,
+     "documents": 134,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "PrintMargins",
+     "count": 689,
+     "documents": 689,
+     "kind": "numbers"
+    },
+    {
+     "name": "ResidueBlockCount",
+     "count": 158,
+     "documents": 158,
+     "kind": "integer"
+    },
+    {
+     "name": "ResidueWrapCount",
+     "count": 158,
+     "documents": 158,
+     "kind": "integer"
+    },
+    {
+     "name": "ResidueZigZag",
+     "count": 132,
+     "documents": 132,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "RxnAutonumberConditions",
+     "count": 82,
+     "documents": 82,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "RxnAutonumberFormat",
+     "count": 82,
+     "documents": 82,
+     "kind": "string"
+    },
+    {
+     "name": "RxnAutonumberStart",
+     "count": 82,
+     "documents": 82,
+     "kind": "integer"
+    },
+    {
+     "name": "RxnAutonumberStyle",
+     "count": 82,
+     "documents": 82,
+     "kind": "enum",
+     "values": [
+      "Roman"
+     ]
+    },
+    {
+     "name": "ShowAtomEnhancedStereo",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowAtomNumber",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "ShowAtomQuery",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowAtomStereo",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "no",
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowBondQuery",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowBondRxn",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowBondStereo",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "no",
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowNonTerminalCarbonLabels",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "ShowResidueID",
+     "count": 131,
+     "documents": 131,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "ShowSequenceBonds",
+     "count": 643,
+     "documents": 643,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowSequenceTermini",
+     "count": 643,
+     "documents": 643,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowSequenceUnlinkedBranches",
+     "count": 71,
+     "documents": 71,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "ShowTerminalCarbonLabels",
+     "count": 689,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "WindowIsZoomed",
+     "count": 355,
+     "documents": 355,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "WindowPosition",
+     "count": 689,
+     "documents": 689,
+     "kind": "numbers"
+    },
+    {
+     "name": "WindowSize",
+     "count": 689,
+     "documents": 689,
+     "kind": "numbers"
+    },
+    {
+     "name": "bgcolor",
+     "count": 672,
+     "documents": 672,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 672,
+     "documents": 672,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "colortable",
+    "fonttable",
+    "page"
+   ],
+   "parents": []
+  },
+  {
+   "name": "altgroup",
+   "evidence": [
+    "observed"
+   ],
+   "count": 1,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "BoundingBox",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "GroupFrame",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "TextFrame",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "id",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "t"
+   ],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "annotation",
+   "evidence": [
+    "observed"
+   ],
+   "count": 538,
+   "documents": 105,
+   "attributes": [
+    {
+     "name": "Content",
+     "count": 538,
+     "documents": 105,
+     "kind": "string"
+    },
+    {
+     "name": "Keyword",
+     "count": 538,
+     "documents": 105,
+     "kind": "enum",
+     "values": [
+      "GUID",
+      "Name",
+      "Residue"
+     ]
+    }
+   ],
+   "children": [],
+   "parents": [
+    "group",
+    "n",
+    "page"
+   ]
+  },
+  {
+   "name": "arrow",
+   "evidence": [
+    "observed"
+   ],
+   "count": 1271,
+   "documents": 32,
+   "attributes": [
+    {
+     "name": "AngularSize",
+     "count": 94,
+     "documents": 17,
+     "kind": "number"
+    },
+    {
+     "name": "ArrowShaftSpacing",
+     "count": 23,
+     "documents": 4,
+     "kind": "integer"
+    },
+    {
+     "name": "ArrowSource",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "ArrowTarget",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "ArrowheadCenterSize",
+     "count": 1021,
+     "documents": 31,
+     "kind": "integer"
+    },
+    {
+     "name": "ArrowheadHead",
+     "count": 411,
+     "documents": 29,
+     "kind": "enum",
+     "values": [
+      "Full",
+      "HalfLeft",
+      "HalfRight"
+     ]
+    },
+    {
+     "name": "ArrowheadTail",
+     "count": 28,
+     "documents": 7,
+     "kind": "enum",
+     "values": [
+      "Full",
+      "HalfLeft"
+     ]
+    },
+    {
+     "name": "ArrowheadType",
+     "count": 1271,
+     "documents": 32,
+     "kind": "enum",
+     "values": [
+      "Hollow",
+      "Solid"
+     ]
+    },
+    {
+     "name": "ArrowheadWidth",
+     "count": 1021,
+     "documents": 31,
+     "kind": "integer"
+    },
+    {
+     "name": "BoundingBox",
+     "count": 1271,
+     "documents": 32,
+     "kind": "numbers"
+    },
+    {
+     "name": "Center3D",
+     "count": 1271,
+     "documents": 32,
+     "kind": "numbers"
+    },
+    {
+     "name": "FadePercent",
+     "count": 6,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "FillType",
+     "count": 1269,
+     "documents": 30,
+     "kind": "enum",
+     "values": [
+      "None"
+     ]
+    },
+    {
+     "name": "Head3D",
+     "count": 1271,
+     "documents": 32,
+     "kind": "numbers"
+    },
+    {
+     "name": "HeadSize",
+     "count": 1021,
+     "documents": 31,
+     "kind": "integer"
+    },
+    {
+     "name": "IgnoreWarnings",
+     "count": 207,
+     "documents": 11,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "LineType",
+     "count": 14,
+     "documents": 6,
+     "kind": "string"
+    },
+    {
+     "name": "LineWidth",
+     "count": 136,
+     "documents": 8,
+     "kind": "number"
+    },
+    {
+     "name": "MajorAxisEnd3D",
+     "count": 1271,
+     "documents": 32,
+     "kind": "numbers"
+    },
+    {
+     "name": "MinorAxisEnd3D",
+     "count": 1271,
+     "documents": 32,
+     "kind": "numbers"
+    },
+    {
+     "name": "Tail3D",
+     "count": 1271,
+     "documents": 32,
+     "kind": "numbers"
+    },
+    {
+     "name": "Z",
+     "count": 1260,
+     "documents": 32,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 813,
+     "documents": 13,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 1271,
+     "documents": 32,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "group",
+    "marker",
+    "page"
+   ]
+  },
+  {
+   "name": "b",
+   "evidence": [
+    "observed"
+   ],
+   "count": 12306,
+   "documents": 564,
+   "attributes": [
+    {
+     "name": "B",
+     "count": 12306,
+     "documents": 564,
+     "kind": "integer"
+    },
+    {
+     "name": "BS",
+     "count": 9060,
+     "documents": 557,
+     "kind": "enum",
+     "values": [
+      "N",
+      "Z"
+     ]
+    },
+    {
+     "name": "BeginAttach",
+     "count": 179,
+     "documents": 6,
+     "kind": "integer"
+    },
+    {
+     "name": "BoldWidth",
+     "count": 9,
+     "documents": 1,
+     "kind": "number"
+    },
+    {
+     "name": "BondCircularOrdering",
+     "count": 1187,
+     "documents": 256,
+     "kind": "numbers"
+    },
+    {
+     "name": "BondLength",
+     "count": 9,
+     "documents": 1,
+     "kind": "number"
+    },
+    {
+     "name": "Connectivity",
+     "count": 161,
+     "documents": 6,
+     "kind": "enum",
+     "values": [
+      "Bridged",
+      "Cyclic",
+      "Linear",
+      "Staggered"
+     ]
+    },
+    {
+     "name": "CrossingBonds",
+     "count": 108,
+     "documents": 13,
+     "kind": "numbers"
+    },
+    {
+     "name": "Display",
+     "count": 901,
+     "documents": 163,
+     "kind": "enum",
+     "values": [
+      "Bold",
+      "Dash",
+      "Hash",
+      "Wavy",
+      "WedgeBegin",
+      "WedgeEnd",
+      "WedgedHashBegin",
+      "WedgedHashEnd"
+     ]
+    },
+    {
+     "name": "DoublePosition",
+     "count": 32,
+     "documents": 10,
+     "kind": "enum",
+     "values": [
+      "Center",
+      "Left",
+      "Right"
+     ]
+    },
+    {
+     "name": "E",
+     "count": 12306,
+     "documents": 564,
+     "kind": "integer"
+    },
+    {
+     "name": "EndAttach",
+     "count": 229,
+     "documents": 4,
+     "kind": "integer"
+    },
+    {
+     "name": "HashSpacing",
+     "count": 29,
+     "documents": 3,
+     "kind": "number"
+    },
+    {
+     "name": "IgnoreWarnings",
+     "count": 1681,
+     "documents": 10,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "LabelFace",
+     "count": 185,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "LabelSize",
+     "count": 185,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "LineWidth",
+     "count": 903,
+     "documents": 10,
+     "kind": "number"
+    },
+    {
+     "name": "MarginWidth",
+     "count": 9,
+     "documents": 1,
+     "kind": "number"
+    },
+    {
+     "name": "Order",
+     "count": 2458,
+     "documents": 433,
+     "kind": "enum",
+     "values": [
+      "1.5",
+      "2",
+      "3",
+      "any"
+     ]
+    },
+    {
+     "name": "RxnParticipation",
+     "count": 4,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "Unmapped"
+     ]
+    },
+    {
+     "name": "ShowBondStereo",
+     "count": 162,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "Warning",
+     "count": 47,
+     "documents": 10,
+     "kind": "string"
+    },
+    {
+     "name": "Z",
+     "count": 12157,
+     "documents": 564,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 415,
+     "documents": 15,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 12306,
+     "documents": 564,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "objecttag"
+   ],
+   "parents": [
+    "fragment"
+   ]
+  },
+  {
+   "name": "bioshape",
+   "evidence": [
+    "observed"
+   ],
+   "count": 90,
+   "documents": 12,
+   "attributes": [
+    {
+     "name": "BioShapeType",
+     "count": 90,
+     "documents": 12,
+     "kind": "string"
+    },
+    {
+     "name": "BoundingBox",
+     "count": 90,
+     "documents": 12,
+     "kind": "numbers"
+    },
+    {
+     "name": "CylinderDistance",
+     "count": 3,
+     "documents": 2,
+     "kind": "number"
+    },
+    {
+     "name": "CylinderHeight",
+     "count": 3,
+     "documents": 2,
+     "kind": "number"
+    },
+    {
+     "name": "CylinderWidth",
+     "count": 3,
+     "documents": 2,
+     "kind": "number"
+    },
+    {
+     "name": "DNAWaveHeight",
+     "count": 20,
+     "documents": 8,
+     "kind": "number"
+    },
+    {
+     "name": "DNAWaveLength",
+     "count": 20,
+     "documents": 8,
+     "kind": "number"
+    },
+    {
+     "name": "DNAWaveOffset",
+     "count": 20,
+     "documents": 8,
+     "kind": "number"
+    },
+    {
+     "name": "DNAWaveWidth",
+     "count": 20,
+     "documents": 8,
+     "kind": "number"
+    },
+    {
+     "name": "EnzymeReceptorSize",
+     "count": 8,
+     "documents": 4,
+     "kind": "integer"
+    },
+    {
+     "name": "FadePercent",
+     "count": 90,
+     "documents": 12,
+     "kind": "integer"
+    },
+    {
+     "name": "FillType",
+     "count": 90,
+     "documents": 12,
+     "kind": "enum",
+     "values": [
+      "None",
+      "Shaded",
+      "Solid"
+     ]
+    },
+    {
+     "name": "GproteinUpperHeight",
+     "count": 2,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "HelixProteinExtra",
+     "count": 3,
+     "documents": 2,
+     "kind": "number"
+    },
+    {
+     "name": "LineType",
+     "count": 3,
+     "documents": 2,
+     "kind": "enum",
+     "values": [
+      "Bold"
+     ]
+    },
+    {
+     "name": "MajorAxisEnd3D",
+     "count": 90,
+     "documents": 12,
+     "kind": "numbers"
+    },
+    {
+     "name": "MembraneElementSize",
+     "count": 24,
+     "documents": 10,
+     "kind": "number"
+    },
+    {
+     "name": "MembraneEndAngle",
+     "count": 15,
+     "documents": 7,
+     "kind": "number"
+    },
+    {
+     "name": "MembraneStartAngle",
+     "count": 15,
+     "documents": 7,
+     "kind": "number"
+    },
+    {
+     "name": "MinorAxisEnd3D",
+     "count": 90,
+     "documents": 12,
+     "kind": "numbers"
+    },
+    {
+     "name": "NeckWidth",
+     "count": 7,
+     "documents": 5,
+     "kind": "integer"
+    },
+    {
+     "name": "PipeWidth",
+     "count": 3,
+     "documents": 2,
+     "kind": "number"
+    },
+    {
+     "name": "Z",
+     "count": 90,
+     "documents": 12,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 73,
+     "documents": 12,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 90,
+     "documents": 12,
+     "kind": "integer"
+    },
+    {
+     "name": "xyz",
+     "count": 90,
+     "documents": 12,
+     "kind": "numbers"
+    }
+   ],
+   "children": [
+    "curve",
+    "objecttag"
+   ],
+   "parents": [
+    "group",
+    "page"
+   ]
+  },
+  {
+   "name": "border",
+   "evidence": [
+    "observed"
+   ],
+   "count": 204,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "LineWidth",
+     "count": 204,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "Side",
+     "count": 204,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "bottom",
+      "left",
+      "right",
+      "top"
+     ]
+    },
+    {
+     "name": "color",
+     "count": 204,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 204,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "bracketattachment",
+   "evidence": [
+    "observed"
+   ],
+   "count": 2,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "GraphicID",
+     "count": 2,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 2,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "bracketedgroup"
+   ]
+  },
+  {
+   "name": "bracketedgroup",
+   "evidence": [
+    "observed"
+   ],
+   "count": 1,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "BracketedObjectIDs",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "RepeatCount",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "bracketattachment"
+   ],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "chemicalproperty",
+   "evidence": [
+    "observed"
+   ],
+   "count": 58,
+   "documents": 7,
+   "attributes": [
+    {
+     "name": "BasisObjects",
+     "count": 58,
+     "documents": 7,
+     "kind": "numbers"
+    },
+    {
+     "name": "ChemicalPropertyDisplayID",
+     "count": 58,
+     "documents": 7,
+     "kind": "integer"
+    },
+    {
+     "name": "ChemicalPropertyIsActive",
+     "count": 40,
+     "documents": 3,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ChemicalPropertyType",
+     "count": 58,
+     "documents": 7,
+     "kind": "numbers"
+    },
+    {
+     "name": "Name",
+     "count": 26,
+     "documents": 2,
+     "kind": "enum",
+     "values": [
+      "Residue"
+     ]
+    },
+    {
+     "name": "PositioningOffset",
+     "count": 55,
+     "documents": 7,
+     "kind": "numbers"
+    },
+    {
+     "name": "PositioningType",
+     "count": 55,
+     "documents": 7,
+     "kind": "enum",
+     "values": [
+      "absolute",
+      "offset"
+     ]
+    },
+    {
+     "name": "id",
+     "count": 48,
+     "documents": 5,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "color",
+   "evidence": [
+    "observed"
+   ],
+   "count": 4758,
+   "documents": 689,
+   "attributes": [
+    {
+     "name": "b",
+     "count": 4758,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "g",
+     "count": 4758,
+     "documents": 689,
+     "kind": "number"
+    },
+    {
+     "name": "r",
+     "count": 4758,
+     "documents": 689,
+     "kind": "number"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "colortable"
+   ]
+  },
+  {
+   "name": "colortable",
+   "evidence": [
+    "observed"
+   ],
+   "count": 689,
+   "documents": 689,
+   "attributes": [],
+   "children": [
+    "color"
+   ],
+   "parents": [
+    "CDXML"
+   ]
+  },
+  {
+   "name": "constraint",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "crossingbond",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "curve",
+   "evidence": [
+    "observed"
+   ],
+   "count": 4526,
+   "documents": 110,
+   "attributes": [
+    {
+     "name": "ArrowheadHead",
+     "count": 7,
+     "documents": 3,
+     "kind": "enum",
+     "values": [
+      "Full"
+     ]
+    },
+    {
+     "name": "ArrowheadType",
+     "count": 4526,
+     "documents": 110,
+     "kind": "enum",
+     "values": [
+      "Solid"
+     ]
+    },
+    {
+     "name": "Closed",
+     "count": 3058,
+     "documents": 101,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "CurvePoints",
+     "count": 4430,
+     "documents": 103,
+     "kind": "numbers"
+    },
+    {
+     "name": "CurveType",
+     "count": 3622,
+     "documents": 103,
+     "kind": "integer"
+    },
+    {
+     "name": "FadePercent",
+     "count": 1013,
+     "documents": 13,
+     "kind": "integer"
+    },
+    {
+     "name": "FillType",
+     "count": 2897,
+     "documents": 90,
+     "kind": "enum",
+     "values": [
+      "Shaded",
+      "Solid"
+     ]
+    },
+    {
+     "name": "IgnoreWarnings",
+     "count": 1,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "LineType",
+     "count": 432,
+     "documents": 4,
+     "kind": "string"
+    },
+    {
+     "name": "LineWidth",
+     "count": 243,
+     "documents": 2,
+     "kind": "number"
+    },
+    {
+     "name": "Z",
+     "count": 4429,
+     "documents": 105,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 4305,
+     "documents": 94,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 4445,
+     "documents": 106,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "bioshape",
+    "fragment",
+    "group",
+    "page",
+    "plasmidmarker"
+   ]
+  },
+  {
+   "name": "embeddedobject",
+   "evidence": [
+    "observed"
+   ],
+   "count": 23,
+   "documents": 13,
+   "attributes": [
+    {
+     "name": "BoundingBox",
+     "count": 23,
+     "documents": 13,
+     "kind": "numbers"
+    },
+    {
+     "name": "IgnoreWarnings",
+     "count": 20,
+     "documents": 10,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "JPEG",
+     "count": 20,
+     "documents": 10,
+     "kind": "string"
+    },
+    {
+     "name": "PDF",
+     "count": 1,
+     "documents": 1,
+     "kind": "string"
+    },
+    {
+     "name": "PNG",
+     "count": 1,
+     "documents": 1,
+     "kind": "string"
+    },
+    {
+     "name": "TIFF",
+     "count": 2,
+     "documents": 2,
+     "kind": "string"
+    },
+    {
+     "name": "Z",
+     "count": 23,
+     "documents": 13,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 23,
+     "documents": 13,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "font",
+   "evidence": [
+    "observed"
+   ],
+   "count": 1297,
+   "documents": 689,
+   "attributes": [
+    {
+     "name": "charset",
+     "count": 1297,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "Unknown",
+      "gb2312",
+      "iso-8859-1",
+      "x-mac-roman"
+     ]
+    },
+    {
+     "name": "id",
+     "count": 1297,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "name",
+     "count": 1297,
+     "documents": 689,
+     "kind": "string"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "fonttable"
+   ]
+  },
+  {
+   "name": "fonttable",
+   "evidence": [
+    "observed"
+   ],
+   "count": 689,
+   "documents": 689,
+   "attributes": [],
+   "children": [
+    "font"
+   ],
+   "parents": [
+    "CDXML"
+   ]
+  },
+  {
+   "name": "fragment",
+   "evidence": [
+    "observed"
+   ],
+   "count": 1732,
+   "documents": 569,
+   "attributes": [
+    {
+     "name": "BoundingBox",
+     "count": 1265,
+     "documents": 569,
+     "kind": "numbers"
+    },
+    {
+     "name": "ConnectionOrder",
+     "count": 435,
+     "documents": 209,
+     "kind": "numbers"
+    },
+    {
+     "name": "NumberResidueBlocks",
+     "count": 1,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "SequenceType",
+     "count": 25,
+     "documents": 4,
+     "kind": "enum",
+     "values": [
+      "Biopolymer",
+      "Peptide3"
+     ]
+    },
+    {
+     "name": "Z",
+     "count": 725,
+     "documents": 78,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 1732,
+     "documents": 569,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "b",
+    "curve",
+    "graphic",
+    "n",
+    "t"
+   ],
+   "parents": [
+    "group",
+    "n",
+    "page"
+   ]
+  },
+  {
+   "name": "geometry",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "gepband",
+   "evidence": [
+    "observed"
+   ],
+   "count": 16,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "BandValue",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "CurveType",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "Height",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "ShowValue",
+     "count": 11,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "Width",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "marker"
+   ],
+   "parents": [
+    "geplane"
+   ]
+  },
+  {
+   "name": "geplane",
+   "evidence": [
+    "observed"
+   ],
+   "count": 2,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "id",
+     "count": 2,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "gepband"
+   ],
+   "parents": [
+    "gepplate"
+   ]
+  },
+  {
+   "name": "gepplate",
+   "evidence": [
+    "observed"
+   ],
+   "count": 1,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "AxisWidth",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "BottomLeft",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "BottomRight",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "BoundingBox",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "EndRange",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "LabelsAngle",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "ShowBorders",
+     "count": 1,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowScale",
+     "count": 1,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "StartRange",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "TopLeft",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "TopRight",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "UnitID",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "Z",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "geplane"
+   ],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "graphic",
+   "evidence": [
+    "observed"
+   ],
+   "count": 2889,
+   "documents": 73,
+   "attributes": [
+    {
+     "name": "AngularSize",
+     "count": 94,
+     "documents": 17,
+     "kind": "integer"
+    },
+    {
+     "name": "ArrowType",
+     "count": 411,
+     "documents": 29,
+     "kind": "enum",
+     "values": [
+      "Equilibrium",
+      "FullHead",
+      "HalfHead",
+      "Hollow",
+      "Resonance"
+     ]
+    },
+    {
+     "name": "BoldWidth",
+     "count": 43,
+     "documents": 10,
+     "kind": "number"
+    },
+    {
+     "name": "BoundingBox",
+     "count": 2889,
+     "documents": 73,
+     "kind": "numbers"
+    },
+    {
+     "name": "BracketType",
+     "count": 5,
+     "documents": 3,
+     "kind": "enum",
+     "values": [
+      "Curly",
+      "Square"
+     ]
+    },
+    {
+     "name": "Center3D",
+     "count": 1321,
+     "documents": 63,
+     "kind": "numbers"
+    },
+    {
+     "name": "CornerRadius",
+     "count": 52,
+     "documents": 7,
+     "kind": "integer"
+    },
+    {
+     "name": "FadePercent",
+     "count": 171,
+     "documents": 14,
+     "kind": "integer"
+    },
+    {
+     "name": "GraphicType",
+     "count": 2889,
+     "documents": 73,
+     "kind": "enum",
+     "values": [
+      "Arc",
+      "Bracket",
+      "Line",
+      "Orbital",
+      "Oval",
+      "Rectangle",
+      "Symbol"
+     ]
+    },
+    {
+     "name": "HashSpacing",
+     "count": 33,
+     "documents": 9,
+     "kind": "number"
+    },
+    {
+     "name": "HeadSize",
+     "count": 1021,
+     "documents": 31,
+     "kind": "integer"
+    },
+    {
+     "name": "IgnoreWarnings",
+     "count": 632,
+     "documents": 11,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "LineType",
+     "count": 12,
+     "documents": 6,
+     "kind": "string"
+    },
+    {
+     "name": "LineWidth",
+     "count": 200,
+     "documents": 12,
+     "kind": "number"
+    },
+    {
+     "name": "LipSize",
+     "count": 5,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "MajorAxisEnd3D",
+     "count": 1321,
+     "documents": 63,
+     "kind": "numbers"
+    },
+    {
+     "name": "MinorAxisEnd3D",
+     "count": 1321,
+     "documents": 63,
+     "kind": "numbers"
+    },
+    {
+     "name": "OrbitalType",
+     "count": 607,
+     "documents": 16,
+     "kind": "enum",
+     "values": [
+      "lobe",
+      "lobeFilled",
+      "lobeShaded",
+      "oval",
+      "ovalFilled",
+      "ovalShaded",
+      "s",
+      "sFilled",
+      "sShaded"
+     ]
+    },
+    {
+     "name": "OvalType",
+     "count": 1147,
+     "documents": 56,
+     "kind": "string"
+    },
+    {
+     "name": "RectangleType",
+     "count": 159,
+     "documents": 25,
+     "kind": "string"
+    },
+    {
+     "name": "ShadowSize",
+     "count": 55,
+     "documents": 10,
+     "kind": "integer"
+    },
+    {
+     "name": "SupersededBy",
+     "count": 1260,
+     "documents": 32,
+     "kind": "integer"
+    },
+    {
+     "name": "SymbolType",
+     "count": 110,
+     "documents": 11,
+     "kind": "enum",
+     "values": [
+      "CircleMinus",
+      "CirclePlus",
+      "Electron",
+      "LonePair",
+      "Minus",
+      "Plus"
+     ]
+    },
+    {
+     "name": "Warning",
+     "count": 37,
+     "documents": 5,
+     "kind": "string"
+    },
+    {
+     "name": "Z",
+     "count": 2886,
+     "documents": 71,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 2133,
+     "documents": 59,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 2886,
+     "documents": 71,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "objecttag",
+    "represent"
+   ],
+   "parents": [
+    "fragment",
+    "group",
+    "page",
+    "plasmidmap"
+   ]
+  },
+  {
+   "name": "group",
+   "evidence": [
+    "observed"
+   ],
+   "count": 686,
+   "documents": 114,
+   "attributes": [
+    {
+     "name": "BoundingBox",
+     "count": 686,
+     "documents": 114,
+     "kind": "numbers"
+    },
+    {
+     "name": "Integral",
+     "count": 432,
+     "documents": 99,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "Z",
+     "count": 338,
+     "documents": 19,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 686,
+     "documents": 114,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "annotation",
+    "arrow",
+    "bioshape",
+    "curve",
+    "fragment",
+    "graphic",
+    "group",
+    "objecttag",
+    "plasmidmap",
+    "t"
+   ],
+   "parents": [
+    "group",
+    "page"
+   ]
+  },
+  {
+   "name": "marker",
+   "evidence": [
+    "observed"
+   ],
+   "count": 11,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "CaptionLineHeight",
+     "count": 11,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "variable"
+     ]
+    },
+    {
+     "name": "Name",
+     "count": 11,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "marker"
+     ]
+    },
+    {
+     "name": "TagType",
+     "count": 11,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "Unknown"
+     ]
+    },
+    {
+     "name": "color",
+     "count": 7,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 11,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "arrow",
+    "t"
+   ],
+   "parents": [
+    "gepband"
+   ]
+  },
+  {
+   "name": "mixedprotein",
+   "evidence": []
+  },
+  {
+   "name": "n",
+   "evidence": [
+    "observed"
+   ],
+   "count": 13301,
+   "documents": 564,
+   "attributes": [
+    {
+     "name": "AS",
+     "count": 9151,
+     "documents": 559,
+     "kind": "enum",
+     "values": [
+      "N",
+      "R",
+      "S",
+      "u"
+     ]
+    },
+    {
+     "name": "AtomNumber",
+     "count": 151,
+     "documents": 5,
+     "kind": "integer"
+    },
+    {
+     "name": "BondOrdering",
+     "count": 977,
+     "documents": 157,
+     "kind": "numbers"
+    },
+    {
+     "name": "Charge",
+     "count": 142,
+     "documents": 32,
+     "kind": "integer"
+    },
+    {
+     "name": "Element",
+     "count": 3717,
+     "documents": 430,
+     "kind": "integer"
+    },
+    {
+     "name": "ElementList",
+     "count": 2,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "EnhancedStereoGroupNum",
+     "count": 3,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "EnhancedStereoType",
+     "count": 3,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "And"
+     ]
+    },
+    {
+     "name": "ExternalConnectionNum",
+     "count": 5,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "ExternalConnectionType",
+     "count": 800,
+     "documents": 296,
+     "kind": "enum",
+     "values": [
+      "Diamond",
+      "Peptide",
+      "PolymerBead",
+      "Terminus"
+     ]
+    },
+    {
+     "name": "GenericNickname",
+     "count": 292,
+     "documents": 17,
+     "kind": "string"
+    },
+    {
+     "name": "Geometry",
+     "count": 747,
+     "documents": 157,
+     "kind": "enum",
+     "values": [
+      "Tetrahedral"
+     ]
+    },
+    {
+     "name": "HideImplicitHydrogens",
+     "count": 3,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "IgnoreWarnings",
+     "count": 2213,
+     "documents": 11,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "Isotope",
+     "count": 46,
+     "documents": 11,
+     "kind": "integer"
+    },
+    {
+     "name": "LabelDisplay",
+     "count": 37,
+     "documents": 4,
+     "kind": "enum",
+     "values": [
+      "Center",
+      "Left",
+      "Right"
+     ]
+    },
+    {
+     "name": "LabelFace",
+     "count": 197,
+     "documents": 9,
+     "kind": "integer"
+    },
+    {
+     "name": "LabelSize",
+     "count": 197,
+     "documents": 9,
+     "kind": "number"
+    },
+    {
+     "name": "MarginWidth",
+     "count": 13,
+     "documents": 2,
+     "kind": "number"
+    },
+    {
+     "name": "NeedsClean",
+     "count": 4422,
+     "documents": 428,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "NodeType",
+     "count": 2158,
+     "documents": 539,
+     "kind": "string"
+    },
+    {
+     "name": "NumHydrogens",
+     "count": 4271,
+     "documents": 443,
+     "kind": "integer"
+    },
+    {
+     "name": "Radical",
+     "count": 11,
+     "documents": 4,
+     "kind": "enum",
+     "values": [
+      "Doublet",
+      "Singlet"
+     ]
+    },
+    {
+     "name": "ResidueID",
+     "count": 229,
+     "documents": 4,
+     "kind": "integer"
+    },
+    {
+     "name": "ShowAtomStereo",
+     "count": 287,
+     "documents": 2,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowResidueID",
+     "count": 10,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowSequenceTermini",
+     "count": 59,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "Warning",
+     "count": 228,
+     "documents": 15,
+     "kind": "string"
+    },
+    {
+     "name": "Z",
+     "count": 13129,
+     "documents": 564,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 778,
+     "documents": 17,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 13301,
+     "documents": 564,
+     "kind": "integer"
+    },
+    {
+     "name": "p",
+     "count": 13301,
+     "documents": 564,
+     "kind": "numbers"
+    }
+   ],
+   "children": [
+    "annotation",
+    "fragment",
+    "objecttag",
+    "t"
+   ],
+   "parents": [
+    "fragment"
+   ]
+  },
+  {
+   "name": "objecttag",
+   "evidence": [
+    "observed"
+   ],
+   "count": 230,
+   "documents": 16,
+   "attributes": [
+    {
+     "name": "Name",
+     "count": 230,
+     "documents": 16,
+     "kind": "string"
+    },
+    {
+     "name": "PositioningAngle",
+     "count": 55,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "PositioningOffset",
+     "count": 10,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "PositioningType",
+     "count": 55,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "angle",
+      "offset"
+     ]
+    },
+    {
+     "name": "TagType",
+     "count": 230,
+     "documents": 16,
+     "kind": "enum",
+     "values": [
+      "Unknown"
+     ]
+    },
+    {
+     "name": "Visible",
+     "count": 149,
+     "documents": 12,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "id",
+     "count": 7,
+     "documents": 3,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "t"
+   ],
+   "parents": [
+    "b",
+    "bioshape",
+    "graphic",
+    "group",
+    "n"
+   ]
+  },
+  {
+   "name": "page",
+   "evidence": [
+    "observed"
+   ],
+   "count": 744,
+   "documents": 689,
+   "attributes": [
+    {
+     "name": "BoundingBox",
+     "count": 744,
+     "documents": 689,
+     "kind": "numbers"
+    },
+    {
+     "name": "BoundsInParent",
+     "count": 55,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "DrawingSpace",
+     "count": 3,
+     "documents": 3,
+     "kind": "enum",
+     "values": [
+      "poster"
+     ]
+    },
+    {
+     "name": "FooterPosition",
+     "count": 744,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "HeaderPosition",
+     "count": 744,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "Height",
+     "count": 3,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "HeightPages",
+     "count": 744,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "PageDefinition",
+     "count": 3,
+     "documents": 3,
+     "kind": "enum",
+     "values": [
+      "Center"
+     ]
+    },
+    {
+     "name": "PageOverlap",
+     "count": 3,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "PrintTrimMarks",
+     "count": 744,
+     "documents": 689,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "Width",
+     "count": 3,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "WidthPages",
+     "count": 744,
+     "documents": 689,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 744,
+     "documents": 689,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "altgroup",
+    "annotation",
+    "arrow",
+    "bioshape",
+    "border",
+    "bracketedgroup",
+    "chemicalproperty",
+    "curve",
+    "embeddedobject",
+    "fragment",
+    "gepplate",
+    "graphic",
+    "group",
+    "plasmidmap",
+    "scheme",
+    "stoichiometrygrid",
+    "t",
+    "table",
+    "tlcplate"
+   ],
+   "parents": [
+    "CDXML",
+    "table"
+   ]
+  },
+  {
+   "name": "plasmidmap",
+   "evidence": [
+    "observed"
+   ],
+   "count": 3,
+   "documents": 3,
+   "attributes": [
+    {
+     "name": "IgnoreWarnings",
+     "count": 1,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "LineWidth",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "NumberBasePairs",
+     "count": 3,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "RingRadius",
+     "count": 3,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "Z",
+     "count": 3,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 3,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "p",
+     "count": 3,
+     "documents": 3,
+     "kind": "numbers"
+    }
+   ],
+   "children": [
+    "graphic",
+    "plasmidmarker",
+    "plasmidregion",
+    "t"
+   ],
+   "parents": [
+    "group",
+    "page"
+   ]
+  },
+  {
+   "name": "plasmidmarker",
+   "evidence": [
+    "observed"
+   ],
+   "count": 16,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "CaptionJustification",
+     "count": 10,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "Center",
+      "Right"
+     ]
+    },
+    {
+     "name": "MarkerAngle",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "MarkerOffset",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "Name",
+     "count": 16,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "marker"
+     ]
+    },
+    {
+     "name": "TagType",
+     "count": 16,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "Long"
+     ]
+    },
+    {
+     "name": "Value",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 16,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "curve",
+    "t"
+   ],
+   "parents": [
+    "plasmidmap"
+   ]
+  },
+  {
+   "name": "plasmidregion",
+   "evidence": [
+    "observed"
+   ],
+   "count": 95,
+   "documents": 2,
+   "attributes": [
+    {
+     "name": "AngularSize",
+     "count": 95,
+     "documents": 2,
+     "kind": "number"
+    },
+    {
+     "name": "ArrowShaftSpacing",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "ArrowheadCenterSize",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "ArrowheadHead",
+     "count": 2,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "Full"
+     ]
+    },
+    {
+     "name": "ArrowheadTail",
+     "count": 4,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "Full"
+     ]
+    },
+    {
+     "name": "ArrowheadType",
+     "count": 95,
+     "documents": 2,
+     "kind": "enum",
+     "values": [
+      "Hollow"
+     ]
+    },
+    {
+     "name": "ArrowheadWidth",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "BoundingBox",
+     "count": 95,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "Center3D",
+     "count": 95,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "FadePercent",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "FillType",
+     "count": 95,
+     "documents": 2,
+     "kind": "enum",
+     "values": [
+      "None"
+     ]
+    },
+    {
+     "name": "Head3D",
+     "count": 95,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "HeadSize",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "LineWidth",
+     "count": 84,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "MajorAxisEnd3D",
+     "count": 95,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "MinorAxisEnd3D",
+     "count": 95,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "RegionEnd",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "RegionOffset",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "RegionStart",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "Tail3D",
+     "count": 95,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "color",
+     "count": 94,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 95,
+     "documents": 2,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "plasmidmap"
+   ]
+  },
+  {
+   "name": "regenerationclass",
+   "evidence": []
+  },
+  {
+   "name": "represent",
+   "evidence": [
+    "observed"
+   ],
+   "count": 85,
+   "documents": 10,
+   "attributes": [
+    {
+     "name": "attribute",
+     "count": 85,
+     "documents": 10,
+     "kind": "enum",
+     "values": [
+      "Charge",
+      "Radical"
+     ]
+    },
+    {
+     "name": "object",
+     "count": 85,
+     "documents": 10,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "graphic"
+   ]
+  },
+  {
+   "name": "s",
+   "evidence": [
+    "observed"
+   ],
+   "count": 6279,
+   "documents": 461,
+   "attributes": [
+    {
+     "name": "color",
+     "count": 2889,
+     "documents": 36,
+     "kind": "integer"
+    },
+    {
+     "name": "face",
+     "count": 5282,
+     "documents": 455,
+     "kind": "integer"
+    },
+    {
+     "name": "font",
+     "count": 6279,
+     "documents": 461,
+     "kind": "integer"
+    },
+    {
+     "name": "size",
+     "count": 6279,
+     "documents": 461,
+     "kind": "number"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "t"
+   ]
+  },
+  {
+   "name": "scheme",
+   "evidence": [
+    "observed"
+   ],
+   "count": 68,
+   "documents": 21,
+   "attributes": [
+    {
+     "name": "id",
+     "count": 68,
+     "documents": 21,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "step"
+   ],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "sgcomponent",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "sgdatum",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "spectrum",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "splitter",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "step",
+   "evidence": [
+    "observed"
+   ],
+   "count": 290,
+   "documents": 21,
+   "attributes": [
+    {
+     "name": "ReactionStepArrows",
+     "count": 290,
+     "documents": 21,
+     "kind": "integer"
+    },
+    {
+     "name": "ReactionStepObjectsAboveArrow",
+     "count": 157,
+     "documents": 16,
+     "kind": "numbers"
+    },
+    {
+     "name": "ReactionStepObjectsBelowArrow",
+     "count": 157,
+     "documents": 18,
+     "kind": "numbers"
+    },
+    {
+     "name": "ReactionStepProducts",
+     "count": 226,
+     "documents": 21,
+     "kind": "integer"
+    },
+    {
+     "name": "ReactionStepReactants",
+     "count": 256,
+     "documents": 21,
+     "kind": "numbers"
+    },
+    {
+     "name": "id",
+     "count": 290,
+     "documents": 21,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "scheme"
+   ]
+  },
+  {
+   "name": "stereocenter",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "stoichiometrygrid",
+   "evidence": [
+    "observed"
+   ],
+   "count": 1,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "Z",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "p",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "t",
+   "evidence": [
+    "observed"
+   ],
+   "count": 5950,
+   "documents": 461,
+   "attributes": [
+    {
+     "name": "BoundingBox",
+     "count": 5950,
+     "documents": 461,
+     "kind": "numbers"
+    },
+    {
+     "name": "CaptionFace",
+     "count": 25,
+     "documents": 4,
+     "kind": "integer"
+    },
+    {
+     "name": "CaptionFont",
+     "count": 21,
+     "documents": 3,
+     "kind": "integer"
+    },
+    {
+     "name": "CaptionJustification",
+     "count": 190,
+     "documents": 18,
+     "kind": "enum",
+     "values": [
+      "Center",
+      "Right"
+     ]
+    },
+    {
+     "name": "CaptionLineHeight",
+     "count": 230,
+     "documents": 15,
+     "kind": "enum",
+     "values": [
+      "10",
+      "11.5",
+      "3.90",
+      "variable"
+     ]
+    },
+    {
+     "name": "CaptionSize",
+     "count": 25,
+     "documents": 4,
+     "kind": "number"
+    },
+    {
+     "name": "ChemPropName",
+     "count": 1,
+     "documents": 1,
+     "kind": "string"
+    },
+    {
+     "name": "IgnoreWarnings",
+     "count": 363,
+     "documents": 11,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "InterpretChemically",
+     "count": 413,
+     "documents": 15,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "Justification",
+     "count": 937,
+     "documents": 170,
+     "kind": "enum",
+     "values": [
+      "Auto",
+      "Center",
+      "Right"
+     ]
+    },
+    {
+     "name": "LabelAlignment",
+     "count": 2696,
+     "documents": 413,
+     "kind": "enum",
+     "values": [
+      "Above",
+      "Below",
+      "Center",
+      "Left",
+      "Right"
+     ]
+    },
+    {
+     "name": "LabelFace",
+     "count": 111,
+     "documents": 9,
+     "kind": "integer"
+    },
+    {
+     "name": "LabelJustification",
+     "count": 4887,
+     "documents": 446,
+     "kind": "enum",
+     "values": [
+      "Center",
+      "Left",
+      "Right"
+     ]
+    },
+    {
+     "name": "LabelLineHeight",
+     "count": 327,
+     "documents": 15,
+     "kind": "enum",
+     "values": [
+      "auto"
+     ]
+    },
+    {
+     "name": "LabelSize",
+     "count": 111,
+     "documents": 9,
+     "kind": "number"
+    },
+    {
+     "name": "LineHeight",
+     "count": 1177,
+     "documents": 36,
+     "kind": "enum",
+     "values": [
+      "10",
+      "11.5",
+      "3.90",
+      "auto"
+     ]
+    },
+    {
+     "name": "LineStarts",
+     "count": 434,
+     "documents": 153,
+     "kind": "numbers"
+    },
+    {
+     "name": "RotationAngle",
+     "count": 173,
+     "documents": 6,
+     "kind": "integer"
+    },
+    {
+     "name": "Visible",
+     "count": 136,
+     "documents": 10,
+     "kind": "enum",
+     "values": [
+      "no"
+     ]
+    },
+    {
+     "name": "Warning",
+     "count": 523,
+     "documents": 28,
+     "kind": "string"
+    },
+    {
+     "name": "WordWrapWidth",
+     "count": 26,
+     "documents": 8,
+     "kind": "number"
+    },
+    {
+     "name": "Z",
+     "count": 942,
+     "documents": 36,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 910,
+     "documents": 27,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 970,
+     "documents": 36,
+     "kind": "integer"
+    },
+    {
+     "name": "p",
+     "count": 5950,
+     "documents": 461,
+     "kind": "numbers"
+    }
+   ],
+   "children": [
+    "s"
+   ],
+   "parents": [
+    "altgroup",
+    "fragment",
+    "group",
+    "marker",
+    "n",
+    "objecttag",
+    "page",
+    "plasmidmap",
+    "plasmidmarker"
+   ]
+  },
+  {
+   "name": "table",
+   "evidence": [
+    "observed"
+   ],
+   "count": 2,
+   "documents": 2,
+   "attributes": [
+    {
+     "name": "BoundingBox",
+     "count": 2,
+     "documents": 2,
+     "kind": "numbers"
+    },
+    {
+     "name": "Z",
+     "count": 2,
+     "documents": 2,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 2,
+     "documents": 2,
+     "kind": "integer"
+    }
+   ],
+   "children": [
+    "page"
+   ],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "templategrid",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "tlclane",
+   "evidence": [
+    "binary"
+   ]
+  },
+  {
+   "name": "tlcplate",
+   "evidence": [
+    "observed"
+   ],
+   "count": 1,
+   "documents": 1,
+   "attributes": [
+    {
+     "name": "BottomLeft",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "BottomRight",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "BoundingBox",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "OriginFraction",
+     "count": 1,
+     "documents": 1,
+     "kind": "number"
+    },
+    {
+     "name": "ShowBorders",
+     "count": 1,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowOrigin",
+     "count": 1,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "ShowSolventFront",
+     "count": 1,
+     "documents": 1,
+     "kind": "enum",
+     "values": [
+      "yes"
+     ]
+    },
+    {
+     "name": "SolventFrontFraction",
+     "count": 1,
+     "documents": 1,
+     "kind": "number"
+    },
+    {
+     "name": "TopLeft",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "TopRight",
+     "count": 1,
+     "documents": 1,
+     "kind": "numbers"
+    },
+    {
+     "name": "Z",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "color",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    },
+    {
+     "name": "id",
+     "count": 1,
+     "documents": 1,
+     "kind": "integer"
+    }
+   ],
+   "children": [],
+   "parents": [
+    "page"
+   ]
+  },
+  {
+   "name": "tlcspot",
+   "evidence": [
+    "binary"
+   ]
+  }
+ ]
+}

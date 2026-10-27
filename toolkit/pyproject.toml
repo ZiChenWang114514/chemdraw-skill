@@ -148,6 +148,7 @@ include = ["cdxml_toolkit*"]
 [tool.setuptools.package-data]
 "cdxml_toolkit.resolve" = ["*.json"]
 "cdxml_toolkit.naming" = ["*.json"]
+"cdxml_toolkit.catalog" = ["data/*.json"]
 "cdxml_toolkit.reaction_calculator" = ["*.html", "*.js", "*.css"]
 
 [tool.pytest.ini_options]
