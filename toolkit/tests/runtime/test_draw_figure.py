@@ -172,6 +172,29 @@ def test_a_long_route_is_wrapped_to_the_width_budget(tmp_path):
     assert len(arrows) > 1
 
 
+def test_a_wrapped_route_keeps_every_structure_verified(tmp_path):
+    report = draw_figure(_brief(ROUTE, max_width=420), output_path=str(tmp_path / "route.cdxml"))
+
+    assert report["readback"]["fragment_roundtrip"] == "preserved"
+    assert report["checks_passed"] is True
+
+
+def test_unverified_structures_do_not_count_as_passed(tmp_path, monkeypatch):
+    real = figure_draw.renderer.render
+
+    def unverified(scheme, *args, **kwargs):
+        result = real(scheme, *args, **kwargs)
+        result.chemistry_validation = {"status": "unverified", "fragments": []}
+        return result
+
+    monkeypatch.setattr(figure_draw.renderer, "render", unverified)
+
+    report = draw_figure(ASPIRIN, output_path=str(tmp_path / "out.cdxml"))
+
+    assert report["checks_passed"] is False
+    assert any("unverified" in w for w in report["warnings"])
+
+
 def test_a_failed_check_triggers_one_relayout_and_says_what_changed(tmp_path, monkeypatch):
     real = figure_draw.figure_lint.lint_cdxml
     calls = []

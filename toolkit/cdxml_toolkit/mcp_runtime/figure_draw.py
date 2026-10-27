@@ -306,6 +306,10 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         warnings.append(f"The saved file does not match the brief: missing {readback['missing']}, "
                         f"{readback['unexpected']} unexpected structure(s).")
 
+    if readback["fragment_roundtrip"] != "preserved":
+        warnings.append(f"Per-structure round-trip is {readback['fragment_roundtrip']}: "
+                        "a structure may have changed while drawing.")
+
     native: dict[str, Any]
     produced = [target]
     if not render:
@@ -330,7 +334,8 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         "lint": {"issues": issues, "relayout": relayout, "max_width": max_width},
         "readback": readback,
         "native": native,
-        "checks_passed": not issues and readback["status"] == "matched",
+        "checks_passed": (not issues and readback["status"] == "matched"
+                          and readback["fragment_roundtrip"] == "preserved"),
         "notes": notes,
         "warnings": warnings,
     }

@@ -1127,19 +1127,23 @@ def _auto_steps_per_row(
     geometry check has to flag the overflow.
     """
     steps = scheme.steps
-    for per_row in range(len(steps), 0, -1):
-        rows = (_split_serpentine_rows(steps, per_row)[0]
-                if scheme.wrap == "serpentine"
-                else _split_into_rows(steps, per_row))
-        widest = 0.0
-        for row in rows:
-            _, _, edge_x, _ = _layout_steps_row(
-                scheme, row, _IDGen(1), start_x=_ROW_START_X, arrow_y=300.0,
-                source_data=source_data, reference_mol=reference_mol)
-            widest = max(widest, edge_x - _ROW_START_X)
-        if widest <= budget:
-            return per_row
-    return 1
+    token = _fragment_receipts.set(None)  # trial rows are not part of the drawing
+    try:
+        for per_row in range(len(steps), 0, -1):
+            rows = (_split_serpentine_rows(steps, per_row)[0]
+                    if scheme.wrap == "serpentine"
+                    else _split_into_rows(steps, per_row))
+            widest = 0.0
+            for row in rows:
+                _, _, edge_x, _ = _layout_steps_row(
+                    scheme, row, _IDGen(1), start_x=_ROW_START_X, arrow_y=300.0,
+                    source_data=source_data, reference_mol=reference_mol)
+                widest = max(widest, edge_x - _ROW_START_X)
+            if widest <= budget:
+                return per_row
+        return 1
+    finally:
+        _fragment_receipts.reset(token)
 
 
 def _layout_sequential(
