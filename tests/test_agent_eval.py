@@ -218,8 +218,8 @@ class TaskAndCommandTests(unittest.TestCase):
 
     def test_a_run_that_used_another_installed_copy_is_not_scored(self) -> None:
         own = _run(("python .agents/skills/chemdraw/scripts/cdx.py doctor", "{}"))
-        theirs = _run(("python C:\\Users\\x\\.codex\\skills\\chemdraw\\scripts\\cdx.py doctor", "{}"))
-        plugin = _run(("Get-Content C:/Users/x/.codex/plugins/cache/p/spreadsheets/1/skills/chemdraw/SKILL.md", ""))
+        theirs = _run(("python C:\\Users\\user\\.codex\\skills\\chemdraw\\scripts\\cdx.py doctor", "{}"))
+        plugin = _run(("Get-Content C:/Users/user/.codex/plugins/cache/p/spreadsheets/1/skills/chemdraw/SKILL.md", ""))
         self.assertFalse(own.foreign_skill_use())
         self.assertTrue(theirs.foreign_skill_use())
         self.assertTrue(plugin.foreign_skill_use())
