@@ -36,6 +36,8 @@ WRITE_TOOLS = {"write", "create"}
 # Changing or removing the variable that points at the (missing) ChemDraw is leaving the exercise's host.
 ISOLATION_BYPASS = re.compile(r"(?:-u\s+|unset\s+|Remove-Item\s+Env:)CHEMDRAW_EXE"
                               r"|(?:\$env:|\bset\s+|\bexport\s+|(?<![\w$.\"'/-]))CHEMDRAW_EXE\s*=")
+# Codex does not list a project Skill outside a git repository; the other harnesses are given the folder explicitly.
+CODEX_SKILL_NOTE = " The ChemDraw Skill is installed in this folder at .agents/skills/chemdraw (start with its SKILL.md)."
 EXERCISE_NOTE = ("\n\nExercise setup: ChemDraw is deliberately unavailable on this host (CHEMDRAW_EXE points at a "
                  "missing file). Do not start ChemDraw or change that variable; work as the Skill describes for "
                  "a host without ChemDraw.")
@@ -386,7 +388,8 @@ def other_installed_copies() -> list:
     """Skill copies already installed for the user; an agent that finds them would test those, not this build."""
     home = Path.home()
     found = [home / ".codex" / "skills" / "chemdraw" / "SKILL.md",
-             home / ".agents" / "skills" / "chemdraw" / "SKILL.md"]
+             home / ".agents" / "skills" / "chemdraw" / "SKILL.md",
+             home / ".claude" / "skills" / "chemdraw" / "SKILL.md"]
     found += (home / ".codex" / "plugins" / "cache").glob("*/*/*/skills/chemdraw/SKILL.md")
     return [p for p in found if p.is_file()]
 
@@ -479,7 +482,7 @@ def run_one(name: str, cell: Cell, task: Task, rep: int, skills: Path, out: Path
     task.setup(work)
     place_skill(cell, work, skills)
     prompt_file = folder / "prompt.md"
-    prompt = task.prompt + EXERCISE_NOTE
+    prompt = task.prompt + EXERCISE_NOTE + (CODEX_SKILL_NOTE if cell.harness == "codex" else "")
     prompt_file.write_text(prompt, encoding="utf-8")
     started = time.time()
     rc, stdout, stderr, timed_out = _execute(build_command(cell, prompt, skills, prompt_file, work), work,
