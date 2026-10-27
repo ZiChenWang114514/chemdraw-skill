@@ -60,7 +60,9 @@ ArBr + Morph --> Product
 | Arrow | Style | Description |
 |-------|-------|-------------|
 | `-->` | Solid | Normal reaction arrow |
-| `..>` | Dashed | Equilibrium or reversible |
+| `..>` | Dashed | Tentative or unproven step |
+| `<=>` | Reversible | Equilibrium arrow (two half-headed shafts) |
+| `<->` | Resonance | Double-headed arrow between resonance forms |
 | `X>` | Failed | Reaction did not work (X overlay) |
 
 ### Multi-Step Chains

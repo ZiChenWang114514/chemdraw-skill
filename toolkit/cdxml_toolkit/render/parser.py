@@ -34,7 +34,7 @@ VALID_LAYOUTS = {
     "numbered-parallel", "convergent",
 }
 VALID_WRAPS = {"repeat", "serpentine", "none"}
-VALID_ARROW_STYLES = {"solid", "dashed", "failed"}
+VALID_ARROW_STYLES = {"solid", "dashed", "failed", "reversible", "resonance"}
 
 # Unambiguous SMILES syntax characters (never appear in plain identifiers)
 _SMILES_SYNTAX_RE = re.compile(r'[=()\[\]#@\\\/]')

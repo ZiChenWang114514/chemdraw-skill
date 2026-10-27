@@ -43,6 +43,34 @@ ROUTE = {
 }
 
 
+CONVERGENT = {
+    "species": [
+        {"id": "A", "smiles": "OC(=O)c1ccccc1", "label": "1"},
+        {"id": "B", "smiles": "ClC(=O)c1ccccc1", "label": "2"},
+        {"id": "C", "smiles": "Nc1ccccc1", "label": "3"},
+        {"id": "D", "smiles": "Cc1ccc(N)cc1", "label": "4"},
+        {"id": "E", "smiles": "O=C(Nc1ccc(C)cc1)c1ccccc1", "label": "5"},
+    ],
+    "steps": [
+        {"substrates": ["A"], "products": ["B"], "above": ["SOCl2"]},
+        {"substrates": ["C"], "products": ["D"], "above": ["MeBr"]},
+        {"substrates": ["B", "D"], "products": ["E"], "above": ["Et3N, DCM"], "yield": "81%"},
+    ],
+}
+
+DIVERGENT = {
+    "species": [
+        {"id": "A", "smiles": "OC(=O)c1ccccc1", "label": "1"},
+        {"id": "B", "smiles": "COC(=O)c1ccccc1", "label": "2"},
+        {"id": "C", "smiles": "NC(=O)c1ccccc1", "label": "3"},
+    ],
+    "steps": [
+        {"substrates": ["A"], "products": ["B"], "above": ["MeOH, H2SO4"]},
+        {"substrates": ["A"], "products": ["C"], "above": ["SOCl2; NH3"]},
+    ],
+}
+
+
 @pytest.fixture(autouse=True)
 def offline(monkeypatch):
     monkeypatch.setenv("CHEMDRAW_OFFLINE", "1")
@@ -170,6 +198,69 @@ def test_a_long_route_is_wrapped_to_the_width_budget(tmp_path):
     assert report["lint"]["issues"] == []
     arrows = {round(float(a.get("Tail3D").split()[1])) for a in _cdxml(report).iter("arrow")}
     assert len(arrows) > 1
+
+
+def test_the_route_shape_is_reported(tmp_path):
+    assert draw_figure(ASPIRIN, output_path=str(tmp_path / "a.cdxml"))["layout"] == "linear"
+    assert draw_figure(ROUTE, output_path=str(tmp_path / "b.cdxml"))["layout"] == "sequential"
+
+
+def test_two_arms_that_merge_are_drawn_as_a_convergent_route(tmp_path):
+    report = draw_figure(CONVERGENT, output_path=str(tmp_path / "c.cdxml"))
+
+    assert report["ok"] is True
+    assert report["layout"] == "convergent"
+    assert report["readback"]["status"] == "matched"
+    assert report["checks_passed"] is True
+    rows = {round(float(a.get("Tail3D").split()[1])) for a in _cdxml(report).iter("arrow")}
+    assert len(rows) == 3
+
+
+def test_one_starting_material_with_several_products_is_drawn_as_a_divergent_scheme(tmp_path):
+    report = draw_figure(DIVERGENT, output_path=str(tmp_path / "d.cdxml"))
+
+    assert report["ok"] is True
+    assert report["layout"] == "divergent"
+    assert report["readback"]["status"] == "matched"
+    assert report["lint"]["issues"] == []
+
+
+def test_steps_given_out_of_order_are_drawn_in_route_order(tmp_path):
+    brief = _brief(ROUTE)
+    brief["steps"] = list(reversed(brief["steps"]))
+
+    report = draw_figure(brief, output_path=str(tmp_path / "r.cdxml"))
+
+    assert report["ok"] is True
+    assert report["readback"]["status"] == "matched"
+    first_x = {a.get("Tail3D").split()[0] for a in _cdxml(report).iter("arrow")}
+    assert first_x  # drawn
+    text = [" ".join("".join(t.itertext()).split()) for t in _cdxml(report).iter("t")]
+    assert text.index("MeOH, H2SO4") < text.index("H2, Pd/C")
+
+
+def test_a_route_that_fits_no_layout_is_refused_not_approximated(tmp_path):
+    brief = _brief(ROUTE)
+    brief["steps"] = [brief["steps"][0], brief["steps"][2]]  # A->B and C->D are unconnected
+
+    report = draw_figure(brief, output_path=str(tmp_path / "x.cdxml"))
+
+    assert report["ok"] is False
+    assert "not a linear route" in " ".join(report["errors"])
+    assert not (tmp_path / "x.cdxml").exists()
+
+
+@pytest.mark.parametrize("arrow, head", [("reversible", "HalfLeft"), ("resonance", "Full")])
+def test_reversible_and_resonance_arrows_can_be_asked_for(tmp_path, arrow, head):
+    brief = {
+        "species": [{"id": "A", "smiles": "CC(C)=O"}, {"id": "B", "smiles": "C=C(C)O"}],
+        "steps": [{"substrates": ["A"], "products": ["B"], "arrow": arrow}],
+    }
+
+    report = draw_figure(brief, output_path=str(tmp_path / "t.cdxml"))
+
+    (drawn,) = _cdxml(report).iter("arrow")
+    assert drawn.get("ArrowheadTail") == head
 
 
 def test_a_wrapped_route_keeps_every_structure_verified(tmp_path):

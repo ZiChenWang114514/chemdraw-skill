@@ -45,6 +45,7 @@ from ..constants import (
 )
 from ..text_formatting import build_formatted_s_xml, normalize_condition_text
 
+from .route_graph import convergent_sections
 from .schema import (
     ArrowContent,
     RunArrowEntry,
@@ -524,9 +525,13 @@ def _build_text_element(
     n = len(text_lines)
     w = max_chars * char_w
 
-    bx1 = x - w / 2.0
+    if justification == "Left":
+        bx1, bx2 = x, x + w
+    elif justification == "Right":
+        bx1, bx2 = x - w, x
+    else:
+        bx1, bx2 = x - w / 2.0, x + w / 2.0
     by1 = y - cap_h
-    bx2 = x + w / 2.0
     by2 = y + max(0, n - 1) * line_adv + descent
 
     parts = [
@@ -585,6 +590,10 @@ def _build_label_element(
 # Arrow builder
 # ---------------------------------------------------------------------------
 
+def _arrow_kind(style: Optional[str]) -> Optional[str]:
+    """The ``kind`` for _build_arrow: only reversible and resonance change the shape."""
+    return style if style in ("reversible", "resonance") else None
+
 def _build_arrow(
     tail_x: float,
     tail_y: float,
@@ -593,6 +602,7 @@ def _build_arrow(
     ids: _IDGen,
     dashed: bool = False,
     nogo: bool = False,
+    kind: Optional[str] = None,
 ) -> Tuple[str, int]:
     """Build an <arrow> element. Returns (xml_string, arrow_xml_id).
 
@@ -601,6 +611,9 @@ def _build_arrow(
     nogo : bool
         If True, adds ``NoGo="Cross"`` — ChemDraw's native failed-arrow
         rendering (bold X through the arrow shaft).
+    kind : "reversible" | "resonance" | None
+        ``reversible`` is ChemDraw's equilibrium arrow (two half-headed
+        shafts); ``resonance`` is one shaft with a full head at both ends.
     """
     aid = ids.next()
     z = ids.next()
@@ -628,6 +641,12 @@ def _build_arrow(
         f'LineWidth="{ACS_LINE_WIDTH}"',
     ]
 
+    if kind == "reversible":
+        attrs = [a for a in attrs if not a.startswith('ArrowheadHead=')]
+        attrs += ['ArrowheadHead="HalfLeft"', 'ArrowheadTail="HalfLeft"',
+                  'ArrowShaftSpacing="300"']
+    elif kind == "resonance":
+        attrs.append('ArrowheadTail="Full"')
     if dashed:
         attrs.append('LineType="Dashed"')
     if nogo:
@@ -738,6 +757,7 @@ def _build_vertical_arrow(
     condition_side: str = "right",
     dashed: bool = False,
     nogo: bool = False,
+    kind: Optional[str] = None,
 ) -> Tuple[str, int]:
     """
     Build a vertical down arrow with optional condition text beside it.
@@ -759,7 +779,7 @@ def _build_vertical_arrow(
 
     Returns (xml_string, arrow_xml_id).
     """
-    arrow_xml, aid = _build_arrow(x, top_y, x, bottom_y, ids, dashed=dashed, nogo=nogo)
+    arrow_xml, aid = _build_arrow(x, top_y, x, bottom_y, ids, dashed=dashed, nogo=nogo, kind=kind)
 
     if not condition_lines:
         return arrow_xml, aid
@@ -1504,7 +1524,7 @@ def _layout_divergent(
             failed = (step.arrow_style == "failed")
             arrow_xml, arrow_id = _build_arrow(
                 arrow_tail_x, branch_y, arrow_head_x, branch_y, ids,
-                dashed=dashed, nogo=failed)
+                dashed=dashed, nogo=failed, kind=_arrow_kind(step.arrow_style))
             xml_parts.append(arrow_xml)
             step_meta["arrow_id"] = arrow_id
 
@@ -1598,6 +1618,7 @@ def _layout_divergent(
                 condition_side="right",
                 dashed=dashed,
                 nogo=failed,
+                kind=_arrow_kind(step.arrow_style),
             )
             xml_parts.append(vert_xml)
             step_meta["arrow_id"] = vert_aid
@@ -1753,21 +1774,31 @@ def _layout_stacked_rows(
             structures=scheme.structures,
             steps=sec.steps,
             layout=sec.layout or "linear",
+            gap_scale=scheme.gap_scale,
         )
 
-        row_xml, row_lowest, _, _ = _layout_steps_row(
-            sub_scheme, sec.steps, ids,
-            start_x=content_start_x, arrow_y=arrow_y,
-            source_data=source_data,
-            run_arrows=section_ra,
-            reference_mol=sec_ref_mol,
-        )
+        # A section wider than the budget wraps like a sequential scheme; run
+        # arrows are numbered within the section, so they keep it on one row.
+        section_rows = [sec.steps]
+        if scheme.max_row_width and len(sec.steps) > 1 and not section_ra:
+            per_row = _auto_steps_per_row(
+                sub_scheme, scheme.max_row_width, source_data, sec_ref_mol)
+            section_rows = _split_into_rows(sec.steps, per_row)
 
-        xml_parts.append(row_xml)
-        lowest_y = row_lowest
+        for row_steps in section_rows:
+            row_xml, row_lowest, _, _ = _layout_steps_row(
+                sub_scheme, row_steps, ids,
+                start_x=content_start_x, arrow_y=arrow_y,
+                source_data=source_data,
+                run_arrows=section_ra,
+                reference_mol=sec_ref_mol,
+            )
 
-        # Move to next section
-        arrow_y = lowest_y + SECTION_GAP
+            xml_parts.append(row_xml)
+            lowest_y = row_lowest
+
+            # Move to next row
+            arrow_y = lowest_y + SECTION_GAP
 
     return "\n".join(xml_parts), lowest_y
 
@@ -2003,6 +2034,7 @@ def _layout_steps_row(
         arrow_xml, arrow_id = _build_arrow(
             arrow_tail_x, arrow_y, arrow_head_x, arrow_y, ids,
             dashed=dashed, nogo=failed,
+            kind=_arrow_kind(rs.descriptor.arrow_style),
         )
         xml_parts.append(arrow_xml)
         step_meta["arrow_id"] = arrow_id
@@ -2449,10 +2481,20 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
     elif scheme.layout == "stacked-rows":
         inner_xml, lowest_y = _layout_stacked_rows(scheme, ids, source_data=source_data,
                                                     reference_mol=ref_mol)
+    elif scheme.layout == "convergent":
+        # Arms become rows; the merge row draws the intermediates it joins again.
+        rows = SchemeDescriptor(
+            structures=scheme.structures, layout="stacked-rows", wrap=scheme.wrap,
+            max_row_width=scheme.max_row_width, gap_scale=scheme.gap_scale,
+            run_arrows=scheme.run_arrows,
+            sections=[SectionDescriptor(steps=steps) for steps in convergent_sections(scheme.steps)],
+        )
+        inner_xml, lowest_y = _layout_stacked_rows(rows, ids, source_data=source_data,
+                                                    reference_mol=ref_mol)
     else:
         raise NotImplementedError(
             f"Layout '{scheme.layout}' is not yet implemented. "
-            f"Supported: linear, sequential, divergent, stacked-rows"
+            f"Supported: linear, sequential, divergent, stacked-rows, convergent"
         )
 
     # Condition key block below the scheme

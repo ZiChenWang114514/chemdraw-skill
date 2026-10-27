@@ -14,7 +14,7 @@ Use this when the structures are known and the figure does not exist yet: a reac
 
 ## One call: draw_figure
 
-Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction or a linear route; convergent routes, substrate-scope grids and mechanisms are not available yet and are refused, not approximated.
+Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products; substrate-scope grids and mechanisms are not available yet and are refused, not approximated.
 
 ```json
 {
@@ -32,7 +32,7 @@ Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --rend
 ```
 
 - `species` lists every structure with an `id` and either `smiles` (used as given) or `name` (curated reagent table, then PubChem unless `CHEMDRAW_OFFLINE=1`). A name that cannot be resolved stops the run and nothing is written; give a SMILES instead. Do not guess a SMILES to get past this.
-- `steps` take `substrates`, `products`, `above` / `below` (text lines), `yield` and `arrow` (`solid`, `dashed`, `failed`). A product of one step may be the substrate of the next. Put in `above` / `below` only what the user gave: a step without conditions is drawn without them and the report says so.
+- `steps` take `substrates`, `products`, `above` / `below` (text lines), `yield` and `arrow` (`solid`, `dashed`, `failed`, `reversible` for an equilibrium, `resonance` for a double-headed arrow). A product of one step may be the substrate of the next; list the steps in any order and the tool works out the route. Two arms that meet in one step are drawn as stacked rows, the merge row repeating the intermediates it joins; one substrate with several products branches down from the first reaction. Steps that are none of these (a species made twice, a cycle, unrelated reactions) are refused. Put in `above` / `below` only what the user gave: a step without conditions is drawn without them and the report says so.
 - `max_width` is the row budget in points (default 504). A longer route wraps onto more rows.
 
 Read the report before you answer:
@@ -41,6 +41,7 @@ Read the report before you answer:
 | --- | --- |
 | `species[].source` | `user` for a SMILES you were given, otherwise the table that resolved the name |
 | `steps[].balanced`, `missing` | atom and charge balance of each step; a missing by-product (for example acetic acid) is named, not drawn |
+| `layout` | `linear`, `sequential`, `convergent` or `divergent`: how the steps were arranged |
 | `lint` | overlaps, text under 6 pt, drawing wider than `max_width`; `lint.relayout` appears when a failed check triggered the one automatic re-layout, with what changed and the original problems |
 | `readback` | the saved file's structures compared with the brief (`matched` or `mismatch`) |
 | `native` | `rendered` with `png_path`, or `not_run` with the reason; `not_run` means unrendered draft |
@@ -61,11 +62,11 @@ Compact text, one scheme in a few lines:
 ```
 
 - `ID{SMILES}` defines a structure inline; a quoted ID such as `"1"` also becomes its compound label below the structure.
-- `-->` is a solid arrow, `..>` a dashed one, `X>` a failed one. `A --> B --> C` makes two steps and draws the shared intermediate once.
+- `-->` is a solid arrow, `..>` a dashed one, `<=>` an equilibrium arrow, `<->` a resonance arrow, `X>` a failed one. `A --> B --> C` makes two steps and draws the shared intermediate once.
 - `(85%)` after the last product is the yield, printed under the arrow.
 - `above:` and `below:` take quoted text lines or bare structure IDs (drawn as structures). For several steps use `step 1:`, `step 2:` blocks, or `-->|a|` with an `@conditions` block of lettered conditions.
 - `run: "2.15 g" -> "1.60 g, 72% yield"` adds a mass-in to mass-out arrow.
-- Directives start with `@`: `@layout sequential|divergent|stacked-rows`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
+- Directives start with `@`: `@layout sequential|divergent|convergent|stacked-rows`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
 
 A route stays on one row unless told otherwise. Set `@max_row_width 504` (points, the width of a two-column journal page) and the renderer picks the largest number of steps per row that fits; an explicit `@steps_per_row` always wins. In YAML the keys are `max_row_width` and `steps_per_row`.
 
@@ -77,4 +78,4 @@ Condition lines are tidied on every path: `80 C` becomes `80 °C`, `RT` and `roo
 2. For a balanced-reaction check run `check_reaction_balance` on the same species; it names a missing by-product but never draws one.
 3. Render with `cdx.py render FILE.cdxml` and look at the PNG for clipped labels, arrows running into structures and plus signs touching atoms.
 
-Not available in `render_scheme` or `draw_figure`: convergent routes (two arms merging), reversible or resonance arrows, curved arrows, and conditions chosen for you. State only the conditions the user gave; a missing one stays missing.
+Not available in `render_scheme` or `draw_figure`: curved arrows and conditions chosen for you. State only the conditions the user gave; a missing one stays missing.
