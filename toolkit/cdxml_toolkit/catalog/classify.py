@@ -45,11 +45,22 @@ def _verified_members(chemscript: dict[str, Any], recipes: Iterable[dict[str, An
 
     verified: dict[tuple[str, str], dict[str, Any]] = {}
     for recipe in recipes:
+        if recipe.get("layer") == "com":
+            continue
         for symbol in recipe["members"]:
             type_name, member = symbol.split(".")
             owner = declaring_type(chemscript, type_name, member)
             if owner is not None:
                 verified.setdefault((owner, member), recipe)
+    return verified
+
+
+def _com_verified(recipes: Iterable[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    verified: dict[str, dict[str, Any]] = {}
+    for recipe in recipes:
+        if recipe.get("layer") == "com":
+            for symbol in recipe["members"]:
+                verified.setdefault(symbol, recipe)
     return verified
 
 
@@ -78,13 +89,16 @@ def _chemscript_rows(catalog, recipes, reasons) -> list[dict[str, Any]]:
     return rows
 
 
-def _com_rows(catalog, reasons) -> list[dict[str, Any]]:
+def _com_rows(catalog, recipes, reasons) -> list[dict[str, Any]]:
+    from ..mcp_runtime import com_call
+
+    verified = _com_verified(recipes)
     rows = []
     seen = set()
-    libraries = [catalog["object_library"]]
+    libraries = [(catalog["object_library"], False)]
     if "control_library" in catalog:
-        libraries.append(catalog["control_library"])
-    for library in libraries:
+        libraries.append((catalog["control_library"], True))
+    for library, control_only in libraries:
         for entry in library["types"]:
             if entry["name"] in seen:
                 continue
@@ -95,8 +109,24 @@ def _com_rows(catalog, reasons) -> list[dict[str, Any]]:
                                  members=len(entry.get("members", [])) or None, doc=entry.get("doc")))
                 continue
             for member in entry.get("members", []):
-                rows.append(_row("com", f"{entry['name']}.{member['name']}", member["kind"], "T3",
-                                 reason=reasons["com.default"], doc=member.get("doc")))
+                symbol = f"{entry['name']}.{member['name']}"
+                recipe = verified.get(symbol)
+                if recipe is not None:
+                    rows.append(_row("com", symbol, member["kind"], "T2", tool=recipe["tool"], recipe=recipe["id"],
+                                     doc=member.get("doc")))
+                    continue
+                blocked = (com_call.BLOCKED_MEMBERS.get(member["name"])
+                           or com_call.BLOCKED_PAIRS.get((entry["name"], member["name"]))
+                           or com_call.BLOCKED_TYPES.get(entry["name"]))
+                if control_only:
+                    rows.append(_row("com", symbol, member["kind"], "T3", reason=reasons["com.control"],
+                                     doc=member.get("doc")))
+                elif blocked or member.get("hidden"):
+                    rows.append(_row("com", symbol, member["kind"], "T3", reason=reasons["com.blocked"],
+                                     note=blocked, doc=member.get("doc")))
+                else:
+                    rows.append(_row("com", symbol, member["kind"], "T3", via="chemdraw_com_call",
+                                     reason=reasons["com.unverified"], doc=member.get("doc")))
     return rows
 
 
@@ -130,7 +160,7 @@ def classify(catalogs: dict[str, dict[str, Any]], recipes: list[dict[str, Any]],
     reasons = classification["reasons"]
     rows: list[dict[str, Any]] = []
     rows += _chemscript_rows(catalogs["chemscript"], recipes, reasons)
-    rows += _com_rows(catalogs["com"], reasons)
+    rows += _com_rows(catalogs["com"], recipes, reasons)
     rows += _menu_rows(catalogs["menu"], reasons)
     rows += _cdxml_rows(catalogs["cdxml"], reasons)
 

@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 56,
+  "tool_count": 57,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -52,6 +52,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.\n\nreaction is a reaction SMILES string \"reactants>agents>products\" (structures separated by\n'.'), a dict {\"reactants\": [...], \"agents\": [...], \"products\": [...]} of structure records\n(smiles, molblock or file; optional label, coefficient, equiv, density_g_ml, concentration_m,\nisolated_mg), or {\"cdxml\": path, \"steps\": [step ids]} to read the <step> elements of a drawn\nscheme. Agents are listed but never counted. Elements are counted with implicit hydrogens;\nisotope-labelled atoms are balanced as separate species, and the charge must balance too.\nFor an unbalanced reaction the result names the missing formula (for example H2O),\nand, when exactly one set of whole-number coefficients balances it, suggests them.\nAlso reports mass balance and atom economy (options main_product, default the first product).\noptions scale_mmol (amount of the limiting reactant, option limiting = its index, default 0)\nadds a stoichiometry table with equivalents, mmol, mass, volume and, for products with\nisolated_mg, the percent yield. A failed balance is a finding about the species as drawn:\ncheck the structures against their source before trusting the reaction. Generic atoms\n(R groups) are rejected. output_path ends in .json and is never overwritten."
+    },
+    {
+      "name": "chemdraw_com_call",
+      "signature": "(program: list[dict[str, typing.Any]], allow_file_io: bool = False, allow_overwrite: bool = False, max_items: int = 100) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": "chemdraw_com",
+      "timeout_seconds": 240,
+      "description": "Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).\n\nprogram is a list of steps; the root object is the alias \"app\" (ChemDraw.Application).\nEach step has op get, set, call, iterate or release, an optional target alias (default\napp), and for get/set/call the member; call takes args, set takes value, and as stores\nthe result under a new alias. Arguments and values are strings, numbers, booleans, null,\n{\"constant\": \"kCDFormatPNG\"} (any constant of the ChemDraw type library) or\n{\"ref\": alias}. iterate walks a collection (Count and Item, counted from 1) and reads the\nlisted members of each item: {\"op\": \"iterate\", \"target\": \"atoms\", \"members\": [\"Charge\"]}.\nEvery member is checked against the committed COM catalog before ChemDraw starts, with\nthe result types followed through the program (see the interface-com reference for the\nmembers). Printing, the clipboard, menus, preference changes and Quit are blocked.\nOpening, saving or exporting files needs allow_file_io; an existing file is never\nreplaced unless allow_overwrite is also true (Document.Save and Close with saveChanges\ntrue need it too). Documents the program opens are closed without saving and ChemDraw\nis quit afterwards if the tool started it. Object results are reported as their type;\nmax_items caps the items iterate reads."
     },
     {
       "name": "chemdraw_inventory",

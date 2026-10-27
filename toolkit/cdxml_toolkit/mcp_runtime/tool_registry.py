@@ -20,6 +20,7 @@ from .official_overrides import OFFICIAL_OVERRIDES
 from .remote_tools import REMOTE_TOOLS
 from .figure_tools import FIGURE_TOOLS
 from .markush_tools import MARKUSH_TOOLS
+from .com_call import COM_TOOLS
 from .object_tools import OBJECT_TOOLS
 from .report_tools import REPORT_TOOLS
 from .figure_draw import draw_figure
@@ -40,6 +41,7 @@ class ToolSpec:
 
 
 CHEMDRAW_COM_TOOLS = {
+    "chemdraw_com_call",
     "parse_reaction",
     "convert_cdx_cdxml",
     "render_to_png",
@@ -86,6 +88,7 @@ def _tool_timeout(name: str) -> int | None:
         "execute_chemscript_sdk": 300,
         "publication_figure": 600,
         "draw_figure": 300,
+        "chemdraw_com_call": 240,
         "markush_compile": 180,
         "markush_detect": 120,
     }.get(name)
@@ -192,6 +195,9 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     )
     extended_functions = _merge_named_tools(
         extended_functions, OBJECT_TOOLS, source="object and catalog tools"
+    )
+    extended_functions = _merge_named_tools(
+        extended_functions, COM_TOOLS, source="ChemDraw COM tools"
     )
     extended_functions = _merge_named_tools(
         extended_functions, MARKUSH_TOOLS, source="Markush tools"

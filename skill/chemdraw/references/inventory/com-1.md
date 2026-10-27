@@ -98,7 +98,7 @@ Contents: DataObject, DataObjectFiles, IChemDrawAltGroup, IChemDrawAltGroups, IC
 
 ## IChemDrawApplication
 
-- `name` property get : string — Returns the name of the application.
+- `name` property get : string **T2 `chemdraw_com_call`** — Returns the name of the application.
 - `ActiveDocument` property get : IChemDrawDocument* — Returns the currently active document, if there is one.
 - `Application` property get : IChemDrawApplication* — Returns the application of the object.
 - `Documents` property get : IChemDrawDocuments* **T1 `convert_cdx_cdxml`** — Returns the set of open documents.
@@ -203,8 +203,8 @@ Contents: DataObject, DataObjectFiles, IChemDrawAltGroup, IChemDrawAltGroups, IC
 - `ChemicalWarning` property get : string — Returns the chemical warning string for this object.
 - `Annotations` property get : IChemDrawAnnotations* — Returns the object's annotations.
 - `NodeType` property get : CDNodeType — Returns the type of the atom.
-- `ElementNumber` property get/put : long — Sets/Returns the element number of the atom.
-- `Charge` property get/put : double — Sets/Returns the charge of the atom.
+- `ElementNumber` property get/put : long **T2 `chemdraw_com_call`** — Sets/Returns the element number of the atom.
+- `Charge` property get/put : double **T2 `chemdraw_com_call`** — Sets/Returns the charge of the atom.
 - `Radical` property get/put : CDRadical — Sets/Returns the charge of the atom.
 - `Isotope` property get/put : long — Sets/Returns the isotope of the atom.
 - `NumImplicitHydrogens` property get/put : long — Sets/Returns the number of implicit hydrogens on the atom.
@@ -250,7 +250,7 @@ Contents: DataObject, DataObjectFiles, IChemDrawAltGroup, IChemDrawAltGroups, IC
 
 - `_NewEnum` property get : unknown (hidden)
 - `Application` property get : dispatch — Returns the application associated with the objects.
-- `Count` property get : long — Returns the number of objects in the collection.
+- `Count` property get : long **T2 `chemdraw_com_call`** — Returns the number of objects in the collection.
 - `Parent` property get : dispatch — Returns the parent of the objects.
 - `Item(index)` → IChemDrawAtom* — Given an index, returns an object in the collection
 
@@ -300,7 +300,7 @@ Contents: DataObject, DataObjectFiles, IChemDrawAltGroup, IChemDrawAltGroups, IC
 
 - `_NewEnum` property get : unknown (hidden)
 - `Application` property get : dispatch — Returns the application associated with the objects.
-- `Count` property get : long — Returns the number of objects in the collection.
+- `Count` property get : long **T2 `chemdraw_com_call`** — Returns the number of objects in the collection.
 - `Parent` property get : dispatch — Returns the parent of the objects.
 - `Item(index)` → IChemDrawBond* — Given an index, returns an object in the collection
 

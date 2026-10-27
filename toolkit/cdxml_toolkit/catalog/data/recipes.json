@@ -97,6 +97,351 @@
     {"step": 0, "type": "ReactionData"},
     {"step": 3, "equals": "C2H6O"}
    ]
+  },
+  {
+   "id": "com-open-and-inspect-document",
+   "title": "Open a CDXML file and read the application and document",
+   "tool": "chemdraw_com_call",
+   "layer": "com",
+   "platforms": [
+    "win"
+   ],
+   "verified_on": "22.2.0/win",
+   "members": [
+    "IChemDrawApplication.name",
+    "IChemDrawDocuments.Open",
+    "IChemDrawDocuments.Count",
+    "IChemDrawDocuments.Item",
+    "IChemDrawDocument.name",
+    "IChemDrawDocument.Saved"
+   ],
+   "fixture": "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<!DOCTYPE CDXML SYSTEM \"http://www.cambridgesoft.com/xml/cdxml.dtd\" >\n<CDXML BondLength=\"14.4\" LineWidth=\"0.6\" BoldWidth=\"2\" MarginWidth=\"1.6\"><page id=\"1\" BoundingBox=\"0 0 200 200\"><fragment id=\"2\"><n id=\"3\" p=\"100 100\"/><n id=\"4\" p=\"114.4 108.3\"/><n id=\"5\" p=\"128.8 100\" Element=\"8\"/><b id=\"6\" B=\"3\" E=\"4\"/><b id=\"7\" B=\"4\" E=\"5\"/></fragment></page></CDXML>\n",
+   "program": [
+    {
+     "op": "get",
+     "member": "name"
+    },
+    {
+     "op": "get",
+     "member": "Documents",
+     "as": "docs"
+    },
+    {
+     "op": "call",
+     "target": "docs",
+     "member": "Open",
+     "args": [
+      "{fixture}"
+     ],
+     "as": "doc"
+    },
+    {
+     "op": "get",
+     "target": "docs",
+     "member": "Count"
+    },
+    {
+     "op": "call",
+     "target": "docs",
+     "member": "Item",
+     "args": [
+      1
+     ],
+     "as": "first"
+    },
+    {
+     "op": "get",
+     "target": "first",
+     "member": "name"
+    },
+    {
+     "op": "get",
+     "target": "first",
+     "member": "Saved"
+    }
+   ],
+   "expect": [
+    {
+     "step": 0,
+     "contains": "ChemDraw"
+    },
+    {
+     "step": 2,
+     "object": "IChemDrawDocument"
+    },
+    {
+     "step": 3,
+     "at_least": 1
+    },
+    {
+     "step": 4,
+     "object": "IChemDrawDocument"
+    },
+    {
+     "step": 5,
+     "equals": "fixture.cdxml"
+    },
+    {
+     "step": 6,
+     "kind": "bool"
+    }
+   ]
+  },
+  {
+   "id": "com-structure-properties",
+   "title": "Formula and masses of everything drawn in a document",
+   "tool": "chemdraw_com_call",
+   "layer": "com",
+   "platforms": [
+    "win"
+   ],
+   "verified_on": "22.2.0/win",
+   "members": [
+    "IChemDrawDocument.Objects",
+    "IChemDrawObjects.Count",
+    "IChemDrawObjects.Formula",
+    "IChemDrawObjects.MolecularWeight",
+    "IChemDrawObjects.ExactMass"
+   ],
+   "fixture": "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<!DOCTYPE CDXML SYSTEM \"http://www.cambridgesoft.com/xml/cdxml.dtd\" >\n<CDXML BondLength=\"14.4\" LineWidth=\"0.6\" BoldWidth=\"2\" MarginWidth=\"1.6\"><page id=\"1\" BoundingBox=\"0 0 200 200\"><fragment id=\"2\"><n id=\"3\" p=\"100 100\"/><n id=\"4\" p=\"114.4 108.3\"/><n id=\"5\" p=\"128.8 100\" Element=\"8\"/><b id=\"6\" B=\"3\" E=\"4\"/><b id=\"7\" B=\"4\" E=\"5\"/></fragment></page></CDXML>\n",
+   "program": [
+    {
+     "op": "get",
+     "member": "Documents",
+     "as": "docs"
+    },
+    {
+     "op": "call",
+     "target": "docs",
+     "member": "Open",
+     "args": [
+      "{fixture}"
+     ],
+     "as": "doc"
+    },
+    {
+     "op": "get",
+     "target": "doc",
+     "member": "Objects",
+     "as": "objs"
+    },
+    {
+     "op": "get",
+     "target": "objs",
+     "member": "Count"
+    },
+    {
+     "op": "get",
+     "target": "objs",
+     "member": "Formula"
+    },
+    {
+     "op": "get",
+     "target": "objs",
+     "member": "MolecularWeight"
+    },
+    {
+     "op": "get",
+     "target": "objs",
+     "member": "ExactMass"
+    }
+   ],
+   "expect": [
+    {
+     "step": 2,
+     "object": "IChemDrawObjects"
+    },
+    {
+     "step": 3,
+     "at_least": 1
+    },
+    {
+     "step": 4,
+     "equals": "C2H6O"
+    },
+    {
+     "step": 5,
+     "approx": 46.069,
+     "tolerance": 0.01
+    },
+    {
+     "step": 6,
+     "approx": 46.0419,
+     "tolerance": 0.001
+    }
+   ]
+  },
+  {
+   "id": "com-atoms-and-bonds",
+   "title": "Count and read the atoms and bonds of a document",
+   "tool": "chemdraw_com_call",
+   "layer": "com",
+   "platforms": [
+    "win"
+   ],
+   "verified_on": "22.2.0/win",
+   "members": [
+    "IChemDrawDocument.Atoms",
+    "IChemDrawAtoms.Count",
+    "IChemDrawAtom.ElementNumber",
+    "IChemDrawAtom.Charge",
+    "IChemDrawDocument.Bonds",
+    "IChemDrawBonds.Count"
+   ],
+   "fixture": "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<!DOCTYPE CDXML SYSTEM \"http://www.cambridgesoft.com/xml/cdxml.dtd\" >\n<CDXML BondLength=\"14.4\" LineWidth=\"0.6\" BoldWidth=\"2\" MarginWidth=\"1.6\"><page id=\"1\" BoundingBox=\"0 0 200 200\"><fragment id=\"2\"><n id=\"3\" p=\"100 100\"/><n id=\"4\" p=\"114.4 108.3\"/><n id=\"5\" p=\"128.8 100\" Element=\"8\"/><b id=\"6\" B=\"3\" E=\"4\"/><b id=\"7\" B=\"4\" E=\"5\"/></fragment></page></CDXML>\n",
+   "program": [
+    {
+     "op": "get",
+     "member": "Documents",
+     "as": "docs"
+    },
+    {
+     "op": "call",
+     "target": "docs",
+     "member": "Open",
+     "args": [
+      "{fixture}"
+     ],
+     "as": "doc"
+    },
+    {
+     "op": "get",
+     "target": "doc",
+     "member": "Atoms",
+     "as": "atoms"
+    },
+    {
+     "op": "get",
+     "target": "atoms",
+     "member": "Count"
+    },
+    {
+     "op": "iterate",
+     "target": "atoms",
+     "members": [
+      "ElementNumber",
+      "Charge"
+     ]
+    },
+    {
+     "op": "get",
+     "target": "doc",
+     "member": "Bonds",
+     "as": "bonds"
+    },
+    {
+     "op": "get",
+     "target": "bonds",
+     "member": "Count"
+    }
+   ],
+   "expect": [
+    {
+     "step": 2,
+     "object": "IChemDrawAtoms"
+    },
+    {
+     "step": 3,
+     "equals": 3
+    },
+    {
+     "step": 4,
+     "equals": {
+      "count": 3,
+      "items": [
+       {
+        "index": 1,
+        "ElementNumber": 6,
+        "Charge": 0
+       },
+       {
+        "index": 2,
+        "ElementNumber": 6,
+        "Charge": 0
+       },
+       {
+        "index": 3,
+        "ElementNumber": 8,
+        "Charge": 0
+       }
+      ],
+      "truncated": false
+     }
+    },
+    {
+     "step": 6,
+     "equals": 2
+    }
+   ]
+  },
+  {
+   "id": "com-clean-and-export",
+   "title": "Clean up a drawing in ChemDraw and write it as CDXML and PNG",
+   "tool": "chemdraw_com_call",
+   "layer": "com",
+   "platforms": [
+    "win"
+   ],
+   "verified_on": "22.2.0/win",
+   "members": [
+    "IChemDrawDocument.Objects",
+    "IChemDrawObjects.Clean"
+   ],
+   "fixture": "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<!DOCTYPE CDXML SYSTEM \"http://www.cambridgesoft.com/xml/cdxml.dtd\" >\n<CDXML BondLength=\"14.4\" LineWidth=\"0.6\" BoldWidth=\"2\" MarginWidth=\"1.6\"><page id=\"1\" BoundingBox=\"0 0 200 200\"><fragment id=\"2\"><n id=\"3\" p=\"100 100\"/><n id=\"4\" p=\"114.4 108.3\"/><n id=\"5\" p=\"128.8 100\" Element=\"8\"/><b id=\"6\" B=\"3\" E=\"4\"/><b id=\"7\" B=\"4\" E=\"5\"/></fragment></page></CDXML>\n",
+   "program": [
+    {
+     "op": "get",
+     "member": "Documents",
+     "as": "docs"
+    },
+    {
+     "op": "call",
+     "target": "docs",
+     "member": "Open",
+     "args": [
+      "{fixture}"
+     ],
+     "as": "doc"
+    },
+    {
+     "op": "get",
+     "target": "doc",
+     "member": "Objects",
+     "as": "objs"
+    },
+    {
+     "op": "call",
+     "target": "objs",
+     "member": "Clean"
+    },
+    {
+     "op": "call",
+     "target": "doc",
+     "member": "SaveAs",
+     "args": [
+      "{out}/cleaned.cdxml"
+     ]
+    },
+    {
+     "op": "call",
+     "target": "doc",
+     "member": "SaveAs",
+     "args": [
+      "{out}/cleaned.png"
+     ]
+    }
+   ],
+   "expect": [
+    {
+     "step": 2,
+     "object": "IChemDrawObjects"
+    },
+    {
+     "step": 3,
+     "equals": null
+    }
+   ],
+   "written": 2
   }
  ]
 }

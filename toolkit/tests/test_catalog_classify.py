@@ -32,11 +32,14 @@ MENU = {"layer": "menu", "menus": [{"caption": "Structure", "items": [
 CDXML = {"layer": "cdxml", "elements": [
     {"name": "fragment", "evidence": ["observed"]}, {"name": "bioshape", "evidence": ["observed"]},
     {"name": "geometry", "evidence": ["binary"]}, {"name": "splitter", "evidence": []}]}
-RECIPES = [{"id": "r1", "tool": "execute_chemscript_sdk", "members": ["StructureData.WriteData"]}]
+RECIPES = [
+    {"id": "r1", "tool": "execute_chemscript_sdk", "members": ["StructureData.WriteData"]},
+    {"id": "c1", "tool": "chemdraw_com_call", "layer": "com", "members": ["IChemDrawDocument.Width", "IChemDrawDocument.SaveAs"]},
+]
 CLASSIFICATION = {
     "reasons": {
         "chemscript.interop": "plumbing", "chemscript.collection": "wrapper",
-        "chemscript.unverified": "no recipe yet", "com.default": "no generic COM tool",
+        "chemscript.unverified": "no recipe yet", "com.default": "type entry", "com.unverified": "no recipe yet", "com.blocked": "refused", "com.control": "control only",
         "com.enum": "enum values", "com.coclass": "class id", "menu.default": "no menu tool",
         "cdxml.default": "never observed", "cdxml.unconfirmed": "no evidence",
         "cdxml.object": "edited by the object tool",
@@ -76,7 +79,9 @@ def test_com_rows_cover_members_enums_coclasses_and_control_only_types():
 
     assert found["com:IChemDrawDocument.SaveAs"]["tier"] == "T1"
     assert found["com:IChemDrawDocument.SaveAs"]["tool"] == "convert_cdx_cdxml"
-    assert found["com:IChemDrawDocument.Width"]["tier"] == "T3"
+    assert found["com:IChemDrawDocument.Width"]["tier"] == "T2"
+    assert found["com:IChemDrawDocument.Width"]["tool"] == "chemdraw_com_call"
+    assert found["com:IChemDrawDocument.Width"]["recipe"] == "c1"
     assert found["com:CDOrbitalType"]["reason"] == "enum values"
     assert found["com:ChemDrawDocument"]["reason"] == "class id"
     assert found["com:ICtlOnly.Go"]["tier"] == "T3"
@@ -136,6 +141,7 @@ def test_committed_classification_is_consistent_with_the_committed_catalogs_and_
     summary = classify.summarize(result)
     assert summary["chemscript"]["T2"] >= 8
     assert summary["com"]["T1"] >= 3
+    assert summary["com"]["T2"] >= 15
     assert summary["menu"]["T3"] == 159
     assert sum(summary[layer][tier] for layer in summary for tier in summary[layer]) == len(result)
 
