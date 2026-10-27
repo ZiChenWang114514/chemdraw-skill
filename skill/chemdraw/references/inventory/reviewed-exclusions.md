@@ -28,12 +28,12 @@
 
 ## `catalog.classify`
 
-- **function**, line 155: `all_rows() -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 129: `classify(catalogs: dict[str, dict[str, Any]], recipes: list[dict[str, Any]], classification: dict[str, Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 162: `find_row(rows: Iterable[dict[str, Any]], row_id: str) -> Optional[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 185: `all_rows() -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 159: `classify(catalogs: dict[str, dict[str, Any]], recipes: list[dict[str, Any]], classification: dict[str, Any]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 192: `find_row(rows: Iterable[dict[str, Any]], row_id: str) -> Optional[dict[str, Any]]` - No public docstring in the audited version.
 - **function**, line 29: `load_catalog(layer: str) -> dict[str, Any]` - No public docstring in the audited version.
 - **function**, line 33: `load_classification() -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 148: `summarize(rows: Iterable[dict[str, Any]]) -> dict[str, dict[str, int]]` - No public docstring in the audited version.
+- **function**, line 178: `summarize(rows: Iterable[dict[str, Any]]) -> dict[str, dict[str, int]]` - No public docstring in the audited version.
 
 ## `catalog.com`
 
@@ -52,10 +52,11 @@
 
 ## `catalog.recipes`
 
-- **function**, line 32: `check(recipe: dict[str, Any], results: list[dict[str, Any]]) -> list[str]` - Return one message per expectation the results do not meet.
-- **function**, line 46: `declaring_type(catalog: dict[str, Any], type_name: str, member: str) -> Optional[str]` - The type of the ChemScript catalog that declares ``member``, following base types.
-- **function**, line 15: `load() -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 58: `run(recipe: dict[str, Any]) -> list[str]` - Execute a ChemScript recipe on the installed SDK and return its failures.
+- **function**, line 42: `check(recipe: dict[str, Any], results: list[dict[str, Any]]) -> list[str]` - Return one message per expectation the results do not meet.
+- **function**, line 56: `declaring_type(catalog: dict[str, Any], type_name: str, member: str) -> Optional[str]` - The type of the ChemScript catalog that declares ``member``, following base types.
+- **function**, line 68: `fill_program(program: list[dict[str, Any]], *, fixture: str, out: str) -> list[dict[str, Any]]` - Copy a COM recipe program with ``{fixture}`` and ``{out}`` replaced in every string.
+- **function**, line 18: `load() -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 104: `run(recipe: dict[str, Any]) -> list[str]` - Execute a recipe on the installed ChemDraw and return its failures.
 
 ## `catalog.render`
 
@@ -188,6 +189,13 @@
 - **function**, line 603: `execute_program(runtime: ChemScriptRuntime, request: dict[str, Any]) -> dict[str, Any]` - No public docstring in the audited version.
 - **function**, line 63: `validate_program(program: list[dict[str, Any]], *, allow_file_io: bool = True, allow_unsafe_interop: bool = False) -> list[dict[str, Any]]` - Validate the declarative SDK program without loading Python.NET.
 
+## `mcp_runtime.com_call`
+
+- **function**, line 418: `chemdraw_com_call(program: list[dict[str, Any]], allow_file_io: bool = False, allow_overwrite: bool = False, max_items: int = 100) -> dict[str, Any]` - Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).
+- **class**, line 63: `ComCallError` - A ChemDraw failure with a stable public code.
+- **function**, line 319: `execute_program(application: Any, steps: list[dict[str, Any]], *, max_items: int = 100, allow_overwrite: bool = False, created: Optional[list[Any]] = None) -> dict[str, Any]` - Run validated steps against ``application``; returns results and written files.
+- **function**, line 148: `validate_program(program: list[dict[str, Any]], *, allow_file_io: bool = False, allow_overwrite: bool = False) -> list[dict[str, Any]]` - Check the program against the COM catalog and return the steps with their types.
+
 ## `mcp_runtime.decimer_api`
 
 - **function**, line 75: `build_multipart_body(*, filename: str, mime_type: str, image_bytes: bytes, hand_drawn: bool, boundary: str | None = None) -> tuple[str, bytes]` - Encode the multipart fields declared by the live OpenAPI document.
@@ -310,8 +318,8 @@
 
 ## `mcp_runtime.object_tools`
 
-- **function**, line 217: `chemdraw_inventory(layer: str | None = None, query: str | None = None, tier: str | None = None, kind: str | None = None, limit: int = 50) -> dict` - Look up ChemDraw's own interfaces and how far this Skill covers each one.
-- **function**, line 73: `chemdraw_object(op: str, input_path: str, selector: str | None = None, tag: str | None = None, props: dict | None = None, children: list | None = None, text: str | None = None, output_path: str | None = None, allow_unknown: bool = False, dry_run: bool = False, verify: bool = True, limit: int = 200) -> dict` - List, read, change, add or delete any object in a CDXML file, without touching the input.
+- **function**, line 228: `chemdraw_inventory(layer: str | None = None, query: str | None = None, tier: str | None = None, kind: str | None = None, limit: int = 50) -> dict` - Look up ChemDraw's own interfaces and how far this Skill covers each one.
+- **function**, line 75: `chemdraw_object(op: str, input_path: str, selector: str | None = None, tag: str | None = None, props: dict | None = None, children: list | None = None, text: str | None = None, output_path: str | None = None, allow_unknown: bool = False, dry_run: bool = False, verify: bool = True, limit: int = 200) -> dict` - List, read, change, add or delete any object in a CDXML file, without touching the input.
 
 ## `mcp_runtime.office_objects`
 
@@ -405,9 +413,9 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 139: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 131: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 30: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 142: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 134: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 31: `ToolSpec` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_worker`
 

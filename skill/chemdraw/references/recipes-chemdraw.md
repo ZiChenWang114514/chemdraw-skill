@@ -120,3 +120,111 @@ Checked results:
 
 - step 0: type 'ReactionData'
 - step 3: equals 'C2H6O'
+
+## Open a CDXML file and read the application and document
+
+`com-open-and-inspect-document` · tool `chemdraw_com_call` · verified on 22.2.0/win · platforms win
+
+Covers: `IChemDrawApplication.name`, `IChemDrawDocuments.Open`, `IChemDrawDocuments.Count`, `IChemDrawDocuments.Item`, `IChemDrawDocument.name`, `IChemDrawDocument.Saved`.
+
+Program (the `program` argument):
+
+```json
+[
+  {"op": "get", "member": "name"},
+  {"op": "get", "member": "Documents", "as": "docs"},
+  {"op": "call", "target": "docs", "member": "Open", "args": ["{fixture}"], "as": "doc"},
+  {"op": "get", "target": "docs", "member": "Count"},
+  {"op": "call", "target": "docs", "member": "Item", "args": [1], "as": "first"},
+  {"op": "get", "target": "first", "member": "name"},
+  {"op": "get", "target": "first", "member": "Saved"}
+]
+```
+
+Checked results:
+
+- step 0: contains 'ChemDraw'
+- step 2: object 'IChemDrawDocument'
+- step 3: at_least 1
+- step 4: object 'IChemDrawDocument'
+- step 5: equals 'fixture.cdxml'
+- step 6: kind 'bool'
+
+## Formula and masses of everything drawn in a document
+
+`com-structure-properties` · tool `chemdraw_com_call` · verified on 22.2.0/win · platforms win
+
+Covers: `IChemDrawDocument.Objects`, `IChemDrawObjects.Count`, `IChemDrawObjects.Formula`, `IChemDrawObjects.MolecularWeight`, `IChemDrawObjects.ExactMass`.
+
+Program (the `program` argument):
+
+```json
+[
+  {"op": "get", "member": "Documents", "as": "docs"},
+  {"op": "call", "target": "docs", "member": "Open", "args": ["{fixture}"], "as": "doc"},
+  {"op": "get", "target": "doc", "member": "Objects", "as": "objs"},
+  {"op": "get", "target": "objs", "member": "Count"},
+  {"op": "get", "target": "objs", "member": "Formula"},
+  {"op": "get", "target": "objs", "member": "MolecularWeight"},
+  {"op": "get", "target": "objs", "member": "ExactMass"}
+]
+```
+
+Checked results:
+
+- step 2: object 'IChemDrawObjects'
+- step 3: at_least 1
+- step 4: equals 'C2H6O'
+- step 5: approx 46.069, tolerance 0.01
+- step 6: approx 46.0419, tolerance 0.001
+
+## Count and read the atoms and bonds of a document
+
+`com-atoms-and-bonds` · tool `chemdraw_com_call` · verified on 22.2.0/win · platforms win
+
+Covers: `IChemDrawDocument.Atoms`, `IChemDrawAtoms.Count`, `IChemDrawAtom.ElementNumber`, `IChemDrawAtom.Charge`, `IChemDrawDocument.Bonds`, `IChemDrawBonds.Count`.
+
+Program (the `program` argument):
+
+```json
+[
+  {"op": "get", "member": "Documents", "as": "docs"},
+  {"op": "call", "target": "docs", "member": "Open", "args": ["{fixture}"], "as": "doc"},
+  {"op": "get", "target": "doc", "member": "Atoms", "as": "atoms"},
+  {"op": "get", "target": "atoms", "member": "Count"},
+  {"op": "iterate", "target": "atoms", "members": ["ElementNumber", "Charge"]},
+  {"op": "get", "target": "doc", "member": "Bonds", "as": "bonds"},
+  {"op": "get", "target": "bonds", "member": "Count"}
+]
+```
+
+Checked results:
+
+- step 2: object 'IChemDrawAtoms'
+- step 3: equals 3
+- step 4: equals {'count': 3, 'items': [{'index': 1, 'ElementNumber': 6, 'Charge': 0}, {'index': 2, 'ElementNumber': 6, 'Charge': 0}, {'index': 3, 'ElementNumber': 8, 'Charge': 0}], 'truncated': False}
+- step 6: equals 2
+
+## Clean up a drawing in ChemDraw and write it as CDXML and PNG
+
+`com-clean-and-export` · tool `chemdraw_com_call` · verified on 22.2.0/win · platforms win
+
+Covers: `IChemDrawDocument.Objects`, `IChemDrawObjects.Clean`.
+
+Program (the `program` argument):
+
+```json
+[
+  {"op": "get", "member": "Documents", "as": "docs"},
+  {"op": "call", "target": "docs", "member": "Open", "args": ["{fixture}"], "as": "doc"},
+  {"op": "get", "target": "doc", "member": "Objects", "as": "objs"},
+  {"op": "call", "target": "objs", "member": "Clean"},
+  {"op": "call", "target": "doc", "member": "SaveAs", "args": ["{out}/cleaned.cdxml"]},
+  {"op": "call", "target": "doc", "member": "SaveAs", "args": ["{out}/cleaned.png"]}
+]
+```
+
+Checked results:
+
+- step 2: object 'IChemDrawObjects'
+- step 3: equals None

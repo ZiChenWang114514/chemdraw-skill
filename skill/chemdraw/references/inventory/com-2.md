@@ -6,15 +6,15 @@ Contents: IChemDrawDocument, IChemDrawDocuments, IChemDrawFragmentationAnalyzer,
 
 ## IChemDrawDocument
 
-- `name` property get : string — Returns the name of the document.
+- `name` property get : string **T2 `chemdraw_com_call`** — Returns the name of the document.
 - `Application` property get : IChemDrawApplication* — Returns the application of the object.
 - `FullName` property get : string — Returns the full file specification of the document.
 - `Parent` property get : IChemDrawDocuments* — Returns the parent of the object.
 - `Path` property get : string — Returns the path specification for the document, not including the filename.
 - `ReadOnly` property get : bool — Returns True if the file is read only.
-- `Saved` property get : bool — Returns True if there are no unsaved changes.
+- `Saved` property get : bool **T2 `chemdraw_com_call`** — Returns True if there are no unsaved changes.
 - `DataObject` property get : DataObject* — Returns an object representing the content of the document.
-- `Objects` property get : IChemDrawObjects* — Returns the objects collection of the document.
+- `Objects` property get : IChemDrawObjects* **T2 `chemdraw_com_call`** — Returns the objects collection of the document.
 - `Selection` property get : IChemDrawSelection* — Returns the selection of the document.
 - `Settings` property get : IChemDrawSettings* — Returns the settings object.
 - `Modified` property get/put : bool (hidden) — Indicates if the data of the control was changed.
@@ -31,8 +31,8 @@ Contents: IChemDrawDocument, IChemDrawDocuments, IChemDrawFragmentationAnalyzer,
 - `NumChemicalWarnings` property get : long — Returns the number of chemical warnings present.
 - `Magnification` property get/put : double — Get the magnification level for the control as a percentage.
 - `Annotations` property get : IChemDrawAnnotations* — Returns the annotations collection of this document.
-- `Atoms` property get : IChemDrawAtoms* — Returns the atoms collection of this document.
-- `Bonds` property get : IChemDrawBonds* — Returns the bonds collection of this document.
+- `Atoms` property get : IChemDrawAtoms* **T2 `chemdraw_com_call`** — Returns the atoms collection of this document.
+- `Bonds` property get : IChemDrawBonds* **T2 `chemdraw_com_call`** — Returns the bonds collection of this document.
 - `Graphics` property get : IChemDrawGraphics* — Returns the graphic objects collection of this document.
 - `Splines` property get : IChemDrawSplines* — Returns the splines collection of this document.
 - `Captions` property get : IChemDrawTexts* — Returns the captions collection of this document.
@@ -83,9 +83,9 @@ Contents: IChemDrawDocument, IChemDrawDocuments, IChemDrawFragmentationAnalyzer,
 ## IChemDrawDocuments
 
 - `_NewEnum` property get : unknown (hidden)
-- `Item(index?)` → dispatch — Given an index, returns a document in the collection
+- `Item(index?)` → dispatch **T2 `chemdraw_com_call`** — Given an index, returns a document in the collection
 - `Application` property get : IChemDrawApplication* — Returns the application of the object.
-- `Count` property get : long — Returns the number of documents in the collection.
+- `Count` property get : long **T2 `chemdraw_com_call`** — Returns the number of documents in the collection.
 - `Parent` property get : IChemDrawApplication* — Returns the parent of the object.
 - `Add()` → IChemDrawDocument* — Create a new document
 - `Close()` → void — Close all the documents in the collection
@@ -371,11 +371,11 @@ Contents: IChemDrawDocument, IChemDrawDocuments, IChemDrawFragmentationAnalyzer,
 
 - `_NewEnum` property get : unknown (hidden)
 - `Application` property get : dispatch — Returns the application associated with the objects.
-- `Count` property get : long — Returns the number of objects in the collection.
+- `Count` property get : long **T2 `chemdraw_com_call`** — Returns the number of objects in the collection.
 - `ElementalAnalysis` property get : string — Returns the composition of the objects.
-- `ExactMass` property get : double — Returns the exact mass of the objects.
-- `Formula` property get : string — Returns the formula of the objects.
-- `MolecularWeight` property get : double — Returns the molecular weight of the objects.
+- `ExactMass` property get : double **T2 `chemdraw_com_call`** — Returns the exact mass of the objects.
+- `Formula` property get : string **T2 `chemdraw_com_call`** — Returns the formula of the objects.
+- `MolecularWeight` property get : double **T2 `chemdraw_com_call`** — Returns the molecular weight of the objects.
 - `Parent` property get : dispatch — Returns the parent of the objects.
 - `Item(index)` → IChemDrawObject* — Given an index, returns an object in the collection
 - `Clear()` → void — Clears the objects from the parent.
@@ -390,7 +390,7 @@ Contents: IChemDrawDocument, IChemDrawDocuments, IChemDrawFragmentationAnalyzer,
 - `Bottom` property get : double — Returns the bottom of the rectangle bounding the objects, in points.
 - `Left` property get : double — Returns the left of the rectangle bounding the objects, in points.
 - `Right` property get : double — Returns the right of the rectangle bounding the objects, in points.
-- `Clean(deNovo?)` → void — Tidy the visual represention of a structure.
+- `Clean(deNovo?)` → void **T2 `chemdraw_com_call`** — Tidy the visual represention of a structure.
 - `Data[dataType, resolution, Width, Height]` property get/put : variant — Returns the data of the objects.
 - `Settings` property get : IChemDrawSettings* — Returns the settings object.
 - `Move(dx?, dy?)` → void — Offset the objects by the specified amount, in points.

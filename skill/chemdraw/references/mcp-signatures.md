@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full (default)`
-Tools: `56`
+Tools: `57`
 
 ## Extended Tools
 
@@ -61,6 +61,26 @@ adds a stoichiometry table with equivalents, mmol, mass, volume and, for product
 isolated_mg, the percent yield. A failed balance is a finding about the species as drawn:
 check the structures against their source before trusting the reaction. Generic atoms
 (R groups) are rejected. output_path ends in .json and is never overwritten.
+
+### `chemdraw_com_call(program: list[dict[str, typing.Any]], allow_file_io: bool = False, allow_overwrite: bool = False, max_items: int = 100) -> dict[str, typing.Any]`
+
+Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).
+
+program is a list of steps; the root object is the alias "app" (ChemDraw.Application).
+Each step has op get, set, call, iterate or release, an optional target alias (default
+app), and for get/set/call the member; call takes args, set takes value, and as stores
+the result under a new alias. Arguments and values are strings, numbers, booleans, null,
+{"constant": "kCDFormatPNG"} (any constant of the ChemDraw type library) or
+{"ref": alias}. iterate walks a collection (Count and Item, counted from 1) and reads the
+listed members of each item: {"op": "iterate", "target": "atoms", "members": ["Charge"]}.
+Every member is checked against the committed COM catalog before ChemDraw starts, with
+the result types followed through the program (see the interface-com reference for the
+members). Printing, the clipboard, menus, preference changes and Quit are blocked.
+Opening, saving or exporting files needs allow_file_io; an existing file is never
+replaced unless allow_overwrite is also true (Document.Save and Close with saveChanges
+true need it too). Documents the program opens are closed without saving and ChemDraw
+is quit afterwards if the tool started it. Object results are reported as their type;
+max_items caps the items iterate reads.
 
 ### `chemdraw_inventory(layer: str | None = None, query: str | None = None, tier: str | None = None, kind: str | None = None, limit: int = 50) -> dict`
 

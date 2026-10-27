@@ -18,6 +18,7 @@ Use this page only when the workflow router does not identify an entry point.
 | ChemDraw menu commands and their command ids | [interface-menu.md](interface-menu.md) |
 | Query these catalogs without opening a page | `chemdraw_inventory(layer, query, tier)` |
 | Read or edit a CDXML element generically | `chemdraw_object` ([workflow router](workflow-router.md#inspect-or-edit-cdxml-objects)) |
+| Drive ChemDraw COM objects directly | `chemdraw_com_call` ([workflow router](workflow-router.md#drive-chemdraw-through-com)) |
 | A working program for a generic tool, already run and checked | [recipes-chemdraw.md](recipes-chemdraw.md) |
 
 The four `interface-*` pages and the recipes are generated (`cdx.py regen-catalog`) from what the installed ChemDraw reports about itself. Every row carries a tier: T1 has a dedicated tool, T2 has a recipe that was run, T3 is documented only. Do not call a T3 member as if it were verified; state that it is untested.

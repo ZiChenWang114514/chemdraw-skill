@@ -53,6 +53,15 @@ For any object other than the molecules and schemes the drawing tools produce (t
 3. `set`, `add` and `delete` write a new CDXML (never the input) and keep every element, attribute and comment they do not touch, in order. Use `dry_run` first on a large selector. An attribute the catalog does not list is refused unless `allow_unknown` is set; delete refuses an object that a bond, bracket or graphic still points at.
 4. The result is a structural edit. ChemDraw draws an atom's saved label text as it is, so changing `Charge`, `Element` or `NumHydrogens` on a labelled atom does not change what is drawn (the result warns about it); edit the label's `s` text as well. Render the result with `render_to_png`, look at the image, and compare molecules with `compare_molecules` when atoms or bonds changed.
 
+## Drive ChemDraw Through COM
+
+For a ChemDraw object or measurement no dedicated tool covers (document or selection formula and masses, atom and bond properties, ChemDraw's own Clean Up), and only on Windows with ChemDraw installed:
+
+1. Find the member in [interface-com.md](interface-com.md) (or `chemdraw_inventory(layer="com", query=...)`). Start from a T2 member's recipe in [recipes-chemdraw.md](recipes-chemdraw.md); a T3 member is reachable but untested, so say so in the answer.
+2. `chemdraw_com_call(program=[...])` takes steps `get`, `set`, `call`, `iterate` and `release` on the root alias `app`; `as` names an object result so later steps can use it, and constants are written `{"constant": "kCDFormatPNG"}`. Every member is checked against the catalog before ChemDraw starts.
+3. Opening or saving a file needs `allow_file_io`; replacing an existing file also needs `allow_overwrite`. Documents the program opens are closed unsaved and ChemDraw is quit afterwards if the tool started it. Printing, the clipboard, menu commands, preference changes and `Quit` are refused.
+4. Values are ChemDraw's own, read from the whole document or collection the program names; check them against the molecule you expect. Render a saved result with `render_to_png` and look at it before reporting a change.
+
 ## Work With Office
 
 1. Use `inspect_chemdraw_objects_in_office` when object identity, host location, geometry, or selective replacement matters. Use `extract_cdxml_from_office` for simple bulk extraction.
