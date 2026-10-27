@@ -52,6 +52,25 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 处理保密或需要离线的内容时设置 `CHEMDRAW_OFFLINE=1`：此后 PubChem 查询、Java 运行时下载以及 DECIMER 图片上传都会被拒绝（见 [operations](../skill/chemdraw/references/operations.md#environment-variables)）。
 
+## ChemDraw 接口覆盖
+
+本 Skill 为 Windows 上的 ChemDraw 22.2 建立了接口目录，并为每一条说明受支持的程度。目录覆盖四层：ChemScript SDK、ChemDraw 的 COM 自动化对象、CDXML 文档模型和菜单命令。每一条都有一个等级：
+
+- **T1**：有专用工具完成该操作（例如用 `chemdraw_object` 读写 CDXML 元素，用 `chemdraw_chemical_properties` 取 ChemDraw 自己计算的分子式、质量和 ClogP，以及 `structure_to_name`、`convert_cdx_cdxml`）。
+- **T2**：可通过通用工具（`execute_chemscript_sdk` 或 `chemdraw_com_call`）调用，并且有一个已在 ChemDraw 上实际运行并核对过结果的配方。
+- **T3**：仅有文档，并写明原因（内部支撑代码、隐藏或被禁止的成员，或尚未运行过配方）。不要把 T3 条目当作已验证的功能。
+
+| 层 | 条目数 | T1 | T2 | T3 |
+| --- | --- | --- | --- | --- |
+| ChemScript SDK | 576 | 7 | 9 | 560 |
+| COM 自动化对象 | 1,666 | 8 | 17 | 1,641 |
+| CDXML 元素 | 50 | 37 | 0 | 13 |
+| 菜单命令 | 159 | 0 | 0 | 159 |
+
+查询目录用 `chemdraw_inventory(layer, query, tier)`，也可以直接打开 `skill/chemdraw/references` 下生成的页面（`interface-chemscript.md`、`interface-com.md`、`interface-cdxml-model.md`、`interface-menu.md`、`recipes-chemdraw.md`）。这些页面用 `python <skill>/scripts/cdx.py regen-catalog` 重新生成。
+
+不能由此推出的结论：上述数字只在 Windows 上的 ChemDraw 22.2.0 中核对过。macOS 只回答 ChemScript 操作和 SDK 的一个子集，其他 ChemDraw 版本可能不同，二进制 CDX 文件通过 ChemDraw 转换而不是直接编辑，菜单命令（例如 NMR 预测）也没有开放为工具，因为 ChemDraw 只有在可见窗口中才能运行它们。`chemdraw_com_call` 拒绝打印、剪贴板、菜单对象和首选项修改，并且只有在明确允许文件访问时才写文件。
+
 ## MCP（可选）
 
 命令行已覆盖全部工具，不需要常驻服务器。偏好 MCP 的客户端可以注册 `<runtime-python> -m cdxml_toolkit.mcp_runtime`（无需 profile 参数）；`cdx.py doctor` 会打印运行时路径。远程 Windows 主机见[运维说明](../skill/chemdraw/references/operations.md#remote-http-only-when-asked)中的 HTTP 一节。
