@@ -1,0 +1,38 @@
+{
+ "id": "21-offline-curated-name",
+ "sentence": "Names from the curated reagent table resolve without the network.",
+ "brief": {
+  "species": [
+   {
+    "id": "SA",
+    "smiles": "OC(=O)c1ccccc1O"
+   },
+   {
+    "id": "Ac2O",
+    "name": "Ac2O"
+   },
+   {
+    "id": "ASP",
+    "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "SA",
+     "Ac2O"
+    ],
+    "products": [
+     "ASP"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "species": 3,
+  "curated": [
+   "Ac2O"
+  ]
+ }
+}

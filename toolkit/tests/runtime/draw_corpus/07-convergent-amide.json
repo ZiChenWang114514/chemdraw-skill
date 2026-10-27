@@ -1,0 +1,70 @@
+{
+ "id": "07-convergent-amide",
+ "sentence": "Make an amide from an acid chloride (from the acid, SOCl2) and benzylamine (from benzyl bromide, NH3).",
+ "brief": {
+  "species": [
+   {
+    "id": "acid",
+    "smiles": "OC(=O)c1ccccc1"
+   },
+   {
+    "id": "chloride",
+    "smiles": "ClC(=O)c1ccccc1"
+   },
+   {
+    "id": "BnBr",
+    "smiles": "BrCc1ccccc1"
+   },
+   {
+    "id": "BnNH2",
+    "smiles": "NCc1ccccc1"
+   },
+   {
+    "id": "amide",
+    "smiles": "O=C(NCc1ccccc1)c1ccccc1",
+    "label": "3"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "acid"
+    ],
+    "products": [
+     "chloride"
+    ],
+    "above": [
+     "SOCl2"
+    ]
+   },
+   {
+    "substrates": [
+     "BnBr"
+    ],
+    "products": [
+     "BnNH2"
+    ],
+    "above": [
+     "NH3"
+    ]
+   },
+   {
+    "substrates": [
+     "chloride",
+     "BnNH2"
+    ],
+    "products": [
+     "amide"
+    ],
+    "above": [
+     "Et3N"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "layout": "convergent",
+  "species": 5
+ }
+}

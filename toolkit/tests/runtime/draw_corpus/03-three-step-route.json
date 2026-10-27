@@ -1,0 +1,64 @@
+{
+ "id": "03-three-step-route",
+ "sentence": "Toluene to benzoic acid (KMnO4), then methyl benzoate (MeOH, H2SO4), then benzamide (NH3).",
+ "brief": {
+  "species": [
+   {
+    "id": "tol",
+    "smiles": "Cc1ccccc1"
+   },
+   {
+    "id": "acid",
+    "smiles": "OC(=O)c1ccccc1"
+   },
+   {
+    "id": "ester",
+    "smiles": "COC(=O)c1ccccc1"
+   },
+   {
+    "id": "amide",
+    "smiles": "NC(=O)c1ccccc1"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "tol"
+    ],
+    "products": [
+     "acid"
+    ],
+    "above": [
+     "KMnO4"
+    ]
+   },
+   {
+    "substrates": [
+     "acid"
+    ],
+    "products": [
+     "ester"
+    ],
+    "above": [
+     "MeOH, H2SO4"
+    ]
+   },
+   {
+    "substrates": [
+     "ester"
+    ],
+    "products": [
+     "amide"
+    ],
+    "above": [
+     "NH3, MeOH"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "layout": "sequential",
+  "species": 4
+ }
+}

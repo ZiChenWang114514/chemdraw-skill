@@ -1,0 +1,38 @@
+{
+ "id": "20-mechanism-without-moves",
+ "sentence": "A mechanism step with no electron moves is refused, never guessed.",
+ "brief": {
+  "kind": "mechanism",
+  "species": [
+   {
+    "id": "a",
+    "smiles": "CC=O"
+   },
+   {
+    "id": "b",
+    "smiles": "CC([O-])O"
+   },
+   {
+    "id": "h",
+    "smiles": "[OH-]"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "a",
+     "h"
+    ],
+    "products": [
+     "b"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": false,
+  "errors_contain": [
+   "moves"
+  ]
+ }
+}

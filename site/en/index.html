@@ -60,6 +60,8 @@
           "acceptedAnswer": { "@type": "Answer", "text": "No. The command line covers every tool with the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server." } },
         { "@type": "Question", "name": "Can it build SAR and substrate-scope figures from Excel data?",
           "acceptedAnswer": { "@type": "Answer", "text": "Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures; updating the data keeps unrelated manual layout edits." } },
+        { "@type": "Question", "name": "Will it make up reaction conditions or predict a mechanism?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and the tool does not judge whether the mechanism is right." } },
         { "@type": "Question", "name": "Can it work out how much of each reagent to weigh?",
           "acceptedAnswer": { "@type": "Answer", "text": "Yes. cdx.py calc opens a calculator page where you draw or paste the reaction and edit equivalents, mmol, mass or volume; concentration, yield, atom economy and PMI follow. Amounts you did not give are defaults and are marked as assumed." } },
         { "@type": "Question", "name": "How far can I trust the safety information?",
@@ -325,12 +327,13 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap">
     <div class="head">
       <h2>What it handles</h2>
-      <p>Fourteen kinds of job: drawing, and the calculations that go with it.</p>
+      <p>Fifteen kinds of job: drawing, and the calculations that go with it.</p>
     </div>
     <dl class="caps">
       <div><dt>Structures and reactions</dt><dd>Resolve names and identifiers; draw, edit, clean, merge, split, convert and render CDXML or CDX.</dd></div>
       <div><dt>Paper figures</dt><dd>Crop the source, read it with DECIMER, compare side by side, fix the chemistry and assemble the layout.</dd></div>
       <div><dt>Patent Markush</dt><dd>Extract a generic structure from a patent figure and its claims as CXSMILES, a V3000 molfile and editable CDXML.</dd></div>
+      <div><dt>New figures from a request</dt><dd>From a sentence to a finished figure: a reaction, a multi-step route, a substrate-scope panel or a mechanism, drawn and checked by one command. Conditions come only from you, and mechanisms are drawn from the electron moves you list.</dd></div>
       <div><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations and boxed labels.</dd></div>
       <div><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.</dd></div>
       <div><dt>Comparison and properties</dt><dd>Similarity and exact identity; property sheets with MS adducts and logP; reaction balance with the missing by-product; every structure of a file as SMILES and InChI; names from ChemDraw, parsed back to check them.</dd></div>
@@ -338,7 +341,7 @@ Bonds:   13</code></pre></details></div>
       <div><dt>Characterization text</dt><dd>HRMS lines and whole paragraphs in ACS order: appearance, Rf, mp, rotation, IR, NMR, HRMS. Peak counts are checked against the structure and flagged, never changed.</dd></div>
       <div><dt>Route yield and PMI</dt><dd>Overall yield and cumulative PMI of a linear or convergent route. A missing number stays empty and is reported.</dd></div>
       <div><dt>Atom mapping</dt><dd>A built-in method that reports ambiguity, or RXNMapper and LocalMapper after one install command. Bond changes, reaction-centre SMARTS, a reaction type read from the structures, and map numbers written into a copy of the drawing.</dd></div>
-      <div><dt>Mechanisms</dt><dd>Electron-pushing arrows, charges and counterions placed from explicit atom coordinates.</dd></div>
+      <div><dt>Mechanisms</dt><dd>Curved arrows drawn from the electron moves you list, or electron-pushing arrows, charges and counterions placed from explicit atom coordinates.</dd></div>
       <div><dt>TLC and apparatus</dt><dd>Native TLC plates, lanes, spots and Rf; apparatus assembled from ChemDraw templates.</dd></div>
       <div><dt>Spectra and lab records</dt><dd>Peak picking and range integration on 1D NMR, numeric data as editable curves; LCMS, SciFinder RDF and notebook workflows.</dd></div>
       <div><dt>Word and PowerPoint</dt><dd>Embed live ChemDraw objects in Word and PowerPoint documents, built on Windows or macOS.</dd></div>
@@ -410,6 +413,10 @@ cd chemdraw-skill
       <details>
         <summary>Can it build SAR and substrate-scope figures from Excel data?</summary>
         <p>Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures; updating the data keeps unrelated manual layout edits. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">data-driven figures guide</a>.</p>
+      </details>
+      <details>
+        <summary>Will it make up reaction conditions or predict a mechanism?</summary>
+        <p>No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and an arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right. See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">drawing a new reaction scheme</a>.</p>
       </details>
       <details>
         <summary>Can it work out how much of each reagent to weigh?</summary>

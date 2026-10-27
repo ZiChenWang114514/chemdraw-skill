@@ -1,0 +1,52 @@
+{
+ "id": "08-divergent",
+ "sentence": "Benzaldehyde gives benzyl alcohol (NaBH4) and benzoic acid (KMnO4).",
+ "brief": {
+  "species": [
+   {
+    "id": "ald",
+    "smiles": "O=Cc1ccccc1"
+   },
+   {
+    "id": "alc",
+    "smiles": "OCc1ccccc1"
+   },
+   {
+    "id": "acid",
+    "smiles": "OC(=O)c1ccccc1"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "ald"
+    ],
+    "products": [
+     "alc"
+    ],
+    "above": [
+     "NaBH4"
+    ],
+    "below": [
+     "MeOH"
+    ]
+   },
+   {
+    "substrates": [
+     "ald"
+    ],
+    "products": [
+     "acid"
+    ],
+    "above": [
+     "KMnO4"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "layout": "divergent",
+  "species": 3
+ }
+}

@@ -157,6 +157,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | Area | What you get |
 | --- | --- |
 | **Structures and reactions** | Resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert and render CDXML or CDX documents. |
+| **New figures from a request** | A reaction, a multi-step route, a substrate-scope panel or a mechanism, drawn from a short brief with the chemistry and layout checked in the same command. [Details below](#one-command-figures). |
 | **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec, with abbreviation nodes, rich text, Chinese notes, arrows and boxed compound codes. |
 | **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
 | **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
@@ -165,7 +166,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly. |
 | **Spectra and scientific plots** | Peak picking and selected-region integration of processed 1D NMR data; numerical data as editable curves. |
 | **Patent Markush structures** | Generic structures from a patent image and claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing that follows the source layout. |
-| **Reaction mechanisms** | Mechanisms with explicit atom coordinates, electron arrows, charges and counterions. |
+| **Reaction mechanisms** | Curved arrows drawn from a list of electron moves, or reconstructed with explicit atom coordinates, charges and counterions. |
 | **Office documents** | Editable ChemDraw objects in desktop Word and PowerPoint documents, built with ChemDraw on Windows or macOS. |
 | **Experimental records** | File discovery and selected LCMS, SciFinder RDF and lab-book workflows. |
 | **ChemScript SDK** | Inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows (macOS answers the ChemScript operations and an emulation of the core SDK classes with ChemDraw, OPSIN and RDKit). |
@@ -184,6 +185,58 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 <p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="ACS Document 1996 reaction drawn from a JSON spec: an alpha,beta-unsaturated ester with a C10H21 abbreviation is hydrogenated with H2 and Pd/C"></p>
 
 Abbreviations stay real `GenericNickname` nodes with correct subscripts and label direction. Chinese characters are set in a CJK font while Latin text, digits and symbols stay in Arial. See the [ACS 1996 drawing guide](skill/chemdraw/references/acs1996-drawings.md).
+
+<a id="one-command-figures"></a>
+
+### A new figure from one request
+
+When the structures are known and the figure does not exist yet, ask for it in a sentence: "Draw aspirin from salicylic acid and acetic anhydride, H2SO4 (cat.), rt, 2 h, 85%." Your agent turns that into a short JSON brief, and one command draws the figure and checks it:
+
+```bash
+python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
+```
+
+```json
+{
+  "species": [
+    {"id": "SA", "smiles": "OC(=O)c1ccccc1O", "label": "1"},
+    {"id": "Ac2O", "name": "Ac2O"},
+    {"id": "ASP", "smiles": "CC(=O)Oc1ccccc1C(=O)O", "label": "2"}
+  ],
+  "steps": [
+    {"substrates": ["SA", "Ac2O"], "products": ["ASP"],
+     "above": ["H2SO4 (cat.)"], "below": ["rt, 2 h"], "yield": "85%"}
+  ]
+}
+```
+
+<p align="center"><img src="assets/readme/draw/scheme.png" width="85%" alt="Salicylic acid and acetic anhydride react with catalytic sulfuric acid at room temperature for 2 hours to give aspirin in 85% yield"></p>
+
+The same command draws three kinds of figure:
+
+| Figure | What the brief lists | What you get |
+| --- | --- | --- |
+| **Reaction or route** | Species, steps, conditions, yields | One reaction, a linear route, a convergent route whose arms merge, or one starting material with several products. Long routes wrap onto rows; `reversible` and `resonance` arrows are available. |
+| **Substrate scope** | Compounds with labels, groups and the values you measured | A panel packed onto as many editable pages as needed, each label and value kept next to its structure. A value you did not give shows a dash, never zero. |
+| **Mechanism** | Species, steps and each electron move | Curved arrows placed from the drawn coordinates, with full or half heads, routed around atoms and labels. |
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><img src="assets/readme/draw/mechanism.png" alt="Hydroxide adds to acetaldehyde: one curved arrow from the hydroxide to the carbonyl carbon and one from the carbonyl bond to oxygen"><br><sub>Mechanism: two curved arrows for a hydroxide addition</sub></td>
+    <td width="50%" align="center" valign="top"><img src="assets/readme/draw/scope.png" alt="Twelve benzamides in two groups with yield and ee under each structure"><br><sub>Substrate scope: twelve compounds on one page</sub></td>
+  </tr>
+</table>
+
+What the command does with a brief:
+
+- **Structures come from you or from a table.** A SMILES you give is used as written. A name is looked up in the built-in reagent table and then PubChem (not when `CHEMDRAW_OFFLINE=1`); a name that cannot be resolved stops the run and asks for a SMILES.
+- **Conditions come only from you.** A step without conditions is drawn without them and the report says so. Nothing is filled in from the tool's own chemistry.
+- **The chemistry is checked.** Atom and charge balance is computed for each step, and a missing by-product is named, not drawn. After saving, the structures in the file are compared with the brief.
+- **The geometry is checked.** Overlaps, text that is too small and a drawing wider than the page are measured. If a check fails, the figure is laid out once more with more room and the report says what changed.
+- **Mechanisms are drawn, not predicted.** You list the electron moves; a step without moves is refused. An arrow that starts on an atom with no lone pair, charge or radical is drawn and flagged.
+- **Nothing is overwritten.** The report lists every structure with where it came from, the checks that passed or did not run, and the path of the native PNG. Without ChemDraw the file is reported as an unrendered draft. Open the PNG before you use the figure.
+
+See [drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md) for the full brief and report.
 
 <a id="data-driven-publication-figures"></a>
 
@@ -507,6 +560,14 @@ No. The command line covers every tool and keeps the same worker isolation, nati
 <br>
 
 Yes. Use trusted structures with CSV or XLSX measurements to produce editable structure–activity relationship (SAR) panels or substrate-scope figures. Stable compound IDs retain data binding, and project updates preserve unrelated manual layout changes. See the [data-driven figure workflow](skill/chemdraw/references/data-driven-figures.md).
+
+</details>
+
+<details>
+<summary><b>Will it make up reaction conditions or predict a mechanism?</b></summary>
+<br>
+
+No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and the tool flags an arrow that starts where there is no lone pair or charge, but it does not judge whether the mechanism is right. See [a new figure from one request](#one-command-figures).
 
 </details>
 

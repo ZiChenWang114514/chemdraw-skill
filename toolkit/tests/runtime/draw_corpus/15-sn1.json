@@ -1,0 +1,90 @@
+{
+ "id": "15-sn1",
+ "sentence": "tert-Butyl chloride ionises (slow), then water captures the cation.",
+ "brief": {
+  "kind": "mechanism",
+  "species": [
+   {
+    "id": "tbuCl",
+    "smiles": "CC(C)(C)Cl",
+    "label": "1"
+   },
+   {
+    "id": "cat",
+    "smiles": "C[C+](C)C"
+   },
+   {
+    "id": "chl",
+    "smiles": "[Cl-]"
+   },
+   {
+    "id": "wat",
+    "smiles": "O"
+   },
+   {
+    "id": "ox",
+    "smiles": "CC(C)(C)[OH2+]",
+    "label": "2"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "tbuCl"
+    ],
+    "products": [
+     "cat",
+     "chl"
+    ],
+    "above": [
+     "slow"
+    ],
+    "moves": [
+     {
+      "from": {
+       "species": "tbuCl",
+       "bond": [
+        1,
+        4
+       ]
+      },
+      "to": {
+       "species": "tbuCl",
+       "atom": 4
+      }
+     }
+    ]
+   },
+   {
+    "substrates": [
+     "cat",
+     "wat"
+    ],
+    "products": [
+     "ox"
+    ],
+    "moves": [
+     {
+      "from": {
+       "species": "wat",
+       "atom": 0
+      },
+      "to": {
+       "species": "cat",
+       "atom": 1
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "kind": "mechanism",
+  "species": 5,
+  "arrows": 2,
+  "notes_contain": [
+   "again"
+  ]
+ }
+}

@@ -1,0 +1,40 @@
+{
+ "id": "06-unused-species",
+ "sentence": "A species that no step uses is reported, not drawn.",
+ "brief": {
+  "species": [
+   {
+    "id": "EtOH",
+    "smiles": "CCO"
+   },
+   {
+    "id": "AcH",
+    "smiles": "CC=O"
+   },
+   {
+    "id": "bu",
+    "smiles": "CCCC"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "EtOH"
+    ],
+    "products": [
+     "AcH"
+    ],
+    "above": [
+     "PCC"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "species": 3,
+  "notes_contain": [
+   "bu is not used"
+  ]
+ }
+}

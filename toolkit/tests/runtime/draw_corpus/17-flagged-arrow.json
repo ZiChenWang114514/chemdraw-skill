@@ -1,0 +1,53 @@
+{
+ "id": "17-flagged-arrow",
+ "sentence": "An arrow that starts on a carbon with no lone pair is drawn but flagged.",
+ "brief": {
+  "kind": "mechanism",
+  "species": [
+   {
+    "id": "ald",
+    "smiles": "CC=O"
+   },
+   {
+    "id": "hyd",
+    "smiles": "[OH-]"
+   },
+   {
+    "id": "alk",
+    "smiles": "CC([O-])O"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "ald",
+     "hyd"
+    ],
+    "products": [
+     "alk"
+    ],
+    "moves": [
+     {
+      "from": {
+       "species": "ald",
+       "atom": 0
+      },
+      "to": {
+       "species": "hyd",
+       "atom": 0
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "kind": "mechanism",
+  "species": 3,
+  "arrows": 1,
+  "warnings_contain": [
+   "lone pair"
+  ]
+ }
+}

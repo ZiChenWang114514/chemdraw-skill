@@ -1,0 +1,71 @@
+{
+ "id": "13-sn2",
+ "sentence": "Hydroxide displaces bromide from bromomethane (SN2).",
+ "brief": {
+  "kind": "mechanism",
+  "species": [
+   {
+    "id": "hyd",
+    "smiles": "[OH-]"
+   },
+   {
+    "id": "MeBr",
+    "smiles": "CBr"
+   },
+   {
+    "id": "MeOH",
+    "smiles": "CO"
+   },
+   {
+    "id": "br",
+    "smiles": "[Br-]"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "hyd",
+     "MeBr"
+    ],
+    "products": [
+     "MeOH",
+     "br"
+    ],
+    "moves": [
+     {
+      "from": {
+       "species": "hyd",
+       "atom": 0
+      },
+      "to": {
+       "species": "MeBr",
+       "atom": 0
+      }
+     },
+     {
+      "from": {
+       "species": "MeBr",
+       "bond": [
+        0,
+        1
+       ]
+      },
+      "to": {
+       "species": "MeBr",
+       "atom": 1
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "kind": "mechanism",
+  "species": 4,
+  "arrows": 2,
+  "balanced": [
+   true
+  ]
+ }
+}

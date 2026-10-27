@@ -1,0 +1,33 @@
+{
+ "id": "05-step-without-conditions",
+ "sentence": "Oxidise ethanol to acetaldehyde; the user gave no conditions.",
+ "brief": {
+  "species": [
+   {
+    "id": "EtOH",
+    "smiles": "CCO"
+   },
+   {
+    "id": "AcH",
+    "smiles": "CC=O"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "EtOH"
+    ],
+    "products": [
+     "AcH"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "species": 2,
+  "notes_contain": [
+   "has no conditions"
+  ]
+ }
+}
