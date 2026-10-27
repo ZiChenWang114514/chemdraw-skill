@@ -157,6 +157,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | 领域 | 能做什么 |
 | --- | --- |
 | **结构与反应** | 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档。 |
+| **按需求新画图** | 由简短的说明画出反应、多步路线、底物拓展图或机理，并在同一条命令里检查化学与版面。[详见下文](#one-command-figures)。 |
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
@@ -165,7 +166,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
 | **谱图与科研绘图** | 对已处理的一维 NMR 数据寻峰并做指定区间积分；把数值数据输出为可编辑曲线。 |
 | **专利 Markush 通式** | 从专利图片和权利要求文本提取通式：R 基、可变环、多中心键与重复次数，保存为 CXSMILES、V3000 molfile 和沿用原图版式的可编辑绘图。 |
-| **反应机理** | 按明确的原子坐标绘制机理，包括电子箭头、电荷和抗衡离子。 |
+| **反应机理** | 根据你列出的电子转移绘制弯箭头，或按明确的原子坐标复刻机理，包括电荷和抗衡离子。 |
 | **Office 文档** | 在桌面版 Word 和 PowerPoint 文档中嵌入可编辑的 ChemDraw 对象，可在 Windows 或 macOS 上用 ChemDraw 生成。 |
 | **实验记录** | 发现文件，并处理选定的 LCMS、SciFinder RDF 和实验记录工作流。 |
 | **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作，并模拟核心 SDK 类）。 |
@@ -186,6 +187,58 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 <p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="由 JSON 描述生成的 ACS Document 1996 反应图：带 C10H21 缩写的 α,β-不饱和酯经 H2、Pd/C 氢化"></p>
 
 缩写基团保存为真实的 `GenericNickname` 节点，下标与标签方向自动处理。中文字符使用中文字体，同一段里的英文、数字和符号保持 Arial。详见 [ACS 1996 绘图指南](skill/chemdraw/references/acs1996-drawings.md)。
+
+<a id="one-command-figures"></a>
+
+### 一句话生成新图
+
+结构已知、图还不存在时，直接说一句话：“用水杨酸和乙酸酐画阿司匹林，H2SO4（催化量），室温 2 h，收率 85%。”你的 agent 会把它整理成一份简短的 JSON 说明，一条命令就能画图并做检查：
+
+```bash
+python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
+```
+
+```json
+{
+  "species": [
+    {"id": "SA", "smiles": "OC(=O)c1ccccc1O", "label": "1"},
+    {"id": "Ac2O", "name": "Ac2O"},
+    {"id": "ASP", "smiles": "CC(=O)Oc1ccccc1C(=O)O", "label": "2"}
+  ],
+  "steps": [
+    {"substrates": ["SA", "Ac2O"], "products": ["ASP"],
+     "above": ["H2SO4 (cat.)"], "below": ["rt, 2 h"], "yield": "85%"}
+  ]
+}
+```
+
+<p align="center"><img src="assets/readme/draw/scheme.png" width="85%" alt="水杨酸与乙酸酐在催化量硫酸、室温下反应 2 小时，以 85% 收率得到阿司匹林"></p>
+
+同一条命令可以画三种图：
+
+| 图的类型 | 说明里要列出的内容 | 得到什么 |
+| --- | --- | --- |
+| **反应或路线** | 物种、步骤、条件、收率 | 单步反应、线性路线、两条支线汇合的收敛路线，或一个原料生成多个产物的发散路线。长路线自动换行；可用 `reversible`（平衡）和 `resonance`（共振）箭头。 |
+| **底物拓展** | 带编号、分组的化合物和你测得的数值 | 按需要排成多页可编辑版面，每个编号和数值都紧跟自己的结构。你没给的数值显示为短横线，绝不写成 0。 |
+| **反应机理** | 物种、步骤和每一次电子转移 | 根据已绘制的坐标放置弯箭头，区分全箭头和半箭头，并绕开原子和标签。 |
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><img src="assets/readme/draw/mechanism.png" alt="氢氧根加成到乙醛：一条弯箭头从氢氧根指向羰基碳，另一条从羰基键指向氧"><br><sub>机理：氢氧根加成，两条弯箭头</sub></td>
+    <td width="50%" align="center" valign="top"><img src="assets/readme/draw/scope.png" alt="两组共十二个苯甲酰胺，每个结构下方标出收率和 ee"><br><sub>底物拓展：十二个化合物排在一页</sub></td>
+  </tr>
+</table>
+
+这条命令对说明做的事：
+
+- **结构来自你或查表。** 你给的 SMILES 原样使用；名称先查内置试剂表，再查 PubChem（设置 `CHEMDRAW_OFFLINE=1` 时不联网）。无法解析的名称会让运行停下并要求提供 SMILES。
+- **条件只来自你。** 没有给条件的步骤就不画条件，报告里会注明；工具不会自己补充化学内容。
+- **检查化学。** 逐步计算原子与电荷是否守恒，缺少的副产物只会点名，不会画出来。保存之后，再把文件中的结构与说明逐一比对。
+- **检查几何。** 测量重叠、过小的文字和超出页宽的图形。检查不通过时，会留出更多空间重新排版一次，并在报告里说明改了什么。
+- **机理只画不推。** 电子转移由你列出，没有电子转移的步骤会被拒绝；箭头起点没有孤对电子、电荷或自由基时，照画但会标出提醒。
+- **不覆盖已有文件。** 报告列出每个结构的来源、通过或未运行的检查，以及原生 PNG 的路径。没有 ChemDraw 时，文件会被标为未渲染的草稿。使用前请先打开 PNG 看一遍。
+
+完整的说明格式和报告字段见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)。
 
 <a id="从数据生成可持续修改的论文图"></a>
 
@@ -507,6 +560,14 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <br>
 
 可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图。稳定的化合物 ID 保持数据对应，更新项目时保留无关的手工布局修改。详见[数据驱动绘图指南](skill/chemdraw/references/data-driven-figures.md)。
+
+</details>
+
+<details>
+<summary><b>它会编造反应条件或推测机理吗？</b></summary>
+<br>
+
+不会。按需求画的图，条件、收率和实测数值只取自你给的内容；缺的就保持缺失，并在报告里说明。解析不了的名称会被拒绝，而不是猜一个。机理只按你列出的电子转移绘制，箭头起点没有孤对电子或电荷时会提醒，但不会判断机理本身对不对。详见[一句话生成新图](#one-command-figures)。
 
 </details>
 

@@ -1,0 +1,95 @@
+{
+ "id": "04-wrapping-route",
+ "sentence": "A five-step nitration/reduction/acetylation/bromination route on a 300 pt wide figure.",
+ "brief": {
+  "species": [
+   {
+    "id": "s0",
+    "smiles": "c1ccccc1"
+   },
+   {
+    "id": "s1",
+    "smiles": "O=[N+]([O-])c1ccccc1"
+   },
+   {
+    "id": "s2",
+    "smiles": "Nc1ccccc1"
+   },
+   {
+    "id": "s3",
+    "smiles": "CC(=O)Nc1ccccc1"
+   },
+   {
+    "id": "s4",
+    "smiles": "CC(=O)Nc1ccc(Br)cc1"
+   },
+   {
+    "id": "s5",
+    "smiles": "Nc1ccc(Br)cc1"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "s0"
+    ],
+    "products": [
+     "s1"
+    ],
+    "above": [
+     "HNO3, H2SO4"
+    ]
+   },
+   {
+    "substrates": [
+     "s1"
+    ],
+    "products": [
+     "s2"
+    ],
+    "above": [
+     "H2, Pd/C"
+    ]
+   },
+   {
+    "substrates": [
+     "s2"
+    ],
+    "products": [
+     "s3"
+    ],
+    "above": [
+     "Ac2O"
+    ]
+   },
+   {
+    "substrates": [
+     "s3"
+    ],
+    "products": [
+     "s4"
+    ],
+    "above": [
+     "Br2, AcOH"
+    ]
+   },
+   {
+    "substrates": [
+     "s4"
+    ],
+    "products": [
+     "s5"
+    ],
+    "above": [
+     "HCl, H2O"
+    ]
+   }
+  ],
+  "max_width": 300
+ },
+ "expect": {
+  "ok": true,
+  "species": 6,
+  "no_too_wide": true
+ }
+}

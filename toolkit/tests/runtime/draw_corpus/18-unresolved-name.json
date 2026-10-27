@@ -1,0 +1,32 @@
+{
+ "id": "18-unresolved-name",
+ "sentence": "A name that no table knows stops the run instead of being guessed.",
+ "brief": {
+  "species": [
+   {
+    "id": "x",
+    "name": "no-such-compound-zzz"
+   },
+   {
+    "id": "y",
+    "smiles": "CCO"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "x"
+    ],
+    "products": [
+     "y"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": false,
+  "errors_contain": [
+   "no-such-compound-zzz"
+  ]
+ }
+}

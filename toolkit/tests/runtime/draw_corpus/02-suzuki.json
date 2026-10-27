@@ -1,0 +1,47 @@
+{
+ "id": "02-suzuki",
+ "sentence": "Suzuki coupling of 4-bromoanisole and phenylboronic acid, Pd(PPh3)4, K2CO3, toluene/H2O, 90 C, 12 h, 92 %.",
+ "brief": {
+  "species": [
+   {
+    "id": "ArBr",
+    "smiles": "COc1ccc(Br)cc1",
+    "label": "1"
+   },
+   {
+    "id": "PhB",
+    "smiles": "OB(O)c1ccccc1",
+    "label": "2"
+   },
+   {
+    "id": "BiAr",
+    "smiles": "COc1ccc(cc1)-c1ccccc1",
+    "label": "3"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "ArBr",
+     "PhB"
+    ],
+    "products": [
+     "BiAr"
+    ],
+    "above": [
+     "Pd(PPh3)4 (5 mol%)",
+     "K2CO3"
+    ],
+    "below": [
+     "toluene/H2O, 90 C, 12 h"
+    ],
+    "yield": "92%"
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "layout": "linear",
+  "species": 3
+ }
+}

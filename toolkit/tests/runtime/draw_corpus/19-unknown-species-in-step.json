@@ -1,0 +1,28 @@
+{
+ "id": "19-unknown-species-in-step",
+ "sentence": "A step that names a species that was never defined is refused.",
+ "brief": {
+  "species": [
+   {
+    "id": "a",
+    "smiles": "CCO"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "a"
+    ],
+    "products": [
+     "ghost"
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": false,
+  "errors_contain": [
+   "ghost"
+  ]
+ }
+}

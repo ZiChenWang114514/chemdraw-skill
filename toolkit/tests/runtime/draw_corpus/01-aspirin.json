@@ -1,0 +1,51 @@
+{
+ "id": "01-aspirin",
+ "sentence": "Draw aspirin from salicylic acid and acetic anhydride with catalytic H2SO4, rt, 2 h, 85 %.",
+ "brief": {
+  "species": [
+   {
+    "id": "SA",
+    "smiles": "OC(=O)c1ccccc1O",
+    "label": "1"
+   },
+   {
+    "id": "Ac2O",
+    "name": "Ac2O"
+   },
+   {
+    "id": "ASP",
+    "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+    "label": "2"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "SA",
+     "Ac2O"
+    ],
+    "products": [
+     "ASP"
+    ],
+    "above": [
+     "H2SO4 (cat.)"
+    ],
+    "below": [
+     "rt, 2 h"
+    ],
+    "yield": "85%"
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "layout": "linear",
+  "species": 3,
+  "balanced": [
+   false
+  ],
+  "warnings_contain": [
+   "does not balance"
+  ]
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "id": "12-scope-missing-value",
+ "sentence": "A scope panel where one ee was not measured: it shows a dash, never zero.",
+ "brief": {
+  "kind": "scope",
+  "fields": [
+   {
+    "key": "yield",
+    "label": "Yield"
+   },
+   {
+    "key": "ee",
+    "label": "ee"
+   }
+  ],
+  "species": [
+   {
+    "id": "a",
+    "smiles": "Cc1ccc(cc1)C(=O)N",
+    "label": "5a",
+    "values": {
+     "yield": "88%",
+     "ee": "95%"
+    }
+   },
+   {
+    "id": "b",
+    "smiles": "COc1ccc(cc1)C(=O)N",
+    "label": "5b",
+    "values": {
+     "yield": "91%"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "kind": "scope",
+  "species": 2,
+  "notes_contain": [
+   "b has no ee"
+  ]
+ }
+}

@@ -1,0 +1,150 @@
+{
+ "id": "11-scope-twelve",
+ "sentence": "A 12-compound substrate scope of substituted benzamides with yield and ee, grouped by position.",
+ "brief": {
+  "kind": "scope",
+  "title": "Substrate scope",
+  "conditions": "Conditions as supplied by the user",
+  "footnotes": [
+   "a Isolated yield."
+  ],
+  "fields": [
+   {
+    "key": "yield",
+    "label": "Yield"
+   },
+   {
+    "key": "ee",
+    "label": "ee"
+   }
+  ],
+  "species": [
+   {
+    "id": "4a",
+    "smiles": "Cc1ccc(cc1)C(=O)N",
+    "label": "4a",
+    "group": "para",
+    "values": {
+     "yield": "88%",
+     "ee": "95%"
+    }
+   },
+   {
+    "id": "4b",
+    "smiles": "COc1ccc(cc1)C(=O)N",
+    "label": "4b",
+    "group": "para",
+    "values": {
+     "yield": "91%",
+     "ee": "94%"
+    }
+   },
+   {
+    "id": "4c",
+    "smiles": "Fc1ccc(cc1)C(=O)N",
+    "label": "4c",
+    "group": "para",
+    "values": {
+     "yield": "85%",
+     "ee": "96%"
+    }
+   },
+   {
+    "id": "4d",
+    "smiles": "Clc1ccc(cc1)C(=O)N",
+    "label": "4d",
+    "group": "para",
+    "values": {
+     "yield": "83%",
+     "ee": "93%"
+    }
+   },
+   {
+    "id": "4e",
+    "smiles": "Brc1ccc(cc1)C(=O)N",
+    "label": "4e",
+    "group": "para",
+    "values": {
+     "yield": "80%",
+     "ee": "92%"
+    }
+   },
+   {
+    "id": "4f",
+    "smiles": "FC(F)(F)c1ccc(cc1)C(=O)N",
+    "label": "4f",
+    "group": "para",
+    "values": {
+     "yield": "76%",
+     "ee": "97%"
+    }
+   },
+   {
+    "id": "4g",
+    "smiles": "Cc1cccc(c1)C(=O)N",
+    "label": "4g",
+    "group": "meta",
+    "values": {
+     "yield": "84%",
+     "ee": "95%"
+    }
+   },
+   {
+    "id": "4h",
+    "smiles": "COc1cccc(c1)C(=O)N",
+    "label": "4h",
+    "group": "meta",
+    "values": {
+     "yield": "87%",
+     "ee": "93%"
+    }
+   },
+   {
+    "id": "4i",
+    "smiles": "Fc1cccc(c1)C(=O)N",
+    "label": "4i",
+    "group": "meta",
+    "values": {
+     "yield": "82%",
+     "ee": "94%"
+    }
+   },
+   {
+    "id": "4j",
+    "smiles": "Clc1cccc(c1)C(=O)N",
+    "label": "4j",
+    "group": "meta",
+    "values": {
+     "yield": "79%",
+     "ee": "92%"
+    }
+   },
+   {
+    "id": "4k",
+    "smiles": "Brc1cccc(c1)C(=O)N",
+    "label": "4k",
+    "group": "meta",
+    "values": {
+     "yield": "77%",
+     "ee": "91%"
+    }
+   },
+   {
+    "id": "4l",
+    "smiles": "FC(F)(F)c1cccc(c1)C(=O)N",
+    "label": "4l",
+    "group": "meta",
+    "values": {
+     "yield": "72%",
+     "ee": "96%"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "kind": "scope",
+  "species": 12,
+  "pages": 1
+ }
+}

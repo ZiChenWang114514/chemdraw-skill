@@ -1,0 +1,81 @@
+{
+ "id": "16-mechanism-chain",
+ "sentence": "A cyclobutylcarbinyl cation forms and then expands to a cyclopentyl cation.",
+ "brief": {
+  "kind": "mechanism",
+  "species": [
+   {
+    "id": "open",
+    "smiles": "C=CCC[CH2+]",
+    "label": "1"
+   },
+   {
+    "id": "ring4",
+    "smiles": "[CH2+]C1CCC1"
+   },
+   {
+    "id": "ring5",
+    "smiles": "C1CC[CH+]C1",
+    "label": "2"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "open"
+    ],
+    "products": [
+     "ring4"
+    ],
+    "moves": [
+     {
+      "from": {
+       "species": "open",
+       "bond": [
+        0,
+        1
+       ]
+      },
+      "to": {
+       "species": "open",
+       "atom": 4
+      }
+     }
+    ]
+   },
+   {
+    "substrates": [
+     "ring4"
+    ],
+    "products": [
+     "ring5"
+    ],
+    "moves": [
+     {
+      "from": {
+       "species": "ring4",
+       "bond": [
+        1,
+        2
+       ]
+      },
+      "to": {
+       "species": "ring4",
+       "atom": 0
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "kind": "mechanism",
+  "species": 3,
+  "arrows": 2,
+  "balanced": [
+   true,
+   true
+  ]
+ }
+}

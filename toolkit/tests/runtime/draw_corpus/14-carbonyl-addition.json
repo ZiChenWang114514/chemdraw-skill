@@ -1,0 +1,71 @@
+{
+ "id": "14-carbonyl-addition",
+ "sentence": "Hydroxide adds to acetaldehyde: show the electron pushing.",
+ "brief": {
+  "kind": "mechanism",
+  "species": [
+   {
+    "id": "ald",
+    "smiles": "CC=O",
+    "label": "1"
+   },
+   {
+    "id": "hyd",
+    "smiles": "[OH-]"
+   },
+   {
+    "id": "alk",
+    "smiles": "CC([O-])O",
+    "label": "2"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "ald",
+     "hyd"
+    ],
+    "products": [
+     "alk"
+    ],
+    "above": [
+     "H2O"
+    ],
+    "moves": [
+     {
+      "from": {
+       "species": "hyd",
+       "atom": 0
+      },
+      "to": {
+       "species": "ald",
+       "atom": 1
+      }
+     },
+     {
+      "from": {
+       "species": "ald",
+       "bond": [
+        1,
+        2
+       ]
+      },
+      "to": {
+       "species": "ald",
+       "atom": 2
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "kind": "mechanism",
+  "species": 3,
+  "arrows": 2,
+  "balanced": [
+   true
+  ]
+ }
+}

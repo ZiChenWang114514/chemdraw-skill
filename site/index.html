@@ -62,6 +62,8 @@
           "acceptedAnswer": { "@type": "Answer", "text": "不需要。命令行覆盖全部工具，并保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。" } },
         { "@type": "Question", "name": "能从 Excel 实验数据生成 SAR 图和底物拓展图吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图；更新数据时保留无关的手工布局修改。" } },
+        { "@type": "Question", "name": "它会编造反应条件或推测机理吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "不会。按需求画的图，条件、收率和实测数值只取自你给的内容，缺的就保持缺失，并在报告里说明。解析不了的名称会被拒绝，而不是猜一个。机理只按你列出的电子转移绘制，不会判断机理本身对不对。" } },
         { "@type": "Question", "name": "能帮我算每种试剂该称多少吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "可以。cdx.py calc 会打开计算器页面，画出或粘贴反应后，改当量、mmol、质量或体积中的任何一个，浓度、收率、原子经济性和 PMI 随之变化。你没有给出的用量使用默认值，并标明是假设值。" } },
         { "@type": "Question", "name": "安全信息可以信到什么程度？",
@@ -327,12 +329,13 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap">
     <div class="head">
       <h2>能做什么</h2>
-      <p>十四类工作：绘图，以及随之而来的计算。</p>
+      <p>十五类工作：绘图，以及随之而来的计算。</p>
     </div>
     <dl class="caps">
       <div><dt>结构与反应</dt><dd>解析名称和标识符；绘制、编辑、清理、合并、拆分、转换和渲染 CDXML / CDX。</dd></div>
       <div><dt>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对、修正化学，组装条件与版面。</dd></div>
       <div><dt>专利 Markush</dt><dd>从专利图和权利要求提取通式，输出 CXSMILES、V3000 molfile 和可编辑 CDXML。</dd></div>
+      <div><dt>按需求新画图</dt><dd>一句话到成图：反应、多步路线、底物拓展图和机理，用一条命令画出并检查。条件只取自你给的内容，缺的不补，机理只按你列出的电子转移绘制。</dd></div>
       <div><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释和带框编号。</dd></div>
       <div><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。</dd></div>
       <div><dt>比较与性质</dt><dd>相似度与精确身份比较；含 MS 加合物和 logP 的性质表；反应配平检查，指出缺失的副产物；把文件中的全部结构导出为 SMILES 和 InChI；ChemDraw 生成的名称会读回核对。</dd></div>
@@ -340,7 +343,7 @@ Bonds:   13</code></pre></details></div>
       <div><dt>表征文字</dt><dd>HRMS 表征句和按 ACS 顺序排列的整段文字：外观、Rf、熔点、比旋光度、IR、核磁、HRMS。峰数按结构核对，不一致只提示，不改数据。</dd></div>
       <div><dt>路线收率与 PMI</dt><dd>线性或汇聚路线的总收率和累计 PMI。缺少的数字保持为空并给出提示。</dd></div>
       <div><dt>原子映射</dt><dd>内置方法遇到歧义会如实报告；也可一条命令安装 RXNMapper 与 LocalMapper。给出键变化、反应中心 SMARTS、仅凭结构判断的反应类型，并把映射编号写进图的副本。</dd></div>
-      <div><dt>反应机理</dt><dd>按原子坐标绘制电子箭头、电荷和抗衡离子。</dd></div>
+      <div><dt>反应机理</dt><dd>按你列出的电子转移绘制弯箭头，或按原子坐标复刻电子箭头、电荷和抗衡离子。</dd></div>
       <div><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点和 Rf 计算；ChemDraw 装置模板组装。</dd></div>
       <div><dt>谱图与实验记录</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线；处理 LCMS、SciFinder RDF 和实验记录。</dd></div>
       <div><dt>Word 与 PPT</dt><dd>在 Word、PowerPoint 文档中嵌入可编辑的 ChemDraw 对象（Windows 或 macOS 上生成）。</dd></div>
@@ -412,6 +415,10 @@ cd chemdraw-skill
       <details>
         <summary>能从 Excel 实验数据生成 SAR 图和底物拓展图吗？</summary>
         <p>可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图；更新数据时保留无关的手工布局修改。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">数据驱动绘图指南</a>。</p>
+      </details>
+      <details>
+        <summary>它会编造反应条件或推测机理吗？</summary>
+        <p>不会。按需求画的图，条件、收率和实测数值只取自你给的内容，缺的就保持缺失，并在报告里说明。解析不了的名称会被拒绝，而不是猜一个。机理只按你列出的电子转移绘制，箭头起点没有孤对电子或电荷时会提醒，但不会判断机理本身对不对。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">绘制新反应图</a>。</p>
       </details>
       <details>
         <summary>能帮我算每种试剂该称多少吗？</summary>

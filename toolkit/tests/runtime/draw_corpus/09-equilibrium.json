@@ -1,0 +1,49 @@
+{
+ "id": "09-equilibrium",
+ "sentence": "Fischer esterification as an equilibrium with acid catalysis.",
+ "brief": {
+  "species": [
+   {
+    "id": "AcOH",
+    "smiles": "CC(=O)O"
+   },
+   {
+    "id": "EtOH",
+    "smiles": "CCO"
+   },
+   {
+    "id": "EtOAc",
+    "smiles": "CC(=O)OCC"
+   },
+   {
+    "id": "H2O",
+    "smiles": "O"
+   }
+  ],
+  "steps": [
+   {
+    "substrates": [
+     "AcOH",
+     "EtOH"
+    ],
+    "products": [
+     "EtOAc",
+     "H2O"
+    ],
+    "above": [
+     "H+"
+    ],
+    "arrow": "reversible"
+   }
+  ]
+ },
+ "expect": {
+  "ok": true,
+  "layout": "linear",
+  "species": 4,
+  "balanced": [
+   true
+  ],
+  "arrow_attr": "HalfLeft"
+ }
+}
