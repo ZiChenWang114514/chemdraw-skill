@@ -31,8 +31,14 @@ from typing import Callable, Optional
 
 ROOT = Path(__file__).resolve().parents[1]
 CORPUS = ROOT / "toolkit" / "tests" / "runtime" / "draw_corpus"
-# Tools that put a file on disk without going through the shell.
-WRITE_TOOLS = {"write", "edit", "strreplace", "str_replace", "multiedit", "create"}
+# Tools that create a file without going through the shell. Editing a file the toolkit produced is not typing it by hand.
+WRITE_TOOLS = {"write", "create"}
+# Changing or removing the variable that points at the (missing) ChemDraw is leaving the exercise's host.
+ISOLATION_BYPASS = re.compile(r"(?:-u\s+|unset\s+|Remove-Item\s+Env:)CHEMDRAW_EXE"
+                              r"|(?:\$env:|\bset\s+|\bexport\s+|(?<![\w$.\"'/-]))CHEMDRAW_EXE\s*=")
+EXERCISE_NOTE = ("\n\nExercise setup: ChemDraw is deliberately unavailable on this host (CHEMDRAW_EXE points at a "
+                 "missing file). Do not start ChemDraw or change that variable; work as the Skill describes for "
+                 "a host without ChemDraw.")
 PATH_KEYS = ("path", "file_path", "filePath", "file")
 # Where agents keep their own installed copies; the copy under test is always passed in explicitly.
 FOREIGN_SKILL = re.compile(r"(?:\.codex/skills|\.claude/skills|\.kimi-code/skills|\.pi/agent/skills"
@@ -78,6 +84,10 @@ class Run:
                 if re.search(r"cdx\.py['\"]?\s+(draw|build|call|render)\b", c.text)
                 and c.result.strip() and '"ok": false' not in c.result and "Traceback" not in c.result]
 
+    def isolation_bypassed(self) -> bool:
+        """The agent unset or replaced CHEMDRAW_EXE, which could start the user's own ChemDraw."""
+        return any(ISOLATION_BYPASS.search(c.text) for c in self.commands)
+
     def foreign_skill_use(self) -> bool:
         """The agent read or ran a copy of the Skill installed elsewhere, so the run says nothing about this build."""
         return any(FOREIGN_SKILL.search(c.text.replace("\\", "/")) for c in self.commands)
@@ -91,11 +101,12 @@ def _write_target(name: str, arguments: dict) -> Optional[str]:
 
 def _shell_write(command: str) -> Optional[str]:
     """A .cdxml typed through the shell (redirect, tee, Set-Content) rather than produced by cdx.py."""
-    if re.search(r"<\s*CDXML", command):
+    verb = r"(?:(?:^|\s)>>?|\btee\b|\bSet-Content\b|\bOut-File\b|\.write(?:_text)?\()"
+    if re.search(r"<\s*CDXML", command) and re.search(verb, command):
         return "typed.cdxml"
     if "cdx.py" in command:
         return None
-    hit = re.search(r"(?:>|tee\s|Set-Content\s|Out-File\s)[^|;&\n]*?([\w./\\-]+\.cdxml)", command)
+    hit = re.search(r"(?:(?:^|\s)>>?|\btee\b|\bSet-Content\b|\bOut-File\b)\s+(?:-\w+\s+\S+\s+)*[\"']?([\w./\\:-]+\.cdxml)", command)
     return hit.group(1) if hit else None
 
 
@@ -303,11 +314,15 @@ DRAW_TEXT = {
 }
 
 
+# The corpus sentence names the reaction; a mechanism drawing has to be asked for.
+DRAW_HINT = {"13-sn2": " Show the electron movement with curved arrows."}
+
+
 def _draw_task(task_id: str) -> Task:
     case = json.loads((CORPUS / f"{task_id}.json").read_text(encoding="utf-8"))
     steps = len(case["brief"].get("steps", []))
     prompt = (f"Make an editable ChemDraw (.cdxml) drawing for the request below and save it as "
-              f"out/{task_id}.cdxml in the current folder.\n\n{case['sentence']}")
+              f"out/{task_id}.cdxml in the current folder.\n\n{case['sentence']}{DRAW_HINT.get(task_id, '')}")
     expect = {"species": case["expect"]["species"], "arrows": max(case["expect"].get("arrows", 0), steps),
               "text": DRAW_TEXT[task_id]}
     return Task(task_id, "draw", prompt, expect=expect)
@@ -464,9 +479,10 @@ def run_one(name: str, cell: Cell, task: Task, rep: int, skills: Path, out: Path
     task.setup(work)
     place_skill(cell, work, skills)
     prompt_file = folder / "prompt.md"
-    prompt_file.write_text(task.prompt, encoding="utf-8")
+    prompt = task.prompt + EXERCISE_NOTE
+    prompt_file.write_text(prompt, encoding="utf-8")
     started = time.time()
-    rc, stdout, stderr, timed_out = _execute(build_command(cell, task.prompt, skills, prompt_file, work), work,
+    rc, stdout, stderr, timed_out = _execute(build_command(cell, prompt, skills, prompt_file, work), work,
                                              eval_env(), timeout)
     seconds = round(time.time() - started, 1)
     (folder / "transcript.jsonl").write_text(stdout, encoding="utf-8")
@@ -475,7 +491,7 @@ def run_one(name: str, cell: Cell, task: Task, rep: int, skills: Path, out: Path
     if not run.error and rc != 0 and not run.final:
         run.error = (stderr.strip().splitlines() or [f"exit code {rc}"])[-1][:300]
     # A transport glitch after the agent finished (an answer exists) still leaves files worth scoring.
-    contaminated = run.foreign_skill_use()
+    contaminated = run.foreign_skill_use() or run.isolation_bypassed()
     unusable = timed_out or contaminated or (run.error and not run.final)
     checks = [] if unusable else score(task, work, run, missing)
     status = ("timeout" if timed_out else "contaminated" if contaminated else "harness_error" if unusable

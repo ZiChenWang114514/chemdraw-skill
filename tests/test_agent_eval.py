@@ -113,6 +113,25 @@ class ScorerTests(unittest.TestCase):
         self.assertTrue(agent_eval._shell_write(typed))
         self.assertIsNone(agent_eval._shell_write("python cdx.py draw brief.json out/01-aspirin.cdxml"))
 
+    def test_reading_a_cdxml_back_is_not_a_hand_write(self) -> None:
+        for command in ("grep -o '<t[^>]*>[^<]*</t>' out/08-divergent.cdxml",
+                        "python - <<'PY'\ns=open('out/a.cdxml').read()\nassert '<CDXML' in s\nPY",
+                        "cat out/a.cdxml | head -20"):
+            self.assertIsNone(agent_eval._shell_write(command), command)
+        self.assertTrue(agent_eval._shell_write("cat > out/a.cdxml <<'EOF'\nx\nEOF"))
+        self.assertTrue(agent_eval._shell_write("'x' | Set-Content -Encoding UTF8 out/a.cdxml"))
+
+    def test_leaving_the_chemdraw_free_host_is_flagged(self) -> None:
+        for command in ("env -u CHEMDRAW_EXE python cdx.py render a.cdxml", "unset CHEMDRAW_EXE", "export CHEMDRAW_EXE=/x/ChemDraw.exe",
+                        "$env:CHEMDRAW_EXE = 'C:\\x.exe'", "Remove-Item Env:CHEMDRAW_EXE"):
+            self.assertTrue(_run((command, "")).isolation_bypassed(), command)
+        for command in ('echo "EXE=$CHEMDRAW_EXE"', "python cdx.py doctor", "grep -n CHEMDRAW_EXE references/operations.md"):
+            self.assertFalse(_run((command, "")).isolation_bypassed(), command)
+
+    def test_editing_a_toolkit_file_is_not_a_hand_write(self) -> None:
+        self.assertIsNone(agent_eval._write_target("edit", {"path": "out/a.cdxml"}))
+        self.assertEqual(agent_eval._write_target("write", {"path": "out/a.cdxml"}), "out/a.cdxml")
+
     def test_a_drawing_needs_a_toolkit_command_that_succeeded(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "out"
