@@ -153,6 +153,10 @@ ChemDraw for macOS is driven through AppleScript (`osascript`) instead of COM. T
 
 `cdx.py py -m cdxml_toolkit.mcp_runtime --transport streamable-http` serves the tools over HTTP, default `127.0.0.1:8029`. Non-loopback listening requires `CHEMDRAW_MCP_HTTP_API_KEY` (at least 32 bytes, bearer header); wildcard hosts additionally need `--allowed-host`. `/health` is public and content-free; `/metrics` (Prometheus) needs the token when authentication is on and never records arguments, molecules, filenames or outputs. The server schedules one ChemDraw COM worker at a time; different ports do not bypass the mutex. Related variables: `CHEMDRAW_MCP_TRANSPORT`, `CHEMDRAW_MCP_HTTP_HOST`, `CHEMDRAW_MCP_HTTP_PORT`, `CHEMDRAW_MCP_HTTP_API_KEY`.
 
+## No ChemDraw on this host
+
+When `cdx.py doctor` reports native ChemDraw unavailable (Linux, an unlicensed machine, a server), CDXML building (`build`, `draw_molecule`, `render_scheme`), parsing, RDKit, comparison and DECIMER recognition still work; rendering, CDX conversion, cleanup and Office previews do not. Say so at the start, deliver the CDXML marked as an unrendered draft, and ask the user to open it in ChemDraw. An RDKit picture may help your own check, but label it as such and never present it as the native render.
+
 ## Do Not Use Directly
 
 Do not launch private ChemScript server commands, call ChemDraw COM outside the worker, or bypass the tool registry.

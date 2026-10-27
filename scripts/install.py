@@ -59,6 +59,8 @@ AGENTS = {
     'copilot': ('.copilot/skills', '.github/skills'),
     'cursor': ('.cursor/skills', '.cursor/skills'),
     'opencode': ('.config/opencode/skills', '.opencode/skills'),
+    'kimi': ('.kimi-code/skills', '.kimi-code/skills'),
+    'pi': ('.pi/agent/skills', '.pi/skills'),
 }
 # Never copied into an installation; runtime.local.json is written per installation.
 IGNORED = ('__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', '*.pyc', '*.pyo',

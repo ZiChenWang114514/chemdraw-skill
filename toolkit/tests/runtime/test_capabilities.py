@@ -35,7 +35,7 @@ def test_capability_report_is_content_free_and_has_schema_digest():
 
     assert result["ok"] is True
     assert result["metadata"] == {"content_free": True}
-    assert result["outputs"]["tool_count"] == 59
+    assert result["outputs"]["tool_count"] == len(tool_registry.build_registry("full"))
     assert len(result["outputs"]["tool_schema_sha256"]) == 64
     assert "request_payload" not in result["outputs"]
 

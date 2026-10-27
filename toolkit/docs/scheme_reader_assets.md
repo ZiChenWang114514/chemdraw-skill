@@ -286,7 +286,7 @@ structured narratives, ML enrichment, and bond-change analysis for all 62 scheme
 ### Atom Mapping (RXNMapper)
 
 ```python
-# Via subprocess to rxn-experiments conda env (GPU-accelerated)
+# Via a subprocess in an environment that has RXNMapper (GPU-accelerated)
 from cdxml_toolkit.scheme_reader_verify import enrich_scheme, batch_enrich_schemes
 
 enrichment = enrich_scheme(desc)

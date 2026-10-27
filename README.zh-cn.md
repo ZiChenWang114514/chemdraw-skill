@@ -127,7 +127,7 @@ python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
 | --- | --- | --- |
 | `claude` | `~/.claude/skills/` | Claude Code（GitHub Copilot 和 OpenCode 也会读取） |
 | `agents` | `~/.agents/skills/` | Agent Skills 通用目录：Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等 |
-| `gemini`、`copilot`、`cursor`、`opencode` | 各 Agent 自己的目录 | 需要装到专属目录时使用 |
+| `gemini`、`copilot`、`cursor`、`opencode`、`kimi`、`pi` | 各 Agent 自己的目录 | 需要装到专属目录时使用 |
 
 - `--project <仓库>` 安装到项目级目录（`.claude/skills/`、`.agents/skills/`、`.github/skills/` 等）；`--destination <目录>` 可装到任意位置。
 - 不支持自动发现 Skill 的 Agent，只需在它的指令文件里加一行指向 `SKILL.md`。
@@ -334,7 +334,7 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 <summary><b>增量流程：</b>修改三处标题，原生调用 8 → 2 次</summary>
 <br>
 
-关联化学与绘图记录、验证缓存依赖、按变化局部检查，并分别验收原图版和兼容版。在一次修改三处标题字号的回放中，原生调用从 8 次减至 2 次，耗时从 33.53 秒降至 8.88 秒。[原图画法版](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [使用流程](skill/chemdraw/references/incremental-reconstruction.md) · [实测证据](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
+关联化学与绘图记录、验证缓存依赖、按变化局部检查，并分别验收原图版和兼容版。只修改变化的三处标题字号时，下方链接的实测中原生调用从 8 次减至 2 次，耗时从 33.53 秒降至 8.88 秒。[原图画法版](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [使用流程](skill/chemdraw/references/incremental-reconstruction.md) · [实测证据](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
 
 </details>
 
@@ -382,7 +382,7 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 
 [可编辑 CDXML](assets/readme/markush/markush.cdxml) · [Markush 结构定义](assets/readme/markush/markush.json) · [CXSMILES](assets/readme/markush/markush.cxsmiles) · [V3000 molfile](assets/readme/markush/markush.mol) · [验证与局限](assets/readme/markush/provenance.json) · [工作流程](skill/chemdraw/references/markush.md)
 
-输入是一张专利通式图和一段权利要求文本。结构里有 R 基和连接基、两个可变环、一个可以连在三个环位置之一的基团，以及重复次数。一个小型低成本模型从零上下文开始，只靠本 Skill 和 `cdx.py markush` 完成了整个提取：它负责转录标签、核对读回图、检查左右对照图，并把每条权利要求转成取值。几何、结构和绘图都由代码完成。结果与手写的参考结构逐原子一致，绘图沿用原图版式（墨迹重合度 0.99）。结构同时保存为 CXSMILES 和 V3000 molfile，其他化学软件也能读取。
+输入是一张专利通式图和一段权利要求文本。结构里有 R 基和连接基、两个可变环、一个可以连在三个环位置之一的基团，以及重复次数。`cdx.py markush` 引导整个提取：agent 负责转录标签、核对读回图、检查左右对照图，并把每条权利要求转成取值，几何、结构和绘图都由代码完成。在附带的示例中，结果与手写的参考结构逐原子一致，绘图沿用原图版式（所绘墨迹与原图的重合度为 0.99）。结构同时保存为 CXSMILES 和 V3000 molfile，其他化学软件也能读取。
 
 ### 原生科研绘图
 

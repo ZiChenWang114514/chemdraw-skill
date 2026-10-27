@@ -97,14 +97,24 @@ class InstallerTests(unittest.TestCase):
             self.assertFalse((home / ".claude").exists())
 
     def test_every_agent_preset_has_user_and_project_folders(self) -> None:
-        agents = ["claude", "agents", "gemini", "copilot", "cursor", "opencode"]
+        agents = ["claude", "agents", "gemini", "copilot", "cursor", "opencode", "kimi", "pi"]
         with tempfile.TemporaryDirectory() as tmp:
             result = run("--agent", *agents, "--project", tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             folders = {Path(i["destination"]).relative_to(Path(tmp).resolve()).as_posix()
                        for i in json.loads(result.stdout)["installations"]}
         self.assertEqual(folders, {f"{d}/skills/chemdraw" for d in
-                                   (".claude", ".agents", ".gemini", ".github", ".cursor", ".opencode")})
+                                   (".claude", ".agents", ".gemini", ".github", ".cursor", ".opencode",
+                                    ".kimi-code", ".pi")})
+
+    def test_kimi_and_pi_user_folders_are_the_ones_the_agents_read(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve()
+            result = run("--agent", "kimi", "pi", home=home)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            folders = {Path(i["destination"]).relative_to(home).as_posix()
+                       for i in json.loads(result.stdout)["installations"]}
+        self.assertEqual(folders, {".kimi-code/skills/chemdraw", ".pi/agent/skills/chemdraw"})
 
     def test_apply_installs_each_agent_copy_with_a_manifest_and_no_caches(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

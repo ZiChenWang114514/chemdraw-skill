@@ -109,7 +109,7 @@ The GitHub build workflow creates inspectable wheel and source artifacts. PyPI
 publishing remains disabled until the community distribution name is reserved
 and Trusted Publishing is configured with an approved GitHub environment.
 
-## Initial maintenance priorities
+## Maintenance priorities
 
 1. Verify the PyPI `0.5.17` source archive against upstream history.
 2. Reserve the community distribution on PyPI and configure Trusted Publishing.
