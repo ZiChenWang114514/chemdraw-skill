@@ -17,7 +17,7 @@ The project website lives at <https://zichenwang114514.github.io/chemdraw-skill/
 | `site/404.html` | Served by GitHub Pages for unknown paths. |
 | `assets/readme/gallery/` | Gallery images shared with the READMEs. The deploy copies them to `/gallery/`. |
 
-Both pages carry `canonical` and `hreflang` links to each other, Open Graph tags and JSON-LD (`SoftwareSourceCode`, `HowTo` for the three-step install, `FAQPage`). Keep the FAQ answers in sync with the README FAQ; the JSON-LD copies must match the visible text.
+Both pages carry `canonical` and `hreflang` links to each other, Open Graph tags and JSON-LD (`SoftwareSourceCode`, `HowTo` for the three-step install, `FAQPage`). The FAQ on the two pages must stay in step with each other and, where the README answers the same question, with the README; the JSON-LD copies must match the visible text.
 
 ## Deployment
 
@@ -53,4 +53,4 @@ Check both colour schemes and a 390 px viewport before pushing; the hero and the
 
 ## Search console
 
-Bing Webmaster Tools verification uses a `<meta name="msvalidate.01">` tag in both pages' `<head>`. After verifying, submit `sitemap.xml` once; later changes are picked up through IndexNow.
+Bing Webmaster Tools verification can use a `<meta name="msvalidate.01">` tag in both pages' `<head>`; no such tag is committed yet, so add it when Bing issues the code. After verifying, submit `sitemap.xml` once; later changes are picked up through IndexNow.

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
+import sys
+
+import pytest
 
 from cdxml_toolkit.mcp_runtime import generate_reference
 
@@ -25,6 +29,19 @@ def test_current_reference_interface_writes_markdown_and_json(tmp_path):
     )
     assert markdown.read_text(encoding="utf-8") == generate_reference.render_markdown()
     assert json.loads(schema.read_text(encoding="utf-8"))["tool_count"] == 59
+
+
+@pytest.mark.skipif(
+    sys.version_info[:2] != (3, 12),
+    reason="annotation text in the committed reference is rendered on Python 3.12 (as in CI)",
+)
+def test_committed_reference_files_are_current():
+    docs = Path(__file__).resolve().parents[2] / "docs"
+    committed = (docs / "mcp-tools.md").read_text(encoding="utf-8")
+    assert committed.replace("\r\n", "\n") == generate_reference.render_markdown().replace("\r\n", "\n"), (
+        "run: python -m cdxml_toolkit.mcp_runtime.generate_reference "
+        "--markdown docs/mcp-tools.md --json docs/mcp-schema.json"
+    )
 
 
 def test_descriptions_are_dedented_on_every_python_version(monkeypatch):

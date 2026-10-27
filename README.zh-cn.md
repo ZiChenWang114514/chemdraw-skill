@@ -527,7 +527,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖 |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络通道 |
 
-项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。安装选项、手动创建运行时和诊断方法见[安装指南](docs/guide.zh-cn.md#first-time-setup)。
+项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。安装选项、手动创建运行时和诊断方法见[安装指南](docs/guide.zh-cn.md#首次安装)。
 
 </details>
 

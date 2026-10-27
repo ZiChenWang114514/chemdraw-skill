@@ -221,6 +221,49 @@ class DistributionTests(unittest.TestCase):
                     missing.append(f"{path.relative_to(ROOT).as_posix()} -> {raw_target}")
         self.assertEqual(missing, [], "Broken local Markdown links:\n" + "\n".join(missing))
 
+    def test_local_markdown_anchors_resolve(self) -> None:
+        link_pattern = re.compile(r"(?<!!)\[[^\]]+\]\(([^)\s]+)\)")
+        fence = re.compile(r"^\s*(```|~~~)")
+
+        def slugs(path: Path) -> set[str]:
+            found: set[str] = set()
+            counts: dict[str, int] = {}
+            in_fence = False
+            body = path.read_text(encoding="utf-8", errors="replace")
+            found.update(re.findall(r"""\b(?:id|name)=["']([^"']+)["']""", body))
+            for line in body.splitlines():
+                if fence.match(line):
+                    in_fence = not in_fence
+                    continue
+                match = re.match(r"^#{1,6}\s+(.*?)\s*#*\s*$", line)
+                if in_fence or not match:
+                    continue
+                title = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", match.group(1))
+                slug = re.sub(r"[^\w\- ]", "", title.replace("`", "").lower()).replace(" ", "-")
+                n = counts.get(slug, 0)
+                counts[slug] = n + 1
+                found.add(slug if n == 0 else f"{slug}-{n}")
+            return found
+
+        cache: dict[Path, set[str]] = {}
+        missing: list[str] = []
+        for path in ROOT.rglob("*.md"):
+            if "node_modules" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            for raw_target in link_pattern.findall(text):
+                if "://" in raw_target or raw_target.startswith("mailto:") or "#" not in raw_target:
+                    continue
+                file_part, anchor = raw_target.split("#", 1)
+                target = (path.parent / file_part).resolve() if file_part else path
+                if target.suffix != ".md" or not target.exists() or not anchor:
+                    continue
+                if target not in cache:
+                    cache[target] = slugs(target)
+                if anchor.lower() not in cache[target]:
+                    missing.append(f"{path.relative_to(ROOT).as_posix()} -> {raw_target}")
+        self.assertEqual(missing, [], "Broken Markdown anchors:\n" + "\n".join(missing))
+
     def test_ci_has_pinned_full_portable_skill_validation(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "validate.yml").read_text(
             encoding="utf-8"

@@ -14,7 +14,7 @@ cdx.py doctor --office        # + PPTX and DOCX ChemDraw-OLE embedding probes (p
 cdx.py doctor --full          # include the complete diagnose_runtime() result
 ```
 
-The report is read-only. A skipped probe is not a verified capability. ChemScript is capped at 30 s, native rendering at 75 s and each Office stage at 60 s; timeout cleanup touches only automation processes started by the probe. Exit code 1 means signature drift or a mismatch against `manifest.json`.
+The report is read-only. A skipped probe is not a verified capability. ChemScript is capped at 30 s, native rendering at 75 s and each Office stage at 60 s; timeout cleanup touches only automation processes started by the probe. Exit code 1 means signature drift, a stale interface catalog (`catalog_current` false), a runtime built from another toolkit revision (`runtime_matches_skill` false) or a mismatch against `manifest.json`. `--native` already includes the ChemScript ping; `--chemscript` runs that probe alone.
 
 `cdx.py py <skill>/scripts/smoke_test.py --output-dir NEW_DIR` runs an end-to-end check: name resolution, editable aspirin CDXML, native PNG and raster validation.
 

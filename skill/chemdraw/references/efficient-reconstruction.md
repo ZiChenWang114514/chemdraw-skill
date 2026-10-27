@@ -39,7 +39,7 @@ Works for every tool. The full result goes to the file and only a short summary 
 
 When authorized, the main agent runs a bounded queue and tracks each structure as pending, working, submitted, needs_review, failed or accepted. A subagent writes only into its own folder. A late or duplicate result never replaces an accepted one. After an interruption, rerun only missing or changed regions.
 
-Limit OCSR requests separately from agent count and follow the [DECIMER retry rule](decimer-api.md#diagnosing-failed-requests). Native work is serialized by the ChemDraw mutex no matter how many agents run.
+Limit OCSR requests separately from agent count and follow the [DECIMER retry rule](decimer-api.md#diagnosing-failed-requests). Native work is serialized by the ChemDraw lock no matter how many agents run.
 
 ## Acceptance
 
