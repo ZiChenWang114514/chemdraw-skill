@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 from contextvars import ContextVar
 import functools
 import hmac
@@ -13,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -123,6 +125,23 @@ def _monitor_process(
     return "exit"
 
 
+@contextlib.contextmanager
+def _scratch_dir():
+    """A temp folder whose removal never fails the call.
+
+    A restricted sandbox can create the folder yet refuse to list or delete it afterwards; the worker
+    has already finished by then, so a leftover empty folder is the lesser problem.
+    """
+    path = tempfile.mkdtemp(prefix="chemdraw-worker-")
+    try:
+        yield path
+    finally:
+        try:
+            shutil.rmtree(path, ignore_errors=True)
+        except OSError:
+            pass
+
+
 def _execute_worker_process(
     payload: bytes,
     *,
@@ -133,7 +152,7 @@ def _execute_worker_process(
 ) -> tuple[int, bytes, bytes]:
     creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     creationflags |= getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
-    with tempfile.TemporaryDirectory(prefix="chemdraw-worker-") as temp_dir:
+    with _scratch_dir() as temp_dir:
         request_path = Path(temp_dir) / "request.json"
         request_path.write_bytes(payload)
         stdout_path = Path(temp_dir) / "stdout.bin"
@@ -340,10 +359,11 @@ def _run_worker_impl(
             cancellation=cancellation,
             holder=holder,
         )
-    except OSError:
+    except OSError as error:
+        reason = error.strerror or type(error).__name__
         return {
             "ok": False,
-            "error": {"code": "worker_launch_failed", "message": "Could not launch the isolated worker"},
+            "error": {"code": "worker_launch_failed", "message": f"Could not launch the isolated worker: {reason}"},
             "metadata": {"tool": name, "timeout_seconds": timeout},
         }
     return _interpret_worker_result(

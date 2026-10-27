@@ -264,10 +264,16 @@ def _emit(tool, result, out_path=None):
 def _load_args(ns):
     if ns.json and ns.args:
         raise SystemExit('Use either --json or --args, not both')
-    if ns.args:
-        value = json.loads(Path(ns.args).read_text(encoding='utf-8-sig'))
+    # Either flag takes inline JSON or a JSON file; agents mix them up and the intent is never unclear.
+    given = (ns.args or ns.json or '{}').strip()
+    if given.startswith(('{', '[')):
+        text = given
+    elif Path(given).is_file():
+        text = Path(given).read_text(encoding='utf-8-sig')
     else:
-        value = json.loads(ns.json or '{}')
+        raise SystemExit(f"{given!r} is neither a JSON object nor an existing file; "
+                         "pass inline JSON with --json '{...}' or a file with --args FILE")
+    value = json.loads(text)
     if not isinstance(value, dict):
         raise SystemExit('Tool arguments must be a JSON object')
     return value

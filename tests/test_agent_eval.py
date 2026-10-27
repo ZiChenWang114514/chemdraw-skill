@@ -57,6 +57,17 @@ class ParserTests(unittest.TestCase):
         self.assertTrue(any("cdx.py doctor" in c.text for c in run.cdx_commands()))
         self.assertIn("Opsin", run.final)
 
+    def test_codex_json_gives_shell_commands_skill_use_and_the_answer(self) -> None:
+        run = agent_eval.parse_codex(_fixture("codex_doctor.jsonl"))
+        self.assertTrue(run.skill_loaded)
+        self.assertIsNone(run.error)
+        self.assertTrue(all(c.tool == "shell" for c in run.commands))
+        self.assertTrue(any("cdx.py" in c.text and "doctor" in c.text for c in run.cdx_commands()))
+        self.assertTrue(run.final)
+        self.assertGreater(run.tokens, 0)
+        # The agent passed inline JSON to --args and got a raw traceback: it must count as a usage failure.
+        self.assertGreaterEqual(run.cdx_usage_errors(), 1)
+
     def test_provider_failure_is_a_harness_error_not_an_empty_answer(self) -> None:
         run = agent_eval.parse_pi(_fixture("pi_provider_error.jsonl"))
         self.assertIn("402", run.error)
@@ -158,12 +169,35 @@ class TaskAndCommandTests(unittest.TestCase):
         self.assertIn("kimi-code/k3-256k", kimi)
         self.assertEqual(kimi[kimi.index("--skills-dir") + 1], str(skills))
         self.assertNotIn("--auto", kimi)  # kimi rejects --auto together with --prompt
-        for name in ("pi-glm", "pi-deepseek"):
-            cmd = agent_eval.build_command(agent_eval.CELLS[name], "PROMPT", skills, Path("P"))
-            self.assertIn("--no-skills", cmd)
-            self.assertEqual(cmd[cmd.index("--skill") + 1], str(skills / "chemdraw"))
-            self.assertIn("--no-session", cmd)
-            self.assertEqual(cmd[-1], "@" + str(Path("P")))  # the prompt travels in a file: no shell quoting
+        pi = agent_eval.build_command(agent_eval.CELLS["pi-deepseek"], "PROMPT", skills, Path("P"))
+        self.assertIn("--no-skills", pi)
+        self.assertEqual(pi[pi.index("--skill") + 1], str(skills / "chemdraw"))
+        self.assertIn("--no-session", pi)
+        self.assertEqual(pi[-1], "@" + str(Path("P")))  # the prompt travels in a file: no shell quoting
+        codex = agent_eval.build_command(agent_eval.CELLS["codex-terra"], "PROMPT", skills, Path("P"), Path("W"))
+        self.assertEqual(codex[codex.index("-m") + 1], "gpt-6.1-terra")
+        self.assertEqual(codex[codex.index("-C") + 1], "W")
+        self.assertEqual(codex[codex.index("-s") + 1], "workspace-write")
+        self.assertIn("--ephemeral", codex)
+        self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", codex)
+        self.assertEqual(codex[-1], "PROMPT")
+
+    def test_codex_gets_the_skill_inside_the_working_folder_and_no_other_copy(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            skills, work = Path(tmp) / "skills", Path(tmp) / "work"
+            (skills / "chemdraw").mkdir(parents=True)
+            (skills / "chemdraw" / "SKILL.md").write_text("---\nname: chemdraw\n---\n", encoding="utf-8")
+            work.mkdir()
+            agent_eval.place_skill(agent_eval.CELLS["codex-terra"], work, skills)
+            agent_eval.place_skill(agent_eval.CELLS["kimi-k3"], Path(tmp) / "other", skills)
+            self.assertTrue((work / ".agents" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertFalse((Path(tmp) / "other").exists())
+        # A drawing found only inside the installed Skill is not the agent's output.
+        with tempfile.TemporaryDirectory() as tmp:
+            sample = Path(tmp) / ".agents" / "skills" / "chemdraw" / "assets" / "sample.cdxml"
+            sample.parent.mkdir(parents=True)
+            sample.write_text("<CDXML/>", encoding="utf-8")
+            self.assertIsNone(agent_eval._find_drawing("01-aspirin", Path(tmp)))
 
     def test_the_process_guard_reports_a_count(self) -> None:
         self.assertIsInstance(agent_eval.chemdraw_process_count(), int)
@@ -171,7 +205,7 @@ class TaskAndCommandTests(unittest.TestCase):
     def test_list_prints_cells_and_tasks_without_calling_a_model(self) -> None:
         out = subprocess.run([sys.executable, str(ROOT / "scripts" / "agent_eval.py"), "--list"],
                              capture_output=True, text=True, check=True).stdout
-        for word in ("kimi-k3", "pi-glm", "pi-deepseek", "01-aspirin", "no-overwrite"):
+        for word in ("kimi-k3", "pi-deepseek", "codex-terra", "01-aspirin", "no-overwrite"):
             self.assertIn(word, out)
 
 

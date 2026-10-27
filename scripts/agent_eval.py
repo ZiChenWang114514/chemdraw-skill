@@ -7,7 +7,7 @@ calls a model in CI: the parsers and scorers are unit-tested on recorded output.
 
     python scripts/agent_eval.py --list
     python scripts/agent_eval.py --smoke
-    python scripts/agent_eval.py --cells kimi-k3 pi-deepseek --reps 2
+    python scripts/agent_eval.py --cells kimi-k3 codex-terra --reps 2
 """
 
 from __future__ import annotations
@@ -161,6 +161,33 @@ def parse_pi(text: str) -> Run:
     return run
 
 
+def parse_codex(text: str) -> Run:
+    """`codex exec --json`: thread events; shell commands and messages arrive as completed items."""
+    run = Run()
+    for event in _json_lines(text):
+        kind, item = event.get("type"), event.get("item") or {}
+        if kind in ("error", "turn.failed"):
+            run.error = str(event.get("message") or (event.get("error") or {}).get("message") or event)
+        elif kind == "turn.completed":
+            usage = event.get("usage") or {}
+            run.tokens += int(usage.get("input_tokens") or 0) + int(usage.get("output_tokens") or 0)
+        elif kind == "item.completed" and item.get("type") == "agent_message":
+            run.final = item.get("text", "")
+        elif kind == "item.completed" and item.get("type") == "command_execution":
+            command = item.get("command", "")
+            run.commands.append(Command(tool="shell", text=command, result=item.get("aggregated_output", "")))
+            if re.search(r"chemdraw[\\/]+SKILL\.md", command, re.I):
+                run.skill_loaded = True
+            target = _shell_write(command)
+            if target:
+                run.writes.append(target)
+        elif kind == "item.completed" and item.get("type") == "file_change":
+            run.writes += [str(c.get("path", "")) for c in item.get("changes") or []]
+    if run.cdx_commands():
+        run.skill_loaded = True
+    return run
+
+
 # ---------------------------------------------------------------- tasks and scoring
 
 
@@ -181,7 +208,8 @@ def _find_drawing(task_id: str, work: Path) -> Optional[Path]:
     wanted = work / "out" / f"{task_id}.cdxml"
     if wanted.is_file():
         return wanted
-    return next(iter(sorted(work.rglob("*.cdxml"))), None)
+    # An installed copy of the Skill (.agents/...) carries sample drawings that are not the agent's output.
+    return next((p for p in sorted(work.rglob("*.cdxml")) if ".agents" not in p.parts), None)
 
 
 def score_draw(task_id: str, work: Path, run: Run) -> list:
@@ -318,13 +346,32 @@ class Cell:
 
 CELLS = {
     "kimi-k3": Cell("kimi", "kimi-code/k3-256k", parse_kimi),
-    "pi-glm": Cell("pi", "openrouter/z-ai/glm-5.3-flash", parse_pi),
     "pi-deepseek": Cell("pi", "bailian-ds/deepseek-v4.1-flash", parse_pi),
+    "codex-terra": Cell("codex", "gpt-6.1-terra", parse_codex),
 }
 
 
-def build_command(cell: Cell, prompt: str, skills: Path, prompt_file: Path) -> list:
+def other_installed_copies() -> list:
+    """Skill copies already installed for the user; an agent that finds them would test those, not this build."""
+    home = Path.home()
+    return [p for p in (home / ".codex" / "skills" / "chemdraw" / "SKILL.md",
+                        home / ".agents" / "skills" / "chemdraw" / "SKILL.md") if p.is_file()]
+
+
+def place_skill(cell: Cell, work: Path, skills: Path) -> None:
+    """Agents that only read project folders get the Skill inside the working folder."""
+    if cell.harness == "codex":
+        shutil.copytree(skills / "chemdraw", work / ".agents" / "skills" / "chemdraw",
+                        ignore=shutil.ignore_patterns("__pycache__", "tests"))
+
+
+def build_command(cell: Cell, prompt: str, skills: Path, prompt_file: Path, work: Path = Path(".")) -> list:
     """Headless command line. The Skill folder is passed explicitly so nothing else on the machine loads."""
+    if cell.harness == "codex":
+        disabled = [f'skills.config=[{{path="{p.as_posix()}", enabled=false}}]' for p in other_installed_copies()]
+        return [shutil.which("codex") or "codex", "exec", "--json", "--ephemeral", "--skip-git-repo-check",
+                "-s", "workspace-write", "-m", cell.model, "-c", 'model_reasoning_effort="low"',
+                *[arg for override in disabled for arg in ("-c", override)], "-C", str(work), prompt]
     if cell.harness == "kimi":
         return [shutil.which("kimi") or "kimi", "-p", prompt, "--output-format", "stream-json",
                 "-m", cell.model, "--skills-dir", str(skills)]
@@ -397,10 +444,11 @@ def run_one(name: str, cell: Cell, task: Task, rep: int, skills: Path, out: Path
         shutil.rmtree(folder)
     work.mkdir(parents=True)
     task.setup(work)
+    place_skill(cell, work, skills)
     prompt_file = folder / "prompt.md"
     prompt_file.write_text(task.prompt, encoding="utf-8")
     started = time.time()
-    rc, stdout, stderr, timed_out = _execute(build_command(cell, task.prompt, skills, prompt_file), work,
+    rc, stdout, stderr, timed_out = _execute(build_command(cell, task.prompt, skills, prompt_file, work), work,
                                              eval_env(), timeout)
     seconds = round(time.time() - started, 1)
     (folder / "transcript.jsonl").write_text(stdout, encoding="utf-8")
@@ -408,8 +456,10 @@ def run_one(name: str, cell: Cell, task: Task, rep: int, skills: Path, out: Path
     run = cell.parse(stdout)
     if not run.error and rc != 0 and not run.final:
         run.error = (stderr.strip().splitlines() or [f"exit code {rc}"])[-1][:300]
-    checks = [] if run.error or timed_out else score(task, work, run, missing)
-    status = "timeout" if timed_out else "harness_error" if run.error else "pass" if all(c.ok for c in checks) else "fail"
+    # A transport glitch after the agent finished (an answer exists) still leaves files worth scoring.
+    unusable = timed_out or (run.error and not run.final)
+    checks = [] if unusable else score(task, work, run, missing)
+    status = "timeout" if timed_out else "harness_error" if unusable else "pass" if all(c.ok for c in checks) else "fail"
     result = {
         "cell": name, "task": task.id, "rep": rep, "status": status, "seconds": seconds,
         "checks": [vars(c) for c in checks], "error": run.error, "tool_calls": len(run.commands),
@@ -426,7 +476,7 @@ def preflight(name: str, cell: Cell, skills: Path, out: Path) -> Optional[str]:
     folder.mkdir(parents=True, exist_ok=True)
     prompt = folder / "prompt.md"
     prompt.write_text("Reply with the single word ok.", encoding="utf-8")
-    rc, stdout, stderr, timed_out = _execute(build_command(cell, "Reply with the single word ok.", skills, prompt),
+    rc, stdout, stderr, timed_out = _execute(build_command(cell, "Reply with the single word ok.", skills, prompt, folder),
                                              folder, eval_env(), 180)
     run = cell.parse(stdout)
     if timed_out:
