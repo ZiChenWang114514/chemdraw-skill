@@ -24,7 +24,10 @@ import tempfile
 import time
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
-SIGNATURES = SKILL_ROOT / 'references' / 'mcp-signatures.md'
+REFERENCES = SKILL_ROOT / 'references'
+SIGNATURES = REFERENCES / 'mcp-signatures.md'
+# Inventory shards that regen-catalog owns; the curated shards beside them are never touched.
+CATALOG_SHARDS = ('chemscript-', 'com-', 'cdxml-attributes-')
 BASELINE = SKILL_ROOT / 'runtime.json'
 SUMMARY_LIMIT = 6000
 REEXEC_FLAG = 'CHEMDRAW_CDX_REEXEC'
@@ -524,6 +527,56 @@ def write_signatures():
     SIGNATURES.write_bytes(text.encode('utf-8').replace(b'\r\n', b'\n'))
 
 
+def _catalog_pages():
+    from cdxml_toolkit.catalog import render
+    return render.render_all()
+
+
+def _generated_shards():
+    inventory = REFERENCES / 'inventory'
+    if not inventory.is_dir():
+        return []
+    return sorted(f'inventory/{path.name}' for path in inventory.glob('*.md') if path.name.startswith(CATALOG_SHARDS))
+
+
+def catalog_stale():
+    """Names of generated interface pages that differ from the catalogs, are missing, or are left over."""
+    pages = _catalog_pages()
+    stale = []
+    for name, text in pages.items():
+        path = REFERENCES / name
+        if not path.is_file() or path.read_bytes().decode('utf-8').replace('\r\n', '\n') != text:
+            stale.append(name)
+    stale += [name for name in _generated_shards() if name not in pages]
+    return stale
+
+
+def write_catalog():
+    """Write the generated interface pages (LF) and drop shards the catalogs no longer produce."""
+    pages = _catalog_pages()
+    for name in _generated_shards():
+        if name not in pages:
+            (REFERENCES / name).unlink()
+    for name, text in pages.items():
+        path = REFERENCES / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(text.encode('utf-8'))
+    return list(pages)
+
+
+def cmd_regen_catalog(ns):
+    # Same guard as regen-signatures: a stale runtime would write pages for another toolkit revision.
+    if runtime_fingerprint() != expected_fingerprint():
+        raise SystemExit('cdx.py: refusing to regenerate the interface catalog. ' + runtime_hint())
+    if ns.check:
+        stale = catalog_stale()
+        print(json.dumps({'catalog_current': not stale, 'stale': stale}, indent=2))
+        return 1 if stale else 0
+    for name in write_catalog():
+        print(REFERENCES / name)
+    return 0
+
+
 def cmd_doctor(ns):
     import importlib.metadata as md
     import importlib.util
@@ -538,6 +591,7 @@ def cmd_doctor(ns):
     if report['runtime_matches_skill'] is False:
         report['runtime_hint'] = runtime_hint()
     report['signatures_current'] = _signatures_current()
+    report['catalog_current'] = not catalog_stale()
     check_installation = _check_installation()
     if (SKILL_ROOT / check_installation.MANIFEST).is_file():
         inst = check_installation.check_manifest(SKILL_ROOT)
@@ -554,7 +608,8 @@ def cmd_doctor(ns):
     if ns.full:
         report['diagnose_runtime'] = inner
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    healthy = report['signatures_current'] and not isinstance(report['installation'], dict) \
+    healthy = report['signatures_current'] and report['catalog_current'] \
+        and not isinstance(report['installation'], dict) \
         and report['runtime_matches_skill'] is not False
     return 0 if healthy else 1
 
@@ -784,6 +839,10 @@ def main(argv=None):
     s = sub.add_parser('regen-signatures', help='rewrite references/mcp-signatures.md from the live registry '
                                                 '(and, in a checkout, the toolkit fingerprint in runtime.json)')
     s.set_defaults(fn=cmd_regen_signatures)
+    s = sub.add_parser('regen-catalog', help='rewrite the generated interface pages (interface-chemscript/com/cdxml-model/menu, '
+                                             'recipes-chemdraw, their inventory shards) from the catalogs; --check only reports')
+    s.add_argument('--check', action='store_true', help='report stale pages and exit 1 instead of writing')
+    s.set_defaults(fn=cmd_regen_catalog)
     ns = p.parse_args(argv)
     return ns.fn(ns)
 

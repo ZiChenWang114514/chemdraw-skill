@@ -90,6 +90,7 @@ cdx.py chemscript-info SAVED.cdxml        direct ChemScript reading, under the n
 cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full]
 cdx.py py ARGS...                         run the runtime Python (helper scripts, -m modules, tests)
 cdx.py regen-signatures                   after a toolkit upgrade
+cdx.py regen-catalog [--check]            rewrite (or only check) the generated ChemDraw interface pages
 ```
 
 `call` prints results up to about 6 KB directly; larger results go to a new file under the temp folder's `chemdraw-cdx` directory (or `--out`) and a short summary with the path is printed. `ok` means the tool ran without error. Existing result files are never overwritten.
