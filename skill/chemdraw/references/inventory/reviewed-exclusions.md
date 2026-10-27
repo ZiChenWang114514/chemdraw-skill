@@ -175,6 +175,10 @@
 
 - **function**, line 54: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
 
+## `mcp_runtime.figure_mechanism`
+
+- **function**, line 643: `draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a mechanism; called by draw_figure for ``kind: mechanism``.
+
 ## `mcp_runtime.figure_scope`
 
 - **function**, line 160: `draw_scope(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a scope panel; called by draw_figure for ``kind: scope``.

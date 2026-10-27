@@ -2506,7 +2506,11 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
         )
         inner_xml += "\n" + key_xml
 
-    # Wrap in document
+    return _wrap_document(inner_xml, ids)
+
+
+def _wrap_document(inner_xml: str, ids: _IDGen) -> str:
+    """Put page content into a complete CDXML document."""
     page_id = ids.next()
 
     # Use a generous bounding box
@@ -2526,12 +2530,28 @@ class _ValidatedCDXML(str):
     pass
 
 
+def render_with(build) -> str:
+    """Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
+
+    For figures that place their own objects (mechanisms) but still want the
+    ACS document settings and the per-fragment validation receipts of ``render``.
+    """
+    def document() -> str:
+        ids = _IDGen(1000)
+        return _wrap_document(build(ids), ids)
+    return _validated(document)
+
+
 def render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str:
     """Render a scheme and retain per-fragment output-derived validation receipts."""
+    return _validated(lambda: _render_impl(scheme, yaml_dir))
+
+
+def _validated(produce) -> str:
     receipts = []
     token = _fragment_receipts.set(receipts)
     try:
-        result = _ValidatedCDXML(_render_impl(scheme, yaml_dir))
+        result = _ValidatedCDXML(produce())
         from xml.etree import ElementTree as ET
         root = ET.fromstring(result)
         fragment_ids = {node.get('id') for node in root.iter('fragment')}

@@ -6,15 +6,15 @@ Use this when the structures are known and the figure does not exist yet: a reac
 
 | Need | Use |
 | --- | --- |
-| A reaction, route or substrate-scope panel from a request, drawn and checked in one call | `draw_figure` / `cdx.py draw` (next sections) |
+| A reaction, route, substrate-scope panel or mechanism from a request, drawn and checked in one call | `draw_figure` / `cdx.py draw` (next sections) |
 | Reactants, reagents, products, conditions and yields laid out by hand-written compact text | `render_scheme` (below) |
 | Exam or lecture drawing with abbreviations (C10H21), Chinese notes, boxed compound codes, hand-placed objects | [ACS 1996 drawings](acs1996-drawings.md), `cdx.py build` |
-| Exact coordinates, curved arrows, grids, equilibrium arrows | [Figure manifest](publication-figures.md), `compose_chemical_figure` |
+| Exact coordinates, hand-placed curved arrows, grids | [Figure manifest](publication-figures.md), `compose_chemical_figure` |
 | Many compounds already in a CSV/XLSX table (scope, SAR), or an edit of such a figure | [Data-driven figures](data-driven-figures.md) |
 
 ## One call: draw_figure
 
-Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products. Mechanisms are not available yet and are refused, not approximated. A substrate-scope panel has its own brief, described after the report table below.
+Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products. A substrate-scope panel and a mechanism each have their own brief, described after the report table below.
 
 ```json
 {
@@ -73,6 +73,34 @@ Read the report before you answer:
 - `output` is a new folder: `page-001.cdxml`, ... and, with `--render`, `png/page-001.png`, ... The report lists `pages`, `native.png_paths`, and the same `species`, `lint`, `readback`, `checks_passed`, `notes` and `warnings` as above, plus `checks.data_binding` (each label and value found next to its structure). Pages are packed from measured sizes, so there is no automatic re-layout.
 - To change a panel after the user edits it in ChemDraw, use `publication_figure update` ([data-driven figures](data-driven-figures.md)).
 
+### Mechanism
+
+`"kind": "mechanism"` draws the structures of a mechanism and one curved arrow for every electron move you list. You decide which electrons move; the tool places the structures, turns each move into an arrow from the drawn coordinates and checks the result. It never works out a mechanism: a step without `moves` is refused.
+
+```json
+{
+  "kind": "mechanism",
+  "species": [
+    {"id": "ald", "smiles": "CC=O", "label": "1"},
+    {"id": "hyd", "smiles": "[OH-]"},
+    {"id": "alk", "smiles": "CC([O-])O", "label": "2"}
+  ],
+  "steps": [
+    {"substrates": ["ald", "hyd"], "products": ["alk"], "above": ["H2O"],
+     "moves": [
+       {"from": {"species": "hyd", "atom": 0}, "to": {"species": "ald", "atom": 1}},
+       {"from": {"species": "ald", "bond": [1, 2]}, "to": {"species": "ald", "atom": 2}}
+     ]}
+  ]
+}
+```
+
+- Steps are drawn in the order given. A step with one substrate and one product continues the same row, the intermediate drawn once; any other step starts a new row and draws its substrates again (the report notes it). A row that would pass `max_width` wraps the same way.
+- A move goes `from` / `to` an `atom` (a lone pair, a charge, a radical) or a `bond` `[i, j]` (a pi or sigma bond), in species that are substrates of that step. `electrons` is 2 (full head, the default) or 1 (half head). The step `arrow` may be `solid`, `reversible` or `resonance`; `above`, `below` and `yield` work as in schemes.
+- Atoms are numbered from 0 in the order of the SMILES you gave, hydrogens not counted. The report lists them per species (`species[].atoms`, for example `0 C, 1 C, 2 O`). Set `show_atom_numbers: true` to print them on a draft and check the moves by eye, then draw again without it.
+- The report adds `moves` (what each arrow connects and its `checks`) and `arrows` (`crossings`, the atoms an arrow runs through, and `relayout` when one automatic retry changed the gaps and loop height). A two-electron arrow that starts on an atom with no lone pair or negative charge is drawn and flagged in `moves[].checks` and `warnings`; atom and charge balance is checked per step as for schemes.
+- Limits: arrows are drawn as given; the tool does not judge whether the mechanism is chemically right. A long arrow can still run close to a label, so open the PNG.
+
 ## render_scheme
 
 Pass exactly one of `compact_text`, `yaml_text` or `json_path` (a `parse_reaction` result). Ground every structure first: give a SMILES from the user, a resolver or a parser. A structure given only as `name "..."` is looked up in the curated reagent table (common reagents, solvents and abbreviations); there is no PubChem or IUPAC lookup on this path, and an unknown name stops with an error asking for a SMILES.
@@ -102,4 +130,4 @@ Condition lines are tidied on every path: `80 C` becomes `80 °C`, `RT` and `roo
 2. For a balanced-reaction check run `check_reaction_balance` on the same species; it names a missing by-product but never draws one.
 3. Render with `cdx.py render FILE.cdxml` and look at the PNG for clipped labels, arrows running into structures and plus signs touching atoms.
 
-Not available in `render_scheme` or `draw_figure`: curved arrows and conditions chosen for you. State only the conditions the user gave; a missing one stays missing.
+Not available in `render_scheme`: curved arrows (use `draw_figure` with `kind: mechanism`). Neither tool chooses conditions for you. State only the conditions the user gave; a missing one stays missing.

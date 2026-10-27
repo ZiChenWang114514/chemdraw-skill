@@ -143,7 +143,7 @@ def test_an_unresolved_name_stops_the_run_and_writes_nothing(tmp_path):
         (lambda b: b["steps"][0].update(products=["nope"]), "nope"),
         (lambda b: b["species"].append({"id": "SA", "smiles": "C"}), "duplicate"),
         (lambda b: b["species"][0].update(smiles=None), "smiles or a name"),
-        (lambda b: b.update(kind="mechanism"), "mechanism"),
+        (lambda b: b.update(kind="bogus"), "bogus"),
     ],
 )
 def test_a_bad_brief_is_returned_as_errors_and_never_guessed(tmp_path, mutate, fragment):
