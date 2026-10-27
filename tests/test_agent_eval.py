@@ -108,6 +108,21 @@ class ScorerTests(unittest.TestCase):
             checks = agent_eval.score_draw("01-aspirin", Path(tmp), run)
         self.assertFalse(self._check(checks, "built_with_toolkit").ok)
 
+    def test_cdxml_typed_into_a_shell_command_is_rejected_even_when_cdx_runs_in_the_same_command(self) -> None:
+        typed = "@'\n<CDXML><page/></CDXML>\n'@ | Set-Content out/01-aspirin.cdxml\npython cdx.py render out/01-aspirin.cdxml"
+        self.assertTrue(agent_eval._shell_write(typed))
+        self.assertIsNone(agent_eval._shell_write("python cdx.py draw brief.json out/01-aspirin.cdxml"))
+
+    def test_a_drawing_needs_a_toolkit_command_that_succeeded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "out"
+            out.mkdir()
+            (out / "01-aspirin.cdxml").write_text(CDXML, encoding="utf-8")
+            failed = _run(("python cdx.py draw b out/x.cdxml", '{"ok": false, "error": {"code": "worker_launch_failed"}}'),
+                          ("python cdx.py doctor", '{"installation": "ok"}'))
+            checks = agent_eval.score_draw("01-aspirin", Path(tmp), failed)
+        self.assertFalse(self._check(checks, "built_with_toolkit").ok)
+
     def test_a_drawing_missing_the_reagents_fails_the_text_check(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "out"

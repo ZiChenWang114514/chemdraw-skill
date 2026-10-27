@@ -72,6 +72,12 @@ class Run:
     def cdx_usage_errors(self) -> int:
         return sum(1 for c in self.cdx_commands() if USAGE_ERROR.search(c.result))
 
+    def cdx_builds(self) -> list:
+        """Commands that produce something through the toolkit and did not report a failure."""
+        return [c for c in self.cdx_commands()
+                if re.search(r"cdx\.py['\"]?\s+(draw|build|call|render)\b", c.text)
+                and c.result.strip() and '"ok": false' not in c.result and "Traceback" not in c.result]
+
     def foreign_skill_use(self) -> bool:
         """The agent read or ran a copy of the Skill installed elsewhere, so the run says nothing about this build."""
         return any(FOREIGN_SKILL.search(c.text.replace("\\", "/")) for c in self.commands)
@@ -85,6 +91,8 @@ def _write_target(name: str, arguments: dict) -> Optional[str]:
 
 def _shell_write(command: str) -> Optional[str]:
     """A .cdxml typed through the shell (redirect, tee, Set-Content) rather than produced by cdx.py."""
+    if re.search(r"<\s*CDXML", command):
+        return "typed.cdxml"
     if "cdx.py" in command:
         return None
     hit = re.search(r"(?:>|tee\s|Set-Content\s|Out-File\s)[^|;&\n]*?([\w./\\-]+\.cdxml)", command)
@@ -240,8 +248,9 @@ def score_draw(task_id: str, work: Path, run: Run) -> list:
         Check("species", fragments >= expect["species"], f"{fragments} structures, expected {expect['species']}"),
         Check("arrows", arrows >= expect["arrows"], f"{arrows} arrows, expected {expect['arrows']}"),
         Check("text", not missing, "missing " + ", ".join(missing) if missing else ""),
-        Check("built_with_toolkit", bool(run.cdx_commands()) and not [w for w in run.writes if w.endswith(".cdxml")],
-              "CDXML was typed by hand" if [w for w in run.writes if w.endswith(".cdxml")] else ""),
+        Check("built_with_toolkit", bool(run.cdx_builds()) and not [w for w in run.writes if w.endswith(".cdxml")],
+              "CDXML was typed by hand" if [w for w in run.writes if w.endswith(".cdxml")]
+              else "" if run.cdx_builds() else "no toolkit command succeeded"),
     ]
 
 
