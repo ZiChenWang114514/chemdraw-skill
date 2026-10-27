@@ -21,10 +21,12 @@ Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth fo
 - Add or update a failing test before changing behavior.
 - Use deterministic parsers/APIs instead of ad hoc text rewriting.
 - Keep machine-specific paths, credentials, user data, generated caches, and proprietary test artifacts out of Git.
-- Regenerate generated references after changing registry signatures:
+- The ChemDraw interface pages (`interface-chemscript.md`, `interface-com.md`, `interface-cdxml-model.md`, `interface-menu.md`, `recipes-chemdraw.md` and their shards) are generated from `toolkit/cdxml_toolkit/catalog/data`; rebuild a catalog with `python -m cdxml_toolkit.catalog <layer>` on a machine with ChemDraw, edit tiers only in `classification.json` or by running a recipe, and never hand-edit the pages.
+- Regenerate generated references after changing registry signatures or catalog data:
 
 ```powershell
 python .\skill\chemdraw\scripts\cdx.py regen-signatures
+python .\skill\chemdraw\scripts\cdx.py regen-catalog
 python .\skill\chemdraw\scripts\cdx.py py .\skill\chemdraw\scripts\audit_toolkit_interfaces.py --output-dir .\skill\chemdraw\references
 ```
 

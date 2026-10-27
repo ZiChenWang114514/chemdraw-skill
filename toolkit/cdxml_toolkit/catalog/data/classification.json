@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "tiers": {
+  "T1": "A dedicated tool does the operation.",
+  "T2": "Reachable through a generic tool, with a recipe that was run and checked.",
+  "T3": "Documented. Not opened as a tool, or reachable only through a generic tool without a verified recipe."
+ },
+ "reasons": {
+  "chemscript.interop": "SWIG and native interop plumbing; not part of the SDK's API and never exposed.",
+  "chemscript.collection": "Generated collection wrapper; reached through the property of its owning type.",
+  "chemscript.unverified": "Reachable through execute_chemscript_sdk; no recipe has been run for this member yet.",
+  "com.default": "No generic COM tool yet; the existing tools use only the members listed as T1.",
+  "com.enum": "Enumeration of constants used as arguments to COM members.",
+  "com.coclass": "Class identifier that creates the interfaces listed beside it.",
+  "menu.default": "No tool runs menu commands on Windows yet.",
+  "cdxml.default": "Documented element; no tool reads or writes it through a typed model yet.",
+  "cdxml.unconfirmed": "Name from the CDXML format with no evidence in this installation."
+ },
+ "overrides": [
+  {"layer": "com", "symbol": "IChemDrawApplication.Documents", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "Opens the source document for conversion."},
+  {"layer": "com", "symbol": "IChemDrawDocuments.Open", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "Opens a CDX, CDXML or ChemDraw file."},
+  {"layer": "com", "symbol": "IChemDrawDocument.SaveAs", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "Writes the converted file."},
+  {"layer": "com", "symbol": "IChemDrawDocument.Close", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "Closes the document after conversion."},
+  {"layer": "com", "symbol": "IChemDrawApplication.Quit", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "Ends a ChemDraw instance the tool started."},
+  {"layer": "com", "symbol": "IChemDrawApplication.Visible", "tier": "T1", "tool": "render_to_png", "reason": "Kept hidden while rendering."},
+  {"layer": "com", "symbol": "IChemDrawPreferences.PNGResolution", "tier": "T1", "tool": "render_to_png", "reason": "Sets the export resolution."},
+  {"layer": "com", "symbol": "IChemDrawPreferences.TransparentPNGs", "tier": "T1", "tool": "render_to_png", "reason": "Switched off for opaque exports."},
+  {"layer": "cdxml", "symbol": "CDXML", "tier": "T1", "tool": "draw_figure", "reason": "Document root written by the drawing tools."},
+  {"layer": "cdxml", "symbol": "page", "tier": "T1", "tool": "draw_figure", "reason": "Page written by the drawing tools."},
+  {"layer": "cdxml", "symbol": "fragment", "tier": "T1", "tool": "draw_molecule", "reason": "Molecule fragment."},
+  {"layer": "cdxml", "symbol": "n", "tier": "T1", "tool": "draw_molecule", "reason": "Atom node."},
+  {"layer": "cdxml", "symbol": "b", "tier": "T1", "tool": "draw_molecule", "reason": "Bond."},
+  {"layer": "cdxml", "symbol": "t", "tier": "T1", "tool": "draw_figure", "reason": "Text block."},
+  {"layer": "cdxml", "symbol": "s", "tier": "T1", "tool": "draw_figure", "reason": "Styled text run."},
+  {"layer": "cdxml", "symbol": "arrow", "tier": "T1", "tool": "draw_figure", "reason": "Reaction and mechanism arrows."},
+  {"layer": "cdxml", "symbol": "color", "tier": "T1", "tool": "draw_figure", "reason": "Colour table entry."},
+  {"layer": "cdxml", "symbol": "colortable", "tier": "T1", "tool": "draw_figure", "reason": "Colour table."},
+  {"layer": "cdxml", "symbol": "font", "tier": "T1", "tool": "draw_figure", "reason": "Font table entry."},
+  {"layer": "cdxml", "symbol": "fonttable", "tier": "T1", "tool": "draw_figure", "reason": "Font table."}
+ ]
+}

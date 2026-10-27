@@ -46,6 +46,46 @@ class InterfaceCatalogTests(unittest.TestCase):
             self.assertNotIn(b"\r\n", data)
             self.assertIn(b"Profile: `full (default)`", data)
 
+    def test_generated_interface_pages_are_current(self):
+        import cdx
+
+        self.assertEqual(cdx.catalog_stale(), [], "run `cdx.py regen-catalog`")
+
+    def test_catalog_generator_writes_lf_and_removes_shards_it_no_longer_makes(self):
+        import cdx
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "inventory").mkdir()
+            (root / "inventory" / "com-99.md").write_text("old shard\n", encoding="utf-8")
+            (root / "inventory" / "tools.md").write_text("curated\n", encoding="utf-8")
+            with mock.patch.object(cdx, "REFERENCES", root):
+                self.assertTrue(cdx.catalog_stale())
+                written = cdx.write_catalog()
+                self.assertEqual(cdx.catalog_stale(), [])
+            self.assertIn("interface-com.md", written)
+            self.assertFalse((root / "inventory" / "com-99.md").exists())
+            self.assertTrue((root / "inventory" / "tools.md").exists())
+            self.assertNotIn(b"\r\n", (root / "interface-menu.md").read_bytes())
+
+    def test_regen_catalog_refuses_a_runtime_from_another_toolkit_revision(self):
+        import cdx
+
+        with mock.patch.object(cdx, "runtime_fingerprint", lambda: "f" * 64), \
+                mock.patch.object(cdx, "write_catalog") as write, self.assertRaises(SystemExit):
+            cdx.main(["regen-catalog"])
+        write.assert_not_called()
+
+    def test_routing_documents_point_at_the_four_chemdraw_interface_layers(self):
+        catalog = (REFERENCES / "interface-catalog.md").read_text(encoding="utf-8")
+        for page in ("interface-chemscript.md", "interface-com.md", "interface-cdxml-model.md",
+                     "interface-menu.md", "recipes-chemdraw.md"):
+            self.assertIn(page, catalog)
+            self.assertTrue((REFERENCES / page).is_file(), page)
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("interface-catalog.md", skill)
+        self.assertLessEqual(len(skill.splitlines()), 85)
+
     def test_decimer_guide_defers_exact_signature_to_generated_reference(self):
         guide = (REFERENCES / "decimer-api.md").read_text(encoding="utf-8")
         self.assertIn("mcp-signatures.md", guide)

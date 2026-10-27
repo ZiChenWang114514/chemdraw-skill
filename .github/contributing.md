@@ -39,7 +39,7 @@ python -m cdxml_toolkit.mcp_runtime.generate_reference --markdown docs/mcp-tools
 - Preserve stereochemistry, isotopes, formal charges, atom mapping and CDXML document validity.
 - Mark tests that need the network with `@pytest.mark.network`; keep native tests separate from portable tests and report skipped applications.
 - When changing the version, update `toolkit/pyproject.toml`, `toolkit/cdxml_toolkit/__init__.py` and `skill/chemdraw/runtime.json` together.
-- After changing the tool registry, regenerate `toolkit/docs/mcp-tools.md` and `mcp-schema.json`, then `cdx.py regen-signatures` for the Skill.
+- After changing the tool registry, regenerate `toolkit/docs/mcp-tools.md` and `mcp-schema.json`, then `cdx.py regen-signatures` for the Skill. After changing the ChemDraw interface catalogs or `classification.json`, run `cdx.py regen-catalog`.
 - Keep the import package `cdxml_toolkit`, its public tool names and the shared ChemDraw COM mutex name stable.
 
 ## Issues and Pull Requests

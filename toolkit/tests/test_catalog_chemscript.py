@@ -139,6 +139,18 @@ def test_the_catalog_records_where_it_came_from_and_is_deterministic(xml_path):
     assert first["sources"] == ["reflection", "xml_docs"]
 
 
+def test_base_types_are_recorded_so_inherited_members_can_be_found(xml_path):
+    docs = chemscript.parse_xml_docs(xml_path)
+
+    catalog = chemscript.build_catalog(
+        REFLECTION, docs, verified_on="22.2.0/win", bases={NS + "StructureData": NS + "Atom", NS + "Atom": "System.Object"}
+    )
+
+    by_name = {t["name"]: t for t in catalog["types"]}
+    assert by_name["StructureData"]["base"] == "Atom"
+    assert "base" not in by_name["Atom"]
+
+
 def test_a_missing_documentation_file_is_reported_not_hidden():
     catalog = chemscript.build_catalog(REFLECTION, {}, verified_on="22.2.0/win")
 
@@ -160,6 +172,11 @@ def test_committed_catalog_matches_its_own_counts():
     assert [t["name"] for t in catalog["types"]] == sorted(t["name"] for t in catalog["types"])
     structure = next(t for t in catalog["types"] if t["name"] == "StructureData")
     assert any(m["name"] == "CleanupStructure" for m in structure["members"])
+    # WriteData is declared once on the base class and inherited by structures and reactions.
+    assert structure["base"] == "ChemicalData"
+    assert next(t for t in catalog["types"] if t["name"] == "ReactionData")["base"] == "ChemicalData"
+    chemical = next(t for t in catalog["types"] if t["name"] == "ChemicalData")
+    assert any(m["name"] == "WriteData" for m in chemical["members"])
 
 
 @pytest.mark.skipif(os.environ.get("CDX_LIVE") != "1", reason="set CDX_LIVE=1 to re-read the installed SDK")
