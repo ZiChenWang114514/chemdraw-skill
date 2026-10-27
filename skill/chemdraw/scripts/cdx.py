@@ -138,6 +138,34 @@ def install_help():
     ]
 
 
+def _ensure_writable_temp():
+    """Move temp files into the working folder when the system temp folder refuses writes.
+
+    Some sandboxes let a process create folders in the system temp but not write inside them; workers
+    and evidence files then fail with "Permission denied". Returns the folder used, or None when temp works.
+    """
+    probe = None
+    try:
+        probe = tempfile.mkdtemp(prefix='cdx-probe-')
+        with open(os.path.join(probe, 'write-test'), 'wb') as handle:
+            handle.write(b'0')
+        return None
+    except OSError:
+        pass
+    finally:
+        if probe:
+            shutil.rmtree(probe, ignore_errors=True)
+    fallback = Path.cwd() / '.cdx-tmp'
+    try:
+        fallback.mkdir(exist_ok=True)
+    except OSError:
+        return None
+    for name in ('TEMP', 'TMP', 'TMPDIR'):
+        os.environ[name] = str(fallback)
+    tempfile.tempdir = str(fallback)
+    return fallback
+
+
 def _ensure_runtime(argv):
     try:
         import cdxml_toolkit.mcp_runtime  # noqa: F401
@@ -753,6 +781,7 @@ def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     # `sig` reads a generated reference and help is static: both work before a runtime exists.
     if argv[:1] not in (['sig'], ['-h'], ['--help'], []):
+        _ensure_writable_temp()
         _ensure_runtime(argv)
     if argv[:1] == ['py']:  # pass everything through untouched (argparse would eat -m/-c)
         return cmd_py(argparse.Namespace(rest=argv[1:]))
