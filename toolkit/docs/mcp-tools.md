@@ -512,8 +512,9 @@ Direction is detected from the file extension:
 Uses available backends in order: ChemDraw (best fidelity; COM on Windows,
 AppleScript on macOS) → pycdxml (pure Python, partial support) → OpenBabel.
 
-ChemDraw COM on Windows requires ChemDraw to be installed and closed before
-running. On macOS the toolkit drives a hidden ChemDraw for macOS instance.
+On Windows ChemDraw COM drives a dedicated automation instance, so an open
+ChemDraw window is neither reused nor required to be closed. On macOS the
+toolkit drives a hidden ChemDraw for macOS instance.
 
 Args:
     input_path:  Path to .cdx or .cdxml file.
@@ -561,7 +562,7 @@ Converts CDXML → CDX + EMF preview via ChemDraw, builds a CFB OLE
 compound file, and injects it into a PPTX slide or DOCX paragraph as a
 double-clickable, editable ChemDraw object.
 
-Requires: ChemDraw COM (Windows, ChemDraw 16+; ChemDraw must be closed) or
+Requires: ChemDraw COM (Windows, ChemDraw 16+, dedicated automation instance) or
 ChemDraw for macOS (vector EMF preview from its SVG export), plus python-pptx or python-docx.
 
 The output format (.pptx or .docx) is detected from office_path extension.
@@ -871,13 +872,14 @@ Safety override: Render a scheme through a validated no-overwrite staging file.
 
 ### `render_to_png(cdxml_path: str, output_path: Optional[str] = None) -> dict`
 
-Render a CDXML file to PNG using ChemDraw COM.
+Render a CDXML file to PNG using ChemDraw.
 
-Uses ChemDraw's native rendering engine (via COM automation) at 300 DPI
-with a solid white background. ChemDraw must be installed (Professional
-16+) and closed before calling this tool.
+Uses ChemDraw's native rendering engine (COM automation on Windows,
+AppleScript on macOS) at 300 DPI with a solid white background.
+ChemDraw Professional 16+ must be installed and activated; a dedicated
+automation instance is used, so an open ChemDraw window may stay open.
 
-This tool uses ChemDraw COM exclusively — no RDKit fallback. For a
+This tool uses ChemDraw only — no RDKit fallback. For a
 quick preview without ChemDraw, use draw_molecule which returns CDXML
 that can be opened directly.
 
