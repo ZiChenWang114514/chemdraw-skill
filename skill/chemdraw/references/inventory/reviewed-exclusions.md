@@ -394,6 +394,10 @@
 - **function**, line 144: `find_python(explicit: str | None = None) -> Discovery` - Find and probe Python using explicit, environment, then implicit paths.
 - **function**, line 185: `find_skill_root(explicit: str | None = None) -> Discovery` - No public docstring in the audited version.
 
+## `mcp_runtime.scientific_tool`
+
+- **function**, line 21: `scientific_workflow(operation: str, spec_path: str, output_path: str) -> dict[str, Any]` - Draw or analyse a scientific figure from a JSON spec file: tlc, apparatus, mechanism, nmr or plot.
+
 ## `mcp_runtime.structure_fidelity`
 
 - **function**, line 219: `repair_and_validate_drawn_cdxml(smiles: str, path: str | Path, *, repair_stereo: bool = True) -> dict[str, object]` - Repair missing wedge bonds and verify CDXML against the source SMILES.
@@ -414,9 +418,9 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 145: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 137: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 31: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 147: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 139: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 32: `ToolSpec` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_worker`
 

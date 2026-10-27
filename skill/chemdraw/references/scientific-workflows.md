@@ -9,6 +9,8 @@ These commands need the `cdxml_toolkit.scientific` module and the `scientific` e
 | Numerical scientific plot | `plot` | SVG, PNG, full data CSV and editable CDXML |
 | Explicit mechanism | `mechanism` | Grounded molecule graphs and atom/bond-anchored electron arrows |
 
+Each operation also runs as the MCP tool `scientific_workflow(operation, spec_path, output_path)` (profiles `full` and `analysis`) with the same spec files: `tlc`, `apparatus` and `mechanism` write one new `.cdxml`, `nmr` and `plot` a new directory. Output is staged and published only on success, and an existing path is never replaced. The commands below remain the way to run it without an MCP client.
+
 ## Fast examples
 
 The example runner and JSON specifications are in [assets/scientific](../assets/scientific/run_examples.py). Requires the `scientific` extra (`cdx.py doctor` lists missing extras):
