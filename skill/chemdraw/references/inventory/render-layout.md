@@ -84,7 +84,7 @@
 ## `render.compact_parser`
 
 - **function**, line 292: `parse_compact(text: str) -> SchemeDescriptor` - Parse compact syntax text into a :class:`SchemeDescriptor`.
-- **function**, line 629: `parse_compact_file(path: str) -> SchemeDescriptor` - Read a file and parse it as compact syntax.
+- **function**, line 649: `parse_compact_file(path: str) -> SchemeDescriptor` - Read a file and parse it as compact syntax.
 - **class**, line 32: `ParseError` - Syntax or semantic error with optional line number.
 
 ## `render.parser`
@@ -94,8 +94,8 @@
 
 ## `render.renderer`
 
-- **function**, line 2446: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
-- **function**, line 2464: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **function**, line 2487: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 2505: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
 - **class**, line 141: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
 - **class**, line 156: `ResolvedStep` - A step with all structures resolved and laid out.
 
@@ -115,16 +115,17 @@
 
 ## `render.scheme_yaml_writer`
 
-- **function**, line 1104: `build_merged_scheme_yaml_dict(json_paths: List[str], layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> Dict[str, Any]` - Build a combined YAML dict from multiple reaction JSONs.
+- **function**, line 1089: `build_merged_scheme_yaml_dict(json_paths: List[str], layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> Dict[str, Any]` - Build a combined YAML dict from multiple reaction JSONs.
 - **function**, line 131: `build_scheme_yaml_dict(json_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> Dict[str, Any]` - Read reaction JSON and return the YAML dict (without writing to disk).
-- **class**, line 502: `MergePlan` - How to combine N reaction JSONs into a merged scheme.
-- **method**, line 508: `MergePlan.describe() -> str` - No public docstring in the audited version.
-- **class**, line 485: `ReactionSummary` - Extracted summary of one reaction JSON for merge classification.
-- **function**, line 1371: `write_merged_scheme_yaml(json_paths: List[str], output_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> str` - Read multiple reaction JSONs, detect relationships, write merged YAML.
+- **class**, line 487: `MergePlan` - How to combine N reaction JSONs into a merged scheme.
+- **method**, line 493: `MergePlan.describe() -> str` - No public docstring in the audited version.
+- **class**, line 470: `ReactionSummary` - Extracted summary of one reaction JSON for merge classification.
+- **function**, line 1356: `write_merged_scheme_yaml(json_paths: List[str], output_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> str` - Read multiple reaction JSONs, detect relationships, write merged YAML.
 - **function**, line 78: `write_scheme_yaml(json_path: str, output_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> str` - Read reaction JSON, make layout decisions, write YAML file.
 
 ## `text_formatting`
 
-- **function**, line 135: `build_formatted_s_xml(text: str, font: str = '3', size: str = '10', color: str = '0', italic_font: str | None = None) -> str` - Build one or more CDXML ``<s>`` elements with correct chemical styling.
-- **function**, line 69: `needs_subscript(text: str) -> bool` - Determine whether *text* contains chemical-formula digits that should be rendered as subscripts in ChemDraw.
-- **function**, line 111: `split_italic_prefix(text: str) -> Tuple[str, str]` - Split *text* into ``(italic_prefix, remainder)`` if it starts with a recognised chemistry italic prefix (see :data:`ITALIC_PREFIXES`).
+- **function**, line 163: `build_formatted_s_xml(text: str, font: str = '3', size: str = '10', color: str = '0', italic_font: str | None = None) -> str` - Build one or more CDXML ``<s>`` elements with correct chemical styling.
+- **function**, line 97: `needs_subscript(text: str) -> bool` - Determine whether *text* contains chemical-formula digits that should be rendered as subscripts in ChemDraw.
+- **function**, line 79: `normalize_condition_text(text: str) -> str` - Write temperatures, room temperature and times the way papers do.
+- **function**, line 139: `split_italic_prefix(text: str) -> Tuple[str, str]` - Split *text* into ``(italic_prefix, remainder)`` if it starts with a recognised chemistry italic prefix (see :data:`ITALIC_PREFIXES`).

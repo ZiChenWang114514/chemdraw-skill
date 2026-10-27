@@ -162,10 +162,18 @@
 - **function**, line 951: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
 - **function**, line 1326: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
 
+## `mcp_runtime.figure_draw`
+
+- **function**, line 240: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+
 ## `mcp_runtime.figure_editing`
 
 - **function**, line 4: `apply_crossings(page, crossings)` - No public docstring in the audited version.
 - **function**, line 50: `edit_bond_display(node, edit)` - No public docstring in the audited version.
+
+## `mcp_runtime.figure_lint`
+
+- **function**, line 54: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
 
 ## `mcp_runtime.figure_tools`
 
@@ -332,9 +340,9 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 135: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 127: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 28: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 138: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 130: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 29: `ToolSpec` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_worker`
 
