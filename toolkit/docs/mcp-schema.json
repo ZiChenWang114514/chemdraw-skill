@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 57,
+  "tool_count": 58,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -52,6 +52,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.\n\nreaction is a reaction SMILES string \"reactants>agents>products\" (structures separated by\n'.'), a dict {\"reactants\": [...], \"agents\": [...], \"products\": [...]} of structure records\n(smiles, molblock or file; optional label, coefficient, equiv, density_g_ml, concentration_m,\nisolated_mg), or {\"cdxml\": path, \"steps\": [step ids]} to read the <step> elements of a drawn\nscheme. Agents are listed but never counted. Elements are counted with implicit hydrogens;\nisotope-labelled atoms are balanced as separate species, and the charge must balance too.\nFor an unbalanced reaction the result names the missing formula (for example H2O),\nand, when exactly one set of whole-number coefficients balances it, suggests them.\nAlso reports mass balance and atom economy (options main_product, default the first product).\noptions scale_mmol (amount of the limiting reactant, option limiting = its index, default 0)\nadds a stoichiometry table with equivalents, mmol, mass, volume and, for products with\nisolated_mg, the percent yield. A failed balance is a finding about the species as drawn:\ncheck the structures against their source before trusting the reaction. Generic atoms\n(R groups) are rejected. output_path ends in .json and is never overwritten."
+    },
+    {
+      "name": "chemdraw_chemical_properties",
+      "signature": "(molecules: list[dict], output_path: str | None = None) -> dict",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 600,
+      "description": "Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.\n\nRecords are SMILES/CXSMILES, molblock or file records (CDXML/MOL/SDF), with an optional\nlabel; a CDXML or SDF record with all_fragments=true reports every structure in the file.\nEvery value is read from ChemDraw's own chemical properties engine (ChemScript StructureData:\nFormula, Weight, ExactMass, ElementalAnalysis, PartitionCoefficient and Refractivity);\nlog_p and molar_refractivity are ChemDraw's ClogP estimates, in its units. Nothing is computed\nby RDKit or any other substitute: a property ChemDraw cannot give is null with the reason in\nthat row's errors, and without ChemScript (Windows) the call fails instead of falling back.\nUse molecule_report for the deterministic RDKit sheet. Generic atoms (R groups, *) are refused.\noutput_path ends in .csv, .json or .md and is never overwritten. At most 256 structures."
     },
     {
       "name": "chemdraw_com_call",
