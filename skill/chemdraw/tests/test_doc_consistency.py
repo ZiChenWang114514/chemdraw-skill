@@ -59,6 +59,51 @@ class CommandReferenceTests(unittest.TestCase):
         self.assertEqual(sorted(names - documented), [])
 
 
+class CoverageTableTests(unittest.TestCase):
+    ROW = re.compile(r"^\| [^|]+ \| ([\d,]+) \| ([\d,]+) \| ([\d,]+) \| ([\d,]+) \|$", re.MULTILINE)
+
+    def test_guide_tables_match_the_catalog(self):
+        from cdxml_toolkit.catalog import classify
+
+        summary = classify.summarize(classify.all_rows())
+        expected = [
+            [sum(summary[layer].values()), *(summary[layer][tier] for tier in ("T1", "T2", "T3"))]
+            for layer in ("chemscript", "com", "cdxml", "menu")
+        ]
+        for name in ("guide.md", "guide.zh-cn.md"):
+            text = (REPO / "docs" / name).read_text(encoding="utf-8")
+            found = [[int(v.replace(",", "")) for v in row] for row in self.ROW.findall(text)]
+            self.assertEqual(found, expected, name)
+
+
+class SkillEntryTests(unittest.TestCase):
+    """SKILL.md is read first by every agent, so it stays short and self-sufficient."""
+
+    def setUp(self):
+        self.skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+
+    def test_skill_md_stays_small(self):
+        self.assertLessEqual(len(self.skill.splitlines()), 70)
+        self.assertLessEqual(len(self.skill.encode("utf-8")), 7700)
+
+    def test_first_command_form_needs_no_shell_quoting(self):
+        self.assertIn("--args", self.skill)
+        self.assertIn("cdx.py call", self.skill)
+
+    def test_image_check_has_a_text_only_fallback(self):
+        self.assertIn("cannot view images", self.skill)
+
+    def test_host_without_chemdraw_is_covered_in_operations(self):
+        operations = (REFERENCES / "operations.md").read_text(encoding="utf-8")
+        self.assertIn("## No ChemDraw on this host", operations)
+        self.assertIn("operations.md#no-chemdraw-on-this-host", self.skill)
+
+    def test_every_linked_reference_exists(self):
+        links = re.findall(r"\]\((references/[^)#]+)", self.skill)
+        self.assertGreaterEqual(len(links), 12)
+        self.assertEqual([p for p in links if not (SKILL_ROOT / p).is_file()], [])
+
+
 class GeneratedWordingTests(unittest.TestCase):
     def test_interface_pages_do_not_deny_existing_tools(self):
         for name in ("interface-com.md", "interface-menu.md"):

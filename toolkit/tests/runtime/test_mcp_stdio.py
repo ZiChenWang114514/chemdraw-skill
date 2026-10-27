@@ -12,7 +12,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.types import LATEST_PROTOCOL_VERSION
 
-from cdxml_toolkit.mcp_runtime import mcp_compat
+from cdxml_toolkit.mcp_runtime import mcp_compat, tool_registry
 SERVER_MODULE = "cdxml_toolkit.mcp_runtime.mcp_server"
 
 
@@ -61,7 +61,7 @@ class MCPStdioTests(unittest.TestCase):
             expected_protocol,
         )
         by_name = {tool.name: tool for tool in tools}
-        self.assertEqual(len(by_name), 59)
+        self.assertEqual(len(by_name), len(tool_registry.build_registry("full")))
         self.assertIn("inspect_chemdraw_objects_in_office", by_name)
         self.assertIn("replace_chemdraw_objects_in_office", by_name)
         self.assertIn("resolve_name", by_name)

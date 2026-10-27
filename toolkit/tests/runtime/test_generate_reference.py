@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from cdxml_toolkit.mcp_runtime import generate_reference
+from cdxml_toolkit.mcp_runtime import generate_reference, tool_registry
 
 
 def test_legacy_reference_interface_matches_generated_markdown(tmp_path):
@@ -24,7 +24,9 @@ def test_current_reference_interface_writes_markdown_and_json(tmp_path):
         == 0
     )
     assert markdown.read_text(encoding="utf-8") == generate_reference.render_markdown()
-    assert json.loads(schema.read_text(encoding="utf-8"))["tool_count"] == 59
+    assert json.loads(schema.read_text(encoding="utf-8"))["tool_count"] == len(
+        tool_registry.build_registry("full")
+    )
 
 
 def test_descriptions_are_dedented_on_every_python_version(monkeypatch):
