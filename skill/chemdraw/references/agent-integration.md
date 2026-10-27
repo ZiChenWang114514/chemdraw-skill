@@ -54,7 +54,7 @@ This entry also allows `cdx.py py`, which runs any Python script or `-c` code in
 
 ## Why the command line instead of MCP
 
-- `cdx.py call` runs every registered tool through the same isolated worker an MCP server would use: worker timeout, native ChemDraw mutex, input/output limits and the JSON result envelope are unchanged.
+- `cdx.py call` runs every registered tool through the same isolated worker an MCP server would use: worker timeout, native ChemDraw lock, input/output limits and the JSON result envelope are unchanged.
 - Large results go to a file and only a summary is printed, so tool output does not flood the conversation.
 - No resident server, no client registration to keep in sync, nothing to restart after an upgrade, and it works in every agent that has a shell.
 
@@ -82,11 +82,14 @@ cdx.py sig TOOL                           print one generated signature
 cdx.py call TOOL --json '{...}' | --args FILE [--out NEW.json]
 cdx.py render A.cdxml [B.cdxml ...] [--out-dir DIR] [--replace]
 cdx.py build SPEC.json NEW.cdxml [--render]
-cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--out NEW.json]
+cdx.py draw BRIEF.json [OUTPUT] [--render] [--out NEW.json]   checked scheme, scope panel or mechanism from a brief
+cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--timeout S] [--out NEW.json]
 cdx.py markush init|next|submit|status WORKDIR [TASK ANSWER.json] [--image IMG --text CLAIM --crop X0 Y0 X1 Y1 --reuse OLD]
 cdx.py office-edit DOCUMENT [--object N] [--workdir NEW_DIR] [--no-open]
 cdx.py office-edit DOCUMENT|EDIT_DIR --finish [--output NEW] [--wait S] [--pdf]
-cdx.py chemscript-info SAVED.cdxml        direct ChemScript reading, under the native lock
+cdx.py chemscript-info SAVED.cdxml [--timeout S]   direct ChemScript reading, under the native lock
+cdx.py calc [REACTION] [--scale MMOL] [--molarity M] [--offline] [--no-open]   reaction calculator page; runs until the page is closed, so start it in the background
+cdx.py install-mappers [rxnmapper] [localmapper] [--dry-run] [--status]   optional atom-mapping backends
 cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full]
 cdx.py py ARGS...                         run the runtime Python (helper scripts, -m modules, tests)
 cdx.py regen-signatures                   after a toolkit upgrade
@@ -95,10 +98,10 @@ cdx.py regen-catalog [--check]            rewrite (or only check) the generated 
 
 `call` prints results up to about 6 KB directly; larger results go to a new file under the temp folder's `chemdraw-cdx` directory (or `--out`) and a short summary with the path is printed. `ok` means the tool ran without error. Existing result files are never overwritten.
 
-`render` writes to a temporary name and publishes the PNG only after a successful render, so a failed render keeps the previous image. It replaces an existing PNG only when it rendered that exact file before; any other PNG of the same name is refused with its path unless `--replace` is given, and two inputs that would share one PNG are refused. `build` never replaces an existing CDXML. `markush` and `office-edit` are described in [Markush structures](markush.md) and [operations](operations.md#macos).
+`render` writes to a temporary name and publishes the PNG only after a successful render, so a failed render keeps the previous image. It replaces an existing PNG only when it rendered that exact file before; any other PNG of the same name is refused with its path unless `--replace` is given, and two inputs that would share one PNG are refused. `build` never replaces an existing CDXML. `draw` runs the `draw_figure` tool from a brief file and never replaces an existing output ([scheme drawing](scheme-drawing.md)). `markush` and `office-edit` are described in [Markush structures](markush.md) and [operations](operations.md#macos).
 
 On a shell that does not pass JSON quotes through intact (Windows PowerShell 5, `cmd.exe`), write the arguments to a file and use `--args`.
 
 ## Subagents
 
-Subagents load the same Skill. Give them the `cdx.py` command form, never a guessed interpreter path. Native work is serialized by the ChemDraw mutex however many agents run.
+Subagents load the same Skill. Give them the `cdx.py` command form, never a guessed interpreter path. Native work is serialized by the ChemDraw lock however many agents run.

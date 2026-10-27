@@ -188,8 +188,9 @@ def _com(rows, catalog, summary) -> tuple[str, list[tuple[str, str]], list[tuple
         "",
         "- `ChemDraw.Application` is the root: `Documents` → `Document` → `Objects` and the typed collections "
         "(`Atoms`, `Bonds`, `Graphics`, `Tables`, `PlasmidMaps`, ...). `MenuBars` exposes the menus ([interface-menu.md](interface-menu.md)).",
-        "- No generic COM tool exists yet. The members marked T1 below are already used by `convert_cdx_cdxml` and `render_to_png`; "
-        "all other members are documented here so that nothing is guessed.",
+        "- `chemdraw_com_call` (Windows) calls any member that is not blocked; T1 members have a dedicated tool such as "
+        "`convert_cdx_cdxml` or `render_to_png`, T2 members a recipe in [recipes-chemdraw.md](recipes-chemdraw.md), and all "
+        "other members are documented here so that nothing is guessed.",
         "- Run native work through the tools: they take the shared ChemDraw lock and use a private instance.",
         "",
         f"Tiers: {TIER_LINE} Rows: {_tier_counts(summary)}.",
@@ -222,8 +223,8 @@ def _menu(rows, catalog, summary) -> str:
         "",
         "The id is the `CommandID` that `IChemOfficeMenuItem.Execute` takes through COM. A command acts on the current "
         "selection, and whether it is enabled depends on that selection, so a list of enabled commands is not part of the catalog.",
-        "No tool runs menu commands on Windows yet; on macOS `Clean Up Structure` and `Convert Name to Structure` run through "
-        "the application menu (see [operations.md](operations.md)).",
+        "No tool runs menu commands on Windows, because ChemDraw runs them only from a visible window; on macOS "
+        "`Clean Up Structure` and `Convert Name to Structure` run through the application menu (see [operations.md](operations.md)).",
         "",
         f"Tiers: {TIER_LINE} Rows: {_tier_counts(summary)}.",
         "",

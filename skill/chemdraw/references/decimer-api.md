@@ -33,7 +33,7 @@ Official sources:
 
 ### Remote Steinbeck Lab API
 
-Use this endpoint for online recognition:
+This is the endpoint behind `cdx.py decimer`; call that command instead of posting yourself, because it adds the preflight, image size limits, the offline refusal and response checks. The contract is listed for reference:
 
 ```text
 POST https://api.naturalproducts.net/latest/ocsr/process-upload

@@ -1,6 +1,6 @@
 # Workflow Router
 
-Load one section matching the user's intent. Exact signatures live only in [mcp-signatures.md](mcp-signatures.md).
+Load one section matching the user's intent. Exact signatures live only in [mcp-signatures.md](mcp-signatures.md); `cdx.py sig TOOL` prints one. Run a tool named below as `python <skill>/scripts/cdx.py call TOOL --args ARGS.json` (a file holding the arguments as a JSON object; `--json '{...}'` also works in bash). `cdx.py render` and `cdx.py draw` are shortcuts for rendering and for `draw_figure`.
 
 ## Draw Or Modify A Molecule
 
@@ -12,7 +12,7 @@ For exam or lecture figures with abbreviations, Chinese notes or compound codes,
 3. If no structural change is requested, do not call `modify_molecule(operation="analyze")` merely to authorize drawing; complex naming analysis may be expensive and is limited to 90 seconds.
 4. For actual changes, call `modify_molecule` and inspect the MCS diff. For an explicit R/S assignment, `rdkit_workbench(operation="set_stereo")` provides a connectivity-preserving CIP diff; inspect it before drawing.
 5. Call `draw_molecule` and require `metadata.chemistry_validation.status=preserved`. Compare source/roundtrip structure signatures and enhanced stereo groups, in addition to E/Z, isotopes and charges.
-6. Call `render_to_png` for native compatibility and visual inspection. A successful PNG does not independently prove molecular identity.
+6. Run `cdx.py render FILE.cdxml` (the `render_to_png` tool) for native compatibility and visual inspection. A successful PNG does not independently prove molecular identity.
 
 ## Compare Molecules Or Use ChemScript
 
@@ -24,10 +24,10 @@ For exam or lecture figures with abbreviations, Chinese notes or compound codes,
 ## Create Or Edit A Reaction
 
 1. Ground every drawn species.
-2. Use `render_scheme` for a new reaction ([scheme drawing](scheme-drawing.md) has the compact syntax and the row-width setting) and check its per-fragment `chemistry_validation` status. For exact coordinates, curved arrows, grids or native-template replication, use [publication-figures.md](publication-figures.md).
+2. For a new reaction, route, substrate-scope panel or a mechanism with curved arrows, read [scheme drawing](scheme-drawing.md) and run `cdx.py draw brief.json out.cdxml --render` (`draw_figure`; `kind: mechanism` for curved arrows). `render_scheme` takes the compact syntax and the row-width setting; check its per-fragment `chemistry_validation` status. For exact coordinates, grids or native-template replication, use [publication-figures.md](publication-figures.md).
 3. Use `parse_scheme` or `parse_reaction` for an existing CDXML/CDX workflow.
 4. Use `clean_scheme_layout`, `merge_reaction_schemes`, or `polish_reaction_scheme` for existing schemes. Explicit and auto-detected sequential plans are checked for linear chemical links; any `force_sequential=true` override requires manual review.
-5. Render the resulting CDXML through `render_cdxml_files` and visually inspect all labels, wedges, arrows and plus signs. Cleanup/polish preserves molecular inventory but still needs visual acceptance.
+5. Render the resulting CDXML with `cdx.py render` (`render_cdxml_files`) and visually inspect all labels, wedges, arrows and plus signs. Cleanup/polish preserves molecular inventory but still needs visual acceptance.
 
 ## Recognize An Image
 
@@ -41,7 +41,7 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 ## Convert Or Render
 
 1. Convert CDX with `convert_cdx_cdxml`; edit CDXML, not binary CDX.
-2. Render one file with `render_to_png` or a collection/PNG/SVG with `render_cdxml_files`. Batch rendering reuses one ChemDraw application session and stops on the first failed export.
+2. Render with `cdx.py render A.cdxml [B.cdxml ...]` (PNG next to each file; `--out-dir` and `--replace` are described in [agent integration](agent-integration.md#command-reference)); use the `render_cdxml_files` tool for SVG or a collection. Batch rendering reuses one ChemDraw application session and stops on the first failed export.
 3. Require native ChemDraw output for reaction and Office fidelity checks.
 
 ## Inspect Or Edit CDXML Objects
@@ -55,7 +55,7 @@ For any object other than the molecules and schemes the drawing tools produce (t
 
 ## Drive ChemDraw Through COM
 
-For a ChemDraw object or measurement no dedicated tool covers (document or selection formula and masses, atom and bond properties, ChemDraw's own Clean Up), and only on Windows with ChemDraw installed:
+For a ChemDraw object or measurement no dedicated tool covers (document or selection formula and masses, atom and bond properties, ChemDraw's own Clean Up), and only on Windows with ChemDraw installed (`chemdraw_com_call` does not exist on macOS):
 
 1. Find the member in [interface-com.md](interface-com.md) (or `chemdraw_inventory(layer="com", query=...)`). Start from a T2 member's recipe in [recipes-chemdraw.md](recipes-chemdraw.md); a T3 member is reachable but untested, so say so in the answer.
 2. `chemdraw_com_call(program=[...])` takes steps `get`, `set`, `call`, `iterate` and `release` on the root alias `app`; `as` names an object result so later steps can use it, and constants are written `{"constant": "kCDFormatPNG"}`. Every member is checked against the catalog before ChemDraw starts.
@@ -81,7 +81,7 @@ Details and argument examples: [chemistry reports](chemistry-reports.md).
 5. `hrms_line` for `HRMS (ESI) m/z calcd for ... [M+Na]+ ...` characterization sentences (ppm error when a found value is given). `characterization_text` for a whole ACS paragraph (appearance, Rf, mp, [α]D, IR, 1H/13C/other NMR, HRMS) with the peak counts checked and mismatches reported, never corrected. `route_summary` for the overall yield and cumulative PMI (process mass intensity; E-factor = PMI - 1) of a multi-step route from per-step yields and masses (or calculator reactions), with a lower-bound warning when a solvent has no known mass. `si_materials_tables` for the materials table, HRMS line and procedure sentence of up to 100 reactions at once (Markdown, CSV, printable HTML or JSON); `map_atoms: true` adds each reaction's bond changes; `reagent_safety: true` adds GHS reminders per reagent from a built-in table (species not in it are reported as not listed, and the table never replaces the supplier SDS).
 6. `map_reaction_atoms` for which reactant atom each product atom comes from and which bonds change. `method` is `auto` (installed LocalMapper or RXNMapper, else the built-in substructure method), `mcs`, `rxnmapper` or `localmapper`; the learned mappers come from `cdx.py install-mappers`, and `compare: true` shows where methods disagree. Pass several reactions as one list: a learned mapper loads once instead of once per reaction. `template` adds the reaction-centre SMARTS, `classify` names the reaction type from the structures (or says unclassified), `map_numbers_into_scheme` writes the map numbers into a copy of the drawing. Read RXNMapper's `confidence`, report `ambiguous` and `incomplete` as they are and never present a tie-break as the true mapping.
 7. `structure_to_name` for a name of a drawn or supplied structure, from ChemDraw's own engine (ChemScript on Windows, ChemDraw for macOS). Report a name as confirmed only when `roundtrip.status` is `same`; without ChemScript or ChemDraw the tool cannot run and no name may be invented.
-8. `chemdraw_chemical_properties` when the answer must be ChemDraw's own value (as the Chemical Properties window shows it): formula, average and exact mass, elemental analysis, ClogP logP and molar refractivity. A property ChemDraw cannot give comes back null with the reason in `errors`; do not fill it from `molecule_report` and call it ChemDraw's. NMR prediction and the other menu commands are not opened as tools (see [interface-menu.md](interface-menu.md)); say they were not run.
+8. `chemdraw_chemical_properties` (Windows with ChemScript only) when the answer must be ChemDraw's own value (as the Chemical Properties window shows it): formula, average and exact mass, elemental analysis, ClogP logP and molar refractivity. A property ChemDraw cannot give comes back null with the reason in `errors`; do not fill it from `molecule_report` and call it ChemDraw's. NMR prediction and the other menu commands are not opened as tools (see [interface-menu.md](interface-menu.md)); say they were not run.
 
 ## Analyze Experiments
 
