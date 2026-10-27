@@ -51,6 +51,11 @@ class InterfaceCatalogTests(unittest.TestCase):
         self.assertIn("mcp-signatures.md", guide)
         self.assertNotRegex(guide, r"extract_structures_via_decimer_api\s*\(")
 
+    def test_operations_guide_states_the_macos_chemscript_sdk_subset(self):
+        text = (REFERENCES / "operations.md").read_text(encoding="utf-8")
+        self.assertNotIn("SDK tools are Windows-only", text)
+        self.assertIn("emulated subset", text)
+
     def test_every_inventory_module_has_existing_curated_guidance(self):
         index = (REFERENCES / "toolkit-public-inventory.md").read_text(encoding="utf-8")
         shards = re.findall(r"\(inventory/([^)]+\.md)\)", index)
