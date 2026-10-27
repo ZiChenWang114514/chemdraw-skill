@@ -1,0 +1,4180 @@
+{
+ "schema": 1,
+ "layer": "chemscript",
+ "assembly": "CambridgeSoft.ChemScript",
+ "assembly_version": "22.0.0.0",
+ "verified_on": "22.2.0/win",
+ "sources": [
+  "reflection",
+  "xml_docs"
+ ],
+ "counts": {
+  "types": 85,
+  "types_api": 36,
+  "types_collection": 45,
+  "types_interop": 4,
+  "members_total": 3029,
+  "members_listed": 619,
+  "api_members_documented": 316,
+  "api_members_undocumented": 303
+ },
+ "types": [
+  {
+   "name": "Atom",
+   "kind": "class",
+   "doc": "class of Atom Users cannot create Atom objects directly. Use StructureData.CreateAtom() to create an Atom.",
+   "role": "api",
+   "members": [
+    {
+     "kind": "property",
+     "name": "CdxIdAsReadFromFile",
+     "signature": "System.Int32 CdxIdAsReadFromFile",
+     "doc": "The field CdxIdAsRead corresponds to the ID number of the atom in the CDX or CDXML file that was read. This field is undefined if the structure was not read from a CDX(ML) file, or if the structure has been changed sinc…"
+    },
+    {
+     "kind": "property",
+     "name": "CdxIdAsWrittenToFile",
+     "signature": "System.Int32 CdxIdAsWrittenToFile",
+     "doc": "The field CdxIdAsWrite corresponds to the ID number of the atom in the CDX or CDXML file that was written. This field is undefined if the structure was not written to a CDX(ML) file, or if the structure has been changed…"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "property",
+     "name": "Element",
+     "signature": "System.String Element",
+     "doc": "Get/Set the element symbol of the atom"
+    },
+    {
+     "kind": "property",
+     "name": "FormalCharge",
+     "signature": "System.Int32 FormalCharge",
+     "doc": "Get/Set the atom's formal charge"
+    },
+    {
+     "kind": "method",
+     "name": "GetCartesian",
+     "signature": "CambridgeSoft.ChemScript.Point GetCartesian()",
+     "doc": "Get the Cartesian coordinates of the atom."
+    },
+    {
+     "kind": "property",
+     "name": "ID",
+     "signature": "System.Int32 ID",
+     "doc": "Get the atom ID. NOTE: the ID is not necessarily the index in the StructureData ID is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "Name",
+     "signature": "System.String Name",
+     "doc": "Get the atom Name. Name is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "RadicalCode",
+     "signature": "CambridgeSoft.ChemScript.Atom+RadicalCodeEnum RadicalCode",
+     "doc": "Get/Set the atom's radical code: 0 - NONE 1 - SINGLET 2 - DOUBLET 3 - TRIPLET"
+    },
+    {
+     "kind": "method",
+     "name": "SetCartesian",
+     "signature": "Void SetCartesian(CambridgeSoft.ChemScript.Point)",
+     "doc": "Sets the Cartesian coordinates for the atom"
+    },
+    {
+     "kind": "method",
+     "name": "SetCartesian",
+     "signature": "Void SetCartesian(Double, Double, Double)",
+     "doc": "Sets the Cartesian coordinates for the atom"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "Atom+RadicalCodeEnum",
+   "kind": "enum",
+   "role": "api",
+   "members": [
+    {
+     "kind": "field",
+     "name": "DOUBLET",
+     "signature": "CambridgeSoft.ChemScript.Atom+RadicalCodeEnum DOUBLET",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "NONE",
+     "signature": "CambridgeSoft.ChemScript.Atom+RadicalCodeEnum NONE",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "SINGLET",
+     "signature": "CambridgeSoft.ChemScript.Atom+RadicalCodeEnum SINGLET",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "TRIPLET",
+     "signature": "CambridgeSoft.ChemScript.Atom+RadicalCodeEnum TRIPLET",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "value__",
+     "signature": "System.Int32 value__"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "AtomAtomMap",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 20
+  },
+  {
+   "name": "AtomAtomMap+AtomAtomMapEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "AtomList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "AtomList+AtomListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "AtomsMapVector",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "AtomsMapVector+AtomsMapVectorEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Bond",
+   "kind": "class",
+   "doc": "Class of Bond. Users cannot create Bond object directly. Use StructureData.CreateBond() to create Bond",
+   "role": "api",
+   "members": [
+    {
+     "kind": "property",
+     "name": "Atom1",
+     "signature": "CambridgeSoft.ChemScript.Atom Atom1"
+    },
+    {
+     "kind": "property",
+     "name": "Atom2",
+     "signature": "CambridgeSoft.ChemScript.Atom Atom2"
+    },
+    {
+     "kind": "property",
+     "name": "BondDative",
+     "signature": "CambridgeSoft.ChemScript.BondOrder BondDative",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "BondDelocalized",
+     "signature": "CambridgeSoft.ChemScript.BondOrder BondDelocalized",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "BondDouble",
+     "signature": "CambridgeSoft.ChemScript.BondOrder BondDouble",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "BondFlex",
+     "signature": "CambridgeSoft.ChemScript.BondOrder BondFlex",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "BondQuadruple",
+     "signature": "CambridgeSoft.ChemScript.BondOrder BondQuadruple",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "BondSingle",
+     "signature": "CambridgeSoft.ChemScript.BondOrder BondSingle",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "BondTriple",
+     "signature": "CambridgeSoft.ChemScript.BondOrder BondTriple",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "BondWild",
+     "signature": "CambridgeSoft.ChemScript.BondOrder BondWild",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "CdxIdAsReadFromFile",
+     "signature": "System.Int32 CdxIdAsReadFromFile",
+     "doc": "The field CdxIdAsRead corresponds to the ID number of the atom in the CDX or CDXML file that was read. This field is undefined if the structure was not read from a CDX(ML) file, or if the structure has been changed sinc…"
+    },
+    {
+     "kind": "property",
+     "name": "CdxIdAsWrittenToFile",
+     "signature": "System.Int32 CdxIdAsWrittenToFile",
+     "doc": "The field CdxIdAsWrite corresponds to the ID number of the atom in the CDX or CDXML file that was written. This field is undefined if the structure was not written to a CDX(ML) file, or if the structure has been changed…"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "ExchangeAtoms",
+     "signature": "Boolean ExchangeAtoms()",
+     "doc": "Exchange the identities of atom 1 and atom 2 in the bond."
+    },
+    {
+     "kind": "property",
+     "name": "GStereo",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo",
+     "doc": "Get/Set the value of the graphical stereochemistry of the bond"
+    },
+    {
+     "kind": "property",
+     "name": "GStereoName",
+     "signature": "System.String GStereoName",
+     "doc": "Get GStereoName of the bond GStereoName is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_Down",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_Down",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_Either",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_Either",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_LineDash",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_LineDash",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_None",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_None",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_RectangHash",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_RectangHash",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_RectangSolid",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_RectangSolid",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_SchematicDash",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_SchematicDash",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_Up",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_Up",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_WavyCut",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_WavyCut",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "GStereo_WedgeHollow",
+     "signature": "CambridgeSoft.ChemScript.BondGStereo GStereo_WedgeHollow",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "Length",
+     "signature": "System.Double Length",
+     "doc": "Get the Length of the bond"
+    },
+    {
+     "kind": "property",
+     "name": "Name",
+     "signature": "System.String Name",
+     "doc": "Get the bond display name, for example C(1)-N(12) Name is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "Order",
+     "signature": "CambridgeSoft.ChemScript.BondOrder Order",
+     "doc": "Get/Set the order of the bond Order is READWRITE."
+    },
+    {
+     "kind": "property",
+     "name": "OrderName",
+     "signature": "System.String OrderName",
+     "doc": "Get order name of the bond OrderName is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "OrderSymbol",
+     "signature": "System.String OrderSymbol",
+     "doc": "Get order symbol of the bond OrderSymbol is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "OtherAtom",
+     "signature": "CambridgeSoft.ChemScript.Atom OtherAtom(CambridgeSoft.ChemScript.Atom)",
+     "doc": "From one atom, get the other atom"
+    },
+    {
+     "kind": "property",
+     "name": "ReactionStatus",
+     "signature": "System.String ReactionStatus",
+     "doc": "Get reaction status. Returned values explained as below: None Involved - Involved in reaction center, but not made/broken nor order changed. MadeOrBroken - Made or broken Changed - Order changed NotInCenter - Not in rea…"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "BondBondMap",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 20
+  },
+  {
+   "name": "BondBondMap+BondBondMapEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "BondCode",
+   "kind": "enum",
+   "doc": "@file similar with ccBondCode",
+   "role": "api",
+   "members": [
+    {
+     "kind": "field",
+     "name": "BOND_DATIVE",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_DATIVE",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "BOND_DELOC",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_DELOC",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "BOND_DOUBLE",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_DOUBLE",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "BOND_FLEX",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_FLEX",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "BOND_QUADRUPLE",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_QUADRUPLE",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "BOND_SINGLE",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_SINGLE",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "BOND_TOTAL",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_TOTAL",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "BOND_TRIPLE",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_TRIPLE",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "BOND_WILD",
+     "signature": "CambridgeSoft.ChemScript.BondCode BOND_WILD",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "value__",
+     "signature": "System.Int32 value__"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "BondGStereo",
+   "kind": "class",
+   "doc": "class of BondGStereo. structure to hold GStereoCode information.",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(System.String, CambridgeSoft.ChemScript.GStereoCode)"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "property",
+     "name": "GStereoCode",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GStereoCode",
+     "doc": "GStereoCode of BondGStereo"
+    },
+    {
+     "kind": "property",
+     "name": "Name",
+     "signature": "System.String Name",
+     "doc": "name of BondGStereo"
+    },
+    {
+     "kind": "method",
+     "name": "opIsEqual",
+     "signature": "Boolean opIsEqual(CambridgeSoft.ChemScript.BondGStereo)"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "BondList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "BondList+BondListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "BondOrder",
+   "kind": "class",
+   "doc": "struct of BondOrder. structure to hold bond order information.",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(System.String, System.String, CambridgeSoft.ChemScript.BondCode)"
+    },
+    {
+     "kind": "property",
+     "name": "BondCode",
+     "signature": "CambridgeSoft.ChemScript.BondCode BondCode"
+    },
+    {
+     "kind": "property",
+     "name": "BondSymbol",
+     "signature": "System.String BondSymbol"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "property",
+     "name": "Name",
+     "signature": "System.String Name"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "BondsMapVector",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "BondsMapVector+BondsMapVectorEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "ChemScript",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()"
+    },
+    {
+     "kind": "field",
+     "name": "CHEMSCRIPT_OBJHELPER_MUTEX",
+     "signature": "System.String CHEMSCRIPT_OBJHELPER_MUTEX",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "CHEMSCRIPT_REF_MUTEX",
+     "signature": "System.String CHEMSCRIPT_REF_MUTEX",
+     "static": true
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "ChemScriptBase",
+   "kind": "class",
+   "role": "interop",
+   "member_count": 13
+  },
+  {
+   "name": "ChemScriptPINVOKE",
+   "kind": "class",
+   "role": "interop",
+   "member_count": 1661
+  },
+  {
+   "name": "ChemScriptPINVOKE+SWIGPendingException",
+   "kind": "class",
+   "role": "interop",
+   "member_count": 4
+  },
+  {
+   "name": "ChemicalData",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "method",
+     "name": "AtomByAtomSearch",
+     "signature": "CambridgeSoft.ChemScript.AtomsMapVector AtomByAtomSearch(CambridgeSoft.ChemScript.ChemicalData)"
+    },
+    {
+     "kind": "method",
+     "name": "AtomByAtomSearch",
+     "signature": "CambridgeSoft.ChemScript.AtomsMapVector AtomByAtomSearch(CambridgeSoft.ChemScript.ChemicalData, CambridgeSoft.ChemScript.SearchOptions)"
+    },
+    {
+     "kind": "property",
+     "name": "CDXBase64",
+     "signature": "System.String CDXBase64"
+    },
+    {
+     "kind": "method",
+     "name": "CanonicalCode",
+     "signature": "System.String CanonicalCode()"
+    },
+    {
+     "kind": "method",
+     "name": "CanonicalCode",
+     "signature": "System.String CanonicalCode(Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "CanonicalCode",
+     "signature": "System.String CanonicalCode(Int32, Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "Clear",
+     "signature": "Void Clear()"
+    },
+    {
+     "kind": "method",
+     "name": "ClearDataItems",
+     "signature": "Void ClearDataItems()"
+    },
+    {
+     "kind": "method",
+     "name": "ContainsSubstructure",
+     "signature": "Boolean ContainsSubstructure(CambridgeSoft.ChemScript.StructureData)"
+    },
+    {
+     "kind": "method",
+     "name": "ContainsSubstructure",
+     "signature": "Boolean ContainsSubstructure(CambridgeSoft.ChemScript.StructureData, Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "CreateSearchQuery",
+     "signature": "CambridgeSoft.ChemScript.SearchQuery CreateSearchQuery()"
+    },
+    {
+     "kind": "method",
+     "name": "CreateSearchQuery",
+     "signature": "CambridgeSoft.ChemScript.SearchQuery CreateSearchQuery(CambridgeSoft.ChemScript.SearchOptions)"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "Formula",
+     "signature": "System.String Formula()"
+    },
+    {
+     "kind": "method",
+     "name": "Formula",
+     "signature": "System.String Formula(Boolean)"
+    },
+    {
+     "kind": "property",
+     "name": "FormulaHTML",
+     "signature": "System.String FormulaHTML"
+    },
+    {
+     "kind": "method",
+     "name": "GetCanonicalCode",
+     "signature": "System.String GetCanonicalCode()"
+    },
+    {
+     "kind": "method",
+     "name": "GetDataItem",
+     "signature": "System.String GetDataItem(System.String)"
+    },
+    {
+     "kind": "method",
+     "name": "GetDataItems",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_String_String GetDataItems()"
+    },
+    {
+     "kind": "property",
+     "name": "ID",
+     "signature": "System.Int32 ID"
+    },
+    {
+     "kind": "property",
+     "name": "IsEmpty",
+     "signature": "System.Boolean IsEmpty"
+    },
+    {
+     "kind": "property",
+     "name": "IsReaction",
+     "signature": "System.Boolean IsReaction"
+    },
+    {
+     "kind": "property",
+     "name": "IsStructure",
+     "signature": "System.Boolean IsStructure"
+    },
+    {
+     "kind": "method",
+     "name": "LoadBytes",
+     "signature": "CambridgeSoft.ChemScript.ChemicalData LoadBytes(Byte[])",
+     "static": true,
+     "doc": "Attempt to interpret supplied data as a StructureData or ReactionData data=raw data in bytes Returns null on failure"
+    },
+    {
+     "kind": "method",
+     "name": "LoadBytes",
+     "signature": "CambridgeSoft.ChemScript.ChemicalData LoadBytes(Byte[], System.String)",
+     "static": true,
+     "doc": "Attempt to interpret supplied data as a StructureData or ReactionData data=raw data in bytes, mimeTypeHint= mime type such as \"cdx\" or \"cdxml\" Returns null on failure"
+    },
+    {
+     "kind": "method",
+     "name": "LoadData",
+     "signature": "CambridgeSoft.ChemScript.ChemicalData LoadData(System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "LoadData",
+     "signature": "CambridgeSoft.ChemScript.ChemicalData LoadData(System.String, System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "LoadFile",
+     "signature": "CambridgeSoft.ChemScript.ChemicalData LoadFile(System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "LoadFile",
+     "signature": "CambridgeSoft.ChemScript.ChemicalData LoadFile(System.String, System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "MimeTypes",
+     "signature": "CambridgeSoft.ChemScript.StringVector MimeTypes()",
+     "static": true
+    },
+    {
+     "kind": "property",
+     "name": "Name",
+     "signature": "System.String Name"
+    },
+    {
+     "kind": "method",
+     "name": "NormalizeStructure",
+     "signature": "Boolean NormalizeStructure()"
+    },
+    {
+     "kind": "method",
+     "name": "NormalizeStructure",
+     "signature": "Boolean NormalizeStructure(CambridgeSoft.ChemScript.NormOptions)"
+    },
+    {
+     "kind": "method",
+     "name": "NormalizeStructure",
+     "signature": "Boolean NormalizeStructure(CambridgeSoft.ChemScript.NormOptions, Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "RemoveDataItem",
+     "signature": "Void RemoveDataItem(System.String)"
+    },
+    {
+     "kind": "method",
+     "name": "SetDataItem",
+     "signature": "Void SetDataItem(System.String, System.String)"
+    },
+    {
+     "kind": "property",
+     "name": "Smiles",
+     "signature": "System.String Smiles"
+    },
+    {
+     "kind": "method",
+     "name": "Tanimoto",
+     "signature": "Double Tanimoto(CambridgeSoft.ChemScript.ChemicalData)"
+    },
+    {
+     "kind": "method",
+     "name": "WriteData",
+     "signature": "System.String WriteData(System.String)"
+    },
+    {
+     "kind": "method",
+     "name": "WriteData",
+     "signature": "System.String WriteData(System.String, Boolean)"
+    },
+    {
+     "kind": "method",
+     "name": "WriteFile",
+     "signature": "Boolean WriteFile(System.String)"
+    },
+    {
+     "kind": "method",
+     "name": "WriteFile",
+     "signature": "Boolean WriteFile(System.String, System.String)"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "CombiChem",
+   "kind": "class",
+   "doc": "CombiChem is a utility class that provides functionality for combinatorial chemisty enumeration. A generic reaction is provided for the enumeration during construction. Candidate structures can be associated with each o…",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(CambridgeSoft.ChemScript.ReactionData)"
+    },
+    {
+     "kind": "method",
+     "name": "BeginEnum",
+     "signature": "Int32 BeginEnum()",
+     "doc": "Begin the manual enumeration process - this should be followed by calls to EnumNext() to enumerate the permutations one by one. Duplicate products are discarded by default. 'suppressDuplicates' parameter can be used to…"
+    },
+    {
+     "kind": "method",
+     "name": "BeginEnum",
+     "signature": "Int32 BeginEnum(Boolean)",
+     "doc": "Begin the manual enumeration process - this should be followed by calls to EnumNext() to enumerate the permutations one by one. Duplicate products are discarded by default. 'suppressDuplicates' parameter can be used to…"
+    },
+    {
+     "kind": "method",
+     "name": "DeleteReactiveOrientation",
+     "signature": "Void DeleteReactiveOrientation(Int32, Int32, Int32)",
+     "doc": "Remove given reactive orientation from consideration in the enumeration."
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "EnumNext",
+     "signature": "CambridgeSoft.ChemScript.ReactionData EnumNext()",
+     "doc": "Enumerate the next permutation during the manual enumeration process. This returns null when the enumeration is finished. BeginEnum() must be called before the first call of EnumNext()."
+    },
+    {
+     "kind": "method",
+     "name": "GenericComponents",
+     "signature": "CambridgeSoft.ChemScript.IntVector GenericComponents()",
+     "doc": "Get a list of the indices of all the components of the reaction for which candidates may be set."
+    },
+    {
+     "kind": "method",
+     "name": "GenericReaction",
+     "signature": "CambridgeSoft.ChemScript.ReactionData GenericReaction()",
+     "doc": "Get the generic reaction."
+    },
+    {
+     "kind": "method",
+     "name": "NumberOfCandidates",
+     "signature": "Int32 NumberOfCandidates(Int32)",
+     "doc": "Get the number of candidates for a given component."
+    },
+    {
+     "kind": "property",
+     "name": "NumberOfPermutations",
+     "signature": "System.Int32 NumberOfPermutations",
+     "doc": "Get the number of reaction permutations. NumberOfPermutations is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "PermutationCandidateIndices",
+     "signature": "CambridgeSoft.ChemScript.IntVector PermutationCandidateIndices(Int32)",
+     "doc": "Get the indices of the candidates contributing to the given reaction permutation. This array parallels GenericComponents."
+    },
+    {
+     "kind": "method",
+     "name": "Permutations",
+     "signature": "CambridgeSoft.ChemScript.ReactionDataList Permutations()",
+     "doc": "Get a list of the all of the reaction permutations."
+    },
+    {
+     "kind": "method",
+     "name": "ReactiveOrientations",
+     "signature": "CambridgeSoft.ChemScript.StructureDataList ReactiveOrientations(Int32, Int32)",
+     "doc": "Get reactive orientations for a given candidate for a given component."
+    },
+    {
+     "kind": "method",
+     "name": "SetCandidate",
+     "signature": "Void SetCandidate(CambridgeSoft.ChemScript.StructureData, Int32)",
+     "doc": "Add another candidate structure to be associated with the specified generic reactant."
+    },
+    {
+     "kind": "method",
+     "name": "SetCandidates",
+     "signature": "Int32 SetCandidates(CambridgeSoft.ChemScript.StructureDataList, Int32)",
+     "doc": "Add a list of candidate structures to be associated with the specified generic reactants."
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "CppWrapper",
+   "kind": "class",
+   "role": "interop",
+   "member_count": 3
+  },
+  {
+   "name": "Dictionary_Atom_String",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 20
+  },
+  {
+   "name": "Dictionary_Atom_String+Dictionary_Atom_StringEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Dictionary_Bond_String",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 20
+  },
+  {
+   "name": "Dictionary_Bond_String+Dictionary_Bond_StringEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Dictionary_String_Double",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 20
+  },
+  {
+   "name": "Dictionary_String_Double+Dictionary_String_DoubleEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Dictionary_String_String",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 20
+  },
+  {
+   "name": "Dictionary_String_String+Dictionary_String_StringEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Dictionary_StructureData_int",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 20
+  },
+  {
+   "name": "Dictionary_StructureData_int+Dictionary_StructureData_intEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "DoubleList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "DoubleList+DoubleListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Element",
+   "kind": "class",
+   "doc": "Class of Element. Users cannot create Element object directly. Use PeriodicTable.GetElement() to get an Element object.",
+   "role": "api",
+   "members": [
+    {
+     "kind": "property",
+     "name": "AtomicNumber",
+     "signature": "System.Int32 AtomicNumber",
+     "doc": "Get AtomicNumber of Element"
+    },
+    {
+     "kind": "property",
+     "name": "AverageMass",
+     "signature": "System.Double AverageMass",
+     "doc": "Get AverageMass of Element, at natural abundance."
+    },
+    {
+     "kind": "property",
+     "name": "BP",
+     "signature": "System.Double BP",
+     "doc": "Get BP of Element, unit: Celsius"
+    },
+    {
+     "kind": "property",
+     "name": "CommonIsotope",
+     "signature": "CambridgeSoft.ChemScript.Isotope CommonIsotope",
+     "doc": "Get CommonIsotope of Element"
+    },
+    {
+     "kind": "property",
+     "name": "Density",
+     "signature": "System.Double Density",
+     "doc": "Get Density of Element, unit: g/ml"
+    },
+    {
+     "kind": "property",
+     "name": "DiscoveredBy",
+     "signature": "System.String DiscoveredBy",
+     "doc": "Get DiscoveredBy of Element"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "property",
+     "name": "Electronegativity",
+     "signature": "System.Double Electronegativity",
+     "doc": "Get Electronegativity of Element, unit is \"Pauling\""
+    },
+    {
+     "kind": "property",
+     "name": "ExactMass",
+     "signature": "System.Double ExactMass",
+     "doc": "Get ExactMass of Element"
+    },
+    {
+     "kind": "property",
+     "name": "FullName",
+     "signature": "System.String FullName",
+     "doc": "Get FullName of Element"
+    },
+    {
+     "kind": "property",
+     "name": "IP",
+     "signature": "System.Double IP",
+     "doc": "Get IP of Element, unit: kJ/mol"
+    },
+    {
+     "kind": "property",
+     "name": "IsotopeMassNumber",
+     "signature": "System.Int32 IsotopeMassNumber",
+     "doc": "Get IsotopeMassNumber of Element"
+    },
+    {
+     "kind": "method",
+     "name": "Isotopes",
+     "signature": "CambridgeSoft.ChemScript.IsotopeList Isotopes()",
+     "doc": "Get Isotopes of Element"
+    },
+    {
+     "kind": "property",
+     "name": "MP",
+     "signature": "System.Double MP",
+     "doc": "Get MP of Element, unit: Celsius"
+    },
+    {
+     "kind": "property",
+     "name": "Radius",
+     "signature": "System.Double Radius",
+     "doc": "Get Radius of Element, unit: Angstroms"
+    },
+    {
+     "kind": "property",
+     "name": "Symbol",
+     "signature": "System.String Symbol",
+     "doc": "Get Symbol of Element"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "Environment",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()"
+    },
+    {
+     "kind": "method",
+     "name": "Activate",
+     "signature": "Void Activate()",
+     "static": true,
+     "doc": "Activate ChemScript"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "GetDisableInterpretationOfPerspectiveStereochemistry",
+     "signature": "Boolean GetDisableInterpretationOfPerspectiveStereochemistry()",
+     "static": true,
+     "doc": "When TRUE, this property disables the interpretation of perspective in 2D diagrams as an indicator of 3D stereochemistry. The default value is FALSE; i.e. perspective in a 2D diagram by default will be interpreted as an…"
+    },
+    {
+     "kind": "method",
+     "name": "GetNameToStructureOptions",
+     "signature": "CambridgeSoft.ChemScript.NameToStructureOptions GetNameToStructureOptions()",
+     "static": true,
+     "doc": "Get name to structure options"
+    },
+    {
+     "kind": "method",
+     "name": "GetThrowExceptions",
+     "signature": "Boolean GetThrowExceptions()",
+     "static": true,
+     "doc": "Python example: >>> Environment.GetThrowExceptions() *"
+    },
+    {
+     "kind": "method",
+     "name": "GetVerbosity",
+     "signature": "Boolean GetVerbosity()",
+     "static": true,
+     "doc": "Python example: >>> Environment.GetVerbosity() *"
+    },
+    {
+     "kind": "method",
+     "name": "IsActivated",
+     "signature": "Boolean IsActivated()",
+     "static": true,
+     "doc": "Checks Activation"
+    },
+    {
+     "kind": "method",
+     "name": "SetC3dItemsFolder",
+     "signature": "Boolean SetC3dItemsFolder(System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "SetDisableInterpretationOfPerspectiveStereochemistry",
+     "signature": "Void SetDisableInterpretationOfPerspectiveStereochemistry(Boolean)",
+     "static": true,
+     "doc": "When TRUE, this property disables the interpretation of perspective in 2D diagrams as an indicator of 3D stereochemistry. The default value is FALSE; i.e. perspective in a 2D diagram by default will be interpreted as an…"
+    },
+    {
+     "kind": "method",
+     "name": "SetN2SDataFile",
+     "signature": "Boolean SetN2SDataFile(System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "SetNameToStructureOptions",
+     "signature": "Void SetNameToStructureOptions(CambridgeSoft.ChemScript.NameToStructureOptions)",
+     "static": true,
+     "doc": "Set name to structure options Default is true"
+    },
+    {
+     "kind": "method",
+     "name": "SetS2NDataFile",
+     "signature": "Boolean SetS2NDataFile(System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "SetThrowExceptions",
+     "signature": "Void SetThrowExceptions(Boolean)",
+     "static": true,
+     "doc": "Python example: >>> Environment.SetThrowExceptions(True) >>> try: ... m = StructureData() ... m.ReadFile('notExistingFile.ext') ... except Exception, e: ... print(e) *"
+    },
+    {
+     "kind": "method",
+     "name": "SetVerbosity",
+     "signature": "Void SetVerbosity(Boolean)",
+     "static": true,
+     "doc": "Python example: >>> Environment.SetVerbosity(True) *"
+    },
+    {
+     "kind": "method",
+     "name": "Version",
+     "signature": "System.String Version()",
+     "static": true,
+     "doc": "Get ChemScript version string"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "FileOpenMode",
+   "kind": "enum",
+   "role": "api",
+   "members": [
+    {
+     "kind": "field",
+     "name": "Append",
+     "signature": "CambridgeSoft.ChemScript.FileOpenMode Append",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "Create",
+     "signature": "CambridgeSoft.ChemScript.FileOpenMode Create",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "OverWrite",
+     "signature": "CambridgeSoft.ChemScript.FileOpenMode OverWrite",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "value__",
+     "signature": "System.Int32 value__"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "GStereoCode",
+   "kind": "enum",
+   "doc": "similar with ccGStereoCode_stereo",
+   "role": "api",
+   "members": [
+    {
+     "kind": "field",
+     "name": "GSTER_DOWN",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_DOWN",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_EITHER",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_EITHER",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_LINEDASH",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_LINEDASH",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_LINEWAVY",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_LINEWAVY",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_NONE",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_NONE",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_RECTANGHASH",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_RECTANGHASH",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_RECTANGSOLID",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_RECTANGSOLID",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_SCHEMATICDASH",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_SCHEMATICDASH",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_TOTAL",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_TOTAL",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_UP",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_UP",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_WAVYCUT",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_WAVYCUT",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_WEDGEHASH",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_WEDGEHASH",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_WEDGEHOLLOW",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_WEDGEHOLLOW",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "GSTER_WEDGESOLID",
+     "signature": "CambridgeSoft.ChemScript.GStereoCode GSTER_WEDGESOLID",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "value__",
+     "signature": "System.Int32 value__"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "IntVector",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "IntVector+IntVectorEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Isotope",
+   "kind": "class",
+   "doc": "Class of Isotope. Users cannot create Isotope object directly. Use Element.CommonIsotope() to get an Isotope object. Or use Element.Isotopes() to get a list of Isotope objects.",
+   "role": "api",
+   "members": [
+    {
+     "kind": "property",
+     "name": "AbundancePercent",
+     "signature": "System.Double AbundancePercent"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "property",
+     "name": "Mass",
+     "signature": "System.Double Mass"
+    },
+    {
+     "kind": "property",
+     "name": "MassNumber",
+     "signature": "System.Int32 MassNumber"
+    },
+    {
+     "kind": "property",
+     "name": "Symbol",
+     "signature": "System.String Symbol"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "IsotopeList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "IsotopeList+IsotopeListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "LargestCommonSubstructure",
+   "kind": "class",
+   "doc": "Class of most common structure You cannot create LargestCommonSubstructure object directly. LargestCommonSubstructure.Compute(...) returns an LargestCommonSubstructure object",
+   "role": "api",
+   "members": [
+    {
+     "kind": "method",
+     "name": "AtomMapM1",
+     "signature": "CambridgeSoft.ChemScript.AtomAtomMap AtomMapM1()"
+    },
+    {
+     "kind": "method",
+     "name": "AtomMapM2",
+     "signature": "CambridgeSoft.ChemScript.AtomAtomMap AtomMapM2()"
+    },
+    {
+     "kind": "method",
+     "name": "BondMapM1",
+     "signature": "CambridgeSoft.ChemScript.BondBondMap BondMapM1()"
+    },
+    {
+     "kind": "method",
+     "name": "BondMapM2",
+     "signature": "CambridgeSoft.ChemScript.BondBondMap BondMapM2()"
+    },
+    {
+     "kind": "method",
+     "name": "CommonSubstructure",
+     "signature": "CambridgeSoft.ChemScript.StructureData CommonSubstructure()",
+     "doc": "Get most common structure as a separated StructureData"
+    },
+    {
+     "kind": "method",
+     "name": "Compute",
+     "signature": "CambridgeSoft.ChemScript.LargestCommonSubstructure Compute(CambridgeSoft.ChemScript.StructureData, CambridgeSoft.ChemScript.StructureData)",
+     "static": true,
+     "doc": "Find the maximum common sub-graph between structure1 and structure2"
+    },
+    {
+     "kind": "method",
+     "name": "Compute",
+     "signature": "CambridgeSoft.ChemScript.LargestCommonSubstructure Compute(CambridgeSoft.ChemScript.StructureData, CambridgeSoft.ChemScript.StructureData, Int32)",
+     "static": true,
+     "doc": "Find the maximum common sub-graph between structure1 and structure2"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "NameToStructureOptions",
+   "kind": "class",
+   "doc": "Class of NameToStructureOptions. This class is used to set the options which are used by NameToStruct, such as \"stop words\" flag",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "GetTreatingStopwords",
+     "signature": "Boolean GetTreatingStopwords()"
+    },
+    {
+     "kind": "method",
+     "name": "SetTreatingStopwords",
+     "signature": "Void SetTreatingStopwords(Boolean)"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "NormOptions",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()"
+    },
+    {
+     "kind": "property",
+     "name": "AnonList",
+     "signature": "System.Boolean AnonList"
+    },
+    {
+     "kind": "property",
+     "name": "Azide",
+     "signature": "System.Boolean Azide"
+    },
+    {
+     "kind": "property",
+     "name": "CleaveIntoSalts",
+     "signature": "System.Boolean CleaveIntoSalts"
+    },
+    {
+     "kind": "property",
+     "name": "CollapseZwitterion",
+     "signature": "System.Boolean CollapseZwitterion"
+    },
+    {
+     "kind": "property",
+     "name": "ConsolidateStoichiometry",
+     "signature": "System.Boolean ConsolidateStoichiometry"
+    },
+    {
+     "kind": "property",
+     "name": "CreatedDelRep_1",
+     "signature": "System.Boolean CreatedDelRep_1"
+    },
+    {
+     "kind": "property",
+     "name": "CreatedDelRep_2",
+     "signature": "System.Boolean CreatedDelRep_2"
+    },
+    {
+     "kind": "property",
+     "name": "Dative",
+     "signature": "System.Boolean Dative"
+    },
+    {
+     "kind": "property",
+     "name": "DativeToDouble",
+     "signature": "System.Boolean DativeToDouble"
+    },
+    {
+     "kind": "property",
+     "name": "Dekekulize",
+     "signature": "System.Boolean Dekekulize"
+    },
+    {
+     "kind": "property",
+     "name": "Delrep",
+     "signature": "System.Boolean Delrep"
+    },
+    {
+     "kind": "property",
+     "name": "Diazo_a",
+     "signature": "System.Boolean Diazo_a"
+    },
+    {
+     "kind": "property",
+     "name": "Diazo_b",
+     "signature": "System.Boolean Diazo_b"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "property",
+     "name": "ExpandStoichiometry",
+     "signature": "System.Boolean ExpandStoichiometry"
+    },
+    {
+     "kind": "property",
+     "name": "FeaturelessHydrogens",
+     "signature": "System.Boolean FeaturelessHydrogens"
+    },
+    {
+     "kind": "property",
+     "name": "Isonitrile_fg",
+     "signature": "System.Boolean Isonitrile_fg"
+    },
+    {
+     "kind": "method",
+     "name": "List",
+     "signature": "Void List()",
+     "doc": "List all flags"
+    },
+    {
+     "kind": "property",
+     "name": "MergeCharges",
+     "signature": "System.Boolean MergeCharges"
+    },
+    {
+     "kind": "property",
+     "name": "MergeMetalSalts",
+     "signature": "System.Boolean MergeMetalSalts"
+    },
+    {
+     "kind": "property",
+     "name": "MoveChargeFromCarbon",
+     "signature": "System.Boolean MoveChargeFromCarbon"
+    },
+    {
+     "kind": "property",
+     "name": "NeutralDiazo_fg",
+     "signature": "System.Boolean NeutralDiazo_fg"
+    },
+    {
+     "kind": "property",
+     "name": "ProvideMissingCoords",
+     "signature": "System.Boolean ProvideMissingCoords"
+    },
+    {
+     "kind": "property",
+     "name": "R3NO_b",
+     "signature": "System.Boolean R3NO_b"
+    },
+    {
+     "kind": "property",
+     "name": "RemoveIsotopy",
+     "signature": "System.Boolean RemoveIsotopy"
+    },
+    {
+     "kind": "property",
+     "name": "RemoveLabel",
+     "signature": "System.Boolean RemoveLabel"
+    },
+    {
+     "kind": "property",
+     "name": "RemoveNonGraphStereo",
+     "signature": "System.Boolean RemoveNonGraphStereo"
+    },
+    {
+     "kind": "property",
+     "name": "RemoveRTable",
+     "signature": "System.Boolean RemoveRTable"
+    },
+    {
+     "kind": "property",
+     "name": "RemoveRxnCenters",
+     "signature": "System.Boolean RemoveRxnCenters"
+    },
+    {
+     "kind": "property",
+     "name": "RemoveTextAtoms",
+     "signature": "System.Boolean RemoveTextAtoms"
+    },
+    {
+     "kind": "property",
+     "name": "RemoveValence",
+     "signature": "System.Boolean RemoveValence"
+    },
+    {
+     "kind": "property",
+     "name": "RemoveWedge",
+     "signature": "System.Boolean RemoveWedge"
+    },
+    {
+     "kind": "property",
+     "name": "StripEitherDoubleBond",
+     "signature": "System.Boolean StripEitherDoubleBond"
+    },
+    {
+     "kind": "property",
+     "name": "StripEitherSingleBond",
+     "signature": "System.Boolean StripEitherSingleBond"
+    },
+    {
+     "kind": "property",
+     "name": "Thiazole",
+     "signature": "System.Boolean Thiazole"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    },
+    {
+     "kind": "property",
+     "name": "XMinusToX_fg",
+     "signature": "System.Boolean XMinusToX_fg"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "PeriodicTable",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "ElementCount",
+     "signature": "Int32 ElementCount()",
+     "static": true,
+     "doc": "Get the count of Element"
+    },
+    {
+     "kind": "method",
+     "name": "GetElement",
+     "signature": "CambridgeSoft.ChemScript.Element GetElement(Int32)",
+     "static": true,
+     "doc": "Get Element with the atomic No Get Element with the symbol"
+    },
+    {
+     "kind": "method",
+     "name": "GetElement",
+     "signature": "CambridgeSoft.ChemScript.Element GetElement(System.String)",
+     "static": true,
+     "doc": "Get Element with the atomic No Get Element with the symbol"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "Point",
+   "kind": "class",
+   "doc": "Divide x, y and z by scale factor s",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()",
+     "doc": "Copy constructor Constructor. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(CambridgeSoft.ChemScript.XYZ)",
+     "doc": "Copy constructor Constructor. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(Double)",
+     "doc": "Copy constructor Constructor. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(Double, Double)",
+     "doc": "Copy constructor Constructor. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(Double, Double, Double)",
+     "doc": "Copy constructor Constructor. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "method",
+     "name": "Angle",
+     "signature": "Double Angle(CambridgeSoft.ChemScript.Point, CambridgeSoft.ChemScript.Point, CambridgeSoft.ChemScript.Point)",
+     "static": true,
+     "doc": "Compute the angle defined by three points (in degrees)"
+    },
+    {
+     "kind": "method",
+     "name": "DihedralAngle",
+     "signature": "Double DihedralAngle(CambridgeSoft.ChemScript.Point, CambridgeSoft.ChemScript.Point, CambridgeSoft.ChemScript.Point, CambridgeSoft.ChemScript.Point)",
+     "static": true,
+     "doc": "Compute the dihedral angle between two planes. The two planes are: p1--axis1--axis2, axis1--axis2--p2."
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "DistanceTo",
+     "signature": "Double DistanceTo(CambridgeSoft.ChemScript.Point)",
+     "doc": "Compute the distance from this point to another point \"p\""
+    },
+    {
+     "kind": "method",
+     "name": "DistanceToLine",
+     "signature": "Double DistanceToLine(CambridgeSoft.ChemScript.Point, CambridgeSoft.ChemScript.Point)",
+     "doc": "Compute the perpendicular distance to a line. The line is defined by two endpoints."
+    },
+    {
+     "kind": "method",
+     "name": "DistanceToPlane",
+     "signature": "Double DistanceToPlane(CambridgeSoft.ChemScript.Point, CambridgeSoft.ChemScript.Point, CambridgeSoft.ChemScript.Point)",
+     "doc": "Compute the perpendicular distance to a plane. The plane is defined by three points."
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    },
+    {
+     "kind": "method",
+     "name": "ToVector",
+     "signature": "CambridgeSoft.ChemScript.Vector ToVector()",
+     "doc": "Create a Vector"
+    },
+    {
+     "kind": "method",
+     "name": "opAdd",
+     "signature": "CambridgeSoft.ChemScript.Point opAdd(CambridgeSoft.ChemScript.XYZ)"
+    },
+    {
+     "kind": "method",
+     "name": "opDiv",
+     "signature": "CambridgeSoft.ChemScript.Point opDiv(Double)"
+    },
+    {
+     "kind": "method",
+     "name": "opMult",
+     "signature": "CambridgeSoft.ChemScript.Point opMult(Double)"
+    },
+    {
+     "kind": "method",
+     "name": "opSub",
+     "signature": "CambridgeSoft.ChemScript.Point opSub()"
+    },
+    {
+     "kind": "method",
+     "name": "opSub",
+     "signature": "CambridgeSoft.ChemScript.Point opSub(CambridgeSoft.ChemScript.XYZ)"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "RDFileReader",
+   "kind": "class",
+   "doc": "class for reading MDL SD file",
+   "role": "api",
+   "members": [
+    {
+     "kind": "method",
+     "name": "Close",
+     "signature": "Void Close()",
+     "doc": "Close"
+    },
+    {
+     "kind": "property",
+     "name": "Count",
+     "signature": "System.Int32 Count",
+     "doc": "Get the number of reactions pending of reading in the file"
+    },
+    {
+     "kind": "method",
+     "name": "Current",
+     "signature": "CambridgeSoft.ChemScript.ReactionData Current()",
+     "doc": "get the structure of the last ReadNext()"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "Eof",
+     "signature": "Boolean Eof()",
+     "doc": "Check if reaching the end of the file"
+    },
+    {
+     "kind": "property",
+     "name": "NumberOfRecordsRead",
+     "signature": "System.Int32 NumberOfRecordsRead",
+     "doc": "Get the number of reactions read from the file"
+    },
+    {
+     "kind": "method",
+     "name": "OpenFile",
+     "signature": "CambridgeSoft.ChemScript.RDFileReader OpenFile(System.String)",
+     "static": true,
+     "doc": "Entry of creating RDFileReader. Usage:"
+    },
+    {
+     "kind": "property",
+     "name": "PercentComplete",
+     "signature": "System.Double PercentComplete",
+     "doc": "Get the read percentage of the file"
+    },
+    {
+     "kind": "method",
+     "name": "ReadNext",
+     "signature": "CambridgeSoft.ChemScript.ReactionData ReadNext()",
+     "doc": "Read next ReactionData"
+    },
+    {
+     "kind": "method",
+     "name": "ResetReading",
+     "signature": "Void ResetReading()",
+     "doc": "Reset reading, so next ReadNext() call will get the first ReactionData"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "RDFileWriter",
+   "kind": "class",
+   "doc": "SDFileWriter class Users cannot create RDFileWriter objects directly. Use RDFileWriter.OpenFile() to create an RDFileWriter. class for writing MDL RD file",
+   "role": "api",
+   "members": [
+    {
+     "kind": "method",
+     "name": "Close",
+     "signature": "Void Close()",
+     "doc": "Close"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "OpenFile",
+     "signature": "CambridgeSoft.ChemScript.RDFileWriter OpenFile(System.String)",
+     "static": true,
+     "doc": "Entry of RDFileWriter. You can explicitly set mode to Append if you want to append to existing file. It is set to Create by default."
+    },
+    {
+     "kind": "method",
+     "name": "OpenFile",
+     "signature": "CambridgeSoft.ChemScript.RDFileWriter OpenFile(System.String, CambridgeSoft.ChemScript.FileOpenMode)",
+     "static": true,
+     "doc": "Entry of RDFileWriter. You can explicitly set mode to Append if you want to append to existing file. It is set to Create by default."
+    },
+    {
+     "kind": "method",
+     "name": "WriteReaction",
+     "signature": "Boolean WriteReaction(CambridgeSoft.ChemScript.ReactionData)",
+     "doc": "Write a Reaction"
+    },
+    {
+     "kind": "method",
+     "name": "WriteReaction",
+     "signature": "Boolean WriteReaction(CambridgeSoft.ChemScript.ReactionData, System.String)",
+     "doc": "Write a Reaction"
+    },
+    {
+     "kind": "method",
+     "name": "WriteReactions",
+     "signature": "Int32 WriteReactions(CambridgeSoft.ChemScript.ReactionDataList)",
+     "doc": "Write many Reactions in one time Return the number of reactions (ReactionData) written."
+    },
+    {
+     "kind": "method",
+     "name": "WriteReactions",
+     "signature": "Int32 WriteReactions(CambridgeSoft.ChemScript.ReactionDataList, System.String)",
+     "doc": "Write many Reactions in one time Return the number of reactions (ReactionData) written."
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "ReactionData",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()",
+     "doc": "Constructor of ReactionData"
+    },
+    {
+     "kind": "method",
+     "name": "AppendStep",
+     "signature": "Boolean AppendStep(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Append a new step. For example, A -> B ( -> C) If the new products is composed with two StructureData, use StructureData.JoinFragments() to create a new StructureData first. >>> r = ReactionData.LoadData('CCC=C>>CCC.CN'…"
+    },
+    {
+     "kind": "method",
+     "name": "Clear",
+     "signature": "Void Clear()",
+     "doc": "Remove everything from this object"
+    },
+    {
+     "kind": "method",
+     "name": "Clone",
+     "signature": "CambridgeSoft.ChemScript.ReactionData Clone()",
+     "doc": "Get a clone of this mol"
+    },
+    {
+     "kind": "property",
+     "name": "Components",
+     "signature": "CambridgeSoft.ChemScript.StructureDataList Components",
+     "doc": "Get all components of the reaction as StructureData list. The components returned by this function are references to those in the original reaction. Changes to the items returned by this function will be reflected in th…"
+    },
+    {
+     "kind": "method",
+     "name": "CreateReaction",
+     "signature": "CambridgeSoft.ChemScript.ReactionData CreateReaction(CambridgeSoft.ChemScript.StructureData, CambridgeSoft.ChemScript.StructureData)",
+     "static": true,
+     "doc": "Create a reaction. \"reactants\" and \"products\" may each contain more than one fragment."
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "property",
+     "name": "Intermediates",
+     "signature": "CambridgeSoft.ChemScript.StructureDataList Intermediates",
+     "doc": "Get intermediates as StructureData list. An intermediate is a component that participates as a product in one step and as a reactant in another. For single-step reactions, this function returns an empty list. For multi-…"
+    },
+    {
+     "kind": "method",
+     "name": "Layout",
+     "signature": "Void Layout()",
+     "doc": "Layout the reaction to make it look nicer."
+    },
+    {
+     "kind": "method",
+     "name": "LoadBytes",
+     "signature": "CambridgeSoft.ChemScript.ReactionData LoadBytes(Byte[])",
+     "static": true,
+     "doc": "Attempt to interpret supplied data as a Reaction data=raw reaction data in bytes Returns null on failure"
+    },
+    {
+     "kind": "method",
+     "name": "LoadBytes",
+     "signature": "CambridgeSoft.ChemScript.ReactionData LoadBytes(Byte[], System.String)",
+     "static": true,
+     "doc": "Attempt to interpret supplied data as a Reaction data=raw reaction data in bytes, mimeTypeHint= mime type such as \"cdx\" or \"cdxml\" Returns null on failure"
+    },
+    {
+     "kind": "method",
+     "name": "LoadData",
+     "signature": "CambridgeSoft.ChemScript.ReactionData LoadData(System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "LoadData",
+     "signature": "CambridgeSoft.ChemScript.ReactionData LoadData(System.String, System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "LoadFile",
+     "signature": "CambridgeSoft.ChemScript.ReactionData LoadFile(System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "LoadFile",
+     "signature": "CambridgeSoft.ChemScript.ReactionData LoadFile(System.String, System.String)",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "PerceiveReactionCenters",
+     "signature": "Void PerceiveReactionCenters()",
+     "doc": "Perceive reaction centers; Status can then be found in Bond.ReactionStatus."
+    },
+    {
+     "kind": "property",
+     "name": "Products",
+     "signature": "CambridgeSoft.ChemScript.StructureDataList Products",
+     "doc": "Get products as StructureData list. A product is a component that does not participate as a reactant in any step. For single-step reactions, this function returns the 'obvious' products. For multi-step reactions, this f…"
+    },
+    {
+     "kind": "property",
+     "name": "Reactants",
+     "signature": "CambridgeSoft.ChemScript.StructureDataList Reactants",
+     "doc": "Get reactants as StructureData list. A reactant is a component that does not participate as a product in any step. For single-step reactions, this function returns the 'obvious' reactants. For multi-step reactions, this…"
+    },
+    {
+     "kind": "method",
+     "name": "ReactionAtomMap",
+     "signature": "CambridgeSoft.ChemScript.AtomAtomMap ReactionAtomMap()",
+     "doc": "Atom-By-Atom Map reactants to products"
+    },
+    {
+     "kind": "method",
+     "name": "ReactionAtomMap",
+     "signature": "CambridgeSoft.ChemScript.AtomAtomMap ReactionAtomMap(Int32)",
+     "doc": "Atom-By-Atom Map reactants to products"
+    },
+    {
+     "kind": "method",
+     "name": "ReactionAtomMap",
+     "signature": "CambridgeSoft.ChemScript.AtomAtomMap ReactionAtomMap(Int32, Boolean)",
+     "doc": "Atom-By-Atom Map reactants to products"
+    },
+    {
+     "kind": "method",
+     "name": "ReactionBondMap",
+     "signature": "CambridgeSoft.ChemScript.BondBondMap ReactionBondMap()",
+     "doc": "Bond-By-Bond Map reactants to products"
+    },
+    {
+     "kind": "method",
+     "name": "ReactionBondMap",
+     "signature": "CambridgeSoft.ChemScript.BondBondMap ReactionBondMap(Int32)",
+     "doc": "Bond-By-Bond Map reactants to products"
+    },
+    {
+     "kind": "method",
+     "name": "ReactionBondMap",
+     "signature": "CambridgeSoft.ChemScript.BondBondMap ReactionBondMap(Int32, Boolean)",
+     "doc": "Bond-By-Bond Map reactants to products"
+    },
+    {
+     "kind": "method",
+     "name": "ReadData",
+     "signature": "System.String ReadData(System.String)",
+     "doc": "Reads string data into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full…"
+    },
+    {
+     "kind": "method",
+     "name": "ReadData",
+     "signature": "System.String ReadData(System.String, System.String)",
+     "doc": "Reads string data into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full…"
+    },
+    {
+     "kind": "method",
+     "name": "ReadFile",
+     "signature": "System.String ReadFile(System.String)",
+     "doc": "Loads a file into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full mime…"
+    },
+    {
+     "kind": "method",
+     "name": "ReadFile",
+     "signature": "System.String ReadFile(System.String, System.String)",
+     "doc": "Loads a file into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full mime…"
+    },
+    {
+     "kind": "property",
+     "name": "Steps",
+     "signature": "CambridgeSoft.ChemScript.ReactionStepList Steps",
+     "doc": "Get multi-step reaction as a list of single-step ReactionStep objects. For example, A -> B -> C returns A -> B, B -> C, for a total of 2 steps."
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    },
+    {
+     "kind": "method",
+     "name": "Transform",
+     "signature": "CambridgeSoft.ChemScript.StructureData Transform(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Use reaction template to transform this *m* to get another new StructureData. To get the new reaction, call ReactionData.Create(m, new_m)"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "ReactionDataList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "ReactionDataList+ReactionDataListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "ReactionStep",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "Formula",
+     "signature": "System.String Formula()",
+     "doc": "Return the step's formula"
+    },
+    {
+     "kind": "method",
+     "name": "Formula",
+     "signature": "System.String Formula(Boolean)",
+     "doc": "Return the step's formula"
+    },
+    {
+     "kind": "property",
+     "name": "FormulaHTML",
+     "signature": "System.String FormulaHTML",
+     "doc": "Return the step's formula with HTML markup"
+    },
+    {
+     "kind": "property",
+     "name": "Products",
+     "signature": "CambridgeSoft.ChemScript.StructureDataList Products",
+     "doc": "Get all products as a list Products is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "Reactants",
+     "signature": "CambridgeSoft.ChemScript.StructureDataList Reactants",
+     "doc": "Get all reactants as a list Reactants is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "ReactionStepList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "ReactionStepList+ReactionStepListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Ring",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "property",
+     "name": "Atoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList Atoms",
+     "doc": "Get all ring atoms as a list"
+    },
+    {
+     "kind": "property",
+     "name": "Bonds",
+     "signature": "CambridgeSoft.ChemScript.BondList Bonds",
+     "doc": "Get all ring bonds as a list"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "RingInfo",
+   "kind": "class",
+   "doc": "Class of ring information of a StructureData",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "constructor"
+    },
+    {
+     "kind": "method",
+     "name": "AromaticRings",
+     "signature": "CambridgeSoft.ChemScript.RingList AromaticRings()",
+     "doc": "get aromatic rings as a Ring list"
+    },
+    {
+     "kind": "property",
+     "name": "AtomsWithVacantPiOrbitals",
+     "signature": "CambridgeSoft.ChemScript.AtomList AtomsWithVacantPiOrbitals",
+     "doc": "get atoms with vacant Pi orbitals as an Atom list"
+    },
+    {
+     "kind": "method",
+     "name": "BasicRings",
+     "signature": "CambridgeSoft.ChemScript.RingList BasicRings()",
+     "doc": "get basic rings as a Ring list \"Basic\" rings are the fundamental plus the extended."
+    },
+    {
+     "kind": "method",
+     "name": "BridgeAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList BridgeAtoms()",
+     "doc": "get bridge atoms as an Atom list"
+    },
+    {
+     "kind": "method",
+     "name": "BridgeBonds",
+     "signature": "CambridgeSoft.ChemScript.BondList BridgeBonds()",
+     "doc": "get bridge bonds as a Bond list"
+    },
+    {
+     "kind": "method",
+     "name": "BridgedRings",
+     "signature": "CambridgeSoft.ChemScript.RingList BridgedRings()",
+     "doc": "get bridged rings as a Ring list Bridging rings are basic rings that share more than one bond with another basic ring."
+    },
+    {
+     "kind": "method",
+     "name": "BridgeheadAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList BridgeheadAtoms()",
+     "doc": "get bridgehead atoms as an Atom list"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "ExtendedRings",
+     "signature": "CambridgeSoft.ChemScript.RingList ExtendedRings()",
+     "doc": "get extended rings as a Ring list Extended, aka \"kappa\". These are rings that could as validly have been selected for the SSSR, and have the same size as the largest SSSR ring(s). For example, Bicyclo[2.2.2]octane has t…"
+    },
+    {
+     "kind": "method",
+     "name": "FundamentalRings",
+     "signature": "CambridgeSoft.ChemScript.RingList FundamentalRings()",
+     "doc": "get fundamental rings as a Ring list Fundamental, or SSSR (smallest set of smallest rings). Represents a linear basis set, from which all other rings can be generated (by XOR'ing the bonds)."
+    },
+    {
+     "kind": "method",
+     "name": "FusionAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList FusionAtoms()",
+     "doc": "get fusion atoms as an Atom list"
+    },
+    {
+     "kind": "method",
+     "name": "FusionBonds",
+     "signature": "CambridgeSoft.ChemScript.BondList FusionBonds()",
+     "doc": "get fusion bonds as a Bond list"
+    },
+    {
+     "kind": "method",
+     "name": "HydrogenAcceptorAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList HydrogenAcceptorAtoms()",
+     "doc": "get hydrogen-acceptor atoms as an Atom list"
+    },
+    {
+     "kind": "method",
+     "name": "HydrogenDonorAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList HydrogenDonorAtoms()",
+     "doc": "get hydrogen-donor atoms as an Atom list"
+    },
+    {
+     "kind": "property",
+     "name": "LonePairAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList LonePairAtoms",
+     "doc": "get lone pair atoms as an Atom list"
+    },
+    {
+     "kind": "method",
+     "name": "NecklaceRings",
+     "signature": "CambridgeSoft.ChemScript.RingList NecklaceRings()",
+     "doc": "get complex rings as a Ring list. A necklace ring is a ring that bridges at least one ring less than half its size. We suppress the extended and composite rings of necklace rings of size greater than fifteen (arbitrary)"
+    },
+    {
+     "kind": "method",
+     "name": "SpiroAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList SpiroAtoms()",
+     "doc": "get spiro atoms as an Atom list"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "RingInfoList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "RingInfoList+RingInfoListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "RingList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "RingList+RingListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "SDFileReader",
+   "kind": "class",
+   "doc": "class for reading MDL SD file",
+   "role": "api",
+   "members": [
+    {
+     "kind": "method",
+     "name": "Close",
+     "signature": "Void Close()",
+     "doc": "Close"
+    },
+    {
+     "kind": "property",
+     "name": "Count",
+     "signature": "System.Int32 Count",
+     "doc": "Get the number of structures pending of reading in the file Count is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "Current",
+     "signature": "CambridgeSoft.ChemScript.StructureData Current()",
+     "doc": "get the structure of the last ReadNext()"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "Eof",
+     "signature": "Boolean Eof()",
+     "doc": "Check if reaching the end of the file"
+    },
+    {
+     "kind": "property",
+     "name": "LastReadMimeType",
+     "signature": "System.String LastReadMimeType",
+     "doc": "Get the mime type of last read record. Return empty string if no record read or the mime type is unknown"
+    },
+    {
+     "kind": "property",
+     "name": "NumberOfRecordsRead",
+     "signature": "System.Int32 NumberOfRecordsRead",
+     "doc": "Get the number of molecules read from the file NumberOfRecordsRead is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "OpenFile",
+     "signature": "CambridgeSoft.ChemScript.SDFileReader OpenFile(System.String)",
+     "static": true,
+     "doc": "Entry of creating SDFileReader. Usage:"
+    },
+    {
+     "kind": "property",
+     "name": "PercentComplete",
+     "signature": "System.Double PercentComplete",
+     "doc": "Get the read percentage of the file PercentComplete is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "ReadNext",
+     "signature": "CambridgeSoft.ChemScript.StructureData ReadNext()",
+     "doc": "Read next StructureData"
+    },
+    {
+     "kind": "method",
+     "name": "ResetReading",
+     "signature": "Void ResetReading()",
+     "doc": "Reset reading, so next ReadNext() call will get the first StructureData"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "SDFileWriter",
+   "kind": "class",
+   "doc": "SDFileWriter class Users cannot create SDFileWriter objects directly. Use SDFileWriter.OpenFile() to create an SDFileWriter. class for writing MDL SD file",
+   "role": "api",
+   "members": [
+    {
+     "kind": "method",
+     "name": "Close",
+     "signature": "Void Close()",
+     "doc": "Close"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "OpenFile",
+     "signature": "CambridgeSoft.ChemScript.SDFileWriter OpenFile(System.String)",
+     "static": true,
+     "doc": "Constructor of SDFileWriter. You can explicitly set mode to Append if you want to append to existing file. It is set to Create by default."
+    },
+    {
+     "kind": "method",
+     "name": "OpenFile",
+     "signature": "CambridgeSoft.ChemScript.SDFileWriter OpenFile(System.String, CambridgeSoft.ChemScript.FileOpenMode)",
+     "static": true,
+     "doc": "Constructor of SDFileWriter. You can explicitly set mode to Append if you want to append to existing file. It is set to Create by default."
+    },
+    {
+     "kind": "method",
+     "name": "OpenFile",
+     "signature": "CambridgeSoft.ChemScript.SDFileWriter OpenFile(System.String, CambridgeSoft.ChemScript.FileOpenMode, System.String)",
+     "static": true,
+     "doc": "Constructor of SDFileWriter. You can explicitly set mode to Append if you want to append to existing file. It is set to Create by default."
+    },
+    {
+     "kind": "method",
+     "name": "WriteStructure",
+     "signature": "Boolean WriteStructure(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Write a Structure mimeType - default value is empty string which will write structure into v2000 format This mimeType will overwrite the OpenFile option."
+    },
+    {
+     "kind": "method",
+     "name": "WriteStructure",
+     "signature": "Boolean WriteStructure(CambridgeSoft.ChemScript.StructureData, System.String)",
+     "doc": "Write a Structure mimeType - default value is empty string which will write structure into v2000 format This mimeType will overwrite the OpenFile option."
+    },
+    {
+     "kind": "method",
+     "name": "WriteStructures",
+     "signature": "Int32 WriteStructures(CambridgeSoft.ChemScript.StructureDataList)",
+     "doc": "Write many Structures in one time. Return the number of molecules (StructureData) written. mimeType - default value is empty string which will write structure into v2000 format This mimeType will overwrite the OpenFile…"
+    },
+    {
+     "kind": "method",
+     "name": "WriteStructures",
+     "signature": "Int32 WriteStructures(CambridgeSoft.ChemScript.StructureDataList, System.String)",
+     "doc": "Write many Structures in one time. Return the number of molecules (StructureData) written. mimeType - default value is empty string which will write structure into v2000 format This mimeType will overwrite the OpenFile…"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "SWIGTYPE_p_void",
+   "kind": "class",
+   "role": "api",
+   "members": [],
+   "interop_members": 0
+  },
+  {
+   "name": "SaltTable",
+   "kind": "class",
+   "doc": "Provide a customized way when do StructureData.SplitSalt().",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(Boolean)"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(Boolean, Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "All",
+     "signature": "CambridgeSoft.ChemScript.StringVector All()"
+    },
+    {
+     "kind": "method",
+     "name": "Clear",
+     "signature": "Void Clear()",
+     "doc": "Clear all salt/solvent fragments registered on this salt table"
+    },
+    {
+     "kind": "method",
+     "name": "ClearFragmentList",
+     "signature": "Void ClearFragmentList()",
+     "doc": "Clear all salt/solvent fragments registered on this salt table"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "field",
+     "name": "IIF_AssignToCustomIfBoth",
+     "signature": "System.Int32 IIF_AssignToCustomIfBoth",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_CustomDoesNotTrumpInorganic",
+     "signature": "System.Int32 IIF_CustomDoesNotTrumpInorganic",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_Default",
+     "signature": "System.Int32 IIF_Default",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_DontKeepMetalBetaDiketonates",
+     "signature": "System.Int32 IIF_DontKeepMetalBetaDiketonates",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_InterestedInCategories",
+     "signature": "System.Int32 IIF_InterestedInCategories",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_IsotopesAreNotIncidental",
+     "signature": "System.Int32 IIF_IsotopesAreNotIncidental",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_MustBeCharged",
+     "signature": "System.Int32 IIF_MustBeCharged",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_MustBeNeutral",
+     "signature": "System.Int32 IIF_MustBeNeutral",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_NoHeuristics",
+     "signature": "System.Int32 IIF_NoHeuristics",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_OkToExhaustComponent",
+     "signature": "System.Int32 IIF_OkToExhaustComponent",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_OkToExhaustStructure",
+     "signature": "System.Int32 IIF_OkToExhaustStructure",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_OrganicExcludes_C_C",
+     "signature": "System.Int32 IIF_OrganicExcludes_C_C",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_OrganicExcludes_C_H",
+     "signature": "System.Int32 IIF_OrganicExcludes_C_H",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_OrganicExcludes_C_X",
+     "signature": "System.Int32 IIF_OrganicExcludes_C_X",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_SkipSearchForRedundant",
+     "signature": "System.Int32 IIF_SkipSearchForRedundant",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_SpareCationicMetal",
+     "signature": "System.Int32 IIF_SpareCationicMetal",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_SpareNeutralLoner",
+     "signature": "System.Int32 IIF_SpareNeutralLoner",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "IIF_SpareSimpleAmines",
+     "signature": "System.Int32 IIF_SpareSimpleAmines",
+     "static": true
+    },
+    {
+     "kind": "method",
+     "name": "ListAll",
+     "signature": "Void ListAll()"
+    },
+    {
+     "kind": "method",
+     "name": "ListSalts",
+     "signature": "Void ListSalts()"
+    },
+    {
+     "kind": "method",
+     "name": "ListSolvents",
+     "signature": "Void ListSolvents()"
+    },
+    {
+     "kind": "method",
+     "name": "LoadDefault",
+     "signature": "Void LoadDefault()",
+     "doc": "Register the default salt/solvent fragments"
+    },
+    {
+     "kind": "method",
+     "name": "PrimeWithCommonOrganicFragments",
+     "signature": "Void PrimeWithCommonOrganicFragments()",
+     "doc": "Register the default salt/solvent fragments"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterFragment",
+     "signature": "Boolean RegisterFragment(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Registry a new salt/solvent fragment defined by a StructureData object"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterFragment",
+     "signature": "Boolean RegisterFragment(CambridgeSoft.ChemScript.StructureData, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by a StructureData object"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterFragment",
+     "signature": "Boolean RegisterFragment(CambridgeSoft.ChemScript.StructureData, Boolean, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by a StructureData object"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterFragment",
+     "signature": "Boolean RegisterFragment(CambridgeSoft.ChemScript.StructureData, Boolean, Boolean, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by a StructureData object"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterInchi",
+     "signature": "Boolean RegisterInchi(System.String)",
+     "doc": "Registry a new salt/solvent fragment defined by an InChI string"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterInchi",
+     "signature": "Boolean RegisterInchi(System.String, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by an InChI string"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterInchi",
+     "signature": "Boolean RegisterInchi(System.String, Boolean, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by an InChI string"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterInchi",
+     "signature": "Boolean RegisterInchi(System.String, Boolean, Boolean, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by an InChI string"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterWithSmiles",
+     "signature": "Boolean RegisterWithSmiles(System.String)",
+     "doc": "Registry a new salt/solvent fragment defined by a SMILES string"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterWithSmiles",
+     "signature": "Boolean RegisterWithSmiles(System.String, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by a SMILES string"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterWithSmiles",
+     "signature": "Boolean RegisterWithSmiles(System.String, Boolean, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by a SMILES string"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterWithSmiles",
+     "signature": "Boolean RegisterWithSmiles(System.String, Boolean, Boolean, Boolean)",
+     "doc": "Registry a new salt/solvent fragment defined by a SMILES string"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterWithSmilesFile",
+     "signature": "Int32 RegisterWithSmilesFile(System.String)",
+     "doc": "Registry salt/solvent fragments defined by a SMILES file. A sample salt table File: --------------------------------------- # my salts O=S(C1=CC=CC=C1)([O-])=O O=C(CC(C(C)1C)CC2)C21CS(=O)([O-])=O CCCCCC([O-])=O # other…"
+    },
+    {
+     "kind": "method",
+     "name": "RegisterWithSmilesFile",
+     "signature": "Int32 RegisterWithSmilesFile(System.String, Boolean)",
+     "doc": "Registry salt/solvent fragments defined by a SMILES file. A sample salt table File: --------------------------------------- # my salts O=S(C1=CC=CC=C1)([O-])=O O=C(CC(C(C)1C)CC2)C21CS(=O)([O-])=O CCCCCC([O-])=O # other…"
+    },
+    {
+     "kind": "method",
+     "name": "RemoveSaltsAndSolvents",
+     "signature": "CambridgeSoft.ChemScript.StructureData RemoveSaltsAndSolvents(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Remove salts and solvents, and returns the main structure"
+    },
+    {
+     "kind": "method",
+     "name": "RemoveSaltsAndSolvents",
+     "signature": "CambridgeSoft.ChemScript.StructureData RemoveSaltsAndSolvents(CambridgeSoft.ChemScript.StructureData, Int32)",
+     "doc": "Remove salts and solvents, and returns the main structure"
+    },
+    {
+     "kind": "method",
+     "name": "Salts",
+     "signature": "CambridgeSoft.ChemScript.StringVector Salts()"
+    },
+    {
+     "kind": "method",
+     "name": "Solvents",
+     "signature": "CambridgeSoft.ChemScript.StringVector Solvents()"
+    },
+    {
+     "kind": "method",
+     "name": "SplitSaltAndSolvent",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_StructureData_int SplitSaltAndSolvent(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Split salts and solvents, and returns a Dict containing main structure, combined salt and solvent"
+    },
+    {
+     "kind": "method",
+     "name": "SplitSaltAndSolvent",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_StructureData_int SplitSaltAndSolvent(CambridgeSoft.ChemScript.StructureData, Int32)",
+     "doc": "Split salts and solvents, and returns a Dict containing main structure, combined salt and solvent"
+    },
+    {
+     "kind": "method",
+     "name": "SplitSaltsAndSolvents",
+     "signature": "CambridgeSoft.ChemScript.VectorOfStructVector SplitSaltsAndSolvents(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Split salts and solvents, and returns a List containing main structure, separated single salts and solvents"
+    },
+    {
+     "kind": "method",
+     "name": "SplitSaltsAndSolvents",
+     "signature": "CambridgeSoft.ChemScript.VectorOfStructVector SplitSaltsAndSolvents(CambridgeSoft.ChemScript.StructureData, Int32)",
+     "doc": "Split salts and solvents, and returns a List containing main structure, separated single salts and solvents"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "SearchOptions",
+   "kind": "class",
+   "doc": "class of Atom-By-Atom Search Options: Option Meanings ---------------------------------------------------------------------------- _3D : 3-D search mode. absHitsRelative : If set, in non-Identity/Rel.Tet.Ster mode, an :…",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "List",
+     "signature": "Void List()"
+    },
+    {
+     "kind": "property",
+     "name": "_3D",
+     "signature": "System.Boolean _3D"
+    },
+    {
+     "kind": "property",
+     "name": "absHitsRelative",
+     "signature": "System.Boolean absHitsRelative"
+    },
+    {
+     "kind": "property",
+     "name": "addAromaticPredicate",
+     "signature": "System.Boolean addAromaticPredicate"
+    },
+    {
+     "kind": "property",
+     "name": "extranFragsOk",
+     "signature": "System.Boolean extranFragsOk"
+    },
+    {
+     "kind": "property",
+     "name": "extranFragsOkIfRxn",
+     "signature": "System.Boolean extranFragsOkIfRxn"
+    },
+    {
+     "kind": "property",
+     "name": "findChargedCarbon",
+     "signature": "System.Boolean findChargedCarbon"
+    },
+    {
+     "kind": "property",
+     "name": "findChargedHet",
+     "signature": "System.Boolean findChargedHet"
+    },
+    {
+     "kind": "property",
+     "name": "findIsotopes",
+     "signature": "System.Boolean findIsotopes"
+    },
+    {
+     "kind": "property",
+     "name": "findRadicals",
+     "signature": "System.Boolean findRadicals"
+    },
+    {
+     "kind": "property",
+     "name": "fragsCanOverlap",
+     "signature": "System.Boolean fragsCanOverlap"
+    },
+    {
+     "kind": "property",
+     "name": "fullStruct",
+     "signature": "System.Boolean fullStruct"
+    },
+    {
+     "kind": "property",
+     "name": "genericsNotGeneric",
+     "signature": "System.Boolean genericsNotGeneric"
+    },
+    {
+     "kind": "property",
+     "name": "identityMode",
+     "signature": "System.Boolean identityMode"
+    },
+    {
+     "kind": "property",
+     "name": "ignoreCounterionsInQuery",
+     "signature": "System.Boolean ignoreCounterionsInQuery"
+    },
+    {
+     "kind": "property",
+     "name": "implHMatchesSimple",
+     "signature": "System.Boolean implHMatchesSimple"
+    },
+    {
+     "kind": "property",
+     "name": "looseDelocalization",
+     "signature": "System.Boolean looseDelocalization"
+    },
+    {
+     "kind": "property",
+     "name": "maxHits",
+     "signature": "System.Int32 maxHits"
+    },
+    {
+     "kind": "property",
+     "name": "plusSigns",
+     "signature": "System.Boolean plusSigns"
+    },
+    {
+     "kind": "property",
+     "name": "relativeTetStereo",
+     "signature": "System.Boolean relativeTetStereo"
+    },
+    {
+     "kind": "property",
+     "name": "tautomeric",
+     "signature": "System.Boolean tautomeric"
+    },
+    {
+     "kind": "property",
+     "name": "timeout",
+     "signature": "System.Int32 timeout"
+    },
+    {
+     "kind": "property",
+     "name": "useRxnCenters",
+     "signature": "System.Boolean useRxnCenters"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "SearchQuery",
+   "kind": "class",
+   "doc": "class of SearchQuery List all atom-by-atom map from this StructureData to \"target\" StructureData. If any hit found, it returns true, else return false.",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(CambridgeSoft.ChemScript.ChemicalData)"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(CambridgeSoft.ChemScript.ChemicalData, CambridgeSoft.ChemScript.SearchOptions)"
+    },
+    {
+     "kind": "method",
+     "name": "AtomByAtomSearch",
+     "signature": "Boolean AtomByAtomSearch(CambridgeSoft.ChemScript.ChemicalData)",
+     "doc": "AtomByAtomSearch"
+    },
+    {
+     "kind": "method",
+     "name": "AtomByAtomSearch",
+     "signature": "Boolean AtomByAtomSearch(CambridgeSoft.ChemScript.ChemicalData, Int32)",
+     "doc": "AtomByAtomSearch"
+    },
+    {
+     "kind": "property",
+     "name": "AtomMapCount",
+     "signature": "System.Int32 AtomMapCount"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "GetAtomByAtomMap",
+     "signature": "CambridgeSoft.ChemScript.AtomAtomMap GetAtomByAtomMap(Int32)",
+     "doc": "Get Atom By AtomMap with the Atom No"
+    },
+    {
+     "kind": "field",
+     "name": "kSearchAtomByAtomMapAll",
+     "signature": "System.Int32 kSearchAtomByAtomMapAll",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "kSearchAtomByAtomMapNone",
+     "signature": "System.Int32 kSearchAtomByAtomMapNone",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "kSearchAtomByAtomMapOne",
+     "signature": "System.Int32 kSearchAtomByAtomMapOne",
+     "static": true
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "StringVector",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "StringVector+StringVectorEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "StructureData",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()"
+    },
+    {
+     "kind": "method",
+     "name": "AmbiguousStereoAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList AmbiguousStereoAtoms()",
+     "doc": "Get AmbiguousStereoAtoms."
+    },
+    {
+     "kind": "property",
+     "name": "Atoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList Atoms",
+     "doc": "Get a list of all the atoms. It has an alias call \"Atoms\"."
+    },
+    {
+     "kind": "property",
+     "name": "AtomsWithVacantPiOrbitals",
+     "signature": "CambridgeSoft.ChemScript.AtomList AtomsWithVacantPiOrbitals",
+     "doc": "Returns the atoms with vacant low-energy orbitals that might readily accept an electron pair. Excludes anions."
+    },
+    {
+     "kind": "property",
+     "name": "AverageMass",
+     "signature": "System.Double AverageMass",
+     "doc": "Get the average mass"
+    },
+    {
+     "kind": "method",
+     "name": "BondedAtomsOf",
+     "signature": "CambridgeSoft.ChemScript.AtomList BondedAtomsOf(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Get bonded atoms of an Atom"
+    },
+    {
+     "kind": "method",
+     "name": "BondedBondsOf",
+     "signature": "CambridgeSoft.ChemScript.BondList BondedBondsOf(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Get bonded bonds of an Atom"
+    },
+    {
+     "kind": "property",
+     "name": "Bonds",
+     "signature": "CambridgeSoft.ChemScript.BondList Bonds",
+     "doc": "Get a list of all the bonds."
+    },
+    {
+     "kind": "method",
+     "name": "ChemicalName",
+     "signature": "System.String ChemicalName()",
+     "doc": "Return the chemical name. It equals WriteData('name')."
+    },
+    {
+     "kind": "method",
+     "name": "ChemicalName",
+     "signature": "System.String ChemicalName(Boolean)",
+     "doc": "Return the chemical name. It equals WriteData('name')."
+    },
+    {
+     "kind": "method",
+     "name": "CleanupStructure",
+     "signature": "Boolean CleanupStructure()",
+     "doc": "Convert this structure to a 2D representation."
+    },
+    {
+     "kind": "method",
+     "name": "CleanupStructure",
+     "signature": "Boolean CleanupStructure(Boolean)",
+     "doc": "Convert this structure to a 2D representation."
+    },
+    {
+     "kind": "method",
+     "name": "CleanupStructure",
+     "signature": "Boolean CleanupStructure(CambridgeSoft.ChemScript.AtomList)",
+     "doc": "Convert this structure to a 2D representation."
+    },
+    {
+     "kind": "method",
+     "name": "CleanupStructure",
+     "signature": "Boolean CleanupStructure(CambridgeSoft.ChemScript.AtomList, Boolean)",
+     "doc": "Convert this structure to a 2D representation."
+    },
+    {
+     "kind": "method",
+     "name": "Clear",
+     "signature": "Void Clear()",
+     "doc": "Remove everything from this object"
+    },
+    {
+     "kind": "method",
+     "name": "ClearZCoordinates",
+     "signature": "Boolean ClearZCoordinates()",
+     "doc": "Set all Z coordinates to 0"
+    },
+    {
+     "kind": "method",
+     "name": "Clone",
+     "signature": "CambridgeSoft.ChemScript.StructureData Clone()",
+     "doc": "Get a clone of this mol"
+    },
+    {
+     "kind": "method",
+     "name": "ContainsAtom",
+     "signature": "Boolean ContainsAtom(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Test if this StructureData/ReactionData contains Atom \"a\" >>> m = StructureData.LoadData('CCCC') >>> m.ContainsAtom(m.Atoms[2])"
+    },
+    {
+     "kind": "method",
+     "name": "ContainsBond",
+     "signature": "Boolean ContainsBond(CambridgeSoft.ChemScript.Bond)",
+     "doc": "Test if this StructureData/ReactionData contains Bond \"b\""
+    },
+    {
+     "kind": "method",
+     "name": "ConvertTo3DStructure",
+     "signature": "Boolean ConvertTo3DStructure()"
+    },
+    {
+     "kind": "method",
+     "name": "ConvertTo3DStructure",
+     "signature": "Boolean ConvertTo3DStructure(Boolean)"
+    },
+    {
+     "kind": "method",
+     "name": "ConvertToDelocBondRep",
+     "signature": "Boolean ConvertToDelocBondRep()"
+    },
+    {
+     "kind": "method",
+     "name": "ConvertToFixedBondRep",
+     "signature": "Boolean ConvertToFixedBondRep()"
+    },
+    {
+     "kind": "method",
+     "name": "ConvertToFixedBondRep",
+     "signature": "Boolean ConvertToFixedBondRep(Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "ConvertToFixedBondRep",
+     "signature": "Boolean ConvertToFixedBondRep(Int32, Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "CountAtoms",
+     "signature": "Int32 CountAtoms()",
+     "doc": "Count the number of atoms with a given atomic number (element) If no atomic number is specified, then the total number of all atoms is returned."
+    },
+    {
+     "kind": "method",
+     "name": "CountAtoms",
+     "signature": "Int32 CountAtoms(Int32)",
+     "doc": "Count the number of atoms with a given atomic number (element) If no atomic number is specified, then the total number of all atoms is returned."
+    },
+    {
+     "kind": "method",
+     "name": "CountAtoms",
+     "signature": "Int32 CountAtoms(System.String)",
+     "doc": "Count the number of atoms with a given atomic number (element) If no atomic number is specified, then the total number of all atoms is returned."
+    },
+    {
+     "kind": "method",
+     "name": "CreateAtom",
+     "signature": "CambridgeSoft.ChemScript.Atom CreateAtom(System.String)",
+     "doc": "Create an atom"
+    },
+    {
+     "kind": "method",
+     "name": "CreateAtom",
+     "signature": "CambridgeSoft.ChemScript.Atom CreateAtom(System.String, CambridgeSoft.ChemScript.Point)",
+     "doc": "Create an atom"
+    },
+    {
+     "kind": "method",
+     "name": "CreateAtom",
+     "signature": "CambridgeSoft.ChemScript.Atom CreateAtom(System.String, CambridgeSoft.ChemScript.Point, Int32)",
+     "doc": "Create an atom"
+    },
+    {
+     "kind": "method",
+     "name": "CreateBond",
+     "signature": "CambridgeSoft.ChemScript.Bond CreateBond(CambridgeSoft.ChemScript.Atom, CambridgeSoft.ChemScript.Atom)",
+     "doc": "Create an Bond"
+    },
+    {
+     "kind": "method",
+     "name": "CreateBond",
+     "signature": "CambridgeSoft.ChemScript.Bond CreateBond(CambridgeSoft.ChemScript.Atom, CambridgeSoft.ChemScript.Atom, CambridgeSoft.ChemScript.BondOrder)",
+     "doc": "Create an Bond"
+    },
+    {
+     "kind": "method",
+     "name": "DetectAtomStereoCIP",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_Atom_String DetectAtomStereoCIP()",
+     "doc": "Detect atoms' CIP stereochemistry."
+    },
+    {
+     "kind": "method",
+     "name": "DetectBondStereoCIP",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_Bond_String DetectBondStereoCIP()",
+     "doc": "Detect bonds' CIP stereochemistry."
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "property",
+     "name": "ElectronDonatingAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList ElectronDonatingAtoms",
+     "doc": "Get the central atoms in electron-donating groups as a list 1. --M where M is an element more electropositive than hydrogen. Principal instances include: --MgX --SiR3 Alkyl is also electron donating to another carbon, a…"
+    },
+    {
+     "kind": "property",
+     "name": "ElectronWithdrawingAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList ElectronWithdrawingAtoms",
+     "doc": "Get the central atoms in electron-withdrawing groups as a list 1. --X=Y where X is an element more electronegative than hydrogen, and Y is an element more electronegative than hydrogen (inc. C). Principal instances incl…"
+    },
+    {
+     "kind": "property",
+     "name": "ElementalAnalysis",
+     "signature": "System.String ElementalAnalysis",
+     "doc": "Get the mol elemental analysis"
+    },
+    {
+     "kind": "property",
+     "name": "ExactMass",
+     "signature": "System.Double ExactMass",
+     "doc": "Get the exact mass"
+    },
+    {
+     "kind": "method",
+     "name": "FindBond",
+     "signature": "CambridgeSoft.ChemScript.Bond FindBond(CambridgeSoft.ChemScript.Atom, CambridgeSoft.ChemScript.Atom)",
+     "doc": "Find the bond between a1 and a2 Find the bond between two atoms whose atom IDs are id1 and id2"
+    },
+    {
+     "kind": "method",
+     "name": "FindBond",
+     "signature": "CambridgeSoft.ChemScript.Bond FindBond(Int32, Int32)",
+     "doc": "Find the bond between a1 and a2 Find the bond between two atoms whose atom IDs are id1 and id2"
+    },
+    {
+     "kind": "method",
+     "name": "GeometricCenter",
+     "signature": "CambridgeSoft.ChemScript.Point GeometricCenter()",
+     "doc": "Returns the unweighted geometric center of all atoms"
+    },
+    {
+     "kind": "method",
+     "name": "GetBound",
+     "signature": "CambridgeSoft.ChemScript.DoubleList GetBound()",
+     "doc": "Get the bound of this StructureData."
+    },
+    {
+     "kind": "property",
+     "name": "HasCharges",
+     "signature": "System.Boolean HasCharges",
+     "doc": "HasCharges"
+    },
+    {
+     "kind": "property",
+     "name": "HasCoordinates",
+     "signature": "System.Boolean HasCoordinates",
+     "doc": "Test whether the atoms have unique coordinates. This function returns false if all atoms have the same coordinates"
+    },
+    {
+     "kind": "property",
+     "name": "HasZCoordinates",
+     "signature": "System.Boolean HasZCoordinates",
+     "doc": "Test whether all atoms' Z coordinates are 0."
+    },
+    {
+     "kind": "property",
+     "name": "HydrogenAcceptors",
+     "signature": "CambridgeSoft.ChemScript.AtomList HydrogenAcceptors",
+     "doc": "Get hydrogen-bond acceptor atoms as a list A hydrogen-bond acceptor atom is defined as an O, N or F atom that is not a cation, and is not an sp3 atom in an ester or amide. Examples of acceptors: MeCHO MeOH MeC(=O)Me R3N…"
+    },
+    {
+     "kind": "property",
+     "name": "HydrogenDonors",
+     "signature": "CambridgeSoft.ChemScript.AtomList HydrogenDonors",
+     "doc": "Get hydrogen-bond donor atoms as a list A hydrogen-bond donor atom is defined as an O,N,S or F atom bearing one or more hydrogen atoms, and that is not negatively charged. Examples of donors: --OH --NHR --SH ==O(+)H"
+    },
+    {
+     "kind": "property",
+     "name": "Inchi",
+     "signature": "System.String Inchi",
+     "doc": "Return the InChI string. See http://www.iupac.org/inchi/ for more information"
+    },
+    {
+     "kind": "method",
+     "name": "IsPlanarStructure",
+     "signature": "Boolean IsPlanarStructure()",
+     "doc": "Test whether this is a 2D structure. If \"fast\" is set to True, check if the atoms have Z coordinate. If \"fast\" is set to False, check if the atoms lie in a plane."
+    },
+    {
+     "kind": "method",
+     "name": "IsPlanarStructure",
+     "signature": "Boolean IsPlanarStructure(Boolean)",
+     "doc": "Test whether this is a 2D structure. If \"fast\" is set to True, check if the atoms have Z coordinate. If \"fast\" is set to False, check if the atoms lie in a plane."
+    },
+    {
+     "kind": "method",
+     "name": "IsPlanarStructure",
+     "signature": "Boolean IsPlanarStructure(Boolean, Double)",
+     "doc": "Test whether this is a 2D structure. If \"fast\" is set to True, check if the atoms have Z coordinate. If \"fast\" is set to False, check if the atoms lie in a plane."
+    },
+    {
+     "kind": "method",
+     "name": "JoinFragments",
+     "signature": "Boolean JoinFragments(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Add StructureData \"m\" to this StructureData"
+    },
+    {
+     "kind": "method",
+     "name": "List",
+     "signature": "Void List()",
+     "doc": "list atoms and/or bonds in this StructureData Because ChemScript.dll is native code, if you want to print messages out while debugging .NET code, you need to check \"Enable unmanaged code debugging\" in the Debug tab of t…"
+    },
+    {
+     "kind": "method",
+     "name": "List",
+     "signature": "Void List(Boolean)",
+     "doc": "list atoms and/or bonds in this StructureData Because ChemScript.dll is native code, if you want to print messages out while debugging .NET code, you need to check \"Enable unmanaged code debugging\" in the Debug tab of t…"
+    },
+    {
+     "kind": "method",
+     "name": "List",
+     "signature": "Void List(Boolean, Boolean)",
+     "doc": "list atoms and/or bonds in this StructureData Because ChemScript.dll is native code, if you want to print messages out while debugging .NET code, you need to check \"Enable unmanaged code debugging\" in the Debug tab of t…"
+    },
+    {
+     "kind": "method",
+     "name": "List",
+     "signature": "Void List(Boolean, Boolean, Boolean)",
+     "doc": "list atoms and/or bonds in this StructureData Because ChemScript.dll is native code, if you want to print messages out while debugging .NET code, you need to check \"Enable unmanaged code debugging\" in the Debug tab of t…"
+    },
+    {
+     "kind": "method",
+     "name": "LoadBytes",
+     "signature": "CambridgeSoft.ChemScript.StructureData LoadBytes(Byte[])",
+     "static": true,
+     "doc": "Attempt to interpret supplied data as a Structure data=raw structure data in bytes Returns null on failure"
+    },
+    {
+     "kind": "method",
+     "name": "LoadBytes",
+     "signature": "CambridgeSoft.ChemScript.StructureData LoadBytes(Byte[], System.String)",
+     "static": true,
+     "doc": "Attempt to interpret supplied data as a Structure data=raw structure data in bytes, mimeTypeHint=mime type such as \"cdx\" or \"cdxml\" Returns null on failure"
+    },
+    {
+     "kind": "method",
+     "name": "LoadData",
+     "signature": "CambridgeSoft.ChemScript.StructureData LoadData(System.String)",
+     "static": true,
+     "doc": "Load a structure data from a string."
+    },
+    {
+     "kind": "method",
+     "name": "LoadData",
+     "signature": "CambridgeSoft.ChemScript.StructureData LoadData(System.String, System.String)",
+     "static": true,
+     "doc": "Load a structure data from a string."
+    },
+    {
+     "kind": "method",
+     "name": "LoadFile",
+     "signature": "CambridgeSoft.ChemScript.StructureData LoadFile(System.String)",
+     "static": true,
+     "doc": "Load a structure data from a file."
+    },
+    {
+     "kind": "method",
+     "name": "LoadFile",
+     "signature": "CambridgeSoft.ChemScript.StructureData LoadFile(System.String, System.String)",
+     "static": true,
+     "doc": "Load a structure data from a file."
+    },
+    {
+     "kind": "property",
+     "name": "LonePairAtoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList LonePairAtoms",
+     "doc": "Returns the atoms with lone pairs to donate. Excludes cations."
+    },
+    {
+     "kind": "property",
+     "name": "MOverZ",
+     "signature": "System.String MOverZ",
+     "doc": "Get the mol m/z report"
+    },
+    {
+     "kind": "method",
+     "name": "MergeFragments",
+     "signature": "CambridgeSoft.ChemScript.StructureData MergeFragments(CambridgeSoft.ChemScript.StructureDataList)",
+     "static": true,
+     "doc": "Merge a mol array into a new StructureData"
+    },
+    {
+     "kind": "method",
+     "name": "Mm2Energy",
+     "signature": "Double Mm2Energy()"
+    },
+    {
+     "kind": "method",
+     "name": "Mm2OptimizeGeometry",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_String_Double Mm2OptimizeGeometry()"
+    },
+    {
+     "kind": "method",
+     "name": "Mm2OptimizeGeometry",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_String_Double Mm2OptimizeGeometry(Double)"
+    },
+    {
+     "kind": "method",
+     "name": "Mm2OptimizeGeometry",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_String_Double Mm2OptimizeGeometry(Double, Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "Mm2OptimizeGeometry",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_String_Double Mm2OptimizeGeometry(Double, Int32, Int32)"
+    },
+    {
+     "kind": "method",
+     "name": "Mm2OptimizeGeometry",
+     "signature": "CambridgeSoft.ChemScript.Dictionary_String_Double Mm2OptimizeGeometry(Double, Int32, Int32, Boolean)"
+    },
+    {
+     "kind": "method",
+     "name": "MostCommonStructure",
+     "signature": "CambridgeSoft.ChemScript.StructureData MostCommonStructure(CambridgeSoft.ChemScript.StructureData, CambridgeSoft.ChemScript.StructureData)",
+     "static": true,
+     "doc": "Find the most common part of two given StructureData. This method returns the common part as a new StructureData without atom maps. If you want to get maps, you have to create a LargestCommonSubstructure object."
+    },
+    {
+     "kind": "method",
+     "name": "MostCommonStructure",
+     "signature": "CambridgeSoft.ChemScript.StructureData MostCommonStructure(CambridgeSoft.ChemScript.StructureData, CambridgeSoft.ChemScript.StructureData, Int32)",
+     "static": true,
+     "doc": "Find the most common part of two given StructureData. This method returns the common part as a new StructureData without atom maps. If you want to get maps, you have to create a LargestCommonSubstructure object."
+    },
+    {
+     "kind": "method",
+     "name": "MoveCenterToOrigin",
+     "signature": "CambridgeSoft.ChemScript.Point MoveCenterToOrigin()",
+     "doc": "Center the structure around the origin"
+    },
+    {
+     "kind": "method",
+     "name": "Neutralize",
+     "signature": "Boolean Neutralize()",
+     "doc": "Adds and removes protons so as to neutralize charged acidic and basic atoms"
+    },
+    {
+     "kind": "method",
+     "name": "NormalizeStructure",
+     "signature": "Boolean NormalizeStructure()",
+     "doc": "Convert differently drawn representations of the same structure into a single normalized form."
+    },
+    {
+     "kind": "method",
+     "name": "NormalizeStructure",
+     "signature": "Boolean NormalizeStructure(CambridgeSoft.ChemScript.NormOptions)",
+     "doc": "Convert differently drawn representations of the same structure into a single normalized form."
+    },
+    {
+     "kind": "method",
+     "name": "NormalizeStructure",
+     "signature": "Boolean NormalizeStructure(CambridgeSoft.ChemScript.NormOptions, Int32)",
+     "doc": "Convert differently drawn representations of the same structure into a single normalized form."
+    },
+    {
+     "kind": "method",
+     "name": "Overlay",
+     "signature": "Boolean Overlay(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "Adjust the position and orientation of the structure in order to achieve the best possible overlay of the structure onto the target (or scaffold). This is a \"rigid-body\" overlay. During this procedure, the internal geom…"
+    },
+    {
+     "kind": "method",
+     "name": "Overlay",
+     "signature": "Boolean Overlay(CambridgeSoft.ChemScript.StructureData, Int32)",
+     "doc": "Adjust the position and orientation of the structure in order to achieve the best possible overlay of the structure onto the target (or scaffold). This is a \"rigid-body\" overlay. During this procedure, the internal geom…"
+    },
+    {
+     "kind": "property",
+     "name": "PartitionCoefficient",
+     "signature": "System.Double PartitionCoefficient",
+     "doc": "Compute partition coefficient (Log P) using ClogP"
+    },
+    {
+     "kind": "method",
+     "name": "ReadData",
+     "signature": "System.String ReadData(System.String)",
+     "doc": "Reads string data into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full…"
+    },
+    {
+     "kind": "method",
+     "name": "ReadData",
+     "signature": "System.String ReadData(System.String, System.String)",
+     "doc": "Reads string data into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full…"
+    },
+    {
+     "kind": "method",
+     "name": "ReadFile",
+     "signature": "System.String ReadFile(System.String)",
+     "doc": "Loads a file into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full mime…"
+    },
+    {
+     "kind": "method",
+     "name": "ReadFile",
+     "signature": "System.String ReadFile(System.String, System.String)",
+     "doc": "Loads a file into this StructureData or ReactionData object. If *format* parameter is set, the load will be faster. Otherwise, it will guess the type and a result mime type will be returned. *format* can be a full mime…"
+    },
+    {
+     "kind": "property",
+     "name": "Refractivity",
+     "signature": "System.Double Refractivity",
+     "doc": "Compute StructureData refractivity using ClogP"
+    },
+    {
+     "kind": "method",
+     "name": "RemoveAtom",
+     "signature": "Boolean RemoveAtom(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Remove an atom"
+    },
+    {
+     "kind": "method",
+     "name": "RemoveBond",
+     "signature": "Boolean RemoveBond(CambridgeSoft.ChemScript.Bond)",
+     "doc": "Remove a bond"
+    },
+    {
+     "kind": "method",
+     "name": "RemoveBond",
+     "signature": "Boolean RemoveBond(CambridgeSoft.ChemScript.Bond, Boolean)",
+     "doc": "Remove a bond"
+    },
+    {
+     "kind": "method",
+     "name": "ResetAtomIDs",
+     "signature": "Int32 ResetAtomIDs()",
+     "doc": "Reset atom ID. When some atoms are removed, the atom IDs are not continuous, this method must be called to reassign a continuous IDs."
+    },
+    {
+     "kind": "method",
+     "name": "Rotate",
+     "signature": "Void Rotate(CambridgeSoft.ChemScript.Vector, Double)",
+     "doc": "Rotate all atoms about vector \"axis\" at a angle of \"degree\""
+    },
+    {
+     "kind": "method",
+     "name": "ScaffoldCleanup",
+     "signature": "Boolean ScaffoldCleanup(CambridgeSoft.ChemScript.StructureData)",
+     "doc": "This method can be used to exert precise control over the atom positioning within a scaffold subset of a chemical structure. The ScaffoldCleanup is a three-step procedure: 1. An overlay of the structure is performed ont…"
+    },
+    {
+     "kind": "method",
+     "name": "SplitFragments",
+     "signature": "CambridgeSoft.ChemScript.StructureDataList SplitFragments()",
+     "doc": "Split fragments into a list of separate StructureData objects"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    },
+    {
+     "kind": "method",
+     "name": "Topology",
+     "signature": "CambridgeSoft.ChemScript.Topology Topology()",
+     "doc": "Get Topology object of this mol. You can use Topology object to analyze molecular topology."
+    },
+    {
+     "kind": "property",
+     "name": "TotalCharge",
+     "signature": "System.Int32 TotalCharge",
+     "doc": "Get the total charge of the StructureData"
+    },
+    {
+     "kind": "property",
+     "name": "TotalNegativeCharges",
+     "signature": "System.Int32 TotalNegativeCharges",
+     "doc": "Get the total negative charges of the StructureData"
+    },
+    {
+     "kind": "property",
+     "name": "TotalPositiveCharges",
+     "signature": "System.Int32 TotalPositiveCharges",
+     "doc": "Get the total positive charges of the StructureData"
+    },
+    {
+     "kind": "method",
+     "name": "TranslateCoordinates",
+     "signature": "Void TranslateCoordinates(CambridgeSoft.ChemScript.Point)",
+     "doc": "Translate all atom positions by offset"
+    },
+    {
+     "kind": "property",
+     "name": "Weight",
+     "signature": "System.Double Weight",
+     "doc": "Get the mol weight"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "StructureData+DekekMode",
+   "kind": "enum",
+   "role": "api",
+   "members": [
+    {
+     "kind": "field",
+     "name": "DekekMode_ConfineChargesToHeteroatoms",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_ConfineChargesToHeteroatoms",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_ConfineRadicalsToHeteroatoms",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_ConfineRadicalsToHeteroatoms",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_Default",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_Default",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_DisfavorAntiaromaticSystems",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_DisfavorAntiaromaticSystems",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_DoNotCreateCharges",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_DoNotCreateCharges",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_DoNotCreateRadicals",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_DoNotCreateRadicals",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_DontDisfavorAntiaromatic",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_DontDisfavorAntiaromatic",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_FailWithOne_FailWithAll",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_FailWithOne_FailWithAll",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_FavorMultiplyBondedHetero",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_FavorMultiplyBondedHetero",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_IgnoreIncomingLabelH",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_IgnoreIncomingLabelH",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_MustBeFullyAlternating",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_MustBeFullyAlternating",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_OkToCreateCharges",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_OkToCreateCharges",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_OkToCreateRadicals",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_OkToCreateRadicals",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_RemoveMuBondingDelreps",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_RemoveMuBondingDelreps",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_SpareMuBondingDelreps",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_SpareMuBondingDelreps",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_SpecifyHCount",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_SpecifyHCount",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "DekekMode_UseIncomingLabelH",
+     "signature": "CambridgeSoft.ChemScript.StructureData+DekekMode DekekMode_UseIncomingLabelH",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "value__",
+     "signature": "System.Int32 value__"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "StructureData+SaltsOptions",
+   "kind": "enum",
+   "role": "api",
+   "members": [
+    {
+     "kind": "field",
+     "name": "Salts_Default",
+     "signature": "CambridgeSoft.ChemScript.StructureData+SaltsOptions Salts_Default",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "Salts_NeutralizeCounterion",
+     "signature": "CambridgeSoft.ChemScript.StructureData+SaltsOptions Salts_NeutralizeCounterion",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "Salts_NeutralizePrincipal",
+     "signature": "CambridgeSoft.ChemScript.StructureData+SaltsOptions Salts_NeutralizePrincipal",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "Salts_SeparateCounterions",
+     "signature": "CambridgeSoft.ChemScript.StructureData+SaltsOptions Salts_SeparateCounterions",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "Salts_SpareRedundants",
+     "signature": "CambridgeSoft.ChemScript.StructureData+SaltsOptions Salts_SpareRedundants",
+     "static": true
+    },
+    {
+     "kind": "field",
+     "name": "value__",
+     "signature": "System.Int32 value__"
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "StructureDataList",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "StructureDataList+StructureDataListEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "Topology",
+   "kind": "class",
+   "role": "api",
+   "members": [
+    {
+     "kind": "property",
+     "name": "Atoms",
+     "signature": "CambridgeSoft.ChemScript.AtomList Atoms",
+     "doc": "Gets a list of Atoms from H stripped molecule."
+    },
+    {
+     "kind": "property",
+     "name": "BalabanIndex",
+     "signature": "System.Int32 BalabanIndex",
+     "doc": "BalabanIndex is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "ClusterCount",
+     "signature": "Int32 ClusterCount(Int32)",
+     "doc": "Get ClusterCount."
+    },
+    {
+     "kind": "property",
+     "name": "CyclomaticNumber",
+     "signature": "System.Int32 CyclomaticNumber",
+     "doc": "CyclomaticNumber is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "Degree",
+     "signature": "Int32 Degree(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Get Degree."
+    },
+    {
+     "kind": "property",
+     "name": "Diameter",
+     "signature": "System.Int32 Diameter",
+     "doc": "Diameter is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "Distance",
+     "signature": "Int32 Distance(CambridgeSoft.ChemScript.Atom, CambridgeSoft.ChemScript.Atom)",
+     "doc": "Get Distance."
+    },
+    {
+     "kind": "method",
+     "name": "DistanceMatrix",
+     "signature": "CambridgeSoft.ChemScript.VectorIntVector DistanceMatrix()",
+     "doc": "Get DistanceMatrix."
+    },
+    {
+     "kind": "method",
+     "name": "Eccentricity",
+     "signature": "Int32 Eccentricity(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Get Eccentricity."
+    },
+    {
+     "kind": "property",
+     "name": "NumOfChainBonds",
+     "signature": "System.Int32 NumOfChainBonds",
+     "doc": "NumOfChainBonds is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "NumOfHydrogens",
+     "signature": "Int32 NumOfHydrogens(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Get NumOfHydrogens."
+    },
+    {
+     "kind": "property",
+     "name": "NumOfLinkingChainBonds",
+     "signature": "System.Int32 NumOfLinkingChainBonds",
+     "doc": "NumOfLinkingChainBonds is READONLY. Get NumOfLinkingChainBonds."
+    },
+    {
+     "kind": "property",
+     "name": "NumOfRingBonds",
+     "signature": "System.Int32 NumOfRingBonds",
+     "doc": "NumOfRingBonds is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "NumOfRotatableBonds",
+     "signature": "System.Int32 NumOfRotatableBonds",
+     "doc": "NumOfRotatableBonds is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "NumOfTerminalBonds",
+     "signature": "System.Int32 NumOfTerminalBonds",
+     "doc": "NumOfTerminalBonds is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "NumOfValenceElectrons",
+     "signature": "Int32 NumOfValenceElectrons(Int32)",
+     "doc": "Get NumOfValenceElectrons."
+    },
+    {
+     "kind": "property",
+     "name": "PolarSurfaceArea",
+     "signature": "System.Double PolarSurfaceArea",
+     "doc": "PolarSurfaceArea is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "Radius",
+     "signature": "System.Int32 Radius",
+     "doc": "Radius is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "ShapeAttribute",
+     "signature": "Double ShapeAttribute(Int32)",
+     "doc": "Get ShapeAttribute."
+    },
+    {
+     "kind": "property",
+     "name": "ShapeCoefficient",
+     "signature": "System.Int32 ShapeCoefficient",
+     "doc": "ShapeCoefficient is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "SumOfDegrees",
+     "signature": "System.Int32 SumOfDegrees",
+     "doc": "SumOfDegrees is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "SumOfValenceDegrees",
+     "signature": "System.Double SumOfValenceDegrees",
+     "doc": "SumOfValenceDegrees is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "TopologicalIndex",
+     "signature": "System.Int32 TopologicalIndex",
+     "doc": "TopologicalIndex is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "TotalConnectivity",
+     "signature": "System.Double TotalConnectivity",
+     "doc": "TotalConnectivity is READONLY."
+    },
+    {
+     "kind": "property",
+     "name": "TotalValenceConnectivity",
+     "signature": "System.Double TotalValenceConnectivity",
+     "doc": "TotalValenceConnectivity is READONLY."
+    },
+    {
+     "kind": "method",
+     "name": "Valence",
+     "signature": "Int32 Valence(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Get Valence."
+    },
+    {
+     "kind": "method",
+     "name": "ValenceConnectivityIndex",
+     "signature": "Double ValenceConnectivityIndex(Int32)",
+     "doc": "Get ValenceConnectivityIndex."
+    },
+    {
+     "kind": "method",
+     "name": "ValenceDegree",
+     "signature": "Double ValenceDegree(CambridgeSoft.ChemScript.Atom)",
+     "doc": "Get ValenceDegree."
+    },
+    {
+     "kind": "property",
+     "name": "WienerIndex",
+     "signature": "System.Int32 WienerIndex",
+     "doc": "WienerIndex is READONLY."
+    }
+   ],
+   "interop_members": 0
+  },
+  {
+   "name": "Vector",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 14
+  },
+  {
+   "name": "VectorIntVector",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "VectorIntVector+VectorIntVectorEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "VectorOfStructVector",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 31
+  },
+  {
+   "name": "VectorOfStructVector+VectorOfStructVectorEnumerator",
+   "kind": "class",
+   "role": "collection",
+   "member_count": 5
+  },
+  {
+   "name": "XYZ",
+   "kind": "class",
+   "doc": "Divide x, y and z by scale factor s",
+   "role": "api",
+   "members": [
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor()",
+     "doc": "Constructor of class XYZ. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(Double)",
+     "doc": "Constructor of class XYZ. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(Double, Double)",
+     "doc": "Constructor of class XYZ. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "constructor",
+     "name": ".ctor",
+     "signature": "Void .ctor(Double, Double, Double)",
+     "doc": "Constructor of class XYZ. Arguments x, y and z are optional, and the default of values are 0"
+    },
+    {
+     "kind": "method",
+     "name": "Dispose",
+     "signature": "Void Dispose()"
+    },
+    {
+     "kind": "method",
+     "name": "ToString",
+     "signature": "System.String ToString()"
+    },
+    {
+     "kind": "method",
+     "name": "opAdd",
+     "signature": "CambridgeSoft.ChemScript.XYZ opAdd(CambridgeSoft.ChemScript.XYZ)"
+    },
+    {
+     "kind": "method",
+     "name": "opDiv",
+     "signature": "CambridgeSoft.ChemScript.XYZ opDiv(Double)"
+    },
+    {
+     "kind": "method",
+     "name": "opIsDiff",
+     "signature": "Boolean opIsDiff(CambridgeSoft.ChemScript.XYZ)"
+    },
+    {
+     "kind": "method",
+     "name": "opIsEqual",
+     "signature": "Boolean opIsEqual(CambridgeSoft.ChemScript.XYZ)"
+    },
+    {
+     "kind": "method",
+     "name": "opMult",
+     "signature": "CambridgeSoft.ChemScript.XYZ opMult(Double)"
+    },
+    {
+     "kind": "method",
+     "name": "opSub",
+     "signature": "CambridgeSoft.ChemScript.XYZ opSub()"
+    },
+    {
+     "kind": "method",
+     "name": "opSub",
+     "signature": "CambridgeSoft.ChemScript.XYZ opSub(CambridgeSoft.ChemScript.XYZ)"
+    },
+    {
+     "kind": "property",
+     "name": "x",
+     "signature": "System.Double x",
+     "doc": "x coordinate"
+    },
+    {
+     "kind": "property",
+     "name": "y",
+     "signature": "System.Double y",
+     "doc": "y coordinate"
+    },
+    {
+     "kind": "property",
+     "name": "z",
+     "signature": "System.Double z",
+     "doc": "z coordinate"
+    }
+   ],
+   "interop_members": 0
+  }
+ ]
+}
