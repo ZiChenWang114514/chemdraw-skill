@@ -61,6 +61,34 @@ ITALIC_PREFIXES: list[str] = [
 
 _ITALIC_PREFIXES = ITALIC_PREFIXES  # backward-compat alias
 
+# ---------------------------------------------------------------------------
+# Notation used in reaction conditions: temperature, room temperature, times.
+# The number must not be glued to a preceding word character, so formulas such
+# as "H2C" or "C10H21Br" are never read as temperatures.
+# ---------------------------------------------------------------------------
+_TEMPERATURE_RE = re.compile(
+    r'(?<![\w.])([-−]?\d+(?:\.\d+)?)\s*(?:°|deg(?:rees?)?\.?)?\s*C(?![\w-])'
+)
+_ROOM_TEMP_RE = re.compile(
+    r'(?<!\w)(?:r\.t\.|RT|room\s+temp(?:erature)?\.?)(?!\w)'
+)
+_HOURS_RE = re.compile(r'(?<![\w.])(\d+(?:\.\d+)?)\s*(?:hrs?|hours?)(?!\w)')
+_MINUTES_RE = re.compile(r'(?<![\w.])(\d+(?:\.\d+)?)\s*(?:mins|minutes?)(?!\w)')
+
+
+def normalize_condition_text(text: str) -> str:
+    """Write temperatures, room temperature and times the way papers do.
+
+    "80 C" / "80C" / "80 deg C" -> "80 °C"; "RT" / "r.t." / "room temperature"
+    -> "rt"; "12 hr" / "12 hours" -> "12 h"; "30 mins" -> "30 min". Anything
+    else, including formulas and reagent names, is returned unchanged, and the
+    result is stable when normalised again.
+    """
+    text = _TEMPERATURE_RE.sub(lambda m: f"{m.group(1)} °C", text)
+    text = _ROOM_TEMP_RE.sub("rt", text)
+    text = _HOURS_RE.sub(lambda m: f"{m.group(1)} h", text)
+    return _MINUTES_RE.sub(lambda m: f"{m.group(1)} min", text)
+
 
 # ---------------------------------------------------------------------------
 # Public helpers

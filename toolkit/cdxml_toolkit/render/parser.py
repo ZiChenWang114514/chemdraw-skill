@@ -493,6 +493,13 @@ def _parse_scheme(data: Dict[str, Any]) -> SchemeDescriptor:
         if steps_per_row < 1:
             raise SchemeParseError("steps_per_row must be >= 1")
 
+    # --- Row width budget ---
+    max_row_width = data.get("max_row_width")
+    if max_row_width is not None:
+        max_row_width = float(max_row_width)
+        if max_row_width <= 0:
+            raise SchemeParseError("max_row_width must be > 0")
+
     # --- Title ---
     title = data.get("title")
     if title is not None:
@@ -516,6 +523,7 @@ def _parse_scheme(data: Dict[str, Any]) -> SchemeDescriptor:
         layout=layout,
         wrap=wrap,
         steps_per_row=steps_per_row,
+        max_row_width=max_row_width,
         title=title,
         run_arrows=run_arrows,
         condition_key=condition_key,

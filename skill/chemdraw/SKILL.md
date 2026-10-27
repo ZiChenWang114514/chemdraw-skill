@@ -39,6 +39,7 @@ Read only the matching workflow and the needed signature, not the complete catal
 | Task | Start here |
 | --- | --- |
 | Exam, lecture or paper drawings in ACS 1996 style (abbreviations like C10H21, Chinese notes, compound codes) | [ACS 1996 drawings](references/acs1996-drawings.md) |
+| New reaction scheme or route from known structures, with conditions and yields | [Scheme drawing](references/scheme-drawing.md) |
 | Publication image or reaction screenshot | [Image reconstruction](references/image-visual-review.md) |
 | Small-context models, result files, local task packets | [Efficient reconstruction](references/efficient-reconstruction.md) |
 | Repeated local repairs, candidate caching, dual-variant delivery | [Incremental reconstruction](references/incremental-reconstruction.md) |

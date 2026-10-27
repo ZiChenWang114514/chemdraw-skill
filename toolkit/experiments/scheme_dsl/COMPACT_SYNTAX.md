@@ -170,6 +170,7 @@ Lines starting with `@` set scheme-level options:
 | `@layout` | `@layout sequential` | Layout pattern |
 | `@wrap` | `@wrap serpentine` | Wrapping mode |
 | `@steps_per_row` | `@steps_per_row 3` | Steps per row |
+| `@max_row_width` | `@max_row_width 504` | Widest allowed row in points; picks steps per row when `@steps_per_row` is not given |
 | `@title` | `@title "My Synthesis"` | Scheme title |
 | `@conditions` | (block) | Letter condition definitions |
 
