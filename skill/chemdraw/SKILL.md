@@ -56,7 +56,7 @@ Read only the matching workflow and the needed signature, not the complete catal
 | Processed spectra, plots and mechanisms | [Scientific workflows](references/scientific-workflows.md) |
 | TLC, apparatus and instruments | [Native laboratory drawings](references/native-laboratory-drawings.md) |
 | Atom indices, CIP, MCS or stereo enumeration | [RDKit workbench](references/rdkit-workbench.md) |
-| Formula, masses, logP, reaction balance, equivalents calculator, HRMS lines, SI tables, atom mapping, SMILES/InChI export, structure to name | [Chemistry reports](references/chemistry-reports.md) |
+| Formula, masses, logP, reaction balance, ChemDraw's stoichiometry grid, HRMS lines, SI tables, atom mapping, SMILES/InChI export, structure to name | [Chemistry reports](references/chemistry-reports.md) |
 | ChemDraw's own interfaces (ChemScript, COM, CDXML elements, menu commands) and which have a tool or a verified recipe | [Interface catalog](references/interface-catalog.md) |
 | Read or change any other CDXML object (text, shapes, tables, bioshapes, one attribute) | [Inspect or edit CDXML objects](references/workflow-router.md#inspect-or-edit-cdxml-objects) |
 | Installation, upgrade, missing tools or runtime failure | [Operations](references/operations.md) |

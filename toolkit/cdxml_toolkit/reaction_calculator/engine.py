@@ -1,8 +1,7 @@
 """Stoichiometry of one reaction: the amounts that follow from what has been fixed.
 
-The same rules run in calculator.js, so the page recomputes live and this module gives the
-agent identical numbers headlessly. tests/runtime/test_reaction_calculator.py runs both on the
-same cases. Units: mg, mmol, mL, g/mL, mol/L (= mmol/mL), g/mol.
+The materials tables and route summaries use it. Units: mg, mmol, mL, g/mL,
+mol/L (= mmol/mL), g/mol.
 
 A row is a dict. Rows with an amount (role reactant, reagent or catalyst) carry one
 ``basis`` and its ``value``: ``equiv`` (relative to the limiting row), ``mmol``, ``mass``
@@ -143,24 +142,3 @@ def compute(state: dict) -> dict:
         totals['e_factor'] = totals['pmi'] - 1.0
         totals['pmi_no_solvent'] = totals['input_mg'] / actual
     return {'limiting': limiting['id'], 'rows': rows, 'totals': totals, 'warnings': warnings}
-
-
-def rebase(state: dict, new_limiting: str) -> dict:
-    """The same reaction with another limiting row, every amount unchanged."""
-    result = compute(state)
-    rows = {r['id']: r for r in result['rows']}
-    if new_limiting not in rows or rows[new_limiting]['role'] not in AMOUNT_ROLES:
-        raise ValueError('limiting must name a reactant, reagent or catalyst row')
-    base = rows[new_limiting]['mmol']
-    out = deepcopy(state)
-    for r in out['rows']:
-        computed = rows[r['id']]
-        if r['role'] in AMOUNT_ROLES and r['basis'] == 'equiv':
-            r['value'] = computed['mmol'] / base
-        elif r['role'] == 'solvent' and r['basis'] == 'conc':
-            r['basis'], r['value'] = 'volume', computed['volume_ml']
-    target = next(r for r in out['rows'] if r['id'] == new_limiting)
-    if target['basis'] == 'equiv':
-        target['basis'], target['value'] = 'mmol', rows[new_limiting]['mmol']
-    out['limiting'] = new_limiting
-    return out
