@@ -60,7 +60,7 @@
 
 ## `catalog.render`
 
-- **function**, line 338: `render_all(catalogs: dict[str, dict[str, Any]] | None = None, recipes: list[dict[str, Any]] | None = None, classification: dict[str, Any] | None = None) -> dict[str, str]` - No public docstring in the audited version.
+- **function**, line 339: `render_all(catalogs: dict[str, dict[str, Any]] | None = None, recipes: list[dict[str, Any]] | None = None, classification: dict[str, Any] | None = None) -> dict[str, str]` - No public docstring in the audited version.
 
 ## `characterization`
 
@@ -89,15 +89,15 @@
 - **function**, line 62: `environment(name: str) -> Path` - No public docstring in the audited version.
 - **function**, line 128: `find_base(name: str) -> str | None` - A Python that can host backend ``name``: this one, else python3.N on PATH, else the Windows launcher.
 - **function**, line 50: `home() -> Path` - Folder that holds one environment per backend (CHEMDRAW_MAPPER_HOME overrides it).
-- **function**, line 174: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create ``environment(name)``, install its pinned requirements and check it with a real mapping.
+- **function**, line 181: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create ``environment(name)``, install its pinned requirements and check it with a real mapping.
 - **function**, line 66: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
 - **function**, line 73: `python_for(name: str) -> Path | None` - Interpreter that can run backend ``name``: its own environment, else this one if it imports.
 - **function**, line 93: `run(name: str, reactions: list, timeout: int = RUN_TIMEOUT) -> list` - Map reaction SMILES with backend ``name``; one dict per reaction (mapped_rxn plus a score).
-- **function**, line 208: `status() -> dict` - No public docstring in the audited version.
+- **function**, line 219: `status() -> dict` - No public docstring in the audited version.
 
 ## `mcp_runtime`
 
-- **function**, line 5: `build_server(*args, **kwargs)` - Build the complete MCP server without importing it during package discovery.
+- **function**, line 11: `build_server(*args, **kwargs)` - Build the complete MCP server without importing it during package discovery.
 
 ## `mcp_runtime.artifact_safety`
 
@@ -191,10 +191,10 @@
 
 ## `mcp_runtime.com_call`
 
-- **function**, line 418: `chemdraw_com_call(program: list[dict[str, Any]], allow_file_io: bool = False, allow_overwrite: bool = False, max_items: int = 100) -> dict[str, Any]` - Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).
-- **class**, line 63: `ComCallError` - A ChemDraw failure with a stable public code.
-- **function**, line 319: `execute_program(application: Any, steps: list[dict[str, Any]], *, max_items: int = 100, allow_overwrite: bool = False, created: Optional[list[Any]] = None) -> dict[str, Any]` - Run validated steps against ``application``; returns results and written files.
-- **function**, line 148: `validate_program(program: list[dict[str, Any]], *, allow_file_io: bool = False, allow_overwrite: bool = False) -> list[dict[str, Any]]` - Check the program against the COM catalog and return the steps with their types.
+- **function**, line 422: `chemdraw_com_call(program: list[dict[str, Any]], allow_file_io: bool = False, allow_overwrite: bool = False, max_items: int = 100) -> dict[str, Any]` - Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).
+- **class**, line 66: `ComCallError` - A ChemDraw failure with a stable public code.
+- **function**, line 322: `execute_program(application: Any, steps: list[dict[str, Any]], *, max_items: int = 100, allow_overwrite: bool = False, created: Optional[list[Any]] = None) -> dict[str, Any]` - Run validated steps against ``application``; returns results and written files.
+- **function**, line 151: `validate_program(program: list[dict[str, Any]], *, allow_file_io: bool = False, allow_overwrite: bool = False) -> list[dict[str, Any]]` - Check the program against the COM catalog and return the steps with their types.
 
 ## `mcp_runtime.decimer_api`
 
@@ -287,12 +287,12 @@
 
 ## `mcp_runtime.mcp_server`
 
-- **class**, line 526: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
-- **function**, line 724: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
-- **function**, line 663: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
-- **function**, line 692: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
-- **function**, line 590: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
-- **function**, line 762: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
+- **class**, line 546: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
+- **function**, line 744: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
+- **function**, line 683: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
+- **function**, line 712: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
+- **function**, line 610: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
+- **function**, line 782: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_io`
 
@@ -310,11 +310,11 @@
 
 ## `mcp_runtime.native_renderer`
 
-- **class**, line 27: `NativeRenderError` - ChemDraw rendering failure with a stable public error code.
-- **class**, line 95: `NativeRenderSession` - Lazily acquire and reuse one ChemDraw application for native exports.
-- **method**, line 170: `NativeRenderSession.render(source: str | Path, destination: str | Path, dpi: int = 300) -> str` - No public docstring in the audited version.
-- **function**, line 241: `render_cdxml(source: str | Path, destination: str | Path, *, dpi: int = 300, timeout_seconds: int = 30) -> str` - No public docstring in the audited version.
-- **function**, line 22: `renderer_name() -> str` - The native renderer on this platform, as written in render receipts.
+- **class**, line 36: `NativeRenderError` - ChemDraw rendering failure with a stable public error code.
+- **class**, line 109: `NativeRenderSession` - Lazily acquire and reuse one ChemDraw application for native exports.
+- **method**, line 184: `NativeRenderSession.render(source: str | Path, destination: str | Path, dpi: int = 300) -> str` - No public docstring in the audited version.
+- **function**, line 255: `render_cdxml(source: str | Path, destination: str | Path, *, dpi: int = 300, timeout_seconds: int = 30) -> str` - No public docstring in the audited version.
+- **function**, line 31: `renderer_name() -> str` - The native renderer on this platform, as written in render receipts.
 
 ## `mcp_runtime.object_tools`
 
@@ -415,6 +415,11 @@
 - **function**, line 217: `reset_for_tests() -> None` - No public docstring in the audited version.
 - **function**, line 56: `worker_finished(tool: str, *, duration_seconds: float, ok: bool, error_code: str | None) -> None` - No public docstring in the audited version.
 - **function**, line 49: `worker_started(tool: str) -> None` - No public docstring in the audited version.
+
+## `mcp_runtime.temp_compat`
+
+- **function**, line 47: `ensure_usable_mkdtemp(is_usable: Optional[Callable[[], bool]] = None) -> bool` - Replace ``tempfile.mkdtemp`` when its folders are unusable. Returns True when it was replaced.
+- **function**, line 19: `mkdtemp_is_usable() -> bool` - Whether a folder made by ``tempfile.mkdtemp`` accepts a file.
 
 ## `mcp_runtime.tool_registry`
 
@@ -529,21 +534,23 @@
 
 ## `reaction_calculator.server`
 
-- **function**, line 117: `annotated_scheme(state: dict, computed: dict, show = annotate.SHOW, source: Path | None = None) -> tuple[str, list[str]]` - (CDXML text, rows without a drawn structure) of the scheme with the amounts written on it.
-- **function**, line 72: `blank_canvas() -> str` - No public docstring in the audited version.
-- **class**, line 224: `CalculatorApp` - No public docstring in the audited version.
-- **method**, line 282: `CalculatorApp.handler()` - No public docstring in the audited version.
-- **method**, line 257: `CalculatorApp.load_canvas(previous: dict | None) -> dict` - No public docstring in the audited version.
-- **method**, line 239: `CalculatorApp.open_canvas(state: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 334: `CalculatorApp.route(path: str, body: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 347: `CalculatorApp.serve(*, port: int = 0, open_browser: bool = True, announce = print) -> None` - No public docstring in the audited version.
-- **method**, line 267: `CalculatorApp.write_scheme(state: dict) -> dict` - A new file with the amounts written on the scheme (the drawing being edited is only read).
-- **function**, line 35: `canonical(smiles: str) -> str | None` - No public docstring in the audited version.
-- **function**, line 165: `load_drawing(path: Path, previous: dict | None, options: dict | None = None) -> tuple[dict, str]` - Calculator state for the reaction in a saved CDXML file, keeping the amounts already entered.
-- **function**, line 184: `merge_states(old: dict, new: dict) -> dict` - The new rows, with the amounts, names and properties of rows whose structure was already there.
-- **function**, line 136: `open_in_chemdraw(path: Path) -> bool` - Show a file in ChemDraw (the user asked to draw, so a window is expected).
-- **function**, line 40: `resolve(query: str, *, offline: bool = False) -> dict` - A name, abbreviation, SMILES or formula as {ok, name, smiles, formula, mw, density, svg, source}.
-- **function**, line 78: `scheme_yaml(state: dict, computed: dict | None = None) -> str | None` - A scheme of the state's reactants and products, with agents as structures above the arrow.
+- **function**, line 118: `annotated_scheme(state: dict, computed: dict, show = annotate.SHOW, source: Path | None = None) -> tuple[str, list[str]]` - (CDXML text, rows without a drawn structure) of the scheme with the amounts written on it.
+- **function**, line 73: `blank_canvas() -> str` - No public docstring in the audited version.
+- **class**, line 237: `CalculatorApp` - No public docstring in the audited version.
+- **method**, line 295: `CalculatorApp.handler()` - No public docstring in the audited version.
+- **method**, line 270: `CalculatorApp.load_canvas(previous: dict | None) -> dict` - No public docstring in the audited version.
+- **method**, line 252: `CalculatorApp.open_canvas(state: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 347: `CalculatorApp.route(path: str, body: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 360: `CalculatorApp.serve(*, port: int = 0, open_browser: bool = True, announce = print) -> None` - No public docstring in the audited version.
+- **method**, line 280: `CalculatorApp.write_scheme(state: dict) -> dict` - A new file with the amounts written on the scheme (the drawing being edited is only read).
+- **function**, line 36: `canonical(smiles: str) -> str | None` - No public docstring in the audited version.
+- **function**, line 166: `load_drawing(path: Path, previous: dict | None, options: dict | None = None) -> tuple[dict, str]` - Calculator state for the reaction in a saved CDXML file, keeping the amounts already entered.
+- **class**, line 225: `LoopbackHTTPServer` - Threading server for 127.0.0.1 that skips http.server's reverse DNS lookup.
+- **method**, line 232: `LoopbackHTTPServer.server_bind() -> None` - No public docstring in the audited version.
+- **function**, line 185: `merge_states(old: dict, new: dict) -> dict` - The new rows, with the amounts, names and properties of rows whose structure was already there.
+- **function**, line 137: `open_in_chemdraw(path: Path) -> bool` - Show a file in ChemDraw (the user asked to draw, so a window is expected).
+- **function**, line 41: `resolve(query: str, *, offline: bool = False) -> dict` - A name, abbreviation, SMILES or formula as {ok, name, smiles, formula, mw, density, svg, source}.
+- **function**, line 79: `scheme_yaml(state: dict, computed: dict | None = None) -> str | None` - A scheme of the state's reactants and products, with agents as structures above the arrow.
 
 ## `reaction_calculator.state`
 
