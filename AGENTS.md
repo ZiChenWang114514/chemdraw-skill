@@ -61,4 +61,4 @@ Write public documentation and example captions for readers without conversation
 
 ## Language
 
-Use English for all Skill instructions, references, scripts, and repository documentation except the Chinese translations `README.zh-cn.md`, `docs/guide.zh-cn.md` and `docs/zh-cn.md`, which must be real translations kept in step with their English counterparts, and the Chinese landing pages `site/index.html` and `site/404.html` (`site/en/index.html` is their English counterpart). Keep non-ASCII test fixtures as Unicode escapes when needed to preserve test behavior.
+Use English for all Skill instructions, references, scripts, and repository documentation except the Chinese translations `README.zh-cn.md`, `docs/guide.zh-cn.md` and `docs/zh-cn.md`, which must be real translations kept in step with their English counterparts (`docs/zh-cn.md` is a short Chinese quick start that follows the README Quick start and has no separate English page), and the Chinese landing pages `site/index.html` and `site/404.html` (`site/en/index.html` is their English counterpart). Keep non-ASCII test fixtures as Unicode escapes when needed to preserve test behavior.

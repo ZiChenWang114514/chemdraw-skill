@@ -273,3 +273,23 @@ def test_registered_as_a_native_tool_with_its_own_timeout():
     spec = registry["chemdraw_com_call"]
     assert spec.resource_class == "chemdraw_com" and spec.timeout_seconds == 240
     assert "chemdraw_com_call" not in build_registry("core")
+
+
+def test_a_failed_quit_after_a_call_is_logged(monkeypatch, caplog):
+    from contextlib import nullcontext
+    from cdxml_toolkit.mcp_runtime import native_renderer
+
+    class Application:
+        Documents = SimpleNamespace(Count=0)
+        Visible = True
+
+        def Quit(self):
+            raise RuntimeError("the RPC server is unavailable")
+
+    monkeypatch.setattr(native_renderer, "_com_apartment", nullcontext)
+    monkeypatch.setattr(native_renderer, "_acquire_application", lambda: (Application(), True))
+    with caplog.at_level("WARNING", logger=com_call.__name__):
+        with com_call._open_application() as (_, owned):
+            assert owned is True
+    assert [r.levelname for r in caplog.records] == ["WARNING"]
+    assert "RuntimeError" in caplog.text and "RPC server" not in caplog.text

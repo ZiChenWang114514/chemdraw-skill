@@ -935,93 +935,45 @@ def chemdraw_chemical_properties(molecules: list[dict], output_path: str | None 
     return result
 
 
-# --- reaction_calculator -----------------------------------------------------
-
-CALCULATOR_ROW_KEYS = ('id', 'role', 'name', 'formula', 'smiles', 'mw', 'coefficient', 'basis', 'value',
-                       'assumed', 'density', 'solution_m', 'purity')
-
-
 def _rounded(value, digits=4):
     return round(value, digits) + 0.0 if isinstance(value, float) else value
 
 
-def reaction_calculator(reaction: str | dict, options: dict | None = None,
-                        output_path: str | None = None) -> dict:
-    """Equivalents, mmol, mass, volume and yield of a reaction, and an interactive page for them.
+# --- stoichiometry_grid ------------------------------------------------------
 
-    reaction is the same input as check_reaction_balance: a reaction SMILES
-    "reactants>agents>products", {"reactants": [...], "agents": [...], "products": [...]} of
-    structure records, or {"cdxml": path, "steps": [step ids]}. A record may fix its own amount
-    with one of equiv, mmol, mass_mg or volume_ml (solvents: volume_ml), and may carry name,
-    role (agents: solvent, reagent or catalyst), density_g_ml, concentration_m (a stock
-    solution), purity (percent) and, for a product, isolated_mg or yield_percent.
-    Options: scale_mmol (the limiting reactant, default 1), limiting (reactant index, default 0),
-    molarity (of the limiting reactant in the first solvent, default 0.2), title, step (id of the
-    CDXML step to use, default the first), reagent_safety (default false: add "safety", the GHS
-    pictograms, H-statements, boiling and flash point of each non-product row from a built-in
-    table of common reagents, or "not listed"; the page shows them as badges whenever the
-    species is in the table; a reminder, not a substitute for the supplier SDS).
-    Everything not fixed gets a default (reactants by their coefficients, reagents 1 equiv,
-    metal catalysts 0.05 equiv, a 0.2 M solvent); the result lists those rows under "assumed"
-    and the page shows them in italics. Liquids show a volume when a density is known (a small
-    library of common solvents and reagents supplies it). The result holds the table and the
-    path of a standalone HTML page in which any quantity can be retyped and the rest recomputes,
-    with a procedure sentence, Markdown and spreadsheet copies. output_path ends in .html and is
-    never overwritten (default reaction-calculator.html). To draw the reaction in ChemDraw and
-    look names up, start the page with `cdx.py calc` instead.
+def stoichiometry_grid(source: str, mode: str = 'analyze', output_path: str | None = None,
+                       options: dict | None = None) -> dict:
+    """ChemDraw's own stoichiometry grid (Structure > Analyze Stoichiometry), drawn or read back.
+
+    mode "analyze" (Windows or macOS with desktop ChemDraw): source is a reaction SMILES
+    "reactants>agents>products" (agents are drawn above the arrow) or a .cdxml/.cdx file holding
+    a reaction. ChemDraw runs the command on a copy in a private window that it shows briefly
+    (the command is disabled in a hidden one), and the result is saved to output_path (.cdxml,
+    never overwritten; default "<name>-stoichiometry.cdxml" beside the file or
+    "reaction-stoichiometry.cdxml"). The source is never changed, and a file that already holds a
+    grid is refused. options.open (default false) then opens the result in the user's ChemDraw,
+    where typing a mass, volume or equivalents into the grid makes ChemDraw recompute the rest.
+    mode "read" (any platform, no ChemDraw): source is a saved .cdxml file; every grid in it is
+    read back, for example after someone typed amounts into it and saved.
+    Each grid lists one row per component with its role in the reaction step (reactant, agent or
+    product) and one cell per visible column under ChemDraw's own caption (Formula, MW,
+    Equivalents, Sample Mass, Reactant Moles, %Yield, ...): value is the stored number (masses in
+    g, amounts in mol, percentages as fractions) and text what the grid shows, with units;
+    cells someone typed are marked edited. Nothing is computed outside ChemDraw.
     """
-    from ..reaction_calculator import annotate, build_state, compute, render_page
+    from ..chemdraw import stoichiometry_grid as grid
     options = dict(options or {})
-    step = options.pop('step', None)
-    scheme_output = options.pop('scheme_output', None)
-    safety = bool(options.pop('reagent_safety', False))
-    scheme_show = tuple(options.pop('scheme_show', None) or annotate.SHOW)
-    if set(scheme_show) - set(annotate.SHOW):
-        raise ValueError(f'scheme_show may contain {list(annotate.SHOW)}')
-    sources = _reaction_sources(reaction)
-    if step is not None:
-        sources = [source for source in sources if source['step_id'] == str(step)]
-        if not sources:
-            raise ValueError(f'No reaction step {step} in the file')
-    sides = {role: _side(sources[0][role], role[:-1]) for role in ('reactants', 'agents', 'products')}
-    state = build_state(sides, options)
-    result = compute(state)
-    scheme_text = unplaced = None
-    if scheme_output:
-        scheme_text, unplaced = _annotated_scheme(reaction, state, result, scheme_show)
-    target = _publish(output_path or 'reaction-calculator.html', {'.html': lambda: render_page(state)})
-    scheme_target = _publish(scheme_output, {'.cdxml': lambda: scheme_text}) if scheme_output else None
-    warnings = list(result['warnings'])
-    if len(sources) > 1:
-        warnings.append(f"The file holds {len(sources)} reaction steps; step {sources[0]['step_id']} was used. "
-                        'Pass options.step for another.')
-    rows = [{**{key: _rounded(row.get(key)) for key in ('id', 'role', 'name', 'formula', 'mw', 'equiv', 'mmol',
-                                                        'mass_mg', 'volume_ml', 'theory_mmol', 'theory_mg',
-                                                        'actual_mg', 'yield_percent', 'hrms') if row.get(key) is not None},
-             'fixed': {'basis': row['basis'], 'value': _rounded(row['value']), 'assumed': bool(row['assumed'])}
-             if row['basis'] else None} for row in result['rows']]
-    totals = {key: _rounded(value) for key, value in result['totals'].items() if value is not None}
-    out = {'ok': True, 'operation': 'reaction_calculator', 'title': state['title'],
-           'limiting': result['limiting'], 'rows': rows, 'totals': totals,
-           'assumed': [row['name'] for row in state['rows'] if row['assumed']], 'warnings': warnings,
-           'output_path': str(target)}
-    if safety:
-        from ..reaction_calculator import hazards
-        out['safety'] = hazards.for_rows(result['rows'])
-    if scheme_target:
-        out.update(scheme_path=str(scheme_target), scheme_unplaced=unplaced)
-    return artifact_safety.with_artifacts(out, [target] + ([scheme_target] if scheme_target else []))
-
-
-def _annotated_scheme(reaction, state, result, show):
-    """CDXML text of the reaction scheme with the amounts written under each structure."""
-    from ..reaction_calculator.server import annotated_scheme
-    source = None
-    if isinstance(reaction, dict) and reaction.get('cdxml'):
-        source = Path(reaction['cdxml']).expanduser().resolve()
-        if not source.is_file():
-            raise ValueError(f'Input file does not exist: {source}')
-    return annotated_scheme(state, result, show, source)
+    opened = bool(options.pop('open', False))
+    if options:
+        raise ValueError(f"Unknown options: {', '.join(sorted(options))}")
+    if mode == 'read':
+        if output_path:
+            raise ValueError('output_path is only used by mode "analyze"')
+        return grid.read_grid(source)
+    if mode != 'analyze':
+        raise ValueError('mode is "analyze" or "read"')
+    result = grid.analyze(source, output_path, open_result=opened)
+    return artifact_safety.with_artifacts(result, [Path(result['path'])])
 
 
 def hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict:
@@ -1176,9 +1128,12 @@ def si_materials_tables(reactions: list, options: dict | None = None, output_pat
     reactions is a list; each entry is a reaction SMILES "reactants>agents>products", a record
     {"reactants": [...], "agents": [...], "products": [...]}, {"cdxml": path} (one reaction per
     reaction step in the drawing) or {"label": "3a", "reaction": <any of these>, "options": {...}}.
-    Records and options are those of reaction_calculator: amounts are given as equiv, mmol,
-    mass_mg or volume_ml, products may carry isolated_mg or yield_percent, and per-reaction
-    options override the call's options. Options: scale_mmol (limiting reactant, default 1),
+    A record may fix its own amount with one of equiv, mmol, mass_mg or volume_ml (solvents:
+    volume_ml) and may carry name, role (agents: solvent, reagent or catalyst), density_g_ml,
+    concentration_m (a stock solution), purity (percent) and, for a product, isolated_mg or
+    yield_percent; amounts nobody fixed get defaults (reactants by their coefficients, reagents
+    1 equiv, metal catalysts 0.05 equiv, a 0.2 M solvent). Per-reaction options override the
+    call's options. Options: scale_mmol (limiting reactant, default 1),
     limiting, molarity (default 0.2 of the limiting reagent in the first solvent), hrms (default
     true: add the calculated HRMS line of the first product), adduct (default [M+H]+) and
     ionization (default ESI). map_atoms (default false) adds each reaction's bond changes from
@@ -1309,10 +1264,10 @@ def route_summary(steps: list, options: dict | None = None, output_path: str | N
     steps are listed in the order they are run; the last one makes the final product. A step is a
     reaction as in si_materials_tables (a reaction SMILES, {"reactants": ..., "products": ...}
     records, {"cdxml": path} or {"label": "2", "reaction": ..., "options": {...}}, whose amounts,
-    isolated mass or yield come from the reaction calculator) or just numbers: {"label": "2",
+    isolated mass or yield are computed as in si_materials_tables) or just numbers: {"label": "2",
     "yield_percent": 85, "input_mg": 1500, "product_mg": 340, "used_mg": 300}. input_mg is
     everything put into the step (reagents, catalysts, solvents), product_mg the isolated mass of
-    its product; a reaction takes both from the calculator (a solvent with no density has no mass
+    its product; a reaction takes both from that computation (a solvent with no density has no mass
     and makes the PMI a lower bound), and either can be given on the step to override. A step
     feeds the next one; "into": "<later step label>" makes the route convergent. used_mg is the
     mass of a step's product that the step it feeds consumes: it is read from the structures when
@@ -1678,6 +1633,6 @@ def characterization_text(compounds: list[dict], options: dict | None = None, ou
 
 
 REPORT_TOOLS = {f.__name__: f for f in (molecule_report, check_reaction_balance, export_structures,
-                                         structure_to_name, chemdraw_chemical_properties, reaction_calculator, hrms_line,
+                                         structure_to_name, chemdraw_chemical_properties, stoichiometry_grid, hrms_line,
                                          si_materials_tables, map_reaction_atoms, characterization_text,
                                          route_summary)}

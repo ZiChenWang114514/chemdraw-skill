@@ -21,6 +21,7 @@
   "cdxml.unconfirmed": "Name from the CDXML format with no evidence in this installation."
  },
  "overrides": [
+  {"layer": "menu", "symbol": "Structure/Analyze Stoichiometry", "tier": "T1", "tool": "stoichiometry_grid", "reason": "Run on a copy in a private ChemDraw window shown briefly; the grid is read back from the saved file."},
   {"layer": "com", "symbol": "IChemDrawApplication.Documents", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "Opens the source document for conversion."},
   {"layer": "com", "symbol": "IChemDrawDocuments.Open", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "Opens a CDX, CDXML or ChemDraw file."},
   {"layer": "com", "symbol": "IChemDrawDocument.SaveAs", "tier": "T1", "tool": "convert_cdx_cdxml", "reason": "Writes the converted file."},

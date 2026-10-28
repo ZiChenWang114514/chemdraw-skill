@@ -5,9 +5,9 @@
 Read from the menus of a running ChemDraw, verified on 22.2.0/win: 12 menus, 140 commands with an id, 19 sub-menus or dialog-only entries.
 
 The id is the `CommandID` that `IChemOfficeMenuItem.Execute` takes through COM. A command acts on the current selection, and whether it is enabled depends on that selection, so a list of enabled commands is not part of the catalog.
-No tool runs menu commands on Windows, because ChemDraw runs them only from a visible window; on macOS `Clean Up Structure` and `Convert Name to Structure` run through the application menu (see [operations.md](operations.md)).
+ChemDraw runs menu commands only from a visible window, so on Windows a tool exists only where one was built for that command: `stoichiometry_grid` runs Analyze Stoichiometry in a private window shown briefly. On macOS `Clean Up Structure`, `Convert Name to Structure` and Analyze Stoichiometry run through the application menu (see [operations.md](operations.md)).
 
-Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a generic tool, with a recipe that was run and checked. **T3** Documented. Not opened as a tool, or reachable only through a generic tool without a verified recipe. Rows: T1 0, T2 0, T3 159.
+Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a generic tool, with a recipe that was run and checked. **T3** Documented. Not opened as a tool, or reachable only through a generic tool without a verified recipe. Rows: T1 1, T2 0, T3 158.
 
 ## File
 
@@ -121,7 +121,7 @@ Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a ge
 - Enhanced Stereochemistry — sub-menu
 - Map Reaction Atoms — id 362
 - Clear Reaction Map — id 363
-- Analyze Stoichiometry — id 367
+- Analyze Stoichiometry — id 367 **T1 `stoichiometry_grid`**
 - Autonumber Reaction — id 379
 - Clear Reaction Numbers — id 380
 - Predict ¹H-NMR Shifts — id 370

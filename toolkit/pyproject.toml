@@ -110,7 +110,8 @@ all = [
 ]
 dev = [
     "build>=1.2",
-    "pytest>=7.0",
+    "pytest>=7.0,<10",
+    "requests>=2.31",
     "twine>=5.0",
 ]
 
@@ -149,7 +150,6 @@ include = ["cdxml_toolkit*"]
 "cdxml_toolkit.resolve" = ["*.json"]
 "cdxml_toolkit.naming" = ["*.json"]
 "cdxml_toolkit.catalog" = ["data/*.json"]
-"cdxml_toolkit.reaction_calculator" = ["*.html", "*.js", "*.css"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -205,6 +205,30 @@ def test_a_failed_download_is_reported_with_how_to_retry(tmp_path, monkeypatch):
     assert 'status 2' in report['error'] and 'run the same command again' in report['error']
 
 
+def test_a_hung_environment_step_is_reported_instead_of_blocking(tmp_path, monkeypatch):
+    monkeypatch.setenv('CHEMDRAW_MAPPER_HOME', str(tmp_path))
+    limits = []
+
+    def hung(command, **kwargs):
+        limits.append(kwargs.get('timeout'))
+        raise mapping_backends.subprocess.TimeoutExpired(command, kwargs.get('timeout'))
+
+    monkeypatch.setattr(mapping_backends, 'find_base', lambda name: '/usr/bin/python3.12')
+    monkeypatch.setattr(mapping_backends.subprocess, 'run', hung)
+    report = mapping_backends.install('rxnmapper', log=mapping_backends.subprocess.DEVNULL)
+    assert report['ok'] is False and 'timed out' in report['error']
+    assert limits and all(limit and limit > 0 for limit in limits)
+
+
+def test_the_pip_probe_has_a_time_limit(monkeypatch):
+    seen = []
+    monkeypatch.setattr(mapping_backends.subprocess, 'run', lambda command, **kw: seen.append((command, kw)) or
+                        mapping_backends.subprocess.CompletedProcess(command, 0, '', ''))
+    mapping_backends._pip('/env/bin/python', ['torch==2.3.0'], mapping_backends.subprocess.DEVNULL)
+    probe = next(kw for command, kw in seen if command[1:] == ['-m', 'pip', '--version'])
+    assert probe['timeout'] > 0
+
+
 def test_install_reports_a_missing_python_instead_of_raising(tmp_path, monkeypatch):
     monkeypatch.setenv('CHEMDRAW_MAPPER_HOME', str(tmp_path))
     monkeypatch.setattr(mapping_backends, 'find_base', lambda name: None)

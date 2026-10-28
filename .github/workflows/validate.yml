@@ -2,10 +2,15 @@ name: Validate
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   portable-validation:
@@ -15,16 +20,18 @@ jobs:
       PYTHONDONTWRITEBYTECODE: "1"
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Full history: the runtime baseline test checks that the commit pinned in
           # skill/chemdraw/runtime.json holds the bundled toolkit.
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: toolkit/pyproject.toml
 
       - name: Validate repository distribution
         run: python scripts/validate_distribution.py
@@ -52,25 +59,26 @@ jobs:
       PYTHONDONTWRITEBYTECODE: "1"
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: toolkit/pyproject.toml
 
-      - name: Install pinned toolkit runtime
-        run: >-
-          python -m pip install
-          "mcp==${{ matrix.mcp-version }}"
-          "pytest>=7"
-          "requests>=2.31"
+      - name: Install pinned MCP version
+        run: python -m pip install "mcp==${{ matrix.mcp-version }}"
 
-      - name: Install the bundled toolkit runtime
-        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication scientific
+      - name: Install the bundled toolkit runtime with its test tools
+        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication scientific dev
 
       - name: Run complete portable Skill tests
         run: python -m pytest skill/chemdraw/tests -q
+
+      - name: Check the installed runtime with the doctor
+        run: python skill/chemdraw/scripts/cdx.py doctor
 
       - name: Exercise the command-line entry point
         run: |
@@ -88,12 +96,14 @@ jobs:
       PYTHONDONTWRITEBYTECODE: "1"
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: toolkit/pyproject.toml
 
       - name: Run installer tests
         run: python -m unittest tests.test_installer -v
@@ -125,22 +135,28 @@ jobs:
           python -I "$skill/scripts/cdx.py" call map_reaction_atoms --json '{"reaction": "CC(=O)Cl.CCN>>CC(=O)NCC", "options": {"method": "mcs"}}'
 
   toolkit-tests:
-    name: Toolkit on Python ${{ matrix.python-version }}
-    runs-on: windows-latest
+    name: Toolkit on ${{ matrix.os }}, Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
+        os: [windows-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: macos-latest
+            python-version: "3.12"
     defaults:
       run:
         working-directory: toolkit
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -155,7 +171,7 @@ jobs:
         run: python -c "import cdxml_toolkit, importlib.metadata as m; assert m.version('cdxml-toolkit-community') == cdxml_toolkit.__version__"
 
       - name: Verify generated MCP reference
-        if: matrix.python-version == '3.12'
+        if: matrix.os == 'windows-latest' && matrix.python-version == '3.12'
         shell: pwsh
         run: |
           python -m cdxml_toolkit.mcp_runtime.generate_reference --markdown docs/mcp-tools.md --json docs/mcp-schema.json
@@ -180,12 +196,14 @@ jobs:
         working-directory: toolkit
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: toolkit/pyproject.toml
 
       - name: Install compatibility environment
         run: |
@@ -197,23 +215,4 @@ jobs:
         run: python -m pytest tests/test_mcp_compat.py tests/runtime/test_mcp_compat.py tests/runtime/test_mcp_stdio.py -q
 
   toolkit-package:
-    runs-on: windows-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: toolkit
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-
-      - name: Build and inspect distributions
-        shell: pwsh
-        run: |
-          python -m pip install --upgrade build twine
-          python -m build
-          python -m twine check .\dist\*
+    uses: ./.github/workflows/build.yml

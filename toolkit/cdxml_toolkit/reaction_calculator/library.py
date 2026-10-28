@@ -2,7 +2,7 @@
 
 Densities are typical values near 20-25 degrees C in g/mL; they turn a mass into a volume that
 can be pipetted, so check the bottle when it matters. A structure is recognised by its canonical
-SMILES, a name typed into the calculator by any of the aliases.
+SMILES, a name by any of the aliases.
 """
 
 from __future__ import annotations
@@ -103,5 +103,5 @@ def by_name(text: str) -> dict | None:
 
 
 def entries() -> list[dict]:
-    """Every entry once, for pages that resolve typed names offline."""
+    """Every entry once."""
     return list({e['smiles']: e for e in _table()[0].values()}.values())

@@ -128,6 +128,50 @@ class DistributionTests(unittest.TestCase):
         self.assertIn("<skill>/assets/markush/indole-macrocycle.json",
                       (SKILL / "references" / "markush.md").read_text(encoding="utf-8"))
 
+    def test_guide_interface_coverage_table_matches_the_generated_catalog(self) -> None:
+        # docs/guide*.md hand-type the per-layer totals; the generated interface-*.md pages
+        # (rewritten by `cdx.py regen-catalog`) are the live source of truth for those counts.
+        pages = {
+            "chemscript": "interface-chemscript.md",
+            "com": "interface-com.md",
+            "cdxml": "interface-cdxml-model.md",
+            "menu": "interface-menu.md",
+        }
+        rows_pattern = re.compile(r"(?:Members|Rows): T1 (\d+), T2 (\d+), T3 (\d+)")
+        live = {}
+        for layer, page in pages.items():
+            text = (SKILL / "references" / page).read_text(encoding="utf-8")
+            match = rows_pattern.search(text)
+            self.assertIsNotNone(match, f"{page}: no 'Members/Rows: T1 .., T2 .., T3 ..' line")
+            t1, t2, t3 = (int(g) for g in match.groups())
+            live[layer] = (t1 + t2 + t3, t1, t2, t3)
+
+        # \uXXXX escapes keep this English-language test file free of literal CJK text.
+        labels = {
+            "docs/guide.md": {
+                "chemscript": "ChemScript SDK", "com": "COM automation objects",
+                "cdxml": "CDXML elements", "menu": "Menu commands",
+            },
+            "docs/guide.zh-cn.md": {
+                "chemscript": "ChemScript SDK", "com": "COM \u81ea\u52a8\u5316\u5bf9\u8c61",
+                "cdxml": "CDXML \u5143\u7d20", "menu": "\u83dc\u5355\u547d\u4ee4",
+            },
+        }
+        table_row = re.compile(
+            r"\|\s*([^|\n]+?)\s*\|\s*([\d,]+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*([\d,]+)\s*\|"
+        )
+        for doc_name, layer_labels in labels.items():
+            label_to_layer = {label: layer for layer, label in layer_labels.items()}
+            text = (ROOT / doc_name).read_text(encoding="utf-8")
+            found = {}
+            for row in table_row.finditer(text):
+                label, entries, t1, t2, t3 = row.groups()
+                layer = label_to_layer.get(label)
+                if layer is None:
+                    continue
+                found[layer] = (int(entries.replace(",", "")), int(t1), int(t2), int(t3.replace(",", "")))
+            self.assertEqual(found, live, f"{doc_name}: run `cdx.py regen-catalog` and update this table")
+
     def test_skill_bundle_is_self_contained(self) -> None:
         self.assertTrue((SKILL / "SKILL.md").is_file())
         self.assertTrue((SKILL / "references" / "workflow-router.md").is_file())
@@ -280,6 +324,17 @@ class DistributionTests(unittest.TestCase):
         self.assertIn('check_prerequisites.ps1', workflow)
         self.assertIn('installer-end-to-end:', workflow)
         self.assertIn('os: [windows-latest, ubuntu-latest, macos-latest]', workflow)
+
+    def test_ci_takes_test_tools_from_the_toolkit_dev_extra(self) -> None:
+        # Loose pins in a workflow drift away from the toolkit's own bounds (pytest 9.2 broke CI
+        # that way); the dev extra in toolkit/pyproject.toml is the one place they are declared.
+        pyproject = (ROOT / "toolkit" / "pyproject.toml").read_text(encoding="utf-8")
+        dev = re.search(r"^dev = \[(.*?)^\]", pyproject, re.M | re.S)
+        self.assertIsNotNone(dev, "toolkit/pyproject.toml has no dev extra")
+        self.assertRegex(dev.group(1), r'"pytest>=[\d.]+,<\d+"', "bound pytest above in the dev extra")
+        for workflow in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            text = workflow.read_text(encoding="utf-8")
+            self.assertNotRegex(text, r'(?m)pip install[^\n]*"pytest|^\s*"pytest[<>=]', workflow.name)
 
 
 if __name__ == "__main__":

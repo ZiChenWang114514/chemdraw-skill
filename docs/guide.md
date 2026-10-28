@@ -65,11 +65,11 @@ The Skill catalogues what ChemDraw 22.2 exposes on Windows and states, for every
 | ChemScript SDK | 576 | 7 | 9 | 560 |
 | COM automation objects | 1,666 | 8 | 17 | 1,641 |
 | CDXML elements | 50 | 37 | 0 | 13 |
-| Menu commands | 159 | 0 | 0 | 159 |
+| Menu commands | 159 | 1 | 0 | 158 |
 
 Ask the catalog with `chemdraw_inventory(layer, query, tier)`, or open the generated pages under `skill/chemdraw/references` (`interface-chemscript.md`, `interface-com.md`, `interface-cdxml-model.md`, `interface-menu.md`, `recipes-chemdraw.md`). The pages are rebuilt with `python <skill>/scripts/cdx.py regen-catalog`.
 
-What this does not claim: the numbers were checked on ChemDraw 22.2.0 for Windows only. macOS answers the ChemScript operations and a subset of the SDK, other ChemDraw versions may differ, binary CDX files are converted through ChemDraw rather than edited directly, and menu commands (for example NMR prediction) are not opened as tools because ChemDraw runs them only from a visible window. `chemdraw_com_call` refuses printing, the clipboard, menu objects and preference changes, and writes a file only when file access is allowed explicitly.
+What this does not claim: the numbers were checked on ChemDraw 22.2.0 for Windows only. macOS answers the ChemScript operations and a subset of the SDK, other ChemDraw versions may differ, binary CDX files are converted through ChemDraw rather than edited directly, and menu commands (for example NMR prediction) are not opened as tools because ChemDraw runs them only from a visible window; the one exception is Analyze Stoichiometry, which `stoichiometry_grid` runs in a private ChemDraw window shown briefly. `chemdraw_com_call` refuses printing, the clipboard, menu objects and preference changes, and writes a file only when file access is allowed explicitly.
 
 ## MCP (optional)
 

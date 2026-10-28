@@ -155,6 +155,15 @@ class CdxFontSubstitutionTests(unittest.TestCase):
 
 
 class AutomationHelpersTests(unittest.TestCase):
+    def test_process_probes_never_signal_on_windows(self):
+        # On Windows os.kill(pid, 0) terminates the process instead of probing it.
+        refused = mock.Mock(side_effect=AssertionError("os.kill on Windows"))
+        with mock.patch.object(mac_automation.sys, "platform", "win32"), \
+                mock.patch.object(mac_automation.os, "kill", refused):
+            self.assertFalse(mac_automation._pid_alive(4242))
+            mac_automation.terminate_process(4242, grace_seconds=0)
+        refused.assert_not_called()
+
     def test_save_types_follow_destination_extension(self):
         self.assertEqual(mac_automation.save_type_for(Path("a.PNG")), "PNG")
         self.assertEqual(mac_automation.save_type_for(Path("a.cdxml")), "ChemDraw XML")
@@ -405,6 +414,7 @@ class SessionRecoveryTests(unittest.TestCase):
                 raise ProcessLookupError
 
         with mock.patch.object(mac_automation, "run_applescript", side_effect=timeout), \
+                mock.patch.object(mac_automation.sys, "platform", "darwin"), \
                 mock.patch.object(mac_automation.os, "kill", side_effect=kill):
             with self.assertRaises(mac_automation.MacAutomationError):
                 session.run_steps(self.source, ["select-all"])

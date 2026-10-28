@@ -93,6 +93,14 @@ Every card is a native ChemDraw render of an editable file in this repository. C
 
 ## Quick start
 
+<!-- prerequisites -->
+**Before you start**, check what this machine has:
+
+- **ChemDraw.** Native rendering, the PNG in step 3, CDX conversion and Word/PowerPoint objects need licensed desktop ChemDraw on Windows or macOS. Without it the Skill still builds, edits, checks and recognises structures and runs the calculators ([what changes](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)).
+- **Python.** A 64-bit Python 3.10–3.13 builds the runtime; the installer itself runs on 3.9+.
+- **Disk.** The default runtime is a virtual environment of about 760 MB. `--extras` with no names installs the core only, and `--extras publication office` adds just those groups.
+- **Optional tools.** Name-to-structure through OPSIN is not installed by default: add `--opsin`. OPSIN needs Java, which is fetched on first use on Windows and must be installed on macOS and Linux. Text recognition in the `image` extra needs the Tesseract program.
+
 **1. Install.** The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the toolkit runtime on its own (through the `py` launcher, `uv`-managed interpreters or `python3.x` on PATH).
 
 ```bash
@@ -105,7 +113,7 @@ python scripts/install.py --agent claude agents --runtime --apply  # install
 **2. Check** what works on this machine:
 
 ```bash
-python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
+python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 ```
 
 **3. Ask** your agent in plain language:
@@ -117,7 +125,7 @@ Use the ChemDraw Skill to draw aspirin as editable CDXML, render it natively and
 > [!NOTE]
 > Python 3.14 and newer are not supported by the bundled toolkit yet. If that is your only Python, install 3.12 (for example `uv python install 3.12`) or pass `--python <interpreter>`.
 
-To try the calculator instead of a drawing, run `python ~/.claude/skills/chemdraw/scripts/cdx.py calc` ([details](#reaction-calculator-and-chemistry-reports)).
+To try ChemDraw's own reaction calculator instead of a drawing, run `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"` ([details](#reaction-calculator-and-chemistry-reports)).
 
 <details>
 <summary><b>Choose agents and install locations</b></summary>
@@ -145,7 +153,7 @@ Agents call one entry point, which any Python can start; it re-launches itself i
 
 ```bash
 python <skill>/scripts/cdx.py tools                                         # the registered tools
-python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
+python <skill>/scripts/cdx.py call resolve_name --args query.json           # query.json: {"query": "aspirin"}
 python <skill>/scripts/cdx.py render figure.cdxml                           # native 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png                              # structure recognition
 ```
@@ -162,7 +170,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
 | **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
 | **Molecule comparison** | RDKit fingerprint similarity everywhere; exact-identity checks through ChemScript on Windows or ChemDraw for macOS. |
-| **Calculators and reports** | A reaction calculator for amounts, yield and process mass intensity; HRMS lines and whole characterization paragraphs; reagent safety reminders; overall yield of a route; atom mapping; property sheets, reaction balance and structure export. [Details below](#reaction-calculator-and-chemistry-reports). |
+| **Calculators and reports** | ChemDraw's own stoichiometry grid for amounts and yield, read back as data; SI materials tables with process mass intensity; HRMS lines and whole characterization paragraphs; reagent safety reminders; overall yield of a route; atom mapping; property sheets, reaction balance and structure export. [Details below](#reaction-calculator-and-chemistry-reports). |
 | **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly. |
 | **Spectra and scientific plots** | Peak picking and selected-region integration of processed 1D NMR data; numerical data as editable curves. |
 | **Patent Markush structures** | Generic structures from a patent image and claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing that follows the source layout. |
@@ -247,12 +255,11 @@ Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted s
 
 ## Reaction calculator and chemistry reports
 
-These tools start from structures you supply (SMILES, MOL or SDF, CDXML) and do the arithmetic and bookkeeping with RDKit. They do not recognise or edit structures, and only the name tool needs ChemDraw. Each one returns its result in the reply and can also write a new file; an existing file is never overwritten.
+These tools start from structures you supply (SMILES, MOL or SDF, CDXML) and do the arithmetic and bookkeeping with RDKit, except the stoichiometry grid, which ChemDraw computes. They do not recognise or edit structures, and only the grid and the name tool need ChemDraw. Each one returns its result in the reply and can also write a new file; an existing file is never overwritten.
 
 | You want | Tool | You get |
 | --- | --- | --- |
-| How much of each reagent and solvent to weigh | `cdx.py calc`, `reaction_calculator` | An editable amounts table, yield, atom economy, PMI |
-| Amounts written under the structures of a scheme | `reaction_calculator` with `scheme_output` | A copy of the CDXML with the numbers added |
+| How much of each reagent and solvent to weigh | `cdx.py calc`, `stoichiometry_grid` | ChemDraw's own stoichiometry grid under the reaction, and its numbers as JSON |
 | An SI materials table for many reactions | `si_materials_tables` | Markdown, CSV, printable HTML or JSON, up to 100 reactions |
 | HRMS and characterization text | `hrms_line`, `characterization_text` | `HRMS (ESI) m/z calcd for ...` and ACS-order paragraphs |
 | Overall yield and PMI of a route | `route_summary` | One table for a linear or convergent route |
@@ -261,22 +268,21 @@ These tools start from structures you supply (SMILES, MOL or SDF, CDXML) and do 
 | Does the reaction balance? | `check_reaction_balance` | The missing by-product and suggested coefficients |
 | Every structure in a file | `export_structures` | SMILES, InChI, CSV or SDF |
 
-### Reaction calculator
+### ChemDraw's reaction calculator
 
 ```bash
-python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1" --scale 1
+python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1"
 ```
 
-This opens a page in your browser (served from 127.0.0.1, closed a few minutes after you close the tab). **Draw in ChemDraw** opens a canvas in ChemDraw; after you save it, **Load drawing** reads the reaction back. Type over any equivalents, mmol, mass or volume cell and the others follow. The page shows solvent concentration, yield, atom economy, reaction mass efficiency and process mass intensity (PMI; E-factor is PMI minus 1). A solvent whose mass is unknown is left out of the PMI, and the page says so. Amounts you did not give are defaults (1 equiv for reagents, 5 mol % for metal catalysts, 0.2 M) and are marked as assumed. **Amounts into scheme** writes the numbers under the structures of a copy of your ChemDraw scheme.
+This runs ChemDraw's own **Structure > Analyze Stoichiometry** command on the reaction (a reaction SMILES or your own `.cdxml` file) and opens the result in ChemDraw. ChemDraw puts its stoichiometry grid under the reaction: formula, MW, equivalents, sample mass, molarity, density, volume and moles for each reactant and reagent, and expected mass, measured mass, purity and percent yield for the product. Type a mass, volume or equivalents into the grid and ChemDraw recomputes the rest. While the command runs, a ChemDraw window appears for a moment, because ChemDraw runs menu commands only in a visible window. Your open drawings are not touched, and the result is a new file next to the source (`--output` names it).
 
-Common solvents and reagents carry a **Danger** or **Warning** badge from a built-in table of about fifty entries: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
+After you have typed the amounts and saved, `cdx.py calc --read reaction-stoichiometry.cdxml` returns every row of the grid as JSON, so the agent quotes ChemDraw's numbers instead of its own. Reading back works without ChemDraw; drawing the grid needs desktop ChemDraw on Windows or macOS.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/gallery/calculator-dark.png">
-    <img src="assets/readme/gallery/calculator-light.png" width="80%" alt="The reaction calculator page for benzyl alcohol and acetyl chloride: editable amounts, danger and warning badges, PMI and yield, and a write-up sentence">
-  </picture>
+  <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
 </p>
+
+For amounts without ChemDraw, `si_materials_tables` writes materials tables for up to 100 reactions with concentration, atom economy and process mass intensity (PMI; E-factor is PMI minus 1). With `reagent_safety` it adds GHS pictograms, H-statements, boiling and flash point for common solvents and reagents from a built-in table of about fifty entries. A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
 
 ### Characterization text
 
@@ -290,10 +296,10 @@ With a finished mapping you can also ask for the reaction centre as a reaction S
 
 ### Route summary
 
-`route_summary` takes the steps of a synthesis in order, each with a yield and the masses used and obtained (or a reaction in the calculator format). It returns the overall yield along the longest linear sequence and the cumulative PMI, scaling every step to the amount the next step consumes. Convergent routes work through the `into` field. A missing number gives `null` and a warning, not a guess. Work-up and purification solvents count only if you include them in the input mass.
+`route_summary` takes the steps of a synthesis in order, each with a yield and the masses used and obtained (or a reaction as in `si_materials_tables`). It returns the overall yield along the longest linear sequence and the cumulative PMI, scaling every step to the amount the next step consumes. Convergent routes work through the `into` field. A missing number gives `null` and a warning, not a guess. Work-up and purification solvents count only if you include them in the input mass.
 
 ```text
-Use the ChemDraw Skill to open the reaction calculator for this amide coupling and put the amounts under the structures.
+Use the ChemDraw Skill to run ChemDraw's stoichiometry grid on this amide coupling, and read the amounts back after I edit them.
 Write the characterization paragraph for compound 3a from these NMR peaks and this HRMS value.
 ```
 
@@ -576,7 +582,7 @@ No. For a figure drawn from a request, conditions, yields and measured values co
 <summary><b>Can it work out how much of each reagent to weigh?</b></summary>
 <br>
 
-Yes. `cdx.py calc` opens a calculator page where you draw or paste the reaction and edit equivalents, mmol, mass or volume; concentration, yield, atom economy and PMI follow. The amounts can be written under the structures of a ChemDraw scheme. Amounts you did not give are defaults and are marked as assumed. See [reaction calculator and chemistry reports](#reaction-calculator-and-chemistry-reports).
+Yes, with ChemDraw's own calculator. `cdx.py calc` runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw, where you type a mass, volume or equivalents and ChemDraw computes the rest; `cdx.py calc --read` reads the saved numbers back. Without ChemDraw, `si_materials_tables` gives amounts tables in which every default is marked as assumed. See [reaction calculator and chemistry reports](#reaction-calculator-and-chemistry-reports).
 
 </details>
 

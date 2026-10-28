@@ -147,14 +147,20 @@ def find_base(name: str) -> str | None:
     return None
 
 
+# Creating a venv or asking pip for its version takes seconds; past these limits the step is stuck.
+VENV_TIMEOUT = 600
+PROBE_TIMEOUT = 60
+
+
 def _create(name: str, env: Path, log) -> Path:
     """Create the environment for backend ``name`` and return its interpreter."""
     env.parent.mkdir(parents=True, exist_ok=True)
     base = find_base(name)
     if base:
-        subprocess.run([base, '-m', 'venv', str(env)], check=True, stdout=log)
+        subprocess.run([base, '-m', 'venv', str(env)], check=True, stdout=log, timeout=VENV_TIMEOUT)
     elif shutil.which('uv'):  # uv fetches a matching Python itself
-        subprocess.run(['uv', 'venv', '--python', f'3.{BACKENDS[name]["minor"][1]}', str(env)], check=True, stdout=log)
+        subprocess.run(['uv', 'venv', '--python', f'3.{BACKENDS[name]["minor"][1]}', str(env)], check=True, stdout=log,
+                       timeout=VENV_TIMEOUT)
     else:
         raise RuntimeError(f'no {BACKENDS[name]["python"]} found: install one (python.org, or `pip install uv`) and retry')
     return interpreter(env)
@@ -162,7 +168,8 @@ def _create(name: str, env: Path, log) -> Path:
 
 def _pip(python, requirements, log):
     """Install into ``python``'s environment; PyTorch wheels are large, so a slow link gets time and retries."""
-    pip = subprocess.run([str(python), '-m', 'pip', '--version'], capture_output=True).returncode == 0
+    pip = subprocess.run([str(python), '-m', 'pip', '--version'], capture_output=True,
+                         timeout=PROBE_TIMEOUT).returncode == 0
     if not pip and shutil.which('uv'):  # environments made by uv carry no pip
         subprocess.run(['uv', 'pip', 'install', '--python', str(python), *requirements], check=True, stdout=log,
                        env={**os.environ, 'UV_HTTP_TIMEOUT': '300'})
@@ -192,6 +199,10 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
         report.update(ok=False, error=f'installation failed: a step exited with status {exc.returncode} (see the '
                                       'messages above), usually a download that timed out; run the same command '
                                       'again (finished downloads are cached)')
+        return report
+    except subprocess.TimeoutExpired as exc:
+        report.update(ok=False, error=f'installation failed: a step timed out after {exc.timeout} s; '
+                                      'run the same command again')
         return report
     except (OSError, RuntimeError) as exc:
         report.update(ok=False, error=f'installation failed: {exc}')

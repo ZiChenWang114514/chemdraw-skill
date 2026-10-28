@@ -7,7 +7,7 @@ Load for installation, upgrade, worker timeout, ChemDraw COM, ChemDraw for macOS
 ## Health check
 
 ```bash
-cdx.py doctor                 # toolkit/Python versions, missing extras, signature drift, installation manifest, capability matrix
+cdx.py doctor                 # Skill/toolkit/Python versions, missing extras, signature drift, installation manifest, capability matrix
 cdx.py doctor --paths         # also worker-log folder, native lock (mutex on Windows, lock file elsewhere), native temp root, ChemScript path
 cdx.py doctor --native        # + ChemScript ping and a temporary CDXML -> PNG render through ChemDraw (COM or macOS)
 cdx.py doctor --office        # + PPTX and DOCX ChemDraw-OLE embedding probes (packages built and validated; Office is not opened)
@@ -15,6 +15,8 @@ cdx.py doctor --full          # include the complete diagnose_runtime() result
 ```
 
 The report is read-only. A skipped probe is not a verified capability. ChemScript is capped at 30 s, native rendering at 75 s and each Office stage at 60 s; timeout cleanup touches only automation processes started by the probe. Exit code 1 means signature drift, a stale interface catalog (`catalog_current` false), a runtime built from another toolkit revision (`runtime_matches_skill` false) or a mismatch against `manifest.json`. `--native` already includes the ChemScript ping; `--chemscript` runs that probe alone.
+
+`skill_version` is the release this Skill copy belongs to (compare it with the repository's Releases page); `toolkit` is the installed runtime package and `runtime_source` the release tag or commit an installed copy builds its runtime from. To upgrade, update the repository checkout (or download the newer release) and re-run `scripts/install.py` with the same `--agent` and `--runtime` options; it replaces the copies in place and moves the old ones to the backup folder.
 
 `cdx.py py <skill>/scripts/smoke_test.py --output-dir NEW_DIR` runs an end-to-end check: name resolution, editable aspirin CDXML, native PNG and raster validation.
 

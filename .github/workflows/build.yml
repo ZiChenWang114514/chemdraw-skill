@@ -1,9 +1,10 @@
-name: Build release artifacts
+name: Build toolkit distributions
 
+# Reusable: Validate calls it on every change and Release calls it for a version tag,
+# so the package is always built and inspected by the same steps.
 on:
+  workflow_call:
   workflow_dispatch:
-  push:
-    tags: ["v*"]
 
 permissions:
   contents: read
@@ -17,14 +18,16 @@ jobs:
         working-directory: toolkit
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: toolkit/pyproject.toml
 
-      - name: Build distributions
+      - name: Build and inspect distributions
         shell: pwsh
         run: |
           python -m pip install --upgrade build twine
@@ -32,8 +35,8 @@ jobs:
           python -m twine check .\dist\*
 
       - name: Upload distributions
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: chemdraw-skill-toolkit-${{ github.ref_name }}
+          name: toolkit-dist
           path: toolkit/dist/*
           if-no-files-found: error

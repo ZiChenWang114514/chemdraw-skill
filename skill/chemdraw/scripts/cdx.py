@@ -586,8 +586,11 @@ def cmd_regen_catalog(ns):
 def cmd_doctor(ns):
     import importlib.metadata as md
     import importlib.util
-    report = {'toolkit': md.version('cdxml-toolkit-community'), 'python': sys.version.split()[0],
-              'runtime': sys.executable}
+    baseline = _baseline()
+    # The Skill and its toolkit are released together under one version tag.
+    report = {'skill_version': baseline.get('toolkit_version'), 'toolkit': md.version('cdxml-toolkit-community'),
+              'runtime_source': baseline.get('ref') or (baseline.get('commit') or '')[:12] or None,
+              'python': sys.version.split()[0], 'runtime': sys.executable}
     report['extras'] = {k: [m for m in v if importlib.util.find_spec(m.split('.')[0]) is None] or 'ok'
                         for k, v in EXTRAS.items()}
     if ns.paths:
@@ -731,12 +734,12 @@ def cmd_py(ns):
 
 
 def cmd_calc(ns):
-    """Serve the reaction calculator page (draw in ChemDraw, enter amounts, read every quantity).
+    """Run ChemDraw's own stoichiometry grid (Structure > Analyze Stoichiometry) on a reaction.
 
-    Runs until the page is closed, so an agent starts it in the background and reports the
-    address printed on the first line.
+    Writes the grid into a copy, opens it in ChemDraw for editing and prints the grid as JSON;
+    `--read FILE` reads the numbers back after the user has edited and saved.
     """
-    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.reaction_calculator', *ns.rest],
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.chemdraw.stoichiometry_grid', *ns.rest],
                            env=_chemscript_env())
 
 
@@ -756,7 +759,7 @@ def main(argv=None):
         _ensure_runtime(argv)
     if argv[:1] == ['py']:  # pass everything through untouched (argparse would eat -m/-c)
         return cmd_py(argparse.Namespace(rest=argv[1:]))
-    if argv[:1] == ['calc']:  # the page's own parser handles every flag, including -h
+    if argv[:1] == ['calc']:  # the grid module's own parser handles every flag, including -h
         return cmd_calc(argparse.Namespace(rest=argv[1:]))
     if argv[:1] == ['install-mappers']:  # likewise: `--status` or `--dry-run` may come first
         return cmd_install_mappers(argparse.Namespace(rest=argv[1:]))
@@ -833,8 +836,8 @@ def main(argv=None):
     s = sub.add_parser('py', help='run the runtime Python: cdx.py py SCRIPT_OR_-m ... (helper scripts, examples)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_py)
-    s = sub.add_parser('calc', help='reaction calculator page: cdx.py calc [REACTION] [--scale MMOL] [--molarity M] '
-                                    '[--offline] [--no-open] (runs until the page is closed; start it in the background)')
+    s = sub.add_parser('calc', help="ChemDraw's own stoichiometry grid: cdx.py calc REACTION|file.cdxml [--output FILE] "
+                                    '[--no-open] | cdx.py calc --read FILE (needs desktop ChemDraw, except --read)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_calc)
     s = sub.add_parser('install-mappers', help='one-click install of the optional RXNMapper / LocalMapper atom-mapping '

@@ -1,50 +1,20 @@
-"""Calculator state from a reaction: rows with structure, molecular weight and a starting basis.
+"""Stoichiometry state from a reaction: rows with structure, molecular weight and a starting basis.
 
-Anything the caller did not fix gets a default that is marked ``assumed`` so the page (and the
-agent's summary) can show which numbers are choices rather than data.
+Anything the caller did not fix gets a default that is marked ``assumed`` so the materials tables
+can show which numbers are choices rather than data.
 """
 
 from __future__ import annotations
 
-import json
-import re
-
 from rdkit import Chem
-from rdkit.Chem import rdDepictor
-from rdkit.Chem.Draw import rdMolDraw2D
 
-from . import hazards, library
+from . import library
 from .engine import compute
 
 AMOUNT_KEYS = {'equiv': 'equiv', 'mmol': 'mmol', 'mass_mg': 'mass', 'volume_ml': 'volume'}
 DEFAULT_MOLARITY = 0.2
 DEFAULT_CATALYST_EQUIV = 0.05
 DEFAULT_REAGENT_EQUIV = 1.0
-
-
-def depiction(smiles: str, width: int = 150, height: int = 110) -> str | None:
-    """Scalable SVG of a structure that follows the page's text colour."""
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return None
-    previous = rdDepictor.GetPreferCoordGen()  # process-wide setting: other depictions must not inherit it
-    rdDepictor.SetPreferCoordGen(True)
-    try:
-        rdDepictor.Compute2DCoords(mol)
-    finally:
-        rdDepictor.SetPreferCoordGen(previous)
-    drawer = rdMolDraw2D.MolDraw2DSVG(width, height)
-    options = drawer.drawOptions()
-    options.clearBackground = False
-    options.useBWAtomPalette()
-    options.padding = 0.08
-    drawer.DrawMolecule(mol)
-    drawer.FinishDrawing()
-    svg = drawer.GetDrawingText()
-    view_box = re.search(r"viewBox='([^']+)'", svg).group(1)
-    body = svg[svg.index('<!-- END OF HEADER -->') + len('<!-- END OF HEADER -->'):].strip()
-    body = re.sub(r"<rect[^>]*style='opacity:1\.0;fill:#FFFFFF[^>]*/>", '', body)
-    return f"<svg viewBox='{view_box}'>{body.replace('#000000', 'currentColor')}"
 
 
 def _is_metal_complex(smiles: str) -> bool:
@@ -83,13 +53,11 @@ def _row(species, row_id, role, known):
     record = species['record']
     row = {'id': row_id, 'role': role, 'name': _name(species), 'formula': species['formula'],
            'smiles': species['smiles'], 'mw': round(species['mw'], 4), 'coefficient': species['coefficient'],
-           'svg': depiction(species['smiles']), 'density': None, 'solution_m': None, 'purity': 1.0}
+           'density': None, 'solution_m': None, 'purity': 1.0}
     density = record.get('density_g_ml') or (known['density'] if known and role != 'product' else None)
     row['density'] = float(density) if density else None
     if role == 'product':
         row['hrms'] = _hrms_line(species['smiles'])
-    elif hazards.badge(species['smiles']):
-        row['hazard'] = hazards.badge(species['smiles'])
     if record.get('concentration_m'):
         row['solution_m'] = float(record['concentration_m'])
     if record.get('purity') is not None:
@@ -164,15 +132,6 @@ def build_state(sides: dict, options: dict | None = None) -> dict:
     state = {'title': options.get('title') or ' + '.join(r['name'] for r in rows if r['role'] == 'reactant')
              + ' → ' + ' + '.join(r['name'] for r in rows if r['role'] == 'product'),
              'limiting': rows[limiting]['id'], 'rows': rows}
-    compute(state)  # fail now, not in the page, when the starting amounts cannot be resolved
+    compute(state)  # fail now, with the reason, when the starting amounts cannot be resolved
     return state
 
-
-def empty_state() -> dict:
-    """A calculator with nothing in it yet; the first species added becomes the limiting reactant."""
-    return {'title': 'New reaction', 'limiting': None, 'rows': []}
-
-
-def plain_json(value) -> str:
-    """JSON that is safe inside an HTML script element."""
-    return json.dumps(value, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')

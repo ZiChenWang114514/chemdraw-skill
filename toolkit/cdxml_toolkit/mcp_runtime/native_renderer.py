@@ -7,6 +7,7 @@ AppleScript (see ``cdxml_toolkit.chemdraw.mac_automation``).
 from __future__ import annotations
 
 from contextlib import contextmanager
+import logging
 import os
 from pathlib import Path
 import time
@@ -14,6 +15,13 @@ from typing import Iterator
 
 from . import native_io
 from ..chemdraw import mac_automation
+
+logger = logging.getLogger(__name__)
+
+
+def _cleanup_failed(step: str, exc: BaseException) -> None:
+    # Only the exception type: COM messages can quote paths or document content.
+    logger.warning("ChemDraw cleanup step %s failed (%s)", step, type(exc).__name__)
 
 
 # Names recorded as ``metadata.renderer`` in native render receipts.
@@ -157,20 +165,20 @@ class NativeRenderSession:
         if self.launched:
             try:
                 self.application.Quit()
-            except Exception:
-                pass
+            except Exception as exc:
+                _cleanup_failed("quit", exc)
         else:
             if self.was_visible is not None:
                 try:
                     self.application.Visible = self.was_visible
-                except Exception:
-                    pass
+                except Exception as exc:
+                    _cleanup_failed("restore visibility", exc)
             try:
                 preferences = self.application.Preferences
                 preferences.TransparentPNGs = self.original_transparent_pngs
                 preferences.PNGResolution = self.original_png_resolution
-            except Exception:
-                pass
+            except Exception as exc:
+                _cleanup_failed("restore PNG preferences", exc)
         self.application = None
 
     def render(self, source: str | Path, destination: str | Path, dpi: int = 300) -> str:

@@ -130,12 +130,6 @@ def lookup(smiles: str) -> dict | None:
     return {**entry, 'ghs': list(entry['ghs']), 'h': list(entry['h'])} if entry else None
 
 
-def badge(smiles: str) -> dict | None:
-    """The entry without name and structure: what a calculator row or page badge carries."""
-    found = lookup(smiles)
-    return {k: v for k, v in found.items() if k not in ('name', 'smiles')} if found else None
-
-
 def entries() -> list[dict]:
     return [lookup(smiles) for smiles in _table()]
 

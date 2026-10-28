@@ -43,3 +43,30 @@ with abbreviation data from RDKit's `rdAbbreviations.GetDefaultAbbreviations()`
 The file `reagent_abbreviations.json` is an original curated database of
 approximately 172 reagent entries commonly used in medicinal chemistry,
 compiled by the project author. It is licensed under MIT as part of this project.
+
+## OPSIN (optional name-to-structure tool)
+
+`scripts/install.py --opsin` downloads the OPSIN command-line JAR from the
+[OPSIN releases](https://github.com/dan2097/opsin/releases) page, and the
+`opsin` extra installs the `py2opsin` wrapper. Neither is redistributed in this
+repository. OPSIN is developed by Daniel Lowe and licensed under the
+MIT License ([source](https://github.com/dan2097/opsin)).
+
+## PubChem (online lookup service)
+
+Name and identifier lookups query the
+[PUG REST](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest) service of
+PubChem, run by the US National Center for Biotechnology Information. No
+PubChem data is bundled. Use of the service follows the
+[NCBI policies](https://www.ncbi.nlm.nih.gov/home/about/policies/) and
+PubChem's request-volume limits; `CHEMDRAW_OFFLINE=1` turns these requests off.
+
+## DECIMER (structure recognition)
+
+Image recognition uploads the image to the DECIMER endpoint of the
+[Cheminformatics Microservice](https://api.naturalproducts.net/) maintained by
+the Steinbeck group, or, with the `decimer` extra, runs the
+[DECIMER](https://github.com/Kohulan/DECIMER-Image_Transformer) models locally.
+DECIMER is licensed under the MIT License; its model weights are downloaded by
+the `decimer` package and are not redistributed here. Uploads follow the terms
+of the service operator and are refused when `CHEMDRAW_OFFLINE=1` is set.
