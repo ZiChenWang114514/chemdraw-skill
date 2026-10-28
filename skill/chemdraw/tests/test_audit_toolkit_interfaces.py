@@ -186,6 +186,34 @@ class InterfaceAuditTests(unittest.TestCase):
             with self.subTest(module=module):
                 self.assertEqual(auditor._reference_for_module(module), "scientific-workflows.md")
 
+    def _run(self, auditor, *arguments):
+        with mock.patch.object(sys, "argv", ["audit_toolkit_interfaces.py", *arguments]):
+            return auditor.main()
+
+    def test_check_reports_drift_without_writing(self) -> None:
+        auditor = load_auditor()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "pkg"
+            root.mkdir()
+            (root / "module.py").write_text("def work(): pass\n", encoding="utf-8")
+            out = Path(temp_dir) / "references"
+            common = ("--package-root", str(root), "--output-dir", str(out), "--version", "0.0.0")
+            self.assertEqual(self._run(auditor, *common), 0)
+            self.assertEqual(self._run(auditor, *common, "--check"), 0)
+            (root / "module.py").write_text("def work(): pass\ndef more(): pass\n", encoding="utf-8")
+            before = {p: p.read_bytes() for p in out.rglob("*.md")}
+            self.assertEqual(self._run(auditor, *common, "--check"), 1)
+            self.assertEqual({p: p.read_bytes() for p in out.rglob("*.md")}, before)
+
+    def test_committed_inventory_matches_the_bundled_toolkit(self) -> None:
+        import cdxml_toolkit
+        auditor = load_auditor()
+        repo = MODULE_PATH.parents[3]
+        references = MODULE_PATH.parents[1] / "references"
+        self.assertEqual(self._run(auditor, "--package-root", str(repo / "toolkit" / "cdxml_toolkit"),
+                                   "--output-dir", str(references), "--version", cdxml_toolkit.__version__,
+                                   "--check"), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

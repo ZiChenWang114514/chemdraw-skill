@@ -171,5 +171,38 @@ class NativeRendererTests(unittest.TestCase):
         self.assertTrue(second.is_file())
 
 
+class CleanupFailureTests(unittest.TestCase):
+    """A ChemDraw that refuses cleanup is reported in the log, never raised over the real result."""
+
+    def test_a_failed_quit_is_logged(self):
+        class Application:
+            def Quit(self):
+                raise RuntimeError("the RPC server is unavailable")
+
+        session = native_renderer.NativeRenderSession()
+        session.application, session.launched = Application(), True
+        with self.assertLogs(native_renderer.__name__, "WARNING") as logs:
+            session._release_application()
+        self.assertIsNone(session.application)
+        self.assertIn("RuntimeError", logs.output[0])
+        self.assertNotIn("RPC server", logs.output[0])  # exception text may carry file content
+
+    def test_failed_restores_on_the_users_chemdraw_are_logged(self):
+        class Application:
+            @property
+            def Preferences(self):
+                raise OSError("preferences locked")
+
+            def __setattr__(self, name, value):
+                raise OSError("window gone")
+
+        session = native_renderer.NativeRenderSession()
+        session.application, session.launched, session.was_visible = Application(), False, True
+        with self.assertLogs(native_renderer.__name__, "WARNING") as logs:
+            session._release_application()
+        self.assertIsNone(session.application)
+        self.assertEqual(len(logs.output), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

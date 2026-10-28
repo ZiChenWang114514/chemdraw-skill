@@ -270,8 +270,9 @@ def install_runtime(plan, skill):
     venv, python = Path(plan['venv']), Path(plan['python'])
     if plan['action'] == 'create':
         venv.parent.mkdir(parents=True, exist_ok=True)
+        # Creating a venv takes seconds; past this limit the step is stuck, not slow.
         subprocess.run([*plan['base_python'], '-m', 'venv', str(venv)], check=True,
-                       stdout=sys.stderr)
+                       stdout=sys.stderr, timeout=600)
     command = [str(python), str(skill / 'scripts' / 'install_runtime.py'), '--extras', *plan['extras']]
     if plan['toolkit_path']:
         command += ['--toolkit-path', plan['toolkit_path']]
@@ -368,7 +369,7 @@ def main(argv=None):
         try:
             install_runtime(runtime, targets[0] if targets else SOURCE)
             runtime['status'] = 'installed'
-        except (OSError, subprocess.CalledProcessError) as exc:
+        except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             runtime.update(status='failed', error=str(exc))
             record['status'] = 'installed_runtime_failed'
             code = 1

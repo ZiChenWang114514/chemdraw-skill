@@ -142,7 +142,9 @@ def test_committed_classification_is_consistent_with_the_committed_catalogs_and_
     assert summary["chemscript"]["T2"] >= 8
     assert summary["com"]["T1"] >= 3
     assert summary["com"]["T2"] >= 15
-    assert summary["menu"]["T3"] == 159
+    assert summary["menu"] == {"T1": 1, "T2": 0, "T3": 158}
+    found = {row["id"]: row for row in result}
+    assert found["menu:Structure/Analyze Stoichiometry"]["tool"] == "stoichiometry_grid"
     assert sum(summary[layer][tier] for layer in summary for tier in summary[layer]) == len(result)
 
 

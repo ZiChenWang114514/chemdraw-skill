@@ -78,8 +78,8 @@ step as passed, failed or skipped:
 python scripts/install.py --runtime-only --apply
 python skill/chemdraw/scripts/cdx.py doctor --native          # opens ChemDraw, renders a probe
 python skill/chemdraw/scripts/cdx.py call render_scheme --json '{"yaml_text": "layout: sequential\nstructures:\n  A: {smiles: \"CC(=O)Cl\", label: \"1\"}\n  B: {smiles: \"CCN\", label: \"2\"}\n  P: {smiles: \"CC(=O)NCC\", label: \"3\"}\nsteps:\n  - substrates: [A, B]\n    products: [P]\n", "output_path": "/tmp/amide.cdxml"}'
-python skill/chemdraw/scripts/cdx.py call reaction_calculator --json '{"reaction": {"cdxml": "/tmp/amide.cdxml"}, "options": {"scheme_output": "/tmp/amide_amounts.cdxml"}, "output_path": "/tmp/amide_calc.html"}'
-python skill/chemdraw/scripts/cdx.py call render_cdxml_files --json '{"input_paths": ["/tmp/amide_amounts.cdxml"], "output_dir": "/tmp/render"}'
+python skill/chemdraw/scripts/cdx.py calc /tmp/amide.cdxml --output /tmp/amide_grid.cdxml --no-open   # shows a ChemDraw window briefly
+python skill/chemdraw/scripts/cdx.py call render_cdxml_files --json '{"input_paths": ["/tmp/amide_grid.cdxml"], "output_dir": "/tmp/render"}'
 python skill/chemdraw/scripts/cdx.py install-mappers --status
 ```
 

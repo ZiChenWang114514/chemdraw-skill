@@ -1,7 +1,10 @@
-"""Reaction equivalents calculator: engine, page and the local server that backs it."""
+"""Stoichiometry behind the materials tables and route summaries: amounts, yield and safety notes.
 
-from .engine import compute, rebase
-from .page import render_page
+ChemDraw's own interactive grid (Structure > Analyze Stoichiometry) is driven by
+``cdxml_toolkit.chemdraw.stoichiometry_grid``.
+"""
+
+from .engine import compute
 from .state import build_state
 
-__all__ = ['build_state', 'compute', 'rebase', 'render_page']
+__all__ = ['build_state', 'compute']
