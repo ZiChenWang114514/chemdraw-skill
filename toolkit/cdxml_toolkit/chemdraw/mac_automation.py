@@ -632,7 +632,8 @@ def application_pid(bundle_id: str) -> Optional[int]:
 
 def terminate_process(pid: Optional[int], grace_seconds: float = 5) -> None:
     """SIGTERM ``pid``, then SIGKILL it if it is still alive after the grace period."""
-    if not pid:
+    if not pid or sys.platform == "win32":
+        # No macOS application runs here, and os.kill on Windows terminates without a grace period.
         return
     try:
         os.kill(pid, signal.SIGTERM)
@@ -654,6 +655,9 @@ LAUNCH_REGISTRY = Path("~/Library/Caches/chemdraw-skill/launched").expanduser()
 
 
 def _pid_alive(pid: int) -> bool:
+    if sys.platform == "win32":
+        # os.kill(pid, 0) on Windows terminates the process instead of probing it.
+        return False
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
