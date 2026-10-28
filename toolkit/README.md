@@ -51,7 +51,7 @@ Users do not install this folder by hand. `python scripts/install.py --runtime -
 | `cdxml-lcms` / `cdxml-nmr` | Parse instrument reports |
 | `cdxml-mcp-docs` | Regenerate the Markdown and JSON tool references |
 
-Inside the Skill, prefer `cdx.py call TOOL` or `cdx.py py -m MODULE`; both select the runtime interpreter. The scheme renderer accepts YAML, reaction JSON and a compact text syntax described in the [showcase catalog](experiments/scheme_dsl/showcase/INDEX.md). The [developer reference](docs/agent-reference.md) describes the core tools, package layout and parser rules.
+Inside the Skill, prefer `cdx.py call TOOL` or `cdx.py py -m MODULE`; both select the runtime interpreter. The scheme renderer accepts YAML, reaction JSON and a compact text syntax described in the [showcase catalog](experiments/scheme_dsl/showcase/INDEX.md). The [developer reference](docs/agent-reference.md) describes the core tools, package layout and parser rules. The [scheme reader reference](docs/scheme_reader_assets.md) lists what `read_scheme` returns for reuse by other tools, and the [scientific drawing guide](docs/scientific-workflows.md) runs the TLC, apparatus, NMR, plot and mechanism examples from `docs/examples/scientific`.
 
 ## Streamable HTTP
 
