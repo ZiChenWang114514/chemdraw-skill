@@ -93,6 +93,14 @@
 
 ## 快速开始
 
+<!-- prerequisites -->
+**开始之前**，先确认本机具备以下条件：
+
+- **ChemDraw。** 原生渲染、第 3 步中的 PNG、CDX 转换以及 Word/PowerPoint 对象都需要 Windows 或 macOS 上已激活的桌面版 ChemDraw。没有 ChemDraw 时，Skill 仍可构建、编辑、检查和识别结构，也能使用各类计算器（[具体差异](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)）。
+- **Python。** 构建运行时需要 64 位 Python 3.10–3.13；安装脚本本身在 3.9+ 上即可运行。
+- **磁盘空间。** 默认运行时是一个约 760 MB 的虚拟环境。`--extras` 后不跟名称时只安装核心部分，`--extras publication office` 则只额外安装这两组依赖。
+- **可选工具。** 默认不安装 OPSIN 名称转结构，需要时加 `--opsin`。OPSIN 依赖 Java：Windows 上首次使用时自动下载，macOS 和 Linux 需自行安装。`image` 依赖组中的文字识别需要 Tesseract 程序。
+
 **1. 安装。** 安装脚本需要 Python 3.9+，它会自动查找 64 位 Python 3.10–3.13 作为工具包运行时（通过 `py` 启动器、`uv` 管理的解释器或 PATH 上的 `python3.x`）。
 
 ```bash
@@ -105,7 +113,7 @@ python scripts/install.py --agent claude agents --runtime --apply  # 安装
 **2. 检查**本机可用的功能：
 
 ```bash
-python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
+python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 ```
 
 **3. 提问**，直接用自然语言告诉 Agent：
@@ -117,7 +125,7 @@ python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
 > [!NOTE]
 > 内置工具包目前尚不支持 Python 3.14 及更新版本。如果你只有 3.14，请先安装 3.12（例如 `uv python install 3.12`）或用 `--python <解释器>` 指定。
 
-想先试计算器而不是画图，可以运行 `python ~/.claude/skills/chemdraw/scripts/cdx.py calc`（[说明](#反应计算器与化学报告)）。
+想先试计算器而不是画图，可以运行 `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc`（[说明](#反应计算器与化学报告)）。
 
 <details>
 <summary><b>选择 Agent 与安装位置</b></summary>
@@ -145,7 +153,7 @@ Agent 通过同一个入口调用所有功能；任何 Python 都能启动它，
 
 ```bash
 python <skill>/scripts/cdx.py tools                                         # 列出已注册的工具
-python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
+python <skill>/scripts/cdx.py call resolve_name --args query.json           # query.json: {"query": "aspirin"}
 python <skill>/scripts/cdx.py render figure.cdxml                           # 原生 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png                              # 结构识别
 ```

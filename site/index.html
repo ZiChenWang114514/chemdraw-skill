@@ -57,7 +57,7 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "任意 AI Agent 都能使用这个 ChemDraw Skill 吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以。Agent 只需要能读取 Skill 指令并执行命令行，所有工具都通过 cdx.py 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等 Agent 能发现的目录。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "可以。Agent 只需要能读取 Skill 指令并执行命令行，所有工具都通过 cdx.py 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode、Kimi CLI、pi 等 Agent 能发现的目录。" } },
         { "@type": "Question", "name": "必须使用 MCP 服务吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "不需要。命令行覆盖全部工具，并保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。" } },
         { "@type": "Question", "name": "能从 Excel 实验数据生成 SAR 图和底物拓展图吗？",
@@ -355,7 +355,12 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap start">
     <div class="head">
       <h2>三步开始使用</h2>
-      <p>安装脚本需要 Python 3.9 以上，会自动找到 64 位 Python 3.10–3.13 作为运行时，Windows、macOS、Linux 都能装。原生渲染和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。</p>
+      <ul class="prereq">
+        <li><b>ChemDraw。</b>原生渲染、第 3 步的 PNG 和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。没有它时，Skill 仍可构建、编辑、检查和识别结构，也能使用各类计算器。</li>
+        <li><b>Python。</b>安装脚本需要 Python 3.9 以上，会自动找到 64 位 Python 3.10–3.13 作为运行时，Windows、macOS、Linux 都能装。</li>
+        <li><b>磁盘。</b>默认运行时约占 760 MB。<code>--extras</code> 后不跟名称时只安装核心部分。</li>
+        <li><b>可选。</b>加 <code>--opsin</code> 可用 OPSIN 把名称转成结构，它需要 Java（Windows 上自动下载，其他系统需自行安装）。<code>image</code> 依赖组的文字识别需要 Tesseract。</li>
+      </ul>
       <p class="note">选择 Agent 和系统后，右边的命令会随之改写。安装到项目目录等其他用法见 <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">Agent 接入说明</a>。</p>
     </div>
     <div>
@@ -408,7 +413,7 @@ cd chemdraw-skill
     <div class="faq">
       <details open>
         <summary>任意 AI Agent 都能使用这个 ChemDraw Skill 吗？</summary>
-        <p>可以。Agent 只需要能读取 Skill 指令并执行命令行，所有工具都通过 <code>cdx.py</code> 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等 Agent 能发现的目录；不支持自动发现的 Agent，在它的指令文件里指向 <code>SKILL.md</code> 即可。</p>
+        <p>可以。Agent 只需要能读取 Skill 指令并执行命令行，所有工具都通过 <code>cdx.py</code> 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode、Kimi CLI、pi 等 Agent 能发现的目录；不支持自动发现的 Agent，在它的指令文件里指向 <code>SKILL.md</code> 即可。</p>
       </details>
       <details>
         <summary>必须使用 MCP 服务吗？</summary>

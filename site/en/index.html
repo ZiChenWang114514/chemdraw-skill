@@ -55,7 +55,7 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "Does this ChemDraw Skill work with any AI agent?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through cdx.py. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor and OpenCode look for skills." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through cdx.py. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills." } },
         { "@type": "Question", "name": "Do I need an MCP server?",
           "acceptedAnswer": { "@type": "Answer", "text": "No. The command line covers every tool with the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server." } },
         { "@type": "Question", "name": "Can it build SAR and substrate-scope figures from Excel data?",
@@ -353,7 +353,12 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap start">
     <div class="head">
       <h2>Start in three steps</h2>
-      <p>The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the runtime on Windows, macOS or Linux. Native rendering and Office embedding need licensed desktop ChemDraw on Windows or macOS.</p>
+      <ul class="prereq">
+        <li><b>ChemDraw.</b> Native rendering, the PNG in step 3 and Office embedding need licensed desktop ChemDraw on Windows or macOS. Without it the Skill still builds, edits, checks and recognises structures and runs the calculators.</li>
+        <li><b>Python.</b> The installer runs on Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the runtime on Windows, macOS or Linux.</li>
+        <li><b>Disk.</b> The default runtime takes about 760 MB. <code>--extras</code> with no names installs the core only.</li>
+        <li><b>Optional.</b> Add <code>--opsin</code> for name-to-structure through OPSIN, which needs Java (fetched on Windows, installed by you elsewhere). Text recognition in the <code>image</code> extra needs Tesseract.</li>
+      </ul>
       <p class="note">Pick your agent and system and the commands update to match. For project-level installs and other options, see <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">agent integration</a>.</p>
     </div>
     <div>
@@ -406,7 +411,7 @@ cd chemdraw-skill
     <div class="faq">
       <details open>
         <summary>Does this ChemDraw Skill work with any AI agent?</summary>
-        <p>Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through <code>cdx.py</code>. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor and OpenCode look for skills. For an agent without skill discovery, point its instruction file at <code>SKILL.md</code>.</p>
+        <p>Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through <code>cdx.py</code>. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills. For an agent without skill discovery, point its instruction file at <code>SKILL.md</code>.</p>
       </details>
       <details>
         <summary>Do I need an MCP server?</summary>

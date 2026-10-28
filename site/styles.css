@@ -621,3 +621,5 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
   .log li { grid-template-columns: 5.4rem minmax(0, 1fr); gap: 6px; }
   .log li span { overflow-wrap: anywhere; }
 }
+.start .prereq { margin: 0 0 10px; padding-left: 1.1em; color: var(--ink-2); font-size: .95rem; }
+.start .prereq li { margin-bottom: 6px; }
