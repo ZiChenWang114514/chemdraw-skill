@@ -362,6 +362,16 @@ def test_doctor_accepts_a_runtime_built_from_the_pinned_toolkit(monkeypatch, cap
     assert report['runtime_matches_skill'] is True and 'runtime_hint' not in report
 
 
+def test_doctor_names_the_skill_release_and_where_its_runtime_comes_from(monkeypatch, capsys):
+    # A user comparing an installed copy with the releases page needs the Skill's own version,
+    # not only the version of the runtime package it happens to run.
+    baseline = json.loads(cdx.BASELINE.read_text(encoding='utf-8'))
+    code, report = _doctor(monkeypatch, capsys, cdx.expected_fingerprint())
+    assert report['skill_version'] == baseline['toolkit_version']
+    assert report['runtime_source'] == (baseline.get('ref') or baseline['commit'][:12])
+    assert list(report)[:2] == ['skill_version', 'toolkit']
+
+
 def test_regen_signatures_refuses_a_runtime_from_another_toolkit_revision(monkeypatch):
     # Regenerating from a stale runtime would roll the committed reference back.
     monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: 'f' * 64)

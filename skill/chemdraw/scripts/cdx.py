@@ -586,8 +586,11 @@ def cmd_regen_catalog(ns):
 def cmd_doctor(ns):
     import importlib.metadata as md
     import importlib.util
-    report = {'toolkit': md.version('cdxml-toolkit-community'), 'python': sys.version.split()[0],
-              'runtime': sys.executable}
+    baseline = _baseline()
+    # The Skill and its toolkit are released together under one version tag.
+    report = {'skill_version': baseline.get('toolkit_version'), 'toolkit': md.version('cdxml-toolkit-community'),
+              'runtime_source': baseline.get('ref') or (baseline.get('commit') or '')[:12] or None,
+              'python': sys.version.split()[0], 'runtime': sys.executable}
     report['extras'] = {k: [m for m in v if importlib.util.find_spec(m.split('.')[0]) is None] or 'ok'
                         for k, v in EXTRAS.items()}
     if ns.paths:
