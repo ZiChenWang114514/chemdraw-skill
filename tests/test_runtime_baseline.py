@@ -68,10 +68,29 @@ class RuntimeBaselineTests(unittest.TestCase):
         module = self.installer()
         requirement = module.requirement(['office', 'publication'])
         self.assertEqual(requirement, str(TOOLKIT.resolve()) + '[office,publication]')
-        with patch.object(module.subprocess, 'run') as run:
+        with patch.object(module.subprocess, 'run') as run, patch.object(module, 'drop_stale_build') as drop:
             run.return_value.returncode = 0
             self.assertEqual(module.main(['--extras', 'office', 'publication']), 0)
         self.assertEqual(run.call_args.args[0][-1], requirement)
+        drop.assert_called_once_with(TOOLKIT.resolve())
+
+    def test_a_local_install_drops_the_stale_setuptools_build_folder_first(self):
+        # pip builds a local folder in place and setuptools reuses build/lib, so a module deleted
+        # from the source would otherwise come back into the runtime from that cache.
+        import tempfile
+        module = self.installer()
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder)
+            (source / 'pyproject.toml').write_text('[project]\nname = "x"\n', encoding='utf-8')
+            (source / 'cdxml_toolkit').mkdir()
+            stale = source / 'build' / 'lib' / 'cdxml_toolkit'
+            stale.mkdir(parents=True)
+            (stale / 'removed.py').write_text('', encoding='utf-8')
+            with patch.object(module.subprocess, 'run') as run:
+                run.return_value.returncode = 0
+                self.assertEqual(module.main(['--toolkit-path', str(source)]), 0)
+            self.assertFalse((source / 'build').exists())
+            self.assertTrue((source / 'cdxml_toolkit').is_dir())
 
     def test_an_installed_copy_uses_the_pinned_repository_subdirectory(self):
         module = self.installer()

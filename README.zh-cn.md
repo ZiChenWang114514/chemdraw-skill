@@ -125,7 +125,7 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 > [!NOTE]
 > 内置工具包目前尚不支持 Python 3.14 及更新版本。如果你只有 3.14，请先安装 3.12（例如 `uv python install 3.12`）或用 `--python <解释器>` 指定。
 
-想先试计算器而不是画图，可以运行 `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc`（[说明](#反应计算器与化学报告)）。
+想先试 ChemDraw 自带的反应计算器而不是画图，可以运行 `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"`（[说明](#反应计算器与化学报告)）。
 
 <details>
 <summary><b>选择 Agent 与安装位置</b></summary>
@@ -170,7 +170,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
-| **计算与报告** | 反应计算器（用量、收率、过程质量强度）；HRMS 表征句与完整表征段落；试剂安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
+| **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；试剂安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
 | **谱图与科研绘图** | 对已处理的一维 NMR 数据寻峰并做指定区间积分；把数值数据输出为可编辑曲线。 |
 | **专利 Markush 通式** | 从专利图片和权利要求文本提取通式：R 基、可变环、多中心键与重复次数，保存为 CXSMILES、V3000 molfile 和沿用原图版式的可编辑绘图。 |
@@ -257,12 +257,11 @@ python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 
 ## 反应计算器与化学报告
 
-这些工具从你给出的结构（SMILES、MOL 或 SDF、CDXML）出发，用 RDKit 做计算和整理。它们不识别、也不修改结构，只有命名工具需要 ChemDraw。每个工具既在回复里给出结果，也可以写成新文件，已有文件不会被覆盖。
+这些工具从你给出的结构（SMILES、MOL 或 SDF、CDXML）出发，用 RDKit 做计算和整理；化学计量表除外，它由 ChemDraw 计算。它们不识别、也不修改结构，只有化学计量表和命名工具需要 ChemDraw。每个工具既在回复里给出结果，也可以写成新文件，已有文件不会被覆盖。
 
 | 想做的事 | 工具 | 得到什么 |
 | --- | --- | --- |
-| 每种试剂和溶剂该称多少 | `cdx.py calc`、`reaction_calculator` | 可编辑的用量表、收率、原子经济性、PMI |
-| 把用量写到流程图的结构下方 | 带 `scheme_output` 的 `reaction_calculator` | 加上数字的 CDXML 副本 |
+| 每种试剂和溶剂该称多少 | `cdx.py calc`、`stoichiometry_grid` | 反应下方 ChemDraw 自带的化学计量表，及其 JSON 数值 |
 | 一批反应的 SI 原料表 | `si_materials_tables` | Markdown、CSV、可打印 HTML 或 JSON，最多 100 个反应 |
 | HRMS 与表征文字 | `hrms_line`、`characterization_text` | `HRMS (ESI) m/z calcd for ...` 与按 ACS 顺序排列的段落 |
 | 多步路线的总收率和 PMI | `route_summary` | 线性或汇聚路线的一张表 |
@@ -271,22 +270,21 @@ python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 | 反应是否配平 | `check_reaction_balance` | 缺失的副产物与建议系数 |
 | 文件里的全部结构 | `export_structures` | SMILES、InChI、CSV 或 SDF |
 
-### 反应计算器
+### ChemDraw 自带的反应计算器
 
 ```bash
-python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1" --scale 1
+python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1"
 ```
 
-命令会在浏览器里打开一个页面（由 127.0.0.1 提供，关闭标签页几分钟后自动停止）。**Draw in ChemDraw** 会在 ChemDraw 里打开画布，保存后点 **Load drawing** 把反应读回来。直接改当量、mmol、质量或体积中的任何一格，其余数值跟着变。页面显示溶剂浓度、收率、原子经济性、反应质量效率和过程质量强度（PMI；E 因子等于 PMI 减 1）。质量未知的溶剂不计入 PMI，页面会说明。你没有给出的用量使用默认值（试剂 1 当量、金属催化剂 5 mol %、0.2 M），并标明是假设值。**Amounts into scheme** 会把数字写到你的 ChemDraw 流程图副本的结构下方。
+命令对反应（反应 SMILES 或你自己的 `.cdxml` 文件）运行 ChemDraw 自带的 **Structure > Analyze Stoichiometry**，并在 ChemDraw 里打开结果。ChemDraw 会在反应下方放上它的化学计量表：每个反应物和试剂的分子式、分子量、当量、样品质量、摩尔浓度、密度、体积和物质的量，以及产物的预期质量、实测质量、纯度和收率。在表里填入质量、体积或当量，ChemDraw 会重新算出其余数值。命令运行时会短暂出现一个 ChemDraw 窗口，因为 ChemDraw 只在可见窗口里执行菜单命令。你打开的图不会被改动，结果是源文件旁边的一个新文件（可用 `--output` 指定）。
 
-常见溶剂和试剂会带 **Danger** 或 **Warning** 标记，来自内置的约五十种物质的表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示为“未收录”，而不是安全。这张表只是提醒，以供应商的 SDS 为准。
+填好用量并保存后，`cdx.py calc --read reaction-stoichiometry.cdxml` 会把表中每一行以 JSON 返回，这样智能体引用的是 ChemDraw 的数值，而不是它自己算的。读回不需要 ChemDraw；生成计量表需要 Windows 或 macOS 上的桌面版 ChemDraw。
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/gallery/calculator-dark.png">
-    <img src="assets/readme/gallery/calculator-light.png" width="80%" alt="苯甲醇与乙酰氯的反应计算器页面：可编辑的用量、Danger 与 Warning 标记、PMI 和收率，以及一句实验写法">
-  </picture>
+  <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
 </p>
+
+不用 ChemDraw 计算用量时，`si_materials_tables` 可为最多 100 个反应写出原料表，含浓度、原子经济性和过程质量强度（PMI；E 因子等于 PMI 减 1）。加上 `reagent_safety` 后，它会从内置的约五十种物质的表中给出常见溶剂和试剂的 GHS 图标、H 说明、沸点和闪点。表里没有的物质显示为“未收录”，而不是安全。这张表只是提醒，以供应商的 SDS 为准。
 
 ### 表征文字
 
@@ -300,10 +298,10 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
 
 ### 路线汇总
 
-`route_summary` 按顺序接收合成的各步，每步给出收率以及投入和得到的质量（也可以给计算器格式的反应）。它返回最长线性序列上的总收率和累计 PMI，并把每一步缩放到下一步实际消耗的量。汇聚路线通过 `into` 字段表示。缺少的数字得到 `null` 和警告，不会猜。后处理和纯化溶剂只有算进投入质量才会计入。
+`route_summary` 按顺序接收合成的各步，每步给出收率以及投入和得到的质量（也可以给 `si_materials_tables` 格式的反应）。它返回最长线性序列上的总收率和累计 PMI，并把每一步缩放到下一步实际消耗的量。汇聚路线通过 `into` 字段表示。缺少的数字得到 `null` 和警告，不会猜。后处理和纯化溶剂只有算进投入质量才会计入。
 
 ```text
-用 ChemDraw Skill 为这个酰胺偶联打开反应计算器，并把用量写到结构下面。
+用 ChemDraw Skill 对这个酰胺偶联运行 ChemDraw 的化学计量表，等我改完用量再读回来。
 根据这些核磁峰和这个 HRMS 数值，写出化合物 3a 的表征段落。
 ```
 
@@ -584,7 +582,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <summary><b>能帮我算每种试剂该称多少吗？</b></summary>
 <br>
 
-可以。`cdx.py calc` 会打开计算器页面，画出或粘贴反应后，改当量、mmol、质量或体积中的任何一个，浓度、收率、原子经济性和 PMI 随之变化。用量可以写到 ChemDraw 流程图的结构下方。你没有给出的用量使用默认值，并标明是假设值。详见[反应计算器与化学报告](#反应计算器与化学报告)。
+可以，用的是 ChemDraw 自带的计算器。`cdx.py calc` 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure > Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表；在表里填质量、体积或当量，其余数值由 ChemDraw 算出；`cdx.py calc --read` 把保存后的数值读回来。没有 ChemDraw 时，`si_materials_tables` 给出用量表，其中所有默认值都标明是假设值。详见[反应计算器与化学报告](#反应计算器与化学报告)。
 
 </details>
 

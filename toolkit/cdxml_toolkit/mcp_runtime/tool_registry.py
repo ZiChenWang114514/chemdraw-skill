@@ -59,6 +59,7 @@ CHEMDRAW_COM_TOOLS = {
     "replace_chemdraw_objects_in_office",
     "diagnose_runtime",
     "markush_compile",
+    "stoichiometry_grid",
 }
 
 
@@ -94,6 +95,7 @@ def _tool_timeout(name: str) -> int | None:
         "chemdraw_chemical_properties": 600,
         "markush_compile": 180,
         "markush_detect": 120,
+        "stoichiometry_grid": 300,
     }.get(name)
 
 

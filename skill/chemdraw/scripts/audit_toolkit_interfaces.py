@@ -268,12 +268,35 @@ def _default_package_root() -> Path:
     return Path(next(iter(spec.submodule_search_locations)))
 
 
+def _generated_shards(shard_dir: Path) -> set[str]:
+    """Shards this script wrote; the ChemDraw catalog pages share the folder."""
+    return {path.name for path in shard_dir.glob("*.md")
+            if path.read_text(encoding="utf-8").split("\n", 1)[0].endswith("Public Symbols")}
+
+
+def _check(output_dir: Path, index: str, shards: dict[str, str]) -> int:
+    expected = {"toolkit-public-inventory.md": index, **{f"inventory/{name}": text for name, text in shards.items()}}
+    drift = [name for name, text in expected.items()
+             if not (output_dir / name).is_file() or (output_dir / name).read_text(encoding="utf-8") != text]
+    shard_dir = output_dir / "inventory"
+    drift += [f"inventory/{name} (stale)" for name in sorted(_generated_shards(shard_dir) - set(shards))] \
+        if shard_dir.is_dir() else []
+    for name in drift:
+        print(f"out of date: {name}")
+    if drift:
+        print("Regenerate with: python skill/chemdraw/scripts/cdx.py py "
+              "skill/chemdraw/scripts/audit_toolkit_interfaces.py --output-dir skill/chemdraw/references")
+    return 1 if drift else 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package-root", type=Path, default=None)
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--version", default=None)
+    parser.add_argument("--check", action="store_true",
+                        help="with --output-dir: report generated pages that differ, write nothing, exit 1 on drift")
     args = parser.parse_args()
     package_root = args.package_root or _default_package_root()
     if args.version:
@@ -282,7 +305,11 @@ def main() -> int:
         from cdxml_toolkit import __version__ as version
     if not args.output and not args.output_dir:
         parser.error("one of --output or --output-dir is required")
+    if args.check and not args.output_dir:
+        parser.error("--check needs --output-dir")
     symbols = scan_package(package_root)
+    if args.check:
+        return _check(args.output_dir.resolve(), *render_inventory_shards(version, symbols))
     if args.output_dir:
         output_dir = args.output_dir.resolve()
         shard_dir = output_dir / "inventory"

@@ -362,6 +362,16 @@ def test_doctor_accepts_a_runtime_built_from_the_pinned_toolkit(monkeypatch, cap
     assert report['runtime_matches_skill'] is True and 'runtime_hint' not in report
 
 
+def test_doctor_names_the_skill_release_and_where_its_runtime_comes_from(monkeypatch, capsys):
+    # A user comparing an installed copy with the releases page needs the Skill's own version,
+    # not only the version of the runtime package it happens to run.
+    baseline = json.loads(cdx.BASELINE.read_text(encoding='utf-8'))
+    code, report = _doctor(monkeypatch, capsys, cdx.expected_fingerprint())
+    assert report['skill_version'] == baseline['toolkit_version']
+    assert report['runtime_source'] == (baseline.get('ref') or baseline['commit'][:12])
+    assert list(report)[:2] == ['skill_version', 'toolkit']
+
+
 def test_regen_signatures_refuses_a_runtime_from_another_toolkit_revision(monkeypatch):
     # Regenerating from a stale runtime would roll the committed reference back.
     monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: 'f' * 64)
@@ -535,11 +545,11 @@ def test_install_mappers_accepts_an_option_before_any_backend_name():
     assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.mapping_backends', '--status']
 
 
-def test_calc_hands_every_argument_to_the_calculator_module():
+def test_calc_hands_every_argument_to_the_stoichiometry_grid_module():
     with mock.patch.object(cdx, '_ensure_runtime'), mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
-        assert cdx.main(['calc', 'A.B>>C', '--scale', '2', '--no-open', '--offline']) == 0
-    assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.reaction_calculator', 'A.B>>C', '--scale', '2',
-                                          '--no-open', '--offline']
+        assert cdx.main(['calc', 'A.B>>C', '--output', 'out.cdxml', '--no-open']) == 0
+    assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.chemdraw.stoichiometry_grid', 'A.B>>C',
+                                          '--output', 'out.cdxml', '--no-open']
 
 
 def test_draw_hands_the_brief_and_options_to_draw_figure(tmp_path, capsys):

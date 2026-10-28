@@ -54,3 +54,43 @@ def test_chemscript_setup_on_macos_needs_no_configuration(capsys):
     with mock.patch.object(doctor.sys, "platform", "darwin"):
         doctor._setup_chemscript(assume_yes=True)
     assert "no configuration" in capsys.readouterr().out
+
+
+def _setup_64bit(run, tmp_path):
+    dlls = {"bitness": 64, "managed_path": "m.dll", "native_path": "n.dll", "dll_dir": str(tmp_path), "assembly": "a"}
+    with mock.patch.object(doctor.sys, "platform", "win32"), mock.patch(
+        "cdxml_toolkit.chemdraw.chemscript_bridge._find_chemdraw_root", return_value=tmp_path
+    ), mock.patch(
+        "cdxml_toolkit.chemdraw.chemscript_bridge._find_chemscript_dlls", return_value=dlls
+    ), mock.patch(
+        "cdxml_toolkit.chemdraw.chemscript_bridge._find_python_for_chemscript", return_value=None
+    ), mock.patch(
+        "cdxml_toolkit.chemdraw.chemscript_bridge._load_config", return_value={}
+    ), mock.patch(
+        "cdxml_toolkit.chemdraw.chemscript_bridge._save_config"
+    ) as save, mock.patch.object(doctor.subprocess, "run", side_effect=run):
+        doctor._setup_chemscript(assume_yes=True)
+    return save
+
+
+def test_chemscript_setup_installs_a_supported_pythonnet_with_a_time_limit(tmp_path):
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append((command, kwargs))
+        return doctor.subprocess.CompletedProcess(command, 0, "", "")
+
+    save = _setup_64bit(run, tmp_path)
+    (command, kwargs), = calls
+    assert command[-1] == doctor.PYTHONNET_REQUIREMENT == "pythonnet>=3.0"
+    assert kwargs["timeout"] > 0
+    save.assert_called_once()
+
+
+def test_a_hung_chemscript_install_ends_with_a_message(tmp_path, capsys):
+    def run(command, **kwargs):
+        raise doctor.subprocess.TimeoutExpired(command, kwargs["timeout"])
+
+    save = _setup_64bit(run, tmp_path)
+    save.assert_not_called()
+    assert "timed out" in capsys.readouterr().out

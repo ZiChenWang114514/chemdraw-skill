@@ -63,7 +63,7 @@
         { "@type": "Question", "name": "Will it make up reaction conditions or predict a mechanism?",
           "acceptedAnswer": { "@type": "Answer", "text": "No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and the tool does not judge whether the mechanism is right." } },
         { "@type": "Question", "name": "Can it work out how much of each reagent to weigh?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. cdx.py calc opens a calculator page where you draw or paste the reaction and edit equivalents, mmol, mass or volume; concentration, yield, atom economy and PMI follow. Amounts you did not give are defaults and are marked as assumed." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, with ChemDraw's own calculator. cdx.py calc runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw, where you type a mass, volume or equivalents and ChemDraw computes the rest; cdx.py calc --read reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed." } },
         { "@type": "Question", "name": "How far can I trust the safety information?",
           "acceptedAnswer": { "@type": "Answer", "text": "It is a reminder from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as not listed, never as safe. Check the SDS of the product you actually use." } },
         { "@type": "Question", "name": "Can it turn a structure image from a paper into an editable ChemDraw file?",
@@ -306,19 +306,18 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap how">
     <div class="head">
       <h2>Reaction amounts, yields and the numbers around them</h2>
-      <p>For a reaction you draw or paste, <code>cdx.py calc</code> opens a page where you type any amount and the rest follows. It is the arithmetic done at the bench, with the assumptions in view.</p>
+      <p>For a reaction you give as SMILES or a ChemDraw file, <code>cdx.py calc</code> runs ChemDraw's own Structure &gt; Analyze Stoichiometry and opens the result in ChemDraw. You type an amount into the grid and ChemDraw computes the rest.</p>
       <ul>
-        <li>Concentration, solvent volume, yield, atom economy and process mass intensity (PMI; E-factor is PMI minus 1).</li>
-        <li>An amount you did not set is marked as a default instead of being passed off as yours.</li>
-        <li>Common reagents carry a Danger or Warning badge from a built-in table. A substance that is missing shows as "not listed". It is a reminder, not a replacement for the SDS.</li>
-        <li>The amounts can be written under the structures of a ChemDraw scheme, and the same reaction can go into an SI materials table.</li>
+        <li>Equivalents, sample mass, molarity, density, volume and moles for each reactant and reagent; expected mass, measured mass, purity and yield for the product.</li>
+        <li><code>cdx.py calc --read</code> returns the saved grid as data, so the agent quotes ChemDraw's numbers instead of its own. Reading needs no ChemDraw; drawing the grid needs desktop ChemDraw.</li>
+        <li>Your source file is never changed: the grid is written into a new copy.</li>
+        <li>Without ChemDraw, SI materials tables give amounts, concentration, atom economy and process mass intensity (PMI) for up to 100 reactions, with every default marked and safety reminders from a built-in table. A substance that is missing shows as "not listed". It is a reminder, not a replacement for the SDS.</li>
         <li>Also available: characterization paragraphs in ACS order with the NMR peak counts checked, the overall yield and PMI of a multi-step route, and atom mapping with a reaction-type label.</li>
       </ul>
     </div>
     <figure class="calc-shot">
-      <img class="light" src="../gallery/calculator-light.png" width="1300" height="1500" loading="lazy" alt="The reaction calculator page for benzyl alcohol and acetyl chloride, with editable amounts, safety badges, PMI, yield and a write-up sentence">
-      <img class="dark" src="../gallery/calculator-dark.png" width="1300" height="1500" loading="lazy" alt="" aria-hidden="true">
-      <figcaption>The calculator page for benzyl alcohol and acetyl chloride. Amber cells are the amounts you fixed; everything else is calculated.</figcaption>
+      <img src="../gallery/stoichiometry-grid.png" width="1245" height="693" loading="lazy" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
+      <figcaption>ChemDraw's own stoichiometry grid for benzyl alcohol and acetyl chloride, rendered by ChemDraw. The bold italic mass is the amount typed in; ChemDraw computed the moles.</figcaption>
     </figure>
   </div>
 </section>
@@ -337,7 +336,7 @@ Bonds:   13</code></pre></details></div>
       <div><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations and boxed labels.</dd></div>
       <div><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.</dd></div>
       <div><dt>Comparison and properties</dt><dd>Similarity and exact identity; property sheets with MS adducts and logP; reaction balance with the missing by-product; every structure of a file as SMILES and InChI; names from ChemDraw, parsed back to check them.</dd></div>
-      <div><dt>Reaction calculator</dt><dd>Amounts, concentration, yield, atom economy and PMI that update as you type; safety reminders from a built-in table; amounts written under a ChemDraw scheme; SI materials tables for up to 100 reactions.</dd></div>
+      <div><dt>Reaction calculator</dt><dd>ChemDraw's own stoichiometry grid under a reaction, with its numbers read back as data; SI materials tables for up to 100 reactions with concentration, atom economy, PMI and safety reminders from a built-in table.</dd></div>
       <div><dt>Characterization text</dt><dd>HRMS lines and whole paragraphs in ACS order: appearance, Rf, mp, rotation, IR, NMR, HRMS. Peak counts are checked against the structure and flagged, never changed.</dd></div>
       <div><dt>Route yield and PMI</dt><dd>Overall yield and cumulative PMI of a linear or convergent route. A missing number stays empty and is reported.</dd></div>
       <div><dt>Atom mapping</dt><dd>A built-in method that reports ambiguity, or RXNMapper and LocalMapper after one install command. Bond changes, reaction-centre SMARTS, a reaction type read from the structures, and map numbers written into a copy of the drawing.</dd></div>
@@ -427,7 +426,7 @@ cd chemdraw-skill
       </details>
       <details>
         <summary>Can it work out how much of each reagent to weigh?</summary>
-        <p>Yes. <code>cdx.py calc</code> opens a calculator page where you draw or paste the reaction and edit equivalents, mmol, mass or volume; concentration, yield, atom economy and PMI follow. Amounts you did not give are defaults and are marked as assumed. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">chemistry reports guide</a>.</p>
+        <p>Yes, with ChemDraw's own calculator. <code>cdx.py calc</code> runs Structure &gt; Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw, where you type a mass, volume or equivalents and ChemDraw computes the rest; <code>cdx.py calc --read</code> reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">chemistry reports guide</a>.</p>
       </details>
       <details>
         <summary>How far can I trust the safety information?</summary>
