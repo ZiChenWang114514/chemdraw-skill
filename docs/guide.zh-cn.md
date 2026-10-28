@@ -65,11 +65,11 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 | ChemScript SDK | 576 | 7 | 9 | 560 |
 | COM 自动化对象 | 1,666 | 8 | 17 | 1,641 |
 | CDXML 元素 | 50 | 37 | 0 | 13 |
-| 菜单命令 | 159 | 0 | 0 | 159 |
+| 菜单命令 | 159 | 1 | 0 | 158 |
 
 查询目录用 `chemdraw_inventory(layer, query, tier)`，也可以直接打开 `skill/chemdraw/references` 下生成的页面（`interface-chemscript.md`、`interface-com.md`、`interface-cdxml-model.md`、`interface-menu.md`、`recipes-chemdraw.md`）。这些页面用 `python <skill>/scripts/cdx.py regen-catalog` 重新生成。
 
-不能由此推出的结论：上述数字只在 Windows 上的 ChemDraw 22.2.0 中核对过。macOS 只回答 ChemScript 操作和 SDK 的一个子集，其他 ChemDraw 版本可能不同，二进制 CDX 文件通过 ChemDraw 转换而不是直接编辑，菜单命令（例如 NMR 预测）也没有开放为工具，因为 ChemDraw 只有在可见窗口中才能运行它们。`chemdraw_com_call` 拒绝打印、剪贴板、菜单对象和首选项修改，并且只有在明确允许文件访问时才写文件。
+不能由此推出的结论：上述数字只在 Windows 上的 ChemDraw 22.2.0 中核对过。macOS 只回答 ChemScript 操作和 SDK 的一个子集，其他 ChemDraw 版本可能不同，二进制 CDX 文件通过 ChemDraw 转换而不是直接编辑，菜单命令（例如 NMR 预测）也没有开放为工具，因为 ChemDraw 只有在可见窗口中才能运行它们；唯一的例外是 Analyze Stoichiometry，`stoichiometry_grid` 会在一个短暂显示的独立 ChemDraw 窗口中运行它。`chemdraw_com_call` 拒绝打印、剪贴板、菜单对象和首选项修改，并且只有在明确允许文件访问时才写文件。
 
 ## MCP（可选）
 

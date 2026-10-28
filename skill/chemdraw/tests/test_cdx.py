@@ -535,11 +535,11 @@ def test_install_mappers_accepts_an_option_before_any_backend_name():
     assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.mapping_backends', '--status']
 
 
-def test_calc_hands_every_argument_to_the_calculator_module():
+def test_calc_hands_every_argument_to_the_stoichiometry_grid_module():
     with mock.patch.object(cdx, '_ensure_runtime'), mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
-        assert cdx.main(['calc', 'A.B>>C', '--scale', '2', '--no-open', '--offline']) == 0
-    assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.reaction_calculator', 'A.B>>C', '--scale', '2',
-                                          '--no-open', '--offline']
+        assert cdx.main(['calc', 'A.B>>C', '--output', 'out.cdxml', '--no-open']) == 0
+    assert call.call_args.args[0][1:] == ['-m', 'cdxml_toolkit.chemdraw.stoichiometry_grid', 'A.B>>C',
+                                          '--output', 'out.cdxml', '--no-open']
 
 
 def test_draw_hands_the_brief_and_options_to_draw_figure(tmp_path, capsys):

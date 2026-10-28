@@ -90,7 +90,8 @@ cdx.py markush init|next|submit|status WORKDIR [TASK ANSWER.json] [--image IMG -
 cdx.py office-edit DOCUMENT [--object N] [--workdir NEW_DIR] [--no-open]
 cdx.py office-edit DOCUMENT|EDIT_DIR --finish [--output NEW] [--wait S] [--pdf]
 cdx.py chemscript-info SAVED.cdxml [--timeout S]   direct ChemScript reading, under the native lock
-cdx.py calc [REACTION] [--scale MMOL] [--molarity M] [--offline] [--no-open]   reaction calculator page; runs until the page is closed, so start it in the background
+cdx.py calc REACTION|FILE.cdxml [--output NEW.cdxml] [--no-open]   ChemDraw's own stoichiometry grid, opened in ChemDraw
+cdx.py calc --read SAVED.cdxml            read the grid's numbers back as JSON (no ChemDraw needed)
 cdx.py install-mappers [rxnmapper] [localmapper] [--dry-run] [--status]   optional atom-mapping backends
 cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full]
 cdx.py py ARGS...                         run the runtime Python (helper scripts, -m modules, tests)

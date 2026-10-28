@@ -51,6 +51,8 @@ def test_guides_state_counts_the_tiers_and_how_to_reach_each_layer():
     assert "Tier" in PAGES["interface-com.md"]
     menu = PAGES["interface-menu.md"]
     assert "Clean Up Structure" in menu and "356" in menu
+    assert "Analyze Stoichiometry — id 367 **T1 `stoichiometry_grid`**" in menu
+    assert "No tool runs menu commands" not in menu
     assert "no DTD" in PAGES["interface-cdxml-model.md"].replace("\n", " ")
     recipes = PAGES["recipes-chemdraw.md"]
     assert "chemscript-structure-properties" in recipes and '"op": "call_static"' in recipes
