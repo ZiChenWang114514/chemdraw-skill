@@ -35,6 +35,23 @@ def by_id(result):
     return {r['id']: r for r in result['rows']}
 
 
+def assert_close(got, want, label, rel=1e-12):
+    # A quantity the engine leaves undefined is None; pytest.approx(None, rel=...) raises on pytest >= 9.2.
+    if want is None:
+        assert got is None, label
+    else:
+        assert got == pytest.approx(want, rel=rel), label
+
+
+def test_assert_close_treats_none_as_an_exact_value():
+    assert_close(None, None, 'both undefined')
+    assert_close(1.0 + 1e-15, 1.0, 'within tolerance')
+    with pytest.raises(AssertionError):
+        assert_close(1.0, None, 'defined where none is expected')
+    with pytest.raises(AssertionError):
+        assert_close(None, 1.0, 'missing where a value is expected')
+
+
 def test_every_element_id_in_the_page_is_unique():
     import re
     from collections import Counter
@@ -167,9 +184,9 @@ def test_javascript_engine_matches_the_python_engine(tmp_path):
         for e, g in zip(expected['rows'], got['rows']):
             for key in ('mmol', 'equiv', 'mass_mg', 'volume_ml', 'theory_mmol', 'theory_mg', 'actual_mg',
                         'yield_percent'):
-                assert g.get(key) == pytest.approx(e.get(key), rel=1e-12), (name, e['id'], key)
+                assert_close(g.get(key), e.get(key), (name, e['id'], key))
         for key, value in expected['totals'].items():
-            assert got['totals'][key] == pytest.approx(value, rel=1e-12), (name, key)
+            assert_close(got['totals'].get(key), value, (name, key))
     assert js['rebase']['limiting'] == 'b'
     mw = js['weights']
     assert mw[0] == pytest.approx(Descriptors.MolWt(Chem.MolFromSmiles('OCC(O)C(O)C(O)C(O)C=O')), abs=0.01)

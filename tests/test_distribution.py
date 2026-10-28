@@ -325,6 +325,17 @@ class DistributionTests(unittest.TestCase):
         self.assertIn('installer-end-to-end:', workflow)
         self.assertIn('os: [windows-latest, ubuntu-latest, macos-latest]', workflow)
 
+    def test_ci_takes_test_tools_from_the_toolkit_dev_extra(self) -> None:
+        # Loose pins in a workflow drift away from the toolkit's own bounds (pytest 9.2 broke CI
+        # that way); the dev extra in toolkit/pyproject.toml is the one place they are declared.
+        pyproject = (ROOT / "toolkit" / "pyproject.toml").read_text(encoding="utf-8")
+        dev = re.search(r"^dev = \[(.*?)^\]", pyproject, re.M | re.S)
+        self.assertIsNotNone(dev, "toolkit/pyproject.toml has no dev extra")
+        self.assertRegex(dev.group(1), r'"pytest>=[\d.]+,<\d+"', "bound pytest above in the dev extra")
+        for workflow in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            text = workflow.read_text(encoding="utf-8")
+            self.assertNotRegex(text, r'(?m)pip install[^\n]*"pytest|^\s*"pytest[<>=]', workflow.name)
+
 
 if __name__ == "__main__":
     unittest.main()

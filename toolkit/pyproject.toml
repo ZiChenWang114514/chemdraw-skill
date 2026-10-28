@@ -110,7 +110,8 @@ all = [
 ]
 dev = [
     "build>=1.2",
-    "pytest>=7.0",
+    "pytest>=7.0,<10",
+    "requests>=2.31",
     "twine>=5.0",
 ]
 

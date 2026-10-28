@@ -59,15 +59,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install pinned toolkit runtime
-        run: >-
-          python -m pip install
-          "mcp==${{ matrix.mcp-version }}"
-          "pytest>=7"
-          "requests>=2.31"
+      - name: Install pinned MCP version
+        run: python -m pip install "mcp==${{ matrix.mcp-version }}"
 
-      - name: Install the bundled toolkit runtime
-        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication scientific
+      - name: Install the bundled toolkit runtime with its test tools
+        run: python skill/chemdraw/scripts/install_runtime.py --extras office publication scientific dev
 
       - name: Run complete portable Skill tests
         run: python -m pytest skill/chemdraw/tests -q
