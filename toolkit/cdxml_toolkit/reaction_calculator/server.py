@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import secrets
+import socketserver
 import subprocess
 import sys
 import tempfile
@@ -221,6 +222,18 @@ def merge_states(old: dict, new: dict) -> dict:
 
 # --- HTTP -------------------------------------------------------------------------------
 
+class LoopbackHTTPServer(ThreadingHTTPServer):
+    """Threading server for 127.0.0.1 that skips http.server's reverse DNS lookup.
+
+    HTTPServer.server_bind resolves the bound address with socket.getfqdn(), which can stall
+    for seconds on some hosts (macOS in particular) before the page URL is announced.
+    """
+
+    def server_bind(self) -> None:
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
+
+
 class CalculatorApp:
     def __init__(self, state: dict, *, offline: bool = False, idle_seconds: float = 180.0,
                  max_seconds: float = 4 * 3600, workdir: Path | None = None, opener=open_in_chemdraw):
@@ -232,7 +245,7 @@ class CalculatorApp:
         self.canvas_key: str | None = None
         self.idle_seconds, self.max_seconds = idle_seconds, max_seconds
         self.started = self.last_seen = time.monotonic()
-        self.httpd: ThreadingHTTPServer | None = None
+        self.httpd: LoopbackHTTPServer | None = None
         self.lock = threading.Lock()
 
     # -- canvas
@@ -345,7 +358,7 @@ class CalculatorApp:
         return {'ok': False, 'error': 'unknown endpoint'}
 
     def serve(self, *, port: int = 0, open_browser: bool = True, announce=print) -> None:
-        self.httpd = ThreadingHTTPServer(('127.0.0.1', port), self.handler())
+        self.httpd = LoopbackHTTPServer(('127.0.0.1', port), self.handler())
         url = f'http://127.0.0.1:{self.httpd.server_address[1]}/{self.token}'
         announce(json.dumps({'ok': True, 'url': url, 'workdir': str(self.workdir), 'offline': self.offline,
                              'pid': os.getpid(), 'idle_seconds': self.idle_seconds}), flush=True)

@@ -158,6 +158,18 @@ class Running:
         self.thread.join(5)
 
 
+def test_server_starts_without_a_reverse_dns_lookup(tmp_path, monkeypatch):
+    # http.server resolves the host name of the bound address, and that lookup can stall for
+    # seconds (seen on macOS). The page is only ever served on 127.0.0.1, so no lookup is needed.
+    import socket
+
+    def no_lookup(*args, **kwargs):
+        raise AssertionError('reverse DNS lookup while starting the calculator server')
+    monkeypatch.setattr(socket, 'getfqdn', no_lookup)
+    run = Running(tmp_path)
+    assert run.request('GET', run.path)[0] == 200
+
+
 def test_server_serves_the_page_and_guards_every_call(tmp_path):
     run = Running(tmp_path)
     try:
