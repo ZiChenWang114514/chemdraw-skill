@@ -10,6 +10,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -26,6 +27,17 @@ def local_toolkit() -> Path | None:
     """`<repo>/toolkit` when this Skill is the `skill/chemdraw` folder of a checkout."""
     candidate = SKILL_ROOT.parent.parent / 'toolkit'
     return candidate.resolve() if SKILL_ROOT.parent.name == 'skill' and _is_toolkit(candidate) else None
+
+
+def drop_stale_build(source: Path) -> None:
+    """Remove setuptools' build/ cache in a local toolkit folder.
+
+    pip builds a local folder in place, and setuptools reuses build/lib: a module deleted from
+    the source would come back into the runtime from that cache.
+    """
+    build = source / 'build'
+    if build.is_dir() and not build.is_symlink():
+        shutil.rmtree(build)
 
 
 def requirement(extras: list[str], toolkit_path: str | None = None) -> str:
@@ -61,6 +73,9 @@ def main(argv: list[str] | None = None) -> int:
     print(selected, flush=True)
     if args.print_requirement:
         return 0
+    source = Path(args.toolkit_path).expanduser().resolve() if args.toolkit_path else local_toolkit()
+    if source:
+        drop_stale_build(source)
     return subprocess.run([sys.executable, '-m', 'pip', 'install', selected]).returncode
 
 
