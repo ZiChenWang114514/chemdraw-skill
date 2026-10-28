@@ -13,6 +13,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from functools import lru_cache
 import json
+import logging
 import math
 from pathlib import Path
 import re
@@ -20,6 +21,8 @@ import sys
 from typing import Any, Iterator, Optional
 
 from . import artifact_safety
+
+logger = logging.getLogger(__name__)
 
 SUPPORTED_OPERATIONS = ("get", "set", "call", "iterate", "release")
 MAX_PROGRAM_STEPS = 200
@@ -406,8 +409,9 @@ def _open_application() -> Iterator[tuple[Any, bool]]:
                     application.Quit()
                 else:
                     application.Visible = was_visible
-            except Exception:
-                pass
+            except Exception as exc:
+                # Only the exception type: COM messages can quote paths or document content.
+                logger.warning("ChemDraw cleanup after a COM call failed (%s)", type(exc).__name__)
             application = None
 
 

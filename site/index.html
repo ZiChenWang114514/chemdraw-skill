@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ChemDraw Skill：AI 绘制可编辑化学结构式（Claude Code / Codex）</title>
-<meta name="description" content="ChemDraw Skill 让 Claude Code、Codex、Gemini CLI、Cursor 等 AI Agent 绘制可编辑的 ChemDraw 化学结构式：复刻论文反应路线、由 Excel 生成 SAR 与底物拓展图、ACS 1996 试卷插图、在 Word/PPT 中嵌入 ChemDraw 对象，还有反应计算器（用量、收率、PMI）和表征文字。开源，MIT 许可。">
+<meta name="description" content="ChemDraw Skill 让 Claude Code、Codex、Gemini CLI、Cursor 等 AI Agent 绘制可编辑的 ChemDraw 化学结构式：复刻论文反应路线、由 Excel 生成 SAR 与底物拓展图、ACS 1996 试卷插图、在 Word/PPT 中嵌入 ChemDraw 对象，还有 ChemDraw 自带的反应计算器（化学计量表）和表征文字。开源，MIT 许可。">
 <meta name="keywords" content="ChemDraw Skill, ChemDraw, AI 画化学结构式, 化学结构式, CDXML, Claude Code, Codex, Agent Skills, 论文图复刻, 底物拓展图, SAR, ACS Document 1996, DECIMER, OCSR, 反应计算器, PMI, 原子映射">
 <link rel="canonical" href="https://zichenwang114514.github.io/chemdraw-skill/">
 <link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/">
@@ -65,7 +65,7 @@
         { "@type": "Question", "name": "它会编造反应条件或推测机理吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "不会。按需求画的图，条件、收率和实测数值只取自你给的内容，缺的就保持缺失，并在报告里说明。解析不了的名称会被拒绝，而不是猜一个。机理只按你列出的电子转移绘制，不会判断机理本身对不对。" } },
         { "@type": "Question", "name": "能帮我算每种试剂该称多少吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以。cdx.py calc 会打开计算器页面，画出或粘贴反应后，改当量、mmol、质量或体积中的任何一个，浓度、收率、原子经济性和 PMI 随之变化。你没有给出的用量使用默认值，并标明是假设值。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "可以，用的是 ChemDraw 自带的计算器。cdx.py calc 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure > Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表；在表里填质量、体积或当量，其余数值由 ChemDraw 算出；cdx.py calc --read 把保存后的数值读回来。没有 ChemDraw 时，SI 原料表也能给出用量，其中所有默认值都标明是假设值。" } },
         { "@type": "Question", "name": "安全信息可以信到什么程度？",
           "acceptedAnswer": { "@type": "Answer", "text": "它只是提醒，来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示“未收录”，不会显示成安全。请以你实际使用的产品的 SDS 为准。" } },
         { "@type": "Question", "name": "能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？",
@@ -308,19 +308,18 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap how">
     <div class="head">
       <h2>反应用量、收率和相关数字</h2>
-      <p>对你画出或粘贴的反应，<code>cdx.py calc</code> 会打开一个页面，改任何一个用量，其余数值跟着变。算的是台面上常做的那些运算，所用的假设都摆在明面上。</p>
+      <p>对你以 SMILES 或 ChemDraw 文件给出的反应，<code>cdx.py calc</code> 会运行 ChemDraw 自带的 Structure &gt; Analyze Stoichiometry，并在 ChemDraw 里打开结果。在表里填一个用量，其余数值由 ChemDraw 算出。</p>
       <ul>
-        <li>溶剂浓度、溶剂体积、收率、原子经济性和过程质量强度（PMI；E 因子等于 PMI 减 1）。</li>
-        <li>你没设的用量会标成默认值，不会当作你给的数。</li>
-        <li>常见试剂带 Danger 或 Warning 标记，来自内置的表；表里没有的显示“未收录”。它只是提醒，不能代替 SDS。</li>
-        <li>用量可以写到 ChemDraw 流程图的结构下方，同一个反应也能进入 SI 原料表。</li>
+        <li>每个反应物和试剂的当量、样品质量、摩尔浓度、密度、体积和物质的量；产物的预期质量、实测质量、纯度和收率。</li>
+        <li><code>cdx.py calc --read</code> 把保存后的计量表以数据返回，智能体引用的是 ChemDraw 的数值，而不是它自己算的。读回不需要 ChemDraw；生成计量表需要桌面版 ChemDraw。</li>
+        <li>源文件不会被改动：计量表写进一个新副本。</li>
+        <li>没有 ChemDraw 时，SI 原料表可为最多 100 个反应给出用量、浓度、原子经济性和过程质量强度（PMI），默认值都会标出，并附内置表提供的安全提示；表里没有的显示“未收录”。它只是提醒，不能代替 SDS。</li>
         <li>旁边还有：按 ACS 顺序的表征段落（核磁峰数会核对）、多步路线的总收率和 PMI、带反应类型标注的原子映射。</li>
       </ul>
     </div>
     <figure class="calc-shot">
-      <img class="light" src="gallery/calculator-light.png" width="1300" height="1500" loading="lazy" alt="苯甲醇与乙酰氯的反应计算器页面：可编辑的用量、安全标记、PMI、收率和一句实验写法">
-      <img class="dark" src="gallery/calculator-dark.png" width="1300" height="1500" loading="lazy" alt="" aria-hidden="true">
-      <figcaption>苯甲醇与乙酰氯的计算器页面。琥珀色的格子是你固定的用量，其余都是算出来的。</figcaption>
+      <img src="gallery/stoichiometry-grid.png" width="1245" height="693" loading="lazy" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
+      <figcaption>苯甲醇与乙酰氯的 ChemDraw 化学计量表，由 ChemDraw 渲染。粗斜体的质量是填入的用量，物质的量由 ChemDraw 算出。</figcaption>
     </figure>
   </div>
 </section>
@@ -339,7 +338,7 @@ Bonds:   13</code></pre></details></div>
       <div><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释和带框编号。</dd></div>
       <div><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。</dd></div>
       <div><dt>比较与性质</dt><dd>相似度与精确身份比较；含 MS 加合物和 logP 的性质表；反应配平检查，指出缺失的副产物；把文件中的全部结构导出为 SMILES 和 InChI；ChemDraw 生成的名称会读回核对。</dd></div>
-      <div><dt>反应计算器</dt><dd>用量、浓度、收率、原子经济性和 PMI 随输入实时更新；内置表提供的试剂安全提示；把用量写到 ChemDraw 流程图下方；最多 100 个反应的 SI 原料表。</dd></div>
+      <div><dt>反应计算器</dt><dd>反应下方 ChemDraw 自带的化学计量表，数值可读回为数据；最多 100 个反应的 SI 原料表，含浓度、原子经济性、PMI 和内置表提供的试剂安全提示。</dd></div>
       <div><dt>表征文字</dt><dd>HRMS 表征句和按 ACS 顺序排列的整段文字：外观、Rf、熔点、比旋光度、IR、核磁、HRMS。峰数按结构核对，不一致只提示，不改数据。</dd></div>
       <div><dt>路线收率与 PMI</dt><dd>线性或汇聚路线的总收率和累计 PMI。缺少的数字保持为空并给出提示。</dd></div>
       <div><dt>原子映射</dt><dd>内置方法遇到歧义会如实报告；也可一条命令安装 RXNMapper 与 LocalMapper。给出键变化、反应中心 SMARTS、仅凭结构判断的反应类型，并把映射编号写进图的副本。</dd></div>
@@ -424,7 +423,7 @@ cd chemdraw-skill
       </details>
       <details>
         <summary>能帮我算每种试剂该称多少吗？</summary>
-        <p>可以。<code>cdx.py calc</code> 会打开计算器页面，画出或粘贴反应后，改当量、mmol、质量或体积中的任何一个，浓度、收率、原子经济性和 PMI 随之变化。你没有给出的用量使用默认值，并标明是假设值。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">化学报告指南</a>。</p>
+        <p>可以，用的是 ChemDraw 自带的计算器。<code>cdx.py calc</code> 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure &gt; Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表；在表里填质量、体积或当量，其余数值由 ChemDraw 算出；<code>cdx.py calc --read</code> 把保存后的数值读回来。没有 ChemDraw 时，SI 原料表也能给出用量，其中所有默认值都标明是假设值。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">化学报告指南</a>。</p>
       </details>
       <details>
         <summary>安全信息可以信到什么程度？</summary>

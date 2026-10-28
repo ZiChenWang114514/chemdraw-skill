@@ -111,11 +111,14 @@ def _write_output(content, output_path: Optional[str], prefix: str, ext: str) ->
         output_path = os.path.join(_TEMP_DIR, output_path)
 
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    # An existing file is never replaced: the next free name (stem_2, stem_3, ...) is used.
+    from cdxml_toolkit.mcp_runtime.artifact_safety import _available_path
+    output_path = str(_available_path(Path(output_path)))
     if isinstance(content, str):
-        with open(output_path, "w", encoding="utf-8") as f:
+        with open(output_path, "x", encoding="utf-8") as f:
             f.write(content)
     else:
-        with open(output_path, "w", encoding="utf-8") as f:
+        with open(output_path, "x", encoding="utf-8") as f:
             json.dump(content, f, indent=2, default=str)
 
     return {"ok": True, "output_path": output_path, "size": os.path.getsize(output_path)}
@@ -398,13 +401,12 @@ def draw_molecule(mol_json: dict, output_path: Optional[str] = None) -> dict:
 
     from cdxml_toolkit.naming.mol_builder import draw_molecule as _draw
 
-    result = _draw(mol_json, output_path=output_path)
+    result = _draw(mol_json)  # the file is written once, below, without replacing an existing one
 
     # Always write to file — don't return large CDXML inline
     if isinstance(result, dict) and result.get("ok") and "cdxml" in result:
         cdxml = result["cdxml"]
-        path = result.get("output_path") or output_path
-        out = _write_output(cdxml, path, "molecule", ".cdxml")
+        out = _write_output(cdxml, output_path, "molecule", ".cdxml")
         out["name"] = mol_json.get("name") or mol_json.get("iupac_name") or ""
         out["smiles"] = mol_json.get("smiles", "")
         return out

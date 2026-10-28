@@ -223,8 +223,10 @@ def _menu(rows, catalog, summary) -> str:
         "",
         "The id is the `CommandID` that `IChemOfficeMenuItem.Execute` takes through COM. A command acts on the current "
         "selection, and whether it is enabled depends on that selection, so a list of enabled commands is not part of the catalog.",
-        "No tool runs menu commands on Windows, because ChemDraw runs them only from a visible window; on macOS "
-        "`Clean Up Structure` and `Convert Name to Structure` run through the application menu (see [operations.md](operations.md)).",
+        "ChemDraw runs menu commands only from a visible window, so on Windows a tool exists only where one was built "
+        "for that command: `stoichiometry_grid` runs Analyze Stoichiometry in a private window shown briefly. On macOS "
+        "`Clean Up Structure`, `Convert Name to Structure` and Analyze Stoichiometry run through the application menu "
+        "(see [operations.md](operations.md)).",
         "",
         f"Tiers: {TIER_LINE} Rows: {_tier_counts(summary)}.",
         "",

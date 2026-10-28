@@ -1,9 +1,6 @@
-import re
-
-import pytest
 from rdkit import Chem
 
-from cdxml_toolkit.mcp_runtime.report_tools import reaction_calculator, si_materials_tables
+from cdxml_toolkit.mcp_runtime.report_tools import si_materials_tables
 from cdxml_toolkit.reaction_calculator import hazards, library
 
 ACETYLATION = 'OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1'
@@ -101,25 +98,7 @@ def test_materials_csv_and_html_carry_the_safety_summary(tmp_path):
     assert 'Safety reminders' in (tmp_path / 'm.html').read_text(encoding='utf-8')
 
 
-def test_reaction_calculator_returns_safety_on_request_and_the_page_carries_it(tmp_path):
-    result = reaction_calculator(ACETYLATION, {'reagent_safety': True}, output_path=str(tmp_path / 'c.html'))
-    assert {item['name'] for item in result['safety']} >= {'acetyl chloride', 'dichloromethane'}
-    page = (tmp_path / 'c.html').read_text(encoding='utf-8')
-    assert re.search(r'"hazard":\s*\{', page) and 'GHS05' in page
-    assert 'safety' not in reaction_calculator(ACETYLATION, output_path=str(tmp_path / 'd.html'))
-
-
-def test_state_rows_get_a_hazard_only_when_the_species_is_listed():
-    from cdxml_toolkit.reaction_calculator import build_state
-    from cdxml_toolkit.mcp_runtime.report_tools import _reaction_sources, _side
-    source = _reaction_sources(ACETYLATION)[0]
-    state = build_state({role: _side(source[role], role[:-1]) for role in ('reactants', 'agents', 'products')})
-    by_name = {row['name']: row for row in state['rows']}
-    assert by_name['acetyl chloride']['hazard']['signal'] == 'Danger'
-    assert by_name['dichloromethane']['hazard']['ghs']
-    assert all('hazard' not in row for row in state['rows'] if row['role'] == 'product')
-
-
-def test_unknown_option_still_fails():
-    with pytest.raises(ValueError):
-        reaction_calculator(ACETYLATION, {'reagent_safty': True})
+def test_a_misspelled_safety_option_is_reported_not_ignored():
+    result = si_materials_tables([ACETYLATION], {'reagent_safty': True})
+    assert result['reactions'][0]['ok'] is False
+    assert 'reagent_safty' in result['reactions'][0]['error']

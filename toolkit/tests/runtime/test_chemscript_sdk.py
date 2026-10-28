@@ -188,7 +188,10 @@ class ChemScriptSdkTests(unittest.TestCase):
             }), encoding="utf-8")
             return mock.Mock(returncode=2, stdout="", stderr="")
 
-        with mock.patch.object(chemscript_sdk.subprocess, "run", side_effect=fake_run):
+        # The error mapping is the same wherever the SDK runs; pin a supported platform so the
+        # test also runs on Linux hosts, which refuse SDK programs before starting the runtime.
+        with mock.patch.object(chemscript_sdk.sys, "platform", "darwin"), \
+                mock.patch.object(chemscript_sdk.subprocess, "run", side_effect=fake_run):
             with self.assertRaisesRegex(ValueError, "reflection member"):
                 chemscript_sdk._invoke_runtime({"action": "catalog"})
 
