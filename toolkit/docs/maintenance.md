@@ -100,14 +100,19 @@ compound numbers without touching them.
    `skill/chemdraw/runtime.json` (`toolkit_version`), then pin `commit` there.
 2. Run `python -m pytest -m "not network" -q` on Python 3.10-3.13.
 3. Run applicable native ChemDraw, ChemScript, and Office checks.
-4. Run `python -m build` and `python -m twine check dist/*` in a clean tree.
-5. Confirm wheels and source archives do not contain a bundled JRE.
-6. Create an annotated `vX.Y.Z` tag and a GitHub Release with compatibility notes.
-7. Publish to TestPyPI before any production package index.
+4. Confirm wheels and source archives do not contain a bundled JRE.
+5. Push an annotated `vX.Y.Z` tag on `main`. The Release workflow
+   (`.github/workflows/release.yml`) checks that the tag matches the toolkit version,
+   builds and inspects the distributions with the shared `build.yml`, and publishes a
+   GitHub Release with the wheel, the source archive and a zip of `skill/chemdraw/`.
+   Tags with `a`, `b` or `rc` become prereleases. Add compatibility notes to the
+   generated release text.
+6. Publish to TestPyPI before any production package index.
 
-The GitHub build workflow creates inspectable wheel and source artifacts. PyPI
-publishing remains disabled until the community distribution name is reserved
-and Trusted Publishing is configured with an approved GitHub environment.
+Validate calls the same `build.yml` on every change, so a release never runs build
+steps that pull requests have not. PyPI publishing remains disabled until the
+community distribution name is reserved and Trusted Publishing is configured with an
+approved GitHub environment.
 
 ## Maintenance priorities
 
