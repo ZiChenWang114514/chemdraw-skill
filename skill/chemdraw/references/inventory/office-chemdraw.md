@@ -124,6 +124,14 @@
 - **function**, line 633: `terminate_process(pid: Optional[int], grace_seconds: float = 5) -> None` - SIGTERM ``pid``, then SIGKILL it if it is still alive after the grace period.
 - **function**, line 681: `unregister_launch(pid: Optional[int]) -> None` - No public docstring in the audited version.
 
+## `chemdraw.stoichiometry_grid`
+
+- **function**, line 274: `analyze(source: str, output_path: str | None = None, *, open_result: bool = False) -> dict` - Run ChemDraw's Analyze Stoichiometry on a reaction and read the grid it draws.
+- **function**, line 256: `open_in_chemdraw(path: Path) -> bool` - Show a saved file in the user's ChemDraw.
+- **function**, line 145: `reaction_document(reaction: str, destination: Path) -> Path` - Draw a reaction SMILES "reactants>agents>products" as CDXML, agents above the arrow.
+- **function**, line 116: `read_grid(path: str | Path) -> dict` - Every stoichiometry grid in a saved CDXML file, as ChemDraw wrote it.
+- **class**, line 49: `StoichiometryGridError` - A failure with a stable public error code.
+
 ## `chemdraw.style_sheet`
 
 - **function**, line 167: `apply_style_sheet(cdxml_text: str, style: dict, *, rescale: bool = True) -> str` - Write the settings from :func:`read_style_sheet` onto a CDXML document.
