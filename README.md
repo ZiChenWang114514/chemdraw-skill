@@ -93,6 +93,14 @@ Every card is a native ChemDraw render of an editable file in this repository. C
 
 ## Quick start
 
+<!-- prerequisites -->
+**Before you start**, check what this machine has:
+
+- **ChemDraw.** Native rendering, the PNG in step 3, CDX conversion and Word/PowerPoint objects need licensed desktop ChemDraw on Windows or macOS. Without it the Skill still builds, edits, checks and recognises structures and runs the calculators ([what changes](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)).
+- **Python.** A 64-bit Python 3.10–3.13 builds the runtime; the installer itself runs on 3.9+.
+- **Disk.** The default runtime is a virtual environment of about 760 MB. `--extras` with no names installs the core only, and `--extras publication office` adds just those groups.
+- **Optional tools.** Name-to-structure through OPSIN is not installed by default: add `--opsin`. OPSIN needs Java, which is fetched on first use on Windows and must be installed on macOS and Linux. Text recognition in the `image` extra needs the Tesseract program.
+
 **1. Install.** The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the toolkit runtime on its own (through the `py` launcher, `uv`-managed interpreters or `python3.x` on PATH).
 
 ```bash
@@ -105,7 +113,7 @@ python scripts/install.py --agent claude agents --runtime --apply  # install
 **2. Check** what works on this machine:
 
 ```bash
-python ~/.claude/skills/chemdraw/scripts/cdx.py doctor
+python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 ```
 
 **3. Ask** your agent in plain language:
@@ -117,7 +125,7 @@ Use the ChemDraw Skill to draw aspirin as editable CDXML, render it natively and
 > [!NOTE]
 > Python 3.14 and newer are not supported by the bundled toolkit yet. If that is your only Python, install 3.12 (for example `uv python install 3.12`) or pass `--python <interpreter>`.
 
-To try ChemDraw's own reaction calculator instead of a drawing, run `python ~/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"` ([details](#reaction-calculator-and-chemistry-reports)).
+To try ChemDraw's own reaction calculator instead of a drawing, run `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"` ([details](#reaction-calculator-and-chemistry-reports)).
 
 <details>
 <summary><b>Choose agents and install locations</b></summary>
@@ -145,7 +153,7 @@ Agents call one entry point, which any Python can start; it re-launches itself i
 
 ```bash
 python <skill>/scripts/cdx.py tools                                         # the registered tools
-python <skill>/scripts/cdx.py call resolve_name --json '{"query": "aspirin"}'
+python <skill>/scripts/cdx.py call resolve_name --args query.json           # query.json: {"query": "aspirin"}
 python <skill>/scripts/cdx.py render figure.cdxml                           # native 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png                              # structure recognition
 ```
