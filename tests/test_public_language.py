@@ -14,6 +14,8 @@ PUBLIC_MARKDOWN = [
     *(ROOT / "docs").glob("*.md"),
     *(ROOT / "toolkit" / "docs").glob("*.md"),
     ROOT / "toolkit" / "README.md",
+    *(ROOT / "site").rglob("*.html"),
+    *(ROOT / "assets" / "readme").rglob("provenance.json"),
 ]
 PAIRS = [
     ("README.md", "README.zh-cn.md"),
@@ -27,7 +29,12 @@ FORBIDDEN = [
     "rxn-experiments",
     "\u4e09\u5904\u6807\u9898\u5b57\u53f7\u7684\u56de\u653e",
     "\u4ece\u96f6\u4e0a\u4e0b\u6587\u5f00\u59cb",
+    "low-cost model",
+    "low-cost language model",
+    "\u4f4e\u6210\u672c\u6a21\u578b",
 ]
+# Third parties whose code, data or service the toolkit uses; each needs a notice entry.
+THIRD_PARTIES = ["ChemScanner", "RDKit", "OPSIN", "PubChem", "DECIMER"]
 # Test-data identifiers stay out of the landing pages (README galleries may name the paper compound).
 HOMEPAGE_FORBIDDEN = ["Sceptrin"]
 
@@ -54,6 +61,13 @@ class PublicLanguageTests(unittest.TestCase):
             if word.lower() in _text(ROOT / name).lower()
         ]
         self.assertEqual(found, [])
+
+
+class NoticeTests(unittest.TestCase):
+    def test_notice_has_an_entry_for_every_third_party(self):
+        headings = re.findall(r"(?m)^## (.+)$", _text(ROOT / "toolkit" / "NOTICE.md"))
+        missing = [name for name in THIRD_PARTIES if not any(name in heading for heading in headings)]
+        self.assertEqual(missing, [])
 
 
 class TranslationParityTests(unittest.TestCase):

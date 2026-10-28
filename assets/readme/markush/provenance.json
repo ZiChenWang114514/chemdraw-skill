@@ -13,7 +13,7 @@
   "workflow": {
     "entry_point": "cdx.py markush init / next / submit",
     "guide": "skill/chemdraw/references/markush.md",
-    "answering_model": "a small, low-cost language model started with no prior context; it was given only the Skill folder, the image and the claim text",
+    "answering_model": "a language model agent given only the Skill folder, the image and the claim text",
     "model_tasks": [
       "typed the 23 text boxes",
       "checked the read-back image",
