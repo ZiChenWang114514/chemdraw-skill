@@ -12,6 +12,20 @@ import subprocess
 import sys
 
 
+# Lowest pythonnet with the ChemScript bridge API the toolkit uses (same floor as pyproject.toml).
+PYTHONNET_REQUIREMENT = "pythonnet>=3.0"
+# A setup step that makes no progress for this long is reported instead of blocking the doctor.
+SETUP_TIMEOUT_SECONDS = 1800
+
+
+def _run_setup_step(command, **kwargs):
+    """Run one ChemScript setup command; a hung step comes back as a failure with a message."""
+    try:
+        return subprocess.run(command, capture_output=True, text=True, timeout=SETUP_TIMEOUT_SECONDS, **kwargs)
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(command, 1, "", f"timed out after {SETUP_TIMEOUT_SECONDS} s")
+
+
 def _check_dependency(name, import_fn):
     """Try importing a dependency, return (ok, version_or_error)."""
     try:
@@ -173,10 +187,7 @@ def _setup_chemscript(*, assume_yes=False):
     if bitness == 64:
         # 64-bit: current interpreter works, just need pythonnet
         print("  64-bit ChemScript detected. Installing pythonnet...")
-        r = subprocess.run(
-            [sys.executable, "-m", "pip", "install", "pythonnet"],
-            capture_output=True, text=True,
-        )
+        r = _run_setup_step([sys.executable, "-m", "pip", "install", PYTHONNET_REQUIREMENT])
         if r.returncode != 0:
             print(f"  Failed to install pythonnet: {r.stderr}")
             return
@@ -224,7 +235,7 @@ def _setup_chemscript(*, assume_yes=False):
     print("  32-bit ChemScript requires a 32-bit Python environment.")
     print("  The doctor will run the following commands:\n")
     print(f"    {conda_exe} create -n chemscript32 python=3.10 pip -y  (with CONDA_SUBDIR=win-32)")
-    print(f"    {py32_path} -m pip install pythonnet")
+    print(f'    {py32_path} -m pip install "{PYTHONNET_REQUIREMENT}"')
     print()
 
     if assume_yes:
@@ -244,10 +255,7 @@ def _setup_chemscript(*, assume_yes=False):
     print("\n  Creating chemscript32 conda env...")
     env = os.environ.copy()
     env["CONDA_SUBDIR"] = "win-32"
-    r = subprocess.run(
-        [conda_exe, "create", "-n", "chemscript32", "python=3.10", "pip", "-y"],
-        env=env, capture_output=True, text=True,
-    )
+    r = _run_setup_step([conda_exe, "create", "-n", "chemscript32", "python=3.10", "pip", "-y"], env=env)
     if r.returncode != 0:
         print(f"  Failed to create conda env:\n{r.stderr}")
         return
@@ -255,10 +263,7 @@ def _setup_chemscript(*, assume_yes=False):
 
     # Step 2: install pythonnet
     print("  Installing pythonnet in chemscript32...")
-    r = subprocess.run(
-        [py32_path, "-m", "pip", "install", "pythonnet"],
-        capture_output=True, text=True,
-    )
+    r = _run_setup_step([py32_path, "-m", "pip", "install", PYTHONNET_REQUIREMENT])
     if r.returncode != 0:
         print(f"  Failed to install pythonnet:\n{r.stderr}")
         return

@@ -44,6 +44,18 @@ class InstallerTests(unittest.TestCase):
         spec.loader.exec_module(installer)
         return installer
 
+    def test_venv_creation_has_a_time_limit(self) -> None:
+        installer = self._installer()
+        calls = []
+        with tempfile.TemporaryDirectory() as temp:
+            plan = {"venv": str(Path(temp) / "venv"), "python": "python", "action": "create",
+                    "base_python": ["python"], "extras": [], "toolkit_path": None}
+            with mock.patch.object(installer.subprocess, "run",
+                                   side_effect=lambda command, **kw: calls.append((command, kw))):
+                installer.install_runtime(plan, installer.SOURCE)
+        venv = next(kw for command, kw in calls if command[1:3] == ["-m", "venv"])
+        self.assertGreater(venv["timeout"], 0)
+
     def test_opsin_download_is_verified_before_it_is_kept(self) -> None:
         installer = self._installer()
         payload = b"opsin jar bytes"
