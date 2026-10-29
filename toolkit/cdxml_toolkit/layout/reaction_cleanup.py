@@ -58,6 +58,10 @@ LAYOUT_BELOW_FRAG_PAD = 2.0
 # Species on one side of the arrow are separated by a "+": leave room for it and
 # some white space either side, or it runs into the labels next to it.
 PLUS_CLEARANCE = 18.0
+# A scheme drawn one step per row: white space between rows, and how far a
+# compound number may hang above or below the row it belongs to.
+ROW_GAP = 2.0 * ACS_BOND_LENGTH
+ROW_LABEL_REACH = 3.0 * ACS_BOND_LENGTH
 
 
 # ---------------------------------------------------------------------------
@@ -85,6 +89,17 @@ def _get_step(page: ET.Element) -> Optional[ET.Element]:
     if scheme is None:
         return None
     return scheme.find("step")
+
+
+def _get_steps(page: ET.Element) -> List[ET.Element]:
+    """Every <step> on the page: a multi-step scheme often has one <scheme> per step."""
+    return [step for scheme in page.findall("scheme") for step in scheme.findall("step")]
+
+
+def _step_objects(step: ET.Element) -> set:
+    return {i for attr in ("ReactionStepReactants", "ReactionStepProducts", "ReactionStepArrows",
+                           "ReactionStepObjectsAboveArrow", "ReactionStepObjectsBelowArrow")
+            for i in step.get(attr, "").split()}
 
 
 def _get_arrow(page: ET.Element, step: ET.Element,
@@ -225,6 +240,18 @@ def _shift_element(el: ET.Element, dx: float, dy: float):
 
     elif el.tag == "t":
         _shift_text_element(el, dx, dy)
+    else:
+        # Arrows, graphics, groups: every point they carry moves, and so do
+        # the objects they contain.
+        for attr in ("p", "Head3D", "Tail3D", "Center3D", "MajorAxisEnd3D", "MinorAxisEnd3D"):
+            vals = el.get(attr, "").split()
+            if len(vals) >= 2:
+                vals[0] = f"{float(vals[0]) + dx:.2f}"
+                vals[1] = f"{float(vals[1]) + dy:.2f}"
+                el.set(attr, " ".join(vals))
+        _shift_bbox_attr(el, dx, dy)
+        for child in el:
+            _shift_element(child, dx, dy)
 
 
 def _shift_text_element(t: ET.Element, dx: float, dy: float):
@@ -905,6 +932,45 @@ def _plus_signs_between(page: ET.Element, species: List[ET.Element]) -> List[Tup
     return pairs
 
 
+def _atom_anchor(frag: ET.Element) -> Optional[Tuple[float, float, float]]:
+    """``(centre x, lowest atom y, half width)`` of a fragment's atoms."""
+    bb = fragment_bbox(frag)
+    if bb is None:
+        return None
+    return (bb[0] + bb[2]) / 2.0, bb[3], (bb[2] - bb[0]) / 2.0
+
+
+def _compound_labels(page: ET.Element, species: List[ET.Element],
+                     listed: set) -> List[Tuple[ET.Element, ET.Element, Tuple[float, float]]]:
+    """``(label, fragment, anchor)`` for each compound number hanging under one of ``species``.
+
+    Same rule as :mod:`label_anchors`: a page-level text, not part of any step,
+    5-25 pt below the fragment's lowest atom and within its width.
+    """
+    anchors = [(frag, _atom_anchor(frag)) for frag in species if frag.tag == "fragment"]
+    anchors = [(frag, a) for frag, a in anchors if a is not None]
+    found = []
+    for t in page.findall("t"):
+        if t.get("id") in listed or _text_content(t) in ("", "+") or not t.get("p"):
+            continue
+        x, y = (float(v) for v in t.get("p").split()[:2])
+        candidates = [(abs(x - cx) + abs(y - bottom - 14), n, frag, (cx, bottom))
+                      for n, (frag, (cx, bottom, half)) in enumerate(anchors)
+                      if 5 <= y - bottom <= 25 and abs(x - cx) <= max(8, half)]
+        if candidates:
+            _, _, frag, anchor = min(candidates, key=lambda c: (c[0], c[1]))
+            found.append((t, frag, anchor))
+    return found
+
+
+def _carry_compound_labels(labels) -> None:
+    """Move each compound number by as much as its structure moved."""
+    for label, frag, (cx, bottom) in labels:
+        now = _atom_anchor(frag)
+        if now is not None:
+            _shift_text_element(label, now[0] - cx, now[1] - bottom)
+
+
 def _recenter_plus_signs(pairs, arrow_y: float) -> None:
     """Put each "+" in the middle of the gap the layout left between its two species."""
     for plus, left, right in pairs:
@@ -913,11 +979,83 @@ def _recenter_plus_signs(pairs, arrow_y: float) -> None:
         _shift_text_element(plus, gap_x - cx, arrow_y - cy)
 
 
+def _normalize_rows(page: ET.Element, steps: List[ET.Element],
+                    id_map: Dict[str, ET.Element]) -> bool:
+    """Give a scheme drawn as one step per row a common left edge and even row gaps.
+
+    Each step's layout centres it on its own species, so rows drift apart
+    sideways and keep whatever spacing they were drawn with.  Only a plain
+    stack of rows is touched: every page object must sit in exactly one row
+    band and the bands must not overlap; anything else is left as drawn.
+    """
+    if len(steps) < 2:
+        return False
+    rows = []
+    for step in steps:
+        members = [id_map[i] for i in _step_objects(step) if i in id_map]
+        boxes = [_element_bbox(el) for el in members]
+        boxes = [b for b in boxes if b != (0, 0, 0, 0)]
+        if not boxes:
+            return False
+        rows.append({"members": {id(el) for el in members}, "elements": list(members),
+                     "box": [min(b[0] for b in boxes), min(b[1] for b in boxes),
+                             max(b[2] for b in boxes), max(b[3] for b in boxes)]})
+    # Everything else on the page ("+", compound numbers, arrow graphics) joins the
+    # row it sits in; a number may hang a little below its structure.
+    for el in page:
+        if el.tag in ("scheme", "step") or any(id(el) in row["members"] for row in rows):
+            continue
+        if el.tag == "graphic" and el.get("SupersededBy"):
+            owners = [row for row in rows
+                      if any(m.get("id") == el.get("SupersededBy") for m in row["elements"])]
+        else:
+            bb = _element_bbox(el)
+            if bb == (0, 0, 0, 0):
+                continue
+            cy = (bb[1] + bb[3]) / 2.0
+            ranked = sorted((max(row["box"][1] - cy, cy - row["box"][3], 0.0), n)
+                            for n, row in enumerate(rows))
+            # Its own row: close by, and clearly closer than any other row.
+            if ranked[0][0] > ROW_LABEL_REACH or \
+                    (len(ranked) > 1 and ranked[1][0] - ranked[0][0] < ACS_BOND_LENGTH):
+                return False
+            owners = [rows[ranked[0][1]]]
+        if len(owners) != 1:
+            return False
+        owners[0]["elements"].append(el)
+    for row in rows:
+        boxes = [_element_bbox(el) for el in row["elements"] if el.tag != "graphic"]
+        boxes = [b for b in boxes if b != (0, 0, 0, 0)]
+        row["box"] = [min(b[0] for b in boxes), min(b[1] for b in boxes),
+                      max(b[2] for b in boxes), max(b[3] for b in boxes)]
+    rows.sort(key=lambda row: row["box"][1])
+    if any(above["box"][3] >= below["box"][1] for above, below in zip(rows, rows[1:])):
+        return False
+    left = rows[0]["box"][0]
+    bottom = rows[0]["box"][3]
+    for row in rows[1:]:
+        dx = left - row["box"][0]
+        dy = bottom + ROW_GAP - row["box"][1]
+        for el in row["elements"]:
+            if el.tag == "graphic" and el.get("SupersededBy"):
+                _shift_bbox_attr(el, dx, dy)
+            else:
+                _shift_element(el, dx, dy)
+        bottom = row["box"][3] + dy
+    return True
+
+
 def run_cleanup(input_path: str, output_path: str, approach: str = "chemdraw_mimic",
                 verbose: bool = False) -> dict:
     """Run one cleanup approach on a CDXML file.
 
-    Returns dict with keys: output, approach, num_reactants, num_products.
+    Every step of the scheme is laid out on its own row; a step that shares a
+    species with one already laid out is left as drawn and listed in
+    ``skipped_steps``.  When the steps form a plain stack of rows, the rows get
+    a common left edge and even gaps (``rows_normalized``).
+
+    Returns dict with keys: output, approach, num_reactants, num_products,
+    num_steps, skipped_steps, rows_normalized.
     """
     tree = parse_cdxml(input_path)
     root = tree.getroot()
@@ -926,27 +1064,46 @@ def run_cleanup(input_path: str, output_path: str, approach: str = "chemdraw_mim
         raise ValueError("No <page> found in CDXML")
 
     id_map = _build_id_map(page)
-    step = _get_step(page)
-    if step is None:
+    steps = _get_steps(page)
+    if not steps:
         raise ValueError("No <scheme>/<step> found — not a reaction CDXML")
-
-    arrow = _get_arrow(page, step, id_map)
-    if arrow is None:
-        raise ValueError("No arrow element found in reaction")
 
     func = APPROACHES.get(approach)
     if func is None:
         raise ValueError(f"Unknown approach: {approach}. "
                          f"Choose from: {', '.join(APPROACHES)}")
 
-    reactants, products, _, _ = _parse_reaction(page, step, id_map)
-    num_reactants = len(reactants)
-    num_products = len(products)
-    # The step does not list its "+" signs; they follow the species they separate.
-    plus_signs = _plus_signs_between(page, reactants) + _plus_signs_between(page, products)
+    num_reactants = num_products = 0
+    cleaned, skipped, placed = 0, [], set()
+    listed = set().union(*(_step_objects(step) for step in steps))
+    for step in steps:
+        arrow = _get_arrow(page, step, id_map)
+        if arrow is None:
+            if len(steps) == 1:
+                raise ValueError("No arrow element found in reaction")
+            skipped.append(step.get("id", ""))
+            continue
+        objects = _step_objects(step)
+        if objects & placed:
+            # A species shared with a step already laid out (A -> B -> C on one row):
+            # moving it again would pull it away from that step's arrow.
+            skipped.append(step.get("id", ""))
+            continue
+        reactants, products, _, _ = _parse_reaction(page, step, id_map)
+        num_reactants += len(reactants)
+        num_products += len(products)
+        # The step does not list its "+" signs; they follow the species they separate.
+        plus_signs = _plus_signs_between(page, reactants) + _plus_signs_between(page, products)
+        # Nor its compound numbers; they stay under their structures.
+        labels = _compound_labels(page, reactants + products, listed)
 
-    func(page, step, id_map, arrow, verbose=verbose)
-    _recenter_plus_signs(plus_signs, _arrow_endpoints(arrow)[1])
+        func(page, step, id_map, arrow, verbose=verbose)
+        _recenter_plus_signs(plus_signs, _arrow_endpoints(arrow)[1])
+        _carry_compound_labels(labels)
+        placed |= objects
+        cleaned += 1
+
+    rows_normalized = not skipped and _normalize_rows(page, steps, id_map)
     _update_doc_bbox(root)
     write_cdxml(tree, output_path)
     return {
@@ -954,6 +1111,9 @@ def run_cleanup(input_path: str, output_path: str, approach: str = "chemdraw_mim
         "approach": approach,
         "num_reactants": num_reactants,
         "num_products": num_products,
+        "num_steps": cleaned,
+        "skipped_steps": skipped,
+        "rows_normalized": rows_normalized,
     }
 
 

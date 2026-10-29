@@ -119,3 +119,94 @@ def test_drawn_fragment_box_covers_whole_labels():
     )
     # The label box names only the O; the H is drawn on the far side of the structure.
     assert drawn_fragment_bbox(frag) == (0.0, -4.0, 29.0, 4.0)
+
+
+ROUTE = DATA / "four-step-route-untidy.cdxml"
+
+
+def _rows(root):
+    """Per step: its box (species, arrow, conditions) and its arrow y."""
+    page = _page(root)
+    rows = []
+    for step in root.iter("step"):
+        ids = [i for attr in step.attrib if attr.startswith("ReactionStep") and attr != "ReactionStepArrows"
+               for i in step.get(attr).split()]
+        boxes = [_box(page[i]) for i in ids]
+        arrow = page[step.get("ReactionStepArrows")]
+        rows.append((step, [min(b[0] for b in boxes), min(b[1] for b in boxes),
+                            max(b[2] for b in boxes), max(b[3] for b in boxes)], _arrow_y(arrow)))
+    return page, rows
+
+
+def _compound_numbers_hang_under_their_structures(root):
+    page = _page(root)
+    numbers = [el for el in page.values() if el.tag == "t" and _text(el).isdigit()]
+    assert len(numbers) == 8
+    for t in numbers:
+        x, y = (float(v) for v in t.get("p").split()[:2])
+        owners = []
+        for frag in (el for el in page.values() if el.tag == "fragment"):
+            xs = [float(n.get("p").split()[0]) for n in frag.findall("n")]
+            ys = [float(n.get("p").split()[1]) for n in frag.findall("n")]
+            if min(xs) <= x <= max(xs) and 5 <= y - max(ys) <= 25:
+                owners.append(frag.get("id"))
+        assert len(owners) == 1, (_text(t), owners)
+
+
+def test_cleanup_lays_out_every_step_of_a_route(tmp_path):
+    out = tmp_path / "clean.cdxml"
+    tools.clean_scheme_layout(str(ROUTE), str(out), render_preview=False)
+    text, root = _root(out)
+    assert figure_lint.lint_cdxml(text) == []
+    page, rows = _rows(root)
+    assert len(rows) == 4
+    for step, _, arrow_y in rows:
+        # Every species of every step sits on its arrow, not only the first step's.
+        for i in step.get("ReactionStepReactants").split() + step.get("ReactionStepProducts").split():
+            box = _box(page[i])
+            assert abs((box[1] + box[3]) / 2 - arrow_y) < 6, (step.get("id"), i)
+    _compound_numbers_hang_under_their_structures(root)
+    # The rows share a left edge and are spaced evenly.
+    lefts = [box[0] for _, box, _ in rows]
+    assert max(lefts) - min(lefts) < 1
+    arrows = [arrow_y for _, _, arrow_y in rows]
+    pitches = [b - a for a, b in zip(arrows, arrows[1:])]
+    assert all(60 < p < 110 for p in pitches), pitches
+
+
+def test_polish_tidies_the_conditions_of_every_step(tmp_path):
+    out = tmp_path / "polish.cdxml"
+    tools.polish_reaction_scheme(str(ROUTE), str(out), render_preview=False)
+    text, root = _root(out)
+    assert figure_lint.lint_cdxml(text) == []
+    page, rows = _rows(root)
+    for step, _, arrow_y in rows:
+        above = [page[i] for i in step.get("ReactionStepObjectsAboveArrow", "").split()]
+        below = [page[i] for i in step.get("ReactionStepObjectsBelowArrow", "").split()]
+        assert not [el for el in above if el.tag == "t"], step.get("id")
+        assert len([el for el in below if el.tag == "t"]) == 1, step.get("id")
+    _compound_numbers_hang_under_their_structures(root)
+
+
+def test_cleanup_leaves_a_step_that_shares_a_species_with_an_earlier_one(tmp_path):
+    from cdxml_toolkit.layout.reaction_cleanup import run_cleanup
+
+    text, root = _root(ROUTE)
+    first, second = list(root.iter("step"))[:2]
+    # Draw the second step from the first step's product itself, as in A -> B -> C on one row.
+    second.set("ReactionStepReactants", first.get("ReactionStepProducts"))
+    source = tmp_path / "shared.cdxml"
+    source.write_text(text[:text.index("<CDXML")] + ET.tostring(root, encoding="unicode"), encoding="utf-8")
+    info = run_cleanup(str(source), str(tmp_path / "out.cdxml"))
+    assert info["skipped_steps"] == [second.get("id")]
+    assert info["num_steps"] == 3 and info["rows_normalized"] is False
+
+
+def test_cleanup_itself_moves_compound_numbers_with_their_structures(tmp_path):
+    from cdxml_toolkit.layout.reaction_cleanup import run_cleanup
+
+    out = tmp_path / "out.cdxml"
+    info = run_cleanup(str(ROUTE), str(out))
+    assert info["num_steps"] == 4 and info["rows_normalized"] is True
+    _, root = _root(out)
+    _compound_numbers_hang_under_their_structures(root)

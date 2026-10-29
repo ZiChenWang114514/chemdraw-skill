@@ -52,13 +52,13 @@
 
 ## `layout.reaction_cleanup`
 
-- **function**, line 398: `approach_arrow_driven(page, step, id_map, arrow, verbose = False)` - Arrow-centric layout: - Arrow stays at a fixed reasonable length (70pt ≈ ~1 inch) - Reactants right-aligned to arrow tail with gap - Products left-aligned to arrow head with gap - Vertical centering on arrow midpoint
-- **function**, line 334: `approach_bbox_center(page, step, id_map, arrow, verbose = False)` - Simple centroid-based layout: - All molecules vertically centered on arrow y - Uniform horizontal gaps between reactants, arrow, products - Above/below text centered over arrow
-- **function**, line 636: `approach_chemdraw_mimic(page, step, id_map, arrow, verbose = False)` - Emulates ChemDraw's Clean Up Reaction behaviour: - Arrow length ≈ 1.5× bond length (BondLength from doc) - Molecules placed so nearest atom is ~1 bond length from arrow tip - Above-arrow objects stacked: structures first, then text - Below-arrow objects similarly stacked - Everything vertically centered on a common y-line - Separate above-arrow fragments from above-arrow text labels
-- **function**, line 525: `approach_compact(page, step, id_map, arrow, verbose = False)` - Compact layout for space-constrained output: - Minimal gaps (5pt) - Short arrow (45pt) - Tight vertical stacking
-- **function**, line 579: `approach_golden_ratio(page, step, id_map, arrow, verbose = False)` - Golden ratio aesthetics: - Arrow length = φ × average molecule width - Gaps = average molecule width / φ - Pleasing visual proportions
-- **function**, line 454: `approach_proportional(page, step, id_map, arrow, verbose = False)` - Proportional spacing: - Arrow length = 0.6× the average molecule width - Gaps scale with molecule size - Looks balanced for both small and large molecules
-- **function**, line 916: `run_cleanup(input_path: str, output_path: str, approach: str = 'chemdraw_mimic', verbose: bool = False) -> dict` - Run one cleanup approach on a CDXML file.
+- **function**, line 425: `approach_arrow_driven(page, step, id_map, arrow, verbose = False)` - Arrow-centric layout: - Arrow stays at a fixed reasonable length (70pt ≈ ~1 inch) - Reactants right-aligned to arrow tail with gap - Products left-aligned to arrow head with gap - Vertical centering on arrow midpoint
+- **function**, line 361: `approach_bbox_center(page, step, id_map, arrow, verbose = False)` - Simple centroid-based layout: - All molecules vertically centered on arrow y - Uniform horizontal gaps between reactants, arrow, products - Above/below text centered over arrow
+- **function**, line 663: `approach_chemdraw_mimic(page, step, id_map, arrow, verbose = False)` - Emulates ChemDraw's Clean Up Reaction behaviour: - Arrow length ≈ 1.5× bond length (BondLength from doc) - Molecules placed so nearest atom is ~1 bond length from arrow tip - Above-arrow objects stacked: structures first, then text - Below-arrow objects similarly stacked - Everything vertically centered on a common y-line - Separate above-arrow fragments from above-arrow text labels
+- **function**, line 552: `approach_compact(page, step, id_map, arrow, verbose = False)` - Compact layout for space-constrained output: - Minimal gaps (5pt) - Short arrow (45pt) - Tight vertical stacking
+- **function**, line 606: `approach_golden_ratio(page, step, id_map, arrow, verbose = False)` - Golden ratio aesthetics: - Arrow length = φ × average molecule width - Gaps = average molecule width / φ - Pleasing visual proportions
+- **function**, line 481: `approach_proportional(page, step, id_map, arrow, verbose = False)` - Proportional spacing: - Arrow length = 0.6× the average molecule width - Gaps scale with molecule size - Looks balanced for both small and large molecules
+- **function**, line 1048: `run_cleanup(input_path: str, output_path: str, approach: str = 'chemdraw_mimic', verbose: bool = False) -> dict` - Run one cleanup approach on a CDXML file.
 
 ## `layout.scheme_merger`
 
