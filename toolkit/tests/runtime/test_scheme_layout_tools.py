@@ -121,6 +121,19 @@ def test_drawn_fragment_box_covers_whole_labels():
     assert drawn_fragment_bbox(frag) == (0.0, -4.0, 29.0, 4.0)
 
 
+def test_drawn_fragment_box_counts_a_charge_as_a_small_sign():
+    frag = ET.fromstring(
+        '<fragment><n id="1" p="0 0"><t p="-3 4" BoundingBox="-3 -4 3 4">'
+        '<s face="96">OH</s><s face="64">-</s></t></n></fragment>'
+    )
+    # The superscript charge is narrower than a letter, as the renderer spaces it.
+    assert drawn_fragment_bbox(frag)[2] == 3.0 + 6.0 + 4.0
+    # In formula style the count of NH2 is a subscript too.
+    frag = ET.fromstring('<fragment><n id="1" p="0 0"><t p="-3 4" BoundingBox="-3 -4 3 4">'
+                         '<s face="96">NH2</s></t></n></fragment>')
+    assert drawn_fragment_bbox(frag)[2] == 3.0 + 6.0 + 4.0
+
+
 ROUTE = DATA / "four-step-route-untidy.cdxml"
 
 

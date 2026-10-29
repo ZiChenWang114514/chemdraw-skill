@@ -64,6 +64,20 @@ def fragment_bbox(
 
 # Width of one atom-label letter (Arial 10 pt, as ACS Document 1996 sets labels)
 LABEL_CHAR_WIDTH = 6.0
+LABEL_SCRIPT_WIDTH = 4.0  # a subscript count or superscript charge
+
+
+def _label_reach(t: ET.Element) -> float:
+    """Width a label draws beyond its first letter."""
+    runs = t.findall("s") or [t]
+    widths = []
+    for run in runs:
+        face = int(run.get("face", "0") or 0)
+        script = face & 0x60 in (0x20, 0x40)
+        formula = face & 0x60 == 0x60  # counts are drawn as subscripts
+        widths += [LABEL_SCRIPT_WIDTH if script or (formula and c.isdigit()) else LABEL_CHAR_WIDTH
+                   for c in "".join("".join(run.itertext()).split())]
+    return sum(widths[1:])
 
 
 def drawn_fragment_bbox(
@@ -94,7 +108,7 @@ def drawn_fragment_bbox(
             x1, y1, x2, y2 = (float(v) for v in vals[:4])
             # A label box often covers only its first letter, and ChemDraw writes the rest
             # (the H of OH, the r of Br) away from the bonds: on the far side of the structure.
-            extra = (len("".join("".join(t.itertext()).split())) - 1) * LABEL_CHAR_WIDTH
+            extra = _label_reach(t)
             if float(n.get("p", f"{middle} 0").split()[0]) >= middle:
                 x2 = max(x2, x1 + LABEL_CHAR_WIDTH + extra)
             else:

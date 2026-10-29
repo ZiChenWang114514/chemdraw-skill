@@ -10,16 +10,16 @@
 
 ## `cdxml_utils`
 
-- **function**, line 258: `arrow_endpoints(arrow: ET.Element) -> Tuple[float, float, float, float]` - Return ``(tail_x, tail_y, head_x, head_y)`` from an arrow element.
-- **function**, line 235: `build_id_map(parent: ET.Element) -> Dict[str, ET.Element]` - Build ``{id_string: element}`` map for all descendants with an ``id`` attribute.
-- **function**, line 69: `drawn_fragment_bbox(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Box around what a <fragment> draws: its atoms and their labels.
+- **function**, line 272: `arrow_endpoints(arrow: ET.Element) -> Tuple[float, float, float, float]` - Return ``(tail_x, tail_y, head_x, head_y)`` from an arrow element.
+- **function**, line 249: `build_id_map(parent: ET.Element) -> Dict[str, ET.Element]` - Build ``{id_string: element}`` map for all descendants with an ``id`` attribute.
+- **function**, line 83: `drawn_fragment_bbox(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Box around what a <fragment> draws: its atoms and their labels.
 - **function**, line 28: `fragment_bbox(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Atom-only bounding box for a <fragment> element.
-- **function**, line 161: `fragment_bbox_with_label_extension(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Atom-only bounding box with hanging-label extension.
-- **function**, line 118: `fragment_bottom_has_hanging_label(frag: ET.Element) -> bool` - True if the bottommost atom has a label that hangs below it.
-- **function**, line 107: `fragment_centroid(frag: ET.Element) -> Optional[Tuple[float, float]]` - Center point of :func:`fragment_bbox`.
-- **function**, line 285: `parse_cdxml(path: str) -> ET.ElementTree` - Parse a CDXML file, returning an :class:`~xml.etree.ElementTree.ElementTree`.
-- **function**, line 186: `recompute_text_bbox(t_elem: ET.Element) -> None` - Recompute and set BoundingBox on a ``<t>`` element.
-- **function**, line 290: `write_cdxml(tree: ET.ElementTree, path: str) -> None` - Write *tree* to *path*, re-inserting the DOCTYPE declaration.
+- **function**, line 175: `fragment_bbox_with_label_extension(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Atom-only bounding box with hanging-label extension.
+- **function**, line 132: `fragment_bottom_has_hanging_label(frag: ET.Element) -> bool` - True if the bottommost atom has a label that hangs below it.
+- **function**, line 121: `fragment_centroid(frag: ET.Element) -> Optional[Tuple[float, float]]` - Center point of :func:`fragment_bbox`.
+- **function**, line 299: `parse_cdxml(path: str) -> ET.ElementTree` - Parse a CDXML file, returning an :class:`~xml.etree.ElementTree.ElementTree`.
+- **function**, line 200: `recompute_text_bbox(t_elem: ET.Element) -> None` - Recompute and set BoundingBox on a ``<t>`` element.
+- **function**, line 304: `write_cdxml(tree: ET.ElementTree, path: str) -> None` - Write *tree* to *path*, re-inserting the DOCTYPE declaration.
 
 ## `coord_normalizer`
 

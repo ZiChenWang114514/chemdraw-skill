@@ -1,9 +1,10 @@
 """Headless geometry checks for a drawn figure.
 
 Reads the saved CDXML and reports problems that need no ChemDraw: objects
-that overlap, text too small to read, an empty page, and a drawing wider than
-a requested budget. Every object is measured by its ``BoundingBox``; a
-structure also includes the atom labels that overhang its own box.
+that overlap, text too small to read, an empty page, a drawing wider than
+a requested budget, and a "+" that is not between two species or crowds one.
+Every object is measured by its ``BoundingBox``; a structure also includes the
+atom labels that overhang its own box.
 """
 
 from __future__ import annotations
@@ -12,7 +13,13 @@ import xml.etree.ElementTree as ET
 from itertools import combinations
 from typing import Any, Dict, List, Optional, Tuple
 
+from ..cdxml_utils import drawn_fragment_bbox
+
 MIN_FONT_SIZE = 6.0
+# A "+" between two species: at least this much white space on each side,
+# and no further than this from either (three ACS bond lengths).
+PLUS_MIN_CLEARANCE = 3.0  # the renderer leaves about 3.5 pt
+PLUS_MAX_GAP = 43.2
 
 Box = Tuple[float, float, float, float]
 
@@ -51,6 +58,46 @@ def _objects(page: ET.Element) -> List[Dict[str, Any]]:
     return found
 
 
+def _text_of(node: ET.Element) -> str:
+    return "".join("".join(node.itertext()).split())
+
+
+def _plus_issues(objects: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """A "+" must sit on the line of two species, one either side, close to both."""
+    species = []
+    for obj in objects:
+        if obj["tag"] == "arrow" or (obj["tag"] == "t" and _text_of(obj["node"]) in ("", "+")):
+            continue
+        box = obj["box"]
+        if obj["tag"] == "fragment":
+            # A label box often names only its first letter: count the whole label.
+            drawn = drawn_fragment_bbox(obj["node"])
+            box = _union([box, drawn]) if drawn else box
+        species.append((obj, box))
+    issues: List[Dict[str, Any]] = []
+    for plus in (o for o in objects if o["tag"] == "t" and _text_of(o["node"]) == "+"):
+        x1, y1, x2, y2 = plus["box"]
+        cx, cy = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+        level = [(obj, box) for obj, box in species if box[1] <= cy <= box[3]]
+        left = max((box[2] for _, box in level if (box[0] + box[2]) / 2.0 < cx), default=None)
+        right = min((box[0] for _, box in level if (box[0] + box[2]) / 2.0 > cx), default=None)
+        if left is None or right is None or x1 - left > PLUS_MAX_GAP or right - x2 > PLUS_MAX_GAP:
+            issues.append({
+                "kind": "stray_plus",
+                "ids": [plus["id"]],
+                "message": f"The + {plus['id']} is not between two species on its line.",
+            })
+        elif 0 <= min(x1 - left, right - x2) < PLUS_MIN_CLEARANCE:
+            issues.append({
+                "kind": "crowded_plus",
+                "ids": [plus["id"]],
+                "clearance": round(min(x1 - left, right - x2), 1),
+                "message": f"The + {plus['id']} has less than {PLUS_MIN_CLEARANCE:g} pt "
+                           "of space beside a species.",
+            })
+    return issues
+
+
 def lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]:
     """Return a list of issues; an empty list means the geometry checks passed."""
     root = ET.fromstring(cdxml_text)
@@ -84,6 +131,8 @@ def lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[
                     "message": f"Text in {obj['tag']} {obj['id']} is {size:g} pt, below {MIN_FONT_SIZE:g} pt.",
                 })
                 break
+
+    issues.extend(_plus_issues(objects))
 
     if max_width is not None:
         left, _, right, _ = _union([o["box"] for o in objects])
