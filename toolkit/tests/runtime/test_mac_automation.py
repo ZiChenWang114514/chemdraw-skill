@@ -164,6 +164,20 @@ class AutomationHelpersTests(unittest.TestCase):
             mac_automation.terminate_process(4242, grace_seconds=0)
         refused.assert_not_called()
 
+    def test_a_chemdraw_exe_that_points_nowhere_finds_no_chemdraw(self):
+        # The offline evaluation points CHEMDRAW_EXE at a missing file to keep the user's ChemDraw out.
+        find_application = getattr(mac_automation, "unguarded_find_application", mac_automation.find_application)
+        with tempfile.TemporaryDirectory() as folder:
+            app = Path(folder) / "ChemDraw.app"
+            (app / "Contents").mkdir(parents=True)
+            with mock.patch.dict(os.environ, {"CHEMDRAW_EXE": str(app / "Contents" / "MacOS" / "ChemDraw")}):
+                self.assertEqual(find_application(), app)
+            missing = Path(folder) / "no-chemdraw-here" / "ChemDraw.exe"
+            with mock.patch.dict(os.environ, {"CHEMDRAW_EXE": str(missing)}), \
+                    mock.patch.object(mac_automation.subprocess, "run",
+                                      side_effect=AssertionError("searched for an installed ChemDraw")):
+                self.assertIsNone(find_application())
+
     def test_save_types_follow_destination_extension(self):
         self.assertEqual(mac_automation.save_type_for(Path("a.PNG")), "PNG")
         self.assertEqual(mac_automation.save_type_for(Path("a.cdxml")), "ChemDraw XML")

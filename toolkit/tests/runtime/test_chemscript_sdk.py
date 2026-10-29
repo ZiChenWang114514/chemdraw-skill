@@ -217,8 +217,9 @@ class FakeBackend:
             if args["source"] == "not a molecule":
                 return {"ok": False, "error": "Could not load"}
             return {"ok": True, "data": "<CDXML/>" if args["target_format"] == "text/xml" else "CCO"}
-        if command == "get_formula":
-            return {"ok": True, "formula": "C2H6O"}
+        if command == "get_properties":
+            return {"ok": True, "formula": "C2H6O", "weight": 46.07, "exact_mass": 46.04,
+                    "elemental_analysis": "C, 52.14; H, 13.13; O, 34.73"}
         if command == "substructure_search":
             return {"ok": True, "contains": True, "maps": [{"C1": "C2", "O2": "O3"}]}
         if command == "largest_common_substructure":
@@ -257,6 +258,19 @@ class MacEmulationTests(unittest.TestCase):
         self.assertEqual(result["results"][0]["value"]["$type"], "CambridgeSoft.ChemScript16.StructureData")
         self.assertEqual(result["results"][1]["value"], "C2H6O")
         self.assertEqual(result["results"][2]["value"], "<CDXML/>")
+
+    def test_chemical_properties_come_from_one_chemdraw_reading(self):
+        result = self.run_program([
+            {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCO"], "as": "mol"},
+            {"op": "call", "target": "mol", "member": "Formula"},
+            {"op": "get", "target": "mol", "member": "Weight"},
+            {"op": "get", "target": "mol", "member": "ExactMass"},
+            {"op": "get", "target": "mol", "member": "ElementalAnalysis"},
+        ])
+
+        self.assertEqual([item["value"] for item in result["results"][1:]],
+                         ["C2H6O", 46.07, 46.04, "C, 52.14; H, 13.13; O, 34.73"])
+        self.assertEqual([command for command, _ in self.backend.calls].count("get_properties"), 1)
 
     def test_atom_maps_serialize_like_dotnet_dictionaries(self):
         result = self.run_program([

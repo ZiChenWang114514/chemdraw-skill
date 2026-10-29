@@ -73,6 +73,8 @@ Formula, Weight, ExactMass, ElementalAnalysis, PartitionCoefficient and Refracti
 log_p and molar_refractivity are ChemDraw's ClogP estimates, in its units. Nothing is computed
 by RDKit or any other substitute: a property ChemDraw cannot give is null with the reason in
 that row's errors, and without ChemScript (Windows) the call fails instead of falling back.
+On macOS ChemDraw itself gives the formula, masses and elemental analysis; it has no
+scripting access to ClogP or refractivity, so log_p and molar_refractivity are null there.
 Use molecule_report for the deterministic RDKit sheet. Generic atoms (R groups, *) are refused.
 output_path ends in .csv, .json or .md and is never overwritten. At most 256 structures.
 

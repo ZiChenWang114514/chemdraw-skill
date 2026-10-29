@@ -5,7 +5,8 @@ Windows.  On macOS the same commands are answered in-process, with the reply
 shapes of ``_chemscript_server.py`` so bridge callers do not change:
 
 * ChemDraw for macOS (AppleScript) gives its own readings and edits:
-  Struct=Name, Name=Struct, Clean Up, SMILES, formula and file conversion.
+  Struct=Name, Name=Struct, Clean Up, SMILES, formula, masses, elemental
+  analysis and file conversion.
 * OPSIN resolves names offline before ChemDraw is asked, because ChemDraw
   answers a name it cannot interpret with a modal alert.
 * RDKit does graph work: substructure search, MCS, overlay and InChI.
@@ -330,8 +331,9 @@ class MacChemScript:
             destination = Path(destination).expanduser().resolve()
             steps += ["save", str(destination), mac_automation.save_type_for(destination)]
         answers = self.session.run_steps(path, steps)
-        smiles, formula = (answers + ["", ""])[:2]
-        reading = {"smiles": smiles, "formula": formula}
+        smiles, formula, weight, exact, analysis = (answers + [""] * 5)[:5]
+        reading = {"smiles": smiles, "formula": formula, "weight": mac_automation.query_number(weight),
+                   "exact_mass": mac_automation.query_number(exact), "elemental_analysis": analysis or None}
         if named is not None:
             reading["names"] = mac_automation.new_captions(path, named)
         return reading
@@ -511,6 +513,14 @@ class MacChemScript:
         if not reading["formula"]:
             return {"ok": False, "error": f"Could not load: {source}"}
         return {"ok": True, "formula": reading["formula"]}
+
+    def cmd_get_properties(self, args: dict) -> dict:
+        """Formula, weight, exact mass and elemental analysis from one ChemDraw reading."""
+        source = args["source"]
+        reading = self._read(self._stage(source, args.get("format")))
+        if not reading["formula"]:
+            return {"ok": False, "error": f"Could not load: {source}"}
+        return {"ok": True, **{key: reading[key] for key in ("formula", "weight", "exact_mass", "elemental_analysis")}}
 
     def _pair(self, args: dict, first: str, second: str):
         one = self._rdkit(args[first], args.get(f"{first}_format"))

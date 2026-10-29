@@ -172,7 +172,8 @@ end findDocument
 #   save <path> <type>            save a copy in the given format
 #   save-within <s> <path> <type> save, failing with -1712 after <s> seconds (an
 #                                 alert left by menu-nowait blocks the save)
-#   query                         append SMILES, formula, weights of the selection
+#   query                         append SMILES, formula, weights and elemental
+#                                 analysis of the selection
 _STEPS_SCRIPT = '''use framework "AppKit"
 use scripting additions
 ''' + _OPEN_DOCUMENT + '''
@@ -223,6 +224,7 @@ on run argv
           set end of answers to (Molecular Formula of selection of doc)
           set end of answers to ((Molecular Weight of selection of doc) as text)
           set end of answers to ((Exact Mass of selection of doc) as text)
+          set end of answers to (Elemental Analysis of selection of doc)
           set i to i + 1
         else
           error "Unknown step " & step number 1002
@@ -268,13 +270,22 @@ def _bundle_from_executable(path: Path) -> Optional[Path]:
     return None
 
 
+def query_number(text: str) -> Optional[float]:
+    """A weight or mass from the ``query`` step (AppleScript writes the locale's decimal comma)."""
+    try:
+        return float(text.replace(",", "."))
+    except ValueError:
+        return None
+
+
 def find_application() -> Optional[Path]:
     """Return the ChemDraw ``.app`` bundle, honouring ``CHEMDRAW_EXE``."""
     configured = os.environ.get("CHEMDRAW_EXE")
     if configured:
         bundle = _bundle_from_executable(Path(configured).expanduser())
-        if bundle is not None and bundle.is_dir():
-            return bundle
+        # A path that points nowhere means "no ChemDraw here", as on Windows: never fall back
+        # to the installed ChemDraw, which may be the user's own open copy.
+        return bundle if bundle is not None and bundle.is_dir() else None
     roots = [Path("/Applications"), Path.home() / "Applications"]
     for root in roots:
         try:
@@ -896,24 +907,18 @@ class MacChemDrawSession:
         """ChemDraw's own reading of every structure in ``source``.
 
         Returns ``smiles`` (reactions as ``reactants>>products``),
-        ``formula``, ``molecular_weight`` and ``exact_mass``.
+        ``formula``, ``molecular_weight``, ``exact_mass`` and ``elemental_analysis``.
         """
         answers = self.run_steps(source, ["select-all", "query"])
-        if len(answers) != 4:
+        if len(answers) != 5:
             raise MacAutomationError("native_automation_failed", "ChemDraw returned no structure data")
-        smiles, formula, weight, exact = answers
-
-        def number(text: str) -> Optional[float]:
-            try:
-                return float(text.replace(",", "."))
-            except ValueError:
-                return None
-
+        smiles, formula, weight, exact, analysis = answers
         return {
             "smiles": smiles,
             "formula": formula,
-            "molecular_weight": number(weight),
-            "exact_mass": number(exact),
+            "molecular_weight": query_number(weight),
+            "exact_mass": query_number(exact),
+            "elemental_analysis": analysis or None,
         }
 
     def smiles(self, source: str | Path) -> str:

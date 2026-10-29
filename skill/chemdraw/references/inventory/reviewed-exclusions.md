@@ -142,40 +142,43 @@
 - **property**, line 148: `AtomMap.Count` - No public docstring in the audited version.
 - **property**, line 144: `AtomMap.Keys` - No public docstring in the audited version.
 - **class**, line 129: `Bond` - No public docstring in the audited version.
-- **class**, line 362: `LargestCommonSubstructure` - No public docstring in the audited version.
-- **method**, line 372: `LargestCommonSubstructure.AtomMapM1() -> AtomMap` - No public docstring in the audited version.
-- **method**, line 375: `LargestCommonSubstructure.AtomMapM2() -> AtomMap` - No public docstring in the audited version.
-- **method**, line 367: `LargestCommonSubstructure.Compute(first: StructureData, second: StructureData)` - No public docstring in the audited version.
-- **class**, line 426: `MacSdkRuntime` - The program runtime interface of ``ChemScriptRuntime``, for the emulation.
-- **method**, line 476: `MacSdkRuntime.catalog() -> tuple[list[dict], list[dict]]` - No public docstring in the audited version.
-- **method**, line 464: `MacSdkRuntime.check_member(owner: Any, member: str, operation: str) -> None` - Refuse anything that is not an emulated public member (no Python internals).
-- **method**, line 461: `MacSdkRuntime.member_is_interop(reflection_type, member: str) -> bool` - No public docstring in the audited version.
-- **method**, line 440: `MacSdkRuntime.python_type(name: str)` - No public docstring in the audited version.
-- **method**, line 431: `MacSdkRuntime.reflection_type(name: str) -> _Type` - No public docstring in the audited version.
-- **method**, line 443: `MacSdkRuntime.resolve_argument(value: Any, aliases: dict[str, Any], *, unsafe: bool)` - No public docstring in the audited version.
-- **class**, line 288: `ReactionData` - No public docstring in the audited version.
-- **method**, line 340: `ReactionData.Formula() -> str` - No public docstring in the audited version.
-- **method**, line 295: `ReactionData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 318: `ReactionData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **property**, line 337: `ReactionData.Products` - No public docstring in the audited version.
-- **property**, line 333: `ReactionData.Reactants` - No public docstring in the audited version.
-- **method**, line 343: `ReactionData.WriteData(mimetype: str = 'chemical/x-mdl-rxn') -> str` - No public docstring in the audited version.
-- **method**, line 350: `ReactionData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **class**, line 385: `LargestCommonSubstructure` - No public docstring in the audited version.
+- **method**, line 395: `LargestCommonSubstructure.AtomMapM1() -> AtomMap` - No public docstring in the audited version.
+- **method**, line 398: `LargestCommonSubstructure.AtomMapM2() -> AtomMap` - No public docstring in the audited version.
+- **method**, line 390: `LargestCommonSubstructure.Compute(first: StructureData, second: StructureData)` - No public docstring in the audited version.
+- **class**, line 452: `MacSdkRuntime` - The program runtime interface of ``ChemScriptRuntime``, for the emulation.
+- **method**, line 502: `MacSdkRuntime.catalog() -> tuple[list[dict], list[dict]]` - No public docstring in the audited version.
+- **method**, line 490: `MacSdkRuntime.check_member(owner: Any, member: str, operation: str) -> None` - Refuse anything that is not an emulated public member (no Python internals).
+- **method**, line 487: `MacSdkRuntime.member_is_interop(reflection_type, member: str) -> bool` - No public docstring in the audited version.
+- **method**, line 466: `MacSdkRuntime.python_type(name: str)` - No public docstring in the audited version.
+- **method**, line 457: `MacSdkRuntime.reflection_type(name: str) -> _Type` - No public docstring in the audited version.
+- **method**, line 469: `MacSdkRuntime.resolve_argument(value: Any, aliases: dict[str, Any], *, unsafe: bool)` - No public docstring in the audited version.
+- **class**, line 311: `ReactionData` - No public docstring in the audited version.
+- **method**, line 363: `ReactionData.Formula() -> str` - No public docstring in the audited version.
+- **method**, line 318: `ReactionData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 341: `ReactionData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **property**, line 360: `ReactionData.Products` - No public docstring in the audited version.
+- **property**, line 356: `ReactionData.Reactants` - No public docstring in the audited version.
+- **method**, line 366: `ReactionData.WriteData(mimetype: str = 'chemical/x-mdl-rxn') -> str` - No public docstring in the audited version.
+- **method**, line 373: `ReactionData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
 - **class**, line 161: `StructureData` - No public docstring in the audited version.
-- **method**, line 279: `StructureData.AtomByAtomSearch(target: 'StructureData')` - No public docstring in the audited version.
-- **property**, line 229: `StructureData.Atoms` - No public docstring in the audited version.
-- **property**, line 233: `StructureData.Bonds` - No public docstring in the audited version.
-- **method**, line 225: `StructureData.ChemicalName() -> str` - No public docstring in the audited version.
-- **method**, line 258: `StructureData.CleanupStructure() -> bool` - No public docstring in the audited version.
-- **method**, line 275: `StructureData.ContainsSubstructure(query: 'StructureData') -> bool` - No public docstring in the audited version.
-- **method**, line 222: `StructureData.Formula() -> str` - No public docstring in the audited version.
-- **method**, line 176: `StructureData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 188: `StructureData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 213: `StructureData.MimeTypes()` - No public docstring in the audited version.
-- **method**, line 267: `StructureData.Overlay(target: 'StructureData') -> bool` - No public docstring in the audited version.
-- **method**, line 192: `StructureData.ReadFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
-- **method**, line 237: `StructureData.WriteData(mimetype: str = 'text/xml') -> str` - No public docstring in the audited version.
-- **method**, line 244: `StructureData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **method**, line 302: `StructureData.AtomByAtomSearch(target: 'StructureData')` - No public docstring in the audited version.
+- **property**, line 250: `StructureData.Atoms` - No public docstring in the audited version.
+- **property**, line 254: `StructureData.Bonds` - No public docstring in the audited version.
+- **method**, line 246: `StructureData.ChemicalName() -> str` - No public docstring in the audited version.
+- **method**, line 279: `StructureData.CleanupStructure() -> bool` - No public docstring in the audited version.
+- **method**, line 298: `StructureData.ContainsSubstructure(query: 'StructureData') -> bool` - No public docstring in the audited version.
+- **property**, line 243: `StructureData.ElementalAnalysis` - No public docstring in the audited version.
+- **property**, line 239: `StructureData.ExactMass` - No public docstring in the audited version.
+- **method**, line 231: `StructureData.Formula() -> str` - No public docstring in the audited version.
+- **method**, line 177: `StructureData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 189: `StructureData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 215: `StructureData.MimeTypes()` - No public docstring in the audited version.
+- **method**, line 289: `StructureData.Overlay(target: 'StructureData') -> bool` - No public docstring in the audited version.
+- **method**, line 193: `StructureData.ReadFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **property**, line 235: `StructureData.Weight` - No public docstring in the audited version.
+- **method**, line 258: `StructureData.WriteData(mimetype: str = 'text/xml') -> str` - No public docstring in the audited version.
+- **method**, line 265: `StructureData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
 
 ## `mcp_runtime.chemscript_sdk_runtime`
 
@@ -364,18 +367,18 @@
 
 ## `mcp_runtime.report_tools`
 
-- **function**, line 1565: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
-- **function**, line 567: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
-- **function**, line 844: `chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict` - Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
-- **function**, line 629: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
-- **function**, line 979: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
-- **function**, line 1481: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
-- **function**, line 289: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
-- **function**, line 1261: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
-- **function**, line 1125: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
-- **function**, line 445: `signs(species)` - No public docstring in the audited version.
-- **function**, line 944: `stoichiometry_grid(source: str, mode: str = 'analyze', output_path: str | None = None, options: dict | None = None) -> dict` - ChemDraw's own stoichiometry grid (Structure > Analyze Stoichiometry), drawn or read back.
-- **function**, line 722: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
+- **function**, line 1582: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
+- **function**, line 568: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
+- **function**, line 853: `chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict` - Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
+- **function**, line 630: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
+- **function**, line 996: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
+- **function**, line 1498: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+- **function**, line 290: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
+- **function**, line 1278: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
+- **function**, line 1142: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
+- **function**, line 446: `signs(species)` - No public docstring in the audited version.
+- **function**, line 961: `stoichiometry_grid(source: str, mode: str = 'analyze', output_path: str | None = None, options: dict | None = None) -> dict` - ChemDraw's own stoichiometry grid (Structure > Analyze Stoichiometry), drawn or read back.
+- **function**, line 723: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
 
 ## `mcp_runtime.resource_lock`
 

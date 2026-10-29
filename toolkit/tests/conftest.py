@@ -45,6 +45,8 @@ if sys.platform == "darwin" and os.environ.get("CDXML_LIVE_CHEMDRAW") != "1":
     _guarded.__dict__.update(vars(_subprocess))
     _guarded.run = _no_live_applications
     _mac.subprocess = _guarded
+    # Tests of the lookup itself call the real one; its subprocess calls stay guarded.
+    _mac.unguarded_find_application = _mac.find_application
     _mac.find_application = lambda *_args, **_kwargs: None
 
 
