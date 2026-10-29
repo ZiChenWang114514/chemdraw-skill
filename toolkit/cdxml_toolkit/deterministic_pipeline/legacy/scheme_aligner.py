@@ -24,6 +24,7 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from ...cdxml_utils import drawn_fragment_bbox
 from ...constants import ACS_BOND_LENGTH
 
 try:
@@ -283,21 +284,10 @@ def write_aligned_coords(frag_elem, mol, atoms_data, scale,
         for child in node:
             _translate_subtree(child, adx, ady)
 
-    # Recompute fragment BoundingBox
-    xs, ys = [], []
-    for n in frag_elem.findall('n'):
-        if n.get('NodeType') == 'ExternalConnectionPoint':
-            continue
-        p = n.get('p')
-        if p:
-            parts = p.split()
-            xs.append(float(parts[0]))
-            ys.append(float(parts[1]))
-    if xs and ys:
-        margin = 15.0
-        frag_elem.set('BoundingBox',
-            f"{min(xs)-margin:.2f} {min(ys)-margin:.2f} "
-            f"{max(xs)+margin:.2f} {max(ys)+margin:.2f}")
+    # Recompute fragment BoundingBox from the drawn atoms and labels
+    bbox = drawn_fragment_bbox(frag_elem)
+    if bbox is not None:
+        frag_elem.set('BoundingBox', " ".join(f"{v:.2f}" for v in bbox))
 
 
 # ---------------------------------------------------------------------------

@@ -65,7 +65,7 @@
 - **class**, line 180: `MacChemScript` - Answer ChemScript server commands with ChemDraw for macOS, OPSIN and RDKit.
 - **method**, line 202: `MacChemScript.call(cmd: str, args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 199: `MacChemScript.close() -> None` - No public docstring in the audited version.
-- **method**, line 670: `MacChemScript.cmd_atoms(args: dict) -> dict` - Atom names (as in substructure maps) and bonds of one structure.
+- **method**, line 677: `MacChemScript.cmd_atoms(args: dict) -> dict` - Atom names (as in substructure maps) and bonds of one structure.
 - **method**, line 463: `MacChemScript.cmd_cleanup(args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 534: `MacChemScript.cmd_contains_substructure(args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 430: `MacChemScript.cmd_convert(args: dict) -> dict` - No public docstring in the audited version.
@@ -75,18 +75,18 @@
 - **method**, line 517: `MacChemScript.cmd_get_properties(args: dict) -> dict` - Formula, weight, exact mass and elemental analysis from one ChemDraw reading.
 - **method**, line 614: `MacChemScript.cmd_largest_common_substructure(args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 583: `MacChemScript.cmd_load_reaction(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 685: `MacChemScript.cmd_mimetypes(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 692: `MacChemScript.cmd_mimetypes(args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 445: `MacChemScript.cmd_name_to_cdxml(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 630: `MacChemScript.cmd_overlay(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 637: `MacChemScript.cmd_overlay(args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 427: `MacChemScript.cmd_ping(args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 454: `MacChemScript.cmd_smiles_to_cdxml(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 655: `MacChemScript.cmd_substructure_align(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 662: `MacChemScript.cmd_substructure_align(args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 538: `MacChemScript.cmd_substructure_search(args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 546: `MacChemScript.cmd_write_data(args: dict) -> dict` - No public docstring in the audited version.
 - **function**, line 86: `opsin_name_to_smiles(name: str) -> Optional[str]` - Resolve a chemical name offline with OPSIN, or return None.
 - **function**, line 157: `rdkit_to_cdxml(mol) -> str` - CDXML for an RDKit molecule, keeping its coordinates and atom order.
 - **function**, line 73: `resolve_mime(fmt: str) -> str` - No public docstring in the audited version.
-- **function**, line 692: `shared() -> MacChemScript` - The process's MacChemScript, so every ChemScriptBridge drives one ChemDraw.
+- **function**, line 699: `shared() -> MacChemScript` - The process's MacChemScript, so every ChemScriptBridge drives one ChemDraw.
 
 ## `chemdraw.mac_automation`
 

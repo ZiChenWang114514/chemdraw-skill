@@ -19,15 +19,15 @@
 
 ## `deterministic_pipeline.legacy.scheme_aligner`
 
-- **function**, line 210: `align_fragment(ref_mol, tgt_mol, atom_map)` - Align target fragment to reference (product) using GenerateDepictionMatching2DStructure.
-- **function**, line 139: `avg_bond_length(atoms_data, mol)` - Average bond length computed from CDXML atom coordinates.
-- **function**, line 180: `find_mcs(ref_mol, target_mol, timeout = 30)` - Find MCS. Returns (mcs_result, atom_map [(ref_idx, tgt_idx)]).
-- **function**, line 73: `fragment_to_mol(frag_elem)` - Convert a CDXML <fragment> to an RDKit Mol (no conformer set).
-- **function**, line 43: `parse_cdxml(path)` - Parse CDXML file. Returns (tree, fragments_dict, reaction_steps).
-- **function**, line 153: `rdkit_bond_length()` - RDKit's default 2D depiction bond length (cached).
-- **function**, line 307: `save_svg(mol, highlight_atoms, label, out_dir, stem)` - Save a single SVG with highlighted atoms.
-- **function**, line 166: `set_cdxml_coords(mol, atoms_data, scale = 1.0)` - Set conformer from CDXML coordinates (y-flipped, optionally scaled).
-- **function**, line 256: `write_aligned_coords(frag_elem, mol, atoms_data, scale, original_center)` - Convert aligned RDKit coords back to CDXML space and write to XML.
+- **function**, line 211: `align_fragment(ref_mol, tgt_mol, atom_map)` - Align target fragment to reference (product) using GenerateDepictionMatching2DStructure.
+- **function**, line 140: `avg_bond_length(atoms_data, mol)` - Average bond length computed from CDXML atom coordinates.
+- **function**, line 181: `find_mcs(ref_mol, target_mol, timeout = 30)` - Find MCS. Returns (mcs_result, atom_map [(ref_idx, tgt_idx)]).
+- **function**, line 74: `fragment_to_mol(frag_elem)` - Convert a CDXML <fragment> to an RDKit Mol (no conformer set).
+- **function**, line 44: `parse_cdxml(path)` - Parse CDXML file. Returns (tree, fragments_dict, reaction_steps).
+- **function**, line 154: `rdkit_bond_length()` - RDKit's default 2D depiction bond length (cached).
+- **function**, line 297: `save_svg(mol, highlight_atoms, label, out_dir, stem)` - Save a single SVG with highlighted atoms.
+- **function**, line 167: `set_cdxml_coords(mol, atoms_data, scale = 1.0)` - Set conformer from CDXML coordinates (y-flipped, optionally scaled).
+- **function**, line 257: `write_aligned_coords(frag_elem, mol, atoms_data, scale, original_center)` - Convert aligned RDKit coords back to CDXML space and write to XML.
 
 ## `deterministic_pipeline.legacy.scheme_polisher`
 

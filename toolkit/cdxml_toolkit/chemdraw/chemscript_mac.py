@@ -625,7 +625,14 @@ class MacChemScript:
             {"common": _atom_name(common, k), "mol1": _atom_name(first, one[k]), "mol2": _atom_name(second, two[k])}
             for k in range(min(len(one), len(two)))
         ]
-        return {"ok": True, "atom_map": mapping, "common_atom_count": len(mapping)}
+        # The common part as mol1 holds it; Kekulé form, since a ring cut open cannot stay aromatic.
+        kekule = Chem.Mol(first)
+        Chem.Kekulize(kekule, clearAromaticFlags=True)
+        bonds = [first.GetBondBetweenAtoms(one[b.GetBeginAtomIdx()], one[b.GetEndAtomIdx()]).GetIdx()
+                 for b in common.GetBonds()]
+        common_smiles = Chem.MolFragmentToSmiles(kekule, atomsToUse=list(one), bondsToUse=bonds or None,
+                                                 kekuleSmiles=True) if one else None
+        return {"ok": True, "atom_map": mapping, "common_atom_count": len(mapping), "common_smiles": common_smiles}
 
     def cmd_overlay(self, args: dict) -> dict:
         from rdkit import Chem

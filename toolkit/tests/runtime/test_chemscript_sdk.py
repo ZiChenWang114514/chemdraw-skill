@@ -223,7 +223,7 @@ class FakeBackend:
         if command == "substructure_search":
             return {"ok": True, "contains": True, "maps": [{"C1": "C2", "O2": "O3"}]}
         if command == "largest_common_substructure":
-            return {"ok": True, "atom_map": [{"common": "C1", "mol1": "C1", "mol2": "C4"}]}
+            return {"ok": True, "atom_map": [{"common": "C1", "mol1": "C1", "mol2": "C4"}], "common_smiles": "CO"}
         if command == "load_reaction":
             return {"ok": True, "formula": "C2H6O >> C2H4O",
                     "reactants": [{"smiles": "CCO", "formula": "C2H6O"}],
@@ -271,6 +271,24 @@ class MacEmulationTests(unittest.TestCase):
         self.assertEqual([item["value"] for item in result["results"][1:]],
                          ["C2H6O", 46.07, 46.04, "C, 52.14; H, 13.13; O, 34.73"])
         self.assertEqual([command for command, _ in self.backend.calls].count("get_properties"), 1)
+
+    def test_inchi_charge_and_common_substructure_are_emulated(self):
+        result = self.run_program([
+            {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCO"], "as": "mol"},
+            {"op": "get", "target": "mol", "member": "Inchi"},
+            {"op": "get", "target": "mol", "member": "TotalCharge"},
+            {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CO"], "as": "other"},
+            {"op": "call_static", "type": "LargestCommonSubstructure", "member": "Compute",
+             "args": [{"$ref": "mol"}, {"$ref": "other"}], "as": "lcs"},
+            {"op": "call", "target": "lcs", "member": "CommonSubstructure", "as": "common"},
+            {"op": "call", "target": "common", "member": "Formula"},
+        ])
+
+        values = [item["value"] for item in result["results"]]
+        self.assertEqual(values[1], "CCO")  # the fake writes every non-CDXML format as this text
+        self.assertEqual(values[2], 0)
+        self.assertEqual(values[5]["$type"], "CambridgeSoft.ChemScript16.StructureData")
+        self.assertEqual(values[6], "C2H6O")
 
     def test_atom_maps_serialize_like_dotnet_dictionaries(self):
         result = self.run_program([

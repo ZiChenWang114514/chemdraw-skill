@@ -597,6 +597,21 @@ def _shift_element(el: ET.Element, dx: float, dy: float):
                 _shift_bbox_attr(inner, dx, dy)
     elif el.tag == "t":
         _shift_text_el(el, dx, dy)
+    else:
+        # Arrows, graphics, groups: every point they carry moves, and so do
+        # the objects they contain.
+        for attr in _POINT_ATTRS:
+            vals = el.get(attr, "").split()
+            if len(vals) >= 2:
+                vals[0] = f"{float(vals[0]) + dx:.2f}"
+                vals[1] = f"{float(vals[1]) + dy:.2f}"
+                el.set(attr, " ".join(vals))
+        _shift_bbox_attr(el, dx, dy)
+        for child in el:
+            _shift_element(child, dx, dy)
+
+
+_POINT_ATTRS = ("p", "Head3D", "Tail3D", "Center3D", "MajorAxisEnd3D", "MinorAxisEnd3D")
 
 
 def _shift_text_el(t: ET.Element, dx: float, dy: float):
@@ -1103,15 +1118,11 @@ def adjacent_place(trees: List[ET.ElementTree], *,
         next_z = _get_max_z(result_root) + 1
         old_to_new = {}
 
-        # Copy elements from extra_page to result_page
-        for el in list(extra_page):
-            el_copy = copy.deepcopy(el)
-            # Remap IDs
-            _remap_element_ids(el_copy, old_to_new, next_id, next_z)
-            next_id = max(next_id,
-                         _get_max_id_in_element(el_copy) + 1)
-            next_z = max(next_z,
-                         _get_max_z_in_element(el_copy) + 1)
+        # Copy elements from extra_page to result_page.  The page is remapped
+        # as a whole so that its steps see the new ids of every object.
+        page_copy = copy.deepcopy(extra_page)
+        _remap_element_ids(page_copy, old_to_new, next_id, next_z)
+        for el_copy in list(page_copy):
             # Shift horizontally
             _shift_element(el_copy, dx, 0)
             result_page.append(el_copy)
@@ -1985,6 +1996,11 @@ def _remap_element_ids(el: ET.Element, old_to_new: Dict[str, str],
             node.set("SupersededBy", old_to_new[sup])
 
         # Remap BondCircularOrdering
+        # Remap step references (reactants, products, arrows, atom maps)
+        for attr, ref in node.attrib.items():
+            if attr.startswith("ReactionStep"):
+                node.set(attr, " ".join(old_to_new.get(r, r) for r in ref.split()))
+
         bco = node.get("BondCircularOrdering")
         if bco:
             parts = bco.split()

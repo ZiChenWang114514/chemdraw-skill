@@ -42,6 +42,7 @@ from ..constants import (
     LAYOUT_INTER_GAP_BONDS,
 )
 from ..cdxml_utils import (
+    drawn_fragment_bbox,
     fragment_bbox,
     fragment_bottom_has_hanging_label,
     parse_cdxml,
@@ -54,6 +55,9 @@ _recompute_text_bbox = recompute_text_bbox
 
 # Below-arrow fragment padding (not in shared constants)
 LAYOUT_BELOW_FRAG_PAD = 2.0
+# Species on one side of the arrow are separated by a "+": leave room for it and
+# some white space either side, or it runs into the labels next to it.
+PLUS_CLEARANCE = 18.0
 
 
 # ---------------------------------------------------------------------------
@@ -154,11 +158,19 @@ def _estimate_text_width(t_el: ET.Element) -> float:
     return max_line_len * 5.8
 
 
+def _text_content(t: ET.Element) -> str:
+    return "".join(t.itertext()).strip()
+
+
 def _element_bbox(el: ET.Element) -> Tuple[float, float, float, float]:
-    """Bounding box for any element (fragment or text)."""
+    """Bounding box for any element (fragment or text).
+
+    A fragment's box covers its atoms and their drawn labels: an OH or Br
+    reaches past its atom, and spacing on atoms alone lets it run into the
+    neighbouring structure or the "+" between them.
+    """
     if el.tag == "fragment":
-        bb = fragment_bbox(el)
-        return bb if bb is not None else (0, 0, 0, 0)
+        return drawn_fragment_bbox(el) or (0, 0, 0, 0)
     elif el.tag == "t":
         return _text_bbox(el)
     bb = el.get("BoundingBox", "")
@@ -396,7 +408,7 @@ def approach_arrow_driven(page, step, id_map, arrow, verbose=False):
         return
 
     FRAG_GAP = 12.0      # gap between fragment edge and arrow tip (approach-specific)
-    INTER_GAP = LAYOUT_INTER_FRAGMENT_GAP
+    INTER_GAP = max(LAYOUT_INTER_FRAGMENT_GAP, PLUS_CLEARANCE)
 
     # Arrow length: at least as wide as widest above/below object, min 70pt
     ARROW_LEN = _compute_arrow_len_from_content(above, below, min_len=70.0)
@@ -647,7 +659,7 @@ def approach_chemdraw_mimic(page, step, id_map, arrow, verbose=False):
     content_len = _compute_arrow_len_from_content(above, below, min_len=bond_len * 5.0)
     ARROW_LEN = content_len
     FRAG_GAP = bond_len * LAYOUT_FRAG_GAP_BONDS
-    INTER_GAP = bond_len * LAYOUT_INTER_GAP_BONDS
+    INTER_GAP = max(bond_len * LAYOUT_INTER_GAP_BONDS, PLUS_CLEARANCE)
 
     r_bbs = [_element_bbox(r) for r in reactants]
     p_bbs = [_element_bbox(p) for p in products]
@@ -738,11 +750,12 @@ def _compute_arrow_len_from_content(above: List[ET.Element],
 def _stack_above_below(above: List[ET.Element], below: List[ET.Element],
                        arrow_cx: float, arrow_y: float,
                        above_gap: float, below_gap: float):
-    """Place above/below-arrow objects with text always below the arrow.
+    """Place above/below-arrow objects, text closest to the arrow.
 
-    Text (<t>) elements — even if listed as "above arrow" in the step
-    metadata — are always placed below the arrow line.  Only non-text
-    elements (fragments / structures) go above.
+    Each object stays on the side of the arrow the step lists it on, so
+    reagents written above the arrow stay above.  Text lines sit next to the
+    arrow; structures go beyond them (above the text above the arrow, below
+    the text below it).
 
     For above-arrow fragments, uses atom-only bounding boxes (no text
     labels) since ChemDraw's XML label BoundingBox values are unreliable.
@@ -756,13 +769,35 @@ def _stack_above_below(above: List[ET.Element], below: List[ET.Element],
     below_gap is the distance from the arrow y-line to the top edge
     of the highest below-arrow object (typically 4pt).
     """
-    # Collect texts from both lists — they all go below
     above_texts = [e for e in above if e.tag == "t"]
     above_frags = [e for e in above if e.tag != "t"]
     below_texts = [e for e in below if e.tag == "t"]
     below_frags = [e for e in below if e.tag != "t"]
 
-    # --- Above arrow: only non-text elements (fragments) ---
+    # Text elements use consistent baseline-to-baseline spacing (like
+    # ChemDraw's multi-line text rendering).  This avoids dependence on
+    # stale BoundingBox values from upstream processing.
+    BASELINE_OFFSET = 10.0   # baseline below top-of-text-line (cap height)
+    TEXT_LINE_SPACING = 13.0  # baseline-to-baseline (Arial 10pt with leading)
+    DESCENT = 3.0             # below the baseline
+
+    def place_text(el, baseline_y):
+        el.set("p", f"{arrow_cx:.2f} {baseline_y:.2f}")
+        el.set("CaptionJustification", "Center")
+        el.set("Justification", "Center")
+        recompute_text_bbox(el)
+
+    # --- Above arrow: text upward from the arrow, the last line nearest ---
+    top = arrow_y
+    baseline_y = arrow_y - below_gap - DESCENT
+    for el in reversed(above_texts):
+        lines = _text_content(el).count("\n") + 1
+        first_baseline = baseline_y - (lines - 1) * TEXT_LINE_SPACING
+        place_text(el, first_baseline)
+        top = first_baseline - BASELINE_OFFSET
+        baseline_y = first_baseline - TEXT_LINE_SPACING
+
+    # --- Above arrow: structures beyond the text ---
     # Use atom-only bbox; adjust gap for hanging labels (NH, PH)
     for el in above_frags:
         bb = _element_bbox(el)
@@ -776,31 +811,22 @@ def _stack_above_below(above: List[ET.Element], below: List[ET.Element],
         else:
             gap = above_gap
 
-        # Place so bottom edge of atom-only bbox is at arrow_y - gap
-        target_bottom = arrow_y - gap
+        # Place so bottom edge of atom-only bbox is at top - gap
+        target_bottom = top - gap
         target_cy = target_bottom - h / 2.0
         _shift_element(el, arrow_cx - cx, target_cy - cy)
+        top = target_bottom - h
 
-    # --- Below arrow: all text (from above + below lists), then fragments ---
-    # Text elements use consistent baseline-to-baseline spacing (like
-    # ChemDraw's multi-line text rendering).  This avoids dependence on
-    # stale BoundingBox values from upstream processing.
-    all_below_text = above_texts + below_texts
-    BASELINE_OFFSET = 10.0   # baseline below top-of-text-line (cap height)
-    TEXT_LINE_SPACING = 13.0  # baseline-to-baseline (Arial 10pt with leading)
-
+    # --- Below arrow: text downward from the arrow, then structures ---
     prev_baseline = None
     y_cursor = arrow_y + below_gap
-    for el in all_below_text:
+    for el in below_texts:
         if prev_baseline is None:
             baseline_y = y_cursor + BASELINE_OFFSET
         else:
             baseline_y = prev_baseline + TEXT_LINE_SPACING
-        el.set("p", f"{arrow_cx:.2f} {baseline_y:.2f}")
-        el.set("CaptionJustification", "Center")
-        el.set("Justification", "Center")
-        recompute_text_bbox(el)
-        prev_baseline = baseline_y
+        place_text(el, baseline_y)
+        prev_baseline = baseline_y + (_text_content(el).count("\n")) * TEXT_LINE_SPACING
         # Update y_cursor to bottom of this text element for any
         # subsequent non-text elements
         bb = _element_bbox(el)
@@ -861,6 +887,32 @@ APPROACH_DESCRIPTIONS = {
 }
 
 
+def _plus_signs_between(page: ET.Element, species: List[ET.Element]) -> List[Tuple[ET.Element, ET.Element, ET.Element]]:
+    """``(plus, left, right)`` for each page-level "+" sitting between two of ``species``."""
+    ordered = sorted(species, key=lambda el: _element_bbox(el)[0])
+    pairs = []
+    for t in page.findall("t"):
+        if _text_content(t) != "+":
+            continue
+        px, py = _bbox_center(_text_bbox(t))
+        for left, right in zip(ordered, ordered[1:]):
+            lb, rb = _element_bbox(left), _element_bbox(right)
+            # Between the two centres, and level with them: the "+" of this pair.
+            if _bbox_center(lb)[0] <= px <= _bbox_center(rb)[0] and \
+                    min(lb[1], rb[1]) <= py <= max(lb[3], rb[3]):
+                pairs.append((t, left, right))
+                break
+    return pairs
+
+
+def _recenter_plus_signs(pairs, arrow_y: float) -> None:
+    """Put each "+" in the middle of the gap the layout left between its two species."""
+    for plus, left, right in pairs:
+        gap_x = (_element_bbox(left)[2] + _element_bbox(right)[0]) / 2.0
+        cx, cy = _bbox_center(_text_bbox(plus))
+        _shift_text_element(plus, gap_x - cx, arrow_y - cy)
+
+
 def run_cleanup(input_path: str, output_path: str, approach: str = "chemdraw_mimic",
                 verbose: bool = False) -> dict:
     """Run one cleanup approach on a CDXML file.
@@ -890,8 +942,11 @@ def run_cleanup(input_path: str, output_path: str, approach: str = "chemdraw_mim
     reactants, products, _, _ = _parse_reaction(page, step, id_map)
     num_reactants = len(reactants)
     num_products = len(products)
+    # The step does not list its "+" signs; they follow the species they separate.
+    plus_signs = _plus_signs_between(page, reactants) + _plus_signs_between(page, products)
 
     func(page, step, id_map, arrow, verbose=verbose)
+    _recenter_plus_signs(plus_signs, _arrow_endpoints(arrow)[1])
     _update_doc_bbox(root)
     write_cdxml(tree, output_path)
     return {

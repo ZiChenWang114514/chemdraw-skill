@@ -62,6 +62,48 @@ def fragment_bbox(
     return None
 
 
+# Width of one atom-label letter (Arial 10 pt, as ACS Document 1996 sets labels)
+LABEL_CHAR_WIDTH = 6.0
+
+
+def drawn_fragment_bbox(
+    frag: ET.Element,
+) -> Optional[Tuple[float, float, float, float]]:
+    """Box around what a <fragment> draws: its atoms and their labels.
+
+    Covers each direct-child atom ``p`` (connection points excluded) and every
+    label ``<t>`` on those atoms: an OH or Br reaches past its atom.  Unlike a
+    fixed margin around the atoms, it does not reach into neighbouring objects.
+    """
+    xs: list[float] = []
+    ys: list[float] = []
+    atoms = [n for n in frag.findall("n") if n.get("NodeType") != "ExternalConnectionPoint"]
+    for n in atoms:
+        parts = n.get("p", "").split()
+        if len(parts) >= 2:
+            xs.append(float(parts[0]))
+            ys.append(float(parts[1]))
+    if not xs:
+        return None
+    middle = (min(xs) + max(xs)) / 2.0
+    for n in atoms:
+        for t in n.findall("t"):
+            vals = t.get("BoundingBox", "").split()
+            if len(vals) < 4:
+                continue
+            x1, y1, x2, y2 = (float(v) for v in vals[:4])
+            # A label box often covers only its first letter, and ChemDraw writes the rest
+            # (the H of OH, the r of Br) away from the bonds: on the far side of the structure.
+            extra = (len("".join("".join(t.itertext()).split())) - 1) * LABEL_CHAR_WIDTH
+            if float(n.get("p", f"{middle} 0").split()[0]) >= middle:
+                x2 = max(x2, x1 + LABEL_CHAR_WIDTH + extra)
+            else:
+                x1 = min(x1, x2 - LABEL_CHAR_WIDTH - extra)
+            xs += [x1, x2]
+            ys += [y1, y2]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
 def fragment_centroid(frag: ET.Element) -> Optional[Tuple[float, float]]:
     """Center point of :func:`fragment_bbox`.
 

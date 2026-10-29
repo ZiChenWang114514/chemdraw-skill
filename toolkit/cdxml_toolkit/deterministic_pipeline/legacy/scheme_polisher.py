@@ -906,12 +906,12 @@ def polish_scheme(
             for child in wrapper:
                 keep_el.append(child)
 
-            # Update step refs: merged text block goes above arrow
-            # (ChemDraw Clean Up Reaction expects objects in above/below)
+            # Update step refs: the merged block sits below the arrow, so the step
+            # lists it there (the layout keeps each object on its listed side)
             step.set("ReactionStepObjectsAboveArrow",
-                      " ".join(non_text_above + [keep_id]))
+                      " ".join(non_text_above))
             step.set("ReactionStepObjectsBelowArrow",
-                      " ".join(non_text_below))
+                      " ".join([keep_id] + non_text_below))
 
             merged_conditions = True
             merged_text_id = keep_id
