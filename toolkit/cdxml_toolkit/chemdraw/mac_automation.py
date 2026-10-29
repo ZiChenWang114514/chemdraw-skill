@@ -30,6 +30,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 from typing import Iterable, Optional
 from xml.etree import ElementTree
 
@@ -833,7 +834,9 @@ class MacChemDrawSession:
                 f"ChemDraw for macOS opens {source_path.suffix} files as stationery; "
                 "read style sheets with cdxml_toolkit.chemdraw.style_sheet",
             )
-        staged = workspace / f"input{source_path.suffix.lower()}"
+        # ChemDraw refers to the opened document by name, so the name must be
+        # one no other open document (a leftover, or the user's own) can have.
+        staged = workspace / f"cdx-{uuid.uuid4().hex}{source_path.suffix.lower()}"
         shutil.copy2(source_path, staged)
         if staged.suffix in (".cdxml", ".cdx"):
             substitute_missing_fonts(staged)

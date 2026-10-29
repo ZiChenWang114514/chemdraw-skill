@@ -268,6 +268,28 @@ class OfficeHelpersOnMacTests(unittest.TestCase):
 
             self.assertTrue(destination.is_file())
 
+    def test_each_export_opens_a_document_no_one_else_has_open(self):
+        # Office finds the opened document by name: a fixed name would export, and
+        # close unsaved, a document of the same name the user has open.
+        names = []
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "document.docx"
+            source.write_bytes(b"docx")
+
+            def fake_script(script, args, timeout_seconds):
+                names.append(args[2])
+                self.assertEqual(Path(args[0]).name, args[2])
+                Path(args[1]).write_bytes(MINIMAL_PDF)
+                return ""
+
+            with mock.patch.object(mac_automation, "run_applescript", side_effect=fake_script):
+                for _ in range(2):
+                    mac_office.export_pdf(source, Path(temp) / "doc.pdf")
+
+        self.assertNotEqual(names[0], names[1])
+        self.assertNotIn("document.docx", names)
+        self.assertTrue(all(name.endswith(".docx") for name in names))
+
 
 if __name__ == "__main__":
     unittest.main()

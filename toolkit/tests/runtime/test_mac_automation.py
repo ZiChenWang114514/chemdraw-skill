@@ -198,6 +198,21 @@ class AutomationHelpersTests(unittest.TestCase):
                 session._openable(sheet, Path(directory))
         self.assertEqual(raised.exception.error_code, "native_format_unsupported")
 
+    def test_each_run_opens_a_document_with_a_name_of_its_own(self):
+        # ChemDraw refers to a document by its name: with a fixed name, a document
+        # left open (or the user's own input.cdxml) is the one saved and closed.
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "input.cdxml"
+            source.write_text("<CDXML/>", encoding="utf-8")
+            session = mac_automation.MacChemDrawSession()
+            for name in "ab":
+                (Path(directory) / name).mkdir()
+            first = session._openable(source, Path(directory) / "a")
+            second = session._openable(source, Path(directory) / "b")
+        self.assertNotEqual(first.name, second.name)
+        self.assertNotEqual(first.name, "input.cdxml")
+        self.assertEqual(first.suffix, ".cdxml")
+
     def test_emf_destinations_are_converted_from_chemdraws_svg_export(self):
         svg = ('<svg width="20px" height="10px" xmlns="http://www.w3.org/2000/svg">'
                '<path d="M 1,1 L 19,1 L 19,2 Z"/></svg>')
