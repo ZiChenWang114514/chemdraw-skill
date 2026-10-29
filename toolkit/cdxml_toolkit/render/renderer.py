@@ -67,6 +67,7 @@ from .schema import (
 # ---------------------------------------------------------------------------
 
 _CHAR_WIDTH = 4.7       # average character width (proportional Arial)
+RUN_LABEL_GAP = 6.0     # white space between run-arrow labels on one line
 _LINE_ADVANCE = 11.5    # line-to-line distance (ChemDraw ~1.15× multiplier)
 _CAP_HEIGHT = 9.1       # baseline to top of uppercase letters
 _DESCENT = 2.0          # baseline to bottom of descenders
@@ -2309,7 +2310,11 @@ def _layout_steps_row(
     effective_run_arrows = run_arrows if run_arrows is not None else scheme.run_arrows
 
     if effective_run_arrows:
-        run_y = lowest_y + 6.0  # tighter gap between conditions text and run arrows
+        base_y = lowest_y + 6.0  # tighter gap between conditions text and run arrows
+        lowest_y = base_y
+        # Each run takes the highest free line below the conditions; runs of
+        # neighbouring steps share a line unless their labels would meet.
+        taken: List[Tuple[float, float, float, float]] = []
 
         for sra in effective_run_arrows:
             step_idx = sra.step - 1  # 0-indexed
@@ -2321,8 +2326,21 @@ def _layout_steps_row(
             # just translated vertically below the scheme content.
             run_tail_x = rs.arrow_tail_x
             run_head_x = rs.arrow_head_x
+            run_y = base_y
 
             for run_entry in sra.runs:
+                note_height = 10.0 if run_entry.note else 0.0
+                left = run_tail_x - 5.0 - _estimate_text_width([run_entry.input_label])
+                right = run_head_x + 5.0 + _estimate_text_width([run_entry.output_label or ""])
+                if run_entry.note:
+                    half = _estimate_text_width([run_entry.note]) / 2.0
+                    mid = (run_tail_x + run_head_x) / 2.0
+                    left, right = min(left, mid - half), max(right, mid + half)
+                while any(left < x2 + RUN_LABEL_GAP and x1 < right + RUN_LABEL_GAP
+                          and run_y < y2 and y1 < run_y + note_height + 18.0
+                          for x1, y1, x2, y2 in taken):
+                    run_y += 18.0
+                taken.append((left, run_y, right, run_y + note_height + 18.0))
                 if run_entry.note:
                     # Text centered above this specific run arrow
                     note_y = run_y - 1.0
@@ -2334,7 +2352,7 @@ def _layout_steps_row(
                         use_formatting=False,
                     )
                     xml_parts.append(note_xml)
-                    run_y += 10.0  # space for note text
+                    run_y += note_height  # space for note text
                 run_xml, _ = _build_run_arrow(
                     run_tail_x, run_head_x,
                     run_y,
@@ -2344,8 +2362,7 @@ def _layout_steps_row(
                 )
                 xml_parts.append(run_xml)
                 run_y += 18.0  # stack multiple runs
-
-        lowest_y = run_y
+                lowest_y = max(lowest_y, run_y)
 
     # Compute row edge (rightmost for LTR, leftmost for RTL)
     row_edge_x = cursor_x

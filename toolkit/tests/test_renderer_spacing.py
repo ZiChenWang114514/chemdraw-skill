@@ -87,3 +87,50 @@ def test_conditions_beside_a_serpentine_turn_are_written_like_the_others():
     texts = [" ".join("".join(t.itertext()).split()) for t in ET.fromstring(_body(cdxml)).iter("t")]
     # The turn's "DCM, -78 C" gets its degree sign, as conditions on a row arrow do.
     assert any("78 °C" in t for t in texts) and not any(t.endswith("78 C") for t in texts), texts
+
+
+def _run_arrows(cdxml):
+    """``{input label: arrow y}`` for every run arrow: the arrows with a label at their tail."""
+    root = ET.fromstring(_body(cdxml))
+    page = root.find("page")
+    arrows = [a for a in page.iter("arrow")]
+    found = {}
+    for t in page.iter("t"):
+        if t.get("Justification") != "Right":
+            continue
+        x, y = (float(v) for v in t.get("p").split()[:2])
+        for a in arrows:
+            tail_x, tail_y = (float(v) for v in a.get("Tail3D").split()[:2])
+            if abs(tail_x - 5.0 - x) < 0.5 and abs(y - tail_y) < 5:
+                found["".join(t.itertext()).strip()] = tail_y
+    return found
+
+
+def test_run_arrows_of_neighbouring_steps_share_a_line():
+    # The intermediate is wide enough for "1.60 g, 72%" and "1.60 g" side by side.
+    scheme = parse_yaml("experiments/scheme_dsl/showcase/27_sequential_run_arrows_no_wrap.yaml")
+    runs = _run_arrows(renderer.render(scheme))
+
+    assert runs["2.15 g"] == runs["1.60 g"]
+
+
+def test_run_labels_that_would_meet_are_stacked(tmp_path):
+    source = tmp_path / "narrow.yaml"
+    source.write_text("""
+layout: sequential
+structures:
+  a: {smiles: "CO"}
+  b: {smiles: "C=O"}
+  c: {smiles: "OC=O"}
+steps:
+  - {substrates: [a], products: [b]}
+  - {substrates: [b], products: [c]}
+run_arrows:
+  - step: 1
+    runs: [{input: "2.15 g", output: "1.60 g, 72% yield after column"}]
+  - step: 2
+    runs: [{input: "1.60 g (crude, used directly)", output: "1.52 g"}]
+""", encoding="utf-8")
+    runs = _run_arrows(renderer.render(parse_yaml(str(source))))
+
+    assert runs["1.60 g (crude, used directly)"] > runs["2.15 g"]

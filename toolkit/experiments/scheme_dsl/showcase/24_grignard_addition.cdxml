@@ -82,24 +82,24 @@
 </fonttable>
 <page id="1136" BoundingBox="0 0 1620 2160" HeaderPosition="36" FooterPosition="36" PrintTrimMarks="yes" HeightPages="3" WidthPages="3">
 <fragment id="1000" BoundingBox="103.30 275.66 171.85 324.34" Z="1001">
-<n id="1002" p="137.57 275.66" Z="1003" Element="8" NumHydrogens="0" NeedsClean="yes">
-<t id="1004" p="134.32 279.18" BoundingBox="134.57 268.14 140.57 275.66" LabelJustification="Left">
+<n id="1002" p="137.57 324.34" Z="1003" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1004" p="134.32 327.86" BoundingBox="134.57 316.82 140.57 324.34" LabelJustification="Left">
 <s font="3" size="10" color="0" face="96">O</s>
 </t>
 </n>
-<n id="1005" p="137.57 290.06" Z="1006"/>
-<n id="1007" p="147.76 300.25" Z="1008"/>
-<n id="1009" p="144.03 314.15" Z="1010"/>
-<n id="1011" p="154.21 324.34" Z="1012"/>
-<n id="1013" p="168.12 320.61" Z="1014"/>
-<n id="1015" p="171.85 306.70" Z="1016"/>
-<n id="1017" p="161.67 296.52" Z="1018"/>
-<n id="1019" p="127.39 300.25" Z="1020"/>
-<n id="1021" p="113.48 296.52" Z="1022"/>
-<n id="1023" p="103.30 306.70" Z="1024"/>
-<n id="1025" p="107.03 320.61" Z="1026"/>
-<n id="1027" p="120.94 324.34" Z="1028"/>
-<n id="1029" p="131.12 314.15" Z="1030"/>
+<n id="1005" p="137.57 309.94" Z="1006"/>
+<n id="1007" p="127.39 299.75" Z="1008"/>
+<n id="1009" p="131.12 285.85" Z="1010"/>
+<n id="1011" p="120.94 275.66" Z="1012"/>
+<n id="1013" p="107.03 279.39" Z="1014"/>
+<n id="1015" p="103.30 293.30" Z="1016"/>
+<n id="1017" p="113.48 303.48" Z="1018"/>
+<n id="1019" p="147.76 299.75" Z="1020"/>
+<n id="1021" p="161.67 303.48" Z="1022"/>
+<n id="1023" p="171.85 293.30" Z="1024"/>
+<n id="1025" p="168.12 279.39" Z="1026"/>
+<n id="1027" p="154.21 275.66" Z="1028"/>
+<n id="1029" p="144.03 285.85" Z="1030"/>
 <b id="1031" Z="1032" B="1002" E="1005" Order="2"/>
 <b id="1033" Z="1034" B="1005" E="1007"/>
 <b id="1035" Z="1036" B="1007" E="1009" Order="2" DoublePosition="Right"/>
@@ -117,34 +117,34 @@
 <b id="1059" Z="1060" B="1029" E="1019"/>
 </fragment>
 <t id="1061" p="137.57 339.79" BoundingBox="135.22 330.69 139.92 341.79" Z="1062" CaptionJustification="Center" Justification="Center" LineHeight="auto">
-<s font="3" size="10" color="0" face="0">1</s>
+<s font="3" size="10.0" color="0" face="0">1</s>
 </t>
-<arrow id="1063" BoundingBox="190.99 296.00 271.49 304.00" Z="1064" FillType="None" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadCenterSize="875" ArrowheadWidth="250" Head3D="271.49 300.00 0" Tail3D="190.99 300.00 0" Center3D="231.24 400.00 0" MajorAxisEnd3D="311.24 400.00 0" MinorAxisEnd3D="231.24 480.00 0"/>
-<t id="1065" p="231.24 313.10" BoundingBox="195.99 304.00 266.49 338.10" Z="1066" CaptionJustification="Center" Justification="Center" LineHeight="auto">
-<s font="3" size="10" color="0" face="96">MeMgBr (2.0 eq)
-</s><s font="3" size="10" color="0" face="96">THF, 0 C, 2 h
-</s><s font="3" size="10" color="0" face="96">then aq. NH</s><s font="3" size="10" color="0" face="32">4</s><s font="3" size="10" color="0" face="96">Cl</s>
+<arrow id="1063" BoundingBox="197.47 296.00 277.97 304.00" Z="1064" FillType="None" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadCenterSize="875" ArrowheadWidth="250" Head3D="277.97 300.00 0" Tail3D="197.47 300.00 0" LineWidth="0.60"/>
+<t id="1065" p="237.72 313.10" BoundingBox="202.47 304.00 272.97 338.10" Z="1066" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="96">MeMgBr (2.0 eq)
+</s><s font="3" size="10.0" color="0" face="96">THF, 0 °C, 2 h
+</s><s font="3" size="10.0" color="0" face="96">then aq. NH</s><s font="3" size="10.0" color="0" face="32">4</s><s font="3" size="10.0" color="0" face="96">Cl</s>
 </t>
-<fragment id="1067" BoundingBox="289.19 277.77 357.74 322.23" Z="1068">
-<n id="1069" p="333.65 277.77" Z="1070" Element="8" NumHydrogens="1" NeedsClean="yes">
-<t id="1071" p="330.40 281.29" BoundingBox="330.65 270.25 336.65 277.77" LabelJustification="Left">
+<fragment id="1067" BoundingBox="295.67 277.77 364.22 322.23" Z="1068">
+<n id="1069" p="319.76 322.23" Z="1070" Element="8" NumHydrogens="1" NeedsClean="yes">
+<t id="1071" p="316.51 325.75" BoundingBox="316.76 314.71 322.76 322.23" LabelJustification="Left">
 <s font="3" size="10" color="0" face="96">OH</s>
 </t>
 </n>
-<n id="1072" p="323.46 287.95" Z="1073"/>
-<n id="1074" p="333.65 298.14" Z="1075"/>
-<n id="1076" p="329.92 312.05" Z="1077"/>
-<n id="1078" p="340.10 322.23" Z="1079"/>
-<n id="1080" p="354.01 318.50" Z="1081"/>
-<n id="1082" p="357.74 304.59" Z="1083"/>
-<n id="1084" p="347.55 294.41" Z="1085"/>
-<n id="1086" p="313.28 298.14" Z="1087"/>
-<n id="1088" p="299.37 294.41" Z="1089"/>
-<n id="1090" p="289.19 304.59" Z="1091"/>
-<n id="1092" p="292.92 318.50" Z="1093"/>
-<n id="1094" p="306.82 322.23" Z="1095"/>
-<n id="1096" p="317.01 312.05" Z="1097"/>
-<n id="1098" p="313.28 277.77" Z="1099"/>
+<n id="1072" p="329.94 312.05" Z="1073"/>
+<n id="1074" p="319.76 301.86" Z="1075"/>
+<n id="1076" p="323.49 287.95" Z="1077"/>
+<n id="1078" p="313.30 277.77" Z="1079"/>
+<n id="1080" p="299.39 281.50" Z="1081"/>
+<n id="1082" p="295.67 295.41" Z="1083"/>
+<n id="1084" p="305.85 305.59" Z="1085"/>
+<n id="1086" p="340.12 301.86" Z="1087"/>
+<n id="1088" p="354.03 305.59" Z="1089"/>
+<n id="1090" p="364.22 295.41" Z="1091"/>
+<n id="1092" p="360.49 281.50" Z="1093"/>
+<n id="1094" p="346.58 277.77" Z="1095"/>
+<n id="1096" p="336.40 287.95" Z="1097"/>
+<n id="1098" p="340.12 322.23" Z="1099"/>
 <b id="1100" Z="1101" B="1069" E="1072"/>
 <b id="1102" Z="1103" B="1072" E="1074"/>
 <b id="1104" Z="1105" B="1074" E="1076" Order="2" DoublePosition="Right"/>
@@ -162,8 +162,8 @@
 <b id="1128" Z="1129" B="1084" E="1074"/>
 <b id="1130" Z="1131" B="1096" E="1086"/>
 </fragment>
-<t id="1132" p="323.46 337.68" BoundingBox="321.11 328.58 325.81 339.68" Z="1133" CaptionJustification="Center" Justification="Center" LineHeight="auto">
-<s font="3" size="10" color="0" face="0">2</s>
+<t id="1132" p="329.94 337.68" BoundingBox="327.59 328.58 332.29 339.68" Z="1133" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="0">2</s>
 </t>
 <scheme id="1134">
 <step id="1135" ReactionStepReactants="1000" ReactionStepProducts="1067" ReactionStepArrows="1063" ReactionStepObjectsBelowArrow="1065"/>
