@@ -333,6 +333,10 @@ Check a markush.json spec; every error says what to change.
 
 Merge parallel, sequential, or unrelated CDXML reaction schemes.
 
+A parallel merge (repeat runs of one reaction) draws the first input's
+conditions and adds each run's mass and yield as run arrows; a warning names
+any run whose own conditions are therefore not drawn.
+
 ### `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict`
 
 Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.

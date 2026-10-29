@@ -62,20 +62,20 @@
 
 ## `layout.scheme_merger`
 
-- **function**, line 1070: `adjacent_place(trees: List[ET.ElementTree], *, log = None) -> ET.ElementTree` - Place multiple independent schemes side by side on one page.
-- **function**, line 842: `auto_detect(schemes: List[ParsedScheme], log = None) -> MergePlan` - Analyze N schemes and determine merge strategy.
-- **function**, line 787: `classify_pair(ps_a: ParsedScheme, ps_b: ParsedScheme) -> str` - Classify the relationship between two parsed schemes.
-- **class**, line 66: `EquivInfo` - Equiv value for one reagent in one scheme.
-- **function**, line 964: `execute_merge_plan(schemes: List[ParsedScheme], plan: MergePlan, *, equiv_mode: str = 'default', ref_cdxml: str = None, allow_adjacent: bool = True, log = None) -> ET.ElementTree` - Execute a merge plan: parallel within groups, sequential between.
-- **class**, line 810: `MergePlan` - Result of auto-detection: how to merge N schemes.
-- **method**, line 819: `MergePlan.describe() -> str` - Human-readable summary of the merge plan.
-- **function**, line 1160: `parallel_merge(schemes: List[ParsedScheme], *, equiv_mode: str = 'default', strict: bool = True, log = None) -> ET.ElementTree` - Merge schemes for the same reaction into one with stacked run arrows.
-- **function**, line 225: `parse_scheme(path: str, log = None) -> ParsedScheme` - Parse an ELN-enriched CDXML scheme file.
-- **class**, line 73: `ParsedScheme` - A parsed ELN-enriched CDXML scheme with all metadata extracted.
-- **method**, line 126: `ParsedScheme.get_product_smiles_set() -> set` - Set of canonical SMILES for product fragments.
-- **method**, line 117: `ParsedScheme.get_reactant_smiles_set() -> set` - Set of canonical SMILES for reactant fragments.
-- **class**, line 58: `RunArrowData` - Data extracted from one run arrow (mass/yield for one run).
-- **function**, line 1461: `sequential_merge(schemes: List[ParsedScheme], *, ref_cdxml: str = None, log = None) -> ET.ElementTree` - Merge schemes where step N product = step N+1 starting material.
+- **function**, line 1074: `adjacent_place(trees: List[ET.ElementTree], *, log = None) -> ET.ElementTree` - Place multiple independent schemes side by side on one page.
+- **function**, line 846: `auto_detect(schemes: List[ParsedScheme], log = None) -> MergePlan` - Analyze N schemes and determine merge strategy.
+- **function**, line 791: `classify_pair(ps_a: ParsedScheme, ps_b: ParsedScheme) -> str` - Classify the relationship between two parsed schemes.
+- **class**, line 70: `EquivInfo` - Equiv value for one reagent in one scheme.
+- **function**, line 968: `execute_merge_plan(schemes: List[ParsedScheme], plan: MergePlan, *, equiv_mode: str = 'default', ref_cdxml: str = None, allow_adjacent: bool = True, log = None) -> ET.ElementTree` - Execute a merge plan: parallel within groups, sequential between.
+- **class**, line 814: `MergePlan` - Result of auto-detection: how to merge N schemes.
+- **method**, line 823: `MergePlan.describe() -> str` - Human-readable summary of the merge plan.
+- **function**, line 1164: `parallel_merge(schemes: List[ParsedScheme], *, equiv_mode: str = 'default', strict: bool = True, log = None) -> ET.ElementTree` - Merge schemes for the same reaction into one with stacked run arrows.
+- **function**, line 229: `parse_scheme(path: str, log = None) -> ParsedScheme` - Parse an ELN-enriched CDXML scheme file.
+- **class**, line 77: `ParsedScheme` - A parsed ELN-enriched CDXML scheme with all metadata extracted.
+- **method**, line 130: `ParsedScheme.get_product_smiles_set() -> set` - Set of canonical SMILES for product fragments.
+- **method**, line 121: `ParsedScheme.get_reactant_smiles_set() -> set` - Set of canonical SMILES for reactant fragments.
+- **class**, line 62: `RunArrowData` - Data extracted from one run arrow (mass/yield for one run).
+- **function**, line 1465: `sequential_merge(schemes: List[ParsedScheme], *, ref_cdxml: str = None, log = None) -> ET.ElementTree` - Merge schemes where step N product = step N+1 starting material.
 
 ## `render.auto_layout`
 

@@ -299,7 +299,7 @@
       "group": "extended",
       "resource_class": "chemdraw_com",
       "timeout_seconds": null,
-      "description": "Merge parallel, sequential, or unrelated CDXML reaction schemes."
+      "description": "Merge parallel, sequential, or unrelated CDXML reaction schemes.\n\nA parallel merge (repeat runs of one reaction) draws the first input's\nconditions and adds each run's mass and yield as run arrows; a warning names\nany run whose own conditions are therefore not drawn."
     },
     {
       "name": "modify_molecule",

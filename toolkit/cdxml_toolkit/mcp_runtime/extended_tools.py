@@ -487,6 +487,32 @@ def clean_scheme_layout(
     return _contract(outputs, metadata={"approach": approach})
 
 
+def _condition_lines(scheme: Any) -> list[str]:
+    texts = {el.get("id", ""): " ".join("".join(el.itertext()).split())
+             for el in scheme.page if el.tag == "t"}
+    return [texts[i] for i in scheme.above_arrow_ids + scheme.below_arrow_ids if texts.get(i)]
+
+
+def _dropped_parallel_runs(schemes: list[Any], groups: list[list[int]]) -> list[str]:
+    """Warn for each repeat run whose own conditions the parallel merge does not draw.
+
+    A parallel merge draws the first run's conditions; the others only add their
+    run arrows (mass and yield), so different conditions would vanish silently.
+    """
+    warnings = []
+    for group in groups:
+        first = group[0]
+        for index in group[1:]:
+            lines = _condition_lines(schemes[index])
+            if lines != _condition_lines(schemes[first]):
+                warnings.append(
+                    f"Input {index + 1} is merged as a repeat run of input {first + 1}; its "
+                    f"conditions ({'; '.join(lines) or 'none'}) differ and are not drawn. "
+                    "Merge with mode='adjacent' to show both."
+                )
+    return warnings
+
+
 def merge_reaction_schemes(
     input_paths: list[str],
     output_path: Optional[str] = None,
@@ -497,7 +523,12 @@ def merge_reaction_schemes(
     render_preview: bool = True,
     force_sequential: bool = False,
 ) -> dict[str, Any]:
-    """Merge parallel, sequential, or unrelated CDXML reaction schemes."""
+    """Merge parallel, sequential, or unrelated CDXML reaction schemes.
+
+    A parallel merge (repeat runs of one reaction) draws the first input's
+    conditions and adds each run's mass and yield as run arrows; a warning names
+    any run whose own conditions are therefore not drawn.
+    """
     if len(input_paths) < 2:
         raise ValueError("merge_reaction_schemes requires at least two input files")
     if mode not in {"auto", "parallel", "sequential", "adjacent"}:
@@ -537,8 +568,10 @@ def merge_reaction_schemes(
             schemes, plan, equiv_mode=equiv_mode, ref_cdxml=reference,
             allow_adjacent=allow_adjacent,
         )
+        warnings += _dropped_parallel_runs(schemes, plan.parallel_groups)
     elif mode == "parallel":
         tree = parallel_merge(schemes, equiv_mode=equiv_mode, strict=True)
+        warnings += _dropped_parallel_runs(schemes, [list(range(len(schemes)))])
     elif mode == "sequential":
         unlinked = _unlinked_sequential_steps(schemes)
         if unlinked and not force_sequential:

@@ -39,6 +39,10 @@ from ..cdxml_utils import (
     recompute_text_bbox,
 )
 from ..rdkit_utils import frag_to_smiles, frag_to_mw
+from .reaction_cleanup import (
+    PLUS_CLEARANCE, _atom_anchor, _carry_compound_labels, _compound_labels,
+    _plus_signs_between, _recenter_plus_signs,
+)
 from ..constants import (
     ACS_BOND_LENGTH,
     LAYOUT_ABOVE_GAP,
@@ -1560,6 +1564,20 @@ def sequential_merge(schemes: List[ParsedScheme], *,
         if step_idx > 0 and links[step_idx - 1][1]:
             sd["skip_reactant_ids"].add(links[step_idx - 1][1])
 
+        # Compound numbers hang under their structures without a step role:
+        # they follow their structure, and the shared intermediate's goes with it.
+        page_ids = {e.get("id", ""): e for e in s.page}
+        species = [page_ids[i] for i in s.reactant_ids + s.product_ids if i in page_ids]
+        listed = set(s.reactant_ids + s.product_ids + s.above_arrow_ids
+                     + s.below_arrow_ids + [s.main_arrow_id])
+        label_owner = {t.get("id", ""): f.get("id", "")
+                       for t, f, _ in _compound_labels(s.page, species, listed)}
+        # So do the "+" signs between species: they go back between them.
+        plus_pairs = {t.get("id", ""): (a.get("id", ""), b.get("id", ""))
+                      for side in (s.reactant_ids, s.product_ids)
+                      for t, a, b in _plus_signs_between(
+                          s.page, [page_ids[i] for i in side if i in page_ids])}
+
         # Deep copy all page elements and remap IDs
         old_to_new = {}
 
@@ -1578,8 +1596,9 @@ def sequential_merge(schemes: List[ParsedScheme], *,
             if eid in set(s.run_arrow_text_ids):
                 continue
 
-            # Skip the duplicate reactant
-            if eid in sd["skip_reactant_ids"]:
+            # Skip the duplicate reactant, and its compound number
+            if eid in sd["skip_reactant_ids"] or \
+                    label_owner.get(eid) in sd["skip_reactant_ids"]:
                 continue
 
             # Skip standalone equiv labels — these are redundant in multi-step
@@ -1645,8 +1664,15 @@ def sequential_merge(schemes: List[ParsedScheme], *,
                 sd["arrow_id"] = new_id
             elif role == "main_graphic":
                 sd["graphic_id"] = new_id
-            elif role == "other":
+            elif role == "other" and old_id not in label_owner and old_id not in plus_pairs:
                 sd["other_ids"].append(new_id)
+        copies = {old_id: el_copy for el_copy, _, old_id in sd["elements"]}
+        sd["plus_signs"] = [(copies[t], copies[a], copies[b])
+                            for t, (a, b) in plus_pairs.items()
+                            if t in copies and a in copies and b in copies]
+        sd["labels"] = [(copies[t], copies[f], _atom_anchor(copies[f])[:2])
+                        for t, f in label_owner.items()
+                        if t in copies and f in copies and _atom_anchor(copies[f])]
 
         # If shared intermediate was skipped, use the previous step's product ID
         if step_idx > 0 and links[step_idx - 1][1]:
@@ -1661,7 +1687,8 @@ def sequential_merge(schemes: List[ParsedScheme], *,
     # --- Horizontal layout ---
     bond_len = ACS_BOND_LENGTH
     frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS
+    # Species on one side of an arrow are separated by a "+": leave room for it
+    inter_gap = max(bond_len * LAYOUT_INTER_GAP_BONDS, PLUS_CLEARANCE)
 
     # Add all elements to the merged page first
     all_elements = {}  # id -> element
@@ -1815,7 +1842,9 @@ def sequential_merge(schemes: List[ParsedScheme], *,
             if bb_str:
                 bb_vals = [float(v) for v in bb_str.split()]
                 if len(bb_vals) >= 4:
-                    y_cursor = bb_vals[3] + TEXT_ELEMENT_GAP
+                    # Next baseline: below this element, leaving room for the
+                    # next line's own height
+                    y_cursor = bb_vals[3] + TEXT_ELEMENT_GAP + BASELINE_OFFSET
                 else:
                     y_cursor += 13.0
             else:
@@ -1850,6 +1879,8 @@ def sequential_merge(schemes: List[ParsedScheme], *,
 
         # After products, replace inter_gap with frag_gap for next step
         cursor_x = cursor_x - inter_gap + frag_gap
+        _carry_compound_labels(sd["labels"])
+        _recenter_plus_signs(sd["plus_signs"], arrow_y)
 
         # FIX 2: Shift "other" elements (standalone equiv labels etc.)
         # by the same horizontal delta as the step's arrow moved.
@@ -1879,10 +1910,13 @@ def sequential_merge(schemes: List[ParsedScheme], *,
             step_el.set("ReactionStepArrows", sd["graphic_id"])
         elif sd["arrow_id"]:
             step_el.set("ReactionStepArrows", sd["arrow_id"])
+        # All condition text is drawn below the arrow; list it there.
+        above_text = [i for i in sd["above_ids"]
+                      if all_elements.get(i) is not None and all_elements[i].tag == "t"]
         step_el.set("ReactionStepObjectsAboveArrow",
-                     " ".join(sd["above_ids"]))
+                     " ".join(i for i in sd["above_ids"] if i not in above_text))
         step_el.set("ReactionStepObjectsBelowArrow",
-                     " ".join(sd["below_ids"]))
+                     " ".join(above_text + sd["below_ids"]))
 
     # --- Add run arrows per step ---
     for step_idx, (sd, s) in enumerate(zip(step_data, schemes)):

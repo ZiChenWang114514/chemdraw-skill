@@ -210,3 +210,41 @@ def test_cleanup_itself_moves_compound_numbers_with_their_structures(tmp_path):
     assert info["num_steps"] == 4 and info["rows_normalized"] is True
     _, root = _root(out)
     _compound_numbers_hang_under_their_structures(root)
+
+
+def test_sequential_merge_keeps_numbers_plus_signs_and_conditions_in_place(tmp_path):
+    out = tmp_path / "route.cdxml"
+    steps = [str(DATA / f"route-step{n}.cdxml") for n in range(1, 5)]
+    tools.merge_reaction_schemes(steps, str(out), mode="sequential", render_preview=False)
+    text, root = _root(out)
+    assert figure_lint.lint_cdxml(text) == []
+    _assert_plus_clears_the_reactants(root)
+    page = _page(root)
+    numbers = sorted(_text(el) for el in page.values() if el.tag == "t" and _text(el).isdigit())
+    # One number per compound: the shared intermediates are drawn once, with one number.
+    assert numbers == ["1", "2", "3", "4", "5"]
+    arrow_y = _rows(root)[1][0][2]
+    for t in (el for el in page.values() if el.tag == "t" and _text(el).isdigit()):
+        # Each number hangs under the row, not at the height of its old file.
+        assert 0 < float(t.get("p").split()[1]) - arrow_y < 40, _text(t)
+    for step, _, arrow_y in _rows(root)[1]:
+        above = [page[i] for i in step.get("ReactionStepObjectsAboveArrow", "").split()]
+        below = [page[i] for i in step.get("ReactionStepObjectsBelowArrow", "").split()]
+        assert not [el for el in above if el.tag == "t"]
+        assert all(_box(el)[1] >= arrow_y for el in below if el.tag == "t")
+
+
+def test_parallel_merge_says_when_a_run_with_other_conditions_is_not_drawn(tmp_path):
+    other = tmp_path / "other-run.cdxml"
+    other.write_text((DATA / "route-step2.cdxml").read_text(encoding="utf-8")
+                     .replace("MeOH, 0 °C", "EtOH, rt"), encoding="utf-8")
+    for mode in ("parallel", "auto"):
+        result = tools.merge_reaction_schemes([str(DATA / "route-step2.cdxml"), str(other)],
+                                              str(tmp_path / f"{mode}.cdxml"), mode=mode,
+                                              render_preview=False)
+        warnings = " ".join(result["warnings"])
+        assert "EtOH, rt" in warnings and "not drawn" in warnings, (mode, result["warnings"])
+    same = tools.merge_reaction_schemes([str(DATA / "route-step2.cdxml")] * 2,
+                                        str(tmp_path / "same.cdxml"), mode="parallel",
+                                        render_preview=False)
+    assert not [w for w in same["warnings"] if "not drawn" in w]
