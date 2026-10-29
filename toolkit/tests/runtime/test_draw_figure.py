@@ -319,6 +319,21 @@ def test_a_width_that_cannot_be_met_is_judged_against_the_requested_budget(tmp_p
     assert report["lint"]["max_width"] == 250
 
 
+def test_a_long_condition_line_is_broken_at_its_commas_to_fit(tmp_path):
+    line = "N2H4·H2O, KOH, diethylene glycol, 200 °C, 6 h, then aqueous workup"
+    brief = _brief(ASPIRIN)
+    brief["steps"][0]["above"] = [line]
+    report = draw_figure(brief, output_path=str(tmp_path / "out.cdxml"))
+
+    assert [i for i in report["lint"]["issues"] if i["kind"] == "too_wide"] == []
+    assert any("line" in change for change in report["lint"]["relayout"]["changed"])
+    drawn = " ".join(" ".join("".join(t.itertext()).split()) for t in _cdxml(report).iter("t"))
+    # Every part of the conditions is still drawn, in order; only the line breaks changed.
+    parts = [part.strip() for part in line.split(",")]
+    positions = [drawn.find(part) for part in parts]
+    assert -1 not in positions and positions == sorted(positions), (parts, drawn)
+
+
 def test_remaining_issues_after_the_relayout_are_reported_not_hidden(tmp_path, monkeypatch):
     issue = {"kind": "overlap", "ids": ["1", "2"], "message": "still overlapping"}
     monkeypatch.setattr(figure_draw.figure_lint, "lint_cdxml", lambda text, max_width=None: [issue])

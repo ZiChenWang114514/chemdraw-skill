@@ -677,7 +677,7 @@ def draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict:
         relayout = None
         if issues or crossings:
             first = {"issues": issues, "crossings": crossings}
-            new_width, new_gap, changed = figure_draw._relayout(issues, width, gap_scale)
+            new_width, new_gap, changed, _ = figure_draw._relayout(issues, width, gap_scale)
             if crossings:
                 if new_gap == gap_scale:
                     new_gap = round(gap_scale * figure_draw.RELAYOUT_GAP_SCALE, 2)

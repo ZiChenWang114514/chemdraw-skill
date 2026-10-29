@@ -43,3 +43,37 @@ def test_plus_sign_clears_a_terminal_bromine(tmp_path):
 
 def _body(cdxml: str) -> str:
     return cdxml[cdxml.index("<CDXML"):]
+
+
+def _component_boxes(atoms, bonds):
+    groups = {a["index"]: {a["index"]} for a in atoms}
+    for b in bonds:
+        merged = groups[b["atom1"]] | groups[b["atom2"]]
+        for i in merged:
+            groups[i] = merged
+    unique = {id(g): g for g in groups.values()}.values()
+    return [renderer._fragment_bbox([a for a in atoms if a["index"] in g]) for g in unique]
+
+
+def test_the_ions_of_a_salt_do_not_run_into_each_other():
+    for smiles in ("[Na+].[OH-]", "[K+].[I-]", "[Li+].[Cl-]", "[Na+].[O-]C(C)=O"):
+        atoms, bonds = renderer._smiles_to_fragment_data(smiles)
+        boxes = sorted(_component_boxes(atoms, bonds))
+        for left, right in zip(boxes, boxes[1:]):
+            apart = right[0] - left[2] >= 3.0 or right[1] - left[3] >= 0 or left[1] - right[3] >= 0
+            assert apart, (smiles, left, right)
+
+
+def test_ions_that_are_clear_of_each_other_stay_where_they_are():
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
+    smiles = "CC[NH+](CC)CC.[Cl-]"
+    atoms, _ = renderer._smiles_to_fragment_data(smiles)
+    mol = Chem.MolFromSmiles(smiles)
+    AllChem.Compute2DCoords(mol)
+    conf = mol.GetConformer()
+    # Relative placement of the chloride is RDKit's, unchanged.
+    rdkit_dx = conf.GetAtomPosition(7).x - conf.GetAtomPosition(2).x
+    drawn_dx = (atoms[7]["x"] - atoms[2]["x"]) / renderer.ACS_BOND_LENGTH * 1.5
+    assert abs(rdkit_dx - drawn_dx) < 0.05

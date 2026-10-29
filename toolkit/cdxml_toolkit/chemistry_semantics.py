@@ -17,12 +17,23 @@ def semantic_key(mol):
     return Chem.MolToCXSmiles(copy, Chem.SmilesWriteParams(), Chem.CXSmilesFields.CX_ENHANCEDSTEREO)
 
 
+# Elements that are not metals; any other element alone and uncharged is the element itself.
+_NONMETALS = {1, 2, 5, 6, 7, 8, 9, 10, 14, 15, 16, 17, 18, 33, 34, 35, 36, 52, 53, 54, 85, 86}
+
+
+def _elemental_metal(atom):
+    """A lone, neutral metal atom ("[Mg]" for magnesium turnings): RDKit counts its
+    free valences as radical electrons, but it is drawn and read back as the element."""
+    return (atom.GetDegree() == 0 and atom.GetFormalCharge() == 0 and atom.GetTotalNumHs() == 0
+            and atom.GetAtomicNum() not in _NONMETALS)
+
+
 def require_supported(mol):
     allowed = {Chem.ChiralType.CHI_UNSPECIFIED, Chem.ChiralType.CHI_TETRAHEDRAL_CW,
                Chem.ChiralType.CHI_TETRAHEDRAL_CCW}
     if any(a.GetChiralTag() not in allowed for a in mol.GetAtoms()):
         raise ValueError('unsupported_stereochemistry: non-tetrahedral center needs a native template')
-    if any(a.GetNumRadicalElectrons() for a in mol.GetAtoms()):
+    if any(a.GetNumRadicalElectrons() and not _elemental_metal(a) for a in mol.GetAtoms()):
         raise ValueError('unsupported_radical: use a verified native template; radical export is not yet validated')
     if any(b.GetStereo() in (Chem.BondStereo.STEREOATROPCW, Chem.BondStereo.STEREOATROPCCW)
            for b in mol.GetBonds()):
@@ -49,6 +60,17 @@ def read_fragments(value):
         parsed = Chem.MolsFromCDXML(block)
         if not parsed:
             raise ValueError('unreadable_chemical_fragment: ' + fragment.get('id', '?'))
+        nodes = fragment.findall('n')
+        if len(parsed) == 1 and len(nodes) == 1 and parsed[0].GetNumAtoms() == 1 \
+                and nodes[0].get('NumHydrogens', '').isdigit():
+            # RDKit's reader fills a lone atom's valence with H and ignores NumHydrogens:
+            # magnesium metal would come back as MgH2.
+            mol = Chem.RWMol(parsed[0])
+            atom = mol.GetAtomWithIdx(0)
+            atom.SetNumExplicitHs(int(nodes[0].get('NumHydrogens')))
+            atom.SetNoImplicit(True)
+            Chem.SanitizeMol(mol)
+            parsed = [mol.GetMol()]
         results.extend((fragment.get('id'), mol) for mol in parsed)
     if not results:
         raise ValueError('no_chemical_fragments')

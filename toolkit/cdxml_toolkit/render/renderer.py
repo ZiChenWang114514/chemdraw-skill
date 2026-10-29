@@ -218,8 +218,53 @@ def _smiles_to_fragment_data(
     # Normalize to CDXML coordinate space (scale + flip y + center)
     from ..image.structure_from_image import normalize_for_cdxml
     atoms, bonds = normalize_for_cdxml(atoms, bonds, center_x, center_y)
+    _separate_components(atoms, bonds)
 
     return atoms, bonds
+
+
+_ION_GAP = 3.0  # white space between the labels of two ions of a salt (pt)
+
+
+def _separate_components(atoms: List[Dict], bonds: List[Dict]) -> None:
+    """Move the parts of a salt apart where their labels would run together.
+
+    RDKit places disconnected parts one bond apart whatever their labels, so
+    Na+ and OH- printed as "OHNa+". Parts that already clear each other keep
+    RDKit's placement; the drawing stays centred where it was.
+    """
+    owner = {a["index"]: a["index"] for a in atoms}
+
+    def root(i):
+        while owner[i] != i:
+            i = owner[i]
+        return i
+
+    for b in bonds:
+        owner[root(b["atom1"])] = root(b["atom2"])
+    parts: Dict[int, List[Dict]] = {}
+    for a in atoms:
+        parts.setdefault(root(a["index"]), []).append(a)
+    if len(parts) < 2:
+        return
+    before = _fragment_bbox(atoms)
+    def extent(part):
+        # A label is about 10 pt tall, taller than a bare carbon's box.
+        x1, _, x2, _ = _fragment_bbox(part)
+        reach = [5.0 if _label_overhang(a) or a.get("symbol", "C") != "C" else _FRAG_PAD_H for a in part]
+        return (x1, min(a["y"] - r for a, r in zip(part, reach)),
+                x2, max(a["y"] + r for a, r in zip(part, reach)))
+
+    placed: List[List[Dict]] = []
+    for part in sorted(parts.values(), key=lambda p: _fragment_bbox(p)[0]):
+        for other in placed:
+            box, other_box = extent(part), extent(other)
+            level = box[1] < other_box[3] and other_box[1] < box[3]
+            if level and box[0] < other_box[2] + _ION_GAP:
+                _shift_atoms(part, other_box[2] + _ION_GAP - box[0], 0.0)
+        placed.append(part)
+    after = _fragment_bbox(atoms)
+    _shift_atoms(atoms, (before[0] + before[2] - after[0] - after[2]) / 2.0, 0.0)
 
 
 def _align_mol_to_reference(
