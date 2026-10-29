@@ -41,6 +41,7 @@ from ..constants import (
     LAYOUT_INTER_FRAGMENT_GAP,
     LAYOUT_INTER_GAP_BONDS,
     LAYOUT_PLUS_GAP,
+    LAYOUT_ROW_GAP,
 )
 from ..cdxml_utils import (
     drawn_fragment_bbox,
@@ -61,7 +62,7 @@ LAYOUT_BELOW_FRAG_PAD = 2.0
 PLUS_CLEARANCE = LAYOUT_PLUS_GAP
 # A scheme drawn one step per row: white space between rows, and how far a
 # compound number may hang above or below the row it belongs to.
-ROW_GAP = 2.0 * ACS_BOND_LENGTH
+ROW_GAP = LAYOUT_ROW_GAP
 ROW_LABEL_REACH = 3.0 * ACS_BOND_LENGTH
 
 

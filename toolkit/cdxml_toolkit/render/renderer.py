@@ -18,6 +18,7 @@ import json
 import math
 import os
 from copy import deepcopy
+from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 from xml.sax.saxutils import escape as xml_escape
@@ -43,8 +44,9 @@ from ..constants import (
     LAYOUT_FRAG_GAP_BONDS,
     LAYOUT_INTER_GAP_BONDS,
     LAYOUT_PLUS_GAP,
+    LAYOUT_ROW_GAP,
 )
-from ..cdxml_utils import LABEL_H_WIDTH, hydrogens_lead
+from ..cdxml_utils import LABEL_H_WIDTH, drawn_fragment_bbox, hydrogens_lead
 from ..text_formatting import build_formatted_s_xml, normalize_condition_text
 
 from .route_graph import convergent_sections
@@ -1231,23 +1233,60 @@ def _layout_sequential(
     xml_parts: List[str] = []
     arrow_y = 300.0
     lowest_y = arrow_y
+    previous_bottom: Optional[float] = None
 
     for row_idx, row_steps in enumerate(rows):
         row_ra = row_run_arrows.get(row_idx, [])
 
-        row_xml, lowest_y, _, _ = _layout_steps_row(
-            scheme, row_steps, ids,
-            start_x=80.0, arrow_y=arrow_y,
-            source_data=source_data,
-            run_arrows=row_ra,
-            reference_mol=reference_mol,
-        )
-        xml_parts.append(row_xml)
+        def layout(at_y: float, row_ids: _IDGen, row_steps=row_steps, row_ra=row_ra):
+            return _layout_steps_row(
+                scheme, row_steps, row_ids,
+                start_x=80.0, arrow_y=at_y,
+                source_data=source_data,
+                run_arrows=row_ra,
+                reference_mol=reference_mol,
+            )
 
-        # Next row starts below this row's lowest point
-        arrow_y = lowest_y + ROW_GAP
+        arrow_y = _next_arrow_y(layout, arrow_y, previous_bottom, LAYOUT_ROW_GAP)
+        row_xml, row_lowest, _, _ = layout(arrow_y, ids)
+        xml_parts.append(row_xml)
+        previous_bottom = _drawn_extent(row_xml)[1]
+        lowest_y = max(row_lowest, previous_bottom)
 
     return "\n".join(xml_parts), lowest_y
+
+
+def _next_arrow_y(layout, arrow_y: float, previous_bottom: Optional[float], gap: float) -> float:
+    """Arrow height that puts a row's top ``gap`` below ``previous_bottom``.
+
+    The row is measured by laying it out on a throwaway id counter.
+    """
+    if previous_bottom is None:
+        return arrow_y
+    token = _fragment_receipts.set(None)  # trial rows are not part of the drawing
+    try:
+        top, _ = _drawn_extent(layout(0.0, _IDGen(1))[0])
+    finally:
+        _fragment_receipts.reset(token)
+    return previous_bottom + gap - top
+
+
+def _drawn_extent(row_xml: str) -> Tuple[float, float]:
+    """Top and bottom of what a laid-out row draws: structures with their labels, text, arrows."""
+    from xml.etree import ElementTree as ET
+
+    tops, bottoms = [], []
+    for el in ET.fromstring(f"<row>{row_xml}</row>"):
+        if el.tag == "fragment":
+            box = drawn_fragment_bbox(el)
+        elif el.get("BoundingBox"):
+            box = tuple(float(v) for v in el.get("BoundingBox").split()[:4])
+        else:
+            continue
+        if box:
+            tops.append(box[1])
+            bottoms.append(box[3])
+    return (min(tops), max(bottoms)) if tops else (0.0, 0.0)
 
 
 def _layout_serpentine(
@@ -1656,7 +1695,7 @@ def _layout_divergent_stacked(
 # Layout engine: stacked-rows (multiple independent sub-schemes)
 # ---------------------------------------------------------------------------
 
-SECTION_GAP = 5.5 * ACS_BOND_LENGTH  # ~79.2 pt between sections (more clearance)
+SECTION_GAP = 3.0 * ACS_BOND_LENGTH  # white space between independent sections
 SECTION_LABEL_X = 40.0               # left margin for section labels
 
 
@@ -1665,6 +1704,7 @@ def _layout_stacked_rows(
     ids: _IDGen,
     source_data: Optional[Dict[str, Dict]] = None,
     reference_mol: Optional[Any] = None,
+    section_gap: float = SECTION_GAP,
 ) -> Tuple[str, float]:
     """
     Layout multiple independent sub-schemes stacked vertically.
@@ -1697,10 +1737,47 @@ def _layout_stacked_rows(
     xml_parts: List[str] = []
     arrow_y = 300.0
     lowest_y = arrow_y
+    previous_bottom: Optional[float] = None
     # Content starts to the right of section labels
     content_start_x = 100.0
 
     for sec_idx, sec in enumerate(sections):
+        # --- Render this section's steps ---
+        # Create a temporary sub-scheme sharing the structure definitions
+        sub_scheme = SchemeDescriptor(
+            structures=scheme.structures,
+            steps=sec.steps,
+            layout=sec.layout or "linear",
+            gap_scale=scheme.gap_scale,
+        )
+        sec_ref_mol = _product_mol_for_steps(
+            sec.steps, scheme.structures, source_data,
+        )
+        if sec_ref_mol is None:
+            sec_ref_mol = reference_mol  # fallback to global
+        section_ra = sec_run_arrows.get(sec_idx, [])
+
+        # A section wider than the budget wraps like a sequential scheme; run
+        # arrows are numbered within the section, so they keep it on one row.
+        section_rows = [sec.steps]
+        if scheme.max_row_width and len(sec.steps) > 1 and not section_ra:
+            per_row = _auto_steps_per_row(
+                sub_scheme, scheme.max_row_width, source_data, sec_ref_mol)
+            section_rows = _split_into_rows(sec.steps, per_row)
+
+        def layout(at_y: float, row_ids: _IDGen, row_steps=None, sub_scheme=sub_scheme,
+                   section_ra=section_ra, sec_ref_mol=sec_ref_mol):
+            return _layout_steps_row(
+                sub_scheme, row_steps, row_ids,
+                start_x=content_start_x, arrow_y=at_y,
+                source_data=source_data,
+                run_arrows=section_ra,
+                reference_mol=sec_ref_mol,
+            )
+
+        arrow_y = _next_arrow_y(partial(layout, row_steps=section_rows[0]), arrow_y,
+                                previous_bottom, section_gap)
+
         # --- Section label ---
         if sec.label:
             # Place label at the left margin, vertically centered on arrow_y
@@ -1711,49 +1788,14 @@ def _layout_stacked_rows(
             )
             xml_parts.append(label_xml)
 
-        # --- Per-section reference product for alignment ---
-        # Each section is an independent reaction, so align structures
-        # within each section to that section's own product.
-        sec_ref_mol = _product_mol_for_steps(
-            sec.steps, scheme.structures, source_data,
-        )
-        if sec_ref_mol is None:
-            sec_ref_mol = reference_mol  # fallback to global
-
-        # --- Run arrows for this section ---
-        section_ra = sec_run_arrows.get(sec_idx, [])
-
-        # --- Render this section's steps ---
-        # Create a temporary sub-scheme sharing the structure definitions
-        sub_scheme = SchemeDescriptor(
-            structures=scheme.structures,
-            steps=sec.steps,
-            layout=sec.layout or "linear",
-            gap_scale=scheme.gap_scale,
-        )
-
-        # A section wider than the budget wraps like a sequential scheme; run
-        # arrows are numbered within the section, so they keep it on one row.
-        section_rows = [sec.steps]
-        if scheme.max_row_width and len(sec.steps) > 1 and not section_ra:
-            per_row = _auto_steps_per_row(
-                sub_scheme, scheme.max_row_width, source_data, sec_ref_mol)
-            section_rows = _split_into_rows(sec.steps, per_row)
-
-        for row_steps in section_rows:
-            row_xml, row_lowest, _, _ = _layout_steps_row(
-                sub_scheme, row_steps, ids,
-                start_x=content_start_x, arrow_y=arrow_y,
-                source_data=source_data,
-                run_arrows=section_ra,
-                reference_mol=sec_ref_mol,
-            )
-
+        for row_index, row_steps in enumerate(section_rows):
+            if row_index:
+                arrow_y = _next_arrow_y(partial(layout, row_steps=row_steps), arrow_y,
+                                        previous_bottom, LAYOUT_ROW_GAP)
+            row_xml, row_lowest, _, _ = layout(arrow_y, ids, row_steps=row_steps)
             xml_parts.append(row_xml)
-            lowest_y = row_lowest
-
-            # Move to next row
-            arrow_y = lowest_y + SECTION_GAP
+            previous_bottom = _drawn_extent(row_xml)[1]
+            lowest_y = max(row_lowest, previous_bottom)
 
     return "\n".join(xml_parts), lowest_y
 
@@ -2445,7 +2487,7 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
             sections=[SectionDescriptor(steps=steps) for steps in convergent_sections(scheme.steps)],
         )
         inner_xml, lowest_y = _layout_stacked_rows(rows, ids, source_data=source_data,
-                                                    reference_mol=ref_mol)
+                                                    reference_mol=ref_mol, section_gap=LAYOUT_ROW_GAP)
     else:
         raise NotImplementedError(
             f"Layout '{scheme.layout}' is not yet implemented. "

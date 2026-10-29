@@ -318,3 +318,33 @@ def test_drawn_figures_leave_the_same_room_beside_a_plus_as_cleanup(tmp_path, mo
         report = draw_figure(case["brief"], output_path=str(tmp_path / f"{name}.cdxml"))
         text = Path(report["output_path"]).read_text(encoding="utf-8")
         assert [i for i in figure_lint.lint_cdxml(text) if i["kind"].endswith("plus")] == [], name
+
+
+def _row_gaps(root):
+    """White space between consecutive rows of a figure, rows taken around its arrows."""
+    page = list(root.find("page"))
+    arrows = sorted({round(float(a.get("Head3D").split()[1]), 1) for a in root.iter("arrow")
+                     if abs(float(a.get("Head3D").split()[1]) - float(a.get("Tail3D").split()[1])) < 1})
+    bands = {y: [] for y in arrows}
+    for el in page:
+        if el.tag in ("scheme", "arrow") or not (el.tag == "fragment" or el.get("BoundingBox")):
+            continue
+        box = _box(el)
+        middle = (box[1] + box[3]) / 2
+        bands[min(arrows, key=lambda y: abs(y - middle))].append(box)
+    return [min(b[1] for b in bands[low]) - max(b[3] for b in bands[high])
+            for high, low in zip(arrows, arrows[1:])]
+
+
+def test_a_wrapped_route_leaves_the_cleanup_gap_between_rows(tmp_path, monkeypatch):
+    import json
+
+    from cdxml_toolkit.layout.reaction_cleanup import ROW_GAP
+    from cdxml_toolkit.mcp_runtime.figure_draw import draw_figure
+
+    monkeypatch.setenv("CHEMDRAW_OFFLINE", "1")
+    for name in ("04-wrapping-route", "07-convergent-amide"):
+        case = json.loads((Path(__file__).parent / "draw_corpus" / f"{name}.json").read_text(encoding="utf-8"))
+        report = draw_figure(case["brief"], output_path=str(tmp_path / f"{name}.cdxml"))
+        gaps = _row_gaps(_root(report["output_path"])[1])
+        assert len(gaps) >= 2 and all(abs(g - ROW_GAP) < 3 for g in gaps), (name, gaps)

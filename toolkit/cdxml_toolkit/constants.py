@@ -297,6 +297,9 @@ LAYOUT_INTER_GAP_BONDS = 0.8
 # leaves room for it and some white space either side (pt).
 LAYOUT_PLUS_GAP = 18.0
 
+# White space between the rows of a scheme drawn one step (or a few) per row (pt).
+LAYOUT_ROW_GAP = 2.0 * ACS_BOND_LENGTH
+
 
 # ============================================================================
 # 6. Image / structure constants
