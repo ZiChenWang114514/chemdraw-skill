@@ -10,17 +10,18 @@
 
 ## `cdxml_utils`
 
-- **function**, line 292: `arrow_endpoints(arrow: ET.Element) -> Tuple[float, float, float, float]` - Return ``(tail_x, tail_y, head_x, head_y)`` from an arrow element.
-- **function**, line 269: `build_id_map(parent: ET.Element) -> Dict[str, ET.Element]` - Build ``{id_string: element}`` map for all descendants with an ``id`` attribute.
-- **function**, line 99: `drawn_fragment_bbox(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Box around what a <fragment> draws: its atoms and their labels.
+- **function**, line 319: `arrow_endpoints(arrow: ET.Element) -> Tuple[float, float, float, float]` - Return ``(tail_x, tail_y, head_x, head_y)`` from an arrow element.
+- **function**, line 296: `build_id_map(parent: ET.Element) -> Dict[str, ET.Element]` - Build ``{id_string: element}`` map for all descendants with an ``id`` attribute.
+- **function**, line 143: `drawn_fragment_bbox(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Box around what a <fragment> draws: its atoms and their labels.
 - **function**, line 28: `fragment_bbox(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Atom-only bounding box for a <fragment> element.
-- **function**, line 195: `fragment_bbox_with_label_extension(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Atom-only bounding box with hanging-label extension.
-- **function**, line 152: `fragment_bottom_has_hanging_label(frag: ET.Element) -> bool` - True if the bottommost atom has a label that hangs below it.
-- **function**, line 141: `fragment_centroid(frag: ET.Element) -> Optional[Tuple[float, float]]` - Center point of :func:`fragment_bbox`.
+- **function**, line 222: `fragment_bbox_with_label_extension(frag: ET.Element) -> Optional[Tuple[float, float, float, float]]` - Atom-only bounding box with hanging-label extension.
+- **function**, line 179: `fragment_bottom_has_hanging_label(frag: ET.Element) -> bool` - True if the bottommost atom has a label that hangs below it.
+- **function**, line 168: `fragment_centroid(frag: ET.Element) -> Optional[Tuple[float, float]]` - Center point of :func:`fragment_bbox`.
 - **function**, line 74: `hydrogens_lead(symbol, hydrogens) -> bool` - Whether ChemDraw writes a lone atom's hydrogens first (H2O, HCl, not OH or NH3).
-- **function**, line 319: `parse_cdxml(path: str) -> ET.ElementTree` - Parse a CDXML file, returning an :class:`~xml.etree.ElementTree.ElementTree`.
-- **function**, line 220: `recompute_text_bbox(t_elem: ET.Element) -> None` - Recompute and set BoundingBox on a ``<t>`` element.
-- **function**, line 324: `write_cdxml(tree: ET.ElementTree, path: str) -> None` - Write *tree* to *path*, re-inserting the DOCTYPE declaration.
+- **function**, line 99: `label_boxes(frag: ET.Element) -> list` - ``(atom, box)`` for every atom label of a <fragment>, as drawn.
+- **function**, line 346: `parse_cdxml(path: str) -> ET.ElementTree` - Parse a CDXML file, returning an :class:`~xml.etree.ElementTree.ElementTree`.
+- **function**, line 247: `recompute_text_bbox(t_elem: ET.Element) -> None` - Recompute and set BoundingBox on a ``<t>`` element.
+- **function**, line 351: `write_cdxml(tree: ET.ElementTree, path: str) -> None` - Write *tree* to *path*, re-inserting the DOCTYPE declaration.
 
 ## `coord_normalizer`
 
@@ -96,9 +97,9 @@
 
 ## `render.renderer`
 
-- **function**, line 2542: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
-- **function**, line 2564: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
-- **function**, line 2530: `render_with(build) -> str` - Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
+- **function**, line 2588: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 2610: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **function**, line 2576: `render_with(build) -> str` - Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
 - **class**, line 146: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
 - **class**, line 161: `ResolvedStep` - A step with all structures resolved and laid out.
 

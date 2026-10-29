@@ -1423,6 +1423,7 @@ def _layout_serpentine(
                 cond_lines = transition.below_arrow.text[:]
             if transition.above_arrow and transition.above_arrow.text:
                 cond_lines = transition.above_arrow.text + cond_lines
+            cond_lines = [normalize_condition_text(t) for t in cond_lines]
             if transition.yield_:
                 cond_lines.append(transition.yield_)
 

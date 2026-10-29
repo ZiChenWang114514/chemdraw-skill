@@ -2,7 +2,8 @@
 
 Reads the saved CDXML and reports problems that need no ChemDraw: objects
 that overlap, text too small to read, an empty page, a drawing wider than
-a requested budget, and a "+" that is not between two species or crowds one.
+a requested budget, a "+" that is not between two species or crowds one, and
+atom labels of one structure that run into each other.
 Every object is measured by its ``BoundingBox``; a structure also includes the
 atom labels that overhang its own box.
 """
@@ -13,13 +14,18 @@ import xml.etree.ElementTree as ET
 from itertools import combinations
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..cdxml_utils import drawn_fragment_bbox
+from ..cdxml_utils import drawn_fragment_bbox, label_boxes
 
 MIN_FONT_SIZE = 6.0
 # A "+" between two species: at least this much white space on each side,
 # and no further than this from either (three ACS bond lengths).
 PLUS_MIN_CLEARANCE = 3.0  # the renderer leaves about 3.5 pt
 PLUS_MAX_GAP = 43.2
+# Two atom labels of one structure clash when they share a line (their boxes,
+# which include line spacing, overlap this much in height) and run into each
+# other by more than LABEL_CLASH_X (pt).
+LABEL_CLASH_Y = 3.0
+LABEL_CLASH_X = 1.0
 
 Box = Tuple[float, float, float, float]
 
@@ -131,6 +137,19 @@ def lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[
                     "message": f"Text in {obj['tag']} {obj['id']} is {size:g} pt, below {MIN_FONT_SIZE:g} pt.",
                 })
                 break
+
+    for obj in objects:
+        if obj["tag"] != "fragment":
+            continue
+        for (first, a), (second, b) in combinations(label_boxes(obj["node"]), 2):
+            if (min(a[2], b[2]) - max(a[0], b[0]) > LABEL_CLASH_X
+                    and min(a[3], b[3]) - max(a[1], b[1]) > LABEL_CLASH_Y):
+                issues.append({
+                    "kind": "label_clash",
+                    "ids": [obj["id"]],
+                    "atoms": [first.get("id"), second.get("id")],
+                    "message": f"Two atom labels of fragment {obj['id']} run into each other.",
+                })
 
     issues.extend(_plus_issues(objects))
 

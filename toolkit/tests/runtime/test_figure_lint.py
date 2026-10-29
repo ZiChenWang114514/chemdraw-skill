@@ -175,3 +175,23 @@ def test_a_plus_between_a_structure_and_a_reagent_name_is_fine():
     )
 
     assert figure_lint.lint_cdxml(cdxml) == []
+
+
+def _salt(apart):
+    """Na+ and OH- in one fragment, ``apart`` pt between the atoms."""
+    def ion(ident, x, element, hydrogens, text, charge):
+        return (f'<n id="{ident}" p="{x} 300" Element="{element}" NumHydrogens="{hydrogens}" Charge="{charge}">'
+                f'<t id="{ident}t" p="{x - 3} 303.5" BoundingBox="{x - 3} 292.5 {x + 3} 300">'
+                f'<s size="10" face="96">{text}</s><s size="10" face="64">{"+" if charge > 0 else "-"}</s></t></n>')
+    return _page(f'<fragment id="1" BoundingBox="100 300 {100 + apart} 300">'
+                 + ion("2", 100, 8, 1, "OH", -1) + ion("3", 100 + apart, 11, 0, "Na", 1) + "</fragment>")
+
+
+def test_two_labels_of_one_structure_that_run_together_are_reported():
+    # RDKit put Na+ one bond from OH-: ChemDraw printed "OHNa+".
+    issues = figure_lint.lint_cdxml(_salt(14.4))
+    assert _kinds(issues) == ["label_clash"] and issues[0]["ids"] == ["1"]
+
+
+def test_labels_with_room_between_them_are_fine():
+    assert figure_lint.lint_cdxml(_salt(24.0)) == []

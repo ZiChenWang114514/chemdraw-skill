@@ -74,13 +74,13 @@
 
 ## `chemistry_semantics`
 
-- **function**, line 79: `document_inventory(path)` - No public docstring in the audited version.
-- **function**, line 32: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
-- **function**, line 58: `read_molecules(value)` - No public docstring in the audited version.
-- **function**, line 20: `require_supported(mol)` - No public docstring in the audited version.
+- **function**, line 101: `document_inventory(path)` - No public docstring in the audited version.
+- **function**, line 43: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
+- **function**, line 80: `read_molecules(value)` - No public docstring in the audited version.
+- **function**, line 31: `require_supported(mol)` - No public docstring in the audited version.
 - **function**, line 10: `semantic_key(mol)` - No public docstring in the audited version.
-- **function**, line 83: `validate_document_preserved(source, output)` - No public docstring in the audited version.
-- **function**, line 62: `validate_fragment(smiles, xml)` - No public docstring in the audited version.
+- **function**, line 105: `validate_document_preserved(source, output)` - No public docstring in the audited version.
+- **function**, line 84: `validate_fragment(smiles, xml)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
@@ -230,7 +230,7 @@
 
 ## `mcp_runtime.figure_draw`
 
-- **function**, line 260: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 297: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
 
 ## `mcp_runtime.figure_editing`
 
@@ -239,7 +239,7 @@
 
 ## `mcp_runtime.figure_lint`
 
-- **function**, line 101: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
+- **function**, line 107: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
 
 ## `mcp_runtime.figure_mechanism`
 

@@ -96,36 +96,39 @@ def _label_reach(t: ET.Element) -> float:
     return sum(widths[1:])
 
 
-def drawn_fragment_bbox(
-    frag: ET.Element,
-) -> Optional[Tuple[float, float, float, float]]:
-    """Box around what a <fragment> draws: its atoms and their labels.
+def label_boxes(frag: ET.Element) -> list:
+    """``(atom, box)`` for every atom label of a <fragment>, as drawn.
 
-    Covers each direct-child atom ``p`` (connection points excluded) and every
-    label ``<t>`` on those atoms: an OH or Br reaches past its atom.  Unlike a
-    fixed margin around the atoms, it does not reach into neighbouring objects.
+    A label box often covers only its first letter, and ChemDraw writes the rest
+    (the H of OH, the r of Br) away from the bonds: on the far side of the
+    structure, or for an atom with no bonds (an ion of a salt) on the side
+    ChemDraw puts its hydrogens.
     """
-    xs: list[float] = []
-    ys: list[float] = []
     atoms = [n for n in frag.findall("n") if n.get("NodeType") != "ExternalConnectionPoint"]
-    for n in atoms:
-        parts = n.get("p", "").split()
-        if len(parts) >= 2:
-            xs.append(float(parts[0]))
-            ys.append(float(parts[1]))
+    xs = [float(n.get("p").split()[0]) for n in atoms if len(n.get("p", "").split()) >= 2]
     if not xs:
-        return None
+        return []
     middle = (min(xs) + max(xs)) / 2.0
+    bonded = {end for b in frag.findall("b") for end in (b.get("B"), b.get("E"))}
+    boxes = []
     for n in atoms:
         for t in n.findall("t"):
             vals = t.get("BoundingBox", "").split()
             if len(vals) < 4:
                 continue
             x1, y1, x2, y2 = (float(v) for v in vals[:4])
-            # A label box often covers only its first letter, and ChemDraw writes the rest
-            # (the H of OH, the r of Br) away from the bonds: on the far side of the structure.
             extra = _label_reach(t)
-            if len(atoms) == 1:
+            text_width = LABEL_CHAR_WIDTH + extra
+            if x2 - x1 > 2.0 * text_width + 6.0:
+                # A stale box, far wider than its text: measure the label from its atom.
+                x = float(n.get("p", f"{x1} 0").split()[0])
+                if t.get("LabelJustification") == "Right":
+                    x1, x2 = x + LABEL_CHAR_WIDTH / 2.0 - text_width, x + LABEL_CHAR_WIDTH / 2.0
+                else:
+                    x1, x2 = x - LABEL_CHAR_WIDTH / 2.0, x - LABEL_CHAR_WIDTH / 2.0 + text_width
+                boxes.append((n, (x1, y1, x2, y2)))
+                continue
+            if n.get("id") not in bonded:
                 rightwards = not hydrogens_lead(n.get("Element", "6"), n.get("NumHydrogens"))
             else:
                 rightwards = float(n.get("p", f"{middle} 0").split()[0]) >= middle
@@ -133,8 +136,32 @@ def drawn_fragment_bbox(
                 x2 = max(x2, x1 + LABEL_CHAR_WIDTH + extra)
             else:
                 x1 = min(x1, x2 - LABEL_CHAR_WIDTH - extra)
-            xs += [x1, x2]
-            ys += [y1, y2]
+            boxes.append((n, (x1, y1, x2, y2)))
+    return boxes
+
+
+def drawn_fragment_bbox(
+    frag: ET.Element,
+) -> Optional[Tuple[float, float, float, float]]:
+    """Box around what a <fragment> draws: its atoms and their labels.
+
+    Covers each direct-child atom ``p`` (connection points excluded) and every
+    label ``<t>`` on those atoms (see :func:`label_boxes`): an OH or Br reaches
+    past its atom.  Unlike a fixed margin around the atoms, it does not reach
+    into neighbouring objects.
+    """
+    xs: list[float] = []
+    ys: list[float] = []
+    for n in frag.findall("n"):
+        parts = n.get("p", "").split()
+        if n.get("NodeType") != "ExternalConnectionPoint" and len(parts) >= 2:
+            xs.append(float(parts[0]))
+            ys.append(float(parts[1]))
+    if not xs:
+        return None
+    for _, (x1, y1, x2, y2) in label_boxes(frag):
+        xs += [x1, x2]
+        ys += [y1, y2]
     return min(xs), min(ys), max(xs), max(ys)
 
 

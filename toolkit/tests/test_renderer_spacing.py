@@ -77,3 +77,13 @@ def test_ions_that_are_clear_of_each_other_stay_where_they_are():
     rdkit_dx = conf.GetAtomPosition(7).x - conf.GetAtomPosition(2).x
     drawn_dx = (atoms[7]["x"] - atoms[2]["x"]) / renderer.ACS_BOND_LENGTH * 1.5
     assert abs(rdkit_dx - drawn_dx) < 0.05
+
+
+def test_conditions_beside_a_serpentine_turn_are_written_like_the_others():
+    from pathlib import Path
+
+    showcase = Path(__file__).parent.parent / "experiments" / "scheme_dsl" / "showcase"
+    cdxml = renderer.render(parse_yaml(str(showcase / "12_serpentine_5step.yaml")))
+    texts = [" ".join("".join(t.itertext()).split()) for t in ET.fromstring(_body(cdxml)).iter("t")]
+    # The turn's "DCM, -78 C" gets its degree sign, as conditions on a row arrow do.
+    assert any("78 °C" in t for t in texts) and not any(t.endswith("78 C") for t in texts), texts

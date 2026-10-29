@@ -348,3 +348,16 @@ def test_a_wrapped_route_leaves_the_cleanup_gap_between_rows(tmp_path, monkeypat
         report = draw_figure(case["brief"], output_path=str(tmp_path / f"{name}.cdxml"))
         gaps = _row_gaps(_root(report["output_path"])[1])
         assert len(gaps) >= 2 and all(abs(g - ROW_GAP) < 3 for g in gaps), (name, gaps)
+
+
+def test_a_label_box_far_wider_than_its_text_is_measured_from_the_text():
+    from cdxml_toolkit.cdxml_utils import label_boxes
+
+    # A stale box (from 25 to 115) on a right-aligned "PMBO" at x=103.5: the text is ~30 pt.
+    frag = ET.fromstring(
+        '<fragment><n id="1" p="103.5 39.5" NodeType="Fragment"><t p="103.5 43" BoundingBox="25 30 115 44" '
+        'LabelJustification="Right"><s face="96">PMBO</s></t></n><n id="2" p="118 31"/>'
+        '<b B="1" E="2"/></fragment>'
+    )
+    (_, box), = label_boxes(frag)
+    assert 60 < box[0] < 90 and 103.5 < box[2] < 110, box
