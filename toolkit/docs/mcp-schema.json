@@ -27,7 +27,7 @@
       "group": "extended",
       "resource_class": null,
       "timeout_seconds": 300,
-      "description": "Compare up to 256 molecule pairs with one ChemScript bridge session."
+      "description": "Compare up to 256 molecule pairs with one ChemScript bridge session.\n\nEach pair is ``{\"mol1\": ..., \"mol2\": ...}`` (or ``molecule_a``/``molecule_b``,\nas compare_molecules names them), with an optional unique ``pair_id``."
     },
     {
       "name": "batch_embed_cdxml_in_office",

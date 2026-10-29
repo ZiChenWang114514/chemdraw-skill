@@ -20,6 +20,9 @@ Assemble a deterministic lab-book entry from experiment files.
 
 Compare up to 256 molecule pairs with one ChemScript bridge session.
 
+Each pair is ``{"mol1": ..., "mol2": ...}`` (or ``molecule_a``/``molecule_b``,
+as compare_molecules names them), with an optional unique ``pair_id``.
+
 ### `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, typing.Any]`
 
 Create PPTX or DOCX containing editable ChemDraw OLE objects.
