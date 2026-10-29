@@ -293,6 +293,10 @@ LAYOUT_FRAG_GAP_BONDS = 1.0
 # Originally in: reaction_cleanup.py (INTER_GAP_BONDS, line ~775)
 LAYOUT_INTER_GAP_BONDS = 0.8
 
+# Species on one side of an arrow are separated by a "+": the gap between them
+# leaves room for it and some white space either side (pt).
+LAYOUT_PLUS_GAP = 18.0
+
 
 # ============================================================================
 # 6. Image / structure constants

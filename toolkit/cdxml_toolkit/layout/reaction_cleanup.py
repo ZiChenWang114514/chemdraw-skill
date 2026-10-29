@@ -40,6 +40,7 @@ from ..constants import (
     LAYOUT_HANGING_LABEL_GAP,
     LAYOUT_INTER_FRAGMENT_GAP,
     LAYOUT_INTER_GAP_BONDS,
+    LAYOUT_PLUS_GAP,
 )
 from ..cdxml_utils import (
     drawn_fragment_bbox,
@@ -57,7 +58,7 @@ _recompute_text_bbox = recompute_text_bbox
 LAYOUT_BELOW_FRAG_PAD = 2.0
 # Species on one side of the arrow are separated by a "+": leave room for it and
 # some white space either side, or it runs into the labels next to it.
-PLUS_CLEARANCE = 18.0
+PLUS_CLEARANCE = LAYOUT_PLUS_GAP
 # A scheme drawn one step per row: white space between rows, and how far a
 # compound number may hang above or below the row it belongs to.
 ROW_GAP = 2.0 * ACS_BOND_LENGTH

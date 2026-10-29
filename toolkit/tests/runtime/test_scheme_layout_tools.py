@@ -94,7 +94,9 @@ def test_adjacent_merge_moves_each_scheme_whole_and_keeps_its_step(tmp_path):
     tools.merge_reaction_schemes([str(ASPIRIN), str(TAUTOMER)], str(out), mode="adjacent",
                                  render_preview=False)
     text, root = _root(out)
-    assert figure_lint.lint_cdxml(text) == []
+    # Each scheme is kept as drawn: the merge adds no problem its inputs did not have.
+    drawn = [i["kind"] for path in (ASPIRIN, TAUTOMER) for i in figure_lint.lint_cdxml(_root(path)[0])]
+    assert sorted(i["kind"] for i in figure_lint.lint_cdxml(text)) == sorted(drawn)
     page = _page(root)
     steps = list(root.iter("step"))
     assert len(steps) == 2
@@ -118,7 +120,7 @@ def test_drawn_fragment_box_covers_whole_labels():
         '<t p="17 4" BoundingBox="17 -4 23 4"><s>OH</s></t></n></fragment>'
     )
     # The label box names only the O; the H is drawn on the far side of the structure.
-    assert drawn_fragment_bbox(frag) == (0.0, -4.0, 29.0, 4.0)
+    assert drawn_fragment_bbox(frag) == (0.0, -4.0, 30.0, 4.0)
 
 
 def test_drawn_fragment_box_counts_a_charge_as_a_small_sign():
@@ -127,11 +129,11 @@ def test_drawn_fragment_box_counts_a_charge_as_a_small_sign():
         '<s face="96">OH</s><s face="64">-</s></t></n></fragment>'
     )
     # The superscript charge is narrower than a letter, as the renderer spaces it.
-    assert drawn_fragment_bbox(frag)[2] == 3.0 + 6.0 + 4.0
+    assert drawn_fragment_bbox(frag)[2] == 3.0 + 7.0 + 4.0
     # In formula style the count of NH2 is a subscript too.
     frag = ET.fromstring('<fragment><n id="1" p="0 0"><t p="-3 4" BoundingBox="-3 -4 3 4">'
                          '<s face="96">NH2</s></t></n></fragment>')
-    assert drawn_fragment_bbox(frag)[2] == 3.0 + 6.0 + 4.0
+    assert drawn_fragment_bbox(frag)[2] == 3.0 + 7.0 + 4.0
 
 
 ROUTE = DATA / "four-step-route-untidy.cdxml"
@@ -261,3 +263,58 @@ def test_parallel_merge_says_when_a_run_with_other_conditions_is_not_drawn(tmp_p
                                         str(tmp_path / "same.cdxml"), mode="parallel",
                                         render_preview=False)
     assert not [w for w in same["warnings"] if "not drawn" in w]
+
+
+def _lone_atom(element, hydrogens, text):
+    return ET.fromstring(
+        f'<fragment><n id="1" p="0 0" Element="{element}" NumHydrogens="{hydrogens}">'
+        f'<t p="-3 4" BoundingBox="-3 -4 3 4" LabelJustification="Left"><s face="96">{text}</s></t>'
+        '</n></fragment>'
+    )
+
+
+def test_a_lone_atom_label_reaches_the_side_chemdraw_draws_it_on():
+    # ChemDraw for macOS writes water as H2O and HCl with the H first, right-aligned on
+    # the atom; OH and NH3 keep the H after it (measured on ChemDraw 26.0).
+    water = drawn_fragment_bbox(_lone_atom(8, 2, "OH2"))
+    assert water[0] == -3.0 - 7.0 - 4.0 and water[2] == 3.0
+    acid = drawn_fragment_bbox(_lone_atom(17, 1, "ClH"))
+    assert acid[0] == -3.0 - 6.0 - 7.0 and acid[2] == 3.0
+    ammonia = drawn_fragment_bbox(_lone_atom(7, 3, "NH3"))
+    assert ammonia[0] == -3.0 and ammonia[2] == 3.0 + 7.0 + 4.0
+
+
+def test_the_renderer_reserves_label_room_on_the_side_it_is_drawn():
+    from cdxml_toolkit.render import renderer as R
+
+    bromide = R._fragment_bbox([{"x": 0.0, "y": 0.0, "symbol": "Br", "charge": -1}])
+    water = R._fragment_bbox([{"x": 0.0, "y": 0.0, "symbol": "O", "num_hydrogens": 2}])
+    # Br- is drawn rightwards from the atom; nothing reaches to its left.
+    assert bromide[0] == -R._FRAG_PAD_W and bromide[2] > 10
+    assert water[0] <= -14.0 and water[2] == R._FRAG_PAD_W
+
+
+def test_a_plus_before_water_keeps_its_room(tmp_path, monkeypatch):
+    import json
+
+    from cdxml_toolkit.mcp_runtime.figure_draw import draw_figure
+
+    case = json.loads((Path(__file__).parent / "draw_corpus" / "15-sn1.json").read_text(encoding="utf-8"))
+    monkeypatch.setenv("CHEMDRAW_OFFLINE", "1")
+    report = draw_figure(case["brief"], output_path=str(tmp_path / "sn1.cdxml"))
+    assert report["lint"]["issues"] == []
+
+
+def test_drawn_figures_leave_the_same_room_beside_a_plus_as_cleanup(tmp_path, monkeypatch):
+    import json
+
+    from cdxml_toolkit.mcp_runtime.figure_draw import draw_figure
+
+    monkeypatch.setenv("CHEMDRAW_OFFLINE", "1")
+    # Cleanup leaves PLUS_CLEARANCE between species around a "+"; drawing does the same.
+    monkeypatch.setattr(figure_lint, "PLUS_MIN_CLEARANCE", 5.0)
+    for name in ("01-aspirin", "02-suzuki", "13-sn2", "15-sn1", "07-convergent-amide"):
+        case = json.loads((Path(__file__).parent / "draw_corpus" / f"{name}.json").read_text(encoding="utf-8"))
+        report = draw_figure(case["brief"], output_path=str(tmp_path / f"{name}.cdxml"))
+        text = Path(report["output_path"]).read_text(encoding="utf-8")
+        assert [i for i in figure_lint.lint_cdxml(text) if i["kind"].endswith("plus")] == [], name

@@ -20,12 +20,13 @@ steps:
 def test_label_width_extends_the_fragment_box():
     carbon = renderer._fragment_bbox([{"x": 0.0, "y": 0.0, "symbol": "C"}])
     bromine = renderer._fragment_bbox([{"x": 0.0, "y": 0.0, "symbol": "Br", "num_hydrogens": 0}])
-    hydroxyl = renderer._fragment_bbox([{"x": 0.0, "y": 0.0, "symbol": "O", "num_hydrogens": 1}])
+    hydroxyl = renderer._fragment_bbox([{"x": 0.0, "y": 0.0, "symbol": "O", "num_hydrogens": 1},
+                                        {"x": 14.4, "y": 0.0, "symbol": "C"}])
 
     assert carbon[2] == renderer._FRAG_PAD_W
     assert bromine[2] > carbon[2] + 4
-    # ChemDraw may draw OH as HO, so the hydrogen widens both sides.
-    assert hydroxyl[2] > carbon[2] + 4 and hydroxyl[0] < carbon[0] - 4
+    # In a structure ChemDraw may draw OH as HO, so the hydrogen widens both sides.
+    assert hydroxyl[0] < carbon[0] - 4
 
 
 def test_plus_sign_clears_a_terminal_bromine(tmp_path):

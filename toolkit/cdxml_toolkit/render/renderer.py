@@ -42,7 +42,9 @@ from ..constants import (
     LAYOUT_BELOW_GAP,
     LAYOUT_FRAG_GAP_BONDS,
     LAYOUT_INTER_GAP_BONDS,
+    LAYOUT_PLUS_GAP,
 )
+from ..cdxml_utils import LABEL_H_WIDTH, hydrogens_lead
 from ..text_formatting import build_formatted_s_xml, normalize_condition_text
 
 from .route_graph import convergent_sections
@@ -407,10 +409,11 @@ def _build_fragment(
             lines.append(f'<n {" ".join(attrs)}>')
             lx = ax - 3.25
             ly = ay + 3.52
+            # The first letter is centred on the atom and the rest ("r" of Br) follows it.
             label_w = max(len(sym) * 5.5, 6.0)
-            lbx1 = ax - label_w / 2.0
+            lbx1 = ax - 3.0
             lby1 = ay - 7.52
-            lbx2 = ax + label_w / 2.0
+            lbx2 = lbx1 + label_w
             lby2 = ay
             tid = ids.next()
             lines.append(
@@ -870,7 +873,7 @@ def _label_overhang(atom: Dict) -> float:
         return 0.0
     extra = _LABEL_CHAR_W * (len(symbol) - 1)
     if hydrogens:
-        extra += _LABEL_CHAR_W + (_LABEL_DIGIT_W if hydrogens > 1 else 0.0)
+        extra += LABEL_H_WIDTH + (_LABEL_DIGIT_W if hydrogens > 1 else 0.0)
     if atom.get("charge"):
         extra += _LABEL_DIGIT_W
     return extra
@@ -881,8 +884,19 @@ def _fragment_bbox(atoms: List[Dict]) -> Tuple[float, float, float, float]:
 
     Includes padding for bond lines and the first label character
     (measured: +6.6pt width, +2.9pt height) plus the width of longer
-    labels such as "Br" or "OH".
+    labels such as "Br" or "OH".  A lone atom's label is drawn on one side,
+    as ChemDraw writes it (OH-, Br- rightwards; H2O, HCl leftwards).
     """
+    if len(atoms) == 1:
+        atom = atoms[0]
+        overhang = _label_overhang(atom)
+        left = hydrogens_lead(atom.get("symbol", "C"), atom.get("num_hydrogens"))
+        return (
+            atom["x"] - _FRAG_PAD_W - (overhang if left else 0.0),
+            atom["y"] - _FRAG_PAD_H,
+            atom["x"] + _FRAG_PAD_W + (0.0 if left else overhang),
+            atom["y"] + _FRAG_PAD_H,
+        )
     return (
         min(a["x"] - _FRAG_PAD_W - _label_overhang(a) for a in atoms),
         min(a["y"] for a in atoms) - _FRAG_PAD_H,
@@ -1260,7 +1274,7 @@ def _layout_serpentine(
 
     bond_len = ACS_BOND_LENGTH
     frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale
+    inter_gap = max(bond_len * LAYOUT_INTER_GAP_BONDS, LAYOUT_PLUS_GAP) * scheme.gap_scale
 
     xml_parts: List[str] = []
     arrow_y = 300.0
@@ -1453,7 +1467,7 @@ def _layout_divergent(
 
     bond_len = ACS_BOND_LENGTH
     frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale
+    inter_gap = max(bond_len * LAYOUT_INTER_GAP_BONDS, LAYOUT_PLUS_GAP) * scheme.gap_scale
     min_arrow_len = 5.0 * bond_len
 
     start_x = 100.0
@@ -1793,7 +1807,7 @@ def _layout_steps_row(
     is_rtl = (direction == "rtl")
     bond_len = ACS_BOND_LENGTH
     frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale    # gap between fragment and arrow
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale   # gap between adjacent fragments
+    inter_gap = max(bond_len * LAYOUT_INTER_GAP_BONDS, LAYOUT_PLUS_GAP) * scheme.gap_scale   # gap between adjacent fragments
 
     # --- Phase 1: Resolve all structures ---
     def _get_ref(sid: str) -> StructureRef:

@@ -65,6 +65,21 @@ def fragment_bbox(
 # Width of one atom-label letter (Arial 10 pt, as ACS Document 1996 sets labels)
 LABEL_CHAR_WIDTH = 6.0
 LABEL_SCRIPT_WIDTH = 4.0  # a subscript count or superscript charge
+LABEL_H_WIDTH = 7.0  # H is wider than the average label letter
+
+_HYDROGEN_FIRST = {"O": 2, "S": 2, "Se": 2, "F": 1, "Cl": 1, "Br": 1, "I": 1}
+_ELEMENT_SYMBOLS = {8: "O", 16: "S", 34: "Se", 9: "F", 17: "Cl", 35: "Br", 53: "I"}
+
+
+def hydrogens_lead(symbol, hydrogens) -> bool:
+    """Whether ChemDraw writes a lone atom's hydrogens first (H2O, HCl, not OH or NH3).
+
+    A lone atom label is then right-aligned on the atom and reaches to its left.
+    """
+    if isinstance(symbol, int) or str(symbol).isdigit():
+        symbol = _ELEMENT_SYMBOLS.get(int(symbol), "")
+    least = _HYDROGEN_FIRST.get(str(symbol))
+    return least is not None and int(hydrogens or 0) >= least
 
 
 def _label_reach(t: ET.Element) -> float:
@@ -75,7 +90,8 @@ def _label_reach(t: ET.Element) -> float:
         face = int(run.get("face", "0") or 0)
         script = face & 0x60 in (0x20, 0x40)
         formula = face & 0x60 == 0x60  # counts are drawn as subscripts
-        widths += [LABEL_SCRIPT_WIDTH if script or (formula and c.isdigit()) else LABEL_CHAR_WIDTH
+        widths += [LABEL_SCRIPT_WIDTH if script or (formula and c.isdigit())
+                   else LABEL_H_WIDTH if c == "H" else LABEL_CHAR_WIDTH
                    for c in "".join("".join(run.itertext()).split())]
     return sum(widths[1:])
 
@@ -109,7 +125,11 @@ def drawn_fragment_bbox(
             # A label box often covers only its first letter, and ChemDraw writes the rest
             # (the H of OH, the r of Br) away from the bonds: on the far side of the structure.
             extra = _label_reach(t)
-            if float(n.get("p", f"{middle} 0").split()[0]) >= middle:
+            if len(atoms) == 1:
+                rightwards = not hydrogens_lead(n.get("Element", "6"), n.get("NumHydrogens"))
+            else:
+                rightwards = float(n.get("p", f"{middle} 0").split()[0]) >= middle
+            if rightwards:
                 x2 = max(x2, x1 + LABEL_CHAR_WIDTH + extra)
             else:
                 x1 = min(x1, x2 - LABEL_CHAR_WIDTH - extra)
