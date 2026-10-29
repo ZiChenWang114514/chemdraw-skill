@@ -385,9 +385,17 @@ class MacChemScript:
         combined.SetDoubleProp(_SCALE_PROP, bond_length / _RDKIT_BOND_LENGTH)
         return combined
 
+    def _structure_names(self, path: Path) -> list:
+        """ChemDraw's names for ``path``, asked twice when the first answer is empty.
+
+        ChemDraw for macOS occasionally saves the document before Convert Structure to
+        Name has added its caption, so one empty answer is not yet "cannot be named".
+        """
+        return self._read(path, names=True)["names"] or self._read(path, names=True)["names"]
+
     def _name_of_smiles(self, smiles: str) -> Optional[str]:
         if smiles not in self._names:
-            names = self._read(self._smiles_file(smiles), names=True)["names"]
+            names = self._structure_names(self._smiles_file(smiles))
             self._names[smiles] = "; ".join(names) or None
         return self._names[smiles]
 
@@ -492,7 +500,7 @@ class MacChemScript:
         if not os.path.isfile(source) and (fmt and _kind(fmt) == "smiles" or not fmt and self._detect(source) == "smiles"):
             name = self._name_of_smiles(source)
         else:
-            name = "; ".join(self._read(self._stage(source, fmt), names=True)["names"]) or None
+            name = "; ".join(self._structure_names(self._stage(source, fmt))) or None
         if not name:
             return {"ok": False, "error": "ChemDraw could not name this structure"}
         return {"ok": True, "name": name}

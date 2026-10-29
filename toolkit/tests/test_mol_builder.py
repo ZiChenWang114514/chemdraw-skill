@@ -887,3 +887,20 @@ class TestEndToEndGraph:
         if product_name:
             struct = name_to_structure(product_name)
             assert struct["ok"] is True
+
+
+def test_unresolved_name_says_when_chemdraw_was_in_use(monkeypatch):
+    """On macOS ChemDraw's own name conversion is skipped while the user's ChemDraw is open."""
+    from cdxml_toolkit.chemdraw import mac_automation
+    from cdxml_toolkit.naming import mol_builder
+    from cdxml_toolkit.resolve import jre_manager
+
+    class BusyChemDraw:
+        def write_data(self, *args, **kwargs):
+            raise RuntimeError(f"Could not resolve name: x ({mac_automation.NAME_CONVERSION_IN_USE})")
+
+    monkeypatch.setattr(mol_builder, "_get_cs", lambda: BusyChemDraw())
+    monkeypatch.setattr(jre_manager, "ensure_java_on_path", lambda: False)
+    result = mol_builder.resolve_compound("notinanytablexyz", use_network=False)
+    assert result["ok"] is False
+    assert "quit ChemDraw" in result["error"]

@@ -134,6 +134,19 @@ def test_rendered_ion_label_includes_visible_charge_and_isotope():
     assert ''.join(s.text or '' for s in runs)=='37Cl-'
     assert runs[0].get('face')=='64' and runs[-1].get('face')=='64'
 
+def test_charged_carbon_label_keeps_its_hydrogens():
+    from cdxml_toolkit.image.structure_from_image import smiles_to_coords
+    from cdxml_toolkit.render.renderer import _build_fragment, _IDGen
+    from cdxml_toolkit.cdxml_builder import build_molecule_cdxml
+    data=smiles_to_coords('[CH2-]C(C)=O')
+    xml,_,_=_build_fragment(data['atoms'],data['bonds'],_IDGen())
+    node=next(n for n in ET.fromstring(xml).iter('n') if n.get('Charge')=='-1')
+    assert node.get('NumHydrogens')=='2'
+    assert ''.join(s.text or '' for s in node.iter('s'))=='CH2-'
+    node=next(n for n in ET.fromstring(build_molecule_cdxml(data['atoms'],data['bonds']).encode()).iter('n') if n.get('Charge')=='-1')
+    assert node.get('NumHydrogens')=='2'
+    assert ''.join(s.text or '' for s in node.iter('s'))=='CH2'
+
 def test_tlc_native_dimensions_are_fixed_point(tmp_path):
     p=tmp_path/'plate.cdxml';draw_tlc({'lanes':[{'spots':[{'rf':.5,'width':8,'height':5,'tail':2}]}]},p)
     spot=ET.parse(p).find('.//tlcspot')

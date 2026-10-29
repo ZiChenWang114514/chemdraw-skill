@@ -561,7 +561,8 @@ def _rdkit_mol_to_atom_bond_dicts(
             a["charge"] = charge
         # GetTotalNumHs works even after Kekulize
         nh = atom.GetTotalNumHs(includeNeighbors=False)
-        if atom.GetSymbol() != "C":
+        # A charged or labelled carbon gets a text label, which must show its hydrogens.
+        if atom.GetSymbol() != "C" or charge or atom.GetIsotope():
             a["num_hydrogens"] = nh
         isotope = atom.GetIsotope()
         if isotope:

@@ -120,6 +120,22 @@ class MacChemScriptTests(unittest.TestCase):
 
         self.assertFalse(result["ok"])
 
+    def test_a_name_missing_once_is_asked_for_again(self):
+        # ChemDraw for macOS occasionally saves before Convert Structure to Name has added its caption.
+        names, self.chemdraw.names = self.chemdraw.names, []
+        original = self.chemdraw.run_steps
+
+        def first_unnamed(source, steps, timeout_seconds=None):
+            answers = original(source, steps, timeout_seconds)
+            self.chemdraw.names = names
+            return answers
+
+        self.chemdraw.run_steps = first_unnamed
+        result = self.backend.call("get_name", {"source": ASPIRIN})
+
+        self.assertEqual(result, {"ok": True, "name": "2-acetoxybenzoic acid"})
+        self.assertEqual(len(self.chemdraw.calls), 2)
+
     def test_names_resolve_offline_with_opsin_before_chemdraw(self):
         self.opsin.return_value = "C1COCCN1"
         result = self.backend.call(

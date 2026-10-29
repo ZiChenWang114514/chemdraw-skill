@@ -65,64 +65,64 @@
 - **class**, line 179: `MacChemScript` - Answer ChemScript server commands with ChemDraw for macOS, OPSIN and RDKit.
 - **method**, line 201: `MacChemScript.call(cmd: str, args: dict) -> dict` - No public docstring in the audited version.
 - **method**, line 198: `MacChemScript.close() -> None` - No public docstring in the audited version.
-- **method**, line 652: `MacChemScript.cmd_atoms(args: dict) -> dict` - Atom names (as in substructure maps) and bonds of one structure.
-- **method**, line 453: `MacChemScript.cmd_cleanup(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 516: `MacChemScript.cmd_contains_substructure(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 420: `MacChemScript.cmd_convert(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 500: `MacChemScript.cmd_get_formula(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 461: `MacChemScript.cmd_get_info(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 490: `MacChemScript.cmd_get_name(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 596: `MacChemScript.cmd_largest_common_substructure(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 565: `MacChemScript.cmd_load_reaction(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 667: `MacChemScript.cmd_mimetypes(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 435: `MacChemScript.cmd_name_to_cdxml(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 612: `MacChemScript.cmd_overlay(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 417: `MacChemScript.cmd_ping(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 444: `MacChemScript.cmd_smiles_to_cdxml(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 637: `MacChemScript.cmd_substructure_align(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 520: `MacChemScript.cmd_substructure_search(args: dict) -> dict` - No public docstring in the audited version.
-- **method**, line 528: `MacChemScript.cmd_write_data(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 660: `MacChemScript.cmd_atoms(args: dict) -> dict` - Atom names (as in substructure maps) and bonds of one structure.
+- **method**, line 461: `MacChemScript.cmd_cleanup(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 524: `MacChemScript.cmd_contains_substructure(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 428: `MacChemScript.cmd_convert(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 508: `MacChemScript.cmd_get_formula(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 469: `MacChemScript.cmd_get_info(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 498: `MacChemScript.cmd_get_name(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 604: `MacChemScript.cmd_largest_common_substructure(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 573: `MacChemScript.cmd_load_reaction(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 675: `MacChemScript.cmd_mimetypes(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 443: `MacChemScript.cmd_name_to_cdxml(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 620: `MacChemScript.cmd_overlay(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 425: `MacChemScript.cmd_ping(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 452: `MacChemScript.cmd_smiles_to_cdxml(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 645: `MacChemScript.cmd_substructure_align(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 528: `MacChemScript.cmd_substructure_search(args: dict) -> dict` - No public docstring in the audited version.
+- **method**, line 536: `MacChemScript.cmd_write_data(args: dict) -> dict` - No public docstring in the audited version.
 - **function**, line 85: `opsin_name_to_smiles(name: str) -> Optional[str]` - Resolve a chemical name offline with OPSIN, or return None.
 - **function**, line 156: `rdkit_to_cdxml(mol) -> str` - CDXML for an RDKit molecule, keeping its coordinates and atom order.
 - **function**, line 72: `resolve_mime(fmt: str) -> str` - No public docstring in the audited version.
-- **function**, line 674: `shared() -> MacChemScript` - The process's MacChemScript, so every ChemScriptBridge drives one ChemDraw.
+- **function**, line 682: `shared() -> MacChemScript` - The process's MacChemScript, so every ChemScriptBridge drives one ChemDraw.
 
 ## `chemdraw.mac_automation`
 
-- **function**, line 305: `application_info(bundle: Path) -> dict` - No public docstring in the audited version.
-- **function**, line 619: `application_pid(bundle_id: str) -> Optional[int]` - Process id of the running application, read without Apple events.
-- **function**, line 313: `bundle_identifier(bundle: Optional[Path] = None) -> str` - No public docstring in the audited version.
-- **function**, line 1070: `convert_file(source: str | Path, destination: str | Path, *, timeout_seconds: int = 60) -> str` - Convert one file with ChemDraw for macOS (format from the destination extension).
-- **function**, line 266: `find_application() -> Optional[Path]` - Return the ChemDraw ``.app`` bundle, honouring ``CHEMDRAW_EXE``.
-- **function**, line 296: `find_executable() -> Optional[Path]` - No public docstring in the audited version.
-- **function**, line 1076: `flatten_png(path: str | Path, dpi: int = NATIVE_PNG_DPI) -> None` - Composite a transparent native PNG onto white and apply the requested DPI.
-- **function**, line 351: `installed_font_families() -> frozenset` - Font family names installed on this Mac, read through CoreText.
-- **function**, line 255: `is_macos() -> bool` - No public docstring in the audited version.
-- **function**, line 611: `is_running(bundle_id: str) -> bool` - No public docstring in the audited version.
-- **function**, line 707: `launch_hidden(bundle_id: str, *, timeout_seconds: float = 60) -> Optional[int]` - Launch an application in the background and hidden; record and return its pid.
-- **function**, line 689: `launched_instances() -> dict[int, dict]` - Recorded launches whose process is still alive (stale records are dropped).
-- **class**, line 246: `MacAutomationError` - ChemDraw for macOS automation failure with a stable public error code.
-- **class**, line 754: `MacChemDrawSession` - Launch ChemDraw once (hidden, in the background) and reuse it for exports.
-- **method**, line 890: `MacChemDrawSession.analyze(source: str | Path) -> dict` - ChemDraw's own reading of every structure in ``source``.
-- **method**, line 918: `MacChemDrawSession.apply_menu(source: str | Path, destination: str | Path, *commands: tuple[str, str], select_all: bool = True) -> str` - Run ChemDraw menu ``commands`` (``(menu, item)`` pairs) and save the result.
-- **method**, line 942: `MacChemDrawSession.clean(source: str | Path, destination: str | Path, *, reaction: bool = False) -> str` - ChemDraw Structure > Clean Up Structure (or Clean Up Reaction).
-- **method**, line 1002: `MacChemDrawSession.close() -> None` - No public docstring in the audited version.
-- **method**, line 857: `MacChemDrawSession.export(source: str | Path, *destinations: str | Path) -> list[str]` - Open ``source`` and save it to every destination (format from extension).
-- **method**, line 957: `MacChemDrawSession.name_to_structure(name: str, destination: str | Path) -> str` - ChemDraw Structure > Convert Name to Structure for one chemical name, as CDXML.
-- **method**, line 828: `MacChemDrawSession.run_steps(source: str | Path, steps: Iterable[str], *, timeout_seconds: Optional[float] = None, protect_captions: bool = False) -> list[str]` - Open ``source`` and run ChemDraw steps on it (see ``_STEPS_SCRIPT``).
-- **method**, line 914: `MacChemDrawSession.smiles(source: str | Path) -> str` - Return ChemDraw's own SMILES for every structure in ``source``.
-- **method**, line 773: `MacChemDrawSession.start() -> None` - No public docstring in the audited version.
-- **method**, line 947: `MacChemDrawSession.structure_names(source: str | Path) -> list[str]` - Names from ChemDraw Structure > Convert Structure to Name, in document order.
-- **function**, line 1047: `new_captions(source: str | Path, named: str | Path) -> list[str]` - Captions present in ``named`` but not in ``source`` (the names ChemDraw added).
-- **function**, line 546: `protect_captions(path: str | Path) -> list[str]` - Mark free captions in a CDXML file as plain text; return their ids.
-- **function**, line 722: `reap_orphans() -> list[int]` - Stop applications the toolkit launched for a process that no longer exists.
-- **function**, line 672: `register_launch(pid: int, bundle_id: str, *, owner_pid: Optional[int] = None) -> None` - No public docstring in the audited version.
-- **function**, line 573: `release_captions(path: str | Path, ids: Iterable[str]) -> None` - Remove the marks ``protect_captions`` added from a saved CDXML file.
-- **function**, line 592: `run_applescript(script: str, args: Iterable[str] = (), *, timeout_seconds: float = 60) -> str` - Run an AppleScript through ``osascript`` and return its stdout.
-- **function**, line 744: `save_type_for(path: Path) -> str` - No public docstring in the audited version.
-- **function**, line 397: `substitute_missing_fonts(path: str | Path, available: Optional[frozenset] = None) -> dict` - Rename fonts in a CDXML font table that are not installed on this Mac.
-- **function**, line 633: `terminate_process(pid: Optional[int], grace_seconds: float = 5) -> None` - SIGTERM ``pid``, then SIGKILL it if it is still alive after the grace period.
-- **function**, line 681: `unregister_launch(pid: Optional[int]) -> None` - No public docstring in the audited version.
+- **function**, line 310: `application_info(bundle: Path) -> dict` - No public docstring in the audited version.
+- **function**, line 624: `application_pid(bundle_id: str) -> Optional[int]` - Process id of the running application, read without Apple events.
+- **function**, line 318: `bundle_identifier(bundle: Optional[Path] = None) -> str` - No public docstring in the audited version.
+- **function**, line 1072: `convert_file(source: str | Path, destination: str | Path, *, timeout_seconds: int = 60) -> str` - Convert one file with ChemDraw for macOS (format from the destination extension).
+- **function**, line 271: `find_application() -> Optional[Path]` - Return the ChemDraw ``.app`` bundle, honouring ``CHEMDRAW_EXE``.
+- **function**, line 301: `find_executable() -> Optional[Path]` - No public docstring in the audited version.
+- **function**, line 1078: `flatten_png(path: str | Path, dpi: int = NATIVE_PNG_DPI) -> None` - Composite a transparent native PNG onto white and apply the requested DPI.
+- **function**, line 356: `installed_font_families() -> frozenset` - Font family names installed on this Mac, read through CoreText.
+- **function**, line 260: `is_macos() -> bool` - No public docstring in the audited version.
+- **function**, line 616: `is_running(bundle_id: str) -> bool` - No public docstring in the audited version.
+- **function**, line 712: `launch_hidden(bundle_id: str, *, timeout_seconds: float = 60) -> Optional[int]` - Launch an application in the background and hidden; record and return its pid.
+- **function**, line 694: `launched_instances() -> dict[int, dict]` - Recorded launches whose process is still alive (stale records are dropped).
+- **class**, line 251: `MacAutomationError` - ChemDraw for macOS automation failure with a stable public error code.
+- **class**, line 759: `MacChemDrawSession` - Launch ChemDraw once (hidden, in the background) and reuse it for exports.
+- **method**, line 895: `MacChemDrawSession.analyze(source: str | Path) -> dict` - ChemDraw's own reading of every structure in ``source``.
+- **method**, line 923: `MacChemDrawSession.apply_menu(source: str | Path, destination: str | Path, *commands: tuple[str, str], select_all: bool = True) -> str` - Run ChemDraw menu ``commands`` (``(menu, item)`` pairs) and save the result.
+- **method**, line 947: `MacChemDrawSession.clean(source: str | Path, destination: str | Path, *, reaction: bool = False) -> str` - ChemDraw Structure > Clean Up Structure (or Clean Up Reaction).
+- **method**, line 1004: `MacChemDrawSession.close() -> None` - No public docstring in the audited version.
+- **method**, line 862: `MacChemDrawSession.export(source: str | Path, *destinations: str | Path) -> list[str]` - Open ``source`` and save it to every destination (format from extension).
+- **method**, line 962: `MacChemDrawSession.name_to_structure(name: str, destination: str | Path) -> str` - ChemDraw Structure > Convert Name to Structure for one chemical name, as CDXML.
+- **method**, line 833: `MacChemDrawSession.run_steps(source: str | Path, steps: Iterable[str], *, timeout_seconds: Optional[float] = None, protect_captions: bool = False) -> list[str]` - Open ``source`` and run ChemDraw steps on it (see ``_STEPS_SCRIPT``).
+- **method**, line 919: `MacChemDrawSession.smiles(source: str | Path) -> str` - Return ChemDraw's own SMILES for every structure in ``source``.
+- **method**, line 778: `MacChemDrawSession.start() -> None` - No public docstring in the audited version.
+- **method**, line 952: `MacChemDrawSession.structure_names(source: str | Path) -> list[str]` - Names from ChemDraw Structure > Convert Structure to Name, in document order.
+- **function**, line 1049: `new_captions(source: str | Path, named: str | Path) -> list[str]` - Captions present in ``named`` but not in ``source`` (the names ChemDraw added).
+- **function**, line 551: `protect_captions(path: str | Path) -> list[str]` - Mark free captions in a CDXML file as plain text; return their ids.
+- **function**, line 727: `reap_orphans() -> list[int]` - Stop applications the toolkit launched for a process that no longer exists.
+- **function**, line 677: `register_launch(pid: int, bundle_id: str, *, owner_pid: Optional[int] = None) -> None` - No public docstring in the audited version.
+- **function**, line 578: `release_captions(path: str | Path, ids: Iterable[str]) -> None` - Remove the marks ``protect_captions`` added from a saved CDXML file.
+- **function**, line 597: `run_applescript(script: str, args: Iterable[str] = (), *, timeout_seconds: float = 60) -> str` - Run an AppleScript through ``osascript`` and return its stdout.
+- **function**, line 749: `save_type_for(path: Path) -> str` - No public docstring in the audited version.
+- **function**, line 402: `substitute_missing_fonts(path: str | Path, available: Optional[frozenset] = None) -> dict` - Rename fonts in a CDXML font table that are not installed on this Mac.
+- **function**, line 638: `terminate_process(pid: Optional[int], grace_seconds: float = 5) -> None` - SIGTERM ``pid``, then SIGKILL it if it is still alive after the grace period.
+- **function**, line 686: `unregister_launch(pid: Optional[int]) -> None` - No public docstring in the audited version.
 
 ## `chemdraw.stoichiometry_grid`
 

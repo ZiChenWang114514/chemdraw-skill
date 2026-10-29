@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 
 import pytest
@@ -146,7 +147,8 @@ def test_no_chemscript_gives_an_actionable_error(monkeypatch):
         structure_to_name([{'smiles': ASPIRIN}])
 
 
-@pytest.mark.skipif(sys.platform != 'win32', reason='live ChemScript check runs on Windows only')
+@pytest.mark.skipif(not (sys.platform == 'win32' or (sys.platform == 'darwin' and os.environ.get('CDXML_LIVE_CHEMDRAW') == '1')),
+                    reason='live ChemDraw naming runs on Windows, or on macOS with CDXML_LIVE_CHEMDRAW=1')
 def test_live_chemscript_names_and_round_trips():
     try:
         from cdxml_toolkit.mcp_runtime.chemistry_compare import _bridge_factory

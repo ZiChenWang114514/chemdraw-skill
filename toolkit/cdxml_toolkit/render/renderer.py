@@ -1397,10 +1397,11 @@ def _layout_serpentine(
 
 
 # ---------------------------------------------------------------------------
-# Layout engine: divergent (one SM → multiple products via vertical branching)
+# Layout engine: divergent (one SM → multiple products on branch rows)
 # ---------------------------------------------------------------------------
 
-# Gap between the bottom of one branch and the top of the next.
+# Gap between the bottom of one branch row and the top of the next (halved
+# between rows: branch rows have no run arrows, so they can sit closer).
 _DIVERGENT_BRANCH_GAP = 2.5 * ACS_BOND_LENGTH
 
 
@@ -1414,8 +1415,8 @@ def _layout_divergent(
     Layout a divergent scheme: one SM gives multiple products.
 
     Detects the shared substrate (appears in multiple steps) and renders it
-    once on the left, with the first step going horizontally and subsequent
-    steps branching downward with vertical arrows.
+    once on the left.  Each step is a row with its own horizontal arrow; the
+    arrow tails share one column joined by a vertical line.
 
     Returns (inner_xml, lowest_y).
     """
@@ -1489,11 +1490,50 @@ def _layout_divergent(
     sm_right_x = sm_frag.bbox[2]
     lowest_y = arrow_y + 60.0
 
-    # --- First step: horizontal (same Y as SM) ---
-    first_step = shared_steps[0]
-    branch_y = arrow_y
+    # Every branch is a row with its own horizontal arrow.  The arrows share one
+    # tail column right of the starting material, joined by a vertical connector,
+    # so each product reads as made from the starting material (a column of
+    # stacked vertical arrows reads as a chain, 1 -> 3 -> 4).
+    branches = []
+    for step in shared_steps:
+        above_text = [normalize_condition_text(t) for t in step.above_arrow.text] if step.above_arrow else []
+        below_text = [normalize_condition_text(t) for t in step.below_arrow.text] if step.below_arrow else []
+        if step.yield_:
+            below_text.append(step.yield_)
+        products = [_resolve_structure(_get_ref(sid), source_data=source_data,
+                                       reference_mol=reference_mol)
+                    for sid in step.products]
+        branches.append((step, above_text, below_text, products))
 
-    for branch_idx, step in enumerate(shared_steps):
+    content_w = max((max(_estimate_text_width(above), _estimate_text_width(below), 0)
+                     for _, above, below, _ in branches), default=0)
+    arrow_len = max(content_w + 10.0, min_arrow_len)
+    tail_x = sm_right_x + frag_gap * 0.3
+    head_x = tail_x + arrow_len
+    arrow_mid_x = (tail_x + head_x) / 2.0
+    tail_ys: List[float] = []
+    previous_bottom: Optional[float] = None
+
+    for step, above_text, below_text, products in branches:
+        # Extent of the row above and below its arrow line.
+        above_h = 0.0
+        if above_text:
+            above_h = (LAYOUT_BELOW_GAP + max(0, len(above_text) - 1) * _LINE_ADVANCE
+                       + _DESCENT + _CAP_HEIGHT)
+        below_h = 0.0
+        if below_text:
+            below_h = (LAYOUT_BELOW_GAP + _CAP_HEIGHT
+                       + max(0, len(below_text) - 1) * _LINE_ADVANCE + _DESCENT)
+        for frag in products:
+            above_h = max(above_h, frag.cy - frag.bbox[1])
+            # The compound label sits 14 pt below the structure.
+            below_h = max(below_h, frag.bbox[3] - frag.cy + (14.0 + _DESCENT if frag.ref.label else 0.0))
+        if previous_bottom is None:
+            branch_y = arrow_y
+        else:
+            branch_y = previous_bottom + _DIVERGENT_BRANCH_GAP / 2.0 + above_h
+        tail_ys.append(branch_y)
+
         step_meta: Dict[str, Any] = {
             "reactant_ids": [sm_frag_id],
             "product_ids": [],
@@ -1501,153 +1541,54 @@ def _layout_divergent(
             "above_ids": [],
             "below_ids": [],
         }
+        arrow_xml, arrow_id = _build_arrow(
+            tail_x, branch_y, head_x, branch_y, ids,
+            dashed=(step.arrow_style == "dashed"),
+            nogo=(step.arrow_style == "failed"),
+            kind=_arrow_kind(step.arrow_style))
+        xml_parts.append(arrow_xml)
+        step_meta["arrow_id"] = arrow_id
 
-        if branch_idx == 0:
-            # Horizontal arrow from SM
-            arrow_tail_x = sm_right_x + frag_gap * 0.3
+        # Above-arrow text (p.y = baseline of the first line), its visual bottom
+        # LAYOUT_BELOW_GAP above the arrow like the text below it.
+        if above_text:
+            text_below_baseline = max(0, len(above_text) - 1) * _LINE_ADVANCE + _DESCENT
+            text_y = branch_y - LAYOUT_BELOW_GAP - text_below_baseline
+            txt_xml, txt_id = _build_text_element(above_text, arrow_mid_x, text_y, ids,
+                                                  use_formatting=True)
+            xml_parts.append(txt_xml)
+            step_meta["above_ids"].append(txt_id)
+        if below_text:
+            text_y = branch_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
+            txt_xml, txt_id = _build_text_element(below_text, arrow_mid_x, text_y, ids)
+            xml_parts.append(txt_xml)
+            step_meta["below_ids"].append(txt_id)
 
-            # Compute arrow length from content
-            below_text = list(step.below_arrow.text) if step.below_arrow else []
-            above_text = list(step.above_arrow.text) if step.above_arrow else []
-            if step.yield_:
-                below_text.append(step.yield_)
-            content_w = max(
-                _estimate_text_width(below_text),
-                _estimate_text_width(above_text),
-                0,
-            )
-            arrow_len = max(content_w + 10.0, min_arrow_len)
-            arrow_head_x = arrow_tail_x + arrow_len
-            arrow_mid_x = (arrow_tail_x + arrow_head_x) / 2.0
-
-            dashed = (step.arrow_style == "dashed")
-            failed = (step.arrow_style == "failed")
-            arrow_xml, arrow_id = _build_arrow(
-                arrow_tail_x, branch_y, arrow_head_x, branch_y, ids,
-                dashed=dashed, nogo=failed, kind=_arrow_kind(step.arrow_style))
-            xml_parts.append(arrow_xml)
-            step_meta["arrow_id"] = arrow_id
-
-            # Above-arrow text (p.y = baseline of first line)
-            # Position so visual bottom sits LAYOUT_BELOW_GAP above arrow
-            # (same gap as below-arrow content for symmetry)
-            if above_text:
-                n_abt = len(above_text)
-                text_below_baseline = max(0, n_abt - 1) * _LINE_ADVANCE + _DESCENT
-                text_y = branch_y - LAYOUT_BELOW_GAP - text_below_baseline
-                txt_xml, txt_id = _build_text_element(
-                    above_text, arrow_mid_x, text_y, ids,
-                    use_formatting=True,
-                )
-                xml_parts.append(txt_xml)
-                step_meta["above_ids"].append(txt_id)
-
-            # Below-arrow text (p.y = baseline; visual top = p.y - _CAP_HEIGHT)
-            if below_text:
-                text_y = branch_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
-                txt_xml, txt_id = _build_text_element(below_text, arrow_mid_x, text_y, ids)
-                xml_parts.append(txt_xml)
-                step_meta["below_ids"].append(txt_id)
-                n_blt = len(below_text)
-                lowest_y = max(
-                    lowest_y,
-                    text_y + max(0, n_blt - 1) * _LINE_ADVANCE + _DESCENT,
-                )
-
-            # Products
-            cursor_x = arrow_head_x + frag_gap * 1.0
-            for prod_sid in step.products:
-                prod_ref = _get_ref(prod_sid)
-                prod_frag = _resolve_structure(prod_ref, source_data=source_data,
-                                               reference_mol=reference_mol)
-                pw = _bbox_width(prod_frag.bbox)
-                pcx = cursor_x + pw / 2.0
-                ddx = pcx - prod_frag.cx
-                ddy = branch_y - prod_frag.cy
-                _shift_atoms(prod_frag.atoms, ddx, ddy)
-                prod_frag.bbox = _fragment_bbox(prod_frag.atoms)
-                prod_frag.cx, prod_frag.cy = _bbox_center(prod_frag.bbox)
-
-                pfrag_xml, _, pfrag_id = _build_fragment(
-                    prod_frag.atoms, prod_frag.bonds, ids)
-                xml_parts.append(pfrag_xml)
-                step_meta["product_ids"].append(pfrag_id)
-                all_frag_ids.append(pfrag_id)
-
-                if prod_frag.ref.label:
-                    lbl_xml, _ = _build_label_element(
-                        prod_frag.ref.label, prod_frag.cx,
-                        prod_frag.bbox[3] + 14.0, ids)
-                    xml_parts.append(lbl_xml)
-
-                cursor_x = prod_frag.bbox[2] + inter_gap
-
-            # Track lowest for below-text of this horizontal step
-            lowest_y = max(lowest_y, branch_y + 60.0)
-
-        else:
-            # Vertical branch downward from SM
-            # Vertical arrow starts below the previous branch's content
-            vert_top_y = lowest_y + 8.0
-
-            # Condition text
-            cond_lines: List[str] = []
-            if step.above_arrow and step.above_arrow.text:
-                cond_lines.extend(step.above_arrow.text)
-            if step.below_arrow and step.below_arrow.text:
-                cond_lines.extend(step.below_arrow.text)
-            if step.yield_:
-                cond_lines.append(step.yield_)
-
-            # Compute vertical arrow length: enough for condition text + product
-            prod_ref = _get_ref(step.products[0])
-            prod_frag = _resolve_structure(prod_ref, source_data=source_data,
-                                           reference_mol=reference_mol)
-            prod_h = _bbox_height(prod_frag.bbox)
-
-            cond_text_h = _estimate_text_height(cond_lines) if cond_lines else 0
-            vert_len = max(cond_text_h + 20.0, prod_h + 30.0, 3.0 * bond_len)
-            vert_bottom_y = vert_top_y + vert_len
-
-            dashed = (step.arrow_style == "dashed")
-            failed = (step.arrow_style == "failed")
-
-            vert_xml, vert_aid = _build_vertical_arrow(
-                sm_frag.cx, vert_top_y, vert_bottom_y, ids,
-                condition_lines=cond_lines if cond_lines else None,
-                condition_side="right",
-                dashed=dashed,
-                nogo=failed,
-                kind=_arrow_kind(step.arrow_style),
-            )
-            xml_parts.append(vert_xml)
-            step_meta["arrow_id"] = vert_aid
-
-            # Product below the vertical arrow, centered on SM's x.
-            prod_w = _bbox_width(prod_frag.bbox)
-            prod_y = vert_bottom_y + frag_gap * 1.0 + prod_h / 2.0
-            prod_target_cx = sm_frag.cx
-            ddx = prod_target_cx - prod_frag.cx
-            ddy = prod_y - prod_frag.cy
-            _shift_atoms(prod_frag.atoms, ddx, ddy)
+        cursor_x = head_x + frag_gap * 1.0
+        for prod_frag in products:
+            pw = _bbox_width(prod_frag.bbox)
+            _shift_atoms(prod_frag.atoms, cursor_x + pw / 2.0 - prod_frag.cx, branch_y - prod_frag.cy)
             prod_frag.bbox = _fragment_bbox(prod_frag.atoms)
             prod_frag.cx, prod_frag.cy = _bbox_center(prod_frag.bbox)
-
-            pfrag_xml, _, pfrag_id = _build_fragment(
-                prod_frag.atoms, prod_frag.bonds, ids)
+            pfrag_xml, _, pfrag_id = _build_fragment(prod_frag.atoms, prod_frag.bonds, ids)
             xml_parts.append(pfrag_xml)
             step_meta["product_ids"].append(pfrag_id)
             all_frag_ids.append(pfrag_id)
-
             if prod_frag.ref.label:
                 lbl_xml, _ = _build_label_element(
-                    prod_frag.ref.label, prod_frag.cx,
-                    prod_frag.bbox[3] + 14.0, ids)
+                    prod_frag.ref.label, prod_frag.cx, prod_frag.bbox[3] + 14.0, ids)
                 xml_parts.append(lbl_xml)
+            cursor_x = prod_frag.bbox[2] + inter_gap
 
-            lowest_y = prod_frag.bbox[3] + 20.0
-
+        previous_bottom = branch_y + below_h
+        lowest_y = max(lowest_y, previous_bottom)
         step_metadata.append(step_meta)
+
+    if len(tail_ys) > 1:
+        line_id, line_z = ids.next(), ids.next()
+        xml_parts.append(
+            f'<graphic id="{line_id}" Z="{line_z}" GraphicType="Line" '
+            f'BoundingBox="{tail_x:.2f} {tail_ys[0]:.2f} {tail_x:.2f} {tail_ys[-1]:.2f}"/>')
 
     # --- Build <scheme> ---
     scheme_id = ids.next()

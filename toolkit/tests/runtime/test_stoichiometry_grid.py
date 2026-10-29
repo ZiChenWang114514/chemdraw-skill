@@ -19,7 +19,7 @@ import pytest
 from cdxml_toolkit.chemdraw import stoichiometry_grid as sg
 
 FIXTURE = Path(__file__).parent / "data" / "stoichiometry-grid.cdxml"
-LIVE = sys.platform == "win32" and os.environ.get("CDXML_LIVE_CHEMDRAW") == "1"
+LIVE = sys.platform in ("win32", "darwin") and os.environ.get("CDXML_LIVE_CHEMDRAW") == "1"
 
 
 def _row(result, object_id):
@@ -272,7 +272,7 @@ class ToolTests(unittest.TestCase):
         self.assertNotIn("reaction_calculator", registry)
 
 
-@pytest.mark.skipif(not LIVE, reason="drives ChemDraw; set CDXML_LIVE_CHEMDRAW=1 on Windows")
+@pytest.mark.skipif(not LIVE, reason="drives ChemDraw; set CDXML_LIVE_CHEMDRAW=1 on Windows or macOS")
 def test_live_chemdraw_draws_its_grid(tmp_path):
     result = sg.analyze("OCc1ccccc1.CC(=O)Cl>CCN(CC)CC>CC(=O)OCc1ccccc1",
                         output_path=str(tmp_path / "live.cdxml"))

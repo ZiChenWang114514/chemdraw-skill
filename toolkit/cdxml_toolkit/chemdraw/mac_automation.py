@@ -243,6 +243,11 @@ end run
 '''
 
 
+# The reason name conversion is refused while the user's own ChemDraw is open; it
+# crosses the ChemScript bridge as text, where callers recognise it.
+NAME_CONVERSION_IN_USE = "ChemDraw is already open; name conversion only runs in a ChemDraw the toolkit starts"
+
+
 class MacAutomationError(RuntimeError):
     """ChemDraw for macOS automation failure with a stable public error code."""
 
@@ -967,10 +972,7 @@ class MacChemDrawSession:
             raise MacAutomationError("native_format_unsupported", "name conversion writes CDXML")
         self.start()
         if not self.launched:
-            raise MacAutomationError(
-                "chemdraw_in_use",
-                "ChemDraw is already open; name conversion only runs in a ChemDraw the toolkit starts",
-            )
+            raise MacAutomationError("chemdraw_in_use", NAME_CONVERSION_IN_USE)
         with tempfile.TemporaryDirectory(prefix="cdx-mac-") as workspace:
             source = Path(workspace) / "name.cdxml"
             source.write_text(_caption_document(name), encoding="utf-8")
