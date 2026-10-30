@@ -1667,9 +1667,6 @@ def sequential_merge(schemes: List[ParsedScheme], *,
             elif role == "other" and old_id not in label_owner and old_id not in plus_pairs:
                 sd["other_ids"].append(new_id)
         copies = {old_id: el_copy for el_copy, _, old_id in sd["elements"]}
-        sd["plus_signs"] = [(copies[t], copies[a], copies[b])
-                            for t, (a, b) in plus_pairs.items()
-                            if t in copies and a in copies and b in copies]
         sd["labels"] = [(copies[t], copies[f], _atom_anchor(copies[f])[:2])
                         for t, f in label_owner.items()
                         if t in copies and f in copies and _atom_anchor(copies[f])]
@@ -1681,6 +1678,14 @@ def sequential_merge(schemes: List[ParsedScheme], *,
             if prev_sd["product_ids"]:
                 intermediate_id = prev_sd["product_ids"][0]
                 sd["reactant_ids"].insert(0, intermediate_id)
+                # A "+" next to the skipped copy belongs to the intermediate drawn in the
+                # previous step, wherever that one ends up.
+                for el_copy, _, _ in prev_sd["elements"]:
+                    if el_copy.get("id") == intermediate_id:
+                        copies[links[step_idx - 1][1]] = el_copy
+        sd["plus_signs"] = [(copies[t], copies[a], copies[b])
+                            for t, (a, b) in plus_pairs.items()
+                            if t in copies and a in copies and b in copies]
 
         step_data.append(sd)
 
@@ -1727,7 +1732,9 @@ def sequential_merge(schemes: List[ParsedScheme], *,
                 if el is not None:
                     bb = _get_element_bbox(el)
                     if bb:
-                        cursor_x = bb[2] + frag_gap  # right edge + gap
+                        # right edge + the room a "+" to the next reactant needs; the gap
+                        # before the arrow is set below
+                        cursor_x = bb[2] + inter_gap
                 continue
 
             el = all_elements.get(rid)

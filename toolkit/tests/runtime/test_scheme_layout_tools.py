@@ -249,6 +249,66 @@ def test_sequential_merge_keeps_numbers_plus_signs_and_conditions_in_place(tmp_p
         assert all(_box(el)[1] >= arrow_y for el in below if el.tag == "t")
 
 
+def _step_with_a_reagent_beside_the_intermediate(tmp_path, reagent_first):
+    """route-step2 with a second reactant, joined to the shared intermediate by a "+"."""
+    import copy
+
+    _, first = _root(DATA / "route-step1.cdxml")
+    first_page = _page(first)
+    reagent, plus = copy.deepcopy(first_page["1035"]), copy.deepcopy(first_page["1033"])
+    for el in (reagent, plus):
+        for node in el.iter():
+            # Atom and bond ids, and the atoms a bond joins, move together.
+            for attr in ("id", "B", "E"):
+                if node.get(attr, "").isdigit():
+                    node.set(attr, str(int(node.get(attr)) + 7000))
+    head_text = (DATA / "route-step2.cdxml").read_text(encoding="utf-8")
+    root = ET.fromstring(head_text[head_text.index("<CDXML"):])
+    page = root.find("page")
+    intermediate = _page(root)["1156"]
+    x0, y0, x1, y1 = drawn_fragment_bbox(intermediate)
+    rx0, ry0, rx1, ry1 = drawn_fragment_bbox(reagent)
+    dx = (x0 - 40 - rx1) if reagent_first else (x1 + 40 - rx0)
+    dy = (y0 + y1) / 2 - (ry0 + ry1) / 2
+    for node in reagent.iter():
+        if node.get("p"):
+            a = node.get("p").split()
+            node.set("p", f"{float(a[0]) + dx:.2f} {float(a[1]) + dy:.2f}")
+        node.attrib.pop("BoundingBox", None)
+    plus.set("p", f"{(x0 - 20) if reagent_first else (x1 + 20):.2f} {(y0 + y1) / 2:.2f}")
+    plus.attrib.pop("BoundingBox", None)
+    at = list(page).index(intermediate) + 1
+    page.insert(at, reagent)
+    page.insert(at, plus)
+    ids = f"{reagent.get('id')} 1156" if reagent_first else f"1156 {reagent.get('id')}"
+    root.find(".//step").set("ReactionStepReactants", ids)
+    path = tmp_path / "step2-with-reagent.cdxml"
+    path.write_text(head_text[:head_text.index("<CDXML")] + ET.tostring(root, encoding="unicode"),
+                    encoding="utf-8")
+    return path
+
+
+def test_sequential_merge_keeps_a_plus_between_the_shared_intermediate_and_its_partner(tmp_path):
+    for reagent_first in (False, True):
+        step2 = _step_with_a_reagent_beside_the_intermediate(tmp_path, reagent_first)
+        out = tmp_path / f"route-{reagent_first}.cdxml"
+        tools.merge_reaction_schemes([str(DATA / "route-step1.cdxml"), str(step2)], str(out),
+                                     mode="sequential", render_preview=False)
+        text, root = _root(out)
+        assert figure_lint.lint_cdxml(text) == [], reagent_first
+        page = _page(root)
+        second = list(root.iter("step"))[1]
+        left, right = sorted((page[i] for i in second.get("ReactionStepReactants").split()),
+                             key=lambda el: _box(el)[0])
+        plus = [tuple(float(v) for v in el.get("p").split()[:2]) for el in page.values()
+                if el.tag == "t" and _text(el) == "+" and float(el.get("p").split()[0]) > _box(left)[0] - 1]
+        assert len(plus) == 1, reagent_first
+        # The "+" sits in the gap between the two reactants, clear of both, on their line.
+        (px, py), gap = plus[0], (_box(left)[2], _box(right)[0])
+        assert gap[0] + 5 < px < gap[1] - 5, reagent_first
+        assert abs(py - (_box(left)[1] + _box(left)[3]) / 2) < 25, reagent_first
+
+
 def test_parallel_merge_says_when_a_run_with_other_conditions_is_not_drawn(tmp_path):
     other = tmp_path / "other-run.cdxml"
     other.write_text((DATA / "route-step2.cdxml").read_text(encoding="utf-8")
