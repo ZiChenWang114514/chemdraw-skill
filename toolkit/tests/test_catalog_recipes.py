@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from importlib import resources
 
 import pytest
@@ -81,7 +82,7 @@ def test_committed_recipes_are_well_formed_and_cover_real_symbols():
         if recipe["tool"] == "chemdraw_com_call":
             continue
         assert recipe["tool"] == "execute_chemscript_sdk"
-        assert recipe["platforms"] == ["win"]
+        assert recipe["platforms"] in (["win"], ["win", "mac"])
         assert recipe["verified_on"].startswith("22.")
         assert all("op" in step for step in recipe["program"])
         assert recipe["expect"], recipe["id"]
@@ -135,5 +136,27 @@ def test_declaring_type_follows_the_base_chain():
 @pytest.mark.skipif(os.environ.get("CDX_LIVE") != "1", reason="set CDX_LIVE=1 to run the recipes against the installed ChemDraw")
 def test_every_recipe_still_passes_on_the_installed_sdk():
     failures = {r["id"]: recipes.run(r) for r in recipes.load()}
+
+    assert {key: value for key, value in failures.items() if value} == {}
+
+
+def _mac_recipes():
+    return [r for r in recipes.load() if "mac" in r["platforms"]]
+
+
+def test_recipes_marked_for_macos_use_only_emulated_members():
+    from cdxml_toolkit.mcp_runtime import chemscript_sdk_mac
+
+    emulated = {(owner, name) for owner, name, _operation in chemscript_sdk_mac._ALLOWED}
+    assert _mac_recipes()
+    for recipe in _mac_recipes():
+        for symbol in recipe["members"]:
+            assert tuple(symbol.split(".")) in emulated, (recipe["id"], symbol)
+
+
+@pytest.mark.skipif(not (sys.platform == "darwin" and os.environ.get("CDXML_LIVE_CHEMDRAW") == "1"),
+                    reason="drives ChemDraw for macOS; set CDXML_LIVE_CHEMDRAW=1 on a Mac")
+def test_recipes_marked_for_macos_pass_on_chemdraw_for_macos():
+    failures = {r["id"]: recipes.run(r) for r in _mac_recipes()}
 
     assert {key: value for key, value in failures.items() if value} == {}

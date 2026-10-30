@@ -7,9 +7,9 @@ Load for new reaction rendering, existing CDXML cleanup, alignment, multi-scheme
 ## Preferred Entry Points
 
 - New grounded scheme: tool `render_scheme`.
-- Existing layout cleanup: tool `clean_scheme_layout`; Python `layout.reaction_cleanup.run_cleanup`.
+- Existing layout cleanup: tool `clean_scheme_layout`; Python `layout.reaction_cleanup.run_cleanup`. Every step is laid out, with "+" signs and compound numbers kept with their structures; a scheme drawn one step per row gets a common left edge and even row gaps. A step that reuses a species of an earlier step (A -> B -> C on one row) is left as drawn and listed in `skipped_steps`.
 - Multi-file merge: tool `merge_reaction_schemes`; Python `layout.scheme_merger` parse, detect, execute workflow.
-- Full normalization/polish: tool `polish_reaction_scheme`; Python `scheme_polisher_v2.run_pipeline`.
+- Full normalization/polish: tool `polish_reaction_scheme`; Python `scheme_polisher_v2.run_pipeline`. Conditions are tidied and merged for every step.
 - Parsed reaction JSON: `render.auto_layout.auto_layout_to_cdxml` or `render.scheme_maker.build_scheme`.
 - YAML/compact input: `render.parser.parse_yaml` or `render.compact_parser.parse_compact`, then `render.renderer.render_to_file`.
 

@@ -205,10 +205,12 @@ _MULTIPLIERS = {2: "di", 3: "tri", 4: "tetra", 5: "penta", 6: "hexa"}
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _resolve_query(query: str, use_network: bool = True) -> Optional[Dict]:
+def _resolve_query(query: str, use_network: bool = True,
+                   notes: Optional[List[str]] = None) -> Optional[Dict]:
     """Multi-tier resolution chain: reagent DB → formula → ChemScript → PubChem.
 
-    Returns {"smiles": ..., "source": ...} or None.
+    Returns {"smiles": ..., "source": ...} or None.  ``notes`` collects why a
+    tier could not run, for the caller's error message.
     """
     from rdkit import Chem
 
@@ -248,8 +250,11 @@ def _resolve_query(query: str, use_network: bool = True) -> Optional[Dict]:
             smi = cs.write_data(clean, "smiles", source_format="name")
             if smi and Chem.MolFromSmiles(smi):
                 return {"smiles": _rdkit_canonical(smi), "source": "chemscript"}
-        except Exception:
-            pass
+        except Exception as exc:
+            from cdxml_toolkit.chemdraw.mac_automation import NAME_CONVERSION_IN_USE
+            if notes is not None and NAME_CONVERSION_IN_USE in str(exc):
+                notes.append("ChemDraw's own name conversion did not run because ChemDraw is open; "
+                             "quit ChemDraw and retry, or give a SMILES.")
 
     # Tier 3b: OPSIN (offline IUPAC name → SMILES, bundled JRE)
     try:
@@ -456,9 +461,10 @@ def resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]:
         {'ok': True, ..., 'prefix_form': 'morpholino'}
     """
     # --- Step 1: resolve SMILES via the existing 4-tier chain ---
-    resolved = _resolve_query(query, use_network=use_network)
+    notes: List[str] = []
+    resolved = _resolve_query(query, use_network=use_network, notes=notes)
     if not resolved:
-        return {"ok": False, "error": f"Could not resolve '{query}' to a structure."}
+        return {"ok": False, "error": " ".join([f"Could not resolve '{query}' to a structure."] + notes)}
 
     smiles = resolved["smiles"]
     source = resolved["source"]

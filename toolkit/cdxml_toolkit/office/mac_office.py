@@ -109,7 +109,8 @@ def export_pdf(
     staging.mkdir(parents=True)
     launched_pid = None
     try:
-        staged_source = staging / f"document{suffix}"
+        # Office finds the opened document by name: use one no open document has.
+        staged_source = staging / f"cdx-{staging.name}{suffix}"
         staged_pdf = staging / "document.pdf"
         shutil.copyfile(source_path, staged_source)
         try:

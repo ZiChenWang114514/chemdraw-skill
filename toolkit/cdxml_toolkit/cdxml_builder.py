@@ -400,6 +400,8 @@ def _build_fragment(
             attrs.append(f'NumHydrogens="{nh}"')
             attrs.append('NeedsClean="yes"')
             attrs.append('AS="N"')
+        elif charge and "num_hydrogens" in a:
+            attrs.append(f'NumHydrogens="{a["num_hydrogens"]}"')
 
         if charge:
             attrs.append(f'Charge="{charge}"')

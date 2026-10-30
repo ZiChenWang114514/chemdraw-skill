@@ -74,13 +74,13 @@
 
 ## `chemistry_semantics`
 
-- **function**, line 79: `document_inventory(path)` - No public docstring in the audited version.
-- **function**, line 32: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
-- **function**, line 58: `read_molecules(value)` - No public docstring in the audited version.
-- **function**, line 20: `require_supported(mol)` - No public docstring in the audited version.
+- **function**, line 101: `document_inventory(path)` - No public docstring in the audited version.
+- **function**, line 43: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
+- **function**, line 80: `read_molecules(value)` - No public docstring in the audited version.
+- **function**, line 31: `require_supported(mol)` - No public docstring in the audited version.
 - **function**, line 10: `semantic_key(mol)` - No public docstring in the audited version.
-- **function**, line 83: `validate_document_preserved(source, output)` - No public docstring in the audited version.
-- **function**, line 62: `validate_fragment(smiles, xml)` - No public docstring in the audited version.
+- **function**, line 105: `validate_document_preserved(source, output)` - No public docstring in the audited version.
+- **function**, line 84: `validate_fragment(smiles, xml)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
@@ -142,40 +142,46 @@
 - **property**, line 148: `AtomMap.Count` - No public docstring in the audited version.
 - **property**, line 144: `AtomMap.Keys` - No public docstring in the audited version.
 - **class**, line 129: `Bond` - No public docstring in the audited version.
-- **class**, line 362: `LargestCommonSubstructure` - No public docstring in the audited version.
-- **method**, line 372: `LargestCommonSubstructure.AtomMapM1() -> AtomMap` - No public docstring in the audited version.
-- **method**, line 375: `LargestCommonSubstructure.AtomMapM2() -> AtomMap` - No public docstring in the audited version.
-- **method**, line 367: `LargestCommonSubstructure.Compute(first: StructureData, second: StructureData)` - No public docstring in the audited version.
-- **class**, line 426: `MacSdkRuntime` - The program runtime interface of ``ChemScriptRuntime``, for the emulation.
-- **method**, line 476: `MacSdkRuntime.catalog() -> tuple[list[dict], list[dict]]` - No public docstring in the audited version.
-- **method**, line 464: `MacSdkRuntime.check_member(owner: Any, member: str, operation: str) -> None` - Refuse anything that is not an emulated public member (no Python internals).
-- **method**, line 461: `MacSdkRuntime.member_is_interop(reflection_type, member: str) -> bool` - No public docstring in the audited version.
-- **method**, line 440: `MacSdkRuntime.python_type(name: str)` - No public docstring in the audited version.
-- **method**, line 431: `MacSdkRuntime.reflection_type(name: str) -> _Type` - No public docstring in the audited version.
-- **method**, line 443: `MacSdkRuntime.resolve_argument(value: Any, aliases: dict[str, Any], *, unsafe: bool)` - No public docstring in the audited version.
-- **class**, line 288: `ReactionData` - No public docstring in the audited version.
-- **method**, line 340: `ReactionData.Formula() -> str` - No public docstring in the audited version.
-- **method**, line 295: `ReactionData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 318: `ReactionData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **property**, line 337: `ReactionData.Products` - No public docstring in the audited version.
-- **property**, line 333: `ReactionData.Reactants` - No public docstring in the audited version.
-- **method**, line 343: `ReactionData.WriteData(mimetype: str = 'chemical/x-mdl-rxn') -> str` - No public docstring in the audited version.
-- **method**, line 350: `ReactionData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **class**, line 398: `LargestCommonSubstructure` - No public docstring in the audited version.
+- **method**, line 412: `LargestCommonSubstructure.AtomMapM1() -> AtomMap` - No public docstring in the audited version.
+- **method**, line 415: `LargestCommonSubstructure.AtomMapM2() -> AtomMap` - No public docstring in the audited version.
+- **method**, line 409: `LargestCommonSubstructure.CommonSubstructure() -> Optional[StructureData]` - No public docstring in the audited version.
+- **method**, line 404: `LargestCommonSubstructure.Compute(first: StructureData, second: StructureData)` - No public docstring in the audited version.
+- **class**, line 472: `MacSdkRuntime` - The program runtime interface of ``ChemScriptRuntime``, for the emulation.
+- **method**, line 522: `MacSdkRuntime.catalog() -> tuple[list[dict], list[dict]]` - No public docstring in the audited version.
+- **method**, line 510: `MacSdkRuntime.check_member(owner: Any, member: str, operation: str) -> None` - Refuse anything that is not an emulated public member (no Python internals).
+- **method**, line 507: `MacSdkRuntime.member_is_interop(reflection_type, member: str) -> bool` - No public docstring in the audited version.
+- **method**, line 486: `MacSdkRuntime.python_type(name: str)` - No public docstring in the audited version.
+- **method**, line 477: `MacSdkRuntime.reflection_type(name: str) -> _Type` - No public docstring in the audited version.
+- **method**, line 489: `MacSdkRuntime.resolve_argument(value: Any, aliases: dict[str, Any], *, unsafe: bool)` - No public docstring in the audited version.
+- **class**, line 324: `ReactionData` - No public docstring in the audited version.
+- **method**, line 376: `ReactionData.Formula() -> str` - No public docstring in the audited version.
+- **method**, line 331: `ReactionData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 354: `ReactionData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **property**, line 373: `ReactionData.Products` - No public docstring in the audited version.
+- **property**, line 369: `ReactionData.Reactants` - No public docstring in the audited version.
+- **method**, line 379: `ReactionData.WriteData(mimetype: str = 'chemical/x-mdl-rxn') -> str` - No public docstring in the audited version.
+- **method**, line 386: `ReactionData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
 - **class**, line 161: `StructureData` - No public docstring in the audited version.
-- **method**, line 279: `StructureData.AtomByAtomSearch(target: 'StructureData')` - No public docstring in the audited version.
-- **property**, line 229: `StructureData.Atoms` - No public docstring in the audited version.
-- **property**, line 233: `StructureData.Bonds` - No public docstring in the audited version.
-- **method**, line 225: `StructureData.ChemicalName() -> str` - No public docstring in the audited version.
-- **method**, line 258: `StructureData.CleanupStructure() -> bool` - No public docstring in the audited version.
-- **method**, line 275: `StructureData.ContainsSubstructure(query: 'StructureData') -> bool` - No public docstring in the audited version.
-- **method**, line 222: `StructureData.Formula() -> str` - No public docstring in the audited version.
-- **method**, line 176: `StructureData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 188: `StructureData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
-- **method**, line 213: `StructureData.MimeTypes()` - No public docstring in the audited version.
-- **method**, line 267: `StructureData.Overlay(target: 'StructureData') -> bool` - No public docstring in the audited version.
-- **method**, line 192: `StructureData.ReadFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
-- **method**, line 237: `StructureData.WriteData(mimetype: str = 'text/xml') -> str` - No public docstring in the audited version.
-- **method**, line 244: `StructureData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **method**, line 315: `StructureData.AtomByAtomSearch(target: 'StructureData')` - No public docstring in the audited version.
+- **property**, line 263: `StructureData.Atoms` - No public docstring in the audited version.
+- **property**, line 267: `StructureData.Bonds` - No public docstring in the audited version.
+- **method**, line 259: `StructureData.ChemicalName() -> str` - No public docstring in the audited version.
+- **method**, line 292: `StructureData.CleanupStructure() -> bool` - No public docstring in the audited version.
+- **method**, line 311: `StructureData.ContainsSubstructure(query: 'StructureData') -> bool` - No public docstring in the audited version.
+- **property**, line 243: `StructureData.ElementalAnalysis` - No public docstring in the audited version.
+- **property**, line 239: `StructureData.ExactMass` - No public docstring in the audited version.
+- **method**, line 231: `StructureData.Formula() -> str` - No public docstring in the audited version.
+- **property**, line 247: `StructureData.Inchi` - No public docstring in the audited version.
+- **method**, line 177: `StructureData.LoadData(data: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 189: `StructureData.LoadFile(path: str, mimetype: Optional[str] = None)` - No public docstring in the audited version.
+- **method**, line 215: `StructureData.MimeTypes()` - No public docstring in the audited version.
+- **method**, line 302: `StructureData.Overlay(target: 'StructureData') -> bool` - No public docstring in the audited version.
+- **method**, line 193: `StructureData.ReadFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
+- **property**, line 251: `StructureData.TotalCharge` - No public docstring in the audited version.
+- **property**, line 235: `StructureData.Weight` - No public docstring in the audited version.
+- **method**, line 271: `StructureData.WriteData(mimetype: str = 'text/xml') -> str` - No public docstring in the audited version.
+- **method**, line 278: `StructureData.WriteFile(path: str, mimetype: Optional[str] = None) -> bool` - No public docstring in the audited version.
 
 ## `mcp_runtime.chemscript_sdk_runtime`
 
@@ -208,23 +214,23 @@
 
 ## `mcp_runtime.extended_tools`
 
-- **function**, line 1114: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, Any]` - Analyze a chronological series of standard LCMS PDF reports.
-- **function**, line 1184: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
-- **function**, line 785: `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, Any]` - Create PPTX or DOCX containing editable ChemDraw OLE objects.
+- **function**, line 1147: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, Any]` - Analyze a chronological series of standard LCMS PDF reports.
+- **function**, line 1217: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
+- **function**, line 818: `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, Any]` - Create PPTX or DOCX containing editable ChemDraw OLE objects.
 - **function**, line 470: `clean_scheme_layout(input_path: str, output_path: Optional[str] = None, approach: str = 'chemdraw_mimic', render_preview: bool = True) -> dict[str, Any]` - Clean an existing CDXML reaction layout without changing the source file.
-- **function**, line 1082: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
-- **function**, line 709: `fill_office_template(template_path: str, manifest_path: str, output_path: Optional[str] = None) -> dict[str, Any]` - Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
-- **function**, line 845: `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, Any]` - Inventory editable ChemDraw objects and extract numbered CDXML previews.
-- **function**, line 490: `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, Any]` - Merge parallel, sequential, or unrelated CDXML reaction schemes.
-- **function**, line 1218: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
-- **function**, line 570: `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, Any]` - Run the audited deterministic polishing pipeline on a CDXML scheme.
-- **function**, line 602: `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, Any]` - Render one or more CDXML files through native ChemDraw (COM or macOS).
-- **function**, line 951: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
-- **function**, line 1326: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
+- **function**, line 1115: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
+- **function**, line 742: `fill_office_template(template_path: str, manifest_path: str, output_path: Optional[str] = None) -> dict[str, Any]` - Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
+- **function**, line 878: `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, Any]` - Inventory editable ChemDraw objects and extract numbered CDXML previews.
+- **function**, line 516: `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, Any]` - Merge parallel, sequential, or unrelated CDXML reaction schemes.
+- **function**, line 1251: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
+- **function**, line 603: `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, Any]` - Run the audited deterministic polishing pipeline on a CDXML scheme.
+- **function**, line 635: `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, Any]` - Render one or more CDXML files through native ChemDraw (COM or macOS).
+- **function**, line 984: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
+- **function**, line 1359: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
 
 ## `mcp_runtime.figure_draw`
 
-- **function**, line 260: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 297: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
 
 ## `mcp_runtime.figure_editing`
 
@@ -233,11 +239,11 @@
 
 ## `mcp_runtime.figure_lint`
 
-- **function**, line 54: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
+- **function**, line 299: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
 
 ## `mcp_runtime.figure_mechanism`
 
-- **function**, line 643: `draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a mechanism; called by draw_figure for ``kind: mechanism``.
+- **function**, line 644: `draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a mechanism; called by draw_figure for ``kind: mechanism``.
 
 ## `mcp_runtime.figure_scope`
 
@@ -364,18 +370,18 @@
 
 ## `mcp_runtime.report_tools`
 
-- **function**, line 1565: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
-- **function**, line 567: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
-- **function**, line 844: `chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict` - Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
-- **function**, line 629: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
-- **function**, line 979: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
-- **function**, line 1481: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
-- **function**, line 289: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
-- **function**, line 1261: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
-- **function**, line 1125: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
-- **function**, line 445: `signs(species)` - No public docstring in the audited version.
-- **function**, line 944: `stoichiometry_grid(source: str, mode: str = 'analyze', output_path: str | None = None, options: dict | None = None) -> dict` - ChemDraw's own stoichiometry grid (Structure > Analyze Stoichiometry), drawn or read back.
-- **function**, line 722: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
+- **function**, line 1582: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
+- **function**, line 568: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
+- **function**, line 853: `chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict` - Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
+- **function**, line 630: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
+- **function**, line 996: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
+- **function**, line 1498: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+- **function**, line 290: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
+- **function**, line 1278: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
+- **function**, line 1142: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
+- **function**, line 446: `signs(species)` - No public docstring in the audited version.
+- **function**, line 961: `stoichiometry_grid(source: str, mode: str = 'analyze', output_path: str | None = None, options: dict | None = None) -> dict` - ChemDraw's own stoichiometry grid (Structure > Analyze Stoichiometry), drawn or read back.
+- **function**, line 723: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
 
 ## `mcp_runtime.resource_lock`
 

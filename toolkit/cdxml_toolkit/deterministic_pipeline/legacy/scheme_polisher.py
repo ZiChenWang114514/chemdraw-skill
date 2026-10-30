@@ -671,251 +671,225 @@ def polish_scheme(
 
     log(f"Aligned {len(alignments)} fragment(s) to product orientation")
 
-    # --- Step 4c: Reformat existing text labels (subscripts + italic) ---
-    # Rebuild id_to_el before reformatting
-    id_to_el.clear()
-    for el in page:
-        eid = el.get("id", "")
-        if eid:
-            id_to_el[eid] = el
-
-    above_ids_reformat = step.get("ReactionStepObjectsAboveArrow", "").split()
-    below_ids_reformat = step.get("ReactionStepObjectsBelowArrow", "").split()
-    all_condition_ids = set(above_ids_reformat) | set(below_ids_reformat)
-    # Skip IDs that were just created in step 4 (already correctly formatted)
-    newly_created_ids = {r[0] for r in replacements}
+    # Steps 4c-6 tidy each step's conditions; a multi-step scheme often has
+    # one <scheme> per step.
     reformatted = []
-
-    for eid in all_condition_ids:
-        if eid in newly_created_ids:
-            continue
-        el = id_to_el.get(eid)
-        if el is None or el.tag != "t":
-            continue
-
-        # Get current plain text
-        old_text = _get_text_content(el)
-        if not old_text:
-            continue
-
-        # Look up canonical display form from reagent DB
-        canonical = get_reagent_db().resolve_display(old_text)
-
-        # Build new formatted <s> elements
-        new_s_xml = _build_formatted_s_xml(canonical)
-
-        # Check if reformatting would actually change anything
-        old_s_xml = "".join(ET.tostring(s, encoding="unicode") for s in el.findall("s"))
-        if old_s_xml == new_s_xml:
-            continue
-
-        # Remove old <s> children, keep objecttags and other children
-        old_children = list(el)
-        for child in old_children:
-            if child.tag == "s":
-                el.remove(child)
-
-        # Parse the new <s> elements and insert at the front
-        # Wrap in a dummy element for parsing
-        wrapper = ET.fromstring(f"<dummy>{new_s_xml}</dummy>")
-        insert_pos = 0
-        for new_s in wrapper:
-            el.insert(insert_pos, new_s)
-            insert_pos += 1
-
-        reformatted.append((eid, old_text, canonical))
-        log(f"  Reformatted text id={eid}: '{old_text}' → '{canonical}' "
-            f"(subscript/italic)")
-
-    log(f"Reformatted {len(reformatted)} text label(s)")
-
-    # --- Step 5: Deduplicate text elements ---
-    # Rebuild id_to_el after replacements
-    id_to_el.clear()
-    for el in page:
-        eid = el.get("id", "")
-        if eid:
-            id_to_el[eid] = el
-
-    # Collect all text content for above/below arrow elements
-    def _normalize_text(text: str) -> str:
-        return text.strip().lower()
-
-    above_ids = step.get("ReactionStepObjectsAboveArrow", "").split()
-    below_ids = step.get("ReactionStepObjectsBelowArrow", "").split()
-
     dedup_removed = []
-
-    for position_name, id_list_attr in [
-        ("above", "ReactionStepObjectsAboveArrow"),
-        ("below", "ReactionStepObjectsBelowArrow"),
-    ]:
-        id_list = step.get(id_list_attr, "").split()
-        seen_texts: Dict[str, str] = {}  # normalized_text → first_id
-        new_id_list = []
-        for eid in id_list:
-            el = id_to_el.get(eid)
-            if el is None:
-                continue
-
-            # Only deduplicate text elements
-            if el.tag == "t":
-                text = _get_text_content(el)
-                norm = _normalize_text(text)
-                if norm in seen_texts:
-                    # Duplicate — remove element and skip ID
-                    log(f"  Dedup: removing duplicate '{text}' (id={eid}) "
-                        f"from {position_name} (keeping id={seen_texts[norm]})")
-                    page.remove(el)
-                    dedup_removed.append((eid, text, position_name))
-                    continue
-                seen_texts[norm] = eid
-
-            new_id_list.append(eid)
-
-        step.set(id_list_attr, " ".join(new_id_list))
-
-    log(f"Removed {len(dedup_removed)} duplicate(s)")
-
-    # --- Step 6: Merge all text labels into one centered block (optional) ---
     merged_conditions = False
     merged_text_id = None
-
-    if merge_conditions:
-        # Rebuild id_to_el
+    all_steps = [s for sch in page.findall("scheme") for s in sch.findall("step")]
+    for step in all_steps:
+        # --- Step 4c: Reformat existing text labels (subscripts + italic) ---
+        # Rebuild id_to_el before reformatting
         id_to_el.clear()
         for el in page:
             eid = el.get("id", "")
             if eid:
                 id_to_el[eid] = el
 
-        # Find arrow midpoint for rough centering
-        arrow_cx, arrow_cy = 500.0, 250.0  # fallback
-        arrow_id = step.get("ReactionStepArrows", "").split()
-        for aid in arrow_id:
-            a_el = id_to_el.get(aid)
-            if a_el is None:
-                # Try the superseding arrow (graphic → arrow pattern)
-                for child in page:
-                    if child.tag == "arrow":
-                        a_el = child
-                        break
-                if a_el is None:
-                    for child in page:
-                        if child.tag == "graphic" and child.get("id") == aid:
-                            sup_id = child.get("SupersededBy", "")
-                            if sup_id:
-                                a_el = id_to_el.get(sup_id)
-                            break
-            if a_el is not None:
-                head = a_el.get("Head3D", "")
-                tail = a_el.get("Tail3D", "")
-                if head and tail:
-                    hx, hy = float(head.split()[0]), float(head.split()[1])
-                    tx, ty = float(tail.split()[0]), float(tail.split()[1])
-                    arrow_cx = (hx + tx) / 2.0
-                    arrow_cy = (hy + ty) / 2.0
-                else:
-                    bb = a_el.get("BoundingBox", "")
-                    if bb:
-                        vals = [float(v) for v in bb.split()]
-                        arrow_cx = (vals[0] + vals[2]) / 2.0
-                        arrow_cy = (vals[1] + vals[3]) / 2.0
-                break
+        above_ids_reformat = step.get("ReactionStepObjectsAboveArrow", "").split()
+        below_ids_reformat = step.get("ReactionStepObjectsBelowArrow", "").split()
+        all_condition_ids = set(above_ids_reformat) | set(below_ids_reformat)
+        # Skip IDs that were just created in step 4 (already correctly formatted)
+        newly_created_ids = {r[0] for r in replacements}
 
-        # Collect ALL text labels from above + below into one ordered list
-        all_text_ids = []
-        all_text_lines = []
-        non_text_above = []
-        non_text_below = []
+        for eid in all_condition_ids:
+            if eid in newly_created_ids:
+                continue
+            el = id_to_el.get(eid)
+            if el is None or el.tag != "t":
+                continue
+
+            # Get current plain text
+            old_text = _get_text_content(el)
+            if not old_text:
+                continue
+
+            # Look up canonical display form from reagent DB
+            canonical = get_reagent_db().resolve_display(old_text)
+
+            # Build new formatted <s> elements
+            new_s_xml = _build_formatted_s_xml(canonical)
+
+            # Check if reformatting would actually change anything
+            old_s_xml = "".join(ET.tostring(s, encoding="unicode") for s in el.findall("s"))
+            if old_s_xml == new_s_xml:
+                continue
+
+            # Remove old <s> children, keep objecttags and other children
+            old_children = list(el)
+            for child in old_children:
+                if child.tag == "s":
+                    el.remove(child)
+
+            # Parse the new <s> elements and insert at the front
+            # Wrap in a dummy element for parsing
+            wrapper = ET.fromstring(f"<dummy>{new_s_xml}</dummy>")
+            insert_pos = 0
+            for new_s in wrapper:
+                el.insert(insert_pos, new_s)
+                insert_pos += 1
+
+            reformatted.append((eid, old_text, canonical))
+            log(f"  Reformatted text id={eid}: '{old_text}' → '{canonical}' "
+                f"(subscript/italic)")
+
+        log(f"Reformatted {len(reformatted)} text label(s)")
+
+        # --- Step 5: Deduplicate text elements ---
+        # Rebuild id_to_el after replacements
+        id_to_el.clear()
+        for el in page:
+            eid = el.get("id", "")
+            if eid:
+                id_to_el[eid] = el
+
+        # Collect all text content for above/below arrow elements
+        def _normalize_text(text: str) -> str:
+            return text.strip().lower()
+
+        above_ids = step.get("ReactionStepObjectsAboveArrow", "").split()
+        below_ids = step.get("ReactionStepObjectsBelowArrow", "").split()
+
 
         for position_name, id_list_attr in [
             ("above", "ReactionStepObjectsAboveArrow"),
             ("below", "ReactionStepObjectsBelowArrow"),
         ]:
             id_list = step.get(id_list_attr, "").split()
+            seen_texts: Dict[str, str] = {}  # normalized_text → first_id
+            new_id_list = []
             for eid in id_list:
                 el = id_to_el.get(eid)
                 if el is None:
                     continue
+
+                # Only deduplicate text elements
                 if el.tag == "t":
                     text = _get_text_content(el)
-                    if text:
-                        all_text_ids.append(eid)
-                        all_text_lines.append(text)
-                else:
-                    if position_name == "above":
-                        non_text_above.append(eid)
+                    norm = _normalize_text(text)
+                    if norm in seen_texts:
+                        # Duplicate — remove element and skip ID
+                        log(f"  Dedup: removing duplicate '{text}' (id={eid}) "
+                            f"from {position_name} (keeping id={seen_texts[norm]})")
+                        page.remove(el)
+                        dedup_removed.append((eid, text, position_name))
+                        continue
+                    seen_texts[norm] = eid
+
+                new_id_list.append(eid)
+
+            step.set(id_list_attr, " ".join(new_id_list))
+
+        log(f"Removed {len(dedup_removed)} duplicate(s)")
+
+        # --- Step 6: Merge all text labels into one centered block (optional) ---
+
+        if merge_conditions:
+            # Rebuild id_to_el
+            id_to_el.clear()
+            for el in page:
+                eid = el.get("id", "")
+                if eid:
+                    id_to_el[eid] = el
+
+            # Find arrow midpoint for rough centering
+            arrow_cx, arrow_cy = _find_arrow_center(page, step, id_to_el)
+
+            # Collect ALL text labels from above + below into one ordered list
+            all_text_ids = []
+            all_text_lines = []
+            non_text_above = []
+            non_text_below = []
+
+            for position_name, id_list_attr in [
+                ("above", "ReactionStepObjectsAboveArrow"),
+                ("below", "ReactionStepObjectsBelowArrow"),
+            ]:
+                id_list = step.get(id_list_attr, "").split()
+                for eid in id_list:
+                    el = id_to_el.get(eid)
+                    if el is None:
+                        continue
+                    if el.tag == "t":
+                        text = _get_text_content(el)
+                        if text:
+                            all_text_ids.append(eid)
+                            all_text_lines.append(text)
                     else:
-                        non_text_below.append(eid)
+                        if position_name == "above":
+                            non_text_above.append(eid)
+                        else:
+                            non_text_below.append(eid)
 
-        if len(all_text_ids) >= 2:
-            log(f"  Merging {len(all_text_ids)} text labels into one block: "
-                f"{all_text_lines}")
+            if len(all_text_ids) >= 2:
+                log(f"  Merging {len(all_text_ids)} text labels into one block: "
+                    f"{all_text_lines}")
 
-            # Build merged <s> content with \n between lines
-            s_parts = []
-            for i, text in enumerate(all_text_lines):
-                if i > 0:
-                    s_parts.append(
-                        '<s font="3" size="10" color="0" face="96">\n</s>'
-                    )
-                canonical = get_reagent_db().resolve_display(text)
-                s_parts.append(_build_formatted_s_xml(canonical))
-            s_xml = "".join(s_parts)
+                # Build merged <s> content with \n between lines
+                s_parts = []
+                for i, text in enumerate(all_text_lines):
+                    if i > 0:
+                        s_parts.append(
+                            '<s font="3" size="10" color="0" face="96">\n</s>'
+                        )
+                    canonical = get_reagent_db().resolve_display(text)
+                    s_parts.append(_build_formatted_s_xml(canonical))
+                s_xml = "".join(s_parts)
 
-            # Keep the first text element, remove all others
-            keep_id = all_text_ids[0]
-            keep_el = id_to_el[keep_id]
-            keep_z = keep_el.get("Z", "1")
+                # Keep the first text element, remove all others
+                keep_id = all_text_ids[0]
+                keep_el = id_to_el[keep_id]
+                keep_z = keep_el.get("Z", "1")
 
-            for eid in all_text_ids[1:]:
-                el = id_to_el.get(eid)
-                if el is not None:
-                    page.remove(el)
+                for eid in all_text_ids[1:]:
+                    el = id_to_el.get(eid)
+                    if el is not None:
+                        page.remove(el)
 
-            # Position just below arrow — ChemDraw cleanup will refine
-            line_height = 12.5
-            n_lines = len(all_text_lines)
-            max_text_len = max(len(t) for t in all_text_lines)
-            total_w = max_text_len * 5.8
-            total_h = n_lines * line_height
+                # Position just below arrow — ChemDraw cleanup will refine
+                line_height = 12.5
+                n_lines = len(all_text_lines)
+                max_text_len = max(len(t) for t in all_text_lines)
+                total_w = max_text_len * 5.8
+                total_h = n_lines * line_height
 
-            mcx = arrow_cx
-            by1 = arrow_cy + 4.0  # just below arrow
-            by2 = by1 + total_h
-            bx1 = mcx - total_w / 2.0
-            bx2 = mcx + total_w / 2.0
-            first_baseline_y = by1 + 10.0  # first line baseline
+                mcx = arrow_cx
+                by1 = arrow_cy + 4.0  # just below arrow
+                by2 = by1 + total_h
+                bx1 = mcx - total_w / 2.0
+                bx2 = mcx + total_w / 2.0
+                first_baseline_y = by1 + 10.0  # first line baseline
 
-            # Rebuild the kept element
-            for child in list(keep_el):
-                keep_el.remove(child)
+                # Rebuild the kept element
+                for child in list(keep_el):
+                    keep_el.remove(child)
 
-            keep_el.set("p", f"{mcx:.2f} {first_baseline_y:.2f}")
-            keep_el.set("BoundingBox",
-                         f"{bx1:.2f} {by1:.2f} {bx2:.2f} {by2:.2f}")
-            keep_el.set("Z", keep_z)
-            keep_el.set("InterpretChemically", "no")
-            keep_el.set("LineHeight", "auto")
-            keep_el.set("CaptionJustification", "Center")
-            keep_el.set("Justification", "Center")
+                keep_el.set("p", f"{mcx:.2f} {first_baseline_y:.2f}")
+                keep_el.set("BoundingBox",
+                             f"{bx1:.2f} {by1:.2f} {bx2:.2f} {by2:.2f}")
+                keep_el.set("Z", keep_z)
+                keep_el.set("InterpretChemically", "no")
+                keep_el.set("LineHeight", "auto")
+                keep_el.set("CaptionJustification", "Center")
+                keep_el.set("Justification", "Center")
 
-            # Parse and insert new <s> children
-            wrapper = ET.fromstring(f"<dummy>{s_xml}</dummy>")
-            for child in wrapper:
-                keep_el.append(child)
+                # Parse and insert new <s> children
+                wrapper = ET.fromstring(f"<dummy>{s_xml}</dummy>")
+                for child in wrapper:
+                    keep_el.append(child)
 
-            # Update step refs: merged text block goes above arrow
-            # (ChemDraw Clean Up Reaction expects objects in above/below)
-            step.set("ReactionStepObjectsAboveArrow",
-                      " ".join(non_text_above + [keep_id]))
-            step.set("ReactionStepObjectsBelowArrow",
-                      " ".join(non_text_below))
+                # Update step refs: the merged block sits below the arrow, so the step
+                # lists it there (the layout keeps each object on its listed side)
+                step.set("ReactionStepObjectsAboveArrow",
+                          " ".join(non_text_above))
+                step.set("ReactionStepObjectsBelowArrow",
+                          " ".join([keep_id] + non_text_below))
 
-            merged_conditions = True
-            merged_text_id = keep_id
-            log(f"  Merged into single text block (id={keep_id})")
+                merged_conditions = True
+                merged_text_id = merged_text_id or keep_id
+                log(f"  Merged into single text block (id={keep_id})")
+
 
     # --- Step 7: Write output CDXML ---
     tree.write(output_path, xml_declaration=True, encoding="UTF-8")
@@ -1018,9 +992,9 @@ def _compact_toward_arrow(cdxml_path: str, verbose: bool = False):
     tree = ET.parse(cdxml_path)
     root = tree.getroot()
     page = root.find("page")
-    scheme = page.find("scheme") if page is not None else None
-    step = scheme.find("step") if scheme is not None else None
-    if step is None:
+    steps = [s for sch in page.findall("scheme") for s in sch.findall("step")] \
+        if page is not None else []
+    if not steps:
         return
 
     id_to_el: Dict[str, ET.Element] = {}
@@ -1029,55 +1003,56 @@ def _compact_toward_arrow(cdxml_path: str, verbose: bool = False):
         if eid:
             id_to_el[eid] = el
 
-    arrow_cx, arrow_cy = _find_arrow_center(page, step, id_to_el)
-    log(f"  Compacting: arrow center = ({arrow_cx:.1f}, {arrow_cy:.1f})")
+    for step in steps:
+        arrow_cx, arrow_cy = _find_arrow_center(page, step, id_to_el)
+        log(f"  Compacting: arrow center = ({arrow_cx:.1f}, {arrow_cy:.1f})")
 
-    # Target: above-arrow objects sit with their bottom edge at arrow_cy - 5
-    # Target: below-arrow objects sit with their top edge at arrow_cy + 5
-    GAP = 5.0
+        # Target: above-arrow objects sit with their bottom edge at arrow_cy - 5
+        # Target: below-arrow objects sit with their top edge at arrow_cy + 5
+        GAP = 5.0
 
-    for attr, direction in [
-        ("ReactionStepObjectsAboveArrow", "above"),
-        ("ReactionStepObjectsBelowArrow", "below"),
-    ]:
-        ids = step.get(attr, "").split()
-        for eid in ids:
-            el = id_to_el.get(eid)
-            if el is None:
-                continue
+        for attr, direction in [
+            ("ReactionStepObjectsAboveArrow", "above"),
+            ("ReactionStepObjectsBelowArrow", "below"),
+        ]:
+            ids = step.get(attr, "").split()
+            for eid in ids:
+                el = id_to_el.get(eid)
+                if el is None:
+                    continue
 
-            # Compute current bounding box center-y
-            if el.tag == "fragment":
-                _, cy = _fragment_bbox_center(el)
-            elif el.tag == "t":
-                bb = el.get("BoundingBox", "")
-                if bb:
-                    vals = [float(v) for v in bb.split()]
-                    cy = (vals[1] + vals[3]) / 2.0
+                # Compute current bounding box center-y
+                if el.tag == "fragment":
+                    _, cy = _fragment_bbox_center(el)
+                elif el.tag == "t":
+                    bb = el.get("BoundingBox", "")
+                    if bb:
+                        vals = [float(v) for v in bb.split()]
+                        cy = (vals[1] + vals[3]) / 2.0
+                    else:
+                        continue
                 else:
                     continue
-            else:
-                continue
 
-            # How far to shift toward the arrow (y-axis points down)
-            if direction == "above":
-                target_cy = arrow_cy - GAP - 15  # keep a small gap above
-                dy = target_cy - cy
-                # dy > 0 means object is above target → move down toward arrow
-                # dy < 0 means object is already below target → skip
-                if dy <= 0:
-                    continue
-            else:
-                target_cy = arrow_cy + GAP + 15
-                dy = target_cy - cy
-                # dy < 0 means object is below target → move up toward arrow
-                # dy > 0 means object is already above target → skip
-                if dy >= 0:
-                    continue
+                # How far to shift toward the arrow (y-axis points down)
+                if direction == "above":
+                    target_cy = arrow_cy - GAP - 15  # keep a small gap above
+                    dy = target_cy - cy
+                    # dy > 0 means object is above target → move down toward arrow
+                    # dy < 0 means object is already below target → skip
+                    if dy <= 0:
+                        continue
+                else:
+                    target_cy = arrow_cy + GAP + 15
+                    dy = target_cy - cy
+                    # dy < 0 means object is below target → move up toward arrow
+                    # dy > 0 means object is already above target → skip
+                    if dy >= 0:
+                        continue
 
-            log(f"  Compacting {el.tag} id={eid} {direction}: "
-                f"dy={dy:+.1f}")
-            _shift_element_y(el, dy)
+                log(f"  Compacting {el.tag} id={eid} {direction}: "
+                    f"dy={dy:+.1f}")
+                _shift_element_y(el, dy)
 
     tree.write(cdxml_path, xml_declaration=True, encoding="UTF-8")
     _fixup_cdxml_output(cdxml_path)

@@ -62,6 +62,109 @@ def fragment_bbox(
     return None
 
 
+# Width of one atom-label letter (Arial 10 pt, as ACS Document 1996 sets labels)
+LABEL_CHAR_WIDTH = 6.0
+LABEL_SCRIPT_WIDTH = 4.0  # a subscript count or superscript charge
+LABEL_H_WIDTH = 7.0  # H is wider than the average label letter
+
+_HYDROGEN_FIRST = {"O": 2, "S": 2, "Se": 2, "F": 1, "Cl": 1, "Br": 1, "I": 1}
+_ELEMENT_SYMBOLS = {8: "O", 16: "S", 34: "Se", 9: "F", 17: "Cl", 35: "Br", 53: "I"}
+
+
+def hydrogens_lead(symbol, hydrogens) -> bool:
+    """Whether ChemDraw writes a lone atom's hydrogens first (H2O, HCl, not OH or NH3).
+
+    A lone atom label is then right-aligned on the atom and reaches to its left.
+    """
+    if isinstance(symbol, int) or str(symbol).isdigit():
+        symbol = _ELEMENT_SYMBOLS.get(int(symbol), "")
+    least = _HYDROGEN_FIRST.get(str(symbol))
+    return least is not None and int(hydrogens or 0) >= least
+
+
+def _label_reach(t: ET.Element) -> float:
+    """Width a label draws beyond its first letter."""
+    runs = t.findall("s") or [t]
+    widths = []
+    for run in runs:
+        face = int(run.get("face", "0") or 0)
+        script = face & 0x60 in (0x20, 0x40)
+        formula = face & 0x60 == 0x60  # counts are drawn as subscripts
+        widths += [LABEL_SCRIPT_WIDTH if script or (formula and c.isdigit())
+                   else LABEL_H_WIDTH if c == "H" else LABEL_CHAR_WIDTH
+                   for c in "".join("".join(run.itertext()).split())]
+    return sum(widths[1:])
+
+
+def label_boxes(frag: ET.Element) -> list:
+    """``(atom, box)`` for every atom label of a <fragment>, as drawn.
+
+    A label box often covers only its first letter, and ChemDraw writes the rest
+    (the H of OH, the r of Br) away from the bonds: on the far side of the
+    structure, or for an atom with no bonds (an ion of a salt) on the side
+    ChemDraw puts its hydrogens.
+    """
+    atoms = [n for n in frag.findall("n") if n.get("NodeType") != "ExternalConnectionPoint"]
+    xs = [float(n.get("p").split()[0]) for n in atoms if len(n.get("p", "").split()) >= 2]
+    if not xs:
+        return []
+    middle = (min(xs) + max(xs)) / 2.0
+    bonded = {end for b in frag.findall("b") for end in (b.get("B"), b.get("E"))}
+    boxes = []
+    for n in atoms:
+        for t in n.findall("t"):
+            vals = t.get("BoundingBox", "").split()
+            if len(vals) < 4:
+                continue
+            x1, y1, x2, y2 = (float(v) for v in vals[:4])
+            extra = _label_reach(t)
+            text_width = LABEL_CHAR_WIDTH + extra
+            if x2 - x1 > 2.0 * text_width + 6.0:
+                # A stale box, far wider than its text: measure the label from its atom.
+                x = float(n.get("p", f"{x1} 0").split()[0])
+                if t.get("LabelJustification") == "Right":
+                    x1, x2 = x + LABEL_CHAR_WIDTH / 2.0 - text_width, x + LABEL_CHAR_WIDTH / 2.0
+                else:
+                    x1, x2 = x - LABEL_CHAR_WIDTH / 2.0, x - LABEL_CHAR_WIDTH / 2.0 + text_width
+                boxes.append((n, (x1, y1, x2, y2)))
+                continue
+            if n.get("id") not in bonded:
+                rightwards = not hydrogens_lead(n.get("Element", "6"), n.get("NumHydrogens"))
+            else:
+                rightwards = float(n.get("p", f"{middle} 0").split()[0]) >= middle
+            if rightwards:
+                x2 = max(x2, x1 + LABEL_CHAR_WIDTH + extra)
+            else:
+                x1 = min(x1, x2 - LABEL_CHAR_WIDTH - extra)
+            boxes.append((n, (x1, y1, x2, y2)))
+    return boxes
+
+
+def drawn_fragment_bbox(
+    frag: ET.Element,
+) -> Optional[Tuple[float, float, float, float]]:
+    """Box around what a <fragment> draws: its atoms and their labels.
+
+    Covers each direct-child atom ``p`` (connection points excluded) and every
+    label ``<t>`` on those atoms (see :func:`label_boxes`): an OH or Br reaches
+    past its atom.  Unlike a fixed margin around the atoms, it does not reach
+    into neighbouring objects.
+    """
+    xs: list[float] = []
+    ys: list[float] = []
+    for n in frag.findall("n"):
+        parts = n.get("p", "").split()
+        if n.get("NodeType") != "ExternalConnectionPoint" and len(parts) >= 2:
+            xs.append(float(parts[0]))
+            ys.append(float(parts[1]))
+    if not xs:
+        return None
+    for _, (x1, y1, x2, y2) in label_boxes(frag):
+        xs += [x1, x2]
+        ys += [y1, y2]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
 def fragment_centroid(frag: ET.Element) -> Optional[Tuple[float, float]]:
     """Center point of :func:`fragment_bbox`.
 

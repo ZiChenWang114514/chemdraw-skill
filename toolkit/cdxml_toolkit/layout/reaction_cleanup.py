@@ -40,8 +40,11 @@ from ..constants import (
     LAYOUT_HANGING_LABEL_GAP,
     LAYOUT_INTER_FRAGMENT_GAP,
     LAYOUT_INTER_GAP_BONDS,
+    LAYOUT_PLUS_GAP,
+    LAYOUT_ROW_GAP,
 )
 from ..cdxml_utils import (
+    drawn_fragment_bbox,
     fragment_bbox,
     fragment_bottom_has_hanging_label,
     parse_cdxml,
@@ -54,6 +57,13 @@ _recompute_text_bbox = recompute_text_bbox
 
 # Below-arrow fragment padding (not in shared constants)
 LAYOUT_BELOW_FRAG_PAD = 2.0
+# Species on one side of the arrow are separated by a "+": leave room for it and
+# some white space either side, or it runs into the labels next to it.
+PLUS_CLEARANCE = LAYOUT_PLUS_GAP
+# A scheme drawn one step per row: white space between rows, and how far a
+# compound number may hang above or below the row it belongs to.
+ROW_GAP = LAYOUT_ROW_GAP
+ROW_LABEL_REACH = 3.0 * ACS_BOND_LENGTH
 
 
 # ---------------------------------------------------------------------------
@@ -81,6 +91,17 @@ def _get_step(page: ET.Element) -> Optional[ET.Element]:
     if scheme is None:
         return None
     return scheme.find("step")
+
+
+def _get_steps(page: ET.Element) -> List[ET.Element]:
+    """Every <step> on the page: a multi-step scheme often has one <scheme> per step."""
+    return [step for scheme in page.findall("scheme") for step in scheme.findall("step")]
+
+
+def _step_objects(step: ET.Element) -> set:
+    return {i for attr in ("ReactionStepReactants", "ReactionStepProducts", "ReactionStepArrows",
+                           "ReactionStepObjectsAboveArrow", "ReactionStepObjectsBelowArrow")
+            for i in step.get(attr, "").split()}
 
 
 def _get_arrow(page: ET.Element, step: ET.Element,
@@ -154,11 +175,19 @@ def _estimate_text_width(t_el: ET.Element) -> float:
     return max_line_len * 5.8
 
 
+def _text_content(t: ET.Element) -> str:
+    return "".join(t.itertext()).strip()
+
+
 def _element_bbox(el: ET.Element) -> Tuple[float, float, float, float]:
-    """Bounding box for any element (fragment or text)."""
+    """Bounding box for any element (fragment or text).
+
+    A fragment's box covers its atoms and their drawn labels: an OH or Br
+    reaches past its atom, and spacing on atoms alone lets it run into the
+    neighbouring structure or the "+" between them.
+    """
     if el.tag == "fragment":
-        bb = fragment_bbox(el)
-        return bb if bb is not None else (0, 0, 0, 0)
+        return drawn_fragment_bbox(el) or (0, 0, 0, 0)
     elif el.tag == "t":
         return _text_bbox(el)
     bb = el.get("BoundingBox", "")
@@ -213,6 +242,18 @@ def _shift_element(el: ET.Element, dx: float, dy: float):
 
     elif el.tag == "t":
         _shift_text_element(el, dx, dy)
+    else:
+        # Arrows, graphics, groups: every point they carry moves, and so do
+        # the objects they contain.
+        for attr in ("p", "Head3D", "Tail3D", "Center3D", "MajorAxisEnd3D", "MinorAxisEnd3D"):
+            vals = el.get(attr, "").split()
+            if len(vals) >= 2:
+                vals[0] = f"{float(vals[0]) + dx:.2f}"
+                vals[1] = f"{float(vals[1]) + dy:.2f}"
+                el.set(attr, " ".join(vals))
+        _shift_bbox_attr(el, dx, dy)
+        for child in el:
+            _shift_element(child, dx, dy)
 
 
 def _shift_text_element(t: ET.Element, dx: float, dy: float):
@@ -396,7 +437,7 @@ def approach_arrow_driven(page, step, id_map, arrow, verbose=False):
         return
 
     FRAG_GAP = 12.0      # gap between fragment edge and arrow tip (approach-specific)
-    INTER_GAP = LAYOUT_INTER_FRAGMENT_GAP
+    INTER_GAP = max(LAYOUT_INTER_FRAGMENT_GAP, PLUS_CLEARANCE)
 
     # Arrow length: at least as wide as widest above/below object, min 70pt
     ARROW_LEN = _compute_arrow_len_from_content(above, below, min_len=70.0)
@@ -647,7 +688,7 @@ def approach_chemdraw_mimic(page, step, id_map, arrow, verbose=False):
     content_len = _compute_arrow_len_from_content(above, below, min_len=bond_len * 5.0)
     ARROW_LEN = content_len
     FRAG_GAP = bond_len * LAYOUT_FRAG_GAP_BONDS
-    INTER_GAP = bond_len * LAYOUT_INTER_GAP_BONDS
+    INTER_GAP = max(bond_len * LAYOUT_INTER_GAP_BONDS, PLUS_CLEARANCE)
 
     r_bbs = [_element_bbox(r) for r in reactants]
     p_bbs = [_element_bbox(p) for p in products]
@@ -738,11 +779,12 @@ def _compute_arrow_len_from_content(above: List[ET.Element],
 def _stack_above_below(above: List[ET.Element], below: List[ET.Element],
                        arrow_cx: float, arrow_y: float,
                        above_gap: float, below_gap: float):
-    """Place above/below-arrow objects with text always below the arrow.
+    """Place above/below-arrow objects, text closest to the arrow.
 
-    Text (<t>) elements — even if listed as "above arrow" in the step
-    metadata — are always placed below the arrow line.  Only non-text
-    elements (fragments / structures) go above.
+    Each object stays on the side of the arrow the step lists it on, so
+    reagents written above the arrow stay above.  Text lines sit next to the
+    arrow; structures go beyond them (above the text above the arrow, below
+    the text below it).
 
     For above-arrow fragments, uses atom-only bounding boxes (no text
     labels) since ChemDraw's XML label BoundingBox values are unreliable.
@@ -756,13 +798,35 @@ def _stack_above_below(above: List[ET.Element], below: List[ET.Element],
     below_gap is the distance from the arrow y-line to the top edge
     of the highest below-arrow object (typically 4pt).
     """
-    # Collect texts from both lists — they all go below
     above_texts = [e for e in above if e.tag == "t"]
     above_frags = [e for e in above if e.tag != "t"]
     below_texts = [e for e in below if e.tag == "t"]
     below_frags = [e for e in below if e.tag != "t"]
 
-    # --- Above arrow: only non-text elements (fragments) ---
+    # Text elements use consistent baseline-to-baseline spacing (like
+    # ChemDraw's multi-line text rendering).  This avoids dependence on
+    # stale BoundingBox values from upstream processing.
+    BASELINE_OFFSET = 10.0   # baseline below top-of-text-line (cap height)
+    TEXT_LINE_SPACING = 13.0  # baseline-to-baseline (Arial 10pt with leading)
+    DESCENT = 3.0             # below the baseline
+
+    def place_text(el, baseline_y):
+        el.set("p", f"{arrow_cx:.2f} {baseline_y:.2f}")
+        el.set("CaptionJustification", "Center")
+        el.set("Justification", "Center")
+        recompute_text_bbox(el)
+
+    # --- Above arrow: text upward from the arrow, the last line nearest ---
+    top = arrow_y
+    baseline_y = arrow_y - below_gap - DESCENT
+    for el in reversed(above_texts):
+        lines = _text_content(el).count("\n") + 1
+        first_baseline = baseline_y - (lines - 1) * TEXT_LINE_SPACING
+        place_text(el, first_baseline)
+        top = first_baseline - BASELINE_OFFSET
+        baseline_y = first_baseline - TEXT_LINE_SPACING
+
+    # --- Above arrow: structures beyond the text ---
     # Use atom-only bbox; adjust gap for hanging labels (NH, PH)
     for el in above_frags:
         bb = _element_bbox(el)
@@ -776,31 +840,22 @@ def _stack_above_below(above: List[ET.Element], below: List[ET.Element],
         else:
             gap = above_gap
 
-        # Place so bottom edge of atom-only bbox is at arrow_y - gap
-        target_bottom = arrow_y - gap
+        # Place so bottom edge of atom-only bbox is at top - gap
+        target_bottom = top - gap
         target_cy = target_bottom - h / 2.0
         _shift_element(el, arrow_cx - cx, target_cy - cy)
+        top = target_bottom - h
 
-    # --- Below arrow: all text (from above + below lists), then fragments ---
-    # Text elements use consistent baseline-to-baseline spacing (like
-    # ChemDraw's multi-line text rendering).  This avoids dependence on
-    # stale BoundingBox values from upstream processing.
-    all_below_text = above_texts + below_texts
-    BASELINE_OFFSET = 10.0   # baseline below top-of-text-line (cap height)
-    TEXT_LINE_SPACING = 13.0  # baseline-to-baseline (Arial 10pt with leading)
-
+    # --- Below arrow: text downward from the arrow, then structures ---
     prev_baseline = None
     y_cursor = arrow_y + below_gap
-    for el in all_below_text:
+    for el in below_texts:
         if prev_baseline is None:
             baseline_y = y_cursor + BASELINE_OFFSET
         else:
             baseline_y = prev_baseline + TEXT_LINE_SPACING
-        el.set("p", f"{arrow_cx:.2f} {baseline_y:.2f}")
-        el.set("CaptionJustification", "Center")
-        el.set("Justification", "Center")
-        recompute_text_bbox(el)
-        prev_baseline = baseline_y
+        place_text(el, baseline_y)
+        prev_baseline = baseline_y + (_text_content(el).count("\n")) * TEXT_LINE_SPACING
         # Update y_cursor to bottom of this text element for any
         # subsequent non-text elements
         bb = _element_bbox(el)
@@ -861,11 +916,148 @@ APPROACH_DESCRIPTIONS = {
 }
 
 
+def _plus_signs_between(page: ET.Element, species: List[ET.Element]) -> List[Tuple[ET.Element, ET.Element, ET.Element]]:
+    """``(plus, left, right)`` for each page-level "+" sitting between two of ``species``."""
+    ordered = sorted(species, key=lambda el: _element_bbox(el)[0])
+    pairs = []
+    for t in page.findall("t"):
+        if _text_content(t) != "+":
+            continue
+        px, py = _bbox_center(_text_bbox(t))
+        for left, right in zip(ordered, ordered[1:]):
+            lb, rb = _element_bbox(left), _element_bbox(right)
+            # Between the two centres, and level with them: the "+" of this pair.
+            if _bbox_center(lb)[0] <= px <= _bbox_center(rb)[0] and \
+                    min(lb[1], rb[1]) <= py <= max(lb[3], rb[3]):
+                pairs.append((t, left, right))
+                break
+    return pairs
+
+
+def _atom_anchor(frag: ET.Element) -> Optional[Tuple[float, float, float]]:
+    """``(centre x, lowest atom y, half width)`` of a fragment's atoms."""
+    bb = fragment_bbox(frag)
+    if bb is None:
+        return None
+    return (bb[0] + bb[2]) / 2.0, bb[3], (bb[2] - bb[0]) / 2.0
+
+
+def _compound_labels(page: ET.Element, species: List[ET.Element],
+                     listed: set) -> List[Tuple[ET.Element, ET.Element, Tuple[float, float]]]:
+    """``(label, fragment, anchor)`` for each compound number hanging under one of ``species``.
+
+    Same rule as :mod:`label_anchors`: a page-level text, not part of any step,
+    5-25 pt below the fragment's lowest atom and within its width.
+    """
+    anchors = [(frag, _atom_anchor(frag)) for frag in species if frag.tag == "fragment"]
+    anchors = [(frag, a) for frag, a in anchors if a is not None]
+    found = []
+    for t in page.findall("t"):
+        if t.get("id") in listed or _text_content(t) in ("", "+") or not t.get("p"):
+            continue
+        x, y = (float(v) for v in t.get("p").split()[:2])
+        candidates = [(abs(x - cx) + abs(y - bottom - 14), n, frag, (cx, bottom))
+                      for n, (frag, (cx, bottom, half)) in enumerate(anchors)
+                      if 5 <= y - bottom <= 25 and abs(x - cx) <= max(8, half)]
+        if candidates:
+            _, _, frag, anchor = min(candidates, key=lambda c: (c[0], c[1]))
+            found.append((t, frag, anchor))
+    return found
+
+
+def _carry_compound_labels(labels) -> None:
+    """Move each compound number by as much as its structure moved."""
+    for label, frag, (cx, bottom) in labels:
+        now = _atom_anchor(frag)
+        if now is not None:
+            _shift_text_element(label, now[0] - cx, now[1] - bottom)
+
+
+def _recenter_plus_signs(pairs, arrow_y: float) -> None:
+    """Put each "+" in the middle of the gap the layout left between its two species."""
+    for plus, left, right in pairs:
+        gap_x = (_element_bbox(left)[2] + _element_bbox(right)[0]) / 2.0
+        cx, cy = _bbox_center(_text_bbox(plus))
+        _shift_text_element(plus, gap_x - cx, arrow_y - cy)
+
+
+def _normalize_rows(page: ET.Element, steps: List[ET.Element],
+                    id_map: Dict[str, ET.Element]) -> bool:
+    """Give a scheme drawn as one step per row a common left edge and even row gaps.
+
+    Each step's layout centres it on its own species, so rows drift apart
+    sideways and keep whatever spacing they were drawn with.  Only a plain
+    stack of rows is touched: every page object must sit in exactly one row
+    band and the bands must not overlap; anything else is left as drawn.
+    """
+    if len(steps) < 2:
+        return False
+    rows = []
+    for step in steps:
+        members = [id_map[i] for i in _step_objects(step) if i in id_map]
+        boxes = [_element_bbox(el) for el in members]
+        boxes = [b for b in boxes if b != (0, 0, 0, 0)]
+        if not boxes:
+            return False
+        rows.append({"members": {id(el) for el in members}, "elements": list(members),
+                     "box": [min(b[0] for b in boxes), min(b[1] for b in boxes),
+                             max(b[2] for b in boxes), max(b[3] for b in boxes)]})
+    # Everything else on the page ("+", compound numbers, arrow graphics) joins the
+    # row it sits in; a number may hang a little below its structure.
+    for el in page:
+        if el.tag in ("scheme", "step") or any(id(el) in row["members"] for row in rows):
+            continue
+        if el.tag == "graphic" and el.get("SupersededBy"):
+            owners = [row for row in rows
+                      if any(m.get("id") == el.get("SupersededBy") for m in row["elements"])]
+        else:
+            bb = _element_bbox(el)
+            if bb == (0, 0, 0, 0):
+                continue
+            cy = (bb[1] + bb[3]) / 2.0
+            ranked = sorted((max(row["box"][1] - cy, cy - row["box"][3], 0.0), n)
+                            for n, row in enumerate(rows))
+            # Its own row: close by, and clearly closer than any other row.
+            if ranked[0][0] > ROW_LABEL_REACH or \
+                    (len(ranked) > 1 and ranked[1][0] - ranked[0][0] < ACS_BOND_LENGTH):
+                return False
+            owners = [rows[ranked[0][1]]]
+        if len(owners) != 1:
+            return False
+        owners[0]["elements"].append(el)
+    for row in rows:
+        boxes = [_element_bbox(el) for el in row["elements"] if el.tag != "graphic"]
+        boxes = [b for b in boxes if b != (0, 0, 0, 0)]
+        row["box"] = [min(b[0] for b in boxes), min(b[1] for b in boxes),
+                      max(b[2] for b in boxes), max(b[3] for b in boxes)]
+    rows.sort(key=lambda row: row["box"][1])
+    if any(above["box"][3] >= below["box"][1] for above, below in zip(rows, rows[1:])):
+        return False
+    left = rows[0]["box"][0]
+    bottom = rows[0]["box"][3]
+    for row in rows[1:]:
+        dx = left - row["box"][0]
+        dy = bottom + ROW_GAP - row["box"][1]
+        for el in row["elements"]:
+            if el.tag == "graphic" and el.get("SupersededBy"):
+                _shift_bbox_attr(el, dx, dy)
+            else:
+                _shift_element(el, dx, dy)
+        bottom = row["box"][3] + dy
+    return True
+
+
 def run_cleanup(input_path: str, output_path: str, approach: str = "chemdraw_mimic",
                 verbose: bool = False) -> dict:
     """Run one cleanup approach on a CDXML file.
 
-    Returns dict with keys: output, approach, num_reactants, num_products.
+    Every step of the scheme is laid out on its own row; a step that shares a
+    species with one already laid out is left as drawn and listed in
+    ``skipped_steps``.  When the steps form a plain stack of rows, the rows get
+    a common left edge and even gaps (``rows_normalized``).
+
+    Returns dict with keys: output, approach, num_reactants, num_products,
+    num_steps, skipped_steps, rows_normalized.
     """
     tree = parse_cdxml(input_path)
     root = tree.getroot()
@@ -874,24 +1066,46 @@ def run_cleanup(input_path: str, output_path: str, approach: str = "chemdraw_mim
         raise ValueError("No <page> found in CDXML")
 
     id_map = _build_id_map(page)
-    step = _get_step(page)
-    if step is None:
+    steps = _get_steps(page)
+    if not steps:
         raise ValueError("No <scheme>/<step> found — not a reaction CDXML")
-
-    arrow = _get_arrow(page, step, id_map)
-    if arrow is None:
-        raise ValueError("No arrow element found in reaction")
 
     func = APPROACHES.get(approach)
     if func is None:
         raise ValueError(f"Unknown approach: {approach}. "
                          f"Choose from: {', '.join(APPROACHES)}")
 
-    reactants, products, _, _ = _parse_reaction(page, step, id_map)
-    num_reactants = len(reactants)
-    num_products = len(products)
+    num_reactants = num_products = 0
+    cleaned, skipped, placed = 0, [], set()
+    listed = set().union(*(_step_objects(step) for step in steps))
+    for step in steps:
+        arrow = _get_arrow(page, step, id_map)
+        if arrow is None:
+            if len(steps) == 1:
+                raise ValueError("No arrow element found in reaction")
+            skipped.append(step.get("id", ""))
+            continue
+        objects = _step_objects(step)
+        if objects & placed:
+            # A species shared with a step already laid out (A -> B -> C on one row):
+            # moving it again would pull it away from that step's arrow.
+            skipped.append(step.get("id", ""))
+            continue
+        reactants, products, _, _ = _parse_reaction(page, step, id_map)
+        num_reactants += len(reactants)
+        num_products += len(products)
+        # The step does not list its "+" signs; they follow the species they separate.
+        plus_signs = _plus_signs_between(page, reactants) + _plus_signs_between(page, products)
+        # Nor its compound numbers; they stay under their structures.
+        labels = _compound_labels(page, reactants + products, listed)
 
-    func(page, step, id_map, arrow, verbose=verbose)
+        func(page, step, id_map, arrow, verbose=verbose)
+        _recenter_plus_signs(plus_signs, _arrow_endpoints(arrow)[1])
+        _carry_compound_labels(labels)
+        placed |= objects
+        cleaned += 1
+
+    rows_normalized = not skipped and _normalize_rows(page, steps, id_map)
     _update_doc_bbox(root)
     write_cdxml(tree, output_path)
     return {
@@ -899,6 +1113,9 @@ def run_cleanup(input_path: str, output_path: str, approach: str = "chemdraw_mim
         "approach": approach,
         "num_reactants": num_reactants,
         "num_products": num_products,
+        "num_steps": cleaned,
+        "skipped_steps": skipped,
+        "rows_normalized": rows_normalized,
     }
 
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
 from cdxml_toolkit.mcp_runtime import chemscript_sdk, report_tools
@@ -45,6 +47,9 @@ class FakeSdk:
 
 @pytest.fixture
 def sdk(monkeypatch):
+    # The Windows ChemScript answers every property; the macOS test sets its own platform.
+    monkeypatch.setattr(report_tools, 'sys', SimpleNamespace(platform='win32'))
+
     def install(fake):
         monkeypatch.setattr(chemscript_sdk, 'execute_chemscript_sdk', fake)
         return fake
@@ -128,3 +133,18 @@ def test_tool_is_registered_with_the_chemscript_tools():
     assert 'chemdraw_chemical_properties' in build_registry('chemscript')
     assert 'chemdraw_chemical_properties' not in build_registry('core')
     assert tool_registry._resource_class('chemdraw_chemical_properties', 'darwin') == 'chemdraw_com'
+
+
+def test_macos_skips_what_chemdraw_for_macos_cannot_give(sdk, monkeypatch):
+    fake = sdk(FakeSdk())
+    monkeypatch.setattr(report_tools, 'sys', SimpleNamespace(platform='darwin'))
+
+    result = chemdraw_chemical_properties([ETHANOL])
+
+    asked = {step['member'] for step in fake.calls[0] if step['op'] != 'call_static'}
+    assert asked == {'Formula', 'Weight', 'ExactMass', 'ElementalAnalysis'} and len(fake.calls) == 1
+    row = result['results'][0]
+    assert row['average_mass'] == 46.069 and row['elemental_analysis'] == 'C, 52.14; H, 13.13; O, 34.73'
+    assert row['log_p'] is None and row['molar_refractivity'] is None and 'errors' not in row
+    assert result['warnings'] == ['ChemDraw for macOS cannot give log_p, molar_refractivity; '
+                                  'they are null in every row.']

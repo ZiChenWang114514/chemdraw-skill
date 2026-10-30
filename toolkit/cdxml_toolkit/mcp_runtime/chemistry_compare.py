@@ -193,13 +193,13 @@ def _validated_pairs(pairs: list[dict[str, Any]]) -> list[tuple[str, str, str]]:
         if pair_id in seen:
             raise ValueError(f"pair_id values must be unique: {pair_id}")
         seen.add(pair_id)
-        result.append(
-            (
-                pair_id,
-                _representation(pair.get("mol1"), f"pairs[{index - 1}].mol1"),
-                _representation(pair.get("mol2"), f"pairs[{index - 1}].mol2"),
-            )
-        )
+        molecules = []
+        for short, long in (("mol1", "molecule_a"), ("mol2", "molecule_b")):
+            if short in pair and long in pair:
+                raise ValueError(f"pairs[{index - 1}] gives {short} and {long}; use one, not both")
+            key = long if long in pair else short
+            molecules.append(_representation(pair.get(key), f"pairs[{index - 1}].{key}"))
+        result.append((pair_id, *molecules))
     return result
 
 
@@ -209,7 +209,11 @@ def batch_compare_molecules(
     radius: int = 2,
     n_bits: int = 2048,
 ) -> dict[str, Any]:
-    """Compare up to 256 molecule pairs with one ChemScript bridge session."""
+    """Compare up to 256 molecule pairs with one ChemScript bridge session.
+
+    Each pair is ``{"mol1": ..., "mol2": ...}`` (or ``molecule_a``/``molecule_b``,
+    as compare_molecules names them), with an optional unique ``pair_id``.
+    """
     fingerprint = _validate_options(fingerprint, radius, n_bits)
     validated = _validated_pairs(pairs)
     bridge = _bridge_factory()

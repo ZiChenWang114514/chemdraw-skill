@@ -495,11 +495,11 @@ def cleanup_fragment_rdkit(frag_elem: ET.Element,
         node = atom_d["xml"]
         old_x, old_y = atom_d["x"], atom_d["y"]
         node.set("p", f"{fx:.4f} {fy:.4f}")
+        dx = fx - old_x
+        dy = fy - old_y
 
         if atom_d["is_abbrev"]:
             has_abbrev = True
-            dx = fx - old_x
-            dy = fy - old_y
             inner_frag = node.find("fragment")
             if inner_frag is not None:
                 for inner_n in inner_frag.findall("n"):
@@ -507,18 +507,19 @@ def cleanup_fragment_rdkit(frag_elem: ET.Element,
                     if ip:
                         ix, iy = [float(v) for v in ip.split()]
                         inner_n.set("p", f"{ix + dx:.4f} {iy + dy:.4f}")
-            for t_elem in node.findall("t"):
-                tp = t_elem.get("p")
-                if tp:
-                    tx, ty = [float(v) for v in tp.split()]
-                    t_elem.set("p", f"{tx + dx:.4f} {ty + dy:.4f}")
-                bb = t_elem.get("BoundingBox")
-                if bb:
-                    bvals = [float(v) for v in bb.split()]
-                    if len(bvals) == 4:
-                        t_elem.set("BoundingBox",
-                                   f"{bvals[0]+dx:.4f} {bvals[1]+dy:.4f} "
-                                   f"{bvals[2]+dx:.4f} {bvals[3]+dy:.4f}")
+        # Every label (OH, Br, an abbreviation) moves with its atom.
+        for t_elem in node.findall("t"):
+            tp = t_elem.get("p")
+            if tp:
+                tx, ty = [float(v) for v in tp.split()]
+                t_elem.set("p", f"{tx + dx:.4f} {ty + dy:.4f}")
+            bb = t_elem.get("BoundingBox")
+            if bb:
+                bvals = [float(v) for v in bb.split()]
+                if len(bvals) == 4:
+                    t_elem.set("BoundingBox",
+                               f"{bvals[0]+dx:.4f} {bvals[1]+dy:.4f} "
+                               f"{bvals[2]+dx:.4f} {bvals[3]+dy:.4f}")
 
     if verbose:
         import sys

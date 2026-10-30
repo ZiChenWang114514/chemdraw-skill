@@ -18,6 +18,7 @@ import json
 import math
 import os
 from copy import deepcopy
+from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 from xml.sax.saxutils import escape as xml_escape
@@ -42,7 +43,10 @@ from ..constants import (
     LAYOUT_BELOW_GAP,
     LAYOUT_FRAG_GAP_BONDS,
     LAYOUT_INTER_GAP_BONDS,
+    LAYOUT_PLUS_GAP,
+    LAYOUT_ROW_GAP,
 )
+from ..cdxml_utils import LABEL_H_WIDTH, drawn_fragment_bbox, hydrogens_lead
 from ..text_formatting import build_formatted_s_xml, normalize_condition_text
 
 from .route_graph import convergent_sections
@@ -63,6 +67,7 @@ from .schema import (
 # ---------------------------------------------------------------------------
 
 _CHAR_WIDTH = 4.7       # average character width (proportional Arial)
+RUN_LABEL_GAP = 6.0     # white space between run-arrow labels on one line
 _LINE_ADVANCE = 11.5    # line-to-line distance (ChemDraw ~1.15× multiplier)
 _CAP_HEIGHT = 9.1       # baseline to top of uppercase letters
 _DESCENT = 2.0          # baseline to bottom of descenders
@@ -214,8 +219,53 @@ def _smiles_to_fragment_data(
     # Normalize to CDXML coordinate space (scale + flip y + center)
     from ..image.structure_from_image import normalize_for_cdxml
     atoms, bonds = normalize_for_cdxml(atoms, bonds, center_x, center_y)
+    _separate_components(atoms, bonds)
 
     return atoms, bonds
+
+
+_ION_GAP = 3.0  # white space between the labels of two ions of a salt (pt)
+
+
+def _separate_components(atoms: List[Dict], bonds: List[Dict]) -> None:
+    """Move the parts of a salt apart where their labels would run together.
+
+    RDKit places disconnected parts one bond apart whatever their labels, so
+    Na+ and OH- printed as "OHNa+". Parts that already clear each other keep
+    RDKit's placement; the drawing stays centred where it was.
+    """
+    owner = {a["index"]: a["index"] for a in atoms}
+
+    def root(i):
+        while owner[i] != i:
+            i = owner[i]
+        return i
+
+    for b in bonds:
+        owner[root(b["atom1"])] = root(b["atom2"])
+    parts: Dict[int, List[Dict]] = {}
+    for a in atoms:
+        parts.setdefault(root(a["index"]), []).append(a)
+    if len(parts) < 2:
+        return
+    before = _fragment_bbox(atoms)
+    def extent(part):
+        # A label is about 10 pt tall, taller than a bare carbon's box.
+        x1, _, x2, _ = _fragment_bbox(part)
+        reach = [5.0 if _label_overhang(a) or a.get("symbol", "C") != "C" else _FRAG_PAD_H for a in part]
+        return (x1, min(a["y"] - r for a, r in zip(part, reach)),
+                x2, max(a["y"] + r for a, r in zip(part, reach)))
+
+    placed: List[List[Dict]] = []
+    for part in sorted(parts.values(), key=lambda p: _fragment_bbox(p)[0]):
+        for other in placed:
+            box, other_box = extent(part), extent(other)
+            level = box[1] < other_box[3] and other_box[1] < box[3]
+            if level and box[0] < other_box[2] + _ION_GAP:
+                _shift_atoms(part, other_box[2] + _ION_GAP - box[0], 0.0)
+        placed.append(part)
+    after = _fragment_bbox(atoms)
+    _shift_atoms(atoms, (before[0] + before[2] - after[0] - after[2]) / 2.0, 0.0)
 
 
 def _align_mol_to_reference(
@@ -407,10 +457,11 @@ def _build_fragment(
             lines.append(f'<n {" ".join(attrs)}>')
             lx = ax - 3.25
             ly = ay + 3.52
+            # The first letter is centred on the atom and the rest ("r" of Br) follows it.
             label_w = max(len(sym) * 5.5, 6.0)
-            lbx1 = ax - label_w / 2.0
+            lbx1 = ax - 3.0
             lby1 = ay - 7.52
-            lbx2 = ax + label_w / 2.0
+            lbx2 = lbx1 + label_w
             lby2 = ay
             tid = ids.next()
             lines.append(
@@ -870,7 +921,7 @@ def _label_overhang(atom: Dict) -> float:
         return 0.0
     extra = _LABEL_CHAR_W * (len(symbol) - 1)
     if hydrogens:
-        extra += _LABEL_CHAR_W + (_LABEL_DIGIT_W if hydrogens > 1 else 0.0)
+        extra += LABEL_H_WIDTH + (_LABEL_DIGIT_W if hydrogens > 1 else 0.0)
     if atom.get("charge"):
         extra += _LABEL_DIGIT_W
     return extra
@@ -881,8 +932,19 @@ def _fragment_bbox(atoms: List[Dict]) -> Tuple[float, float, float, float]:
 
     Includes padding for bond lines and the first label character
     (measured: +6.6pt width, +2.9pt height) plus the width of longer
-    labels such as "Br" or "OH".
+    labels such as "Br" or "OH".  A lone atom's label is drawn on one side,
+    as ChemDraw writes it (OH-, Br- rightwards; H2O, HCl leftwards).
     """
+    if len(atoms) == 1:
+        atom = atoms[0]
+        overhang = _label_overhang(atom)
+        left = hydrogens_lead(atom.get("symbol", "C"), atom.get("num_hydrogens"))
+        return (
+            atom["x"] - _FRAG_PAD_W - (overhang if left else 0.0),
+            atom["y"] - _FRAG_PAD_H,
+            atom["x"] + _FRAG_PAD_W + (0.0 if left else overhang),
+            atom["y"] + _FRAG_PAD_H,
+        )
     return (
         min(a["x"] - _FRAG_PAD_W - _label_overhang(a) for a in atoms),
         min(a["y"] for a in atoms) - _FRAG_PAD_H,
@@ -1217,23 +1279,60 @@ def _layout_sequential(
     xml_parts: List[str] = []
     arrow_y = 300.0
     lowest_y = arrow_y
+    previous_bottom: Optional[float] = None
 
     for row_idx, row_steps in enumerate(rows):
         row_ra = row_run_arrows.get(row_idx, [])
 
-        row_xml, lowest_y, _, _ = _layout_steps_row(
-            scheme, row_steps, ids,
-            start_x=80.0, arrow_y=arrow_y,
-            source_data=source_data,
-            run_arrows=row_ra,
-            reference_mol=reference_mol,
-        )
-        xml_parts.append(row_xml)
+        def layout(at_y: float, row_ids: _IDGen, row_steps=row_steps, row_ra=row_ra):
+            return _layout_steps_row(
+                scheme, row_steps, row_ids,
+                start_x=80.0, arrow_y=at_y,
+                source_data=source_data,
+                run_arrows=row_ra,
+                reference_mol=reference_mol,
+            )
 
-        # Next row starts below this row's lowest point
-        arrow_y = lowest_y + ROW_GAP
+        arrow_y = _next_arrow_y(layout, arrow_y, previous_bottom, LAYOUT_ROW_GAP)
+        row_xml, row_lowest, _, _ = layout(arrow_y, ids)
+        xml_parts.append(row_xml)
+        previous_bottom = _drawn_extent(row_xml)[1]
+        lowest_y = max(row_lowest, previous_bottom)
 
     return "\n".join(xml_parts), lowest_y
+
+
+def _next_arrow_y(layout, arrow_y: float, previous_bottom: Optional[float], gap: float) -> float:
+    """Arrow height that puts a row's top ``gap`` below ``previous_bottom``.
+
+    The row is measured by laying it out on a throwaway id counter.
+    """
+    if previous_bottom is None:
+        return arrow_y
+    token = _fragment_receipts.set(None)  # trial rows are not part of the drawing
+    try:
+        top, _ = _drawn_extent(layout(0.0, _IDGen(1))[0])
+    finally:
+        _fragment_receipts.reset(token)
+    return previous_bottom + gap - top
+
+
+def _drawn_extent(row_xml: str) -> Tuple[float, float]:
+    """Top and bottom of what a laid-out row draws: structures with their labels, text, arrows."""
+    from xml.etree import ElementTree as ET
+
+    tops, bottoms = [], []
+    for el in ET.fromstring(f"<row>{row_xml}</row>"):
+        if el.tag == "fragment":
+            box = drawn_fragment_bbox(el)
+        elif el.get("BoundingBox"):
+            box = tuple(float(v) for v in el.get("BoundingBox").split()[:4])
+        else:
+            continue
+        if box:
+            tops.append(box[1])
+            bottoms.append(box[3])
+    return (min(tops), max(bottoms)) if tops else (0.0, 0.0)
 
 
 def _layout_serpentine(
@@ -1260,7 +1359,7 @@ def _layout_serpentine(
 
     bond_len = ACS_BOND_LENGTH
     frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale
+    inter_gap = max(bond_len * LAYOUT_INTER_GAP_BONDS, LAYOUT_PLUS_GAP) * scheme.gap_scale
 
     xml_parts: List[str] = []
     arrow_y = 300.0
@@ -1325,6 +1424,7 @@ def _layout_serpentine(
                 cond_lines = transition.below_arrow.text[:]
             if transition.above_arrow and transition.above_arrow.text:
                 cond_lines = transition.above_arrow.text + cond_lines
+            cond_lines = [normalize_condition_text(t) for t in cond_lines]
             if transition.yield_:
                 cond_lines.append(transition.yield_)
 
@@ -1397,10 +1497,11 @@ def _layout_serpentine(
 
 
 # ---------------------------------------------------------------------------
-# Layout engine: divergent (one SM → multiple products via vertical branching)
+# Layout engine: divergent (one SM → multiple products on branch rows)
 # ---------------------------------------------------------------------------
 
-# Gap between the bottom of one branch and the top of the next.
+# Gap between the bottom of one branch row and the top of the next (halved
+# between rows: branch rows have no run arrows, so they can sit closer).
 _DIVERGENT_BRANCH_GAP = 2.5 * ACS_BOND_LENGTH
 
 
@@ -1414,8 +1515,8 @@ def _layout_divergent(
     Layout a divergent scheme: one SM gives multiple products.
 
     Detects the shared substrate (appears in multiple steps) and renders it
-    once on the left, with the first step going horizontally and subsequent
-    steps branching downward with vertical arrows.
+    once on the left.  Each step is a row with its own horizontal arrow; the
+    arrow tails share one column joined by a vertical line.
 
     Returns (inner_xml, lowest_y).
     """
@@ -1452,7 +1553,7 @@ def _layout_divergent(
 
     bond_len = ACS_BOND_LENGTH
     frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale
+    inter_gap = max(bond_len * LAYOUT_INTER_GAP_BONDS, LAYOUT_PLUS_GAP) * scheme.gap_scale
     min_arrow_len = 5.0 * bond_len
 
     start_x = 100.0
@@ -1489,11 +1590,50 @@ def _layout_divergent(
     sm_right_x = sm_frag.bbox[2]
     lowest_y = arrow_y + 60.0
 
-    # --- First step: horizontal (same Y as SM) ---
-    first_step = shared_steps[0]
-    branch_y = arrow_y
+    # Every branch is a row with its own horizontal arrow.  The arrows share one
+    # tail column right of the starting material, joined by a vertical connector,
+    # so each product reads as made from the starting material (a column of
+    # stacked vertical arrows reads as a chain, 1 -> 3 -> 4).
+    branches = []
+    for step in shared_steps:
+        above_text = [normalize_condition_text(t) for t in step.above_arrow.text] if step.above_arrow else []
+        below_text = [normalize_condition_text(t) for t in step.below_arrow.text] if step.below_arrow else []
+        if step.yield_:
+            below_text.append(step.yield_)
+        products = [_resolve_structure(_get_ref(sid), source_data=source_data,
+                                       reference_mol=reference_mol)
+                    for sid in step.products]
+        branches.append((step, above_text, below_text, products))
 
-    for branch_idx, step in enumerate(shared_steps):
+    content_w = max((max(_estimate_text_width(above), _estimate_text_width(below), 0)
+                     for _, above, below, _ in branches), default=0)
+    arrow_len = max(content_w + 10.0, min_arrow_len)
+    tail_x = sm_right_x + frag_gap * 0.3
+    head_x = tail_x + arrow_len
+    arrow_mid_x = (tail_x + head_x) / 2.0
+    tail_ys: List[float] = []
+    previous_bottom: Optional[float] = None
+
+    for step, above_text, below_text, products in branches:
+        # Extent of the row above and below its arrow line.
+        above_h = 0.0
+        if above_text:
+            above_h = (LAYOUT_BELOW_GAP + max(0, len(above_text) - 1) * _LINE_ADVANCE
+                       + _DESCENT + _CAP_HEIGHT)
+        below_h = 0.0
+        if below_text:
+            below_h = (LAYOUT_BELOW_GAP + _CAP_HEIGHT
+                       + max(0, len(below_text) - 1) * _LINE_ADVANCE + _DESCENT)
+        for frag in products:
+            above_h = max(above_h, frag.cy - frag.bbox[1])
+            # The compound label sits 14 pt below the structure.
+            below_h = max(below_h, frag.bbox[3] - frag.cy + (14.0 + _DESCENT if frag.ref.label else 0.0))
+        if previous_bottom is None:
+            branch_y = arrow_y
+        else:
+            branch_y = previous_bottom + _DIVERGENT_BRANCH_GAP / 2.0 + above_h
+        tail_ys.append(branch_y)
+
         step_meta: Dict[str, Any] = {
             "reactant_ids": [sm_frag_id],
             "product_ids": [],
@@ -1501,153 +1641,54 @@ def _layout_divergent(
             "above_ids": [],
             "below_ids": [],
         }
+        arrow_xml, arrow_id = _build_arrow(
+            tail_x, branch_y, head_x, branch_y, ids,
+            dashed=(step.arrow_style == "dashed"),
+            nogo=(step.arrow_style == "failed"),
+            kind=_arrow_kind(step.arrow_style))
+        xml_parts.append(arrow_xml)
+        step_meta["arrow_id"] = arrow_id
 
-        if branch_idx == 0:
-            # Horizontal arrow from SM
-            arrow_tail_x = sm_right_x + frag_gap * 0.3
+        # Above-arrow text (p.y = baseline of the first line), its visual bottom
+        # LAYOUT_BELOW_GAP above the arrow like the text below it.
+        if above_text:
+            text_below_baseline = max(0, len(above_text) - 1) * _LINE_ADVANCE + _DESCENT
+            text_y = branch_y - LAYOUT_BELOW_GAP - text_below_baseline
+            txt_xml, txt_id = _build_text_element(above_text, arrow_mid_x, text_y, ids,
+                                                  use_formatting=True)
+            xml_parts.append(txt_xml)
+            step_meta["above_ids"].append(txt_id)
+        if below_text:
+            text_y = branch_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
+            txt_xml, txt_id = _build_text_element(below_text, arrow_mid_x, text_y, ids)
+            xml_parts.append(txt_xml)
+            step_meta["below_ids"].append(txt_id)
 
-            # Compute arrow length from content
-            below_text = list(step.below_arrow.text) if step.below_arrow else []
-            above_text = list(step.above_arrow.text) if step.above_arrow else []
-            if step.yield_:
-                below_text.append(step.yield_)
-            content_w = max(
-                _estimate_text_width(below_text),
-                _estimate_text_width(above_text),
-                0,
-            )
-            arrow_len = max(content_w + 10.0, min_arrow_len)
-            arrow_head_x = arrow_tail_x + arrow_len
-            arrow_mid_x = (arrow_tail_x + arrow_head_x) / 2.0
-
-            dashed = (step.arrow_style == "dashed")
-            failed = (step.arrow_style == "failed")
-            arrow_xml, arrow_id = _build_arrow(
-                arrow_tail_x, branch_y, arrow_head_x, branch_y, ids,
-                dashed=dashed, nogo=failed, kind=_arrow_kind(step.arrow_style))
-            xml_parts.append(arrow_xml)
-            step_meta["arrow_id"] = arrow_id
-
-            # Above-arrow text (p.y = baseline of first line)
-            # Position so visual bottom sits LAYOUT_BELOW_GAP above arrow
-            # (same gap as below-arrow content for symmetry)
-            if above_text:
-                n_abt = len(above_text)
-                text_below_baseline = max(0, n_abt - 1) * _LINE_ADVANCE + _DESCENT
-                text_y = branch_y - LAYOUT_BELOW_GAP - text_below_baseline
-                txt_xml, txt_id = _build_text_element(
-                    above_text, arrow_mid_x, text_y, ids,
-                    use_formatting=True,
-                )
-                xml_parts.append(txt_xml)
-                step_meta["above_ids"].append(txt_id)
-
-            # Below-arrow text (p.y = baseline; visual top = p.y - _CAP_HEIGHT)
-            if below_text:
-                text_y = branch_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
-                txt_xml, txt_id = _build_text_element(below_text, arrow_mid_x, text_y, ids)
-                xml_parts.append(txt_xml)
-                step_meta["below_ids"].append(txt_id)
-                n_blt = len(below_text)
-                lowest_y = max(
-                    lowest_y,
-                    text_y + max(0, n_blt - 1) * _LINE_ADVANCE + _DESCENT,
-                )
-
-            # Products
-            cursor_x = arrow_head_x + frag_gap * 1.0
-            for prod_sid in step.products:
-                prod_ref = _get_ref(prod_sid)
-                prod_frag = _resolve_structure(prod_ref, source_data=source_data,
-                                               reference_mol=reference_mol)
-                pw = _bbox_width(prod_frag.bbox)
-                pcx = cursor_x + pw / 2.0
-                ddx = pcx - prod_frag.cx
-                ddy = branch_y - prod_frag.cy
-                _shift_atoms(prod_frag.atoms, ddx, ddy)
-                prod_frag.bbox = _fragment_bbox(prod_frag.atoms)
-                prod_frag.cx, prod_frag.cy = _bbox_center(prod_frag.bbox)
-
-                pfrag_xml, _, pfrag_id = _build_fragment(
-                    prod_frag.atoms, prod_frag.bonds, ids)
-                xml_parts.append(pfrag_xml)
-                step_meta["product_ids"].append(pfrag_id)
-                all_frag_ids.append(pfrag_id)
-
-                if prod_frag.ref.label:
-                    lbl_xml, _ = _build_label_element(
-                        prod_frag.ref.label, prod_frag.cx,
-                        prod_frag.bbox[3] + 14.0, ids)
-                    xml_parts.append(lbl_xml)
-
-                cursor_x = prod_frag.bbox[2] + inter_gap
-
-            # Track lowest for below-text of this horizontal step
-            lowest_y = max(lowest_y, branch_y + 60.0)
-
-        else:
-            # Vertical branch downward from SM
-            # Vertical arrow starts below the previous branch's content
-            vert_top_y = lowest_y + 8.0
-
-            # Condition text
-            cond_lines: List[str] = []
-            if step.above_arrow and step.above_arrow.text:
-                cond_lines.extend(step.above_arrow.text)
-            if step.below_arrow and step.below_arrow.text:
-                cond_lines.extend(step.below_arrow.text)
-            if step.yield_:
-                cond_lines.append(step.yield_)
-
-            # Compute vertical arrow length: enough for condition text + product
-            prod_ref = _get_ref(step.products[0])
-            prod_frag = _resolve_structure(prod_ref, source_data=source_data,
-                                           reference_mol=reference_mol)
-            prod_h = _bbox_height(prod_frag.bbox)
-
-            cond_text_h = _estimate_text_height(cond_lines) if cond_lines else 0
-            vert_len = max(cond_text_h + 20.0, prod_h + 30.0, 3.0 * bond_len)
-            vert_bottom_y = vert_top_y + vert_len
-
-            dashed = (step.arrow_style == "dashed")
-            failed = (step.arrow_style == "failed")
-
-            vert_xml, vert_aid = _build_vertical_arrow(
-                sm_frag.cx, vert_top_y, vert_bottom_y, ids,
-                condition_lines=cond_lines if cond_lines else None,
-                condition_side="right",
-                dashed=dashed,
-                nogo=failed,
-                kind=_arrow_kind(step.arrow_style),
-            )
-            xml_parts.append(vert_xml)
-            step_meta["arrow_id"] = vert_aid
-
-            # Product below the vertical arrow, centered on SM's x.
-            prod_w = _bbox_width(prod_frag.bbox)
-            prod_y = vert_bottom_y + frag_gap * 1.0 + prod_h / 2.0
-            prod_target_cx = sm_frag.cx
-            ddx = prod_target_cx - prod_frag.cx
-            ddy = prod_y - prod_frag.cy
-            _shift_atoms(prod_frag.atoms, ddx, ddy)
+        cursor_x = head_x + frag_gap * 1.0
+        for prod_frag in products:
+            pw = _bbox_width(prod_frag.bbox)
+            _shift_atoms(prod_frag.atoms, cursor_x + pw / 2.0 - prod_frag.cx, branch_y - prod_frag.cy)
             prod_frag.bbox = _fragment_bbox(prod_frag.atoms)
             prod_frag.cx, prod_frag.cy = _bbox_center(prod_frag.bbox)
-
-            pfrag_xml, _, pfrag_id = _build_fragment(
-                prod_frag.atoms, prod_frag.bonds, ids)
+            pfrag_xml, _, pfrag_id = _build_fragment(prod_frag.atoms, prod_frag.bonds, ids)
             xml_parts.append(pfrag_xml)
             step_meta["product_ids"].append(pfrag_id)
             all_frag_ids.append(pfrag_id)
-
             if prod_frag.ref.label:
                 lbl_xml, _ = _build_label_element(
-                    prod_frag.ref.label, prod_frag.cx,
-                    prod_frag.bbox[3] + 14.0, ids)
+                    prod_frag.ref.label, prod_frag.cx, prod_frag.bbox[3] + 14.0, ids)
                 xml_parts.append(lbl_xml)
+            cursor_x = prod_frag.bbox[2] + inter_gap
 
-            lowest_y = prod_frag.bbox[3] + 20.0
-
+        previous_bottom = branch_y + below_h
+        lowest_y = max(lowest_y, previous_bottom)
         step_metadata.append(step_meta)
+
+    if len(tail_ys) > 1:
+        line_id, line_z = ids.next(), ids.next()
+        xml_parts.append(
+            f'<graphic id="{line_id}" Z="{line_z}" GraphicType="Line" '
+            f'BoundingBox="{tail_x:.2f} {tail_ys[0]:.2f} {tail_x:.2f} {tail_ys[-1]:.2f}"/>')
 
     # --- Build <scheme> ---
     scheme_id = ids.next()
@@ -1701,7 +1742,7 @@ def _layout_divergent_stacked(
 # Layout engine: stacked-rows (multiple independent sub-schemes)
 # ---------------------------------------------------------------------------
 
-SECTION_GAP = 5.5 * ACS_BOND_LENGTH  # ~79.2 pt between sections (more clearance)
+SECTION_GAP = 3.0 * ACS_BOND_LENGTH  # white space between independent sections
 SECTION_LABEL_X = 40.0               # left margin for section labels
 
 
@@ -1710,6 +1751,7 @@ def _layout_stacked_rows(
     ids: _IDGen,
     source_data: Optional[Dict[str, Dict]] = None,
     reference_mol: Optional[Any] = None,
+    section_gap: float = SECTION_GAP,
 ) -> Tuple[str, float]:
     """
     Layout multiple independent sub-schemes stacked vertically.
@@ -1742,10 +1784,47 @@ def _layout_stacked_rows(
     xml_parts: List[str] = []
     arrow_y = 300.0
     lowest_y = arrow_y
+    previous_bottom: Optional[float] = None
     # Content starts to the right of section labels
     content_start_x = 100.0
 
     for sec_idx, sec in enumerate(sections):
+        # --- Render this section's steps ---
+        # Create a temporary sub-scheme sharing the structure definitions
+        sub_scheme = SchemeDescriptor(
+            structures=scheme.structures,
+            steps=sec.steps,
+            layout=sec.layout or "linear",
+            gap_scale=scheme.gap_scale,
+        )
+        sec_ref_mol = _product_mol_for_steps(
+            sec.steps, scheme.structures, source_data,
+        )
+        if sec_ref_mol is None:
+            sec_ref_mol = reference_mol  # fallback to global
+        section_ra = sec_run_arrows.get(sec_idx, [])
+
+        # A section wider than the budget wraps like a sequential scheme; run
+        # arrows are numbered within the section, so they keep it on one row.
+        section_rows = [sec.steps]
+        if scheme.max_row_width and len(sec.steps) > 1 and not section_ra:
+            per_row = _auto_steps_per_row(
+                sub_scheme, scheme.max_row_width, source_data, sec_ref_mol)
+            section_rows = _split_into_rows(sec.steps, per_row)
+
+        def layout(at_y: float, row_ids: _IDGen, row_steps=None, sub_scheme=sub_scheme,
+                   section_ra=section_ra, sec_ref_mol=sec_ref_mol):
+            return _layout_steps_row(
+                sub_scheme, row_steps, row_ids,
+                start_x=content_start_x, arrow_y=at_y,
+                source_data=source_data,
+                run_arrows=section_ra,
+                reference_mol=sec_ref_mol,
+            )
+
+        arrow_y = _next_arrow_y(partial(layout, row_steps=section_rows[0]), arrow_y,
+                                previous_bottom, section_gap)
+
         # --- Section label ---
         if sec.label:
             # Place label at the left margin, vertically centered on arrow_y
@@ -1756,49 +1835,14 @@ def _layout_stacked_rows(
             )
             xml_parts.append(label_xml)
 
-        # --- Per-section reference product for alignment ---
-        # Each section is an independent reaction, so align structures
-        # within each section to that section's own product.
-        sec_ref_mol = _product_mol_for_steps(
-            sec.steps, scheme.structures, source_data,
-        )
-        if sec_ref_mol is None:
-            sec_ref_mol = reference_mol  # fallback to global
-
-        # --- Run arrows for this section ---
-        section_ra = sec_run_arrows.get(sec_idx, [])
-
-        # --- Render this section's steps ---
-        # Create a temporary sub-scheme sharing the structure definitions
-        sub_scheme = SchemeDescriptor(
-            structures=scheme.structures,
-            steps=sec.steps,
-            layout=sec.layout or "linear",
-            gap_scale=scheme.gap_scale,
-        )
-
-        # A section wider than the budget wraps like a sequential scheme; run
-        # arrows are numbered within the section, so they keep it on one row.
-        section_rows = [sec.steps]
-        if scheme.max_row_width and len(sec.steps) > 1 and not section_ra:
-            per_row = _auto_steps_per_row(
-                sub_scheme, scheme.max_row_width, source_data, sec_ref_mol)
-            section_rows = _split_into_rows(sec.steps, per_row)
-
-        for row_steps in section_rows:
-            row_xml, row_lowest, _, _ = _layout_steps_row(
-                sub_scheme, row_steps, ids,
-                start_x=content_start_x, arrow_y=arrow_y,
-                source_data=source_data,
-                run_arrows=section_ra,
-                reference_mol=sec_ref_mol,
-            )
-
+        for row_index, row_steps in enumerate(section_rows):
+            if row_index:
+                arrow_y = _next_arrow_y(partial(layout, row_steps=row_steps), arrow_y,
+                                        previous_bottom, LAYOUT_ROW_GAP)
+            row_xml, row_lowest, _, _ = layout(arrow_y, ids, row_steps=row_steps)
             xml_parts.append(row_xml)
-            lowest_y = row_lowest
-
-            # Move to next row
-            arrow_y = lowest_y + SECTION_GAP
+            previous_bottom = _drawn_extent(row_xml)[1]
+            lowest_y = max(row_lowest, previous_bottom)
 
     return "\n".join(xml_parts), lowest_y
 
@@ -1852,7 +1896,7 @@ def _layout_steps_row(
     is_rtl = (direction == "rtl")
     bond_len = ACS_BOND_LENGTH
     frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale    # gap between fragment and arrow
-    inter_gap = bond_len * LAYOUT_INTER_GAP_BONDS * scheme.gap_scale   # gap between adjacent fragments
+    inter_gap = max(bond_len * LAYOUT_INTER_GAP_BONDS, LAYOUT_PLUS_GAP) * scheme.gap_scale   # gap between adjacent fragments
 
     # --- Phase 1: Resolve all structures ---
     def _get_ref(sid: str) -> StructureRef:
@@ -2266,7 +2310,11 @@ def _layout_steps_row(
     effective_run_arrows = run_arrows if run_arrows is not None else scheme.run_arrows
 
     if effective_run_arrows:
-        run_y = lowest_y + 6.0  # tighter gap between conditions text and run arrows
+        base_y = lowest_y + 6.0  # tighter gap between conditions text and run arrows
+        lowest_y = base_y
+        # Each run takes the highest free line below the conditions; runs of
+        # neighbouring steps share a line unless their labels would meet.
+        taken: List[Tuple[float, float, float, float]] = []
 
         for sra in effective_run_arrows:
             step_idx = sra.step - 1  # 0-indexed
@@ -2278,8 +2326,21 @@ def _layout_steps_row(
             # just translated vertically below the scheme content.
             run_tail_x = rs.arrow_tail_x
             run_head_x = rs.arrow_head_x
+            run_y = base_y
 
             for run_entry in sra.runs:
+                note_height = 10.0 if run_entry.note else 0.0
+                left = run_tail_x - 5.0 - _estimate_text_width([run_entry.input_label])
+                right = run_head_x + 5.0 + _estimate_text_width([run_entry.output_label or ""])
+                if run_entry.note:
+                    half = _estimate_text_width([run_entry.note]) / 2.0
+                    mid = (run_tail_x + run_head_x) / 2.0
+                    left, right = min(left, mid - half), max(right, mid + half)
+                while any(left < x2 + RUN_LABEL_GAP and x1 < right + RUN_LABEL_GAP
+                          and run_y < y2 and y1 < run_y + note_height + 18.0
+                          for x1, y1, x2, y2 in taken):
+                    run_y += 18.0
+                taken.append((left, run_y, right, run_y + note_height + 18.0))
                 if run_entry.note:
                     # Text centered above this specific run arrow
                     note_y = run_y - 1.0
@@ -2291,7 +2352,7 @@ def _layout_steps_row(
                         use_formatting=False,
                     )
                     xml_parts.append(note_xml)
-                    run_y += 10.0  # space for note text
+                    run_y += note_height  # space for note text
                 run_xml, _ = _build_run_arrow(
                     run_tail_x, run_head_x,
                     run_y,
@@ -2301,8 +2362,7 @@ def _layout_steps_row(
                 )
                 xml_parts.append(run_xml)
                 run_y += 18.0  # stack multiple runs
-
-        lowest_y = run_y
+                lowest_y = max(lowest_y, run_y)
 
     # Compute row edge (rightmost for LTR, leftmost for RTL)
     row_edge_x = cursor_x
@@ -2490,7 +2550,7 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
             sections=[SectionDescriptor(steps=steps) for steps in convergent_sections(scheme.steps)],
         )
         inner_xml, lowest_y = _layout_stacked_rows(rows, ids, source_data=source_data,
-                                                    reference_mol=ref_mol)
+                                                    reference_mol=ref_mol, section_gap=LAYOUT_ROW_GAP)
     else:
         raise NotImplementedError(
             f"Layout '{scheme.layout}' is not yet implemented. "

@@ -127,6 +127,14 @@ class MoleculeComparisonTests(unittest.TestCase):
                 ]
             )
 
+    def test_batch_pairs_take_the_single_compare_names_too(self):
+        bridge = FakeBridge({"A": info("CCO", "inchi-a"), "B": info("OCC", "inchi-a")})
+        with mock.patch.object(chemistry_compare, "_bridge_factory", return_value=bridge):
+            result = chemistry_compare.batch_compare_molecules([{"molecule_a": "A", "molecule_b": "B"}])
+        self.assertTrue(result["outputs"]["results"][0]["ok"])
+        with self.assertRaisesRegex(ValueError, "not both"):
+            chemistry_compare.batch_compare_molecules([{"mol1": "A", "molecule_a": "B", "mol2": "B"}])
+
 
 if __name__ == "__main__":
     unittest.main()

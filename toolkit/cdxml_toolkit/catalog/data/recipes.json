@@ -5,8 +5,8 @@
    "id": "chemscript-structure-properties",
    "title": "Formula, masses and InChI of a structure",
    "tool": "execute_chemscript_sdk",
-   "platforms": ["win"],
-   "verified_on": "22.2.0/win",
+   "platforms": ["win", "mac"],
+   "verified_on": "22.2.0/win, 26.0/mac",
    "members": ["StructureData.LoadData", "StructureData.Formula", "StructureData.Weight", "StructureData.ExactMass", "StructureData.Inchi"],
    "program": [
     {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["c1ccc(O)cc1", "chemical/x-smiles"], "as": "mol"},
@@ -48,8 +48,8 @@
    "id": "chemscript-cleanup-to-cdxml",
    "title": "Clean up a structure and write it as CDXML text",
    "tool": "execute_chemscript_sdk",
-   "platforms": ["win"],
-   "verified_on": "22.2.0/win",
+   "platforms": ["win", "mac"],
+   "verified_on": "22.2.0/win, 26.0/mac",
    "members": ["StructureData.CleanupStructure", "StructureData.WriteData"],
    "program": [
     {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["OC(=O)c1ccccc1", "chemical/x-smiles"], "as": "mol"},
@@ -65,8 +65,8 @@
    "id": "chemscript-common-substructure",
    "title": "Largest common substructure of two molecules",
    "tool": "execute_chemscript_sdk",
-   "platforms": ["win"],
-   "verified_on": "22.2.0/win",
+   "platforms": ["win", "mac"],
+   "verified_on": "22.2.0/win, 26.0/mac",
    "members": ["LargestCommonSubstructure.Compute", "LargestCommonSubstructure.CommonSubstructure", "StructureData.Formula"],
    "program": [
     {"op": "call_static", "type": "StructureData", "member": "LoadData", "args": ["CCCO", "chemical/x-smiles"], "as": "a"},
@@ -84,8 +84,8 @@
    "id": "chemscript-reaction-species",
    "title": "Read the reactants of a reaction",
    "tool": "execute_chemscript_sdk",
-   "platforms": ["win"],
-   "verified_on": "22.2.0/win",
+   "platforms": ["win", "mac"],
+   "verified_on": "22.2.0/win, 26.0/mac",
    "members": ["ReactionData.LoadData", "ReactionData.Reactants", "StructureData.Formula"],
    "program": [
     {"op": "call_static", "type": "ReactionData", "member": "LoadData", "args": ["CCO>>CC=O", "chemical/x-smiles"], "as": "rxn"},

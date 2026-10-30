@@ -164,6 +164,20 @@ class AutomationHelpersTests(unittest.TestCase):
             mac_automation.terminate_process(4242, grace_seconds=0)
         refused.assert_not_called()
 
+    def test_a_chemdraw_exe_that_points_nowhere_finds_no_chemdraw(self):
+        # The offline evaluation points CHEMDRAW_EXE at a missing file to keep the user's ChemDraw out.
+        find_application = getattr(mac_automation, "unguarded_find_application", mac_automation.find_application)
+        with tempfile.TemporaryDirectory() as folder:
+            app = Path(folder) / "ChemDraw.app"
+            (app / "Contents").mkdir(parents=True)
+            with mock.patch.dict(os.environ, {"CHEMDRAW_EXE": str(app / "Contents" / "MacOS" / "ChemDraw")}):
+                self.assertEqual(find_application(), app)
+            missing = Path(folder) / "no-chemdraw-here" / "ChemDraw.exe"
+            with mock.patch.dict(os.environ, {"CHEMDRAW_EXE": str(missing)}), \
+                    mock.patch.object(mac_automation.subprocess, "run",
+                                      side_effect=AssertionError("searched for an installed ChemDraw")):
+                self.assertIsNone(find_application())
+
     def test_save_types_follow_destination_extension(self):
         self.assertEqual(mac_automation.save_type_for(Path("a.PNG")), "PNG")
         self.assertEqual(mac_automation.save_type_for(Path("a.cdxml")), "ChemDraw XML")
@@ -183,6 +197,21 @@ class AutomationHelpersTests(unittest.TestCase):
             with self.assertRaises(mac_automation.MacAutomationError) as raised:
                 session._openable(sheet, Path(directory))
         self.assertEqual(raised.exception.error_code, "native_format_unsupported")
+
+    def test_each_run_opens_a_document_with_a_name_of_its_own(self):
+        # ChemDraw refers to a document by its name: with a fixed name, a document
+        # left open (or the user's own input.cdxml) is the one saved and closed.
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "input.cdxml"
+            source.write_text("<CDXML/>", encoding="utf-8")
+            session = mac_automation.MacChemDrawSession()
+            for name in "ab":
+                (Path(directory) / name).mkdir()
+            first = session._openable(source, Path(directory) / "a")
+            second = session._openable(source, Path(directory) / "b")
+        self.assertNotEqual(first.name, second.name)
+        self.assertNotEqual(first.name, "input.cdxml")
+        self.assertEqual(first.suffix, ".cdxml")
 
     def test_emf_destinations_are_converted_from_chemdraws_svg_export(self):
         svg = ('<svg width="20px" height="10px" xmlns="http://www.w3.org/2000/svg">'

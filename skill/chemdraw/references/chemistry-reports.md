@@ -14,7 +14,7 @@ These tools answer the questions people ask after a structure is drawn: what are
 | Which reactant atom does each product atom come from? What bonds change? | `map_reaction_atoms` |
 | Give me every structure in this CDXML/SDF as SMILES, InChI or a table | `export_structures` |
 | What is the name of this structure? | `structure_to_name` (needs ChemScript or ChemDraw for macOS) |
-| What does ChemDraw give for formula, masses, elemental analysis, logP and molar refractivity? | `chemdraw_chemical_properties` (needs ChemScript on Windows; no RDKit substitute) |
+| What does ChemDraw give for formula, masses, elemental analysis, logP and molar refractivity? | `chemdraw_chemical_properties` (needs ChemScript on Windows or ChemDraw for macOS, which gives no logP or molar refractivity; no RDKit substitute) |
 
 All of them accept `output_path` (never overwritten) and return their data inline, so a small result needs no file. Run one as `cdx.py call TOOL --args args.json`.
 

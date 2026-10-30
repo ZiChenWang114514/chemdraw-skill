@@ -8,6 +8,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import sys
 from collections import Counter
 from fractions import Fraction
 from math import gcd
@@ -810,6 +811,14 @@ PROPERTY_COLUMNS = ['label', 'smiles', 'formula', 'average_mass', 'exact_mass', 
                     'log_p', 'molar_refractivity']
 # One structure takes a load step plus one step per property; ChemScript programs hold 256 steps.
 PROPERTY_BATCH = 32
+# ChemDraw for macOS gives no scripting access to its ClogP and molar refractivity estimates.
+MAC_UNAVAILABLE_PROPERTIES = ('PartitionCoefficient', 'Refractivity')
+
+
+def _readable_properties():
+    if sys.platform == 'darwin':
+        return tuple(prop for prop in CHEMDRAW_PROPERTIES if prop[0] not in MAC_UNAVAILABLE_PROPERTIES)
+    return CHEMDRAW_PROPERTIES
 
 
 def _property_program(smiles_list, properties):
@@ -851,6 +860,8 @@ def chemdraw_chemical_properties(molecules: list[dict], output_path: str | None 
     log_p and molar_refractivity are ChemDraw's ClogP estimates, in its units. Nothing is computed
     by RDKit or any other substitute: a property ChemDraw cannot give is null with the reason in
     that row's errors, and without ChemScript (Windows) the call fails instead of falling back.
+    On macOS ChemDraw itself gives the formula, masses and elemental analysis; it has no
+    scripting access to ClogP or refractivity, so log_p and molar_refractivity are null there.
     Use molecule_report for the deterministic RDKit sheet. Generic atoms (R groups, *) are refused.
     output_path ends in .csv, .json or .md and is never overwritten. At most 256 structures.
     """
@@ -867,6 +878,7 @@ def chemdraw_chemical_properties(molecules: list[dict], output_path: str | None 
         plain.RemoveAllConformers()
         prepared.append({'label': item['label'], 'source': item['source'], 'smiles': _smiles(mol),
                          'load': Chem.MolToSmiles(plain)})
+    readable = _readable_properties()
     values = [{} for _ in prepared]
     errors = [dict() for _ in prepared]
     assembly = []
@@ -880,7 +892,7 @@ def chemdraw_chemical_properties(molecules: list[dict], output_path: str | None 
     for start in range(0, len(prepared), PROPERTY_BATCH):
         positions = list(range(start, min(start + PROPERTY_BATCH, len(prepared))))
         try:
-            for position, row in zip(positions, attempt(positions, CHEMDRAW_PROPERTIES)):
+            for position, row in zip(positions, attempt(positions, readable)):
                 values[position] = row
             continue
         except unavailable:
@@ -889,13 +901,13 @@ def chemdraw_chemical_properties(molecules: list[dict], output_path: str | None 
             pass  # isolate the structure or property that ChemDraw rejects
         for position in positions:
             try:
-                values[position] = attempt([position], CHEMDRAW_PROPERTIES)[0]
+                values[position] = attempt([position], readable)[0]
                 continue
             except unavailable:
                 raise
             except Exception:
                 pass
-            for prop in CHEMDRAW_PROPERTIES:
+            for prop in readable:
                 try:
                     values[position].update(attempt([position], (prop,))[0])
                 except unavailable:
@@ -904,11 +916,16 @@ def chemdraw_chemical_properties(molecules: list[dict], output_path: str | None 
                     errors[position][prop[2]] = f'{prop[0]}: {str(exc)[:200]}'
 
     rows, warnings = [], []
+    unreadable = [prop for prop in CHEMDRAW_PROPERTIES if prop not in readable]
+    if prepared and unreadable:
+        warnings.append(f"ChemDraw for macOS cannot give {', '.join(key for _, _, key in unreadable)}; "
+                        "they are null in every row.")
     for position, entry in enumerate(prepared):
         row = {'label': entry['label'], 'source': entry['source'], 'smiles': entry['smiles']}
-        for member, _, key in CHEMDRAW_PROPERTIES:
+        for prop in CHEMDRAW_PROPERTIES:
+            member, _, key = prop
             value = values[position].get(member)
-            if key in errors[position]:
+            if prop in unreadable or key in errors[position]:
                 value = None
             elif not _valid_property(member, value):
                 reason = 'ChemDraw returned no value' if value is None else f'unexpected value {value!r}'

@@ -6,7 +6,7 @@ Each recipe is a program for a generic tool, run on the installed ChemDraw with 
 
 ## Formula, masses and InChI of a structure
 
-`chemscript-structure-properties` · tool `execute_chemscript_sdk` · verified on 22.2.0/win · platforms win
+`chemscript-structure-properties` · tool `execute_chemscript_sdk` · verified on 22.2.0/win, 26.0/mac · platforms win, mac
 
 Covers: `StructureData.LoadData`, `StructureData.Formula`, `StructureData.Weight`, `StructureData.ExactMass`, `StructureData.Inchi`.
 
@@ -57,7 +57,7 @@ Checked results:
 
 ## Clean up a structure and write it as CDXML text
 
-`chemscript-cleanup-to-cdxml` · tool `execute_chemscript_sdk` · verified on 22.2.0/win · platforms win
+`chemscript-cleanup-to-cdxml` · tool `execute_chemscript_sdk` · verified on 22.2.0/win, 26.0/mac · platforms win, mac
 
 Covers: `StructureData.CleanupStructure`, `StructureData.WriteData`.
 
@@ -78,7 +78,7 @@ Checked results:
 
 ## Largest common substructure of two molecules
 
-`chemscript-common-substructure` · tool `execute_chemscript_sdk` · verified on 22.2.0/win · platforms win
+`chemscript-common-substructure` · tool `execute_chemscript_sdk` · verified on 22.2.0/win, 26.0/mac · platforms win, mac
 
 Covers: `LargestCommonSubstructure.Compute`, `LargestCommonSubstructure.CommonSubstructure`, `StructureData.Formula`.
 
@@ -101,7 +101,7 @@ Checked results:
 
 ## Read the reactants of a reaction
 
-`chemscript-reaction-species` · tool `execute_chemscript_sdk` · verified on 22.2.0/win · platforms win
+`chemscript-reaction-species` · tool `execute_chemscript_sdk` · verified on 22.2.0/win, 26.0/mac · platforms win, mac
 
 Covers: `ReactionData.LoadData`, `ReactionData.Reactants`, `StructureData.Formula`.
 

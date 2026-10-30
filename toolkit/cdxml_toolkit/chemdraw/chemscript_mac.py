@@ -5,7 +5,8 @@ Windows.  On macOS the same commands are answered in-process, with the reply
 shapes of ``_chemscript_server.py`` so bridge callers do not change:
 
 * ChemDraw for macOS (AppleScript) gives its own readings and edits:
-  Struct=Name, Name=Struct, Clean Up, SMILES, formula and file conversion.
+  Struct=Name, Name=Struct, Clean Up, SMILES, formula, masses, elemental
+  analysis and file conversion.
 * OPSIN resolves names offline before ChemDraw is asked, because ChemDraw
   answers a name it cannot interpret with a modal alert.
 * RDKit does graph work: substructure search, MCS, overlay and InChI.
@@ -330,8 +331,9 @@ class MacChemScript:
             destination = Path(destination).expanduser().resolve()
             steps += ["save", str(destination), mac_automation.save_type_for(destination)]
         answers = self.session.run_steps(path, steps)
-        smiles, formula = (answers + ["", ""])[:2]
-        reading = {"smiles": smiles, "formula": formula}
+        smiles, formula, weight, exact, analysis = (answers + [""] * 5)[:5]
+        reading = {"smiles": smiles, "formula": formula, "weight": mac_automation.query_number(weight),
+                   "exact_mass": mac_automation.query_number(exact), "elemental_analysis": analysis or None}
         if named is not None:
             reading["names"] = mac_automation.new_captions(path, named)
         return reading
@@ -385,9 +387,17 @@ class MacChemScript:
         combined.SetDoubleProp(_SCALE_PROP, bond_length / _RDKIT_BOND_LENGTH)
         return combined
 
+    def _structure_names(self, path: Path) -> list:
+        """ChemDraw's names for ``path``, asked twice when the first answer is empty.
+
+        ChemDraw for macOS occasionally saves the document before Convert Structure to
+        Name has added its caption, so one empty answer is not yet "cannot be named".
+        """
+        return self._read(path, names=True)["names"] or self._read(path, names=True)["names"]
+
     def _name_of_smiles(self, smiles: str) -> Optional[str]:
         if smiles not in self._names:
-            names = self._read(self._smiles_file(smiles), names=True)["names"]
+            names = self._structure_names(self._smiles_file(smiles))
             self._names[smiles] = "; ".join(names) or None
         return self._names[smiles]
 
@@ -492,7 +502,7 @@ class MacChemScript:
         if not os.path.isfile(source) and (fmt and _kind(fmt) == "smiles" or not fmt and self._detect(source) == "smiles"):
             name = self._name_of_smiles(source)
         else:
-            name = "; ".join(self._read(self._stage(source, fmt), names=True)["names"]) or None
+            name = "; ".join(self._structure_names(self._stage(source, fmt))) or None
         if not name:
             return {"ok": False, "error": "ChemDraw could not name this structure"}
         return {"ok": True, "name": name}
@@ -503,6 +513,14 @@ class MacChemScript:
         if not reading["formula"]:
             return {"ok": False, "error": f"Could not load: {source}"}
         return {"ok": True, "formula": reading["formula"]}
+
+    def cmd_get_properties(self, args: dict) -> dict:
+        """Formula, weight, exact mass and elemental analysis from one ChemDraw reading."""
+        source = args["source"]
+        reading = self._read(self._stage(source, args.get("format")))
+        if not reading["formula"]:
+            return {"ok": False, "error": f"Could not load: {source}"}
+        return {"ok": True, **{key: reading[key] for key in ("formula", "weight", "exact_mass", "elemental_analysis")}}
 
     def _pair(self, args: dict, first: str, second: str):
         one = self._rdkit(args[first], args.get(f"{first}_format"))
@@ -607,7 +625,14 @@ class MacChemScript:
             {"common": _atom_name(common, k), "mol1": _atom_name(first, one[k]), "mol2": _atom_name(second, two[k])}
             for k in range(min(len(one), len(two)))
         ]
-        return {"ok": True, "atom_map": mapping, "common_atom_count": len(mapping)}
+        # The common part as mol1 holds it; Kekulé form, since a ring cut open cannot stay aromatic.
+        kekule = Chem.Mol(first)
+        Chem.Kekulize(kekule, clearAromaticFlags=True)
+        bonds = [first.GetBondBetweenAtoms(one[b.GetBeginAtomIdx()], one[b.GetEndAtomIdx()]).GetIdx()
+                 for b in common.GetBonds()]
+        common_smiles = Chem.MolFragmentToSmiles(kekule, atomsToUse=list(one), bondsToUse=bonds or None,
+                                                 kekuleSmiles=True) if one else None
+        return {"ok": True, "atom_map": mapping, "common_atom_count": len(mapping), "common_smiles": common_smiles}
 
     def cmd_overlay(self, args: dict) -> dict:
         from rdkit import Chem

@@ -30,7 +30,7 @@ import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional, Set, Tuple
 
 from ..constants import ACS_BOND_LENGTH, CDXML_MINIMAL_HEADER
-from ..cdxml_utils import write_cdxml
+from ..cdxml_utils import drawn_fragment_bbox, write_cdxml
 
 
 # ============================================================================
@@ -961,22 +961,10 @@ def _rdkit_align_and_write(
         for child in node:
             translate_subtree(child, adx, ady)
 
-    # Recompute fragment BoundingBox from atom positions
-    xs, ys = [], []
-    for n in frag_elem.findall("n"):
-        if n.get("NodeType") == "ExternalConnectionPoint":
-            continue
-        p = n.get("p")
-        if p:
-            parts = p.split()
-            xs.append(float(parts[0]))
-            ys.append(float(parts[1]))
-    if xs and ys:
-        margin = 15.0
-        frag_elem.set(
-            "BoundingBox",
-            f"{min(xs)-margin:.2f} {min(ys)-margin:.2f} "
-            f"{max(xs)+margin:.2f} {max(ys)+margin:.2f}")
+    # Recompute fragment BoundingBox from the drawn atoms and labels
+    bbox = drawn_fragment_bbox(frag_elem)
+    if bbox is not None:
+        frag_elem.set("BoundingBox", " ".join(f"{v:.2f}" for v in bbox))
 
     return rmsd
 

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >
+<CDXML
+ CreationProgram="ChemDraw 16.0.0.82"
+ BoundingBox="0 0 1620 2160"
+ WindowPosition="-2147483648 -2147483648"
+ WindowSize="-2147483648 -2147483648"
+ FractionalWidths="yes"
+ InterpretChemically="yes"
+ ShowAtomQuery="yes"
+ ShowAtomStereo="no"
+ ShowAtomEnhancedStereo="yes"
+ ShowAtomNumber="no"
+ ShowResidueID="no"
+ ShowBondQuery="yes"
+ ShowBondRxn="yes"
+ ShowBondStereo="no"
+ ShowTerminalCarbonLabels="no"
+ ShowNonTerminalCarbonLabels="no"
+ HideImplicitHydrogens="no"
+ LabelFont="3"
+ LabelSize="10"
+ LabelFace="96"
+ CaptionFont="3"
+ CaptionSize="10"
+ HashSpacing="2.50"
+ MarginWidth="1.60"
+ LineWidth="0.60"
+ BoldWidth="2"
+ BondLength="14.40"
+ BondSpacing="18"
+ ChainAngle="120"
+ LabelJustification="Auto"
+ CaptionJustification="Left"
+ AminoAcidTermini="HOH"
+ ShowSequenceTermini="yes"
+ ShowSequenceBonds="yes"
+ ResidueWrapCount="40"
+ ResidueBlockCount="10"
+ ResidueZigZag="yes"
+ NumberResidueBlocks="no"
+ PrintMargins="36 36 36 36"
+ ChemPropName=""
+ ChemPropFormula="Chemical Formula: "
+ ChemPropExactMass="Exact Mass: "
+ ChemPropMolWt="Molecular Weight: "
+ ChemPropMOverZ="m/z: "
+ ChemPropAnalysis="Elemental Analysis: "
+ ChemPropBoilingPt="Boiling Point: "
+ ChemPropMeltingPt="Melting Point: "
+ ChemPropCritTemp="Critical Temp: "
+ ChemPropCritPres="Critical Pres: "
+ ChemPropCritVol="Critical Vol: "
+ ChemPropGibbs="Gibbs Energy: "
+ ChemPropLogP="Log P: "
+ ChemPropMR="MR: "
+ ChemPropHenry="Henry&apos;s Law: "
+ ChemPropEForm="Heat of Form: "
+ ChemProptPSA="tPSA: "
+ ChemPropCLogP="CLogP: "
+ ChemPropCMR="CMR: "
+ ChemPropLogS="LogS: "
+ ChemPropPKa="pKa: "
+ ChemPropID=""
+ color="0"
+ bgcolor="1"
+ RxnAutonumberStart="1"
+ RxnAutonumberConditions="no"
+ RxnAutonumberStyle="Roman"
+ RxnAutonumberFormat="(#)"
+><colortable>
+<color r="1" g="1" b="1"/>
+<color r="0" g="0" b="0"/>
+<color r="1" g="0" b="0"/>
+<color r="1" g="1" b="0"/>
+<color r="0" g="1" b="0"/>
+<color r="0" g="1" b="1"/>
+<color r="0" g="0" b="1"/>
+<color r="1" g="0" b="1"/>
+</colortable><fonttable>
+<font id="3" charset="iso-8859-1" name="Arial"/>
+</fonttable>
+<page id="1148" BoundingBox="0 0 1620 2160" HeaderPosition="36" FooterPosition="36" PrintTrimMarks="yes" HeightPages="3" WidthPages="3">
+<fragment id="1000" BoundingBox="109.30 274.05 150.40 325.95" Z="1001">
+<n id="1002" p="109.30 320.73" Z="1003" Element="8" NumHydrogens="1" NeedsClean="yes">
+<t id="1004" p="106.05 324.25" BoundingBox="106.30 313.21 112.30 320.73" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">OH</s>
+</t>
+</n>
+<n id="1005" p="123.00 316.30" Z="1006"/>
+<n id="1007" p="133.69 325.95" Z="1008" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1009" p="130.44 329.47" BoundingBox="130.69 318.43 136.69 325.95" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1010" p="126.01 302.22" Z="1011"/>
+<n id="1012" p="115.32 292.57" Z="1013"/>
+<n id="1014" p="118.33 278.49" Z="1015"/>
+<n id="1016" p="132.03 274.05" Z="1017"/>
+<n id="1018" p="142.72 283.70" Z="1019"/>
+<n id="1020" p="139.71 297.78" Z="1021"/>
+<n id="1022" p="150.40 307.43" Z="1023" Element="8" NumHydrogens="1" NeedsClean="yes">
+<t id="1024" p="147.15 310.95" BoundingBox="147.40 299.91 153.40 307.43" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">OH</s>
+</t>
+</n>
+<b id="1025" Z="1026" B="1002" E="1005"/>
+<b id="1027" Z="1028" B="1005" E="1007" Order="2"/>
+<b id="1029" Z="1030" B="1005" E="1010"/>
+<b id="1031" Z="1032" B="1010" E="1012" Order="2" DoublePosition="Left"/>
+<b id="1033" Z="1034" B="1012" E="1014"/>
+<b id="1035" Z="1036" B="1014" E="1016" Order="2" DoublePosition="Left"/>
+<b id="1037" Z="1038" B="1016" E="1018"/>
+<b id="1039" Z="1040" B="1018" E="1020" Order="2" DoublePosition="Left"/>
+<b id="1041" Z="1042" B="1020" E="1022"/>
+<b id="1043" Z="1044" B="1020" E="1010"/>
+</fragment>
+<t id="1045" p="129.85 341.40" BoundingBox="127.50 332.30 132.20 343.40" Z="1046" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="0">1</s>
+</t>
+<t id="1047" p="165.46 303.50" BoundingBox="163.11 294.40 167.81 305.50" Z="1048" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="96">+</s>
+</t>
+<fragment id="1049" BoundingBox="174.52 285.53 223.30 314.47" Z="1050">
+<n id="1051" p="223.30 314.47" Z="1052"/>
+<n id="1053" p="212.61 304.82" Z="1054"/>
+<n id="1055" p="215.62 290.74" Z="1056" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1057" p="212.37 294.26" BoundingBox="212.62 283.22 218.62 290.74" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1058" p="198.91 309.26" Z="1059" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1060" p="195.66 312.78" BoundingBox="195.91 301.74 201.91 309.26" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1061" p="188.22 299.61" Z="1062"/>
+<n id="1063" p="174.52 304.05" Z="1064"/>
+<n id="1065" p="191.23 285.53" Z="1066" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1067" p="187.98 289.05" BoundingBox="188.23 278.01 194.23 285.53" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<b id="1068" Z="1069" B="1051" E="1053"/>
+<b id="1070" Z="1071" B="1053" E="1055" Order="2"/>
+<b id="1072" Z="1073" B="1053" E="1058"/>
+<b id="1074" Z="1075" B="1058" E="1061"/>
+<b id="1076" Z="1077" B="1061" E="1063"/>
+<b id="1078" Z="1079" B="1061" E="1065" Order="2"/>
+</fragment>
+<arrow id="1080" BoundingBox="242.44 296.00 314.44 304.00" Z="1081" FillType="None" ArrowheadHead="Full" ArrowheadType="Solid" HeadSize="1000" ArrowheadCenterSize="875" ArrowheadWidth="250" Head3D="314.44 300.00 0" Tail3D="242.44 300.00 0" LineWidth="0.60"/>
+<t id="1082" p="278.44 294.00" BoundingBox="250.24 284.90 306.64 296.00" Z="1083" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="96">H</s><s font="3" size="10.0" color="0" face="32">2</s><s font="3" size="10.0" color="0" face="96">SO</s><s font="3" size="10.0" color="0" face="32">4</s><s font="3" size="10.0" color="0" face="96"> (cat.)</s>
+</t>
+<t id="1084" p="278.44 313.10" BoundingBox="261.99 304.00 294.89 326.60" Z="1085" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="96">rt, 2 h
+</s><s font="3" size="10.0" color="0" face="96">85%</s>
+</t>
+<fragment id="1086" BoundingBox="338.14 274.05 403.63 325.95" Z="1087">
+<n id="1088" p="403.63 312.64" Z="1089"/>
+<n id="1090" p="392.94 303.00" Z="1091"/>
+<n id="1092" p="395.95 288.91" Z="1093" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1094" p="392.70 292.43" BoundingBox="392.95 281.39 398.95 288.91" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1095" p="379.24 307.43" Z="1096" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1097" p="375.99 310.95" BoundingBox="376.24 299.91 382.24 307.43" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1098" p="368.55 297.78" Z="1099"/>
+<n id="1100" p="371.56 283.70" Z="1101"/>
+<n id="1102" p="360.87 274.05" Z="1103"/>
+<n id="1104" p="347.17 278.49" Z="1105"/>
+<n id="1106" p="344.16 292.57" Z="1107"/>
+<n id="1108" p="354.85 302.22" Z="1109"/>
+<n id="1110" p="351.84 316.30" Z="1111"/>
+<n id="1112" p="362.53 325.95" Z="1113" Element="8" NumHydrogens="0" NeedsClean="yes">
+<t id="1114" p="359.28 329.47" BoundingBox="359.53 318.43 365.53 325.95" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">O</s>
+</t>
+</n>
+<n id="1115" p="338.14 320.73" Z="1116" Element="8" NumHydrogens="1" NeedsClean="yes">
+<t id="1117" p="334.89 324.25" BoundingBox="335.14 313.21 341.14 320.73" LabelJustification="Left">
+<s font="3" size="10" color="0" face="96">OH</s>
+</t>
+</n>
+<b id="1118" Z="1119" B="1088" E="1090"/>
+<b id="1120" Z="1121" B="1090" E="1092" Order="2"/>
+<b id="1122" Z="1123" B="1090" E="1095"/>
+<b id="1124" Z="1125" B="1095" E="1098"/>
+<b id="1126" Z="1127" B="1098" E="1100" Order="2" DoublePosition="Right"/>
+<b id="1128" Z="1129" B="1100" E="1102"/>
+<b id="1130" Z="1131" B="1102" E="1104" Order="2" DoublePosition="Right"/>
+<b id="1132" Z="1133" B="1104" E="1106"/>
+<b id="1134" Z="1135" B="1106" E="1108" Order="2" DoublePosition="Right"/>
+<b id="1136" Z="1137" B="1108" E="1110"/>
+<b id="1138" Z="1139" B="1110" E="1112" Order="2"/>
+<b id="1140" Z="1141" B="1110" E="1115"/>
+<b id="1142" Z="1143" B="1108" E="1098"/>
+</fragment>
+<t id="1144" p="367.89 341.40" BoundingBox="365.54 332.30 370.24 343.40" Z="1145" CaptionJustification="Center" Justification="Center" LineHeight="auto">
+<s font="3" size="10.0" color="0" face="0">2</s>
+</t>
+<scheme id="1146">
+<step id="1147" ReactionStepReactants="1000 1049" ReactionStepProducts="1086" ReactionStepArrows="1080" ReactionStepObjectsAboveArrow="1082" ReactionStepObjectsBelowArrow="1084"/>
+</scheme>
+</page>
+</CDXML>

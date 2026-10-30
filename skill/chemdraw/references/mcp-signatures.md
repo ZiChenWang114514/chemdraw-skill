@@ -20,6 +20,9 @@ Assemble a deterministic lab-book entry from experiment files.
 
 Compare up to 256 molecule pairs with one ChemScript bridge session.
 
+Each pair is ``{"mol1": ..., "mol2": ...}`` (or ``molecule_a``/``molecule_b``,
+as compare_molecules names them), with an optional unique ``pair_id``.
+
 ### `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, typing.Any]`
 
 Create PPTX or DOCX containing editable ChemDraw OLE objects.
@@ -73,6 +76,8 @@ Formula, Weight, ExactMass, ElementalAnalysis, PartitionCoefficient and Refracti
 log_p and molar_refractivity are ChemDraw's ClogP estimates, in its units. Nothing is computed
 by RDKit or any other substitute: a property ChemDraw cannot give is null with the reason in
 that row's errors, and without ChemScript (Windows) the call fails instead of falling back.
+On macOS ChemDraw itself gives the formula, masses and elemental analysis; it has no
+scripting access to ClogP or refractivity, so log_p and molar_refractivity are null there.
 Use molecule_report for the deterministic RDKit sheet. Generic atoms (R groups, *) are refused.
 output_path ends in .csv, .json or .md and is never overwritten. At most 256 structures.
 
@@ -330,6 +335,10 @@ Check a markush.json spec; every error says what to change.
 ### `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, typing.Any]`
 
 Merge parallel, sequential, or unrelated CDXML reaction schemes.
+
+A parallel merge (repeat runs of one reaction) draws the first input's
+conditions and adds each run's mass and yield as run arrows; a warning names
+any run whose own conditions are therefore not drawn.
 
 ### `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict`
 

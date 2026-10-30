@@ -9,6 +9,8 @@ the brief does not contain is not drawn, and an unresolved name stops the run.
 """
 from __future__ import annotations
 
+import math
+
 import copy
 import json
 from collections import Counter
@@ -28,6 +30,7 @@ from .report_tools import check_reaction_balance
 DEFAULT_MAX_WIDTH = 504.0  # a double-column ACS page, 7 in
 RELAYOUT_GAP_SCALE = 1.4
 RELAYOUT_WIDTH_FACTOR = 0.75
+RELAYOUT_MIN_LINE_CHARS = 16
 ARROWS = ("solid", "dashed", "failed", "reversible", "resonance")
 BRIEF_KEYS = {"kind", "species", "steps", "max_width", "title", "style"}
 
@@ -165,12 +168,13 @@ def _check_balance(brief: dict, smiles: dict[str, str]) -> tuple[list[dict], lis
     return reports, warnings
 
 
-def _scheme(brief: dict, grounded: list[dict], max_width: float | None, gap_scale: float) -> SchemeDescriptor:
+def _scheme(brief: dict, grounded: list[dict], max_width: float | None, gap_scale: float,
+            line_chars: int | None = None) -> SchemeDescriptor:
     structures = {
         g["id"]: StructureRef(id=g["id"], smiles=g["smiles"], label=(str(g["label"]) if g["label"] else None))
         for g in grounded
     }
-    steps = _step_descriptors(brief)
+    steps = _step_descriptors(brief, line_chars)
     layout, order = _route_layout(steps)
     return SchemeDescriptor(
         structures=structures, steps=[steps[i] for i in order], layout=layout,
@@ -178,10 +182,34 @@ def _scheme(brief: dict, grounded: list[dict], max_width: float | None, gap_scal
     )
 
 
-def _step_descriptors(brief: dict) -> list[StepDescriptor]:
+def _broken_lines(lines: list[str], line_chars: int | None) -> list[str]:
+    """Break each condition line longer than ``line_chars`` after its commas; the text is unchanged."""
+    if not line_chars:
+        return lines
+    out: list[str] = []
+    for line in lines:
+        current = ""
+        for part in line.split(", "):
+            candidate = f"{current}, {part}" if current else part
+            if current and len(candidate) > line_chars:
+                out.append(current + ",")
+                current = part
+            else:
+                current = candidate
+        out.append(current)
+    return out
+
+
+def _longest_line(brief: dict) -> int:
+    return max((len(str(t)) for step in brief["steps"] for side in ("above", "below")
+                for t in _as_list(step.get(side))), default=0)
+
+
+def _step_descriptors(brief: dict, line_chars: int | None = None) -> list[StepDescriptor]:
     steps = []
     for number, step in enumerate(brief["steps"], 1):
-        above, below = [str(t) for t in _as_list(step.get("above"))], [str(t) for t in _as_list(step.get("below"))]
+        above = _broken_lines([str(t) for t in _as_list(step.get("above"))], line_chars)
+        below = _broken_lines([str(t) for t in _as_list(step.get("below"))], line_chars)
         steps.append(StepDescriptor(
             substrates=[str(i) for i in _as_list(step["substrates"])],
             products=[str(i) for i in _as_list(step["products"])],
@@ -202,22 +230,31 @@ def _route_layout(steps: list[StepDescriptor]) -> tuple[str, list[int]]:
     return kind, order
 
 
-def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float):
+def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float,
+          line_chars: int | None = None):
     """Lay out with ``layout_width`` but always measure against the requested ``budget``."""
-    cdxml = renderer.render(_scheme(brief, grounded, layout_width, gap_scale))
+    cdxml = renderer.render(_scheme(brief, grounded, layout_width, gap_scale, line_chars))
     return cdxml, figure_lint.lint_cdxml(cdxml, max_width=budget)
 
 
-def _relayout(issues: list[dict], max_width: float, gap_scale: float) -> tuple[float, float, list[str]]:
+def _relayout(issues: list[dict], max_width: float, gap_scale: float,
+              longest_line: int = 0) -> tuple[float, float, list[str], int | None]:
     changed: list[str] = []
+    line_chars = None
     kinds = {issue["kind"] for issue in issues}
     if "too_wide" in kinds:
         max_width = round(max_width * RELAYOUT_WIDTH_FACTOR, 1)
         changed.append(f"narrowed the row width budget to {max_width:g} pt so rows wrap sooner")
+        # A long condition line sets the arrow length; break it so the arrow shrinks too.
+        over = max(i.get("width", 0) - i.get("budget", 0) for i in issues if i["kind"] == "too_wide")
+        wanted = longest_line - math.ceil((over + 12.0) / renderer._CHAR_WIDTH)
+        if longest_line > RELAYOUT_MIN_LINE_CHARS and wanted < longest_line:
+            line_chars = max(RELAYOUT_MIN_LINE_CHARS, wanted)
+            changed.append(f"broke condition lines longer than {line_chars} characters after a comma")
     if "overlap" in kinds:
         gap_scale = round(gap_scale * RELAYOUT_GAP_SCALE, 2)
         changed.append(f"widened the gaps between structures and arrows by x{RELAYOUT_GAP_SCALE:g}")
-    return max_width, gap_scale, changed
+    return max_width, gap_scale, changed, line_chars
 
 
 def _readback(target: Path, grounded: list[dict], used: set[str], fragments: dict) -> dict:
@@ -336,9 +373,10 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         relayout = None
         if issues:
             first_issues = issues
-            new_width, new_gap, changed = _relayout(issues, max_width, gap_scale)
+            new_width, new_gap, changed, line_chars = _relayout(issues, max_width, gap_scale,
+                                                                _longest_line(brief))
             if changed:
-                cdxml, issues = _draw(brief, grounded, new_width, new_gap, max_width)
+                cdxml, issues = _draw(brief, grounded, new_width, new_gap, max_width, line_chars)
                 relayout = {"changed": changed, "first_issues": first_issues}
     except Exception as exc:
         return _failure([f"The layout failed: {exc}"], warnings=warnings)

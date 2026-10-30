@@ -23,6 +23,7 @@ from ..constants import (
     LAYOUT_BELOW_GAP,
     LAYOUT_FRAG_GAP_BONDS,
     LAYOUT_INTER_GAP_BONDS,
+    LAYOUT_PLUS_GAP,
 )
 from ..render import renderer as R
 from ..render.schema import StructureRef
@@ -286,7 +287,7 @@ def _arrange(brief: dict, grounded: list[dict], width: float, gap_scale: float):
     """Place every structure and step arrow in rows; returns (rows, per-step instances, notes)."""
     bond = ACS_BOND_LENGTH
     frag_gap = bond * LAYOUT_FRAG_GAP_BONDS * gap_scale
-    inter_gap = bond * LAYOUT_INTER_GAP_BONDS * gap_scale
+    inter_gap = max(bond * LAYOUT_INTER_GAP_BONDS, LAYOUT_PLUS_GAP) * gap_scale
     limit = X0 + width
     by_id = {g["id"]: g for g in grounded}
     insts: list[_Inst] = []
@@ -676,7 +677,7 @@ def draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict:
         relayout = None
         if issues or crossings:
             first = {"issues": issues, "crossings": crossings}
-            new_width, new_gap, changed = figure_draw._relayout(issues, width, gap_scale)
+            new_width, new_gap, changed, _ = figure_draw._relayout(issues, width, gap_scale)
             if crossings:
                 if new_gap == gap_scale:
                     new_gap = round(gap_scale * figure_draw.RELAYOUT_GAP_SCALE, 2)

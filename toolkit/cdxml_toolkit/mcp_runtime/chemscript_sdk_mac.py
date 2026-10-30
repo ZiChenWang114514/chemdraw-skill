@@ -162,6 +162,7 @@ class StructureData(_Emulated):
     def __init__(self):
         self._data: Optional[str] = None
         self._format: Optional[str] = None
+        self._properties: Optional[dict] = None
 
     # -- loading -----------------------------------------------------------
     @staticmethod
@@ -207,6 +208,7 @@ class StructureData(_Emulated):
         if content is None or not self._valid(*content):
             return False
         self._data, self._format = content
+        self._properties = None
         return True
 
     @staticmethod
@@ -219,8 +221,40 @@ class StructureData(_Emulated):
         return {"source": self._data, "format": self._format}
 
     # -- readings ----------------------------------------------------------
+    def _property(self, key: str):
+        # One ChemDraw reading answers every property, so a program asking for all of them
+        # starts ChemDraw once per structure.
+        if self._properties is None:
+            self._properties = _call("get_properties", **self._source())
+        return self._properties[key]
+
     def Formula(self) -> str:
-        return _call("get_formula", **self._source())["formula"]
+        return self._property("formula")
+
+    @property
+    def Weight(self) -> Optional[float]:
+        return self._property("weight")
+
+    @property
+    def ExactMass(self) -> Optional[float]:
+        return self._property("exact_mass")
+
+    @property
+    def ElementalAnalysis(self) -> Optional[str]:
+        return self._property("elemental_analysis")
+
+    @property
+    def Inchi(self) -> str:
+        return self.WriteData("chemical/x-inchi").strip()
+
+    @property
+    def TotalCharge(self) -> int:
+        from rdkit import Chem
+
+        mol = Chem.MolFromSmiles(self.WriteData("chemical/x-smiles"))
+        if mol is None:
+            raise RuntimeError("ChemDraw's SMILES of this structure could not be read")
+        return Chem.GetFormalCharge(mol)
 
     def ChemicalName(self) -> str:
         return _call("get_name", **self._source())["name"]
@@ -262,6 +296,7 @@ class StructureData(_Emulated):
             staged.write_text(self.WriteData("text/xml"), encoding="utf-8")
             _call("cleanup", input=str(staged), output=str(cleaned))
             self._data, self._format = cleaned.read_text(encoding="utf-8"), "text/xml"
+            self._properties = None
         return True
 
     def Overlay(self, target: "StructureData") -> bool:
@@ -269,6 +304,7 @@ class StructureData(_Emulated):
                        target=target._data, target_format=target._format)
         if result["success"]:
             self._data, self._format = result["aligned_cdxml"], "text/xml"
+            self._properties = None
         return bool(result["success"])
 
     # -- searches ----------------------------------------------------------
@@ -360,14 +396,18 @@ class ReactionData(_Emulated):
 
 
 class LargestCommonSubstructure(_Emulated):
-    def __init__(self, mapping: list[dict]):
+    def __init__(self, mapping: list[dict], common_smiles: Optional[str] = None):
         self._mapping = mapping
+        self._common_smiles = common_smiles
 
     @classmethod
     def Compute(cls, first: StructureData, second: StructureData):
-        mapping = _call("largest_common_substructure", mol1=first._data, mol1_format=first._format,
-                        mol2=second._data, mol2_format=second._format)["atom_map"]
-        return cls(mapping) if mapping else None
+        result = _call("largest_common_substructure", mol1=first._data, mol1_format=first._format,
+                       mol2=second._data, mol2_format=second._format)
+        return cls(result["atom_map"], result.get("common_smiles")) if result["atom_map"] else None
+
+    def CommonSubstructure(self) -> Optional[StructureData]:
+        return StructureData.LoadData(self._common_smiles, "chemical/x-smiles") if self._common_smiles else None
 
     def AtomMapM1(self) -> AtomMap:
         return AtomMap({item["common"]: item["mol1"] for item in self._mapping})
@@ -400,6 +440,11 @@ _MEMBERS = [
     ("StructureData", "method", "Overlay", "Boolean Overlay(StructureData target)", False, ("call",)),
     ("StructureData", "method", "ContainsSubstructure", "Boolean ContainsSubstructure(StructureData query)", False, ("call",)),
     ("StructureData", "method", "AtomByAtomSearch", "AtomMap[] AtomByAtomSearch(StructureData target)", False, ("call",)),
+    ("StructureData", "property", "Weight", "Double Weight", False, ("get",)),
+    ("StructureData", "property", "ExactMass", "Double ExactMass", False, ("get",)),
+    ("StructureData", "property", "ElementalAnalysis", "String ElementalAnalysis", False, ("get",)),
+    ("StructureData", "property", "Inchi", "String Inchi", False, ("get",)),
+    ("StructureData", "property", "TotalCharge", "Int32 TotalCharge", False, ("get",)),
     ("StructureData", "property", "Atoms", "Atom[] Atoms", False, ("get",)),
     ("StructureData", "property", "Bonds", "Bond[] Bonds", False, ("get",)),
     ("ReactionData", "method", "LoadData", "ReactionData LoadData(String data, String mimetype = null)", True, ("call_static",)),
@@ -411,6 +456,7 @@ _MEMBERS = [
     ("ReactionData", "property", "Products", "StructureData[] Products", False, ("get",)),
     ("LargestCommonSubstructure", "method", "Compute",
      "LargestCommonSubstructure Compute(StructureData m1, StructureData m2)", True, ("call_static",)),
+    ("LargestCommonSubstructure", "method", "CommonSubstructure", "StructureData CommonSubstructure()", False, ("call",)),
     ("LargestCommonSubstructure", "method", "AtomMapM1", "AtomMap AtomMapM1()", False, ("call",)),
     ("LargestCommonSubstructure", "method", "AtomMapM2", "AtomMap AtomMapM2()", False, ("call",)),
     ("AtomMap", "property", "Keys", "Atom[] Keys", False, ("get",)),
