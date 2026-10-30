@@ -975,7 +975,8 @@ def _carry_compound_labels(labels) -> None:
 
 def _recenter_plus_signs(pairs, arrow_y: float) -> None:
     """Put each "+" in the middle of the gap the layout left between its two species."""
-    for plus, left, right in pairs:
+    for plus, a, b in pairs:
+        left, right = sorted((a, b), key=lambda el: _element_bbox(el)[0])
         gap_x = (_element_bbox(left)[2] + _element_bbox(right)[0]) / 2.0
         cx, cy = _bbox_center(_text_bbox(plus))
         _shift_text_element(plus, gap_x - cx, arrow_y - cy)

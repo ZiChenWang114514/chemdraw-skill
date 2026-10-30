@@ -60,7 +60,7 @@
 - **function**, line 554: `approach_compact(page, step, id_map, arrow, verbose = False)` - Compact layout for space-constrained output: - Minimal gaps (5pt) - Short arrow (45pt) - Tight vertical stacking
 - **function**, line 608: `approach_golden_ratio(page, step, id_map, arrow, verbose = False)` - Golden ratio aesthetics: - Arrow length = φ × average molecule width - Gaps = average molecule width / φ - Pleasing visual proportions
 - **function**, line 483: `approach_proportional(page, step, id_map, arrow, verbose = False)` - Proportional spacing: - Arrow length = 0.6× the average molecule width - Gaps scale with molecule size - Looks balanced for both small and large molecules
-- **function**, line 1050: `run_cleanup(input_path: str, output_path: str, approach: str = 'chemdraw_mimic', verbose: bool = False) -> dict` - Run one cleanup approach on a CDXML file.
+- **function**, line 1051: `run_cleanup(input_path: str, output_path: str, approach: str = 'chemdraw_mimic', verbose: bool = False) -> dict` - Run one cleanup approach on a CDXML file.
 
 ## `layout.scheme_merger`
 
