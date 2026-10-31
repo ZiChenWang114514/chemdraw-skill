@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -20,6 +21,9 @@ HOST_PYTHON_SUPPORTED = (3, 10) <= sys.version_info[:2] <= (3, 13)
 class PrerequisiteCheckerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        # Linux runners ship pwsh too, but the checker only reports on Windows hosts.
+        if os.name != "nt":
+            raise unittest.SkipTest("The supplied checker is for Windows hosts")
         cls.shell = shutil.which("pwsh") or shutil.which("powershell")
         if cls.shell is None:
             raise unittest.SkipTest("PowerShell is required to test the supplied checker")
