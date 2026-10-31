@@ -165,6 +165,18 @@ button { font: inherit; color: inherit; }
 .theme[data-mode="dark"] .moon, .theme[data-mode="light"] .sun { display: none; }
 @media (max-width: 760px) { .nav .hide-sm { display: none; } .nav { gap: 14px; } }
 
+/* Reading progress: a reaction arrow along the bottom of the header, its head at the reader's place */
+.progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; pointer-events: none; }
+.progress i {
+  position: absolute; left: 0; top: 0; height: 2px; width: calc(var(--p, 0) * 100%);
+  background: var(--teal);
+}
+.progress i::after {
+  content: ""; position: absolute; right: -7px; top: -4px; width: 9px; height: 10px;
+  background: var(--teal); clip-path: polygon(0 0, 100% 50%, 0 100%, 28% 50%);
+  opacity: min(1, calc(var(--p, 0) * 40));
+}
+
 /* Hero: the pitch on the left, a ChemDraw window on the right */
 .hero {
   position: relative;
@@ -288,6 +300,7 @@ button { font: inherit; color: inherit; }
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--teal) 45%, transparent);
 }
 .palette button:disabled { opacity: .35; cursor: default; }
+.palette [data-tool-action="clean"] { margin-top: 6px; }
 .palette [data-undo] { margin-top: auto; }
 .palette svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .palette .fill { fill: currentColor; stroke: none; }
@@ -338,6 +351,74 @@ button { font: inherit; color: inherit; }
   font: .76rem/1.4 var(--sans); color: var(--teal-ink); text-decoration: underline; text-underline-offset: 3px;
 }
 .reset[hidden] { display: none; }
+
+/* Export: copy the drawing as SMILES or save it as a CDXML file */
+.export { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.export[hidden] { display: none; }
+.export button {
+  border: 1px solid var(--rule); background: var(--canvas); color: var(--ink-2); cursor: pointer;
+  font: 600 .72rem/1 var(--sans); padding: 5px 9px; border-radius: 999px;
+}
+.export button:hover:not(:disabled) { border-color: var(--teal); color: var(--teal-ink); }
+.export button:disabled { opacity: .4; cursor: default; }
+
+/* Molecule challenges: a strip under the title bar with the task, progress dots and a hint */
+.export .challenge-open {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-color: var(--teal); background: var(--teal-wash); color: var(--teal-ink);
+}
+.replay { white-space: nowrap; }
+.challenge-open[hidden] { display: none; }
+.export .challenge-open:hover, .export .challenge-open[aria-expanded="true"] { background: var(--teal); color: var(--on-teal); }
+.challenge-open svg { width: 13px; height: 13px; }
+.challenge-open[data-count]::after {
+  content: attr(data-count); font: 600 .68rem var(--mono); opacity: .75;
+}
+.challenge {
+  grid-column: 1 / -1; padding: 10px 14px 12px; border-bottom: 1px solid var(--grid);
+  background: linear-gradient(90deg, var(--teal-wash), transparent 85%);
+  font-size: .86rem;
+}
+.challenge[hidden] { display: none; }
+.challenge[data-state="won"] { background: linear-gradient(90deg, color-mix(in srgb, var(--teal) 30%, var(--canvas)), var(--teal-wash)); }
+.ch-head { display: flex; align-items: center; gap: 10px; }
+.ch-head b { font-size: .8rem; color: var(--teal-ink); letter-spacing: .02em; }
+.ch-dots { display: inline-flex; gap: 4px; }
+.ch-dots i { width: 8px; height: 8px; border-radius: 50%; border: 1.4px solid var(--teal); }
+.ch-dots i.got { background: var(--teal); }
+.ch-dots i.now { box-shadow: 0 0 0 2px var(--canvas), 0 0 0 3.4px var(--teal); }
+.ch-head [data-ch="close"] { margin-left: auto; border: 0; background: none; color: var(--mute); font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 0 4px; }
+.ch-task { margin: 6px 0 0; color: var(--ink); font-weight: 600; }
+.challenge[data-state="won"] .ch-task { color: var(--teal-ink); }
+.ch-actions { display: flex; gap: 6px; margin-top: 8px; }
+.ch-actions button {
+  border: 1px solid var(--rule); background: var(--canvas); color: var(--ink-2); cursor: pointer;
+  font-size: .76rem; padding: 3px 10px; border-radius: 999px;
+}
+.ch-actions button:hover { border-color: var(--teal); color: var(--teal-ink); }
+.ch-hint { margin: 8px 0 0; color: var(--ink-2); font-size: .82rem; }
+.ch-hint[hidden] { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .challenge:not([hidden]) { animation: line .3s ease-out; }
+  .challenge[data-state="won"] .ch-task { animation: pop .5s cubic-bezier(.3, 1.6, .5, 1); }
+}
+@keyframes pop { from { transform: scale(.92); } }
+
+/* The win: atom labels fly out of the canvas */
+.confetti {
+  position: absolute; left: 50%; top: 45%; z-index: 2; pointer-events: none;
+  font: 700 15px var(--chem); color: var(--teal);
+  animation: fly 1.3s cubic-bezier(.2, .7, .3, 1) var(--d) both;
+}
+.confetti[data-el="O"] { color: var(--oxygen); }
+.confetti[data-el="N"] { color: var(--nitrogen); }
+.confetti[data-el="S"] { color: var(--sulfur); }
+.confetti[data-el="H"] { color: var(--mute); }
+@keyframes fly {
+  from { transform: translate(-50%, -50%) scale(.4); opacity: 1; }
+  70% { opacity: 1; }
+  to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 60px)) rotate(var(--r)) scale(1.1); opacity: 0; }
+}
 
 /* ChemDraw's Analysis caption, as it lands on the page from Structure > Analysis */
 .analysis {
@@ -487,6 +568,30 @@ h3 { font-size: 1.08rem; line-height: 1.4; margin: 0 0 6px; letter-spacing: -.00
   .why { padding: 10px 0 0; }
 }
 
+/* "Run it" replays the four steps; the running step's arrow and tool light up */
+.run-btn {
+  margin-top: 18px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 9px 16px; border-radius: 8px; border: 1px solid var(--teal); background: var(--teal-wash);
+  color: var(--teal-ink); font-weight: 600; font-size: .92rem;
+}
+.run-btn[hidden] { display: none; }
+.run-btn:hover:not(:disabled) { background: var(--teal); color: var(--on-teal); }
+.run-btn:disabled { opacity: .7; cursor: progress; }
+.run-btn svg { width: 14px; height: 14px; fill: currentColor; }
+.step.live .rxn::before, .step.live .leg::before { border-left-color: var(--teal); }
+.step.live .rxn::after, .step.live .leg::after { background: var(--teal); }
+.step.live .rxn code { text-decoration: underline 2px var(--teal); text-underline-offset: 4px; }
+.step.live .cmd .run:last-of-type::after {
+  content: ""; display: inline-block; width: .55em; height: 1.05em; margin-left: 2px; vertical-align: -2px;
+  background: var(--code-var);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .step.live .cmd .run:last-of-type::after { animation: blink .9s steps(1) infinite; }
+  .cpd.end.flash { animation: flash 1.4s ease-out; }
+}
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes flash { 0%, 40% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--teal) 35%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+
 /* Each step can show the command it ran and what came back */
 .cmd { margin-top: 10px; }
 .cmd summary {
@@ -526,8 +631,106 @@ h3 { font-size: 1.08rem; line-height: 1.4; margin: 0 0 6px; letter-spacing: -.00
 .caps div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 16px; padding: 16px 0; border-top: 1px solid var(--grid); }
 .caps dt { font-weight: 650; }
 .caps dd { margin: 0; color: var(--ink-2); font-size: .95rem; }
+.caps > div[hidden] { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .caps > .pop { animation: line .32s ease-out backwards; animation-delay: calc(min(var(--k), 14) * 22ms); }
+}
 @media (max-width: 900px) { .caps { grid-template-columns: minmax(0, 1fr); } }
+
+/* Filter chips above the list, styled like the install picker */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 22px; }
+.filters[hidden] { display: none; }
+.filters button {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  padding: 5px 12px; font-size: .88rem; line-height: 1.4;
+  border: 1px solid var(--rule); border-radius: 999px; background: var(--canvas); color: var(--ink-2);
+}
+.filters button span { font-size: .76rem; color: var(--mute); font-variant-numeric: tabular-nums; }
+.filters button:hover { border-color: var(--ink-2); color: var(--ink); }
+.filters button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--on-teal); }
+.filters button[aria-pressed="true"] span { color: inherit; opacity: .8; }
+
+/* Each capability can show a request to try */
+.try { margin-top: 8px; }
+.try summary {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none;
+  font-size: .84rem; color: var(--teal-ink);
+}
+.try summary::-webkit-details-marker { display: none; }
+.try summary::before {
+  content: ""; width: 5px; height: 5px;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg);
+  transition: transform .15s;
+}
+.try[open] summary::before { transform: rotate(45deg); }
+.try .ask {
+  margin: 8px 0 0; padding: 10px 14px; font-size: .9rem; color: var(--ink);
+  border-left: 3px solid var(--teal); background: var(--teal-wash); border-radius: 0 8px 8px 0;
+}
+.try-note { font-size: .92rem; }
+.ask-copy {
+  margin-top: 6px; border: 1px solid var(--rule); background: var(--canvas); color: var(--ink-2); cursor: pointer;
+  font-size: .76rem; padding: 3px 10px; border-radius: 999px;
+}
+.ask-copy:hover { border-color: var(--teal); color: var(--teal-ink); }
+.ask-copy[data-done] { color: var(--teal-ink); border-color: var(--teal); }
 @media (max-width: 480px) { .caps div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+/* Figures that open in the viewer */
+.zoomable { cursor: zoom-in; position: relative; }
+.zoomable::after {
+  content: ""; position: absolute; right: 10px; top: 10px; width: 30px; height: 30px; border-radius: 50%;
+  background: rgb(22 35 42 / .72) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='white' stroke-width='1.7' stroke-linecap='round'%3E%3Ccircle cx='8.5' cy='8.5' r='4.8'/%3E%3Cpath d='M12.2 12.2L16 16M6.4 8.5h4.2M8.5 6.4v4.2'/%3E%3C/svg%3E") center / 18px no-repeat;
+  opacity: 0; transition: opacity .15s;
+}
+.zoomable:hover::after, .zoomable:focus-visible::after { opacity: 1; }
+@media (hover: none) { .zoomable::after { opacity: .85; } }
+@media (prefers-reduced-motion: no-preference) {
+  .works .zoomable img { transition: transform .35s cubic-bezier(.3, .7, .2, 1); }
+  .works .zoomable:hover img { transform: scale(1.025); }
+}
+.calc-shot .zoomable { display: block; }
+
+/* The viewer: the figure on its white plate over a dark surround, a caption bar below */
+.lightbox {
+  width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
+  background: rgb(8 14 17 / .985); color: #e7eef0;
+  display: none; grid-template-rows: minmax(0, 1fr) auto auto;
+}
+.lightbox[open] { display: grid; }
+.lightbox::backdrop { background: transparent; }
+.lb-stage {
+  position: relative; overflow: hidden; display: grid; place-items: center;
+  padding: clamp(16px, 4vw, 48px); touch-action: none; cursor: zoom-in;
+}
+.lightbox[data-zoomed] .lb-stage { cursor: grab; }
+.lb-stage img {
+  max-width: 100%; max-height: 100%; width: auto; height: auto;
+  background: #fff; border-radius: 6px; padding: 10px; box-shadow: 0 30px 80px -30px #000;
+  transform-origin: center; will-change: transform; user-select: none; -webkit-user-select: none;
+}
+.lb-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;
+  padding: 12px clamp(16px, 4vw, 40px); border-top: 1px solid rgb(255 255 255 / .1); background: #0b1418;
+}
+.lb-hint { background: #0b1418; }
+.lb-cap { margin: 0; flex: 1 1 22rem; min-width: 0; font-size: .92rem; color: #b8c6cb; }
+.lb-cap b { color: #fff; }
+.lb-count { font: .82rem var(--mono); color: #8b9da4; }
+.lb-tools { display: flex; gap: 4px; }
+.lb-tools button {
+  width: 36px; height: 36px; display: grid; place-items: center; padding: 0; cursor: pointer;
+  border: 1px solid rgb(255 255 255 / .16); border-radius: 50%; background: none; color: #e7eef0;
+}
+.lb-tools button:hover { background: rgb(255 255 255 / .1); }
+.lb-tools svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.lb-hint { margin: 0; padding: 0 clamp(16px, 4vw, 40px) 12px; font-size: .76rem; color: #7f949b; }
+@media (pointer: coarse) { .lb-hint { display: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .lightbox[open] { animation: show .18s ease-out; }
+  .lightbox[open] .lb-stage img { animation: lb-in .28s cubic-bezier(.3, .7, .2, 1); }
+}
+@keyframes lb-in { from { opacity: 0; scale: .96; } }
 
 /* Calculator: text on the left, ChemDraw's rendered grid on the right (the layout of .how) */
 .head ul { margin: 18px 0 0; padding-left: 1.1rem; color: var(--ink-2); font-size: 1rem; line-height: 1.55; }

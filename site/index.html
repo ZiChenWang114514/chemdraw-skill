@@ -98,6 +98,7 @@
       <button class="theme" type="button" hidden aria-label="深色模式" aria-pressed="false"><svg class="moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 11.7A7 7 0 0 1 8.3 3.5a7 7 0 1 0 8.2 8.2z"/></svg><svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 2.4v2M10 15.6v2M2.4 10h2M15.6 10h2M4.6 4.6l1.4 1.4M14 14l1.4 1.4M4.6 15.4L6 14M14 6l1.4-1.4"/></svg></button>
     </nav>
   </div>
+  <div class="progress" aria-hidden="true"><i></i></div>
 </header>
 
 <main id="main">
@@ -128,12 +129,14 @@
         </div>
         <button class="replay" type="button" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12.4 1.6v3h-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>重放</button>
       </div>
+      <div class="challenge" aria-live="polite" hidden></div>
       <div class="palette" role="toolbar" aria-label="绘图工具" aria-orientation="vertical" hidden>
         <button type="button" data-tool="move" aria-pressed="false" aria-label="移动" title="移动 (V)"><svg viewBox="0 0 20 20"><path class="fill" d="M5 3l10 8.2-4.3.6 2.5 4.6-1.9 1-2.5-4.7L5 15.6z"/></svg></button>
         <button type="button" data-tool="bond" aria-pressed="true" aria-label="化学键" title="化学键 (B)"><svg viewBox="0 0 20 20"><path d="M4 16L16 4" stroke-width="2"/></svg></button>
         <button type="button" data-tool="atom" aria-pressed="false" aria-label="原子" title="原子 (A)"><svg viewBox="0 0 20 20"><text x="5" y="15">A</text></svg></button>
         <button type="button" data-tool="ring" aria-pressed="false" aria-label="苯环" title="苯环 (R)"><svg viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z"/><path d="M10 5.4l4.1 2.4M14.1 12.2L10 14.6M5.9 12.2V7.8"/></svg></button>
         <button type="button" data-tool="erase" aria-pressed="false" aria-label="橡皮" title="橡皮 (E)"><svg viewBox="0 0 20 20"><path d="M3.8 12.2l7.6-7.6 4.6 4.6-6.4 6.4H6.2z"/><path d="M8.2 7.8l4.6 4.6"/></svg></button>
+        <button type="button" data-tool-action="clean" aria-label="整理结构" title="整理结构 (Ctrl+Shift+K)"><svg viewBox="0 0 20 20"><path d="M10 3l5.6 3.25v6.5L10 16l-5.6-3.25v-6.5z"/><path d="M15.5 2.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" class="fill"/></svg></button>
         <button type="button" data-undo disabled aria-label="撤销" title="撤销 (Ctrl+Z)"><svg viewBox="0 0 20 20"><path d="M5 8h7a3.5 3.5 0 0 1 0 7H8"/><path d="M8 4.8L4.8 8 8 11.2"/></svg></button>
       </div>
       <div class="doc-canvas" id="doc-canvas" role="tabpanel">
@@ -169,7 +172,8 @@
         </svg>
         <i class="snap" hidden aria-hidden="true"></i>
         <div class="foot">
-          <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>恢复原样</button></div>
+          <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>恢复原样</button>
+            <div class="export" hidden><button type="button" data-export="smiles">复制 SMILES</button><button type="button" data-export="cdxml">下载 .cdxml</button><button class="challenge-open" type="button" data-challenge-open aria-expanded="false" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1.8h4M6.6 1.8v4L2.9 12.6a1.1 1.1 0 0 0 1 1.6h8.2a1.1 1.1 0 0 0 1-1.6L9.4 5.8v-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M4.6 10h6.8" stroke="currentColor" stroke-width="1.4"/></svg>分子挑战</button></div></div>
           <div class="analysis">
             <div>Chemical Formula: <span data-a="formula">C<sub>9</sub>H<sub>8</sub>O<sub>4</sub></span></div>
             <div>Exact Mass: <span data-a="exact">180.04</span></div>
@@ -221,27 +225,27 @@
 
     <div class="works">
       <figure class="lg">
-        <div class="plate"><img src="gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="在 ChemDraw 中复刻的复杂多步合成路线"></div>
+        <div class="plate"><img data-zoom src="gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="在 ChemDraw 中复刻的复杂多步合成路线"></div>
         <figcaption><b>复杂合成路线。</b>完整多步路线，全部化合物、条件与机理箭头。</figcaption>
       </figure>
       <figure class="lg">
-        <div class="plate"><img src="gallery/mechanism.png" width="720" height="450" loading="lazy" alt="反应机理的 ChemDraw 原生重绘"></div>
+        <div class="plate"><img data-zoom src="gallery/mechanism.png" width="720" height="450" loading="lazy" alt="反应机理的 ChemDraw 原生重绘"></div>
         <figcaption><b>反应机理。</b>八个结构、电子箭头、电荷与抗衡离子。</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img src="gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="20 个结构的合成路线 ChemDraw 复刻"></div>
+        <div class="plate"><img data-zoom src="gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="20 个结构的合成路线 ChemDraw 复刻"></div>
         <figcaption><b>20 个结构的路线。</b>ChemScript 与 RDKit 读取的立体信息 20/20 一致。</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img src="gallery/acs1996.png" width="720" height="450" loading="lazy" alt="由 JSON 描述生成的 ACS Document 1996 氢化反应图"></div>
+        <div class="plate"><img data-zoom src="gallery/acs1996.png" width="720" height="450" loading="lazy" alt="由 JSON 描述生成的 ACS Document 1996 氢化反应图"></div>
         <figcaption><b>试卷与讲义插图。</b>一小段 JSON 生成 ACS Document 1996 格式，支持 C<sub>10</sub>H<sub>21</sub> 缩写和中文注释。</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img src="gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="原生 TLC 板与回流装置"></div>
+        <div class="plate"><img data-zoom src="gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="原生 TLC 板与回流装置"></div>
         <figcaption><b>TLC 与装置图。</b>原生 TLC 板、泳道、斑点与 Rf，以及 ChemDraw 装置模板。</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img src="gallery/nmr.png" width="720" height="450" loading="lazy" alt="可编辑的实验 NMR 谱图"></div>
+        <div class="plate"><img data-zoom src="gallery/nmr.png" width="720" height="450" loading="lazy" alt="可编辑的实验 NMR 谱图"></div>
         <figcaption><b>谱图与科研绘图。</b>对一维 NMR 数据寻峰、积分，数值数据输出为可编辑曲线。</figcaption>
       </figure>
     </div>
@@ -254,6 +258,7 @@
       <h2>四步，每一步都能检查</h2>
       <p>图看起来对，化学上也可能是错的。所以每一步都有明确的输入和产物，出了问题，一眼就能看出是哪一步。</p>
       <p>四步都从同一个入口 <code>cdx.py</code> 运行，能执行命令行的 Agent 都能调用，MCP 可选。</p>
+      <button class="run-btn" type="button" data-run hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z"/></svg><span>运行一遍</span></button>
     </div>
     <div class="scheme">
       <p class="cpd src">“阿司匹林”</p>
@@ -318,7 +323,7 @@ Bonds:   13</code></pre></details></div>
       </ul>
     </div>
     <figure class="calc-shot">
-      <img src="gallery/stoichiometry-grid.png" width="1245" height="693" loading="lazy" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
+      <img src="gallery/stoichiometry-grid.png" data-zoom width="1245" height="693" loading="lazy" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
       <figcaption>苯甲醇与乙酰氯的 ChemDraw 化学计量表，由 ChemDraw 渲染。粗斜体的质量是填入的用量，物质的量由 ChemDraw 算出。</figcaption>
     </figure>
   </div>
@@ -329,23 +334,25 @@ Bonds:   13</code></pre></details></div>
     <div class="head">
       <h2>能做什么</h2>
       <p>十五类工作：绘图，以及随之而来的计算。</p>
+      <p class="try-note">每一类都附了一句可以直接对 Agent 说的话。原生渲染和 Office 嵌入需要桌面版 ChemDraw，见<a href="#start">运行前提</a>。</p>
     </div>
+    <div class="filters" role="group" aria-label="按类别筛选" hidden><button type="button" data-filter="all" aria-pressed="true">全部<span>15</span></button><button type="button" data-filter="draw" aria-pressed="false">绘图<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">读图复刻<span>2</span></button><button type="button" data-filter="data" aria-pressed="false">数据与文档<span>4</span></button><button type="button" data-filter="calc" aria-pressed="false">计算<span>4</span></button></div>
     <dl class="caps">
-      <div><dt>结构与反应</dt><dd>解析名称和标识符；绘制、编辑、清理、合并、拆分、转换和渲染 CDXML / CDX。</dd></div>
-      <div><dt>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对、修正化学，组装条件与版面。</dd></div>
-      <div><dt>专利 Markush</dt><dd>从专利图和权利要求提取通式，输出 CXSMILES、V3000 molfile 和可编辑 CDXML。</dd></div>
-      <div><dt>按需求新画图</dt><dd>一句话到成图：反应、多步路线、底物拓展图和机理，用一条命令画出并检查。条件只取自你给的内容，缺的不补，机理只按你列出的电子转移绘制。</dd></div>
-      <div><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释和带框编号。</dd></div>
-      <div><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。</dd></div>
-      <div><dt>比较与性质</dt><dd>相似度与精确身份比较；含 MS 加合物和 logP 的性质表；反应配平检查，指出缺失的副产物；把文件中的全部结构导出为 SMILES 和 InChI；ChemDraw 生成的名称会读回核对。</dd></div>
-      <div><dt>反应计算器</dt><dd>反应下方 ChemDraw 自带的化学计量表，数值可读回为数据；最多 100 个反应的 SI 原料表，含浓度、原子经济性、PMI 和内置表提供的试剂安全提示。</dd></div>
-      <div><dt>表征文字</dt><dd>HRMS 表征句和按 ACS 顺序排列的整段文字：外观、Rf、熔点、比旋光度、IR、核磁、HRMS。峰数按结构核对，不一致只提示，不改数据。</dd></div>
-      <div><dt>路线收率与 PMI</dt><dd>线性或汇聚路线的总收率和累计 PMI。缺少的数字保持为空并给出提示。</dd></div>
-      <div><dt>原子映射</dt><dd>内置方法遇到歧义会如实报告；也可一条命令安装 RXNMapper 与 LocalMapper。给出键变化、反应中心 SMARTS、仅凭结构判断的反应类型，并把映射编号写进图的副本。</dd></div>
-      <div><dt>反应机理</dt><dd>按你列出的电子转移绘制弯箭头，或按原子坐标复刻电子箭头、电荷和抗衡离子。</dd></div>
-      <div><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点和 Rf 计算；ChemDraw 装置模板组装。</dd></div>
-      <div><dt>谱图与实验记录</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线；处理 LCMS、SciFinder RDF 和实验记录。</dd></div>
-      <div><dt>Word 与 PPT</dt><dd>在 Word、PowerPoint 文档中嵌入可编辑的 ChemDraw 对象（Windows 或 macOS 上生成）。</dd></div>
+      <div data-kind="draw"><dt>结构与反应</dt><dd>解析名称和标识符；绘制、编辑、清理、合并、拆分、转换和渲染 CDXML / CDX。<details class="try"><summary>试着这样说</summary><p class="ask">把这个 CDX 文件转成 CDXML，清理结构后用 ChemDraw 渲染成 PNG。</p></details></dd></div>
+      <div data-kind="read"><dt>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对、修正化学，组装条件与版面。<details class="try"><summary>试着这样说</summary><p class="ask">把这张论文截图里的反应路线复刻成可编辑的 ChemDraw 文件，并和原图并排对比。</p></details></dd></div>
+      <div data-kind="read"><dt>专利 Markush</dt><dd>从专利图和权利要求提取通式，输出 CXSMILES、V3000 molfile 和可编辑 CDXML。<details class="try"><summary>试着这样说</summary><p class="ask">从这张专利图和权利要求里提取 Markush 通式，给我 CXSMILES、V3000 molfile 和 CDXML。</p></details></dd></div>
+      <div data-kind="draw"><dt>按需求新画图</dt><dd>一句话到成图：反应、多步路线、底物拓展图和机理，用一条命令画出并检查。条件只取自你给的内容，缺的不补，机理只按你列出的电子转移绘制。<details class="try"><summary>试着这样说</summary><p class="ask">画苯甲醇被 PCC 氧化成苯甲醛的反应，条件写 PCC、CH<sub>2</sub>Cl<sub>2</sub>、室温，渲染后检查一遍。</p></details></dd></div>
+      <div data-kind="draw"><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释和带框编号。<details class="try"><summary>试着这样说</summary><p class="ask">按 ACS Document 1996 画一道题：环己烯加氢生成环己烷，产物下面放一个带框的编号。</p></details></dd></div>
+      <div data-kind="data"><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。<details class="try"><summary>试着这样说</summary><p class="ask">用 scope.xlsx 里的结构和收率生成底物拓展图，每个化合物下面标编号和收率。</p></details></dd></div>
+      <div data-kind="calc"><dt>比较与性质</dt><dd>相似度与精确身份比较；含 MS 加合物和 logP 的性质表；反应配平检查，指出缺失的副产物；把文件中的全部结构导出为 SMILES 和 InChI；ChemDraw 生成的名称会读回核对。<details class="try"><summary>试着这样说</summary><p class="ask">这两个 SMILES 是同一个化合物吗？再列出它们的分子量、logP 和 [M+H]<sup>+</sup>。</p></details></dd></div>
+      <div data-kind="calc"><dt>反应计算器</dt><dd>反应下方 ChemDraw 自带的化学计量表，数值可读回为数据；最多 100 个反应的 SI 原料表，含浓度、原子经济性、PMI 和内置表提供的试剂安全提示。<details class="try"><summary>试着这样说</summary><p class="ask">给苯甲醇和乙酰氯的乙酰化反应打开 ChemDraw 化学计量表，苯甲醇用 1.08 g。</p></details></dd></div>
+      <div data-kind="data"><dt>表征文字</dt><dd>HRMS 表征句和按 ACS 顺序排列的整段文字：外观、Rf、熔点、比旋光度、IR、核磁、HRMS。峰数按结构核对，不一致只提示，不改数据。<details class="try"><summary>试着这样说</summary><p class="ask">把这份核磁和 HRMS 数据整理成按 ACS 顺序的表征段落，并按结构核对峰数。</p></details></dd></div>
+      <div data-kind="calc"><dt>路线收率与 PMI</dt><dd>线性或汇聚路线的总收率和累计 PMI。缺少的数字保持为空并给出提示。<details class="try"><summary>试着这样说</summary><p class="ask">这条四步线性路线每步收率是 85%、72%、90%、64%，投料在 materials.xlsx 里，算总收率和累计 PMI。</p></details></dd></div>
+      <div data-kind="calc"><dt>原子映射</dt><dd>内置方法遇到歧义会如实报告；也可一条命令安装 RXNMapper 与 LocalMapper。给出键变化、反应中心 SMARTS、仅凭结构判断的反应类型，并把映射编号写进图的副本。<details class="try"><summary>试着这样说</summary><p class="ask">给这个反应做原子映射，告诉我哪些键断了、哪些键生成了，并把映射编号写进图的副本。</p></details></dd></div>
+      <div data-kind="draw"><dt>反应机理</dt><dd>按你列出的电子转移绘制弯箭头，或按原子坐标复刻电子箭头、电荷和抗衡离子。<details class="try"><summary>试着这样说</summary><p class="ask">按我列的电子转移画酯的碱性水解机理：OH<sup>−</sup> 进攻羰基碳，C=O 的 π 电子移到氧上，再回推并离去烷氧基。</p></details></dd></div>
+      <div data-kind="draw"><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点和 Rf 计算；ChemDraw 装置模板组装。<details class="try"><summary>试着这样说</summary><p class="ask">画一块 TLC 板：三条泳道依次是原料、共点和反应液，斑点 Rf 分别是 0.62 和 0.35。</p></details></dd></div>
+      <div data-kind="data"><dt>谱图与实验记录</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线；处理 LCMS、SciFinder RDF 和实验记录。<details class="try"><summary>试着这样说</summary><p class="ask">对这份 <sup>1</sup>H NMR 数据寻峰，积分 6.8–7.4 ppm 区间，输出可编辑的 ChemDraw 谱图。</p></details></dd></div>
+      <div data-kind="data"><dt>Word 与 PPT</dt><dd>在 Word、PowerPoint 文档中嵌入可编辑的 ChemDraw 对象（Windows 或 macOS 上生成）。<details class="try"><summary>试着这样说</summary><p class="ask">把 route.cdxml 作为可编辑的 ChemDraw 对象放进一页 PowerPoint 幻灯片。</p></details></dd></div>
     </dl>
   </div>
 </section>
@@ -497,7 +504,49 @@ cd chemdraw-skill
   "undone": "已撤销。",
   "reset": "已恢复原样。",
   "valence": "{sym} 现在有 {n} 个键，超过常见的 {v} 个。",
-  "aria": "{name}的结构式，分子式 {formula}。可用鼠标或触屏绘制。"
+  "challenge": {
+    "title": "挑战 {n} / {total}",
+    "count": "已完成 {done} / {total}",
+    "hint": "提示",
+    "skip": "换一题",
+    "next": "下一题",
+    "close": "退出挑战",
+    "done": "完成！用了 {moves} 步。",
+    "matches": "与目标一致",
+    "aim": "目标 {formula}",
+    "all": "六题全部完成。",
+    "tasks": {
+      "salicylic": { "task": "把阿司匹林“水解”成水杨酸：去掉乙酰基，留下酚羟基。", "hint": "选橡皮，删掉左边的甲基、羰基碳和它的双键氧，共三个原子。" },
+      "aminophenol": { "task": "把对乙酰氨基酚变回它的前体：对氨基苯酚。", "hint": "删掉乙酰基的三个原子，留下 NH₂。" },
+      "vanillic": { "task": "把香草醛的醛基氧化成羧基，得到香草酸。", "hint": "用化学键工具点醛基碳接一个碳，再把鼠标停在新原子上按 O。" },
+      "theophylline": { "task": "咖啡因少一个甲基就是茶碱：去掉五元环氮上的那个甲基。", "hint": "五元环上连着甲基的是左下方的 N。用橡皮点掉那个甲基。" },
+      "ibuprofenMethyl": { "task": "把布洛芬做成甲酯。", "hint": "用化学键工具点羧基里的 OH 氧，接一个碳。" },
+      "wintergreen": { "task": "从阿司匹林出发做出冬青油：水杨酸甲酯。", "hint": "先像第一题那样去掉乙酰基，再在羧基的 OH 上接一个碳。" }
+    }
+  },
+  "run": "运行一遍",
+  "running": "运行中…",
+  "rerun": "再运行一遍",
+  "copyAsk": "复制",
+  "copiedAsk": "已复制",
+  "lightbox": {
+    "open": "放大查看：{alt}",
+    "close": "关闭",
+    "prev": "上一张",
+    "next": "下一张",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "fit": "适应窗口",
+    "count": "{n} / {total}",
+    "hint": "滚轮或双击缩放，拖动平移，左右方向键切换，Esc 关闭。"
+  },
+  "aria": "{name}的结构式，分子式 {formula}。可用鼠标或触屏绘制。",
+  "cleaned": "已整理：键长和键角已摆正。",
+  "smiles": "SMILES：{smiles}",
+  "copied": "已复制 SMILES：{smiles}",
+  "noSmiles": "有原子超出常见价态，先修正再导出 SMILES。",
+  "download": "已保存 {file}，可以直接用 ChemDraw 打开。",
+  "keys": "小技巧：鼠标停在原子上按 C、N、O、S、F 或 L（Cl）直接换元素，停在键上按 1、2、3 换键级，Delete 删除。"
 }
 </script>
 <script src="app.js" defer></script>

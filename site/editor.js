@@ -1,6 +1,7 @@
 // The structure editor in the hero window: five small molecules you can bond, rename,
-// grow, move and erase, with the Analysis caption and the agent's readback line
-// recomputed from what is on the canvas.
+// grow, move, erase and clean up, with the Analysis caption and the agent's readback line
+// recomputed from what is on the canvas. What is drawn can be copied as SMILES or saved as
+// an ACS Document 1996 CDXML file that opens in ChemDraw.
 //
 // MOLS was laid out with RDKit and kept as plain coordinates; docs/website.md says how to
 // regenerate it. All words come from the page (#i18n), so one script serves both languages.
@@ -64,7 +65,221 @@
     };
   }
 
-  if (typeof module !== "undefined") module.exports = { MOLS, analyse, load };
+  const bondLength = (g) => {
+    if (!g.bonds.length) return 52;
+    const sum = g.bonds.reduce((t, b) => t + Math.hypot(g.atoms[b.a].x - g.atoms[b.b].x, g.atoms[b.a].y - g.atoms[b.b].y), 0);
+    return sum / g.bonds.length;
+  };
+  const neighbours = (g) => {
+    const n = g.atoms.map(() => []);
+    g.bonds.forEach((b) => { n[b.a].push(b.b); n[b.b].push(b.a); });
+    return n;
+  };
+
+  // ---- export ---------------------------------------------------------------------
+
+  // SMILES of what is drawn, in Kekule form: a depth-first walk writes branches in brackets
+  // and closes a ring where it meets an atom it has already seen. Fragments are joined by ".".
+  // null when an atom is over its valence, because SMILES would quietly give it a new one.
+  function toSmiles(g) {
+    if (analyse(g).over.some(Boolean)) return null;
+    const adj = g.atoms.map(() => []);
+    g.bonds.forEach((b, k) => { adj[b.a].push([b.b, k]); adj[b.b].push([b.a, k]); });
+    const seen = g.atoms.map(() => false), tree = new Set(), rings = new Set();
+    const walk = (i, from) => {
+      seen[i] = true;
+      adj[i].forEach(([j, k]) => {
+        if (k === from || tree.has(k)) return;
+        if (seen[j]) rings.add(k); else { tree.add(k); walk(j, k); }
+      });
+    };
+    const mark = { 1: "", 2: "=", 3: "#" };
+    const digit = (d) => (d < 10 ? String(d) : "%" + d);
+    const open = new Map(), free = [], written = g.atoms.map(() => false);
+    let next = 1;
+    const write = (i) => {
+      written[i] = true;
+      let out = g.atoms[i].s;
+      const closed = [];
+      adj[i].forEach(([, k]) => {
+        if (!rings.has(k)) return;
+        if (open.has(k)) { out += digit(open.get(k)); closed.push(open.get(k)); open.delete(k); return; }
+        free.sort((p, q) => p - q);
+        const d = free.length ? free.shift() : next++;
+        open.set(k, d);
+        out += mark[g.bonds[k].o] + digit(d);
+      });
+      free.push(...closed);
+      const kids = adj[i].filter(([j, k]) => tree.has(k) && !written[j]);
+      kids.forEach(([j, k], n) => {
+        const branch = mark[g.bonds[k].o] + write(j);
+        out += n < kids.length - 1 ? `(${branch})` : branch;
+      });
+      return out;
+    };
+    const parts = [];
+    g.atoms.forEach((_, i) => {
+      if (seen[i]) return;
+      walk(i, -1);
+      parts.push(write(i));
+    });
+    return parts.join(".");
+  }
+
+  // An ACS Document 1996 CDXML file of the drawing, written the way cdxml_builder writes one:
+  // 14.4 pt bonds, Arial 10 pt bold labels, heteroatoms with their hydrogens, and NeedsClean so
+  // ChemDraw lays the labels out itself when it opens the file.
+  const NUMBER = { C: 6, N: 7, O: 8, S: 16, F: 9, Cl: 17, Br: 35 };
+  function toCdxml(g) {
+    const info = analyse(g);
+    const scale = 14.4 / bondLength(g);
+    const xs = g.atoms.map((a) => a.x), ys = g.atoms.map((a) => a.y);
+    const x0 = Math.min(...xs, 0), y0 = Math.min(...ys, 0);
+    const at = (a) => [72 + (a.x - x0) * scale, 72 + (a.y - y0) * scale];
+    const f2 = (n) => n.toFixed(2);
+    const nodes = g.atoms.map((a, i) => {
+      const [x, y] = at(a);
+      const head = `<n id="${100 + i}" p="${f2(x)} ${f2(y)}"`;
+      if (a.s === "C" && g.bonds.some((b) => b.a === i || b.b === i)) return `${head}/>`;
+      const h = info.hyd[i];
+      const text = a.s + (h ? "H" + (h > 1 ? h : "") : "");
+      const element = a.s === "C" ? "" : ` Element="${NUMBER[a.s]}"`;
+      return `${head}${element} NumHydrogens="${h}" NeedsClean="yes" AS="N"><t p="${f2(x - 3.25)} ${f2(y + 3.52)}" LabelJustification="Left"><s font="3" size="10" color="0" face="96">${text}</s></t></n>`;
+    });
+    const bonds = g.bonds.map((b, k) => `<b id="${1000 + k}" B="${100 + b.a}" E="${100 + b.b}"${b.o > 1 ? ` Order="${b.o}"` : ""}/>`);
+    return [
+      '<?xml version="1.0" encoding="UTF-8" ?>',
+      '<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >',
+      '<CDXML CreationProgram="ChemDraw Skill website" BondLength="14.40" ChainAngle="120" LineWidth="0.60" BoldWidth="2" HashSpacing="2.50"' +
+        ' MarginWidth="1.60" BondSpacing="18" LabelFont="3" LabelSize="10" LabelFace="96" CaptionFont="3" CaptionSize="10" CaptionFace="0"' +
+        ' LabelJustification="Auto" CaptionJustification="Left" InterpretChemically="yes" color="0" bgcolor="1">',
+      '<colortable><color r="1" g="1" b="1"/><color r="0" g="0" b="0"/></colortable>',
+      '<fonttable><font id="3" charset="iso-8859-1" name="Arial"/></fonttable>',
+      '<page id="1" HeightPages="1" WidthPages="1">',
+      '<fragment id="2">', ...nodes, ...bonds, "</fragment>",
+      "</page>",
+      "</CDXML>",
+      "",
+    ].join("\n");
+  }
+
+  // ---- clean up -------------------------------------------------------------------
+
+  // Clean Up Structure, as in ChemDraw's Structure menu. Every bond is pulled to length L and
+  // every pair of atoms two bonds apart to the distance their angle should give (108° inside a
+  // five-membered ring, 120° otherwise), and atoms that are not bonded keep their distance.
+  // Returns new coordinates, centred on the canvas; the drawing itself is left alone.
+  function cleanUp(g, L) {
+    const p = g.atoms.map((a) => ({ x: a.x, y: a.y }));
+    const nb = neighbours(g);
+    const ringSize = (from, to, via) => {
+      // The shortest path from one neighbour of `via` to another without passing through it, plus two.
+      const depth = new Map([[from, 0]]), queue = [from];
+      while (queue.length) {
+        const i = queue.shift();
+        if (i === to) return depth.get(i) + 2;
+        if (depth.get(i) >= 5) continue;
+        nb[i].forEach((j) => { if (j !== via && !depth.has(j)) { depth.set(j, depth.get(i) + 1); queue.push(j); } });
+      }
+      return 0;
+    };
+    const springs = g.bonds.map((b) => [b.a, b.b, L, 1]);
+    const near = new Set(g.bonds.flatMap((b) => [b.a + "," + b.b, b.b + "," + b.a]));
+    nb.forEach((list, j) => {
+      list.forEach((i, m) => list.slice(m + 1).forEach((k) => {
+        const size = ringSize(i, k, j);
+        const angle = size >= 3 && size <= 5 ? Math.PI - (2 * Math.PI) / size : (2 * Math.PI) / 3;
+        springs.push([i, k, 2 * L * Math.sin(angle / 2), 0.5]);
+        near.add(i + "," + k).add(k + "," + i);
+      }));
+    });
+    for (let round = 0; round < 400; round++) {
+      springs.forEach(([i, k, length, stiff]) => {
+        const dx = p[k].x - p[i].x, dy = p[k].y - p[i].y, d = Math.hypot(dx, dy) || 0.01;
+        const push = ((d - length) / d) * 0.5 * stiff;
+        p[i].x += dx * push; p[i].y += dy * push; p[k].x -= dx * push; p[k].y -= dy * push;
+      });
+      for (let i = 0; i < p.length; i++) {
+        for (let k = i + 1; k < p.length; k++) {
+          if (near.has(i + "," + k)) continue;
+          const dx = p[k].x - p[i].x, dy = p[k].y - p[i].y, d = Math.hypot(dx, dy) || 0.01;
+          if (d >= 1.5 * L) continue;
+          const push = ((d - 1.5 * L) / d) * 0.1;
+          p[i].x += dx * push; p[i].y += dy * push; p[k].x -= dx * push; p[k].y -= dy * push;
+        }
+      }
+    }
+    if (!p.length) return p;
+    const xs = p.map((q) => q.x), ys = p.map((q) => q.y);
+    const shrink = Math.min(1, (W - 40) / (Math.max(...xs) - Math.min(...xs) || 1), (H - 40) / (Math.max(...ys) - Math.min(...ys) || 1));
+    const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+    return p.map((q) => ({ x: W / 2 + (q.x - cx) * shrink, y: H / 2 + (q.y - cy) * shrink }));
+  }
+
+  // ---- challenges -----------------------------------------------------------------
+
+  function remove(g, atom) {
+    g.atoms.splice(atom, 1);
+    g.bonds = g.bonds.filter((b) => b.a !== atom && b.b !== atom).map((b) => ({
+      a: b.a > atom ? b.a - 1 : b.a, b: b.b > atom ? b.b - 1 : b.b, o: b.o,
+    }));
+  }
+
+  // Small edits that turn one of the five molecules into a named relative. Each target is
+  // defined by the moves that reach it (tests/test_site.py checks the result against the
+  // compound's published SMILES); the visitor may reach it any way they like.
+  const CHALLENGES = [
+    { id: "salicylic", mol: "aspirin", solve: [["erase", 0], ["erase", 0], ["erase", 0]] },
+    { id: "aminophenol", mol: "paracetamol", solve: [["erase", 0], ["erase", 0], ["erase", 0]] },
+    { id: "vanillic", mol: "vanillin", solve: [["grow", 5], ["element", 11, "O"]] },
+    { id: "theophylline", mol: "caffeine", solve: [["erase", 0]] },
+    { id: "ibuprofenMethyl", mol: "ibuprofen", solve: [["grow", 14]] },
+    { id: "wintergreen", mol: "aspirin", solve: [["erase", 0], ["erase", 0], ["erase", 0], ["grow", 9]] },
+  ];
+
+  function applyMoves(g, moves) {
+    moves.forEach(([move, i, value]) => {
+      if (move === "erase") remove(g, i);
+      else if (move === "element") g.atoms[i].s = value;
+      else if (move === "grow") { g.atoms.push({ s: "C", x: g.atoms[i].x + 30, y: g.atoms[i].y }); g.bonds.push({ a: i, b: g.atoms.length - 1, o: 1 }); }
+    });
+    return g;
+  }
+
+  // A fingerprint of the structure that ignores where atoms sit and which Kekule form a ring is
+  // drawn in: each atom starts from its element, hydrogens and degree, and five rounds fold in
+  // its neighbours, with ring bonds marked as ring bonds rather than single or double.
+  function graphKey(g) {
+    const info = analyse(g);
+    const adj = g.atoms.map(() => []);
+    g.bonds.forEach((b, k) => {
+      const seen = new Set([b.a]), queue = [b.a];
+      while (queue.length) {
+        const i = queue.shift();
+        g.bonds.forEach((c, m) => {
+          if (m === k) return;
+          const j = c.a === i ? c.b : c.b === i ? c.a : -1;
+          if (j >= 0 && !seen.has(j)) { seen.add(j); queue.push(j); }
+        });
+      }
+      const tag = seen.has(b.b) ? "r" : String(b.o);
+      adj[b.a].push([b.b, tag]);
+      adj[b.b].push([b.a, tag]);
+    });
+    const hash = (str) => {
+      let h = 2166136261;
+      for (let k = 0; k < str.length; k++) h = Math.imul(h ^ str.charCodeAt(k), 16777619);
+      return (h >>> 0).toString(36);
+    };
+    let label = g.atoms.map((a, i) => `${a.s}${info.hyd[i]}d${adj[i].length}`);
+    for (let round = 0; round < 5; round++) {
+      label = label.map((l, i) => hash(l + "(" + adj[i].map(([j, t]) => t + label[j]).sort().join(",") + ")"));
+    }
+    return info.text + ":" + label.sort().join(".");
+  }
+  const challengeKey = (c) => graphKey(applyMoves(load(c.mol), c.solve));
+
+  if (typeof module !== "undefined") module.exports = { MOLS, CHALLENGES, analyse, load, bondLength, toSmiles, toCdxml, cleanUp, applyMoves, graphKey, challengeKey };
 
   const doc = typeof document !== "undefined" && document.querySelector(".doc");
   const svg = doc && doc.querySelector(".mol");
@@ -79,6 +294,10 @@
   const undoBtn = doc.querySelector("[data-undo]");
   const resetBtn = doc.querySelector(".reset");
   const replayBtn = doc.querySelector(".replay");
+  const cleanBtn = doc.querySelector('[data-tool-action="clean"]');
+  const exportBar = doc.querySelector(".export");
+  const strip = doc.querySelector(".challenge");
+  const challengeBtn = doc.querySelector("[data-challenge-open]");
   const motion = matchMedia("(prefers-reduced-motion: no-preference)");
   const point = svg.createSVGPoint();
 
@@ -87,6 +306,9 @@
   let tool = "bond";
   let st;
   let drag = null;
+  let hover = null, tipped = false;
+  let quest = null;
+  let tween = 0;
 
   const stateOf = (n) => {
     if (!states[n]) {
@@ -98,16 +320,6 @@
 
   // ---- geometry -------------------------------------------------------------------
 
-  const bondLength = (g) => {
-    if (!g.bonds.length) return 52;
-    const sum = g.bonds.reduce((t, b) => t + Math.hypot(g.atoms[b.a].x - g.atoms[b.b].x, g.atoms[b.a].y - g.atoms[b.b].y), 0);
-    return sum / g.bonds.length;
-  };
-  const neighbours = (g) => {
-    const n = g.atoms.map(() => []);
-    g.bonds.forEach((b) => { n[b.a].push(b.b); n[b.b].push(b.a); });
-    return n;
-  };
   const inside = (p, pad = 12) => p.x >= pad && p.x <= W - pad && p.y >= pad && p.y <= H - pad;
 
   // The direction a new bond from atom i should take: the middle of the widest gap between
@@ -236,6 +448,10 @@
     setText("[data-log=build]", fmt(T.build, { name: st.name }));
     if (!st.g.atoms.length) {
       setText("[data-log=readback]", `${T.empty} <span class="no">✗</span>`);
+    } else if (quest && st.name === quest.c.mol) {
+      // In a challenge the readback is checked against the target structure instead.
+      const hit = graphKey(st.g) === quest.key;
+      setText("[data-log=readback]", hit ? `${info.html} ${T.challenge.matches} <span class="ok">✓</span>` : `${info.html} → ${fmt(T.challenge.aim, { formula: quest.formula })}`);
     } else if (info.text === original.text) {
       setText("[data-log=readback]", `${info.html} ${T.matches} <span class="ok">✓</span>`);
     } else {
@@ -257,7 +473,10 @@
     if (dirty) tab.dataset.edited = ""; else delete tab.dataset.edited;
     resetBtn.hidden = !dirty;
     undoBtn.disabled = !st.undo.length;
+    cleanBtn.disabled = st.g.atoms.length < 2;
+    exportBar.querySelectorAll("[data-export]").forEach((b) => { b.disabled = empty; });
     svg.setAttribute("aria-label", fmt(T.aria, { name: T.names[st.name], formula: empty ? "—" : info.text }));
+    if (quest && !quest.won && st.name === quest.c.mol && graphKey(st.g) === quest.key) win();
 
     const badAtom = info.over.indexOf(true);
     if (badAtom >= 0) {
@@ -281,8 +500,10 @@
 
   function change(message, mutate) {
     stopPlay();
+    cancelAnimationFrame(tween);
     st.undo.push(JSON.stringify(st.g));
     if (st.undo.length > 40) st.undo.shift();
+    if (quest) quest.moves++;
     mutate(st.g);
     update(message);
   }
@@ -294,13 +515,6 @@
     doc.dataset.tool = next;
     palette.querySelectorAll("[data-tool]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tool === next));
     update();
-  }
-
-  function remove(g, atom) {
-    g.atoms.splice(atom, 1);
-    g.bonds = g.bonds.filter((b) => b.a !== atom && b.b !== atom).map((b) => ({
-      a: b.a > atom ? b.a - 1 : b.a, b: b.b > atom ? b.b - 1 : b.b, o: b.o,
-    }));
   }
 
   function onClick(e) {
@@ -406,9 +620,162 @@
   doc.addEventListener("keydown", (e) => {
     if (e.target.matches("[role=tab]")) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "k") { e.preventDefault(); clean(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const next = keys[e.key.toLowerCase()];
     if (next) setTool(next);
+  });
+
+  // ChemDraw's hotkeys: with the pointer over an atom, type an element (L is Cl); over a bond,
+  // type 1, 2 or 3 for its order. Delete removes whatever is under the pointer.
+  const ELEMENT_KEYS = { c: "C", n: "N", o: "O", s: "S", f: "F", l: "Cl" };
+  svg.addEventListener("pointerover", (e) => {
+    const atomEl = e.target.closest("[data-atom]"), bondEl = e.target.closest("[data-bond]");
+    hover = atomEl ? { atom: +atomEl.dataset.atom } : bondEl ? { bond: +bondEl.dataset.bond } : null;
+    // The first time the pointer rests on the drawing, say that these keys exist.
+    if (hover && !tipped && tool !== "move" && !status.dataset.state) { tipped = true; status.textContent = T.keys; }
+  });
+  svg.addEventListener("pointerleave", () => { hover = null; });
+  document.addEventListener("keydown", (e) => {
+    if (!hover || drag || e.ctrlKey || e.metaKey || e.altKey || (e.target instanceof Element && e.target.closest("input, textarea, select, [contenteditable]"))) return;
+    const key = e.key.toLowerCase();
+    if (hover.atom !== undefined && hover.atom < st.g.atoms.length) {
+      const i = hover.atom, sym = ELEMENT_KEYS[key];
+      if (sym && st.g.atoms[i].s !== sym) { e.preventDefault(); change(fmt(T.element, { sym }), (d) => { d.atoms[i].s = sym; }); }
+      else if (key === "delete" || key === "backspace") { e.preventDefault(); hover = null; change(T.erased, (d) => remove(d, i)); }
+    } else if (hover.bond !== undefined && hover.bond < st.g.bonds.length) {
+      const k = hover.bond, order = { 1: 1, 2: 2, 3: 3 }[key];
+      if (order && st.g.bonds[k].o !== order) { e.preventDefault(); change(fmt(T.setBond, { order: T.order[order - 1] }), (d) => { d.bonds[k].o = order; }); }
+      else if (key === "delete" || key === "backspace") { e.preventDefault(); hover = null; change(T.erased, (d) => d.bonds.splice(k, 1)); }
+    }
+  });
+
+  // Clean Up: the atoms glide to their cleaned positions, then the drawing is redrawn once more
+  // so labels and double bonds settle on the right side.
+  function clean() {
+    if (st.g.atoms.length < 2) return;
+    const to = cleanUp(st.g, bondLength(JSON.parse(st.original)));
+    const from = st.g.atoms.map((a) => ({ x: a.x, y: a.y }));
+    change(T.cleaned, () => {});
+    if (!motion.matches) {
+      st.g.atoms.forEach((a, i) => { a.x = to[i].x; a.y = to[i].y; });
+      return update(T.cleaned);
+    }
+    const begun = performance.now();
+    const step = (now) => {
+      const u = Math.min(1, (now - begun) / 420), ease = 1 - (1 - u) ** 3;
+      st.g.atoms.forEach((a, i) => { a.x = from[i].x + (to[i].x - from[i].x) * ease; a.y = from[i].y + (to[i].y - from[i].y) * ease; });
+      update(T.cleaned);
+      if (u < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  }
+  cleanBtn.addEventListener("click", clean);
+
+  // Export: SMILES to the clipboard, or the drawing as a CDXML file for ChemDraw.
+  exportBar.querySelector('[data-export="smiles"]').addEventListener("click", async () => {
+    const smiles = toSmiles(st.g);
+    if (smiles === null) return update(T.noSmiles);
+    try {
+      await navigator.clipboard.writeText(smiles);
+      update(fmt(T.copied, { smiles }));
+    } catch {
+      update(fmt(T.smiles, { smiles }));
+    }
+  });
+  exportBar.querySelector('[data-export="cdxml"]').addEventListener("click", () => {
+    const dirty = JSON.stringify(st.g) !== st.original;
+    const url = URL.createObjectURL(new Blob([toCdxml(st.g)], { type: "chemical/x-cdxml" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: `${st.name}${dirty ? "-edited" : ""}.cdxml` });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    update(fmt(T.download, { file: a.download }));
+  });
+
+  // ---- challenge mode -------------------------------------------------------------
+
+  // Six small edits, one at a time, checked by structure rather than by picture. Solved ones
+  // are remembered in this browser.
+  const C = T.challenge;
+  const solvedKey = "chemdraw-skill-challenges";
+  const solved = new Set((() => { try { return JSON.parse(localStorage.getItem(solvedKey)) || []; } catch { return []; } })());
+  const keep = () => { try { localStorage.setItem(solvedKey, JSON.stringify([...solved])); } catch { /* not kept */ } };
+
+  function paintStrip() {
+    const k = CHALLENGES.indexOf(quest.c), task = C.tasks[quest.c.id];
+    const dots = CHALLENGES.map((c, n) => `<i class="${solved.has(c.id) ? "got" : ""}${n === k ? " now" : ""}"></i>`).join("");
+    const all = CHALLENGES.every((c) => solved.has(c.id));
+    strip.dataset.state = quest.won ? "won" : "";
+    strip.innerHTML = `
+      <div class="ch-head"><b>${fmt(C.title, { n: k + 1, total: CHALLENGES.length })}</b>
+        <span class="ch-dots" role="img" aria-label="${fmt(C.count, { done: solved.size, total: CHALLENGES.length })}">${dots}</span>
+        <button type="button" data-ch="close" aria-label="${C.close}" title="${C.close}">×</button></div>
+      <p class="ch-task">${quest.won ? fmt(C.done, { moves: quest.moves }) + (all ? " " + C.all : "") : task.task}</p>
+      <div class="ch-actions">${quest.won ? "" : `<button type="button" data-ch="hint">${C.hint}</button>`}<button type="button" data-ch="skip">${quest.won ? C.next : C.skip}</button></div>
+      <p class="ch-hint"${quest.hint && !quest.won ? "" : " hidden"}>${task.hint}</p>`;
+  }
+
+  function startChallenge(c) {
+    quest = { c, key: challengeKey(c), formula: analyse(applyMoves(load(c.mol), c.solve)).html, moves: 0, won: false, hint: false };
+    const target = stateOf(c.mol);
+    target.undo = [];
+    target.g = JSON.parse(target.original);
+    strip.hidden = false;
+    challengeBtn.setAttribute("aria-expanded", "true");
+    open(c.mol, false);
+    paintStrip();
+  }
+  const nextChallenge = () => {
+    const from = quest ? CHALLENGES.indexOf(quest.c) + 1 : 0;
+    const order = CHALLENGES.slice(from).concat(CHALLENGES.slice(0, from));
+    startChallenge(order.find((c) => !solved.has(c.id)) || order[0]);
+  };
+  function stopChallenge() {
+    quest = null;
+    strip.hidden = true;
+    update();
+    challengeBtn.setAttribute("aria-expanded", "false");
+    challengeBtn.focus();
+  }
+
+  function win() {
+    quest.won = true;
+    solved.add(quest.c.id);
+    keep();
+    challengeBtn.dataset.count = `${solved.size}/${CHALLENGES.length}`;
+    paintStrip();
+    burst();
+  }
+
+  // A shower of atom labels and rings from the middle of the canvas.
+  function burst() {
+    if (!motion.matches) return;
+    const bits = ["C", "N", "O", "H", "S", "⬡", "⬡", "✓"];
+    for (let k = 0; k < 26; k++) {
+      const el = document.createElement("span");
+      el.className = "confetti";
+      el.textContent = bits[k % bits.length];
+      const angle = (k / 26) * Math.PI * 2 + Math.random() * 0.4;
+      const reach = 70 + Math.random() * 110;
+      el.style.setProperty("--dx", `${Math.cos(angle) * reach}px`);
+      el.style.setProperty("--dy", `${Math.sin(angle) * reach - 40}px`);
+      el.style.setProperty("--r", `${(Math.random() - 0.5) * 540}deg`);
+      el.style.setProperty("--d", `${Math.random() * 120}ms`);
+      el.dataset.el = el.textContent;
+      canvas.append(el);
+      setTimeout(() => el.remove(), 1600);
+    }
+  }
+
+  challengeBtn.addEventListener("click", () => (quest ? stopChallenge() : nextChallenge()));
+  strip.addEventListener("click", (e) => {
+    const act = e.target.closest("[data-ch]");
+    if (!act) return;
+    if (act.dataset.ch === "close") stopChallenge();
+    else if (act.dataset.ch === "skip") nextChallenge();
+    else if (act.dataset.ch === "hint") { quest.hint = true; paintStrip(); }
   });
 
   // ---- documents ------------------------------------------------------------------
@@ -459,6 +826,9 @@
 
   doc.classList.add("live");
   palette.hidden = false;
+  exportBar.hidden = false;
+  challengeBtn.hidden = false;
+  if (solved.size) challengeBtn.dataset.count = `${solved.size}/${CHALLENGES.length}`;
   tabs[0].closest("[role=tablist]").hidden = false;
   doc.querySelector(".fname").hidden = true;
   open(name, false);
