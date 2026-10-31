@@ -16,6 +16,8 @@ const port = 9400 + Math.floor(Math.random() * 500);
 const chrome = spawn(browser, [
   "--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=${join(folder, "profile")}`,
   "--no-first-run", "--no-default-browser-check", "--hide-scrollbars",
+  // A Linux runner has no mouse, so without this the hover-only features stay off. Touch emulation still overrides it.
+  "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
   ...(process.env.CI ? ["--no-sandbox"] : []), "about:blank",
 ], { stdio: "ignore" });
 
@@ -431,6 +433,7 @@ async function main() {
   } else check("drag joins two atoms", false, "no pair");
 
   await send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 2 });
+  check("a finger gets no hover features", await run(`!matchMedia("(hover: hover) and (pointer: fine)").matches`));
   await run(`document.querySelector('[data-act="free-load"][data-id="aspirin"]').click()`);
   await sleep(60);
   await tool("erase");
