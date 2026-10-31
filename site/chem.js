@@ -13,6 +13,24 @@
     "vanillin": {"smiles":"COc1cc(C=O)ccc1O","formula":"C8H8O3","atoms":[["C",268.3,159.1],["O",230.5,175.9],["C",197.1,151.6],["C",159.3,168.3],["C",125.9,144.0],["C",88.1,160.8],["O",54.7,136.5],["C",130.3,102.9],["C",168.0,86.1],["C",201.5,110.5],["O",239.2,93.7]],"bonds":[[0,1,1],[1,2,1],[2,3,1],[3,4,2],[4,5,1],[5,6,2],[4,7,1],[7,8,2],[8,9,1],[9,10,1],[9,2,2]]},
   };
 
+  // Starting skeletons for the daily molecules that no level uses. Laid out like MOLS (CoordGen, principal
+  // axis horizontal, bond length 62 shrunk to 40 so there is room to grow) but kept off the hero's tabs and
+  // the Sketchpad's chips. docs/website.md says how to regenerate them.
+  const STARTERS = {
+    "benzene": {"smiles":"C1=CC=CC=C1","formula":"C6H6","atoms":[["C",161.5,171.0],["C",196.1,151.0],["C",196.1,111.0],["C",161.5,91.0],["C",126.9,111.0],["C",126.9,151.0]],"bonds":[[0,1,1],[1,2,2],[2,3,1],[3,4,2],[4,5,1],[5,0,2]]},
+    "pyridine": {"smiles":"C1=CC=NC=C1","formula":"C5H5N","atoms":[["C",161.5,171.0],["C",126.9,151.0],["C",126.9,111.0],["N",161.5,91.0],["C",196.1,111.0],["C",196.1,151.0]],"bonds":[[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1]]},
+    "pyrimidine": {"smiles":"C1=CN=CN=C1","formula":"C4H4N2","atoms":[["C",161.5,171.0],["C",126.9,151.0],["N",126.9,111.0],["C",161.5,91.0],["N",196.1,111.0],["C",196.1,151.0]],"bonds":[[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1]]},
+    "imidazole": {"smiles":"C1=CN=CN1","formula":"C3H4N2","atoms":[["C",161.5,161.8],["C",129.1,138.3],["N",141.5,100.2],["C",181.5,100.2],["N",193.9,138.3]],"bonds":[[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,0,1]]},
+    "indole": {"smiles":"C1=CC=C2C(=C1)C=CN2","formula":"C8H7N","atoms":[["C",96.1,111.0],["C",96.1,151.0],["C",130.7,171.0],["C",165.4,151.0],["C",165.4,111.0],["C",130.7,91.0],["C",203.4,98.6],["C",226.9,131.0],["N",203.4,163.4]],"bonds":[[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[4,6,1],[6,7,2],[7,8,1],[5,0,1],[8,3,1]]},
+    "naphthalene": {"smiles":"C1=CC=C2C=CC=CC2=C1","formula":"C10H8","atoms":[["C",92.2,151.0],["C",92.2,111.0],["C",126.9,91.0],["C",161.5,111.0],["C",196.1,91.0],["C",230.8,111.0],["C",230.8,151.0],["C",196.1,171.0],["C",161.5,151.0],["C",126.9,171.0]],"bonds":[[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,6,1],[6,7,2],[7,8,1],[8,9,2],[9,0,1],[8,3,1]]},
+    "cyclohexane": {"smiles":"C1CCCCC1","formula":"C6H12","atoms":[["C",161.5,171.0],["C",196.1,151.0],["C",196.1,111.0],["C",161.5,91.0],["C",126.9,111.0],["C",126.9,151.0]],"bonds":[[0,1,1],[1,2,1],[2,3,1],[3,4,1],[4,5,1],[5,0,1]]},
+    "thiophene": {"smiles":"C1=CSC=C1","formula":"C4H4S","atoms":[["C",161.5,161.8],["C",129.1,138.3],["S",141.5,100.2],["C",181.5,100.2],["C",193.9,138.3]],"bonds":[[0,1,2],[1,2,1],[2,3,1],[3,4,2],[4,0,1]]},
+    "furan": {"smiles":"C1=COC=C1","formula":"C4H4O","atoms":[["C",161.5,161.8],["C",129.1,138.3],["O",141.5,100.2],["C",181.5,100.2],["C",193.9,138.3]],"bonds":[[0,1,2],[1,2,1],[2,3,1],[3,4,2],[4,0,1]]},
+    "purine": {"smiles":"C1=C2C(=NC=N1)N=CN2","formula":"C5H4N4","atoms":[["C",192.3,171.0],["C",157.6,151.0],["C",157.6,111.0],["N",192.3,91.0],["C",226.9,111.0],["N",226.9,151.0],["N",119.6,98.6],["C",96.1,131.0],["N",119.6,163.4]],"bonds":[[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[2,6,1],[6,7,2],[7,8,1],[5,0,1],[8,1,1]]},
+    "aceticAcid": {"smiles":"CC(=O)O","formula":"C2H4O2","atoms":[["C",161.5,161.0],["C",161.5,121.0],["O",196.1,101.0],["O",126.9,101.0]],"bonds":[[0,1,1],[1,2,2],[1,3,1]]},
+    "hexane": {"smiles":"CCCCCC","formula":"C6H14","atoms":[["C",248.5,136.6],["C",212.9,118.4],["C",179.3,140.1],["C",143.7,121.9],["C",110.1,143.6],["C",74.5,125.4]],"bonds":[[0,1,1],[1,2,1],[2,3,1],[3,4,1],[4,5,1]]},
+  };
+
   const W = 323, H = 262;
   const EL = {
     C: { v: 4, mass: 12.011, exact: 12, w: 13.7 },
@@ -30,7 +48,7 @@
   const f1 = (n) => n.toFixed(1);
 
   function load(name) {
-    const m = MOLS[name];
+    const m = MOLS[name] || STARTERS[name];
     return {
       atoms: m.atoms.map(([s, x, y]) => ({ s, x, y })),
       bonds: m.bonds.map(([a, b, o]) => ({ a, b, o })),
@@ -488,6 +506,110 @@
     { id: "veratraldehyde", chapter: "add", mol: "vanillin", solve: [["grow", 10]] },
     { id: "phenacetin", chapter: "add", mol: "paracetamol", solve: [["grow", 8], ["grow", 11]] },
   ];
+  // Molecules that are only ever the daily one: no chapter, no star, nothing in the collection. Same moves as
+  // a level; the tests check each against its published SMILES. Only ever append at the end.
+  const DAILIES = [
+    { id: "alanine", mol: "aceticAcid", solve: [["grow", 0], ["grow", 0], ["element", 5, "N"]] },
+    { id: "threonine", mol: "aceticAcid", solve: [["grow", 0], ["grow", 4], ["grow", 4], ["grow", 0], ["element", 6, "O"], ["element", 7, "N"]] },
+    { id: "methylimidazole", mol: "imidazole", solve: [["grow", 0]] },
+    { id: "gaba", mol: "aceticAcid", solve: [["grow", 0], ["grow", 4], ["grow", 5], ["element", 6, "N"]] },
+    { id: "glycine", mol: "aceticAcid", solve: [["grow", 0], ["element", 4, "N"]] },
+    { id: "serine", mol: "aceticAcid", solve: [["grow", 0], ["grow", 4], ["grow", 0], ["element", 5, "O"], ["element", 6, "N"]] },
+    { id: "methylMethacrylate", mol: "aceticAcid", solve: [["grow", 0], ["grow", 0], ["grow", 3], ["order", 4, 2]] },
+    { id: "triazole", mol: "imidazole", solve: [["element", 0, "N"]] },
+    { id: "cysteine", mol: "aceticAcid", solve: [["grow", 0], ["grow", 4], ["grow", 0], ["element", 5, "S"], ["element", 6, "N"]] },
+    { id: "glycolicAcid", mol: "aceticAcid", solve: [["grow", 0], ["element", 4, "O"]] },
+    { id: "diallylDisulfide", mol: "hexane", solve: [["element", 3, "S"], ["element", 4, "S"], ["grow", 5], ["grow", 6], ["order", 0, 2], ["order", 6, 2]] },
+    { id: "lacticAcid", mol: "aceticAcid", solve: [["grow", 0], ["grow", 0], ["element", 5, "O"]] },
+    { id: "methacrylicAcid", mol: "aceticAcid", solve: [["grow", 0], ["grow", 0], ["order", 4, 2]] },
+    { id: "thymol", mol: "benzene", solve: [["grow", 0], ["grow", 3], ["grow", 7], ["grow", 7], ["grow", 2], ["element", 10, "O"]] },
+    { id: "skatole", mol: "indole", solve: [["grow", 6]] },
+    { id: "leafAldehyde", mol: "hexane", solve: [["grow", 5], ["order", 3, 2], ["element", 6, "O"], ["order", 5, 2]] },
+    { id: "acrylicAcid", mol: "aceticAcid", solve: [["grow", 0], ["order", 3, 2]] },
+    { id: "valine", mol: "aceticAcid", solve: [["grow", 0], ["grow", 4], ["grow", 4], ["grow", 0], ["element", 7, "N"]] },
+    { id: "dimethylDisulfide", mol: "hexane", solve: [["erase", 1], ["erase", 0], ["element", 1, "S"], ["element", 2, "S"]] },
+    { id: "benzimidazole", mol: "indole", solve: [["element", 6, "N"]] },
+    { id: "isoamylAcetate", mol: "aceticAcid", solve: [["grow", 3], ["grow", 4], ["grow", 5], ["grow", 6], ["grow", 6]] },
+    { id: "butyricAcid", mol: "aceticAcid", solve: [["grow", 0], ["grow", 4]] },
+    { id: "carvacrol", mol: "benzene", solve: [["grow", 0], ["grow", 3], ["grow", 7], ["grow", 7], ["grow", 1], ["element", 10, "O"]] },
+    { id: "vinylAcetate", mol: "aceticAcid", solve: [["grow", 3], ["grow", 4], ["order", 4, 2]] },
+    { id: "dimethylacetamide", mol: "aceticAcid", solve: [["element", 3, "N"], ["grow", 3], ["grow", 3]] },
+    { id: "cinnamylAlcohol", mol: "benzene", solve: [["grow", 2], ["grow", 6], ["grow", 7], ["grow", 8], ["element", 9, "O"], ["order", 7, 2]] },
+    { id: "benzofuran", mol: "indole", solve: [["element", 8, "O"]] },
+    { id: "heptanone", mol: "hexane", solve: [["grow", 5], ["grow", 5], ["element", 6, "O"], ["order", 5, 2]] },
+    { id: "pyrazine", mol: "pyrimidine", solve: [["element", 4, "C"], ["element", 5, "N"]] },
+    { id: "isoprene", mol: "hexane", solve: [["erase", 1], ["erase", 0], ["grow", 1], ["order", 2, 2], ["order", 3, 2]] },
+    { id: "benzaldehyde", mol: "benzene", solve: [["grow", 3], ["grow", 6], ["element", 7, "O"], ["order", 7, 2]] },
+    { id: "quinoline", mol: "naphthalene", solve: [["element", 4, "N"]] },
+    { id: "acetophenone", mol: "benzene", solve: [["grow", 0], ["grow", 6], ["grow", 6], ["element", 8, "O"], ["order", 8, 2]] },
+    { id: "chlorobenzene", mol: "benzene", solve: [["grow", 3], ["element", 6, "Cl"]] },
+    { id: "nicotinamide", mol: "pyridine", solve: [["grow", 5], ["grow", 6], ["grow", 6], ["element", 7, "O"], ["element", 8, "N"], ["order", 7, 2]] },
+    { id: "leafAlcohol", mol: "hexane", solve: [["grow", 5], ["order", 2, 2], ["element", 6, "O"]] },
+    { id: "styrene", mol: "benzene", solve: [["grow", 0], ["grow", 6], ["order", 7, 2]] },
+    { id: "niacin", mol: "pyridine", solve: [["grow", 5], ["grow", 6], ["grow", 6], ["element", 7, "O"], ["element", 8, "O"], ["order", 7, 2]] },
+    { id: "isoquinoline", mol: "naphthalene", solve: [["element", 5, "N"]] },
+    { id: "phenylethanol", mol: "benzene", solve: [["grow", 4], ["grow", 6], ["grow", 7], ["element", 8, "O"]] },
+    { id: "pyrazole", mol: "imidazole", solve: [["element", 2, "C"], ["element", 3, "N"]] },
+    { id: "tetramethylpyrazine", mol: "pyridine", solve: [["element", 0, "N"], ["grow", 2], ["grow", 4], ["grow", 5], ["grow", 1]] },
+    { id: "hydroquinone", mol: "benzene", solve: [["grow", 5], ["grow", 2], ["element", 6, "O"], ["element", 7, "O"]] },
+    { id: "cyclohexene", mol: "cyclohexane", solve: [["order", 3, 2]] },
+    { id: "acetylpyridine", mol: "pyridine", solve: [["grow", 2], ["grow", 6], ["grow", 6], ["element", 8, "O"], ["order", 8, 2]] },
+    { id: "benzothiazole", mol: "indole", solve: [["element", 6, "N"], ["element", 8, "S"]] },
+    { id: "serotonin", mol: "indole", solve: [["grow", 0], ["grow", 6], ["grow", 10], ["grow", 11], ["element", 9, "O"], ["element", 12, "N"]] },
+    { id: "benzylAlcohol", mol: "benzene", solve: [["grow", 3], ["grow", 6], ["element", 7, "O"]] },
+    { id: "anisole", mol: "benzene", solve: [["grow", 0], ["grow", 6], ["element", 6, "O"]] },
+    { id: "menthol", mol: "cyclohexane", solve: [["grow", 0], ["grow", 4], ["grow", 3], ["grow", 8], ["grow", 8], ["element", 7, "O"]] },
+    { id: "tetrahydropyran", mol: "cyclohexane", solve: [["element", 3, "O"]] },
+    { id: "catechol", mol: "benzene", solve: [["grow", 4], ["grow", 3], ["element", 6, "O"], ["element", 7, "O"]] },
+    { id: "tetralin", mol: "naphthalene", solve: [["order", 4, 1], ["order", 6, 1]] },
+    { id: "coumarin", mol: "naphthalene", solve: [["order", 4, 1], ["element", 4, "O"], ["grow", 5], ["element", 10, "O"], ["order", 11, 2]] },
+    { id: "cymene", mol: "benzene", solve: [["grow", 0], ["grow", 3], ["grow", 7], ["grow", 7]] },
+    { id: "thiazole", mol: "thiophene", solve: [["element", 4, "N"]] },
+    { id: "hypoxanthine", mol: "caffeine", solve: [["erase", 13], ["erase", 11], ["erase", 9], ["erase", 0], ["order", 8, 2]] },
+    { id: "naphthol2", mol: "naphthalene", solve: [["grow", 5], ["element", 10, "O"]] },
+    { id: "limonene", mol: "cyclohexane", solve: [["grow", 0], ["grow", 3], ["grow", 7], ["grow", 7], ["order", 0, 2], ["order", 8, 2]] },
+    { id: "dimethylpyrazine", mol: "pyridine", solve: [["element", 0, "N"], ["grow", 2], ["grow", 5]] },
+    { id: "indoleCarbinol", mol: "indole", solve: [["grow", 6], ["grow", 9], ["element", 10, "O"]] },
+    { id: "terpinene", mol: "cyclohexane", solve: [["grow", 0], ["grow", 3], ["grow", 7], ["grow", 7], ["order", 0, 2], ["order", 3, 2]] },
+    { id: "pyrrole", mol: "furan", solve: [["element", 2, "N"]] },
+    { id: "dmap", mol: "pyridine", solve: [["grow", 0], ["grow", 6], ["grow", 6], ["element", 6, "N"]] },
+    { id: "naphthol1", mol: "naphthalene", solve: [["grow", 4], ["element", 10, "O"]] },
+    { id: "isobutylbenzene", mol: "ibuprofen", solve: [["erase", 14], ["erase", 13], ["erase", 12], ["erase", 11], ["erase", 10]] },
+    { id: "histamine", mol: "imidazole", solve: [["grow", 0], ["grow", 5], ["grow", 6], ["element", 7, "N"]] },
+    { id: "vinylguaiacol", mol: "vanillin", solve: [["element", 6, "C"]] },
+    { id: "acetovanillone", mol: "vanillin", solve: [["grow", 5]] },
+    { id: "cyclohexanol", mol: "cyclohexane", solve: [["grow", 3], ["element", 6, "O"]] },
+    { id: "furoicAcid", mol: "furan", solve: [["grow", 3], ["grow", 5], ["grow", 5], ["element", 6, "O"], ["element", 7, "O"], ["order", 6, 2]] },
+    { id: "hydroxyquinoline", mol: "naphthalene", solve: [["element", 4, "N"], ["grow", 2], ["element", 10, "O"]] },
+    { id: "furfurylAlcohol", mol: "furan", solve: [["grow", 3], ["grow", 5], ["element", 6, "O"]] },
+    { id: "mercaptopurine", mol: "purine", solve: [["order", 0, 1], ["order", 2, 1], ["grow", 0], ["order", 1, 2], ["element", 9, "S"], ["order", 10, 2]] },
+    { id: "morpholine", mol: "cyclohexane", solve: [["element", 2, "O"], ["element", 5, "N"]] },
+    { id: "tryptophol", mol: "indole", solve: [["grow", 6], ["grow", 9], ["grow", 10], ["element", 11, "O"]] },
+    { id: "piperazine", mol: "cyclohexane", solve: [["element", 2, "N"], ["element", 5, "N"]] },
+    { id: "tetrahydrothiophene", mol: "thiophene", solve: [["order", 0, 1], ["order", 3, 1]] },
+    { id: "menthane", mol: "cyclohexane", solve: [["grow", 0], ["grow", 3], ["grow", 7], ["grow", 7]] },
+    { id: "dimethylfuran", mol: "furan", solve: [["grow", 1], ["grow", 3]] },
+    { id: "thf", mol: "furan", solve: [["order", 0, 1], ["order", 3, 1]] },
+    { id: "adenine", mol: "purine", solve: [["grow", 0], ["element", 9, "N"]] },
+    { id: "guanine", mol: "caffeine", solve: [["erase", 13], ["erase", 9], ["erase", 0], ["order", 8, 1], ["element", 9, "N"], ["order", 9, 2]] },
+    { id: "furfurylThiol", mol: "furan", solve: [["grow", 3], ["grow", 5], ["element", 6, "S"]] },
+    { id: "cumene", mol: "benzene", solve: [["grow", 0], ["grow", 6], ["grow", 6]] },
+    { id: "methylxanthine7", mol: "caffeine", solve: [["erase", 13], ["erase", 9]] },
+    { id: "guaiacol", mol: "vanillin", solve: [["erase", 6], ["erase", 5]] },
+    { id: "thiophenecarbaldehyde", mol: "thiophene", solve: [["grow", 3], ["grow", 5], ["element", 6, "O"], ["order", 6, 2]] },
+    { id: "isoeugenol", mol: "vanillin", solve: [["element", 6, "C"], ["grow", 6]] },
+    { id: "syringaldehyde", mol: "vanillin", solve: [["grow", 8], ["grow", 11], ["element", 11, "O"]] },
+    { id: "furfural", mol: "furan", solve: [["grow", 3], ["grow", 5], ["element", 6, "O"], ["order", 6, 2]] },
+    { id: "anisaldehyde", mol: "vanillin", solve: [["erase", 1], ["erase", 0], ["grow", 8]] },
+    { id: "phenetidine", mol: "paracetamol", solve: [["erase", 2], ["element", 2, "O"], ["element", 7, "N"]] },
+    { id: "diaminopurine", mol: "purine", solve: [["grow", 0], ["grow", 4], ["element", 9, "N"], ["element", 10, "N"]] },
+    { id: "enprofylline", mol: "caffeine", solve: [["erase", 9], ["erase", 0], ["grow", 11], ["grow", 12]] },
+    { id: "eugenol", mol: "vanillin", solve: [["order", 5, 1], ["element", 6, "C"], ["grow", 6], ["order", 11, 2]] },
+    { id: "aniline", mol: "paracetamol", solve: [["erase", 8], ["erase", 2], ["erase", 1], ["erase", 0]] },
+    { id: "salicylamide", mol: "aspirin", solve: [["erase", 2], ["erase", 1], ["erase", 0], ["element", 9, "N"]] },
+    { id: "benzoicAcid", mol: "aspirin", solve: [["erase", 3], ["erase", 2], ["erase", 1], ["erase", 0]] },
+    { id: "salicylaldehyde", mol: "aspirin", solve: [["erase", 12], ["erase", 2], ["erase", 1], ["erase", 0]] },
+  ];
   const CHAPTERS = ["take", "swap", "add"];
   const XANTHINES = ["theophylline", "theobromine", "paraxanthine", "xanthine"];
 
@@ -573,9 +695,13 @@
     return `${now.getFullYear()}-${two(now.getMonth() + 1)}-${two(now.getDate())}`;
   };
   const dailyNumber = (date) => dayNumber(date) - dayNumber(FIRST_DAY) + 1;
+  // The daily picks from the twenty levels and then from the molecules that are only ever dailies,
+  // so both lists may only grow at their ends.
+  const DAILY_POOL = [...CHALLENGES, ...DAILIES];
+  const isLevel = (id) => CHALLENGES.some((c) => c.id === id);
   const dailyPick = (date) => {
-    const n = CHALLENGES.length;
-    return CHALLENGES[(((dailyNumber(date) * 7) % n) + n) % n];
+    const n = DAILY_POOL.length;
+    return DAILY_POOL[(((dailyNumber(date) * 7) % n) + n) % n];
   };
   function nextStreak(daily, date) {
     if (daily.last === date) return { ...daily };
@@ -805,10 +931,10 @@
   }
 
   const api = {
-    applyTool, previewMarkup, MOLS, W, H, EL, CYCLE, CHALLENGES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
+    applyTool, previewMarkup, MOLS, STARTERS, W, H, EL, CYCLE, CHALLENGES, DAILIES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
     fmt, load, analyse, bondLength, neighbours, remove, inside, freeAngle, place, toSmiles, toCdxml, cleanUp, drawMarkup, thumb,
     applyMoves, graphKey, targetOf, challengeKey, formulaDelta, stars,
-    localDate, dailyNumber, dailyPick, nextStreak, dailyShare,
+    localDate, dailyNumber, dailyPick, isLevel, nextStreak, dailyShare,
     encodeDrawing, decodeDrawing, emptyStore, parseStore, record, earned, isomerKey, makeHunt,
   };
   if (typeof module !== "undefined") module.exports = api;

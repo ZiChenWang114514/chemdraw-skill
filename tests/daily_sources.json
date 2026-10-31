@@ -1,0 +1,1226 @@
+{
+ "starters": {
+  "benzene": {
+   "cid": 241,
+   "name": "benzene",
+   "smiles": "C1=CC=CC=C1",
+   "opsin": {
+    "name": "benzene",
+    "kind": "name",
+    "smiles": "C1=CC=CC=C1"
+   }
+  },
+  "pyridine": {
+   "cid": 1049,
+   "name": "pyridine",
+   "smiles": "C1=CC=NC=C1",
+   "opsin": {
+    "name": "pyridine",
+    "kind": "name",
+    "smiles": "N1=CC=CC=C1"
+   }
+  },
+  "pyrimidine": {
+   "cid": 9260,
+   "name": "pyrimidine",
+   "smiles": "C1=CN=CN=C1",
+   "opsin": {
+    "name": "pyrimidine",
+    "kind": "name",
+    "smiles": "N1=CN=CC=C1"
+   }
+  },
+  "imidazole": {
+   "cid": 795,
+   "name": "imidazole",
+   "smiles": "C1=CN=CN1",
+   "opsin": {
+    "name": "imidazole",
+    "kind": "name",
+    "smiles": "N1C=NC=C1"
+   }
+  },
+  "indole": {
+   "cid": 798,
+   "name": "indole",
+   "smiles": "C1=CC=C2C(=C1)C=CN2",
+   "opsin": {
+    "name": "indole",
+    "kind": "name",
+    "smiles": "N1C=CC2=CC=CC=C12"
+   }
+  },
+  "naphthalene": {
+   "cid": 931,
+   "name": "naphthalene",
+   "smiles": "C1=CC=C2C=CC=CC2=C1",
+   "opsin": {
+    "name": "naphthalene",
+    "kind": "name",
+    "smiles": "C1=CC=CC2=CC=CC=C12"
+   }
+  },
+  "cyclohexane": {
+   "cid": 8078,
+   "name": "cyclohexane",
+   "smiles": "C1CCCCC1",
+   "opsin": {
+    "name": "cyclohexane",
+    "kind": "name",
+    "smiles": "C1CCCCC1"
+   }
+  },
+  "thiophene": {
+   "cid": 8030,
+   "name": "thiophene",
+   "smiles": "C1=CSC=C1",
+   "opsin": {
+    "name": "thiophene",
+    "kind": "name",
+    "smiles": "S1C=CC=C1"
+   }
+  },
+  "furan": {
+   "cid": 8029,
+   "name": "furan",
+   "smiles": "C1=COC=C1",
+   "opsin": {
+    "name": "furan",
+    "kind": "name",
+    "smiles": "O1C=CC=C1"
+   }
+  },
+  "purine": {
+   "cid": 1044,
+   "name": "purine",
+   "smiles": "C1=C2C(=NC=N1)N=CN2",
+   "opsin": {
+    "name": "purine",
+    "kind": "name",
+    "smiles": "N1=CN=C2N=CNC2=C1"
+   }
+  },
+  "aceticAcid": {
+   "cid": 176,
+   "name": "acetic acid",
+   "smiles": "CC(=O)O",
+   "opsin": {
+    "name": "acetic acid",
+    "kind": "name",
+    "smiles": "C(C)(=O)O"
+   }
+  },
+  "hexane": {
+   "cid": 8058,
+   "name": "hexane",
+   "smiles": "CCCCCC",
+   "opsin": {
+    "name": "hexane",
+    "kind": "name",
+    "smiles": "CCCCCC"
+   }
+  }
+ },
+ "dailies": {
+  "glycine": {
+   "cid": 750,
+   "name": "glycine",
+   "smiles": "C(C(=O)O)N",
+   "opsin": {
+    "name": "glycine",
+    "kind": "name",
+    "smiles": "NCC(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Glycine"
+  },
+  "alanine": {
+   "cid": 5950,
+   "name": "alanine",
+   "smiles": "CC(C(=O)O)N",
+   "opsin": {
+    "name": "alanine",
+    "kind": "name",
+    "smiles": "N[C@@H](C)C(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Alanine"
+  },
+  "serine": {
+   "cid": 5951,
+   "name": "serine",
+   "smiles": "C(C(C(=O)O)N)O",
+   "opsin": {
+    "name": "serine",
+    "kind": "name",
+    "smiles": "N[C@@H](CO)C(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Serine"
+  },
+  "cysteine": {
+   "cid": 5862,
+   "name": "cysteine",
+   "smiles": "C(C(C(=O)O)N)S",
+   "opsin": {
+    "name": "cysteine",
+    "kind": "name",
+    "smiles": "N[C@@H](CS)C(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Cysteine"
+  },
+  "valine": {
+   "cid": 6287,
+   "name": "valine",
+   "smiles": "CC(C)C(C(=O)O)N",
+   "opsin": {
+    "name": "valine",
+    "kind": "name",
+    "smiles": "N[C@@H](C(C)C)C(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Valine"
+  },
+  "threonine": {
+   "cid": 6288,
+   "name": "threonine",
+   "smiles": "CC(C(C(=O)O)N)O",
+   "opsin": {
+    "name": "threonine",
+    "kind": "name",
+    "smiles": "N[C@@H]([C@H](O)C)C(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Threonine"
+  },
+  "gaba": {
+   "cid": 119,
+   "name": "gamma-aminobutyric acid",
+   "smiles": "C(CC(=O)O)CN",
+   "opsin": {
+    "name": "gamma-aminobutyric acid",
+    "kind": "name",
+    "smiles": "NCCCC(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/GABA"
+  },
+  "lacticAcid": {
+   "cid": 612,
+   "name": "lactic acid",
+   "smiles": "CC(C(=O)O)O",
+   "opsin": {
+    "name": "lactic acid",
+    "kind": "name",
+    "smiles": "C(C(O)C)(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Lactic_acid"
+  },
+  "glycolicAcid": {
+   "cid": 757,
+   "name": "glycolic acid",
+   "smiles": "C(C(=O)O)O",
+   "opsin": {
+    "name": "glycolic acid",
+    "kind": "name",
+    "smiles": "C(CO)(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Glycolic_acid"
+  },
+  "acrylicAcid": {
+   "cid": 6581,
+   "name": "acrylic acid",
+   "smiles": "C=CC(=O)O",
+   "opsin": {
+    "name": "acrylic acid",
+    "kind": "name",
+    "smiles": "C(C=C)(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Acrylic_acid"
+  },
+  "methacrylicAcid": {
+   "cid": 4093,
+   "name": "methacrylic acid",
+   "smiles": "CC(=C)C(=O)O",
+   "opsin": {
+    "name": "methacrylic acid",
+    "kind": "name",
+    "smiles": "C(C(=C)C)(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Methacrylic_acid"
+  },
+  "butyricAcid": {
+   "cid": 264,
+   "name": "butyric acid",
+   "smiles": "CCCC(=O)O",
+   "opsin": {
+    "name": "butyric acid",
+    "kind": "name",
+    "smiles": "C(CCC)(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Butyric_acid"
+  },
+  "vinylAcetate": {
+   "cid": 7904,
+   "name": "vinyl acetate",
+   "smiles": "CC(=O)OC=C",
+   "opsin": {
+    "name": "vinyl acetate",
+    "kind": "name",
+    "smiles": "C(C)(=O)OC=C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Vinyl_acetate"
+  },
+  "isoamylAcetate": {
+   "cid": 31276,
+   "name": "isoamyl acetate",
+   "smiles": "CC(C)CCOC(=O)C",
+   "opsin": {
+    "name": "isoamyl acetate",
+    "kind": "name",
+    "smiles": "C(C)(=O)OCCC(C)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Isoamyl_acetate"
+  },
+  "methylMethacrylate": {
+   "cid": 6658,
+   "name": "methyl methacrylate",
+   "smiles": "CC(=C)C(=O)OC",
+   "opsin": {
+    "name": "methyl methacrylate",
+    "kind": "name",
+    "smiles": "C(C(=C)C)(=O)OC"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Methyl_methacrylate"
+  },
+  "dimethylacetamide": {
+   "cid": 31374,
+   "name": "N,N-dimethylacetamide",
+   "smiles": "CC(=O)N(C)C",
+   "opsin": {
+    "name": "N,N-dimethylacetamide",
+    "kind": "name",
+    "smiles": "CN(C(C)=O)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Dimethylacetamide"
+  },
+  "leafAlcohol": {
+   "cid": 5281167,
+   "name": "cis-3-hexen-1-ol",
+   "smiles": "CCC=CCCO",
+   "opsin": {
+    "name": "cis-3-hexen-1-ol",
+    "kind": "name",
+    "smiles": "C(C\\C=C/CC)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Cis-3-Hexen-1-ol"
+  },
+  "leafAldehyde": {
+   "cid": 5281168,
+   "name": "trans-2-hexenal",
+   "smiles": "CCCC=CC=O",
+   "opsin": {
+    "name": "trans-2-hexenal",
+    "kind": "name",
+    "smiles": "C(\\C=C\\CCC)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Trans-2-Hexenal"
+  },
+  "diallylDisulfide": {
+   "cid": 16590,
+   "name": "diallyl disulfide",
+   "smiles": "C=CCSSCC=C",
+   "opsin": {
+    "name": "diallyl disulfide",
+    "kind": "name",
+    "smiles": "C(C=C)SSCC=C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Diallyl_disulfide"
+  },
+  "dimethylDisulfide": {
+   "cid": 12232,
+   "name": "dimethyl disulfide",
+   "smiles": "CSSC",
+   "opsin": {
+    "name": "dimethyl disulfide",
+    "kind": "name",
+    "smiles": "CSSC"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Dimethyl_disulfide"
+  },
+  "heptanone": {
+   "cid": 8051,
+   "name": "2-heptanone",
+   "smiles": "CCCCCC(=O)C",
+   "opsin": {
+    "name": "2-heptanone",
+    "kind": "name",
+    "smiles": "CC(CCCCC)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/2-Heptanone"
+  },
+  "isoprene": {
+   "cid": 6557,
+   "name": "isoprene",
+   "smiles": "CC(=C)C=C",
+   "opsin": {
+    "name": "isoprene",
+    "kind": "name",
+    "smiles": "C=CC(C)=C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Isoprene"
+  },
+  "styrene": {
+   "cid": 7501,
+   "name": "styrene",
+   "smiles": "C=CC1=CC=CC=C1",
+   "opsin": {
+    "name": "styrene",
+    "kind": "name",
+    "smiles": "C=CC1=CC=CC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Styrene"
+  },
+  "benzylAlcohol": {
+   "cid": 244,
+   "name": "benzyl alcohol",
+   "smiles": "C1=CC=C(C=C1)CO",
+   "opsin": {
+    "name": "benzyl alcohol",
+    "kind": "name",
+    "smiles": "C(C1=CC=CC=C1)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Benzyl_alcohol"
+  },
+  "benzaldehyde": {
+   "cid": 240,
+   "name": "benzaldehyde",
+   "smiles": "C1=CC=C(C=C1)C=O",
+   "opsin": {
+    "name": "benzaldehyde",
+    "kind": "name",
+    "smiles": "C(C1=CC=CC=C1)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Benzaldehyde"
+  },
+  "acetophenone": {
+   "cid": 7410,
+   "name": "acetophenone",
+   "smiles": "CC(=O)C1=CC=CC=C1",
+   "opsin": {
+    "name": "acetophenone",
+    "kind": "name",
+    "smiles": "C(C)(=O)C1=CC=CC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Acetophenone"
+  },
+  "phenylethanol": {
+   "cid": 6054,
+   "name": "2-phenylethanol",
+   "smiles": "C1=CC=C(C=C1)CCO",
+   "opsin": {
+    "name": "2-phenylethanol",
+    "kind": "name",
+    "smiles": "C1(=CC=CC=C1)CCO"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Phenethyl_alcohol"
+  },
+  "anisole": {
+   "cid": 7519,
+   "name": "anisole",
+   "smiles": "COC1=CC=CC=C1",
+   "opsin": {
+    "name": "anisole",
+    "kind": "name",
+    "smiles": "C1(=CC=CC=C1)OC"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Anisole"
+  },
+  "hydroquinone": {
+   "cid": 785,
+   "name": "hydroquinone",
+   "smiles": "C1=CC(=CC=C1O)O",
+   "opsin": {
+    "name": "hydroquinone",
+    "kind": "name",
+    "smiles": "C1(O)=CC=C(O)C=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Hydroquinone"
+  },
+  "catechol": {
+   "cid": 289,
+   "name": "catechol",
+   "smiles": "C1=CC=C(C(=C1)O)O",
+   "opsin": {
+    "name": "catechol",
+    "kind": "name",
+    "smiles": "C=1(O)C(O)=CC=CC1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Catechol"
+  },
+  "cymene": {
+   "cid": 7463,
+   "name": "p-cymene",
+   "smiles": "CC1=CC=C(C=C1)C(C)C",
+   "opsin": {
+    "name": "p-cymene",
+    "kind": "name",
+    "smiles": "C1(=CC=C(C=C1)C)C(C)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/P-Cymene"
+  },
+  "thymol": {
+   "cid": 6989,
+   "name": "thymol",
+   "smiles": "CC1=CC(=C(C=C1)C(C)C)O",
+   "opsin": {
+    "name": "thymol",
+    "kind": "name",
+    "smiles": "C1=C(C)C=CC(C(C)C)=C1O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Thymol"
+  },
+  "carvacrol": {
+   "cid": 10364,
+   "name": "carvacrol",
+   "smiles": "CC1=C(C=C(C=C1)C(C)C)O",
+   "opsin": {
+    "name": "carvacrol",
+    "kind": "name",
+    "smiles": "C1=C(O)C(C)=CC=C1C(C)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Carvacrol"
+  },
+  "cinnamylAlcohol": {
+   "cid": 5315892,
+   "name": "cinnamyl alcohol",
+   "smiles": "C1=CC=C(C=C1)C=CCO",
+   "opsin": {
+    "name": "cinnamyl alcohol",
+    "kind": "name",
+    "smiles": "C(C=CC1=CC=CC=C1)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Cinnamyl_alcohol"
+  },
+  "dimethylpyrazine": {
+   "cid": 31252,
+   "name": "2,5-dimethylpyrazine",
+   "smiles": "CC1=CN=C(C=N1)C",
+   "opsin": {
+    "name": "2,5-dimethylpyrazine",
+    "kind": "name",
+    "smiles": "CC1=NC=C(N=C1)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Alkylpyrazine"
+  },
+  "tetramethylpyrazine": {
+   "cid": 14296,
+   "name": "tetramethylpyrazine",
+   "smiles": "CC1=C(N=C(C(=N1)C)C)C",
+   "opsin": {
+    "name": "tetramethylpyrazine",
+    "kind": "name",
+    "smiles": "CC1=C(N=C(C(=N1)C)C)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Tetramethylpyrazine"
+  },
+  "nicotinamide": {
+   "cid": 936,
+   "name": "nicotinamide",
+   "smiles": "C1=CC(=CN=C1)C(=O)N",
+   "opsin": {
+    "name": "nicotinamide",
+    "kind": "name",
+    "smiles": "C(C1=CN=CC=C1)(=O)N"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Nicotinamide"
+  },
+  "niacin": {
+   "cid": 938,
+   "name": "nicotinic acid",
+   "smiles": "C1=CC(=CN=C1)C(=O)O",
+   "opsin": {
+    "name": "nicotinic acid",
+    "kind": "name",
+    "smiles": "C(C1=CN=CC=C1)(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Nicotinic_acid"
+  },
+  "dmap": {
+   "cid": 14284,
+   "name": "4-dimethylaminopyridine",
+   "smiles": "CN(C)C1=CC=NC=C1",
+   "opsin": {
+    "name": "4-dimethylaminopyridine",
+    "kind": "name",
+    "smiles": "CN(C1=CC=NC=C1)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/4-Dimethylaminopyridine"
+  },
+  "acetylpyridine": {
+   "cid": 14286,
+   "name": "2-acetylpyridine",
+   "smiles": "CC(=O)C1=CC=CC=N1",
+   "opsin": {
+    "name": "2-acetylpyridine",
+    "kind": "name",
+    "smiles": "C(C)(=O)C1=NC=CC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/2-Acetylpyridine"
+  },
+  "pyrazine": {
+   "cid": 9261,
+   "name": "pyrazine",
+   "smiles": "C1=CN=CC=N1",
+   "opsin": {
+    "name": "pyrazine",
+    "kind": "name",
+    "smiles": "N1=CC=NC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Pyrazine"
+  },
+  "chlorobenzene": {
+   "cid": 7964,
+   "name": "chlorobenzene",
+   "smiles": "C1=CC=C(C=C1)Cl",
+   "opsin": {
+    "name": "chlorobenzene",
+    "kind": "name",
+    "smiles": "ClC1=CC=CC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Chlorobenzene"
+  },
+  "methylimidazole": {
+   "cid": 13195,
+   "name": "4-methylimidazole",
+   "smiles": "CC1=CN=CN1",
+   "opsin": {
+    "name": "5-methyl-1H-imidazole",
+    "kind": "iupac",
+    "smiles": "CC1=CN=CN1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/4-Methylimidazole"
+  },
+  "triazole": {
+   "cid": 9257,
+   "name": "1,2,4-triazole",
+   "smiles": "C1=NC=NN1",
+   "opsin": {
+    "name": "1,2,4-triazole",
+    "kind": "name",
+    "smiles": "N1N=CN=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/1%2C2%2C4-Triazole"
+  },
+  "histamine": {
+   "cid": 774,
+   "name": "histamine",
+   "smiles": "C1=C(NC=N1)CCN",
+   "opsin": {
+    "name": "2-(1H-imidazol-5-yl)ethanamine",
+    "kind": "iupac",
+    "smiles": "N1C=NC=C1CCN"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Histamine"
+  },
+  "pyrazole": {
+   "cid": 1048,
+   "name": "pyrazole",
+   "smiles": "C1=CNN=C1",
+   "opsin": {
+    "name": "pyrazole",
+    "kind": "name",
+    "smiles": "N1N=CC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Pyrazole"
+  },
+  "skatole": {
+   "cid": 6736,
+   "name": "3-methylindole",
+   "smiles": "CC1=CNC2=CC=CC=C12",
+   "opsin": {
+    "name": "3-methylindole",
+    "kind": "name",
+    "smiles": "CC1=CNC2=CC=CC=C12"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Skatole"
+  },
+  "benzimidazole": {
+   "cid": 5798,
+   "name": "benzimidazole",
+   "smiles": "C1=CC=C2C(=C1)NC=N2",
+   "opsin": {
+    "name": "benzimidazole",
+    "kind": "name",
+    "smiles": "N1=CNC2=C1C=CC=C2"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Benzimidazole"
+  },
+  "benzofuran": {
+   "cid": 9223,
+   "name": "benzofuran",
+   "smiles": "C1=CC=C2C(=C1)C=CO2",
+   "opsin": {
+    "name": "benzofuran",
+    "kind": "name",
+    "smiles": "O1C=CC2=C1C=CC=C2"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Benzofuran"
+  },
+  "benzothiazole": {
+   "cid": 7222,
+   "name": "benzothiazole",
+   "smiles": "C1=CC=C2C(=C1)N=CS2",
+   "opsin": {
+    "name": "benzothiazole",
+    "kind": "name",
+    "smiles": "S1C=NC2=C1C=CC=C2"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Benzothiazole"
+  },
+  "indoleCarbinol": {
+   "cid": 3712,
+   "name": "indole-3-carbinol",
+   "smiles": "C1=CC=C2C(=C1)C(=CN2)CO",
+   "opsin": {
+    "name": "1H-indol-3-ylmethanol",
+    "kind": "iupac",
+    "smiles": "N1C=C(C2=CC=CC=C12)CO"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Indole-3-carbinol"
+  },
+  "tryptophol": {
+   "cid": 10685,
+   "name": "tryptophol",
+   "smiles": "C1=CC=C2C(=C1)C(=CN2)CCO",
+   "opsin": {
+    "name": "2-(1H-indol-3-yl)ethanol",
+    "kind": "iupac",
+    "smiles": "N1C=C(C2=CC=CC=C12)CCO"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Tryptophol"
+  },
+  "serotonin": {
+   "cid": 5202,
+   "name": "serotonin",
+   "smiles": "C1=CC2=C(C=C1O)C(=CN2)CCN",
+   "opsin": {
+    "name": "3-(2-aminoethyl)-1H-indol-5-ol",
+    "kind": "iupac",
+    "smiles": "NCCC1=CNC2=CC=C(C=C12)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Serotonin"
+  },
+  "quinoline": {
+   "cid": 7047,
+   "name": "quinoline",
+   "smiles": "C1=CC=C2C(=C1)C=CC=N2",
+   "opsin": {
+    "name": "quinoline",
+    "kind": "name",
+    "smiles": "N1=CC=CC2=CC=CC=C12"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Quinoline"
+  },
+  "isoquinoline": {
+   "cid": 8405,
+   "name": "isoquinoline",
+   "smiles": "C1=CC=C2C=NC=CC2=C1",
+   "opsin": {
+    "name": "isoquinoline",
+    "kind": "name",
+    "smiles": "C1=NC=CC2=CC=CC=C12"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Isoquinoline"
+  },
+  "tetralin": {
+   "cid": 8404,
+   "name": "tetralin",
+   "smiles": "C1CCC2=CC=CC=C2C1",
+   "opsin": {
+    "name": "tetralin",
+    "kind": "name",
+    "smiles": "C1CCCC2=CC=CC=C12"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Tetralin"
+  },
+  "naphthol2": {
+   "cid": 8663,
+   "name": "2-naphthol",
+   "smiles": "C1=CC=C2C=C(C=CC2=C1)O",
+   "opsin": {
+    "name": "2-naphthol",
+    "kind": "name",
+    "smiles": "C1=C(C=CC2=CC=CC=C12)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/2-Naphthol"
+  },
+  "naphthol1": {
+   "cid": 7005,
+   "name": "1-naphthol",
+   "smiles": "C1=CC=C2C(=C1)C=CC=C2O",
+   "opsin": {
+    "name": "1-naphthol",
+    "kind": "name",
+    "smiles": "C1(=CC=CC2=CC=CC=C12)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/1-Naphthol"
+  },
+  "hydroxyquinoline": {
+   "cid": 1923,
+   "name": "8-hydroxyquinoline",
+   "smiles": "C1=CC2=C(C(=C1)O)N=CC=C2",
+   "opsin": {
+    "name": "8-hydroxyquinoline",
+    "kind": "name",
+    "smiles": "OC=1C=CC=C2C=CC=NC12"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/8-Hydroxyquinoline"
+  },
+  "coumarin": {
+   "cid": 323,
+   "name": "coumarin",
+   "smiles": "C1=CC=C2C(=C1)C=CC(=O)O2",
+   "opsin": {
+    "name": "coumarin",
+    "kind": "name",
+    "smiles": "O1C(=O)C=CC2=CC=CC=C12"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Coumarin"
+  },
+  "cyclohexene": {
+   "cid": 8079,
+   "name": "cyclohexene",
+   "smiles": "C1CCC=CC1",
+   "opsin": {
+    "name": "cyclohexene",
+    "kind": "name",
+    "smiles": "C1=CCCCC1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Cyclohexene"
+  },
+  "cyclohexanol": {
+   "cid": 7966,
+   "name": "cyclohexanol",
+   "smiles": "C1CCC(CC1)O",
+   "opsin": {
+    "name": "cyclohexanol",
+    "kind": "name",
+    "smiles": "C1(CCCCC1)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Cyclohexanol"
+  },
+  "morpholine": {
+   "cid": 8083,
+   "name": "morpholine",
+   "smiles": "C1COCCN1",
+   "opsin": {
+    "name": "morpholine",
+    "kind": "name",
+    "smiles": "N1CCOCC1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Morpholine"
+  },
+  "piperazine": {
+   "cid": 4837,
+   "name": "piperazine",
+   "smiles": "C1CNCCN1",
+   "opsin": {
+    "name": "piperazine",
+    "kind": "name",
+    "smiles": "N1CCNCC1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Piperazine"
+  },
+  "tetrahydropyran": {
+   "cid": 8894,
+   "name": "tetrahydropyran",
+   "smiles": "C1CCOCC1",
+   "opsin": {
+    "name": "tetrahydropyran",
+    "kind": "name",
+    "smiles": "O1CCCCC1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Tetrahydropyran"
+  },
+  "menthol": {
+   "cid": 1254,
+   "name": "menthol",
+   "smiles": "CC1CCC(C(C1)O)C(C)C",
+   "opsin": {
+    "name": "menthol",
+    "kind": "name",
+    "smiles": "C1(CC(C(CC1)C(C)C)O)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Menthol"
+  },
+  "limonene": {
+   "cid": 22311,
+   "name": "limonene",
+   "smiles": "CC1=CCC(CC1)C(=C)C",
+   "opsin": {
+    "name": "1-methyl-4-prop-1-en-2-ylcyclohexene",
+    "kind": "iupac",
+    "smiles": "CC1=CCC(CC1)C(=C)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Limonene"
+  },
+  "terpinene": {
+   "cid": 7461,
+   "name": "gamma-terpinene",
+   "smiles": "CC1=CCC(=CC1)C(C)C",
+   "opsin": {
+    "name": "gamma-terpinene",
+    "kind": "name",
+    "smiles": "CC=1CC=C(C(C)C)CC1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Terpinene"
+  },
+  "menthane": {
+   "cid": 7459,
+   "name": "p-menthane",
+   "smiles": "CC1CCC(CC1)C(C)C",
+   "opsin": {
+    "name": "p-menthane",
+    "kind": "name",
+    "smiles": "C1(CCC(CC1)C(C)C)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/P-Menthane"
+  },
+  "thiazole": {
+   "cid": 9256,
+   "name": "thiazole",
+   "smiles": "C1=CSC=N1",
+   "opsin": {
+    "name": "thiazole",
+    "kind": "name",
+    "smiles": "S1C=NC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Thiazole"
+  },
+  "tetrahydrothiophene": {
+   "cid": 1127,
+   "name": "tetrahydrothiophene",
+   "smiles": "C1CCSC1",
+   "opsin": {
+    "name": "tetrahydrothiophene",
+    "kind": "name",
+    "smiles": "S1CCCC1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Tetrahydrothiophene"
+  },
+  "thiophenecarbaldehyde": {
+   "cid": 7364,
+   "name": "thiophene-2-carbaldehyde",
+   "smiles": "C1=CSC(=C1)C=O",
+   "opsin": {
+    "name": "thiophene-2-carbaldehyde",
+    "kind": "name",
+    "smiles": "S1C(=CC=C1)C=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Thiophene-2-carboxaldehyde"
+  },
+  "furfural": {
+   "cid": 7362,
+   "name": "furfural",
+   "smiles": "C1=COC(=C1)C=O",
+   "opsin": {
+    "name": "furfural",
+    "kind": "name",
+    "smiles": "C(C1=CC=CO1)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Furfural"
+  },
+  "furfurylAlcohol": {
+   "cid": 7361,
+   "name": "furfuryl alcohol",
+   "smiles": "C1=COC(=C1)CO",
+   "opsin": {
+    "name": "furfuryl alcohol",
+    "kind": "name",
+    "smiles": "C(C1=CC=CO1)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Furfuryl_alcohol"
+  },
+  "furfurylThiol": {
+   "cid": 7363,
+   "name": "furfuryl mercaptan",
+   "smiles": "C1=COC(=C1)CS",
+   "opsin": {
+    "name": "furfuryl mercaptan",
+    "kind": "name",
+    "smiles": "C(C1=CC=CO1)S"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Furan-2-ylmethanethiol"
+  },
+  "dimethylfuran": {
+   "cid": 12266,
+   "name": "2,5-dimethylfuran",
+   "smiles": "CC1=CC=C(O1)C",
+   "opsin": {
+    "name": "2,5-dimethylfuran",
+    "kind": "name",
+    "smiles": "CC=1OC(=CC1)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/2%2C5-Dimethylfuran"
+  },
+  "thf": {
+   "cid": 8028,
+   "name": "tetrahydrofuran",
+   "smiles": "C1CCOC1",
+   "opsin": {
+    "name": "tetrahydrofuran",
+    "kind": "name",
+    "smiles": "O1CCCC1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Tetrahydrofuran"
+  },
+  "pyrrole": {
+   "cid": 8027,
+   "name": "pyrrole",
+   "smiles": "C1=CNC=C1",
+   "opsin": {
+    "name": "pyrrole",
+    "kind": "name",
+    "smiles": "N1C=CC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Pyrrole"
+  },
+  "furoicAcid": {
+   "cid": 6919,
+   "name": "2-furoic acid",
+   "smiles": "C1=COC(=C1)C(=O)O",
+   "opsin": {
+    "name": "2-furoic acid",
+    "kind": "name",
+    "smiles": "O1C(=CC=C1)C(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/2-Furoic_acid"
+  },
+  "adenine": {
+   "cid": 190,
+   "name": "adenine",
+   "smiles": "C1=NC2=NC=NC(=C2N1)N",
+   "opsin": {
+    "name": "adenine",
+    "kind": "name",
+    "smiles": "N1=CN=C2N=CNC2=C1N"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Adenine"
+  },
+  "mercaptopurine": {
+   "cid": 667490,
+   "name": "6-mercaptopurine",
+   "smiles": "C1=NC2=C(N1)C(=S)N=CN2",
+   "opsin": {
+    "name": "3,7-dihydropurine-6-thione",
+    "kind": "iupac",
+    "smiles": "N1=CNC=2N=CNC2C1=S"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Mercaptopurine"
+  },
+  "diaminopurine": {
+   "cid": 30976,
+   "name": "2,6-diaminopurine",
+   "smiles": "C1=NC2=NC(=NC(=C2N1)N)N",
+   "opsin": {
+    "name": "2,6-diaminopurine",
+    "kind": "name",
+    "smiles": "NC1=NC(=C2NC=NC2=N1)N"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/2%2C6-Diaminopurine"
+  },
+  "methylxanthine7": {
+   "cid": 68374,
+   "name": "7-methylxanthine",
+   "smiles": "CN1C=NC2=C1C(=O)NC(=O)N2",
+   "opsin": {
+    "name": "7-methylxanthine",
+    "kind": "name",
+    "smiles": "CN1C=NC=2NC(NC(C12)=O)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/7-Methylxanthine"
+  },
+  "cumene": {
+   "cid": 7406,
+   "name": "cumene",
+   "smiles": "CC(C)C1=CC=CC=C1",
+   "opsin": {
+    "name": "cumene",
+    "kind": "name",
+    "smiles": "C1(=CC=CC=C1)C(C)C"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Cumene"
+  },
+  "enprofylline": {
+   "cid": 1676,
+   "name": "enprofylline",
+   "smiles": "CCCN1C2=C(C(=O)NC1=O)NC=N2",
+   "opsin": {
+    "name": "3-propyl-7H-purine-2,6-dione",
+    "kind": "iupac",
+    "smiles": "C(CC)N1C(NC(C=2NC=NC12)=O)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Enprofylline"
+  },
+  "hypoxanthine": {
+   "cid": 135398638,
+   "name": "hypoxanthine",
+   "smiles": "C1=NC2=C(N1)C(=O)NC=N2",
+   "opsin": {
+    "name": "hypoxanthine",
+    "kind": "name",
+    "smiles": "N1C=NC=2N=CNC2C1=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Hypoxanthine"
+  },
+  "guanine": {
+   "cid": 135398634,
+   "name": "guanine",
+   "smiles": "C1=NC2=C(N1)C(=O)NC(=N2)N",
+   "opsin": {
+    "name": "guanine",
+    "kind": "name",
+    "smiles": "N1C(N)=NC=2N=CNC2C1=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Guanine"
+  },
+  "vinylguaiacol": {
+   "cid": 332,
+   "name": "4-vinylguaiacol",
+   "smiles": "COC1=C(C=CC(=C1)C=C)O",
+   "opsin": {
+    "name": "4-ethenyl-2-methoxyphenol",
+    "kind": "iupac",
+    "smiles": "C(=C)C1=CC(=C(C=C1)O)OC"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/2-Methoxy-4-vinylphenol"
+  },
+  "acetovanillone": {
+   "cid": 2214,
+   "name": "acetovanillone",
+   "smiles": "CC(=O)C1=CC(=C(C=C1)O)OC",
+   "opsin": {
+    "name": "acetovanillone",
+    "kind": "name",
+    "smiles": "CC(=O)C1=CC(OC)=C(O)C=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Apocynin"
+  },
+  "guaiacol": {
+   "cid": 460,
+   "name": "guaiacol",
+   "smiles": "COC1=CC=CC=C1O",
+   "opsin": {
+    "name": "guaiacol",
+    "kind": "name",
+    "smiles": "C=1(C(O)=CC=CC1)OC"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Guaiacol"
+  },
+  "isoeugenol": {
+   "cid": 853433,
+   "name": "isoeugenol",
+   "smiles": "CC=CC1=CC(=C(C=C1)O)OC",
+   "opsin": {
+    "name": "isoeugenol",
+    "kind": "name",
+    "smiles": "C=1(C(O)=CC=C(C=CC)C1)OC"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Isoeugenol"
+  },
+  "eugenol": {
+   "cid": 3314,
+   "name": "eugenol",
+   "smiles": "COC1=C(C=CC(=C1)CC=C)O",
+   "opsin": {
+    "name": "eugenol",
+    "kind": "name",
+    "smiles": "C=1(C(O)=CC=C(CC=C)C1)OC"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Eugenol"
+  },
+  "syringaldehyde": {
+   "cid": 8655,
+   "name": "syringaldehyde",
+   "smiles": "COC1=CC(=CC(=C1O)OC)C=O",
+   "opsin": {
+    "name": "syringaldehyde",
+    "kind": "name",
+    "smiles": "C(C1=CC(OC)=C(O)C(OC)=C1)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Syringaldehyde"
+  },
+  "anisaldehyde": {
+   "cid": 31244,
+   "name": "p-anisaldehyde",
+   "smiles": "COC1=CC=C(C=C1)C=O",
+   "opsin": {
+    "name": "p-anisaldehyde",
+    "kind": "name",
+    "smiles": "C(C1=CC=C(C=C1)OC)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/4-Anisaldehyde"
+  },
+  "aniline": {
+   "cid": 6115,
+   "name": "aniline",
+   "smiles": "C1=CC=C(C=C1)N",
+   "opsin": {
+    "name": "aniline",
+    "kind": "name",
+    "smiles": "NC1=CC=CC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Aniline"
+  },
+  "phenetidine": {
+   "cid": 9076,
+   "name": "p-phenetidine",
+   "smiles": "CCOC1=CC=C(C=C1)N",
+   "opsin": {
+    "name": "p-phenetidine",
+    "kind": "name",
+    "smiles": "CCOC1=CC=C(C=C1)N"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/P-Phenetidine"
+  },
+  "salicylamide": {
+   "cid": 5147,
+   "name": "salicylamide",
+   "smiles": "C1=CC=C(C(=C1)C(=O)N)O",
+   "opsin": {
+    "name": "salicylamide",
+    "kind": "name",
+    "smiles": "C(C=1C(O)=CC=CC1)(=O)N"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Salicylamide"
+  },
+  "benzoicAcid": {
+   "cid": 243,
+   "name": "benzoic acid",
+   "smiles": "C1=CC=C(C=C1)C(=O)O",
+   "opsin": {
+    "name": "benzoic acid",
+    "kind": "name",
+    "smiles": "C(C1=CC=CC=C1)(=O)O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Benzoic_acid"
+  },
+  "salicylaldehyde": {
+   "cid": 6998,
+   "name": "salicylaldehyde",
+   "smiles": "C1=CC=C(C(=C1)C=O)O",
+   "opsin": {
+    "name": "salicylaldehyde",
+    "kind": "name",
+    "smiles": "C(C=1C(O)=CC=CC1)=O"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Salicylaldehyde"
+  },
+  "isobutylbenzene": {
+   "cid": 10870,
+   "name": "isobutylbenzene",
+   "smiles": "CC(C)CC1=CC=CC=C1",
+   "opsin": {
+    "name": "isobutylbenzene",
+    "kind": "name",
+    "smiles": "C(C(C)C)C1=CC=CC=C1"
+   },
+   "factUrl": "https://en.wikipedia.org/wiki/Isobutylbenzene"
+  }
+ }
+}

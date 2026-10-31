@@ -293,7 +293,7 @@ globalThis.ChemWords = {
   "restart": "Start over",
   "nextLevel": "Next level",
   "solvedIn": "Solved in {moves} moves.",
-  "starsHelp": "Three stars for the fewest moves with no hint, two for no hint, one with a hint.",
+  "starsHelp": "Three stars for the fewest moves with no hint, two for no hint, one with a hint. Changing one atom or bond several times in a row is one move.",
   "dexIntro": "Each solved level unlocks a compound. Save any of them as CDXML, or copy a request for your agent.",
   "dexEmpty": "Solve the first level on the route map and its compound appears here.",
   "saveCdxml": "Save .cdxml",

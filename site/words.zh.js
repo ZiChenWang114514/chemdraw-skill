@@ -293,7 +293,7 @@ globalThis.ChemWords = {
   "restart": "重新开始",
   "nextLevel": "下一关",
   "solvedIn": "完成！用了 {moves} 步。",
-  "starsHelp": "在最少步数内完成且不看提示得 3 星，不看提示得 2 星，看了提示得 1 星。",
+  "starsHelp": "在最少步数内完成且不看提示得 3 星，不看提示得 2 星，看了提示得 1 星。连续切换同一个原子或键只算一步。",
   "dexIntro": "完成一关就解锁一种化合物。每种都能下载 CDXML，也能复制一句话交给你的 Agent。",
   "dexEmpty": "去路线图完成第一关，这里就会出现第一种化合物。",
   "saveCdxml": "下载 .cdxml",
