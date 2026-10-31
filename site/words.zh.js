@@ -168,6 +168,12 @@ globalThis.ChemWords = {
  },
  "run": "运行一遍",
  "progressTop": "开头",
+ "faq": {
+  "expand": "全部展开",
+  "collapse": "全部收起",
+  "count": "{n} 个结果",
+  "link": "复制这个问题的链接"
+ },
  "running": "运行中…",
  "rerun": "再运行一遍",
  "copyAsk": "复制",

@@ -107,7 +107,7 @@ const click = async (selector) => {
   if (!at) throw new Error(`nothing to click: ${selector}`);
   await clickAt(at);
 };
-const KEYS = { Enter: 13, " ": 32, Tab: 9, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
+const KEYS = { Enter: 13, Backspace: 8, " ": 32, Tab: 9, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
 const press = async (key, modifiers = 0) => {
   const vk = KEYS[key] ?? key.toUpperCase().charCodeAt(0);
   const params = { key, windowsVirtualKeyCode: vk, nativeVirtualKeyCode: vk, modifiers, code: key.length === 1 ? `Key${key.toUpperCase()}` : key };
@@ -195,6 +195,40 @@ async function main() {
   check("the slide cleans up", await until(`!document.documentElement.dataset.slide`, 800));
   await hash("#daily");
   await sleep(320);
+
+  // The FAQ: search, nothing found, open everything, deep links, and no script at all
+  await open("");
+  const type = async (text) => {
+    await click(".faq-search input");
+    await run(`document.querySelector(".faq-search input").select()`);
+    if (text) await send("Input.insertText", { text }); else await press("Backspace");
+    await sleep(60);
+  };
+  const shownQuestions = () => count(".faq details:not([hidden])");
+  await type("SDS");
+  check("search keeps only matching questions", (await shownQuestions()) === 1, await shownQuestions());
+  check("search marks what it found", (await count(".faq mark")) > 0);
+  check("a found question is open", await run(`document.querySelector(".faq details:not([hidden])").open`));
+  check("search says how many", /1/.test(await run(`document.querySelector(".faq-count").textContent`)));
+  await type("zzzz");
+  check("an empty search offers a way forward", await run(`!document.querySelector(".faq-empty").hidden && !!document.querySelector(".faq-empty a")`));
+  await type("");
+  check("clearing the search restores the list", (await shownQuestions()) === 8 && (await count(".faq details[open]")) === 1 && (await count(".faq mark")) === 0);
+  await click("[data-faq-all]");
+  check("expand all opens every answer", (await count(".faq details[open]")) === 8);
+  await sleep(320);
+  await click("[data-faq-all]");
+  check("expand all closes them again", (await count(".faq details[open]")) === 0);
+  await sleep(320);
+  await run(`document.querySelector("#faq-safety summary").scrollIntoView({ block: "center", behavior: "instant" })`);
+  await click("#faq-safety ~ .faq-link");
+  check("each question copies its own link", await until(`navigator.clipboard.readText().then((t) => t.endsWith("#faq-safety"))`), await run(`navigator.clipboard.readText()`));
+  await open("#faq-safety");
+  check("a deep link opens its answer", await run(`document.querySelector("#faq-safety").open`));
+  await send("Emulation.setScriptExecutionDisabled", { value: true });
+  await open("");
+  check("without scripts the FAQ still reads", (await count(".faq details .lead")) === 8 && await run(`getComputedStyle(document.querySelector(".faq-tools")).display === "none"`));
+  await send("Emulation.setScriptExecutionDisabled", { value: false });
 
   // Home: the editor and the daily molecule in the hero
   await open("");

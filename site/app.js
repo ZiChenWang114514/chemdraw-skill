@@ -291,6 +291,96 @@ if (progress) {
   measure();
 }
 
+// FAQ: search as you type, open or close everything, and a link to each answer.
+const faq = document.querySelector(".faq");
+if (faq && words) {
+  const L = words.faq;
+  const tools = document.querySelector(".faq-tools");
+  const input = tools.querySelector("input");
+  const total = tools.querySelector(".faq-count");
+  const all = tools.querySelector("[data-faq-all]");
+  const empty = document.querySelector(".faq-empty");
+  const items = [...faq.querySelectorAll("details")];
+  let before = null;
+
+  const paintAll = () => {
+    const shown = items.filter((d) => !d.hidden);
+    all.textContent = shown.length && shown.every((d) => d.open) ? L.collapse : L.expand;
+    all.hidden = !shown.length;
+  };
+  const unmark = () => faq.querySelectorAll("mark").forEach((m) => {
+    const parent = m.parentNode;
+    m.replaceWith(m.textContent);
+    parent.normalize();
+  });
+  const mark = (item, pattern) => {
+    const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+    const texts = [];
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    for (const text of texts) {
+      const parts = text.data.split(pattern);
+      if (parts.length < 2) continue;
+      const found = document.createDocumentFragment();
+      parts.forEach((part, i) => { if (part) found.append(i % 2 ? Object.assign(document.createElement("mark"), { textContent: part }) : part); });
+      text.replaceWith(found);
+    }
+  };
+  input.addEventListener("input", () => {
+    const terms = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    unmark();
+    if (!terms.length) {
+      items.forEach((d, i) => { d.hidden = false; if (before) d.open = before[i]; });
+      before = null;
+      total.textContent = "";
+      empty.hidden = true;
+      paintAll();
+      return;
+    }
+    before ||= items.map((d) => d.open);
+    const pattern = new RegExp(`(${terms.map((t) => t.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
+    let hits = 0;
+    for (const d of items) {
+      const hay = d.textContent.toLowerCase();
+      d.hidden = !terms.every((t) => hay.includes(t));
+      if (d.hidden) continue;
+      hits++;
+      d.open = true;
+      mark(d, pattern);
+    }
+    total.textContent = fmt(L.count, { n: hits });
+    empty.hidden = hits > 0;
+    paintAll();
+  });
+  all.addEventListener("click", () => {
+    const open = all.textContent === L.expand;
+    items.forEach((d) => { if (!d.hidden) d.open = open; });
+  });
+  faq.addEventListener("toggle", paintAll, true);
+
+  for (const d of items) {
+    const row = Object.assign(document.createElement("div"), { className: "qa" });
+    d.replaceWith(row);
+    const link = Object.assign(document.createElement("button"), { type: "button", className: "faq-link", title: L.link });
+    link.setAttribute("aria-label", L.link);
+    link.innerHTML = `<svg class="chain" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2-2a2.6 2.6 0 0 0-3.7-3.7l-.8.8M9.2 6.8a2.6 2.6 0 0 0-3.7 0l-2 2a2.6 2.6 0 0 0 3.7 3.7l.8-.8"/></svg><svg class="tick" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8"/></svg>`;
+    link.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(new URL(`#${d.id}`, location.href).href);
+      link.dataset.done = "";
+      setTimeout(() => { delete link.dataset.done; }, 1500);
+    });
+    row.append(d, link);
+  }
+
+  const openLinked = () => {
+    const linked = items.find((d) => `#${d.id}` === location.hash);
+    if (linked) linked.open = true;
+  };
+  addEventListener("hashchange", openLinked);
+  openLinked();
+  tools.hidden = false;
+  paintAll();
+}
+
 // Capabilities: filter the list by kind, and copy any example request.
 const filters = document.querySelector(".filters");
 if (filters && words) {

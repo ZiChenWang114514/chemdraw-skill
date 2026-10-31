@@ -59,21 +59,21 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "任意 AI Agent 都能使用这个 ChemDraw Skill 吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以。Agent 只需要能读取 Skill 指令并执行命令行，所有工具都通过 cdx.py 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode、Kimi CLI、pi 等 Agent 能发现的目录。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "可以。Agent 只需要能读取 Skill 指令并执行命令行。 所有工具都通过 cdx.py 运行。 能自动发现 Skill 的 Agent：安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode、Kimi CLI、pi 等 Agent 能发现的目录。 不支持自动发现的 Agent：在它的指令文件里指向 SKILL.md 即可。" } },
         { "@type": "Question", "name": "必须使用 MCP 服务吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "不需要。命令行覆盖全部工具，并保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "不需要。命令行覆盖全部工具。 命令行保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。" } },
         { "@type": "Question", "name": "能从 Excel 实验数据生成 SAR 图和底物拓展图吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图；更新数据时保留无关的手工布局修改。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图。 更新数据时保留无关的手工布局修改。见数据驱动绘图指南。" } },
         { "@type": "Question", "name": "它会编造反应条件或推测机理吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "不会。按需求画的图，条件、收率和实测数值只取自你给的内容，缺的就保持缺失，并在报告里说明。解析不了的名称会被拒绝，而不是猜一个。机理只按你列出的电子转移绘制，不会判断机理本身对不对。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "不会。按需求画的图，条件、收率和实测数值只取自你给的内容。 缺的数值保持缺失，并在报告里说明。 解析不了的名称会被拒绝，而不是猜一个。 机理只按你列出的电子转移绘制。箭头起点没有孤对电子或电荷时会提醒，但不会判断机理本身对不对。 见绘制新反应图。" } },
         { "@type": "Question", "name": "能帮我算每种试剂该称多少吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以，用的是 ChemDraw 自带的计算器。cdx.py calc 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure > Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表；在表里填质量、体积或当量，其余数值由 ChemDraw 算出；cdx.py calc --read 把保存后的数值读回来。没有 ChemDraw 时，SI 原料表也能给出用量，其中所有默认值都标明是假设值。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "可以，用的是 ChemDraw 自带的计算器。 cdx.py calc 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure > Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表。 在表里填质量、体积或当量，其余数值由 ChemDraw 算出。 cdx.py calc --read 把保存后的数值读回来。 没有 ChemDraw 时，SI 原料表也能给出用量，其中所有默认值都标明是假设值。见化学报告指南。" } },
         { "@type": "Question", "name": "安全信息可以信到什么程度？",
-          "acceptedAnswer": { "@type": "Answer", "text": "它只是提醒，来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示“未收录”，不会显示成安全。请以你实际使用的产品的 SDS 为准。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "它只是提醒，请以你实际使用的产品的 SDS 为准。 内容来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。 表里没有的物质显示“未收录”，不会显示成安全。" } },
         { "@type": "Question", "name": "能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以。论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核，输出可编辑 CDXML 和 ChemDraw 原生预览。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "可以，输出可编辑 CDXML 和 ChemDraw 原生预览。 论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核。见重建指南。" } },
         { "@type": "Question", "name": "没有安装 ChemDraw 能用吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以使用跨平台的 cdxml-toolkit 运行时生成和检查 CDXML（Windows、macOS、Linux）。原生渲染、ChemScript 检查和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。" } }
+          "acceptedAnswer": { "@type": "Answer", "text": "部分能用：可以生成和检查 CDXML，原生功能需要 ChemDraw。 不需要 ChemDraw：跨平台的 cdxml-toolkit 运行时在 Windows、macOS、Linux 上生成和检查 CDXML。 需要 Windows 或 macOS 上已授权的桌面版 ChemDraw：原生渲染、ChemScript 检查和 Office 嵌入。" } }
       ]
     }
   ]
@@ -429,41 +429,92 @@ cd chemdraw-skill
 </section>
 
 <section id="faq">
-  <div class="wrap">
-    <div class="head"><h2>常见问题</h2></div>
-    <div class="faq">
-      <details open>
+  <div class="wrap faq-layout">
+    <div class="head">
+      <h2>常见问题</h2>
+      <div class="faq-tools" hidden>
+        <label class="faq-search"><input type="search" placeholder="搜索问题" aria-label="搜索问题" aria-controls="faq-list" autocomplete="off"></label>
+        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all>全部展开</button></div>
+      </div>
+    </div>
+    <div>
+      <div class="faq" id="faq-list">
+      <details id="faq-agents" open>
         <summary>任意 AI Agent 都能使用这个 ChemDraw Skill 吗？</summary>
-        <p>可以。Agent 只需要能读取 Skill 指令并执行命令行，所有工具都通过 <code>cdx.py</code> 运行。安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode、Kimi CLI、pi 等 Agent 能发现的目录；不支持自动发现的 Agent，在它的指令文件里指向 <code>SKILL.md</code> 即可。</p>
+        <div class="answer">
+          <p class="lead">可以。Agent 只需要能读取 Skill 指令并执行命令行。</p>
+          <p>所有工具都通过 <code>cdx.py</code> 运行。</p>
+          <ul>
+            <li>能自动发现 Skill 的 Agent：安装脚本会把 Skill 放到 Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode、Kimi CLI、pi 等 Agent 能发现的目录。</li>
+            <li>不支持自动发现的 Agent：在它的指令文件里指向 <code>SKILL.md</code> 即可。</li>
+          </ul>
+        </div>
       </details>
-      <details>
+      <details id="faq-mcp">
         <summary>必须使用 MCP 服务吗？</summary>
-        <p>不需要。命令行覆盖全部工具，并保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。</p>
+        <div class="answer">
+          <p class="lead">不需要。命令行覆盖全部工具。</p>
+          <p>命令行保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-sar">
         <summary>能从 Excel 实验数据生成 SAR 图和底物拓展图吗？</summary>
-        <p>可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图；更新数据时保留无关的手工布局修改。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">数据驱动绘图指南</a>。</p>
+        <div class="answer">
+          <p class="lead">可以。将可信结构与 CSV/XLSX 数据绑定，生成可编辑的构效关系（SAR）图或底物拓展图。</p>
+          <p>更新数据时保留无关的手工布局修改。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">数据驱动绘图指南</a>。</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-honesty">
         <summary>它会编造反应条件或推测机理吗？</summary>
-        <p>不会。按需求画的图，条件、收率和实测数值只取自你给的内容，缺的就保持缺失，并在报告里说明。解析不了的名称会被拒绝，而不是猜一个。机理只按你列出的电子转移绘制，箭头起点没有孤对电子或电荷时会提醒，但不会判断机理本身对不对。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">绘制新反应图</a>。</p>
+        <div class="answer">
+          <p class="lead">不会。按需求画的图，条件、收率和实测数值只取自你给的内容。</p>
+          <ul>
+            <li>缺的数值保持缺失，并在报告里说明。</li>
+            <li>解析不了的名称会被拒绝，而不是猜一个。</li>
+            <li>机理只按你列出的电子转移绘制。箭头起点没有孤对电子或电荷时会提醒，但不会判断机理本身对不对。</li>
+          </ul>
+          <p>见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">绘制新反应图</a>。</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-stoichiometry">
         <summary>能帮我算每种试剂该称多少吗？</summary>
-        <p>可以，用的是 ChemDraw 自带的计算器。<code>cdx.py calc</code> 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure &gt; Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表；在表里填质量、体积或当量，其余数值由 ChemDraw 算出；<code>cdx.py calc --read</code> 把保存后的数值读回来。没有 ChemDraw 时，SI 原料表也能给出用量，其中所有默认值都标明是假设值。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">化学报告指南</a>。</p>
+        <div class="answer">
+          <p class="lead">可以，用的是 ChemDraw 自带的计算器。</p>
+          <ul>
+            <li><code>cdx.py calc</code> 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure &gt; Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表。</li>
+            <li>在表里填质量、体积或当量，其余数值由 ChemDraw 算出。</li>
+            <li><code>cdx.py calc --read</code> 把保存后的数值读回来。</li>
+          </ul>
+          <p>没有 ChemDraw 时，SI 原料表也能给出用量，其中所有默认值都标明是假设值。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">化学报告指南</a>。</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-safety">
         <summary>安全信息可以信到什么程度？</summary>
-        <p>它只是提醒，来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示“未收录”，不会显示成安全。请以你实际使用的产品的 SDS 为准。</p>
+        <div class="answer">
+          <p class="lead">它只是提醒，请以你实际使用的产品的 SDS 为准。</p>
+          <p>内容来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。</p>
+          <p>表里没有的物质显示“未收录”，不会显示成安全。</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-reconstruct">
         <summary>能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？</summary>
-        <p>可以。论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核，输出可编辑 CDXML 和 ChemDraw 原生预览。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">重建指南</a>。</p>
+        <div class="answer">
+          <p class="lead">可以，输出可编辑 CDXML 和 ChemDraw 原生预览。</p>
+          <p>论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">重建指南</a>。</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-no-chemdraw">
         <summary>没有安装 ChemDraw 能用吗？</summary>
-        <p>可以使用跨平台的 cdxml-toolkit 运行时生成和检查 CDXML（Windows、macOS、Linux）。原生渲染、ChemScript 检查和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。</p>
+        <div class="answer">
+          <p class="lead">部分能用：可以生成和检查 CDXML，原生功能需要 ChemDraw。</p>
+          <ul>
+            <li>不需要 ChemDraw：跨平台的 cdxml-toolkit 运行时在 Windows、macOS、Linux 上生成和检查 CDXML。</li>
+            <li>需要 Windows 或 macOS 上已授权的桌面版 ChemDraw：原生渲染、ChemScript 检查和 Office 嵌入。</li>
+          </ul>
+        </div>
       </details>
+      </div>
+      <p class="faq-empty" hidden>没有匹配的问题。可以到 <a href="https://github.com/ZiChenWang114514/chemdraw-skill/issues">GitHub Issues</a> 提问。</p>
     </div>
   </div>
 </section>

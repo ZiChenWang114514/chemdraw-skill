@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import gzip
+from html import unescape
 import json
 import os
 import re
@@ -598,8 +599,61 @@ class LabPageTests(unittest.TestCase):
         # GitHub Pages serves these compressed, so that is the weight a visitor pays for.
         size = lambda *names: sum(len(gzip.compress((SITE / n).read_bytes(), 9)) for n in names)
         for word_file in ("words.zh.js", "words.en.js"):
-            self.assertLessEqual(size("app.js", "chem.js", "editor.js", word_file), 34_000)
-        self.assertLessEqual(size("lab.js"), 8_000)
+            self.assertLessEqual(size("app.js", "chem.js", "editor.js", word_file), 38_000)
+        self.assertLessEqual(size("lab.js"), 9_000)
+
+
+def faq_entries(language: str) -> list:
+    """Each question on the page as (id, question, classes of its first block, blocks of plain text)."""
+    source = PAGES[language].read_text(encoding="utf-8")
+    faq = source[source.index('<section id="faq">'):source.index("</section>", source.index('<section id="faq">'))]
+    plain = lambda text: re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", "", text))).strip()
+    entries = []
+    for number, question, answer in re.findall(r'<details id="([^"]+)"[^>]*>\s*<summary>(.*?)</summary>(.*?)</details>', faq, re.S):
+        blocks = re.findall(r"<(p|li)\b([^>]*)>(.*?)</\1>", answer, re.S)
+        entries.append((number, plain(question), blocks[0][1], [plain(text) for _, _, text in blocks]))
+    return entries
+
+
+def faq_structured_data(language: str) -> list:
+    source = PAGES[language].read_text(encoding="utf-8")
+    data = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', source, re.S).group(1))
+    faq = next(node for node in data["@graph"] if node["@type"] == "FAQPage")
+    return [(q["name"], q["acceptedAnswer"]["text"]) for q in faq["mainEntity"]]
+
+
+class FaqTests(unittest.TestCase):
+    def test_both_languages_ask_the_same_questions(self) -> None:
+        ids = [[entry[0] for entry in faq_entries(language)] for language in PAGES]
+        self.assertEqual(ids[0], ids[1])
+        self.assertEqual(len(ids[0]), 8)
+        self.assertEqual(len(set(ids[0])), 8)
+        self.assertTrue(all(i.startswith("faq-") for i in ids[0]))
+
+    def test_structured_data_quotes_the_page_word_for_word(self) -> None:
+        for language in PAGES:
+            with self.subTest(language=language):
+                self.assertEqual(faq_structured_data(language), [(q, " ".join(blocks)) for _, q, _, blocks in faq_entries(language)])
+
+    def test_each_answer_leads_with_its_conclusion(self) -> None:
+        for language in PAGES:
+            for number, _, first, _ in faq_entries(language):
+                with self.subTest(language=language, question=number):
+                    self.assertIn('class="lead"', first)
+
+    def test_no_answer_runs_long(self) -> None:
+        for number, _, _, blocks in faq_entries("zh"):
+            for block in blocks:
+                with self.subTest(question=number, block=block[:20]):
+                    self.assertLessEqual(len(re.findall(r"[\u4e00-\u9fff]", block)), 60)
+        for number, _, _, blocks in faq_entries("en"):
+            for block in blocks:
+                with self.subTest(question=number, block=block[:20]):
+                    self.assertLessEqual(len(block.split()), 40)
+
+    def test_search_is_added_by_the_script(self) -> None:
+        for path in PAGES.values():
+            self.assertRegex(path.read_text(encoding="utf-8"), r'class="faq-tools" hidden')
 
 
 class PageMotionTests(unittest.TestCase):

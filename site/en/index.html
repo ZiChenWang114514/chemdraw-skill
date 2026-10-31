@@ -57,21 +57,21 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "Does this ChemDraw Skill work with any AI agent?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through cdx.py. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, as long as the agent can read the skill instructions and run shell commands. Every tool runs through cdx.py. With skill discovery: the installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills. Without skill discovery: point the agent's instruction file at SKILL.md." } },
         { "@type": "Question", "name": "Do I need an MCP server?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. The command line covers every tool with the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "No. The command line covers every tool. It keeps the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server." } },
         { "@type": "Question", "name": "Can it build SAR and substrate-scope figures from Excel data?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures; updating the data keeps unrelated manual layout edits." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures. Updating the data keeps unrelated manual layout edits. See the data-driven figures guide." } },
         { "@type": "Question", "name": "Will it make up reaction conditions or predict a mechanism?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and the tool does not judge whether the mechanism is right." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave. A missing value stays missing, and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list. An arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right. See drawing a new reaction scheme." } },
         { "@type": "Question", "name": "Can it work out how much of each reagent to weigh?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes, with ChemDraw's own calculator. cdx.py calc runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw, where you type a mass, volume or equivalents and ChemDraw computes the rest; cdx.py calc --read reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, with ChemDraw's own calculator. cdx.py calc runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw. Type a mass, volume or equivalents in the grid, and ChemDraw computes the rest. cdx.py calc --read reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the chemistry reports guide." } },
         { "@type": "Question", "name": "How far can I trust the safety information?",
-          "acceptedAnswer": { "@type": "Answer", "text": "It is a reminder from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as not listed, never as safe. Check the SDS of the product you actually use." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Treat it as a reminder, and check the SDS of the product you actually use. It comes from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as \"not listed\", never as safe." } },
         { "@type": "Question", "name": "Can it turn a structure image from a paper into an editable ChemDraw file?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review, and outputs editable CDXML with a native ChemDraw preview." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, as editable CDXML with a native ChemDraw preview. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review. See the reconstruction guide." } },
         { "@type": "Question", "name": "Does it work without ChemDraw installed?",
-          "acceptedAnswer": { "@type": "Answer", "text": "The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed desktop ChemDraw on Windows or macOS." } }
+          "acceptedAnswer": { "@type": "Answer", "text": "Partly: it can create and check CDXML, but the native features need ChemDraw. Without ChemDraw: the portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. With licensed desktop ChemDraw on Windows or macOS: native rendering, ChemScript checks and Office embedding." } }
       ]
     }
   ]
@@ -427,41 +427,92 @@ cd chemdraw-skill
 </section>
 
 <section id="faq">
-  <div class="wrap">
-    <div class="head"><h2>Common questions</h2></div>
-    <div class="faq">
-      <details open>
+  <div class="wrap faq-layout">
+    <div class="head">
+      <h2>Common questions</h2>
+      <div class="faq-tools" hidden>
+        <label class="faq-search"><input type="search" placeholder="Search questions" aria-label="Search questions" aria-controls="faq-list" autocomplete="off"></label>
+        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all>Expand all</button></div>
+      </div>
+    </div>
+    <div>
+      <div class="faq" id="faq-list">
+      <details id="faq-agents" open>
         <summary>Does this ChemDraw Skill work with any AI agent?</summary>
-        <p>Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through <code>cdx.py</code>. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills. For an agent without skill discovery, point its instruction file at <code>SKILL.md</code>.</p>
+        <div class="answer">
+          <p class="lead">Yes, as long as the agent can read the skill instructions and run shell commands.</p>
+          <p>Every tool runs through <code>cdx.py</code>.</p>
+          <ul>
+            <li>With skill discovery: the installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills.</li>
+            <li>Without skill discovery: point the agent's instruction file at <code>SKILL.md</code>.</li>
+          </ul>
+        </div>
       </details>
-      <details>
+      <details id="faq-mcp">
         <summary>Do I need an MCP server?</summary>
-        <p>No. The command line covers every tool with the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server.</p>
+        <div class="answer">
+          <p class="lead">No. The command line covers every tool.</p>
+          <p>It keeps the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-sar">
         <summary>Can it build SAR and substrate-scope figures from Excel data?</summary>
-        <p>Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures; updating the data keeps unrelated manual layout edits. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">data-driven figures guide</a>.</p>
+        <div class="answer">
+          <p class="lead">Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures.</p>
+          <p>Updating the data keeps unrelated manual layout edits. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">data-driven figures guide</a>.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-honesty">
         <summary>Will it make up reaction conditions or predict a mechanism?</summary>
-        <p>No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and an arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right. See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">drawing a new reaction scheme</a>.</p>
+        <div class="answer">
+          <p class="lead">No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave.</p>
+          <ul>
+            <li>A missing value stays missing, and the report says so.</li>
+            <li>A name it cannot resolve is refused instead of guessed.</li>
+            <li>Mechanisms are drawn from electron moves you list. An arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right.</li>
+          </ul>
+          <p>See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">drawing a new reaction scheme</a>.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-stoichiometry">
         <summary>Can it work out how much of each reagent to weigh?</summary>
-        <p>Yes, with ChemDraw's own calculator. <code>cdx.py calc</code> runs Structure &gt; Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw, where you type a mass, volume or equivalents and ChemDraw computes the rest; <code>cdx.py calc --read</code> reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">chemistry reports guide</a>.</p>
+        <div class="answer">
+          <p class="lead">Yes, with ChemDraw's own calculator.</p>
+          <ul>
+            <li><code>cdx.py calc</code> runs Structure &gt; Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw.</li>
+            <li>Type a mass, volume or equivalents in the grid, and ChemDraw computes the rest.</li>
+            <li><code>cdx.py calc --read</code> reads the saved numbers back.</li>
+          </ul>
+          <p>Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">chemistry reports guide</a>.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-safety">
         <summary>How far can I trust the safety information?</summary>
-        <p>It is a reminder from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", never as safe. Check the SDS of the product you actually use.</p>
+        <div class="answer">
+          <p class="lead">Treat it as a reminder, and check the SDS of the product you actually use.</p>
+          <p>It comes from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point.</p>
+          <p>A substance that is not in the table is shown as "not listed", never as safe.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-reconstruct">
         <summary>Can it turn a structure image from a paper into an editable ChemDraw file?</summary>
-        <p>Yes. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review, and outputs editable CDXML with a native ChemDraw preview. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">reconstruction guide</a>.</p>
+        <div class="answer">
+          <p class="lead">Yes, as editable CDXML with a native ChemDraw preview.</p>
+          <p>The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">reconstruction guide</a>.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-no-chemdraw">
         <summary>Does it work without ChemDraw installed?</summary>
-        <p>The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed desktop ChemDraw on Windows or macOS.</p>
+        <div class="answer">
+          <p class="lead">Partly: it can create and check CDXML, but the native features need ChemDraw.</p>
+          <ul>
+            <li>Without ChemDraw: the portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux.</li>
+            <li>With licensed desktop ChemDraw on Windows or macOS: native rendering, ChemScript checks and Office embedding.</li>
+          </ul>
+        </div>
       </details>
+      </div>
+      <p class="faq-empty" hidden>No question matches. You can ask on <a href="https://github.com/ZiChenWang114514/chemdraw-skill/issues">GitHub Issues</a>.</p>
     </div>
   </div>
 </section>

@@ -168,6 +168,12 @@ globalThis.ChemWords = {
  },
  "run": "Run it",
  "progressTop": "Top of the page",
+ "faq": {
+  "expand": "Expand all",
+  "collapse": "Collapse all",
+  "count": "{n} found",
+  "link": "Copy a link to this question"
+ },
  "running": "Running…",
  "rerun": "Run it again",
  "copyAsk": "Copy",
