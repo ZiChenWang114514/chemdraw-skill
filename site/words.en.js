@@ -168,6 +168,22 @@ globalThis.ChemWords = {
  },
  "run": "Run it",
  "progressTop": "Top of the page",
+ "shortcuts": {
+  "title": "Shortcuts",
+  "rows": [
+   ["V B A R E", "Change tool"],
+   ["C N O S F L", "Change the atom under the pointer; L is Cl"],
+   ["1 2 3", "Set the order of the bond under the pointer"],
+   ["Delete", "Delete what is under the pointer"],
+   ["Arrows", "Walk between atoms and bonds"],
+   ["Shift Arrows", "Nudge an atom"],
+   ["Enter", "Use the tool at the cursor"],
+   ["Ctrl Z", "Undo"],
+   ["Ctrl Shift Z", "Redo"],
+   ["Ctrl Shift K", "Clean up the structure"],
+   ["Esc", "Close this list"]
+  ]
+ },
  "elements": {
   "C": "Carbon",
   "N": "Nitrogen",
@@ -266,6 +282,9 @@ globalThis.ChemWords = {
   },
   "moves": "Moves",
   "par": "Fewest moves",
+  "delta": "Formula still needs",
+  "deltaJoin": ", ",
+  "deltaDone": "Formula matches; check the connections",
   "target": "Target formula",
   "starsLabel": "{n} of 3 stars",
   "unsolved": "Not solved",
@@ -317,6 +336,7 @@ globalThis.ChemWords = {
    }
   },
   "badgeUnlocked": "Badge unlocked: {title}",
+  "badgeView": "View",
   "huntIntro": "The agent’s drawing has one error. Compare it with the correct structure and click the wrong atom or bond. These structures are wrong on purpose, for this game only.",
   "huntStart": "Start a game",
   "huntAgain": "Play again",

@@ -56,7 +56,7 @@
     const order = count.C ? ["C", "H", ...rest] : symbols.sort();
     const parts = order.filter((s) => count[s] > 0).map((s) => [s, count[s]]);
     return {
-      used, hyd, over, mass, exact,
+      used, hyd, over, count, mass, exact,
       text: parts.map(([s, n]) => s + (n > 1 ? n : "")).join(""),
       html: parts.map(([s, n]) => s + (n > 1 ? `<sub>${n}</sub>` : "")).join(""),
     };
@@ -553,6 +553,13 @@
   }
   const targetOf = (c) => applyMoves(load(c.mol), c.solve);
   const challengeKey = (c) => graphKey(targetOf(c));
+  // What a drawing still needs to reach a target: one { s, n } per element that differs, Hill order.
+  function formulaDelta(g, target) {
+    const have = analyse(g).count, want = analyse(target).count;
+    const all = [...new Set([...Object.keys(have), ...Object.keys(want)])];
+    const order = all.includes("C") ? ["C", "H", ...all.filter((s) => s !== "C" && s !== "H").sort()] : all.sort();
+    return order.map((s) => ({ s, n: (want[s] || 0) - (have[s] || 0) })).filter((d) => d.n);
+  }
   const stars = (moves, par, hinted) => (hinted ? 1 : moves <= par ? 3 : 2);
 
   // ---- the daily compound ---------------------------------------------------------
@@ -800,7 +807,7 @@
   const api = {
     applyTool, previewMarkup, MOLS, W, H, EL, CYCLE, CHALLENGES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
     fmt, load, analyse, bondLength, neighbours, remove, inside, freeAngle, place, toSmiles, toCdxml, cleanUp, drawMarkup, thumb,
-    applyMoves, graphKey, targetOf, challengeKey, stars,
+    applyMoves, graphKey, targetOf, challengeKey, formulaDelta, stars,
     localDate, dailyNumber, dailyPick, nextStreak, dailyShare,
     encodeDrawing, decodeDrawing, emptyStore, parseStore, record, earned, isomerKey, makeHunt,
   };

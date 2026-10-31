@@ -599,7 +599,7 @@ class LabPageTests(unittest.TestCase):
         # GitHub Pages serves these compressed, so that is the weight a visitor pays for.
         size = lambda *names: sum(len(gzip.compress((SITE / n).read_bytes(), 9)) for n in names)
         for word_file in ("words.zh.js", "words.en.js"):
-            self.assertLessEqual(size("app.js", "chem.js", "editor.js", word_file), 38_000)
+            self.assertLessEqual(size("app.js", "chem.js", "editor.js", word_file), 39_000)
         self.assertLessEqual(size("lab.js"), 9_000)
 
 
@@ -681,6 +681,65 @@ class ToolPlanTests(unittest.TestCase):
             self.assertTrue(markup.startswith('<g class="preview'), markup[:40])
             self.assertNotIn("data-atom", markup)
             self.assertNotIn("data-bond", markup)
+
+
+class FormulaDeltaTests(unittest.TestCase):
+    """The mission panel's running difference: target minus drawing, one entry per element that differs."""
+
+    def delta(self, current: str, target: str) -> list:
+        return run_editor(f"console.log(JSON.stringify(E.formulaDelta({current}, {target})))")
+
+    def test_the_same_formula_has_no_difference(self) -> None:
+        self.assertEqual(self.delta('E.load("aspirin")', 'E.load("aspirin")'), [])
+
+    def test_elements_come_in_hill_order_with_signed_counts(self) -> None:
+        self.assertEqual(self.delta('E.load("aspirin")', 'E.load("paracetamol")'),
+                         [{"s": "C", "n": -1}, {"s": "H", "n": 1}, {"s": "N", "n": 1}, {"s": "O", "n": -2}])
+
+    def test_an_empty_canvas_needs_the_whole_target(self) -> None:
+        self.assertEqual(self.delta('{ atoms: [], bonds: [] }', 'E.load("aspirin")'),
+                         [{"s": "C", "n": 9}, {"s": "H", "n": 8}, {"s": "O", "n": 4}])
+
+    def test_an_element_the_target_lacks_counts_down(self) -> None:
+        done = self.delta('{ atoms: [{ s: "Br", x: 50, y: 50 }], bonds: [] }', '{ atoms: [], bonds: [] }')
+        self.assertEqual(done, [{"s": "Br", "n": -1}, {"s": "H", "n": -1}])
+
+    def test_isomers_differ_by_nothing(self) -> None:
+        self.assertEqual(self.delta(
+            '{ atoms: [{ s: "C", x: 50, y: 50 }, { s: "O", x: 90, y: 50 }], bonds: [{ a: 0, b: 1, o: 2 }] }',
+            '{ atoms: [{ s: "O", x: 50, y: 50 }, { s: "C", x: 90, y: 50 }], bonds: [{ a: 0, b: 1, o: 2 }] }'), [])
+
+
+class ToolbarTests(unittest.TestCase):
+    pages = ("index.html", "en/index.html", "lab/index.html", "en/lab/index.html")
+
+    def test_the_palette_uses_drawn_tips_rather_than_titles(self) -> None:
+        for page in self.pages:
+            with self.subTest(page=page):
+                html = (SITE / page).read_text(encoding="utf-8")
+                palette = html[html.index('class="palette"'):html.index('class="doc-canvas"')]
+                self.assertNotIn(" title=", palette)
+                self.assertEqual(palette.count("data-tip="), 7)
+
+    def test_a_tip_shows_on_keyboard_focus_too(self) -> None:
+        css = (SITE / "styles.css").read_text(encoding="utf-8")
+        self.assertIn(".palette button[data-tip]:hover::after", css)
+        self.assertIn(".palette button[data-tip]:focus-visible::after", css)
+
+
+class CopyFeedbackTests(unittest.TestCase):
+    def test_every_copy_goes_through_one_tick(self) -> None:
+        app = (SITE / "app.js").read_text(encoding="utf-8")
+        self.assertEqual(app.count("function flashDone("), 1)
+        self.assertIn("1500", app[app.index("function flashDone("):app.index("function flashDone(") + 400])
+        self.assertNotIn("1600);", app)
+        self.assertIn("flashDone(", (SITE / "editor.js").read_text(encoding="utf-8"))
+        self.assertIn("flashDone(", (SITE / "lab.js").read_text(encoding="utf-8"))
+
+    def test_the_tick_keeps_the_button_size(self) -> None:
+        css = (SITE / "styles.css").read_text(encoding="utf-8")
+        self.assertIn(".btn[data-done]::after", css)
+        self.assertIn(".copy[data-done]::after", css)
 
 
 class CursorTests(unittest.TestCase):

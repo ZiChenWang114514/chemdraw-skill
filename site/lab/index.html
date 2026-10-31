@@ -73,13 +73,13 @@
         
       </div>
       <div class="palette" role="toolbar" aria-label="绘图工具" aria-orientation="vertical" hidden>
-        <button type="button" data-tool="move" aria-pressed="false" aria-label="移动" title="移动 (V)"><svg viewBox="0 0 20 20"><path class="fill" d="M5 3l10 8.2-4.3.6 2.5 4.6-1.9 1-2.5-4.7L5 15.6z"/></svg></button>
-        <button type="button" data-tool="bond" aria-pressed="true" aria-label="化学键" title="化学键 (B)"><svg viewBox="0 0 20 20"><path d="M4 16L16 4" stroke-width="2"/></svg></button>
-        <button type="button" data-tool="atom" aria-pressed="false" aria-label="原子" title="原子 (A)"><svg viewBox="0 0 20 20"><text x="5" y="15">A</text></svg></button>
-        <button type="button" data-tool="ring" aria-pressed="false" aria-label="苯环" title="苯环 (R)"><svg viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z"/><path d="M10 5.4l4.1 2.4M14.1 12.2L10 14.6M5.9 12.2V7.8"/></svg></button>
-        <button type="button" data-tool="erase" aria-pressed="false" aria-label="橡皮" title="橡皮 (E)"><svg viewBox="0 0 20 20"><path d="M3.8 12.2l7.6-7.6 4.6 4.6-6.4 6.4H6.2z"/><path d="M8.2 7.8l4.6 4.6"/></svg></button>
-        <button type="button" data-tool-action="clean" aria-label="整理结构" title="整理结构 (Ctrl+Shift+K)"><svg viewBox="0 0 20 20"><path d="M10 3l5.6 3.25v6.5L10 16l-5.6-3.25v-6.5z"/><path d="M15.5 2.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" class="fill"/></svg></button>
-        <button type="button" data-undo disabled aria-label="撤销" title="撤销 (Ctrl+Z)"><svg viewBox="0 0 20 20"><path d="M5 8h7a3.5 3.5 0 0 1 0 7H8"/><path d="M8 4.8L4.8 8 8 11.2"/></svg></button>
+        <button type="button" data-tool="move" aria-pressed="false" aria-label="移动" data-tip="移动 (V)"><svg viewBox="0 0 20 20"><path class="fill" d="M5 3l10 8.2-4.3.6 2.5 4.6-1.9 1-2.5-4.7L5 15.6z"/></svg></button>
+        <button type="button" data-tool="bond" aria-pressed="true" aria-label="化学键" data-tip="化学键 (B)"><svg viewBox="0 0 20 20"><path d="M4 16L16 4" stroke-width="2"/></svg></button>
+        <button type="button" data-tool="atom" aria-pressed="false" aria-label="原子" data-tip="原子 (A)"><svg viewBox="0 0 20 20"><text x="5" y="15">A</text></svg></button>
+        <button type="button" data-tool="ring" aria-pressed="false" aria-label="苯环" data-tip="苯环 (R)"><svg viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z"/><path d="M10 5.4l4.1 2.4M14.1 12.2L10 14.6M5.9 12.2V7.8"/></svg></button>
+        <button type="button" data-tool="erase" aria-pressed="false" aria-label="橡皮" data-tip="橡皮 (E)"><svg viewBox="0 0 20 20"><path d="M3.8 12.2l7.6-7.6 4.6 4.6-6.4 6.4H6.2z"/><path d="M8.2 7.8l4.6 4.6"/></svg></button>
+        <button type="button" data-tool-action="clean" aria-label="整理结构" data-tip="整理结构 (Ctrl+Shift+K)"><svg viewBox="0 0 20 20"><path d="M10 3l5.6 3.25v6.5L10 16l-5.6-3.25v-6.5z"/><path d="M15.5 2.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" class="fill"/></svg></button>
+        <button type="button" data-undo disabled aria-label="撤销" data-tip="撤销 (Ctrl+Z)"><svg viewBox="0 0 20 20"><path d="M5 8h7a3.5 3.5 0 0 1 0 7H8"/><path d="M8 4.8L4.8 8 8 11.2"/></svg></button>
       </div>
       <div class="doc-canvas" id="doc-canvas" role="tabpanel">
         <svg class="mol" viewBox="0 0 323 262" role="img"></svg>

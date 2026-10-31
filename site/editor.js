@@ -6,7 +6,7 @@
 // and all words come from words.<language>.js. The home page reads completely without this file.
 
 (() => {
-  const { MOLS, W, H, EL, CYCLE, fmt, load, analyse, bondLength, remove, inside, place, toSmiles, toCdxml, cleanUp, drawMarkup,
+  const { MOLS, W, H, EL, fmt, load, analyse, bondLength, remove, inside, toSmiles, toCdxml, cleanUp, drawMarkup,
     graphKey, targetOf, stars, localDate, dailyNumber, dailyPick, nextStreak, dailyShare, encodeDrawing, decodeDrawing, emptyStore, parseStore,
     record, earned, STORE_KEY, applyTool, previewMarkup } = globalThis.Chem;
 
@@ -412,6 +412,31 @@
       if (next) setTool(next);
     });
 
+    // ? lists the keys beside the drawing, without taking the focus or stopping the work.
+    const helpBtn = Object.assign(document.createElement("button"), { type: "button" });
+    helpBtn.dataset.help = "";
+    helpBtn.dataset.tip = `${T.shortcuts.title} (?)`;
+    helpBtn.setAttribute("aria-label", T.shortcuts.title);
+    helpBtn.setAttribute("aria-expanded", "false");
+    helpBtn.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><text x="6" y="15">?</text></svg>';
+    palette.querySelector("[data-undo]").before(helpBtn);
+    const keysPanel = Object.assign(document.createElement("div"), { className: "keys-panel", hidden: true });
+    keysPanel.setAttribute("role", "region");
+    keysPanel.setAttribute("aria-label", T.shortcuts.title);
+    keysPanel.innerHTML = `<h3>${T.shortcuts.title}</h3><dl>${T.shortcuts.rows.map(([keys, what]) =>
+      `<div><dt>${keys.split(" ").map((k) => `<kbd>${k}</kbd>`).join("")}</dt><dd>${what}</dd></div>`).join("")}</dl>`;
+    canvasBox.append(keysPanel);
+    function toggleKeys(on = keysPanel.hidden) {
+      keysPanel.hidden = !on;
+      helpBtn.setAttribute("aria-expanded", on);
+    }
+    helpBtn.addEventListener("click", () => toggleKeys());
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !keysPanel.hidden) return toggleKeys(false);
+      if (e.key !== "?" || e.ctrlKey || e.metaKey || e.altKey || (e.target instanceof Element && e.target.closest("input, textarea, select, [contenteditable]"))) return;
+      if (doc.contains(document.activeElement) || doc.matches(":hover")) { e.preventDefault(); toggleKeys(); }
+    });
+
     // ChemDraw's hotkeys: with the pointer or the keyboard cursor on an atom, type an element (L
     // is Cl); on a bond, type 1, 2 or 3 for its order. Delete removes what is under it.
     const ELEMENT_KEYS = { c: "C", n: "N", o: "O", s: "S", f: "F", l: "Cl" };
@@ -541,9 +566,10 @@
     cleanBtn.addEventListener("click", clean);
 
     // Export: SMILES to the clipboard, the drawing as a CDXML file, or a link to it in the Lab.
-    async function copy(text, done, shown) {
+    async function copy(text, done, shown, btn) {
       try {
         await navigator.clipboard.writeText(text);
+        flashDone(btn);
         update(done);
       } catch {
         update(shown);
@@ -558,21 +584,21 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       return a.download;
     }
-    exportBar.querySelector('[data-export="smiles"]').addEventListener("click", () => {
+    exportBar.querySelector('[data-export="smiles"]').addEventListener("click", (e) => {
       const smiles = toSmiles(st.g);
       if (smiles === null) return update(T.noSmiles);
-      copy(smiles, fmt(T.copied, { smiles }), fmt(T.smiles, { smiles }));
+      copy(smiles, fmt(T.copied, { smiles }), fmt(T.smiles, { smiles }), e.currentTarget);
     });
     exportBar.querySelector('[data-export="cdxml"]').addEventListener("click", () => {
       const dirty = JSON.stringify(st.g) !== st.original;
       update(fmt(T.download, { file: saveFile(st.g, `${st.name}${dirty ? "-edited" : ""}`) }));
       emit("export");
     });
-    exportBar.querySelector('[data-export="link"]')?.addEventListener("click", () => {
+    exportBar.querySelector('[data-export="link"]')?.addEventListener("click", (e) => {
       const code = encodeDrawing(st.g);
       if (!decodeDrawing(code)) return update(T.tooBig);
       const url = `${options.labUrl}#s=${code}`;
-      copy(url, T.linkCopied, fmt(T.link, { url }));
+      copy(url, T.linkCopied, fmt(T.link, { url }), e.currentTarget);
     });
 
     // ---- documents ----------------------------------------------------------------

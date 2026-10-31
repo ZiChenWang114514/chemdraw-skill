@@ -7,28 +7,34 @@ const motion = matchMedia("(prefers-reduced-motion: no-preference)");
 const words = globalThis.ChemWords || null;
 const fmt = (s, o) => s.replace(/\{(\w+)\}/g, (_, k) => o[k]);
 
+// The one confirmation of a copy: a tick in the button for a moment, at the button's own size.
+const flashes = new WeakMap();
+function flashDone(btn, said) {
+  clearTimeout(flashes.get(btn));
+  btn.dataset.done = "";
+  if (said) btn.setAttribute("aria-label", said);
+  flashes.set(btn, setTimeout(() => {
+    delete btn.dataset.done;
+    if (said) btn.removeAttribute("aria-label");
+  }, 1500));
+}
+
 async function copyText(text, btn, done) {
   try {
     await navigator.clipboard.writeText(text);
   } catch {
     return false;
   }
-  const label = btn.textContent;
-  btn.dataset.done = "";
-  btn.textContent = done;
-  setTimeout(() => { btn.textContent = label; delete btn.dataset.done; }, 1600);
+  flashDone(btn, done);
   return true;
 }
 
 document.querySelectorAll("[data-copy]").forEach((btn) => {
-  const label = btn.textContent;
   btn.addEventListener("click", async () => {
     const text = document.querySelector(btn.dataset.copy).textContent;
     try {
       await navigator.clipboard.writeText(text);
-      btn.dataset.done = "";
-      btn.textContent = btn.dataset.doneLabel || "Copied";
-      setTimeout(() => { btn.textContent = label; delete btn.dataset.done; }, 1600);
+      flashDone(btn, btn.dataset.doneLabel);
     } catch {
       const range = document.createRange();
       range.selectNodeContents(document.querySelector(btn.dataset.copy));
@@ -390,8 +396,7 @@ if (faq && words) {
     link.innerHTML = `<svg class="chain" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2-2a2.6 2.6 0 0 0-3.7-3.7l-.8.8M9.2 6.8a2.6 2.6 0 0 0-3.7 0l-2 2a2.6 2.6 0 0 0 3.7 3.7l.8-.8"/></svg><svg class="tick" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.8"/></svg>`;
     link.addEventListener("click", async () => {
       await navigator.clipboard.writeText(new URL(`#${d.id}`, location.href).href);
-      link.dataset.done = "";
-      setTimeout(() => { delete link.dataset.done; }, 1500);
+      flashDone(link);
     });
     row.append(d, link);
   }

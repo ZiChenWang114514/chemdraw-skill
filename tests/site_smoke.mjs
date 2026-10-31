@@ -187,6 +187,7 @@ async function main() {
   await open("lab/#daily");
   const steadyHeight = await run(`document.querySelector(".lab-body").offsetHeight`);
   await hash("#hunt");
+  check("the hunts show no formula difference", await run(`!document.querySelector("[data-delta]")?.checkVisibility()`));
   await sleep(320);
   check("a short view keeps the window's height", (await run(`document.querySelector(".lab-body").offsetHeight`)) >= steadyHeight - 90);
   check("the tab mark sits under the open tab", await run(`Math.abs(document.querySelector(".tab-mark").getBoundingClientRect().left - document.querySelector('.modes [aria-current]').getBoundingClientRect().left) < 2`));
@@ -284,6 +285,40 @@ async function main() {
   await sleep(60);
   check("the grid stands down over the canvas", await run(`document.querySelector(".grid-glow").dataset.on === undefined`));
 
+  // The toolbar names each tool and its key, on hover and on keyboard focus
+  await open("lab/#free");
+  const tipOf = (selector) => run(`(() => { const b = document.querySelector(${JSON.stringify(selector)}), t = getComputedStyle(b, "::after"); return [t.content, +t.opacity]; })()`);
+  const ringTool = '.doc [data-tool="ring"]';
+  await move(await where(ringTool));
+  await sleep(320);
+  const hovered = await tipOf(ringTool);
+  check("a tool shows its name and key on hover", hovered[0].includes("(R)") && hovered[1] === 1, hovered);
+  await move(await where(canvas));
+  await run(`document.querySelector('.doc [data-tool="atom"]').focus()`);
+  await press("Tab");
+  await sleep(320);
+  check("a tool shows its tip on keyboard focus", await run(`(() => { const t = getComputedStyle(document.activeElement, "::after"); return document.activeElement.matches("[data-tip]") && +t.opacity === 1; })()`));
+
+  // The shortcut list opens with ?, and from the toolbar, and never takes the focus
+  await move(await where(canvas));
+  const listOpen = () => run(`!document.querySelector(".keys-panel").hidden`);
+  check("the shortcut list starts closed", !(await listOpen()));
+  const focused = await run(`document.activeElement === document.body ? "body" : document.activeElement.tagName`);
+  await press("?");
+  check("? opens the shortcut list", await listOpen());
+  check("the list leaves the focus alone", (await run(`document.activeElement === document.body ? "body" : document.activeElement.tagName`)) === focused);
+  check("the list names the element keys", /\bL\b/.test(await run(`document.querySelector(".keys-panel").textContent`)));
+  await press("Escape");
+  check("Escape closes the shortcut list", !(await listOpen()));
+  await click("[data-help]");
+  check("the toolbar opens the shortcut list", (await listOpen()) && await run(`document.querySelector("[data-help]").getAttribute("aria-expanded") === "true"`));
+  await click("[data-help]");
+  check("the toolbar closes it again", !(await listOpen()));
+  await open("#faq");
+  await run(`document.querySelector(".faq-tools input").focus()`);
+  await press("?");
+  check("? in a text field is only a character", !(await listOpen()) && (await run(`document.querySelector(".faq-tools input").value`)) === "?");
+
   // Home: the editor and the daily molecule in the hero
   await open("");
   check("home draws aspirin", (await count(`${canvas} .hit [data-atom]`)) === 13);
@@ -311,6 +346,20 @@ async function main() {
     for (const m of level.solve) await playMove(m);
     const won = await until(`!!document.querySelector(".mission .result")`, 1500);
     check(`level ${level.id}`, won && (await store())?.levels?.[level.id]?.stars === 3, { won, saved: (await store())?.levels?.[level.id] });
+    if (level === levels[0]) {
+      check("a win hands the focus to the next level", await run(`document.activeElement === document.querySelector(".mission .acts .primary")`));
+      check("the rings fill one after another", (await run(`[...document.querySelectorAll(".result .rings path.on")].map((p) => getComputedStyle(p).animationDelay).join()`)) === "0s,0.12s,0.24s");
+    }
+    if (level === levels.at(-1)) {
+      check("the badge toast links to the badges", (await run(`document.querySelector(".toast[data-on] a")?.getAttribute("href")`)) === "#dex");
+      await click(".toast a");
+      check("a new badge is highlighted", await until(`document.querySelectorAll(".badges .fresh").length > 0`, 1000));
+      await sleep(500);
+      check("the page goes to the new badge", await run(`(() => { const r = document.querySelector(".badges .fresh").getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; })()`));
+      await hash("#levels");
+      await hash("#dex");
+      check("the highlight is shown once", (await count(".badges .fresh")) === 0);
+    }
   }
   check("twenty levels saved", Object.keys((await store()).levels).length === 20);
   const earned = (await store()).badges;
@@ -319,6 +368,14 @@ async function main() {
   // Progress survives a reload and fills the route and the collection
   await open("lab/#levels");
   check("route shows solved levels", (await count(".node.solved")) === 20, await count(".node.solved"));
+  check("each chapter counts its solved levels", await run(`[...document.querySelectorAll(".chapter")].every((c) => { const n = c.querySelectorAll(".node").length; return c.querySelector("h2 .count").textContent === n + " / " + n; })`));
+  const arrowInk = (k) => run(`getComputedStyle(document.querySelectorAll(".rxn-row .rxn-arrow path")[${k}]).stroke`);
+  const restInk = await arrowInk(0);
+  await move(await where(".rxn-row .parent"));
+  await sleep(220);
+  check("a parent lights its arrow", (await arrowInk(0)) !== restInk, await arrowInk(0));
+  check("only its own arrow", (await arrowInk(2)) === restInk, await arrowInk(2));
+  await move({ x: 2, y: 2 });
   check("the Lab has no reading bar", (await count(".top .progress")) === 0);
   check("every chapter's stars are full", await run(`[...document.querySelectorAll(".progress.stars i i")].every((i) => new DOMMatrix(getComputedStyle(i).transform).a === 1)`));
   check("the star bar says its value", await run(`document.querySelector(".progress.stars").getAttribute("aria-valuenow") === "60"`));
@@ -337,6 +394,9 @@ async function main() {
   const cursorAt = () => run(`(() => { const c = document.querySelector("${canvas} .cursor"); return c ? [+c.getAttribute("cx"), +c.getAttribute("cy")] : null; })()`);
   check("focus shows a cursor", !!(await cursorAt()));
   const moves = levels.find((l) => l.id === "salicylic").solve.length;
+  const delta = () => run(`document.querySelector("[data-delta]").textContent`);
+  const deltaAtStart = await delta();
+  check("the mission shows what the formula still needs", deltaAtStart === await run(`Chem.formulaDelta(Chem.load("aspirin"), Chem.targetOf(Chem.CHALLENGES.find((c) => c.id === "salicylic"))).map((d) => (d.n > 0 ? "+" : "\u2212") + Math.abs(d.n) + " " + d.s).join("\u3001")`), deltaAtStart);
   for (let n = 0; n < moves; n++) {
     const target = await run(`(() => { const c = document.querySelector(${JSON.stringify(atom(0))}); return [+c.getAttribute("cx"), +c.getAttribute("cy")]; })()`);
     for (let step = 0; step < 24; step++) {
@@ -350,6 +410,7 @@ async function main() {
     }
     await press("Enter");
     await sleep(30);
+    if (n === 0) check("the difference follows the drawing", (await run(`document.querySelector("[data-delta]")?.textContent ?? ""`)) !== deltaAtStart);
   }
   check("level solved by keyboard", await until(`!!document.querySelector(".mission .result")`, 1000), await count(`${canvas} .hit [data-atom]`));
 
@@ -397,6 +458,11 @@ async function main() {
   await click('[data-export="smiles"]');
   const copied = await until(`navigator.clipboard.readText().then((t) => t.length > 0)`);
   check("SMILES reaches the clipboard", copied);
+  const smilesButton = '[data-export="smiles"]';
+  check("a copy shows the tick", await run(`document.querySelector('${smilesButton}').hasAttribute("data-done")`));
+  check("the tick keeps the button's size", await run(`document.querySelector('${smilesButton}').offsetWidth === ${await run(`document.querySelector('${smilesButton}').offsetWidth`)}`));
+  await sleep(1600);
+  check("the tick goes away", !(await run(`document.querySelector('${smilesButton}').hasAttribute("data-done")`)));
   await click('[data-export="link"]');
   await sleep(80);
   const link = await run(`navigator.clipboard.readText()`);

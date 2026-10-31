@@ -8,7 +8,7 @@
   const T = globalThis.ChemWords;
   if (!root || !T || !globalThis.ChemEditor) return;
   const { MOLS, CHALLENGES, CHAPTERS, ISOMERS, BADGES, ROUNDS, fmt, load, analyse, neighbours, toSmiles, drawMarkup, thumb, graphKey, targetOf, record, stars,
-    localDate, dailyNumber, dailyPick, dailyShare, encodeDrawing, decodeDrawing, earned, isomerKey, makeHunt } = globalThis.Chem;
+    localDate, dailyNumber, dailyPick, dailyShare, encodeDrawing, decodeDrawing, earned, isomerKey, makeHunt, formulaDelta } = globalThis.Chem;
   const { mount, openStore, solveDaily, burst } = globalThis.ChemEditor;
   const L = T.lab, C = T.challenge, D = T.daily;
 
@@ -40,12 +40,13 @@
 
   // ---- toasts, stats and badges -----------------------------------------------------
 
-  let toastTimer = 0;
-  function toast(text) {
+  let toastTimer = 0, newBadges = [];
+  function toast(text, link) {
     clearTimeout(toastTimer);
     toastEl.textContent = text;
+    if (link) toastEl.insertAdjacentHTML("beforeend", ` <a href="#dex">${link}</a>`);
     toastEl.dataset.on = "";
-    toastTimer = setTimeout(() => { delete toastEl.dataset.on; }, 4200);
+    toastTimer = setTimeout(() => { delete toastEl.dataset.on; }, link ? 7000 : 4200);
   }
 
   function paintStats() {
@@ -72,12 +73,19 @@
     store.data.badges = now;
     store.save();
     paintStats();
-    if (fresh.length) toast(fresh.map((b) => fmt(L.badgeUnlocked, { title: L.badges[b].title })).join(" "));
+    if (!fresh.length) return;
+    newBadges.push(...fresh);
+    const said = fresh.map((b) => fmt(L.badgeUnlocked, { title: L.badges[b].title })).join(" ");
+    if (location.hash === "#dex") {
+      toast(said);
+      paintDex();
+    } else toast(said, L.badgeView);
   }
 
-  async function copy(text, done, fallback) {
+  async function copy(text, done, fallback, btn) {
     try {
       await navigator.clipboard.writeText(text);
+      if (btn) flashDone(btn);
       toast(done);
     } catch {
       toast(fallback);
@@ -112,6 +120,8 @@
 
   // ---- challenges: the daily molecule and the levels --------------------------------
 
+  const stillNeeded = (g, target) => formulaDelta(g, target).map((d) => `${d.n > 0 ? "+" : "\u2212"}${Math.abs(d.n)} ${d.s}`).join(L.deltaJoin) || L.deltaDone;
+
   function missionFor(c, title, sub) {
     const task = C.tasks[c.id];
     const target = analyse(targetOf(c));
@@ -124,6 +134,7 @@
         <div><dt>${L.target}</dt><dd>${target.html}</dd></div>
         <div><dt>${L.moves}</dt><dd data-moves>0</dd></div>
         <div><dt>${L.par}</dt><dd>${c.solve.length}</dd></div>
+        <div class="delta"><dt>${L.delta}</dt><dd data-delta>${stillNeeded(load(c.mol), targetOf(c))}</dd></div>
       </dl>
       <div class="acts"><button type="button" class="btn sm" data-act="hint">${C.hint}</button><button type="button" class="btn sm" data-act="restart">${L.restart}</button></div>
       <p class="ch-hint" hidden>${task.hint}</p>
@@ -137,6 +148,7 @@
       <div class="result">${rings(got)}<p>${fmt(L.solvedIn, { moves })}</p></div>
       <p class="task">${task.fact}</p>
       <div class="acts">${actions}</div>`;
+    mission.querySelector(".acts a, .acts button")?.focus({ preventScroll: true });
   }
 
   let current = null;
@@ -145,9 +157,11 @@
     current = { c, hinted: false, finish };
     editor.restart(c.mol);
     current.quest = editor.quest({ key: graphKey(target), formula: analyse(target).html });
-    onChange = () => {
+    onChange = (g) => {
       const el = mission.querySelector("[data-moves]");
       if (el) el.textContent = current.quest.moves;
+      const delta = mission.querySelector("[data-delta]");
+      if (delta) delta.textContent = stillNeeded(g, target);
     };
     onWin = ({ moves }) => {
       finish(moves);
@@ -203,7 +217,8 @@
               <span class="label">${task.name}</span>${got ? rings(got.stars) : `<span class="sub">${L.unsolved}</span>`}</a></li>`;
           }).join("")}</ul>
         </li>`).join("");
-      return `<section class="chapter"><h2>${L.chapters[chapter].title}</h2><p>${L.chapters[chapter].text}</p><ol class="scheme-rows">${rows}</ol></section>`;
+      const solved = list.filter((c) => store.data.levels[c.id]).length;
+      return `<section class="chapter"><h2>${L.chapters[chapter].title} <span class="count">${solved} / ${list.length}</span></h2><p>${L.chapters[chapter].text}</p><ol class="scheme-rows">${rows}</ol></section>`;
     }).join("");
   }
 
@@ -348,6 +363,10 @@
 
   function showDex() {
     view("dex", "dex");
+    paintDex();
+  }
+
+  function paintDex() {
     const plates = CHALLENGES.map((c) => {
       const got = store.data.levels[c.id], task = C.tasks[c.id];
       if (!got) return `<li class="locked"><a href="#level-${c.id}"><span class="frame"><span class="open"><span>${analyse(targetOf(c)).html}</span></span></span><b>${L.lockedName}</b></a></li>`;
@@ -361,13 +380,14 @@
       </li>`;
     }).join("");
     const have = store.data.badges;
-    const badges = BADGES.map((b) => `<li class="${have.includes(b) ? "on" : ""}"><b>${L.badges[b].title}</b><span>${L.badges[b].text}</span></li>`).join("");
+    const badges = BADGES.map((b) => `<li class="${have.includes(b) ? "on" : ""}${newBadges.includes(b) ? " fresh" : ""}"><b>${L.badges[b].title}</b><span>${L.badges[b].text}</span></li>`).join("");
     root.querySelector("[data-view=dex]").innerHTML = `
       <p class="intro">${L.dexIntro}</p>
       ${Object.keys(store.data.levels).length ? "" : `<p class="intro"><a href="#levels">${L.dexEmpty}</a></p>`}
       <ul class="dex">${plates}</ul>
       <h2>${L.badgesTitle}</h2>
       <ul class="badges">${badges}</ul>`;
+    newBadges = [];
   }
 
   // ---- sketchpad and shared links ---------------------------------------------------
@@ -417,7 +437,9 @@
     const heading = shown.querySelector("h2, .intro");
     heading.tabIndex = -1;
     heading.focus({ preventScroll: true });
-    if (labWindow.getBoundingClientRect().top < 0) glide(labWindow);
+    const fresh = root.querySelector(".badges .fresh");
+    if (fresh) glide(fresh);
+    else if (labWindow.getBoundingClientRect().top < 0) glide(labWindow);
   }
   addEventListener("hashchange", () => {
     const before = openTab();
@@ -448,7 +470,7 @@
       const { got, moves } = current.score;
       const text = dailyShare(D, today, got, moves, `${labUrl}#daily`);
       if (navigator.share && matchMedia("(pointer: coarse)").matches) navigator.share({ text }).catch(() => {});
-      else copy(text, D.shared, fmt(D.shareText, { text }));
+      else copy(text, D.shared, fmt(D.shareText, { text }), act);
     } else if (name === "hunt-start") {
       huntStart();
     } else if (name === "hunt-next") {
@@ -464,7 +486,7 @@
       saveProgress();
     } else if (name === "dex-ask") {
       const text = fmt(L.ask, { name: C.tasks[id].name });
-      copy(text, T.copiedAsk, text);
+      copy(text, T.copiedAsk, text, act);
     } else if (name === "free-load") {
       editor.show(load(id), id, T.names[id]);
     } else if (name === "free-blank") {

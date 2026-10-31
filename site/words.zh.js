@@ -168,6 +168,22 @@ globalThis.ChemWords = {
  },
  "run": "运行一遍",
  "progressTop": "开头",
+ "shortcuts": {
+  "title": "快捷键",
+  "rows": [
+   ["V B A R E", "切换工具"],
+   ["C N O S F L", "悬停原子时换元素，L 是氯"],
+   ["1 2 3", "悬停键时改键级"],
+   ["Delete", "删除悬停的原子或键"],
+   ["方向键", "在原子和键之间移动"],
+   ["Shift 方向键", "微移原子"],
+   ["Enter", "在光标处使用当前工具"],
+   ["Ctrl Z", "撤销"],
+   ["Ctrl Shift Z", "重做"],
+   ["Ctrl Shift K", "整理结构"],
+   ["Esc", "关闭这个列表"]
+  ]
+ },
  "elements": {
   "C": "碳",
   "N": "氮",
@@ -266,6 +282,9 @@ globalThis.ChemWords = {
   },
   "moves": "步数",
   "par": "最少步数",
+  "delta": "分子式还差",
+  "deltaJoin": "、",
+  "deltaDone": "分子式已一致，再看连接方式",
   "target": "目标分子式",
   "starsLabel": "{n} 颗星（共 3 颗）",
   "unsolved": "未完成",
@@ -317,6 +336,7 @@ globalThis.ChemWords = {
    }
   },
   "badgeUnlocked": "解锁成就：{title}",
+  "badgeView": "查看",
   "huntIntro": "Agent 交来的图里有一处错。对照正确结构，点出错的原子或键。这些结构是故意改错的，只用于游戏。",
   "huntStart": "开始一局",
   "huntAgain": "再来一局",
