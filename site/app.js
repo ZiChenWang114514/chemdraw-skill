@@ -1,12 +1,10 @@
 // Copy buttons, the before/after viewer, the theme switch, scroll-in, the install picker,
 // the reading-progress arrow, the capability filter with its example requests, and the
 // figure viewer. The hero editor lives in editor.js. The page reads completely without
-// either file; they only add behaviour. Words come from the page's #i18n block.
+// either file; they only add behaviour. Words come from words.<language>.js.
 
 const motion = matchMedia("(prefers-reduced-motion: no-preference)");
-const words = (() => {
-  try { return JSON.parse(document.getElementById("i18n").textContent); } catch { return null; }
-})();
+const words = globalThis.ChemWords || null;
 const fmt = (s, o) => s.replace(/\{(\w+)\}/g, (_, k) => o[k]);
 
 async function copyText(text, btn, done) {

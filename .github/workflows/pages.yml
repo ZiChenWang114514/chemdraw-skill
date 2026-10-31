@@ -52,5 +52,5 @@ jobs:
           key=$(ls site | grep -E '^[0-9a-f]{32}\.txt$' | sed 's/\.txt$//')
           curl -sS -o /dev/null -w "IndexNow HTTP %{http_code}\n" \
             -H "Content-Type: application/json; charset=utf-8" \
-            -d "{\"host\":\"zichenwang114514.github.io\",\"key\":\"$key\",\"keyLocation\":\"${base}${key}.txt\",\"urlList\":[\"${base}\",\"${base}en/\"]}" \
+            -d "{\"host\":\"zichenwang114514.github.io\",\"key\":\"$key\",\"keyLocation\":\"${base}${key}.txt\",\"urlList\":[\"${base}\",\"${base}en/\",\"${base}lab/\",\"${base}en/lab/\"]}" \
             https://api.indexnow.org/indexnow

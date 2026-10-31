@@ -89,6 +89,7 @@
     </a>
     <nav class="nav" aria-label="主导航">
       <a class="hide-sm" href="#gallery">作品</a>
+      <a href="lab/">实验室</a>
       <a class="hide-sm" href="#calculator">计算器</a>
       <a class="hide-sm" href="#capabilities">能做什么</a>
       <a href="#start">快速开始</a>
@@ -173,7 +174,7 @@
         <i class="snap" hidden aria-hidden="true"></i>
         <div class="foot">
           <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>恢复原样</button>
-            <div class="export" hidden><button type="button" data-export="smiles">复制 SMILES</button><button type="button" data-export="cdxml">下载 .cdxml</button><button class="challenge-open" type="button" data-challenge-open aria-expanded="false" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1.8h4M6.6 1.8v4L2.9 12.6a1.1 1.1 0 0 0 1 1.6h8.2a1.1 1.1 0 0 0 1-1.6L9.4 5.8v-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M4.6 10h6.8" stroke="currentColor" stroke-width="1.4"/></svg>分子挑战</button></div></div>
+            <div class="export" hidden><button type="button" data-export="smiles">复制 SMILES</button><button type="button" data-export="cdxml">下载 .cdxml</button><button type="button" data-export="link">复制分享链接</button><button class="challenge-open" type="button" data-challenge-open aria-expanded="false" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1.8h4M6.6 1.8v4L2.9 12.6a1.1 1.1 0 0 0 1 1.6h8.2a1.1 1.1 0 0 0 1-1.6L9.4 5.8v-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M4.6 10h6.8" stroke="currentColor" stroke-width="1.4"/></svg>今日分子</button></div></div>
           <div class="analysis">
             <div>Chemical Formula: <span data-a="formula">C<sub>9</sub>H<sub>8</sub>O<sub>4</sub></span></div>
             <div>Exact Mass: <span data-a="exact">180.04</span></div>
@@ -329,6 +330,18 @@ Bonds:   13</code></pre></details></div>
   </div>
 </section>
 
+<section id="lab">
+  <div class="wrap lab-teaser">
+    <div class="head">
+      <h2>分子实验室</h2>
+      <p>一边玩，一边看结构是怎么被检查的。这些题目用的都是网页里的编辑器，判定只看结构本身。</p>
+      <p class="daily-line" data-daily>每天换一道新题。</p>
+      <a class="btn primary" href="lab/">进入实验室</a>
+    </div>
+    <ul><li><b>今日分子</b>每天一题，记录连续天数。</li><li><b>路线图</b>20 关，从五个常见分子改造出新化合物。</li><li><b>找错</b>当一回 readback，点出 Agent 图里的错误。</li><li><b>异构体</b>从空白画布画出一个分子式的全部异构体。</li></ul>
+  </div>
+</section>
+
 <section id="capabilities">
   <div class="wrap">
     <div class="head">
@@ -462,94 +475,16 @@ cd chemdraw-skill
     </div>
     <nav aria-label="页脚">
       <a href="https://github.com/ZiChenWang114514/chemdraw-skill">GitHub</a>
+      <a href="lab/">分子实验室</a>
       <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/docs/guide.zh-cn.md">安装与运维文档</a>
       <a href="en/" hreflang="en" lang="en">English</a>
     </nav>
   </div>
 </footer>
 
-<script type="application/json" id="i18n">
-{
-  "hint": {
-    "move": "拖动原子来移动它。",
-    "bond": "点击化学键切换键级，点击原子向外接一个碳。",
-    "atom": "点击原子切换元素，按住 Shift 点击则反向切换。",
-    "ring": "点击原子，接上一个苯环。",
-    "erase": "点击原子或化学键即可删除。"
-  },
-  "ask": "“用 ChemDraw Skill 把{name}画成可编辑 CDXML，渲染后给我看。”",
-  "names": {
-    "aspirin": "阿司匹林",
-    "paracetamol": "对乙酰氨基酚",
-    "caffeine": "咖啡因",
-    "ibuprofen": "布洛芬",
-    "vanillin": "香草醛"
-  },
-  "build": "{name}.cdxml，ACS Document 1996",
-  "matches": "与输入一致",
-  "differs": "与输入的 {input} 不同",
-  "empty": "画布是空的",
-  "order": [
-    "单键",
-    "双键",
-    "三键"
-  ],
-  "setBond": "已改为{order}。",
-  "grow": "已接上一个碳。",
-  "element": "已改为 {sym}。",
-  "ring": "已接上苯环。",
-  "noRoom": "这里放不下，先把结构挪开些。",
-  "erased": "已删除。",
-  "moved": "已移动。",
-  "undone": "已撤销。",
-  "reset": "已恢复原样。",
-  "valence": "{sym} 现在有 {n} 个键，超过常见的 {v} 个。",
-  "challenge": {
-    "title": "挑战 {n} / {total}",
-    "count": "已完成 {done} / {total}",
-    "hint": "提示",
-    "skip": "换一题",
-    "next": "下一题",
-    "close": "退出挑战",
-    "done": "完成！用了 {moves} 步。",
-    "matches": "与目标一致",
-    "aim": "目标 {formula}",
-    "all": "六题全部完成。",
-    "tasks": {
-      "salicylic": { "task": "把阿司匹林“水解”成水杨酸：去掉乙酰基，留下酚羟基。", "hint": "选橡皮，删掉左边的甲基、羰基碳和它的双键氧，共三个原子。" },
-      "aminophenol": { "task": "把对乙酰氨基酚变回它的前体：对氨基苯酚。", "hint": "删掉乙酰基的三个原子，留下 NH₂。" },
-      "vanillic": { "task": "把香草醛的醛基氧化成羧基，得到香草酸。", "hint": "用化学键工具点醛基碳接一个碳，再把鼠标停在新原子上按 O。" },
-      "theophylline": { "task": "咖啡因少一个甲基就是茶碱：去掉五元环氮上的那个甲基。", "hint": "五元环上连着甲基的是左下方的 N。用橡皮点掉那个甲基。" },
-      "ibuprofenMethyl": { "task": "把布洛芬做成甲酯。", "hint": "用化学键工具点羧基里的 OH 氧，接一个碳。" },
-      "wintergreen": { "task": "从阿司匹林出发做出冬青油：水杨酸甲酯。", "hint": "先像第一题那样去掉乙酰基，再在羧基的 OH 上接一个碳。" }
-    }
-  },
-  "run": "运行一遍",
-  "running": "运行中…",
-  "rerun": "再运行一遍",
-  "copyAsk": "复制",
-  "copiedAsk": "已复制",
-  "lightbox": {
-    "open": "放大查看：{alt}",
-    "close": "关闭",
-    "prev": "上一张",
-    "next": "下一张",
-    "zoomIn": "放大",
-    "zoomOut": "缩小",
-    "fit": "适应窗口",
-    "count": "{n} / {total}",
-    "hint": "滚轮或双击缩放，拖动平移，左右方向键切换，Esc 关闭。"
-  },
-  "aria": "{name}的结构式，分子式 {formula}。可用鼠标或触屏绘制。",
-  "cleaned": "已整理：键长和键角已摆正。",
-  "smiles": "SMILES：{smiles}",
-  "copied": "已复制 SMILES：{smiles}",
-  "noSmiles": "有原子超出常见价态，先修正再导出 SMILES。",
-  "download": "已保存 {file}，可以直接用 ChemDraw 打开。",
-  "keys": "小技巧：鼠标停在原子上按 C、N、O、S、F 或 L（Cl）直接换元素，停在键上按 1、2、3 换键级，Delete 删除。"
-}
-</script>
+<script src="words.zh.js" defer></script>
 <script src="app.js" defer></script>
+<script src="chem.js" defer></script>
 <script src="editor.js" defer></script>
 </body>
 </html>
