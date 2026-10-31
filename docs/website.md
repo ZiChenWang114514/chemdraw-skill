@@ -64,6 +64,8 @@ Check both colour schemes and a 390 px viewport before pushing; the hero and the
 
 ## Tests
 
+`.github/workflows/site.yml` runs the repository checks with the browser on any change to the site. A pull request that changes only these files skips `validate.yml`; a merge to `main` still runs it.
+
 `python -m unittest tests.test_site` checks the chemistry in Node and, when RDKit is installed, reads every exported structure back. With `SITE_BROWSER=1` it also serves the deploy layout and runs `tests/site_smoke.mjs`, which plays the site in headless Chrome with trusted mouse, keyboard and touch input: every level to three stars, one daily-only molecule on a starter in the hero and in the Lab (with a faked date), one level by keyboard alone, bond drags, clipboard, a real download, share links, the hunts, broken and refused storage, viewer gestures and 390 px at both colour schemes. It needs Node 22 or later and Chrome (`CHROME` names the browser). The `site` job in `validate.yml` runs all of this.
 
 ## Editing rules

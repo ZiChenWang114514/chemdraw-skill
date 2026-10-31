@@ -53,6 +53,7 @@ class DistributionTests(unittest.TestCase):
             ".github/contributing.md",
             ".github/SECURITY.md",
             ".github/workflows/validate.yml",
+            ".github/workflows/site.yml",
             ".github/ISSUE_TEMPLATE/bug_report.yml",
             ".github/ISSUE_TEMPLATE/feature_request.yml",
             "docs/guide.md",
