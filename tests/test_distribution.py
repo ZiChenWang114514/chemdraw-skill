@@ -14,7 +14,7 @@ SKILL = ROOT / "skill" / "chemdraw"
 class DistributionTests(unittest.TestCase):
     CHINESE_DOCUMENTS = {"README.zh-cn.md", "docs/guide.zh-cn.md", "docs/zh-cn.md"}
     # The landing page (docs/website.md) has a Chinese home page and error page.
-    CHINESE_PAGES = {"site/index.html", "site/404.html"}
+    CHINESE_PAGES = {"site/index.html", "site/404.html", "site/lab/index.html", "site/words.zh.js"}
 
     def test_chinese_text_is_limited_to_chinese_documents(self) -> None:
         tracked = subprocess.check_output(

@@ -21,11 +21,13 @@
 <meta property="og:image:alt" content="ChemDraw Skill: editable ChemDraw chemistry for any AI agent">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../styles.css">
+<script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -55,21 +57,21 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "Does this ChemDraw Skill work with any AI agent?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through cdx.py. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, as long as the agent can read the skill instructions and run shell commands. Every tool runs through cdx.py. With skill discovery: the installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills. Without skill discovery: point the agent's instruction file at SKILL.md." } },
         { "@type": "Question", "name": "Do I need an MCP server?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. The command line covers every tool with the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "No. The command line covers every tool. It keeps the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server." } },
         { "@type": "Question", "name": "Can it build SAR and substrate-scope figures from Excel data?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures; updating the data keeps unrelated manual layout edits." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures. Updating the data keeps unrelated manual layout edits. See the data-driven figures guide." } },
         { "@type": "Question", "name": "Will it make up reaction conditions or predict a mechanism?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and the tool does not judge whether the mechanism is right." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave. A missing value stays missing, and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list. An arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right. See drawing a new reaction scheme." } },
         { "@type": "Question", "name": "Can it work out how much of each reagent to weigh?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes, with ChemDraw's own calculator. cdx.py calc runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw, where you type a mass, volume or equivalents and ChemDraw computes the rest; cdx.py calc --read reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, with ChemDraw's own calculator. cdx.py calc runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw. Type a mass, volume or equivalents in the grid, and ChemDraw computes the rest. cdx.py calc --read reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the chemistry reports guide." } },
         { "@type": "Question", "name": "How far can I trust the safety information?",
-          "acceptedAnswer": { "@type": "Answer", "text": "It is a reminder from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as not listed, never as safe. Check the SDS of the product you actually use." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Treat it as a reminder, and check the SDS of the product you actually use. It comes from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as \"not listed\", never as safe." } },
         { "@type": "Question", "name": "Can it turn a structure image from a paper into an editable ChemDraw file?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review, and outputs editable CDXML with a native ChemDraw preview." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, as editable CDXML with a native ChemDraw preview. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review. See the reconstruction guide." } },
         { "@type": "Question", "name": "Does it work without ChemDraw installed?",
-          "acceptedAnswer": { "@type": "Answer", "text": "The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed desktop ChemDraw on Windows or macOS." } }
+          "acceptedAnswer": { "@type": "Answer", "text": "Partly: it can create and check CDXML, but the native features need ChemDraw. Without ChemDraw: the portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. With licensed desktop ChemDraw on Windows or macOS: native rendering, ChemScript checks and Office embedding." } }
       ]
     }
   ]
@@ -82,11 +84,12 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="./" aria-label="ChemDraw Skill home">
-      <img src="../favicon.svg" width="26" height="26" alt="">
+      <img decoding="async" src="../favicon.svg" width="26" height="26" alt="">
       ChemDraw Skill
     </a>
     <nav class="nav" aria-label="Main">
       <a class="hide-sm" href="#gallery">Gallery</a>
+      <a href="lab/">Lab</a>
       <a class="hide-sm" href="#calculator">Calculator</a>
       <a class="hide-sm" href="#capabilities">Capabilities</a>
       <a href="#start">Quick start</a>
@@ -96,6 +99,7 @@
       <button class="theme" type="button" hidden aria-label="Dark theme" aria-pressed="false"><svg class="moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 11.7A7 7 0 0 1 8.3 3.5a7 7 0 1 0 8.2 8.2z"/></svg><svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 2.4v2M10 15.6v2M2.4 10h2M15.6 10h2M4.6 4.6l1.4 1.4M14 14l1.4 1.4M4.6 15.4L6 14M14 6l1.4-1.4"/></svg></button>
     </nav>
   </div>
+  <div class="progress" aria-hidden="true"></div>
 </header>
 
 <main id="main">
@@ -126,13 +130,15 @@
         </div>
         <button class="replay" type="button" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12.4 1.6v3h-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Replay</button>
       </div>
+      <div class="challenge" aria-live="polite" hidden></div>
       <div class="palette" role="toolbar" aria-label="Drawing tools" aria-orientation="vertical" hidden>
-        <button type="button" data-tool="move" aria-pressed="false" aria-label="Move" title="Move (V)"><svg viewBox="0 0 20 20"><path class="fill" d="M5 3l10 8.2-4.3.6 2.5 4.6-1.9 1-2.5-4.7L5 15.6z"/></svg></button>
-        <button type="button" data-tool="bond" aria-pressed="true" aria-label="Bond" title="Bond (B)"><svg viewBox="0 0 20 20"><path d="M4 16L16 4" stroke-width="2"/></svg></button>
-        <button type="button" data-tool="atom" aria-pressed="false" aria-label="Atom" title="Atom (A)"><svg viewBox="0 0 20 20"><text x="5" y="15">A</text></svg></button>
-        <button type="button" data-tool="ring" aria-pressed="false" aria-label="Benzene ring" title="Benzene ring (R)"><svg viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z"/><path d="M10 5.4l4.1 2.4M14.1 12.2L10 14.6M5.9 12.2V7.8"/></svg></button>
-        <button type="button" data-tool="erase" aria-pressed="false" aria-label="Eraser" title="Eraser (E)"><svg viewBox="0 0 20 20"><path d="M3.8 12.2l7.6-7.6 4.6 4.6-6.4 6.4H6.2z"/><path d="M8.2 7.8l4.6 4.6"/></svg></button>
-        <button type="button" data-undo disabled aria-label="Undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 20 20"><path d="M5 8h7a3.5 3.5 0 0 1 0 7H8"/><path d="M8 4.8L4.8 8 8 11.2"/></svg></button>
+        <button type="button" data-tool="move" aria-pressed="false" aria-label="Move" data-tip="Move (V)"><svg viewBox="0 0 20 20"><path class="fill" d="M5 3l10 8.2-4.3.6 2.5 4.6-1.9 1-2.5-4.7L5 15.6z"/></svg></button>
+        <button type="button" data-tool="bond" aria-pressed="true" aria-label="Bond" data-tip="Bond (B)"><svg viewBox="0 0 20 20"><path d="M4 16L16 4" stroke-width="2"/></svg></button>
+        <button type="button" data-tool="atom" aria-pressed="false" aria-label="Atom" data-tip="Atom (A)"><svg viewBox="0 0 20 20"><text x="5" y="15">A</text></svg></button>
+        <button type="button" data-tool="ring" aria-pressed="false" aria-label="Benzene ring" data-tip="Benzene ring (R)"><svg viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z"/><path d="M10 5.4l4.1 2.4M14.1 12.2L10 14.6M5.9 12.2V7.8"/></svg></button>
+        <button type="button" data-tool="erase" aria-pressed="false" aria-label="Eraser" data-tip="Eraser (E)"><svg viewBox="0 0 20 20"><path d="M3.8 12.2l7.6-7.6 4.6 4.6-6.4 6.4H6.2z"/><path d="M8.2 7.8l4.6 4.6"/></svg></button>
+        <button type="button" data-tool-action="clean" aria-label="Clean up structure" data-tip="Clean up structure (Ctrl+Shift+K)"><svg viewBox="0 0 20 20"><path d="M10 3l5.6 3.25v6.5L10 16l-5.6-3.25v-6.5z"/><path d="M15.5 2.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" class="fill"/></svg></button>
+        <button type="button" data-undo disabled aria-label="Undo" data-tip="Undo (Ctrl+Z)"><svg viewBox="0 0 20 20"><path d="M5 8h7a3.5 3.5 0 0 1 0 7H8"/><path d="M8 4.8L4.8 8 8 11.2"/></svg></button>
       </div>
       <div class="doc-canvas" id="doc-canvas" role="tabpanel">
         <svg class="mol" viewBox="0 0 323 262" role="img" aria-label="Skeletal structure of aspirin">
@@ -167,7 +173,8 @@
         </svg>
         <i class="snap" hidden aria-hidden="true"></i>
         <div class="foot">
-          <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>Reset</button></div>
+          <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>Reset</button>
+            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">Copy SMILES</button><button class="btn sm" type="button" data-export="cdxml">Save .cdxml</button><button class="btn sm" type="button" data-export="link">Copy share link</button><button class="btn sm challenge-open" type="button" data-challenge-open aria-expanded="false" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1.8h4M6.6 1.8v4L2.9 12.6a1.1 1.1 0 0 0 1 1.6h8.2a1.1 1.1 0 0 0 1-1.6L9.4 5.8v-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M4.6 10h6.8" stroke="currentColor" stroke-width="1.4"/></svg>Daily molecule</button></div></div>
           <div class="analysis">
             <div>Chemical Formula: <span data-a="formula">C<sub>9</sub>H<sub>8</sub>O<sub>4</sub></span></div>
             <div>Exact Mass: <span data-a="exact">180.04</span></div>
@@ -199,8 +206,8 @@
     <div class="panel" id="p-scheme" role="tabpanel" aria-labelledby="t-scheme">
       <p>The left side is the original image from the paper; the right side is the ChemDraw rebuild. Five structures, conditions, yields and compound numbers are all editable.</p>
       <div class="compare" style="--cut:50%">
-        <img src="../gallery/paper-scheme-original.png" width="1600" height="275" alt="Original reaction scheme from a paper">
-        <div class="after"><img src="../gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
+        <img decoding="async" src="../gallery/paper-scheme-original.png" width="1600" height="275" alt="Original reaction scheme from a paper">
+        <div class="after"><img decoding="async" src="../gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the original and the ChemDraw rebuild">
         <span class="seam"></span>
       </div>
@@ -209,8 +216,8 @@
     <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden>
       <p>A generic structure from a patent figure: R groups, two variable rings, a group that can sit on three ring positions, and repeat counts. An agent given only the Skill, the image and the claim text ran the whole extraction; the structure is also saved as CXSMILES and a V3000 molfile.</p>
       <div class="compare" style="--cut:50%">
-        <img src="../gallery/markush-original.png" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
-        <div class="after"><img src="../gallery/markush-chemdraw.png" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
+        <img decoding="async" src="../gallery/markush-original.png" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
+        <div class="after"><img decoding="async" src="../gallery/markush-chemdraw.png" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the patent figure and the ChemDraw rebuild">
         <span class="seam"></span>
       </div>
@@ -219,27 +226,27 @@
 
     <div class="works">
       <figure class="lg">
-        <div class="plate"><img src="../gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="A complex multistep synthesis rebuilt in ChemDraw"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="A complex multistep synthesis rebuilt in ChemDraw"></div>
         <figcaption><b>Complex synthesis.</b> A full multistep route with every compound, condition and mechanism arrow.</figcaption>
       </figure>
       <figure class="lg">
-        <div class="plate"><img src="../gallery/mechanism.png" width="720" height="450" loading="lazy" alt="A reaction mechanism redrawn natively in ChemDraw"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/mechanism.png" width="720" height="450" loading="lazy" alt="A reaction mechanism redrawn natively in ChemDraw"></div>
         <figcaption><b>Reaction mechanism.</b> Eight structures, electron-pushing arrows, charges and counterions.</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img src="../gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="A twenty-structure synthesis rebuilt in ChemDraw"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="A twenty-structure synthesis rebuilt in ChemDraw"></div>
         <figcaption><b>Twenty-structure route.</b> ChemScript and RDKit agree on stereochemistry for 20 of 20 structures.</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img src="../gallery/acs1996.png" width="720" height="450" loading="lazy" alt="An ACS Document 1996 hydrogenation drawing built from JSON"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/acs1996.png" width="720" height="450" loading="lazy" alt="An ACS Document 1996 hydrogenation drawing built from JSON"></div>
         <figcaption><b>Exam and lecture drawings.</b> A small JSON file becomes an ACS Document 1996 drawing, with C<sub>10</sub>H<sub>21</sub> abbreviations and annotations.</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img src="../gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="A native TLC plate and reflux apparatus"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="A native TLC plate and reflux apparatus"></div>
         <figcaption><b>TLC and apparatus.</b> Native TLC plates, lanes, spots and Rf values, plus ChemDraw apparatus templates.</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img src="../gallery/nmr.png" width="720" height="450" loading="lazy" alt="An editable experimental NMR spectrum"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/nmr.png" width="720" height="450" loading="lazy" alt="An editable experimental NMR spectrum"></div>
         <figcaption><b>Spectra and plots.</b> Peak picking and integration on processed 1D NMR, and numeric data as editable curves.</figcaption>
       </figure>
     </div>
@@ -252,6 +259,7 @@
       <h2>Four steps, each one checkable</h2>
       <p>A figure can look right and still be wrong. So every step has a named input and output, and when something is off you can see which step it came from.</p>
       <p>All four run through one entry point, <code>cdx.py</code>. Any agent that can run a shell command can call it; MCP is optional.</p>
+      <button class="btn" type="button" data-run hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z"/></svg><span>Run it</span></button>
     </div>
     <div class="scheme">
       <p class="cpd src">“aspirin”</p>
@@ -316,9 +324,21 @@ Bonds:   13</code></pre></details></div>
       </ul>
     </div>
     <figure class="calc-shot">
-      <img src="../gallery/stoichiometry-grid.png" width="1245" height="693" loading="lazy" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
+      <img decoding="async" src="../gallery/stoichiometry-grid.png" data-zoom width="1245" height="693" loading="lazy" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
       <figcaption>ChemDraw's own stoichiometry grid for benzyl alcohol and acetyl chloride, rendered by ChemDraw. The bold italic mass is the amount typed in; ChemDraw computed the moles.</figcaption>
     </figure>
+  </div>
+</section>
+
+<section id="lab">
+  <div class="wrap lab-teaser">
+    <div class="head">
+      <h2>The Molecule Lab</h2>
+      <p>Play with structures and see how they get checked. Every game uses the editor on this page, and answers are judged on the structure itself.</p>
+      <p class="daily-line" data-daily>A new puzzle every day.</p>
+      <a class="btn primary" href="lab/">Open the Lab</a>
+    </div>
+    <ul><li><b>Daily molecule</b>One puzzle a day, with a streak.</li><li><b>Route map</b>Twenty levels that turn five familiar molecules into new compounds.</li><li><b>Spot the error</b>Be the readback and find the mistake in the agent’s drawing.</li><li><b>Isomers</b>Draw every isomer of a formula from a blank canvas.</li></ul>
   </div>
 </section>
 
@@ -327,23 +347,25 @@ Bonds:   13</code></pre></details></div>
     <div class="head">
       <h2>What it handles</h2>
       <p>Fifteen kinds of job: drawing, and the calculations that go with it.</p>
+      <p class="try-note">Each comes with a request you can give your agent as it stands. Native rendering and Office embedding need desktop ChemDraw; see <a href="#start">what you need first</a>.</p>
     </div>
+    <div class="filters" role="group" aria-label="Filter by kind" hidden><button type="button" data-filter="all" aria-pressed="true">All<span>15</span></button><button type="button" data-filter="draw" aria-pressed="false">Drawing<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">Reading figures<span>2</span></button><button type="button" data-filter="data" aria-pressed="false">Data and documents<span>4</span></button><button type="button" data-filter="calc" aria-pressed="false">Calculations<span>4</span></button></div>
     <dl class="caps">
-      <div><dt>Structures and reactions</dt><dd>Resolve names and identifiers; draw, edit, clean, merge, split, convert and render CDXML or CDX.</dd></div>
-      <div><dt>Paper figures</dt><dd>Crop the source, read it with DECIMER, compare side by side, fix the chemistry and assemble the layout.</dd></div>
-      <div><dt>Patent Markush</dt><dd>Extract a generic structure from a patent figure and its claims as CXSMILES, a V3000 molfile and editable CDXML.</dd></div>
-      <div><dt>New figures from a request</dt><dd>From a sentence to a finished figure: a reaction, a multi-step route, a substrate-scope panel or a mechanism, drawn and checked by one command. Conditions come only from you, and mechanisms are drawn from the electron moves you list.</dd></div>
-      <div><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations and boxed labels.</dd></div>
-      <div><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.</dd></div>
-      <div><dt>Comparison and properties</dt><dd>Similarity and exact identity; property sheets with MS adducts and logP; reaction balance with the missing by-product; every structure of a file as SMILES and InChI; names from ChemDraw, parsed back to check them.</dd></div>
-      <div><dt>Reaction calculator</dt><dd>ChemDraw's own stoichiometry grid under a reaction, with its numbers read back as data; SI materials tables for up to 100 reactions with concentration, atom economy, PMI and safety reminders from a built-in table.</dd></div>
-      <div><dt>Characterization text</dt><dd>HRMS lines and whole paragraphs in ACS order: appearance, Rf, mp, rotation, IR, NMR, HRMS. Peak counts are checked against the structure and flagged, never changed.</dd></div>
-      <div><dt>Route yield and PMI</dt><dd>Overall yield and cumulative PMI of a linear or convergent route. A missing number stays empty and is reported.</dd></div>
-      <div><dt>Atom mapping</dt><dd>A built-in method that reports ambiguity, or RXNMapper and LocalMapper after one install command. Bond changes, reaction-centre SMARTS, a reaction type read from the structures, and map numbers written into a copy of the drawing.</dd></div>
-      <div><dt>Mechanisms</dt><dd>Curved arrows drawn from the electron moves you list, or electron-pushing arrows, charges and counterions placed from explicit atom coordinates.</dd></div>
-      <div><dt>TLC and apparatus</dt><dd>Native TLC plates, lanes, spots and Rf; apparatus assembled from ChemDraw templates.</dd></div>
-      <div><dt>Spectra and lab records</dt><dd>Peak picking and range integration on 1D NMR, numeric data as editable curves; LCMS, SciFinder RDF and notebook workflows.</dd></div>
-      <div><dt>Word and PowerPoint</dt><dd>Embed live ChemDraw objects in Word and PowerPoint documents, built on Windows or macOS.</dd></div>
+      <div data-kind="draw"><dt>Structures and reactions</dt><dd>Resolve names and identifiers; draw, edit, clean, merge, split, convert and render CDXML or CDX.<details class="try"><summary>Try asking</summary><p class="ask">Convert this CDX file to CDXML, clean up the structures and render a PNG with ChemDraw.</p></details></dd></div>
+      <div data-kind="read"><dt>Paper figures</dt><dd>Crop the source, read it with DECIMER, compare side by side, fix the chemistry and assemble the layout.<details class="try"><summary>Try asking</summary><p class="ask">Rebuild the reaction scheme in this paper screenshot as an editable ChemDraw file and show it next to the original.</p></details></dd></div>
+      <div data-kind="read"><dt>Patent Markush</dt><dd>Extract a generic structure from a patent figure and its claims as CXSMILES, a V3000 molfile and editable CDXML.<details class="try"><summary>Try asking</summary><p class="ask">Extract the Markush structure from this patent figure and its claims as CXSMILES, a V3000 molfile and CDXML.</p></details></dd></div>
+      <div data-kind="draw"><dt>New figures from a request</dt><dd>From a sentence to a finished figure: a reaction, a multi-step route, a substrate-scope panel or a mechanism, drawn and checked by one command. Conditions come only from you, and mechanisms are drawn from the electron moves you list.<details class="try"><summary>Try asking</summary><p class="ask">Draw the PCC oxidation of benzyl alcohol to benzaldehyde with PCC, CH<sub>2</sub>Cl<sub>2</sub>, rt as conditions, then check the render.</p></details></dd></div>
+      <div data-kind="draw"><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations and boxed labels.<details class="try"><summary>Try asking</summary><p class="ask">Draw an exam question in ACS Document 1996: hydrogenation of cyclohexene to cyclohexane, with a boxed number under the product.</p></details></dd></div>
+      <div data-kind="data"><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.<details class="try"><summary>Try asking</summary><p class="ask">Build a substrate-scope figure from the structures and yields in scope.xlsx, with the compound number and yield under each.</p></details></dd></div>
+      <div data-kind="calc"><dt>Comparison and properties</dt><dd>Similarity and exact identity; property sheets with MS adducts and logP; reaction balance with the missing by-product; every structure of a file as SMILES and InChI; names from ChemDraw, parsed back to check them.<details class="try"><summary>Try asking</summary><p class="ask">Are these two SMILES the same compound? Then list their molecular weight, logP and [M+H]<sup>+</sup>.</p></details></dd></div>
+      <div data-kind="calc"><dt>Reaction calculator</dt><dd>ChemDraw's own stoichiometry grid under a reaction, with its numbers read back as data; SI materials tables for up to 100 reactions with concentration, atom economy, PMI and safety reminders from a built-in table.<details class="try"><summary>Try asking</summary><p class="ask">Open ChemDraw's stoichiometry grid for the acetylation of benzyl alcohol with acetyl chloride, using 1.08 g of benzyl alcohol.</p></details></dd></div>
+      <div data-kind="data"><dt>Characterization text</dt><dd>HRMS lines and whole paragraphs in ACS order: appearance, Rf, mp, rotation, IR, NMR, HRMS. Peak counts are checked against the structure and flagged, never changed.<details class="try"><summary>Try asking</summary><p class="ask">Turn these NMR and HRMS data into an ACS-order characterization paragraph and check the peak counts against the structure.</p></details></dd></div>
+      <div data-kind="calc"><dt>Route yield and PMI</dt><dd>Overall yield and cumulative PMI of a linear or convergent route. A missing number stays empty and is reported.<details class="try"><summary>Try asking</summary><p class="ask">This four-step linear route has step yields of 85%, 72%, 90% and 64%, with the charges in materials.xlsx. Give me the overall yield and cumulative PMI.</p></details></dd></div>
+      <div data-kind="calc"><dt>Atom mapping</dt><dd>A built-in method that reports ambiguity, or RXNMapper and LocalMapper after one install command. Bond changes, reaction-centre SMARTS, a reaction type read from the structures, and map numbers written into a copy of the drawing.<details class="try"><summary>Try asking</summary><p class="ask">Atom-map this reaction, tell me which bonds break and form, and write the map numbers into a copy of the drawing.</p></details></dd></div>
+      <div data-kind="draw"><dt>Mechanisms</dt><dd>Curved arrows drawn from the electron moves you list, or electron-pushing arrows, charges and counterions placed from explicit atom coordinates.<details class="try"><summary>Try asking</summary><p class="ask">Draw the base hydrolysis of an ester from the electron moves I list: OH<sup>−</sup> attacks the carbonyl carbon, the C=O π electrons move to oxygen, then reform and expel the alkoxide.</p></details></dd></div>
+      <div data-kind="draw"><dt>TLC and apparatus</dt><dd>Native TLC plates, lanes, spots and Rf; apparatus assembled from ChemDraw templates.<details class="try"><summary>Try asking</summary><p class="ask">Draw a TLC plate with three lanes, starting material, co-spot and reaction mixture, with spots at Rf 0.62 and 0.35.</p></details></dd></div>
+      <div data-kind="data"><dt>Spectra and lab records</dt><dd>Peak picking and range integration on 1D NMR, numeric data as editable curves; LCMS, SciFinder RDF and notebook workflows.<details class="try"><summary>Try asking</summary><p class="ask">Pick the peaks in this <sup>1</sup>H NMR data, integrate 6.8–7.4 ppm and give me an editable ChemDraw spectrum.</p></details></dd></div>
+      <div data-kind="data"><dt>Word and PowerPoint</dt><dd>Embed live ChemDraw objects in Word and PowerPoint documents, built on Windows or macOS.<details class="try"><summary>Try asking</summary><p class="ask">Put route.cdxml on a PowerPoint slide as an editable ChemDraw object.</p></details></dd></div>
     </dl>
   </div>
 </section>
@@ -405,41 +427,92 @@ cd chemdraw-skill
 </section>
 
 <section id="faq">
-  <div class="wrap">
-    <div class="head"><h2>Common questions</h2></div>
-    <div class="faq">
-      <details open>
+  <div class="wrap faq-layout">
+    <div class="head">
+      <h2>Common questions</h2>
+      <div class="faq-tools" hidden>
+        <label class="faq-search"><input type="search" placeholder="Search questions" aria-label="Search questions" aria-controls="faq-list" autocomplete="off"></label>
+        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all>Expand all</button></div>
+      </div>
+    </div>
+    <div>
+      <div class="faq" id="faq-list">
+      <details id="faq-agents" open>
         <summary>Does this ChemDraw Skill work with any AI agent?</summary>
-        <p>Yes. The agent needs to read the skill instructions and run shell commands; every tool runs through <code>cdx.py</code>. The installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills. For an agent without skill discovery, point its instruction file at <code>SKILL.md</code>.</p>
+        <div class="answer">
+          <p class="lead">Yes, as long as the agent can read the skill instructions and run shell commands.</p>
+          <p>Every tool runs through <code>cdx.py</code>.</p>
+          <ul>
+            <li>With skill discovery: the installer places the skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, Kimi CLI and pi look for skills.</li>
+            <li>Without skill discovery: point the agent's instruction file at <code>SKILL.md</code>.</li>
+          </ul>
+        </div>
       </details>
-      <details>
+      <details id="faq-mcp">
         <summary>Do I need an MCP server?</summary>
-        <p>No. The command line covers every tool with the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server.</p>
+        <div class="answer">
+          <p class="lead">No. The command line covers every tool.</p>
+          <p>It keeps the same worker isolation, native ChemDraw lock and timeouts. Clients that prefer typed tool calls can still register the bundled MCP server.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-sar">
         <summary>Can it build SAR and substrate-scope figures from Excel data?</summary>
-        <p>Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures; updating the data keeps unrelated manual layout edits. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">data-driven figures guide</a>.</p>
+        <div class="answer">
+          <p class="lead">Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures.</p>
+          <p>Updating the data keeps unrelated manual layout edits. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/data-driven-figures.md">data-driven figures guide</a>.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-honesty">
         <summary>Will it make up reaction conditions or predict a mechanism?</summary>
-        <p>No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and an arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right. See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">drawing a new reaction scheme</a>.</p>
+        <div class="answer">
+          <p class="lead">No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave.</p>
+          <ul>
+            <li>A missing value stays missing, and the report says so.</li>
+            <li>A name it cannot resolve is refused instead of guessed.</li>
+            <li>Mechanisms are drawn from electron moves you list. An arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right.</li>
+          </ul>
+          <p>See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">drawing a new reaction scheme</a>.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-stoichiometry">
         <summary>Can it work out how much of each reagent to weigh?</summary>
-        <p>Yes, with ChemDraw's own calculator. <code>cdx.py calc</code> runs Structure &gt; Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw, where you type a mass, volume or equivalents and ChemDraw computes the rest; <code>cdx.py calc --read</code> reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">chemistry reports guide</a>.</p>
+        <div class="answer">
+          <p class="lead">Yes, with ChemDraw's own calculator.</p>
+          <ul>
+            <li><code>cdx.py calc</code> runs Structure &gt; Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw.</li>
+            <li>Type a mass, volume or equivalents in the grid, and ChemDraw computes the rest.</li>
+            <li><code>cdx.py calc --read</code> reads the saved numbers back.</li>
+          </ul>
+          <p>Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/chemistry-reports.md">chemistry reports guide</a>.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-safety">
         <summary>How far can I trust the safety information?</summary>
-        <p>It is a reminder from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", never as safe. Check the SDS of the product you actually use.</p>
+        <div class="answer">
+          <p class="lead">Treat it as a reminder, and check the SDS of the product you actually use.</p>
+          <p>It comes from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point.</p>
+          <p>A substance that is not in the table is shown as "not listed", never as safe.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-reconstruct">
         <summary>Can it turn a structure image from a paper into an editable ChemDraw file?</summary>
-        <p>Yes. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review, and outputs editable CDXML with a native ChemDraw preview. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">reconstruction guide</a>.</p>
+        <div class="answer">
+          <p class="lead">Yes, as editable CDXML with a native ChemDraw preview.</p>
+          <p>The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review. See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">reconstruction guide</a>.</p>
+        </div>
       </details>
-      <details>
+      <details id="faq-no-chemdraw">
         <summary>Does it work without ChemDraw installed?</summary>
-        <p>The portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. Native rendering, ChemScript checks and Office embedding need licensed desktop ChemDraw on Windows or macOS.</p>
+        <div class="answer">
+          <p class="lead">Partly: it can create and check CDXML, but the native features need ChemDraw.</p>
+          <ul>
+            <li>Without ChemDraw: the portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux.</li>
+            <li>With licensed desktop ChemDraw on Windows or macOS: native rendering, ChemScript checks and Office embedding.</li>
+          </ul>
+        </div>
       </details>
+      </div>
+      <p class="faq-empty" hidden>No question matches. You can ask on <a href="https://github.com/ZiChenWang114514/chemdraw-skill/issues">GitHub Issues</a>.</p>
     </div>
   </div>
 </section>
@@ -453,52 +526,16 @@ cd chemdraw-skill
     </div>
     <nav aria-label="Footer">
       <a href="https://github.com/ZiChenWang114514/chemdraw-skill">GitHub</a>
+      <a href="lab/">The Molecule Lab</a>
       <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/docs/guide.md">Setup and operations guide</a>
       <a href="../" hreflang="zh-CN" lang="zh-CN">&#20013;&#25991;</a>
     </nav>
   </div>
 </footer>
 
-<script type="application/json" id="i18n">
-{
-  "hint": {
-    "move": "Drag an atom to move it.",
-    "bond": "Click a bond to change its order. Click an atom to grow a chain from it.",
-    "atom": "Click an atom to change its element. Shift-click goes back.",
-    "ring": "Click an atom to attach a benzene ring.",
-    "erase": "Click an atom or a bond to remove it."
-  },
-  "ask": "“Use ChemDraw Skill to draw {name} as editable CDXML and show me the render.”",
-  "names": {
-    "aspirin": "aspirin",
-    "paracetamol": "paracetamol",
-    "caffeine": "caffeine",
-    "ibuprofen": "ibuprofen",
-    "vanillin": "vanillin"
-  },
-  "build": "{name}.cdxml, ACS Document 1996",
-  "matches": "matches the input",
-  "differs": "differs from the input {input}",
-  "empty": "nothing drawn",
-  "order": [
-    "single",
-    "double",
-    "triple"
-  ],
-  "setBond": "Bond set to {order}.",
-  "grow": "Carbon added.",
-  "element": "Atom set to {sym}.",
-  "ring": "Benzene ring attached.",
-  "noRoom": "No room there. Move the structure first.",
-  "erased": "Removed.",
-  "moved": "Moved.",
-  "undone": "Undone.",
-  "reset": "Back to the original.",
-  "valence": "{sym} has {n} bonds, more than the usual {v}.",
-  "aria": "Structure of {name}, formula {formula}. Drawn with the mouse or touch."
-}
-</script>
+<script src="../words.en.js" defer></script>
 <script src="../app.js" defer></script>
+<script src="../chem.js" defer></script>
 <script src="../editor.js" defer></script>
 </body>
 </html>

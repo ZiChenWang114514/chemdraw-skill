@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Molecule Lab | ChemDraw Skill</title>
+<meta name="description" content="Edit molecules in your browser: a daily puzzle, a 20-level reaction route, a readback error hunt and an isomer hunt, with CDXML export that opens in ChemDraw.">
+<link rel="canonical" href="https://zichenwang114514.github.io/chemdraw-skill/en/lab/">
+<link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/lab/">
+<link rel="alternate" hreflang="en" href="https://zichenwang114514.github.io/chemdraw-skill/en/lab/">
+<link rel="alternate" hreflang="x-default" href="https://zichenwang114514.github.io/chemdraw-skill/en/lab/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ChemDraw Skill">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="The Molecule Lab">
+<meta property="og:description" content="A daily puzzle, a 20-level reaction route, a readback error hunt and an isomer hunt.">
+<meta property="og:url" content="https://zichenwang114514.github.io/chemdraw-skill/en/lab/">
+<meta property="og:image" content="https://zichenwang114514.github.io/chemdraw-skill/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#007c83">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../../styles.css">
+<script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../" aria-label="ChemDraw Skill">
+      <img decoding="async" src="../../favicon.svg" width="26" height="26" alt="">
+      ChemDraw Skill
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a class="hide-sm" href="../">Home</a>
+      <a class="hide-sm" href="../#start">Quick start</a>
+      <a class="hide-sm" href="../#faq">FAQ</a>
+      <a href="../../lab/" hreflang="zh-CN" lang="zh-CN">&#20013;&#25991;</a>
+      <a class="gh" href="https://github.com/ZiChenWang114514/chemdraw-skill"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+      <button class="theme" type="button" hidden aria-label="Dark theme" aria-pressed="false"><svg class="moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 11.7A7 7 0 0 1 8.3 3.5a7 7 0 1 0 8.2 8.2z"/></svg><svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 2.4v2M10 15.6v2M2.4 10h2M15.6 10h2M4.6 4.6l1.4 1.4M14 14l1.4 1.4M4.6 15.4L6 14M14 6l1.4-1.4"/></svg></button>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="lab">
+  <div class="wrap lab-head">
+    <div>
+      <h1>The Molecule Lab</h1>
+      <p class="lede">Rework molecules, catch structure errors and take what you draw back to ChemDraw. Answers are judged on the structure, so any drawing of it counts.</p>
+    </div>
+    <dl class="stats">
+      <div><dt>Stars</dt><dd data-stat="stars">0</dd></div>
+      <div><dt>Day streak</dt><dd data-stat="streak">0</dd></div>
+      <div><dt>Compounds</dt><dd data-stat="compounds">0</dd></div>
+      <div><dt>Badges</dt><dd data-stat="badges">0</dd></div>
+    </dl>
+    <div class="progress stars" role="progressbar" aria-valuemin="0"></div>
+  </div>
+  <noscript><p class="wrap">The Lab’s games need JavaScript. Everything else is on the <a href="../">home page</a>.</p></noscript>
+  <div class="wrap lab-window">
+    <nav class="modes" aria-label="Lab modes"><a data-mode="daily" href="#daily">Daily</a><a data-mode="levels" href="#levels">Route map</a><a data-mode="hunt" href="#hunt">Spot the error</a><a data-mode="isomers" href="#isomers">Isomers</a><a data-mode="dex" href="#dex">Collection</a><a data-mode="free" href="#free">Sketchpad</a><i class="tab-mark" aria-hidden="true"></i></nav>
+    <p class="lab-status" aria-live="polite"></p>
+    <div class="lab-body">
+    <div class="board" data-view="board">
+      <figure class="doc">
+      <div class="doc-bar"><i></i><i></i><i></i><span class="fname">structure.cdxml</span>
+        
+      </div>
+      <div class="palette" role="toolbar" aria-label="Drawing tools" aria-orientation="vertical" hidden>
+        <button type="button" data-tool="move" aria-pressed="false" aria-label="Move" data-tip="Move (V)"><svg viewBox="0 0 20 20"><path class="fill" d="M5 3l10 8.2-4.3.6 2.5 4.6-1.9 1-2.5-4.7L5 15.6z"/></svg></button>
+        <button type="button" data-tool="bond" aria-pressed="true" aria-label="Bond" data-tip="Bond (B)"><svg viewBox="0 0 20 20"><path d="M4 16L16 4" stroke-width="2"/></svg></button>
+        <button type="button" data-tool="atom" aria-pressed="false" aria-label="Atom" data-tip="Atom (A)"><svg viewBox="0 0 20 20"><text x="5" y="15">A</text></svg></button>
+        <button type="button" data-tool="ring" aria-pressed="false" aria-label="Benzene ring" data-tip="Benzene ring (R)"><svg viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z"/><path d="M10 5.4l4.1 2.4M14.1 12.2L10 14.6M5.9 12.2V7.8"/></svg></button>
+        <button type="button" data-tool="erase" aria-pressed="false" aria-label="Eraser" data-tip="Eraser (E)"><svg viewBox="0 0 20 20"><path d="M3.8 12.2l7.6-7.6 4.6 4.6-6.4 6.4H6.2z"/><path d="M8.2 7.8l4.6 4.6"/></svg></button>
+        <button type="button" data-tool-action="clean" aria-label="Clean up structure" data-tip="Clean up structure (Ctrl+Shift+K)"><svg viewBox="0 0 20 20"><path d="M10 3l5.6 3.25v6.5L10 16l-5.6-3.25v-6.5z"/><path d="M15.5 2.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" class="fill"/></svg></button>
+        <button type="button" data-undo disabled aria-label="Undo" data-tip="Undo (Ctrl+Z)"><svg viewBox="0 0 20 20"><path d="M5 8h7a3.5 3.5 0 0 1 0 7H8"/><path d="M8 4.8L4.8 8 8 11.2"/></svg></button>
+      </div>
+      <div class="doc-canvas" id="doc-canvas" role="tabpanel">
+        <svg class="mol" viewBox="0 0 323 262" role="img"></svg>
+        <i class="snap" hidden aria-hidden="true"></i>
+        <div class="foot">
+          <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>Reset</button>
+            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">Copy SMILES</button><button class="btn sm" type="button" data-export="cdxml">Save .cdxml</button><button class="btn sm" type="button" data-export="link">Copy share link</button></div></div>
+          <div class="analysis">
+            <div>Chemical Formula: <span data-a="formula"></span></div>
+            <div>Exact Mass: <span data-a="exact"></span></div>
+            <div>Molecular Weight: <span data-a="mw"></span></div>
+          </div>
+        </div>
+      </div>
+      <ol class="log">
+        <li class="ask" style="--t:.15" data-log="ask"></li>
+        <li style="--t:.45"><span class="k">resolve_name</span><span data-log="resolve"></span></li>
+        <li style="--t:.8"><span class="k">build</span><span data-log="build"></span></li>
+        <li style="--t:2.2"><span class="k">render</span><span>native ChemDraw PNG, 300 dpi</span></li>
+        <li style="--t:2.6"><span class="k">readback</span><span data-log="readback" aria-live="polite"></span></li>
+      </ol>
+    </figure>
+      <aside class="mission" aria-live="polite"></aside>
+    </div>
+    <div class="route" data-view="route" hidden></div>
+    <div class="hunt" data-view="hunt" hidden>
+      <div class="hunt-top">
+        <p class="intro">The agent’s drawing has one error. Compare it with the correct structure and click the wrong atom or bond. These structures are wrong on purpose, for this game only.</p>
+        <span class="hunt-best"></span>
+      </div>
+      <button class="btn primary" type="button" data-act="hunt-start">Start a game</button>
+      <div class="hunt-play" hidden>
+        <p class="hunt-meta"></p>
+        <div class="hunt-pair">
+          <figure class="hunt-truth"></figure>
+          <figure class="hunt-drawn"><svg class="mol hunt-canvas" viewBox="0 0 323 262" role="group" aria-label="Agent’s drawing"></svg><figcaption class="hunt-caption">Agent’s drawing</figcaption></figure>
+        </div>
+        <p class="hunt-say" role="status"></p>
+        <button class="btn primary" type="button" data-act="hunt-next" hidden>Next round</button>
+      </div>
+    </div>
+    <div class="dex-view" data-view="dex" hidden></div>
+    </div>
+  </div>
+  <div class="wrap lab-foot">
+    <p class="prereq-note">This canvas runs in your browser and needs no ChemDraw. Saved .cdxml files open in ChemDraw; to have an agent render natively, first <a href="../#start">install the Skill and desktop ChemDraw</a>.</p>
+    <p data-privacy>Your progress stays in this browser and is never uploaded. <button class="link" type="button" data-act="reset">Clear progress</button></p>
+  </div>
+  <div class="toast" role="status"></div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><p>ChemDraw Skill is MIT licensed. This is an independent community project, not affiliated with or endorsed by Revvity. ChemDraw is a trademark of Revvity.</p></div>
+    <nav aria-label="Footer">
+      <a href="../">Home</a>
+      <a href="https://github.com/ZiChenWang114514/chemdraw-skill">GitHub</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="../../words.en.js" defer></script>
+<script src="../../app.js" defer></script>
+<script src="../../chem.js" defer></script>
+<script src="../../editor.js" defer></script>
+<script src="../../lab.js" defer></script>
+</body>
+</html>

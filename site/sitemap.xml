@@ -12,4 +12,16 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://zichenwang114514.github.io/chemdraw-skill/en/"/>
   </url>
+  <url>
+    <loc>https://zichenwang114514.github.io/chemdraw-skill/lab/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/lab/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zichenwang114514.github.io/chemdraw-skill/en/lab/"/>
+  </url>
+  <url>
+    <loc>https://zichenwang114514.github.io/chemdraw-skill/en/lab/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/lab/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://zichenwang114514.github.io/chemdraw-skill/en/lab/"/>
+  </url>
 </urlset>
