@@ -168,6 +168,19 @@ globalThis.ChemWords = {
  },
  "run": "Run it",
  "progressTop": "Top of the page",
+ "elements": {
+  "C": "Carbon",
+  "N": "Nitrogen",
+  "O": "Oxygen",
+  "S": "Sulfur",
+  "F": "Fluorine",
+  "Cl": "Chlorine",
+  "Br": "Bromine"
+ },
+ "tip": {
+  "atom": "{name}, {h} implicit H, bonds {used} / {max}",
+  "bond": "{pair}, {order} bond"
+ },
  "faq": {
   "expand": "Expand all",
   "collapse": "Collapse all",

@@ -142,7 +142,6 @@ html { -webkit-text-size-adjust: 100%; scroll-padding-top: 72px; background: var
 
 body {
   margin: 0;
-  background: var(--canvas);
   color: var(--ink);
   font: 400 var(--fs-md)/1.7 var(--sans);
   text-rendering: optimizeLegibility;
@@ -172,7 +171,7 @@ button { font: inherit; color: inherit; }
 /* Header */
 .top {
   position: sticky; top: 0; z-index: 5;
-  background: color-mix(in srgb, var(--canvas) 96%, transparent);
+  background: var(--canvas);
   view-transition-name: top;
   border-bottom: 1px solid var(--grid);
 }
@@ -396,6 +395,30 @@ button { font: inherit; color: inherit; }
 .doc[data-tool="move"] .hit { cursor: grab; }
 .doc[data-tool="move"] .mol { touch-action: none; }
 .doc.dragging .hit, .doc.dragging .hit * { cursor: grabbing; }
+
+/* Each tool draws with its own cursor. Browsers without SVG cursors fall back to the crosshair */
+.doc[data-tool="bond"] .mol, .doc[data-tool="bond"] .hit { cursor: url("cursors/bond.svg") 8 8, crosshair; }
+.doc[data-tool="atom"] .mol, .doc[data-tool="atom"] .hit { cursor: url("cursors/atom.svg") 8 8, crosshair; }
+.doc[data-tool="ring"] .mol, .doc[data-tool="ring"] .hit { cursor: url("cursors/ring.svg") 8 8, crosshair; }
+.doc[data-tool="erase"] .mol, .doc[data-tool="erase"] .hit { cursor: url("cursors/erase.svg") 8 8, crosshair; }
+.doc[data-blocked] .mol, .doc[data-blocked] .hit { cursor: not-allowed; }
+
+/* The move a click would make: grey for what will appear, red for what will go */
+.mol .preview { pointer-events: none; }
+.mol .preview .b, .mol .preview .a { opacity: .55; }
+.mol .preview .mask { fill: var(--canvas); }
+.mol .preview.drop .b { stroke: var(--oxygen); stroke-width: 3; opacity: .75; }
+.mol .preview.drop circle { fill: color-mix(in srgb, var(--oxygen) 22%, transparent); stroke: var(--oxygen); stroke-width: 1.2; }
+.play .mol .preview .b { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+.play .mol .preview .a { animation: none; opacity: .55; }
+
+/* What is under the pointer */
+.atom-tip {
+  position: absolute; left: 0; top: 0; z-index: 2; padding: 4px 8px; pointer-events: none; white-space: nowrap;
+  border-radius: var(--r-sm); background: var(--ink); color: var(--canvas); box-shadow: var(--shadow-float);
+  font: 500 var(--fs-xs)/1.4 var(--sans); font-variant-numeric: tabular-nums;
+}
+.atom-tip[hidden] { display: none; }
 
 /* A dot that snaps to the drawing grid under the pointer */
 .snap {
@@ -975,6 +998,14 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
   border: 1px solid var(--rule); border-bottom: 0; border-radius: var(--r-sm) var(--r-sm) 0 0; background: var(--canvas);
 }
 .modes[data-ready] .tab-mark { transition: transform var(--t-med) var(--ease), width var(--t-med) var(--ease); }
+/* The drawing grid comes up around the pointer, behind the page */
+.grid-glow {
+  position: fixed; left: 0; top: 0; z-index: -1; width: 360px; height: 360px; pointer-events: none; opacity: 0;
+  background: radial-gradient(var(--teal) 1px, transparent 1.2px) 0 0 / 14px 14px;
+  mask-image: radial-gradient(closest-side, #000, transparent);
+  transition: opacity var(--t-slow) var(--ease);
+}
+.grid-glow[data-on] { opacity: .45; }
 .lab-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .lab-body { min-height: 46rem; view-transition-name: lab-body; }
 .lab [hidden] { display: none; }

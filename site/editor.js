@@ -8,7 +8,7 @@
 (() => {
   const { MOLS, W, H, EL, CYCLE, fmt, load, analyse, bondLength, remove, inside, place, toSmiles, toCdxml, cleanUp, drawMarkup,
     graphKey, targetOf, stars, localDate, dailyNumber, dailyPick, nextStreak, dailyShare, encodeDrawing, decodeDrawing, emptyStore, parseStore,
-    record, earned, STORE_KEY } = globalThis.Chem;
+    record, earned, STORE_KEY, applyTool, previewMarkup } = globalThis.Chem;
 
   // Progress in this browser, or only in this page when storage is refused.
   function openStore() {
@@ -64,6 +64,11 @@
     const exportBar = doc.querySelector(".export");
     const fname = doc.querySelector(".fname");
     const motion = matchMedia("(prefers-reduced-motion: no-preference)");
+    const fine = matchMedia("(hover: hover) and (pointer: fine)");
+    const canvasBox = doc.querySelector(".doc-canvas");
+    const tip = Object.assign(document.createElement("div"), { className: "atom-tip", hidden: true });
+    tip.setAttribute("aria-hidden", "true");
+    canvasBox.append(tip);
     const point = svg.createSVGPoint();
     const NS = "http://www.w3.org/2000/svg";
 
@@ -74,6 +79,7 @@
     let st;
     let drag = null, link = null, ghost = null, swallowClick = false;
     let aim = null, byKeyboard = false, tipped = false;
+    let spot = null, tipTimer = 0, previewQueued = false;
     let quest = null;
     let tween = 0;
 
@@ -125,6 +131,8 @@
       const info = analyse(st.g);
       svg.innerHTML = drawMarkup(st.g);
       paintCursor();
+      paintPreview();
+      hideTip();
       const empty = !st.g.atoms.length;
       setText("[data-a=formula]", empty ? "—" : info.html);
       setText("[data-a=exact]", empty ? "—" : info.exact.toFixed(2));
@@ -192,62 +200,50 @@
       update();
     }
 
-    function ringAt(centre, L, turn) {
-      return Array.from({ length: 6 }, (_, k) => ({ x: centre.x + L * Math.cos(turn + (k * Math.PI) / 3), y: centre.y + L * Math.sin(turn + (k * Math.PI) / 3) }));
+    // What the current tool does at a target. chem.js decides; the preview shows the same plan.
+    function act(target, back) {
+      const plan = applyTool(st.g, tool, target, back);
+      if (!plan) return;
+      if (!plan.g) return update(T[plan.say]);
+      if (plan.drop) aim = null;
+      const say = plan.say === "element" ? fmt(T.element, { sym: plan.sym })
+        : plan.say === "setBond" ? fmt(T.setBond, { order: T.order[plan.order - 1] }) : T[plan.say];
+      change(say, (d) => { d.atoms = plan.g.atoms; d.bonds = plan.g.bonds; });
     }
-    const ringBondsFrom = (d, base) => {
-      for (let k = 0; k < 6; k++) d.bonds.push({ a: base + k, b: base + ((k + 1) % 6), o: k % 2 ? 1 : 2 });
-    };
 
-    // What the current tool does to an atom, a bond or an empty spot.
-    function actOnAtom(i, back) {
-      const g = st.g;
-      if (tool === "bond") {
-        const L = bondLength(g);
-        const spot = place(g, i, (t) => [{ x: g.atoms[i].x + L * Math.cos(t), y: g.atoms[i].y + L * Math.sin(t) }]);
-        if (!spot) return update(T.noRoom);
-        change(T.grow, (d) => { d.atoms.push({ s: "C", x: spot[0].x, y: spot[0].y }); d.bonds.push({ a: i, b: d.atoms.length - 1, o: 1 }); });
-      } else if (tool === "atom") {
-        const at = CYCLE.indexOf(g.atoms[i].s);
-        const next = CYCLE[(at + (back ? CYCLE.length - 1 : 1)) % CYCLE.length];
-        change(fmt(T.element, { sym: next }), (d) => { d.atoms[i].s = next; });
-      } else if (tool === "ring") {
-        const L = bondLength(g);
-        const spot = place(g, i, (t) => ringAt({ x: g.atoms[i].x + 2 * L * Math.cos(t), y: g.atoms[i].y + 2 * L * Math.sin(t) }, L, t + Math.PI));
-        if (!spot) return update(T.noRoom);
-        change(T.ring, (d) => {
-          const base = d.atoms.length;
-          spot.forEach((p) => d.atoms.push({ s: "C", x: p.x, y: p.y }));
-          d.bonds.push({ a: i, b: base, o: 1 });
-          ringBondsFrom(d, base);
-        });
-      } else if (tool === "erase") {
-        aim = null;
-        change(T.erased, (d) => remove(d, i));
-      }
+    // Under the pointer: the move a click would make, and what the atom or bond is. On a device
+    // with a mouse only; a finger has nothing to hover with.
+    function paintPreview() {
+      svg.querySelector(".preview")?.remove();
+      const target = aim || spot;
+      const plan = target && !drag && !link && fine.matches ? applyTool(st.g, tool, target) : null;
+      doc.toggleAttribute("data-blocked", !!plan && !plan.g);
+      if (plan?.g) svg.insertAdjacentHTML("beforeend", previewMarkup(st.g, plan));
     }
-    function actOnBond(k) {
-      if (tool === "bond") {
-        const order = (st.g.bonds[k].o % 3) + 1;
-        change(fmt(T.setBond, { order: T.order[order - 1] }), (d) => { d.bonds[k].o = order; });
-      } else if (tool === "erase") {
-        aim = null;
-        change(T.erased, (d) => d.bonds.splice(k, 1));
-      }
+    function hideTip() {
+      clearTimeout(tipTimer);
+      tip.hidden = true;
     }
-    function actOnSpace(p) {
-      if (!inside(p)) return;
-      if (tool === "bond" || tool === "atom") {
-        change(T.placed, (d) => { d.atoms.push({ s: "C", x: p.x, y: p.y }); });
-      } else if (tool === "ring") {
-        const spot = ringAt(p, bondLength(st.g), -Math.PI / 2);
-        if (!spot.every((q) => inside(q))) return update(T.noRoom);
-        change(T.ringPlaced, (d) => {
-          const base = d.atoms.length;
-          spot.forEach((q) => d.atoms.push({ s: "C", x: q.x, y: q.y }));
-          ringBondsFrom(d, base);
-        });
-      }
+    function showTip(e) {
+      hideTip();
+      if (!aim || byKeyboard || !fine.matches) return;
+      const box = canvasBox.getBoundingClientRect();
+      const x = e.clientX - box.left, y = e.clientY - box.top;
+      tipTimer = setTimeout(() => {
+        const g = st.g, info = analyse(g);
+        if (aim?.atom !== undefined && g.atoms[aim.atom]) {
+          const i = aim.atom, s = g.atoms[i].s;
+          tip.textContent = fmt(T.tip.atom, { name: T.elements[s], h: info.hyd[i], used: info.used[i], max: EL[s].v });
+        } else if (aim?.bond !== undefined && g.bonds[aim.bond]) {
+          const b = g.bonds[aim.bond];
+          tip.textContent = fmt(T.tip.bond, { pair: `${g.atoms[b.a].s}${"-=≡"[b.o - 1]}${g.atoms[b.b].s}`, order: T.order[b.o - 1] });
+        } else return;
+        tip.hidden = false;
+        // Beside the pointer, or across it when that would run off the canvas
+        const left = x + 16 + tip.offsetWidth > box.width ? x - 12 - tip.offsetWidth : x + 16;
+        const top = y + 20 + tip.offsetHeight > box.height ? y - 12 - tip.offsetHeight : y + 20;
+        tip.style.transform = `translate(${Math.max(4, left)}px, ${Math.max(4, top)}px)`;
+      }, 120);
     }
 
     function toSvg(e) {
@@ -260,9 +256,9 @@
       if (swallowClick) { swallowClick = false; return; }
       if (tool === "move") return;
       const atomEl = e.target.closest("[data-atom]"), bondEl = e.target.closest("[data-bond]");
-      if (atomEl) actOnAtom(+atomEl.dataset.atom, e.shiftKey);
-      else if (bondEl) actOnBond(+bondEl.dataset.bond);
-      else actOnSpace(toSvg(e));
+      if (atomEl) act({ atom: +atomEl.dataset.atom }, e.shiftKey);
+      else if (bondEl) act({ bond: +bondEl.dataset.bond });
+      else act(toSvg(e));
     });
 
     // Dragging from an atom with the bond tool draws a bond, as in ChemDraw: to another atom it
@@ -315,7 +311,14 @@
         ghost.setAttribute("y2", end.y);
         return;
       }
-      if (!drag) return;
+      if (!drag) {
+        spot = aim || e.pointerType !== "mouse" ? null : toSvg(e);
+        if (!previewQueued) {
+          previewQueued = true;
+          requestAnimationFrame(() => { previewQueued = false; paintPreview(); });
+        }
+        return;
+      }
       const p = toSvg(e);
       if (!drag.moved) {
         stopPlay();
@@ -418,8 +421,16 @@
       aim = atomEl ? { atom: +atomEl.dataset.atom } : bondEl ? { bond: +bondEl.dataset.bond } : null;
       // The first time the pointer rests on the drawing, say that these keys exist.
       if (aim && !tipped && tool !== "move" && !status.dataset.state) { tipped = true; status.textContent = T.keys; }
+      if (aim) spot = null;
+      paintPreview();
+      showTip(e);
     });
-    svg.addEventListener("pointerleave", () => { if (!byKeyboard) aim = null; });
+    svg.addEventListener("pointerleave", () => {
+      if (!byKeyboard) aim = null;
+      spot = null;
+      paintPreview();
+      hideTip();
+    });
     document.addEventListener("keydown", (e) => {
       if (!aim || drag || e.ctrlKey || e.metaKey || e.altKey || (e.target instanceof Element && e.target.closest("input, textarea, select, [contenteditable]"))) return;
       const key = e.key.toLowerCase();
@@ -499,9 +510,9 @@
       } else if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         byKeyboard = true;
-        if (!st.g.atoms.length) actOnSpace({ x: W / 2, y: H / 2 });
-        else if (aim?.atom !== undefined) actOnAtom(aim.atom, e.shiftKey);
-        else if (aim?.bond !== undefined) actOnBond(aim.bond);
+        if (!st.g.atoms.length) act({ x: W / 2, y: H / 2 });
+        else if (aim?.atom !== undefined) act({ atom: aim.atom }, e.shiftKey);
+        else if (aim?.bond !== undefined) act({ bond: aim.bond });
         else return pickFirst();
         if (!aim) pickFirst(); else paintCursor();
       }

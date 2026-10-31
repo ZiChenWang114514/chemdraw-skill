@@ -318,6 +318,120 @@
     return `<g class="selg" aria-hidden="true"><rect class="sel" x="${f1(x0)}" y="${f1(y0)}" width="${f1(x1 - x0)}" height="${f1(y1 - y0)}"/>${handles}</g>`;
   }
 
+  // Six points of a hexagon around a centre.
+  const ringAt = (centre, L, turn) => Array.from({ length: 6 }, (_, k) => ({ x: centre.x + L * Math.cos(turn + (k * Math.PI) / 3), y: centre.y + L * Math.sin(turn + (k * Math.PI) / 3) }));
+  function addRing(d, spot) {
+    const base = d.atoms.length;
+    spot.forEach((p) => d.atoms.push({ s: "C", x: p.x, y: p.y }));
+    for (let k = 0; k < 6; k++) d.bonds.push({ a: base + k, b: base + ((k + 1) % 6), o: k % 2 ? 1 : 2 });
+    return base;
+  }
+  // The four new atoms of a ring built on a bond, on whichever side has more room; null if neither fits.
+  function fuseSpot(g, bond) {
+    const A = g.atoms[bond.a], B = g.atoms[bond.b];
+    const side = Math.hypot(B.x - A.x, B.y - A.y) || 1;
+    const nx = (A.y - B.y) / side, ny = (B.x - A.x) / side;
+    const reach = (side * Math.sqrt(3)) / 2;
+    let best = null, room = side * 0.6;
+    for (const sign of [1, -1]) {
+      const c = { x: (A.x + B.x) / 2 + sign * nx * reach, y: (A.y + B.y) / 2 + sign * ny * reach };
+      const from = Math.atan2(A.y - c.y, A.x - c.x);
+      const step = Math.atan2(Math.sin(Math.atan2(B.y - c.y, B.x - c.x) - from), Math.cos(Math.atan2(B.y - c.y, B.x - c.x) - from));
+      const spot = [1, 2, 3, 4].map((k) => ({ x: c.x + side * Math.cos(from - k * step), y: c.y + side * Math.sin(from - k * step) }));
+      const clear = Math.min(...spot.flatMap((p) => g.atoms.map((q) => Math.hypot(p.x - q.x, p.y - q.y))));
+      if (spot.every((p) => inside(p)) && clear > room) { best = spot; room = clear; }
+    }
+    return best;
+  }
+
+  // What a tool does to an atom, a bond or a point on the canvas. This is the one place a click's
+  // result is decided, and the preview draws its answer, so the two cannot disagree. Returns null
+  // when the tool does nothing there, and { say, g: null } when it is refused. g is left alone.
+  function applyTool(g, tool, aim, back = false) {
+    if (tool === "move") return null;
+    const d = JSON.parse(JSON.stringify(g));
+    const L = bondLength(g);
+    const noRoom = { say: "noRoom", g: null };
+    if (aim.atom !== undefined) {
+      const i = aim.atom, a = g.atoms[i];
+      if (!a) return null;
+      if (tool === "bond") {
+        const spot = place(g, i, (t) => [{ x: a.x + L * Math.cos(t), y: a.y + L * Math.sin(t) }]);
+        if (!spot) return noRoom;
+        d.atoms.push({ s: "C", x: spot[0].x, y: spot[0].y });
+        d.bonds.push({ a: i, b: d.atoms.length - 1, o: 1 });
+        return { say: "grow", g: d };
+      }
+      if (tool === "atom") {
+        const sym = CYCLE[(CYCLE.indexOf(a.s) + (back ? CYCLE.length - 1 : 1)) % CYCLE.length];
+        d.atoms[i].s = sym;
+        return { say: "element", sym, g: d };
+      }
+      if (tool === "ring") {
+        const spot = place(g, i, (t) => ringAt({ x: a.x + 2 * L * Math.cos(t), y: a.y + 2 * L * Math.sin(t) }, L, t + Math.PI));
+        if (!spot) return noRoom;
+        d.bonds.push({ a: i, b: addRing(d, spot), o: 1 });
+        return { say: "ring", g: d };
+      }
+      const bonds = g.bonds.flatMap((b, k) => (b.a === i || b.b === i ? [k] : []));
+      remove(d, i);
+      return { say: "erased", g: d, drop: { atoms: [i], bonds } };
+    }
+    if (aim.bond !== undefined) {
+      const bond = g.bonds[aim.bond];
+      if (!bond) return null;
+      if (tool === "bond") {
+        const order = (bond.o % 3) + 1;
+        d.bonds[aim.bond].o = order;
+        return { say: "setBond", order, g: d };
+      }
+      if (tool === "ring") {
+        const spot = fuseSpot(g, bond);
+        if (!spot) return noRoom;
+        const base = d.atoms.length;
+        spot.forEach((p) => d.atoms.push({ s: "C", x: p.x, y: p.y }));
+        [bond.a, base, base + 1, base + 2, base + 3, bond.b].forEach((at, k, chain) => { if (k < 5) d.bonds.push({ a: at, b: chain[k + 1], o: k % 2 ? 2 : 1 }); });
+        return { say: "ring", g: d };
+      }
+      if (tool === "erase") {
+        d.bonds.splice(aim.bond, 1);
+        return { say: "erased", g: d, drop: { atoms: [], bonds: [aim.bond] } };
+      }
+      return null;
+    }
+    if (!inside(aim)) return null;
+    if (tool === "bond" || tool === "atom") {
+      d.atoms.push({ s: "C", x: aim.x, y: aim.y });
+      return { say: "placed", g: d };
+    }
+    if (tool === "ring") {
+      const spot = ringAt(aim, L, -Math.PI / 2);
+      if (!spot.every((q) => inside(q))) return noRoom;
+      addRing(d, spot);
+      return { say: "ringPlaced", g: d };
+    }
+    return null;
+  }
+
+  // A plan from applyTool drawn over the canvas: what will appear, or what will go.
+  function previewMarkup(before, plan) {
+    const isLabelled = (g, nb) => g.atoms.map((a, i) => a.s !== "C" || !nb[i].length);
+    if (plan.drop) {
+      const nb = neighbours(before), labelled = isLabelled(before, nb);
+      const lines = plan.drop.bonds.map((k) => `<path class="b" d="${bondPath(before, nb, labelled, before.bonds[k])}"/>`).join("");
+      const dots = plan.drop.atoms.map((i) => `<circle cx="${f1(before.atoms[i].x)}" cy="${f1(before.atoms[i].y)}" r="12"/>`).join("");
+      return `<g class="preview drop">${lines}${dots}</g>`;
+    }
+    const g = plan.g, nb = neighbours(g), info = analyse(g), labelled = isLabelled(g, nb);
+    const lines = g.bonds.filter((b, k) => k >= before.bonds.length || b.o !== before.bonds[k].o).map((b) => `<path class="b" d="${bondPath(g, nb, labelled, b)}"/>`).join("");
+    const atoms = g.atoms.map((a, i) => {
+      if (i < before.atoms.length && a.s === before.atoms[i].s) return "";
+      const mask = i < before.atoms.length ? `<circle class="mask" cx="${f1(a.x)}" cy="${f1(a.y)}" r="12"/>` : "";
+      return mask + (labelled[i] ? label(g, nb, info, i, 0) : "");
+    }).join("");
+    return `<g class="preview">${lines}${atoms}</g>`;
+  }
+
   // The structure as SVG markup, used for the editor's canvas and for every thumbnail. flags
   // circles over-valent atoms, selection adds ChemDraw's box, hit adds the invisible click targets.
   function drawMarkup(g, { flags = true, box = true, hit = true } = {}) {
@@ -684,7 +798,7 @@
   }
 
   const api = {
-    MOLS, W, H, EL, CYCLE, CHALLENGES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
+    applyTool, previewMarkup, MOLS, W, H, EL, CYCLE, CHALLENGES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
     fmt, load, analyse, bondLength, neighbours, remove, inside, freeAngle, place, toSmiles, toCdxml, cleanUp, drawMarkup, thumb,
     applyMoves, graphKey, targetOf, challengeKey, stars,
     localDate, dailyNumber, dailyPick, nextStreak, dailyShare,

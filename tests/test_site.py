@@ -603,6 +603,98 @@ class LabPageTests(unittest.TestCase):
         self.assertLessEqual(size("lab.js"), 9_000)
 
 
+class ToolPlanTests(unittest.TestCase):
+    """applyTool is the one place a click's result is decided, so a preview cannot disagree with it."""
+
+    def plan(self, tool: str, aim: dict, back: bool = False) -> dict:
+        return run_editor(f"""
+          const g = E.load("aspirin");
+          const out = E.applyTool(g, {json.dumps(tool)}, {json.dumps(aim)}, {json.dumps(back)});
+          console.log(JSON.stringify({{ before: g, out }}));
+        """)
+
+    def test_the_input_is_never_changed(self) -> None:
+        for tool, aim in (("bond", {"atom": 0}), ("atom", {"atom": 0}), ("ring", {"atom": 0}), ("erase", {"atom": 0}), ("erase", {"bond": 0}), ("bond", {"bond": 0})):
+            with self.subTest(tool=tool, aim=aim):
+                done = self.plan(tool, aim)
+                self.assertEqual(done["before"], run_editor('console.log(JSON.stringify(E.load("aspirin")))'))
+
+    def test_bond_on_an_atom_grows_one_carbon(self) -> None:
+        done = self.plan("bond", {"atom": 0})
+        g, before = done["out"]["g"], done["before"]
+        self.assertEqual(done["out"]["say"], "grow")
+        self.assertEqual(len(g["atoms"]), len(before["atoms"]) + 1)
+        self.assertEqual(g["atoms"][-1]["s"], "C")
+        self.assertEqual(g["bonds"][-1], {"a": 0, "b": len(before["atoms"]), "o": 1})
+
+    def test_bond_on_a_bond_steps_the_order(self) -> None:
+        done = self.plan("bond", {"bond": 0})
+        self.assertEqual(done["out"]["g"]["bonds"][0]["o"], done["before"]["bonds"][0]["o"] % 3 + 1)
+
+    def test_atom_tool_cycles_both_ways(self) -> None:
+        self.assertEqual(self.plan("atom", {"atom": 0})["out"]["g"]["atoms"][0]["s"], "N")
+        self.assertEqual(self.plan("atom", {"atom": 0}, True)["out"]["g"]["atoms"][0]["s"], "Br")
+
+    def test_ring_on_an_atom_hangs_a_benzene_ring(self) -> None:
+        done = self.plan("ring", {"atom": 3})
+        self.assertEqual(len(done["out"]["g"]["atoms"]) - len(done["before"]["atoms"]), 6)
+        self.assertEqual(len(done["out"]["g"]["bonds"]) - len(done["before"]["bonds"]), 7)
+
+    def test_ring_on_a_bond_fuses_on_the_free_side(self) -> None:
+        done = run_editor("""
+          const g = { atoms: [{ s: "C", x: 140, y: 130 }, { s: "C", x: 196, y: 130 }, { s: "C", x: 112, y: 82 }], bonds: [{ a: 0, b: 1, o: 1 }, { a: 0, b: 2, o: 1 }] };
+          const plan = E.applyTool(g, "ring", { bond: 0 });
+          const fresh = plan.g.atoms.slice(g.atoms.length);
+          console.log(JSON.stringify({ added: fresh.length, bonds: plan.g.bonds.length - g.bonds.length, below: fresh.every((p) => p.y > 130), say: plan.say }));
+        """)
+        self.assertEqual(done, {"added": 4, "bonds": 5, "below": True, "say": "ring"})
+
+    def test_ring_on_a_full_canvas_says_no_room(self) -> None:
+        self.assertEqual(self.plan("ring", {"atom": 0})["out"], {"say": "noRoom", "g": None})
+        self.assertEqual(self.plan("ring", {"bond": 0})["out"], {"say": "noRoom", "g": None})
+
+    def test_erase_names_what_goes(self) -> None:
+        atom = self.plan("erase", {"atom": 1})
+        self.assertEqual(atom["out"]["drop"]["atoms"], [1])
+        touching = [k for k, b in enumerate(atom["before"]["bonds"]) if 1 in (b["a"], b["b"])]
+        self.assertEqual(atom["out"]["drop"]["bonds"], touching)
+        self.assertEqual(self.plan("erase", {"bond": 2})["out"]["drop"], {"atoms": [], "bonds": [2]})
+
+    def test_the_empty_canvas(self) -> None:
+        for tool in ("bond", "atom"):
+            self.assertEqual(self.plan(tool, {"x": 12, "y": 12})["out"]["say"], "placed")
+        self.assertEqual(self.plan("ring", {"x": 160, "y": 130})["out"]["say"], "ringPlaced")
+        self.assertIsNone(self.plan("erase", {"x": 160, "y": 130})["out"])
+        self.assertIsNone(self.plan("move", {"atom": 0})["out"])
+        self.assertIsNone(self.plan("bond", {"x": 2, "y": 2})["out"])
+
+    def test_no_room_refuses_with_no_result(self) -> None:
+        self.assertEqual(self.plan("ring", {"x": 15, "y": 15})["out"], {"say": "noRoom", "g": None})
+
+    def test_a_preview_never_carries_a_hit_target(self) -> None:
+        marked = run_editor("""
+          const g = E.load("aspirin");
+          const tools = [["bond", { atom: 0 }], ["bond", { bond: 0 }], ["atom", { atom: 0 }], ["ring", { atom: 3 }], ["erase", { atom: 1 }], ["bond", { x: 30, y: 30 }]];
+          console.log(JSON.stringify(tools.map(([t, a]) => E.previewMarkup(g, E.applyTool(g, t, a)))));
+        """)
+        for markup in marked:
+            self.assertTrue(markup.startswith('<g class="preview'), markup[:40])
+            self.assertNotIn("data-atom", markup)
+            self.assertNotIn("data-bond", markup)
+
+
+class CursorTests(unittest.TestCase):
+    def test_every_tool_has_a_valid_cursor_with_a_keyword_fallback(self) -> None:
+        css = (SITE / "styles.css").read_text(encoding="utf-8")
+        for tool in ("bond", "atom", "ring", "erase"):
+            with self.subTest(tool=tool):
+                path = SITE / "cursors" / f"{tool}.svg"
+                root = ET.parse(path).getroot()
+                self.assertEqual((root.get("width"), root.get("height")), ("32", "32"))
+                self.assertRegex(css, rf'url\("cursors/{tool}\.svg"\) 8 8, crosshair')
+        self.assertNotRegex(css, r"cursor:\s*url\([^)]*\)\s*(\d+ \d+)?;")
+
+
 def faq_entries(language: str) -> list:
     """Each question on the page as (id, question, classes of its first block, blocks of plain text)."""
     source = PAGES[language].read_text(encoding="utf-8")

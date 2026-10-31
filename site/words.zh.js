@@ -168,6 +168,19 @@ globalThis.ChemWords = {
  },
  "run": "运行一遍",
  "progressTop": "开头",
+ "elements": {
+  "C": "碳",
+  "N": "氮",
+  "O": "氧",
+  "S": "硫",
+  "F": "氟",
+  "Cl": "氯",
+  "Br": "溴"
+ },
+ "tip": {
+  "atom": "{name}，{h} 个隐含氢，价键 {used} / {max}",
+  "bond": "{pair}，{order}键"
+ },
  "faq": {
   "expand": "全部展开",
   "collapse": "全部收起",

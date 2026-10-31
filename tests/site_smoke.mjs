@@ -230,6 +230,60 @@ async function main() {
   check("without scripts the FAQ still reads", (await count(".faq details .lead")) === 8 && await run(`getComputedStyle(document.querySelector(".faq-tools")).display === "none"`));
   await send("Emulation.setScriptExecutionDisabled", { value: false });
 
+  // The pointer: each tool shows its own cursor, and a preview is exactly what the click does
+  await open("lab/#free");
+  await run(`document.querySelector('[data-act="free-load"][data-id="aspirin"]').click()`);
+  await sleep(60);
+  const graphNow = () => run(`JSON.stringify([...document.querySelectorAll("${canvas} .hit [data-atom]")].length + ":" + [...document.querySelectorAll("${canvas} .hit [data-bond]")].length)`);
+  const cursorOver = (selector) => run(`getComputedStyle(document.querySelector(${JSON.stringify(selector)})).cursor`);
+  for (const [name, target, previewed] of [
+    ["bond", atom(0), `${canvas} .preview`], ["atom", atom(0), `${canvas} .preview`], ["ring", atom(3), `${canvas} .preview`], ["erase", atom(0), `${canvas} .preview.drop`],
+  ]) {
+    await tool(name);
+    check(`${name} has its own cursor`, (await cursorOver(target)).includes(`cursors/${name}.svg`), await cursorOver(target));
+    await move(await where(target));
+    await sleep(60);
+    check(`${name} previews its move`, (await count(previewed)) === 1, await count(previewed));
+    const before = await graphNow();
+    await click(target);
+    await sleep(40);
+    check(`${name} click changes the drawing`, (await graphNow()) !== before || name === "atom");
+    await press("z", process.platform === "darwin" ? 4 : 2);
+    await sleep(40);
+  }
+  await tool("ring");
+  await move(await where(atom(0)));
+  await sleep(60);
+  check("a move with no room shows not-allowed", (await cursorOver(atom(0))) === "not-allowed" && (await count(`${canvas} .preview`)) === 0, await cursorOver(atom(0)));
+  await tool("move");
+  await move(await where(atom(0)));
+  await sleep(60);
+  check("move has no preview", (await count(`${canvas} .preview`)) === 0);
+  check("move still grabs", (await cursorOver(`${canvas} .hit [data-atom="0"]`)) === "grab");
+  await tool("bond");
+  await move(await where(atom(0)));
+  await sleep(220);
+  check("resting on an atom names it", await run(`!document.querySelector(".atom-tip").hidden && /\\d\\s*\\/\\s*\\d/.test(document.querySelector(".atom-tip").textContent)`), await run(`document.querySelector(".atom-tip").textContent`));
+  await move({ x: 2, y: 2 });
+  await sleep(60);
+  check("leaving the canvas clears the preview", (await count(`${canvas} .preview`)) === 0 && await run(`document.querySelector(".atom-tip").hidden`));
+  await hash("#hunt");
+  await click('[data-act="hunt-start"]');
+  await sleep(40);
+  await move(await where(".hunt-canvas [data-atom]"));
+  await sleep(220);
+  check("the hunt gives nothing away", (await count(".preview")) === 0 && await run(`document.querySelector(".atom-tip").hidden`));
+
+  await open("");
+  await move({ x: 300, y: 820 });
+  await sleep(60);
+  await move({ x: 310, y: 826 });
+  await sleep(60);
+  check("the grid lights under the pointer", await run(`document.querySelector(".grid-glow")?.dataset.on === ""`));
+  await move(await where(atom(0)));
+  await sleep(60);
+  check("the grid stands down over the canvas", await run(`document.querySelector(".grid-glow").dataset.on === undefined`));
+
   // Home: the editor and the daily molecule in the hero
   await open("");
   check("home draws aspirin", (await count(`${canvas} .hit [data-atom]`)) === 13);
@@ -442,6 +496,13 @@ async function main() {
       }
     }
   }
+  await open("");
+  check("no glow without motion", (await count(".grid-glow")) === 0);
+  await run(`document.querySelector('a[href="#faq"]').click()`);
+  check("jumps are immediate without motion", await run(`Math.abs(document.querySelector("#faq").getBoundingClientRect().top - 72) < 3`));
+  await open("lab/#daily");
+  await hash("#hunt");
+  check("modes swap without a transition", await run(`!document.documentElement.dataset.slide && !document.querySelector("[data-view=hunt]").hidden`));
   await open("");
   check("no replay without motion", await run(`!document.querySelector(".replay") || document.querySelector(".replay").hidden || getComputedStyle(document.querySelector(".replay")).display === "none"`));
 

@@ -291,6 +291,31 @@ if (progress) {
   measure();
 }
 
+// The drawing grid lights up under the pointer, except on the canvases, where the preview needs
+// the attention. Mouse only, and only if motion is welcome.
+if (motion.matches && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  const glow = Object.assign(document.createElement("div"), { className: "grid-glow" });
+  glow.setAttribute("aria-hidden", "true");
+  document.body.append(glow);
+  let x = 0, y = 0, queued = false, idle = 0;
+  const paint = () => {
+    queued = false;
+    glow.style.transform = `translate(${x}px, ${y}px)`;
+    // The dots stay still on the page while the window onto them moves
+    glow.style.backgroundPosition = `${-x % 14}px ${-y % 14}px`;
+  };
+  addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return;
+    clearTimeout(idle);
+    if (e.target.closest?.(".doc-canvas")) { delete glow.dataset.on; return; }
+    x = e.clientX - 180;
+    y = e.clientY - 180;
+    glow.dataset.on = "";
+    idle = setTimeout(() => { delete glow.dataset.on; }, 1000);
+    if (!queued) { queued = true; requestAnimationFrame(paint); }
+  }, { passive: true });
+}
+
 // FAQ: search as you type, open or close everything, and a link to each answer.
 const faq = document.querySelector(".faq");
 if (faq && words) {
