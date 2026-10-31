@@ -21,6 +21,7 @@ PAIRS = [
     ("README.md", "README.zh-cn.md"),
     ("docs/guide.md", "docs/guide.zh-cn.md"),
     ("site/en/index.html", "site/index.html"),
+    ("site/en/lab/index.html", "site/lab/index.html"),
 ]
 # Work-log wording and internal names that readers cannot place.
 FORBIDDEN = [
