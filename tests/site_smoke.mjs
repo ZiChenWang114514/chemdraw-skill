@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createRequire } from "node:module";
 
 const base = process.argv[2];
 const host = new URL(base).host;
@@ -321,6 +322,25 @@ async function main() {
   await press("?");
   check("? in a text field is only a character", !(await listOpen()) && (await run(`document.querySelector(".faq-tools input").value`)) === "?");
 
+  // Going round the elements or bond orders is one edit, so a finger can reach par too
+  await open("lab/#level-fluoroacetanilide");
+  const movesNow = () => run(`+document.querySelector("[data-moves]").textContent`);
+  const undoKey = process.platform === "darwin" ? 4 : 2;
+  const bond0 = `${canvas} .hit [data-bond="0"]`;
+  await tool("bond");
+  for (let k = 0; k < 3; k++) await click(bond0);
+  check("clicking round one bond's orders is one move", (await movesNow()) === 1, await movesNow());
+  for (let k = 0; k < 3; k++) await press("z", undoKey);
+  check("undoing the whole round takes that one move back", (await movesNow()) === 0, await movesNow());
+  await tool("atom");
+  await click(atom(8));
+  await click(atom(0));
+  check("another atom is another move", (await movesNow()) === 2, await movesNow());
+  await press("z", undoKey);
+  check("undo takes the other atom's move back", (await movesNow()) === 1, await movesNow());
+  await click(atom(8));
+  check("clicks alone can reach three stars", await until(`!!document.querySelector(".mission .result")`, 1000) && (await store())?.levels?.fluoroacetanilide?.stars === 3, await store());
+
   // Home: the editor and the daily molecule in the hero
   await open("");
   check("home draws aspirin", (await count(`${canvas} .hit [data-atom]`)) === 13);
@@ -574,6 +594,36 @@ async function main() {
   check("modes swap without a transition", await run(`!document.documentElement.dataset.slide && !document.querySelector("[data-view=hunt]").hidden`));
   await open("");
   check("no replay without motion", await run(`!document.querySelector(".replay") || document.querySelector(".replay").hidden || getComputedStyle(document.querySelector(".replay")).display === "none"`));
+
+
+  // A daily that is not a level, on a starting skeleton that has no hero tab: it must play in the hero and
+  // in the Lab, be saved as a solved day, and leave the levels, stars and collection untouched.
+  const Chem = createRequire(import.meta.url)("../site/chem.js");
+  const onlyDaily = [];
+  for (let k = 0; k < 200 && onlyDaily.length < 2; k++) {
+    const day = new Date(Date.UTC(2026, 10, 1 + k)).toISOString().slice(0, 10);
+    const pick = Chem.dailyPick(day);
+    if (!Chem.isLevel(pick.id) && Chem.STARTERS[pick.mol]) onlyDaily.push({ day, pick });
+  }
+  const pretend = async (day) => {
+    const [y, m, d] = day.split("-").map(Number);
+    return (await send("Page.addScriptToEvaluateOnNewDocument", { source: `(() => { const Real = Date; const fixed = new Real(${y}, ${m - 1}, ${d}, 12).getTime();
+      globalThis.Date = class extends Real { constructor(...a) { if (a.length === 0) super(fixed); else super(...a); } static now() { return fixed; } }; })();` })).identifier;
+  };
+  for (const where of ["hero", "lab"]) {
+    const { day, pick } = onlyDaily[where === "hero" ? 0 : 1];
+    const fake = await pretend(day);
+    await open("");
+    await run(`localStorage.clear()`);
+    await open(where === "hero" ? "" : "lab/#daily");
+    if (where === "hero") await click("[data-challenge-open]");
+    check(`daily-only ${pick.id} starts from ${pick.mol}, which has no hero tab (${where})`, await run(`Chem.dailyPick(Chem.localDate()).id === ${JSON.stringify(pick.id)} && !document.querySelector('[data-mol="${pick.mol}"]')`));
+    for (const m of pick.solve) await playMove(m);
+    const saved = async () => (await store())?.daily?.solved?.[day];
+    check(`a daily-only molecule is solved and saved by day, not as a level, in the ${where}`, await until(`!!JSON.parse(localStorage.getItem("chemdraw-skill-lab") || "null")?.daily?.solved?.["${day}"]`, 2000) && !!(await saved()), await store());
+    check(`a daily-only win adds no entry to levels, stars or collection (${where})`, Object.keys((await store()).levels || {}).length === 0 && (await store()).daily.streak === 1, await store());
+    await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: fake });
+  }
 
   check("no errors, failed requests or requests off the site", problems.length === 0, problems.slice(0, 12));
 }

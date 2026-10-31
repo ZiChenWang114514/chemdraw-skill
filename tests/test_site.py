@@ -27,6 +27,10 @@ SITE = ROOT / "site"
 PAGES = {"zh": SITE / "index.html", "en": SITE / "en" / "index.html"}
 LAB_PAGES = {"zh": SITE / "lab" / "index.html", "en": SITE / "en" / "lab" / "index.html"}
 WORDS = {"zh": SITE / "words.zh.js", "en": SITE / "words.en.js"}
+DAILY_WORDS = {"zh": SITE / "daily.zh.js", "en": SITE / "daily.en.js"}
+DAILY_SOURCES = ROOT / "tests" / "daily_sources.json"
+HOME_BUDGET = 41_500   # gzip bytes: app.js, chem.js, editor.js and one words file
+DAILY_BUDGET = 9_500   # gzip bytes of each daily.<language>.js
 VALENCE = {"C": 4, "N": 3, "O": 2, "S": 2, "F": 1, "Cl": 1, "Br": 1}
 NODE = shutil.which("node")
 
@@ -118,6 +122,18 @@ def words(language: str) -> dict:
     """The interface words of one language: words.<language>.js is one JSON object behind an assignment."""
     source = WORDS[language].read_text(encoding="utf-8")
     return json.loads(source[source.index("{"):source.rindex("}") + 1])
+
+
+def daily_words(language: str) -> dict:
+    """daily.<language>.js holds one JSON object ({ names, tasks }) assigned to `daily` and merged into ChemWords."""
+    source = DAILY_WORDS[language].read_text(encoding="utf-8")
+    start = source.index("const daily = ") + len("const daily = ")
+    return json.loads(source[start:source.index("\n};", start) + 2])
+
+
+def daily_sources() -> dict:
+    """Where every starter and daily molecule came from: PubChem CID and SMILES, the OPSIN reading of its name, the page behind its fact."""
+    return json.loads(DAILY_SOURCES.read_text(encoding="utf-8"))
 
 
 def key_shape(value):
@@ -293,6 +309,217 @@ console.log(JSON.stringify([E.graphKey(a) === E.graphKey(moved), E.graphKey(a) =
                     self.assertTrue(entry["name"] and entry["task"] and entry["hint"] and entry["fact"])
                 for key in ("title", "hint", "skip", "next", "close", "done", "matches", "aim"):
                     self.assertIn(key, table)
+
+
+@unittest.skipUnless(NODE, "Node.js runs the editor's daily checks")
+class DailyMoleculeTests(unittest.TestCase):
+    """The daily molecules that are not levels, and the starting skeletons they are built from."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sources = daily_sources()
+        cls.out = run_editor("""
+const r = {};
+const L = (list) => list.map((c) => c.id);
+r.levels = E.CHALLENGES.length;
+r.dailies = L(E.DAILIES);
+r.levelIds = L(E.CHALLENGES);
+r.starters = Object.keys(E.STARTERS);
+r.mols = Object.keys(E.MOLS);
+r.items = {};
+for (const c of E.DAILIES) {
+  const start = E.load(c.mol), solved = E.applyMoves(E.load(c.mol), c.solve);
+  const info = E.analyse(solved);
+  // The same moves as a visitor makes them: a grow is the bond tool on an atom and may be refused for lack of room.
+  let g = E.load(c.mol), refused = -1;
+  c.solve.forEach(([move, i, v], k) => {
+    if (refused >= 0) return;
+    if (move === "grow") { const plan = E.applyTool(g, "bond", { atom: i }); if (!plan || !plan.g) refused = k; else g = plan.g; }
+    else if (move === "erase") g = E.applyTool(g, "erase", { atom: i }).g;
+    else if (move === "element") g.atoms[i].s = v;
+    else if (move === "order") g.bonds[i].o = v;
+  });
+  r.items[c.id] = {
+    mol: c.mol, moves: c.solve.length, smiles: E.toSmiles(solved), cdxml: E.toCdxml(E.targetOf(c)),
+    key: E.graphKey(solved), startKey: E.graphKey(start), over: info.over.some(Boolean), refused,
+    replayed: refused < 0 && E.graphKey(g) === E.graphKey(solved), keys: Object.keys(c),
+    inCanvas: solved.atoms.every((a) => a.x >= 8 && a.x <= E.W - 8 && a.y >= 8 && a.y <= E.H - 8),
+  };
+}
+r.levelKeys = E.CHALLENGES.map((c) => E.challengeKey(c));
+console.log(JSON.stringify(r));
+""")
+
+    def test_there_are_one_hundred_dailies_and_twenty_levels(self) -> None:
+        self.assertEqual(self.out["levels"], 20)
+        self.assertEqual(len(self.out["dailies"]), 100)
+        self.assertEqual(set(self.out["dailies"]), set(self.sources["dailies"]))
+        self.assertFalse(set(self.out["dailies"]) & set(self.out["levelIds"]))
+
+    def test_every_daily_reaches_its_published_structure(self) -> None:
+        for cid, item in self.out["items"].items():
+            with self.subTest(daily=cid):
+                self.assertFalse(item["over"])
+                if Chem is not None:
+                    self.assertEqual(canonical(item["smiles"]), canonical(self.sources["dailies"][cid]["smiles"]))
+
+    def test_every_daily_exports_cdxml_that_reads_back_as_its_compound(self) -> None:
+        if Chem is None:
+            self.skipTest("RDKit reads the exported CDXML")
+        for cid, item in self.out["items"].items():
+            with self.subTest(daily=cid):
+                read = Chem.MolsFromCDXML(item["cdxml"])
+                self.assertEqual(len(read), 1)
+                # Stereo is ignored on the site; CDXML coordinates may still imply a double-bond geometry.
+                self.assertEqual(Chem.MolToSmiles(read[0], isomericSmiles=False), canonical(self.sources["dailies"][cid]["smiles"]))
+
+    def test_the_sources_agree_with_opsin_and_name_a_page_for_every_fact(self) -> None:
+        if Chem is None:
+            self.skipTest("RDKit compares the structures")
+        for group in ("starters", "dailies"):
+            for cid, record in self.sources[group].items():
+                with self.subTest(**{group: cid}):
+                    self.assertIsInstance(record["cid"], int)
+                    self.assertTrue(canonical(record["smiles"]))
+                    opsin = record["opsin"]
+                    if opsin is None:
+                        self.assertTrue(record["opsinNote"])
+                    else:
+                        flat = lambda smiles: Chem.MolToSmiles(Chem.MolFromSmiles(smiles), isomericSmiles=False)
+                        self.assertEqual(flat(opsin["smiles"]), flat(record["smiles"]))
+                        self.assertIn(opsin["kind"], ("name", "iupac"))
+                    if group == "dailies":
+                        self.assertRegex(record["factUrl"], r"^https://(en\.wikipedia\.org/wiki/|pubchem\.ncbi\.nlm\.nih\.gov/compound/)\S+$")
+
+    def test_all_one_hundred_and_twenty_molecules_differ_and_no_target_is_its_start(self) -> None:
+        ids = self.out["levelIds"] + self.out["dailies"]
+        self.assertEqual(len(set(ids)), 120)
+        keys = self.out["levelKeys"] + [self.out["items"][d]["key"] for d in self.out["dailies"]]
+        self.assertEqual(len(set(keys)), 120)
+        for cid, item in self.out["items"].items():
+            with self.subTest(daily=cid):
+                self.assertNotEqual(item["key"], item["startKey"])
+
+    def test_each_daily_takes_one_to_six_moves_from_a_start_the_page_can_show(self) -> None:
+        starts = set()
+        for cid, item in self.out["items"].items():
+            with self.subTest(daily=cid):
+                self.assertTrue(1 <= item["moves"] <= 6, item["moves"])
+                self.assertIn(item["mol"], self.out["mols"] + self.out["starters"])
+                self.assertEqual(item["keys"], ["id", "mol", "solve"])
+                self.assertTrue(item["inCanvas"])
+                starts.add(item["mol"])
+        self.assertGreaterEqual(len(starts), 12)
+
+    def test_every_solution_can_be_played_with_the_tools_without_running_out_of_room(self) -> None:
+        for cid, item in self.out["items"].items():
+            with self.subTest(daily=cid):
+                self.assertEqual(item["refused"], -1)
+                self.assertTrue(item["replayed"])
+
+    def test_difficulty_is_mixed_through_the_list(self) -> None:
+        # Hard ones (five or six moves) must not come in runs, in list order or in the order the days visit them.
+        size = 120
+        picks = self.out["levelIds"] + self.out["dailies"]
+        moves = {c: 3 for c in self.out["levelIds"]}
+        moves.update({d: self.out["items"][d]["moves"] for d in self.out["dailies"]})
+        by_day = [moves[picks[(7 * (d + 1)) % size]] for d in range(size)]
+        for name, order in (("list", [moves[i] for i in self.out["dailies"]]), ("days", by_day)):
+            run = longest = 0
+            for m in order:
+                run = run + 1 if m >= 5 else 0
+                longest = max(longest, run)
+            self.assertLessEqual(longest, 3, name)
+
+    def test_the_stride_is_coprime_with_the_cycle_and_the_cycle_has_no_repeat(self) -> None:
+        out = run_editor("""
+const ids = Array.from({ length: 120 }, (_, k) => E.dailyPick(new Date(Date.UTC(2026, 10, 1 + k)).toISOString().slice(0, 10)).id);
+const first = E.dailyPick("2026-10-31").id, second = E.dailyPick("2026-11-01").id;
+console.log(JSON.stringify({ ids, first, second, after: E.dailyPick("2027-02-28").id === E.dailyPick("2026-10-31").id, wrap: E.dailyPick("2027-02-28").id }));
+""")
+        import math
+        self.assertEqual(math.gcd(7, 120), 1)
+        self.assertEqual(len(set(out["ids"])), 120)
+        self.assertEqual(out["first"], "xanthine")
+        self.assertEqual(out["second"], "wintergreen")
+        self.assertTrue(out["after"])
+
+    def test_a_solved_daily_only_molecule_is_not_a_level(self) -> None:
+        out = run_editor("""
+globalThis.Chem = E;
+globalThis.document = { querySelector: () => null };
+require(%s);
+const { solveDaily } = globalThis.ChemEditor;
+const only = E.DAILIES[0], level = E.CHALLENGES[7];
+const store = E.emptyStore();
+const got = solveDaily(store, only, "2026-11-05", only.solve.length, false);
+const kept = JSON.stringify(store);
+const back = E.parseStore(kept);
+const afterLevel = E.emptyStore();
+solveDaily(afterLevel, level, "2026-11-06", level.solve.length, false);
+console.log(JSON.stringify({
+  got, levels: store.levels, solved: store.daily.solved, streak: store.daily.streak, back: JSON.stringify(back) === kept,
+  badges: E.earned(store), isLevel: [E.isLevel(only.id), E.isLevel(level.id)], levelSaved: Object.keys(afterLevel.levels),
+}));
+""" % json.dumps(str(SITE / "editor.js")))
+        self.assertEqual(out["got"], 3)
+        self.assertEqual(out["levels"], {})
+        self.assertEqual(out["solved"], {"2026-11-05": {"stars": 3, "moves": out["solved"]["2026-11-05"]["moves"]}})
+        self.assertEqual(out["streak"], 1)
+        self.assertTrue(out["back"])
+        self.assertEqual(out["badges"], [])
+        self.assertEqual(out["isLevel"], [False, True])
+        self.assertEqual(out["levelSaved"], ["xanthine"])
+
+    def test_the_starting_skeletons_are_laid_out_like_the_molecule_table(self) -> None:
+        source = (SITE / "chem.js").read_text(encoding="utf-8")
+        table = json.loads(re.sub(r",(\s*\})\s*$", r"\1", re.search(r"const STARTERS = (\{.*?\n  \});", source, re.S).group(1)))
+        self.assertLessEqual(len(table), 20)
+        self.assertEqual(set(table), set(self.sources["starters"]))
+        self.assertFalse(set(table) & set(molecules()))
+        for name, molecule in table.items():
+            with self.subTest(starter=name):
+                self.assertEqual(set(molecule), {"smiles", "formula", "atoms", "bonds"})
+                self.assertEqual(hill_formula(molecule), molecule["formula"])
+                xs = [x for _s, x, _y in molecule["atoms"]]
+                ys = [y for _s, _x, y in molecule["atoms"]]
+                self.assertTrue(min(xs) >= 60 and max(xs) <= 263 and min(ys) >= 60 and max(ys) <= 202, "room to grow")
+                for symbol, x, y in molecule["atoms"]:
+                    self.assertIn(symbol, VALENCE)
+                    self.assertTrue(0 <= x <= 323 and 0 <= y <= 262)
+                if Chem is not None:
+                    self.assertEqual(canonical(molecule["smiles"]), canonical(self.sources["starters"][name]["smiles"]))
+                    rd = Chem.MolFromSmiles(molecule["smiles"])
+                    self.assertEqual(rd.GetNumAtoms(), len(molecule["atoms"]))
+                    self.assertEqual(rd.GetNumBonds(), len(molecule["bonds"]))
+
+    def test_load_reads_both_tables(self) -> None:
+        out = run_editor("console.log(JSON.stringify([E.load('aspirin').atoms.length, E.load('benzene').atoms.length, E.load('purine').atoms.length]));")
+        self.assertEqual(out, [13, 6, 9])
+
+    def test_both_daily_word_files_describe_every_daily_and_starter(self) -> None:
+        shapes = {}
+        for language in DAILY_WORDS:
+            with self.subTest(language=language):
+                table = daily_words(language)
+                shapes[language] = key_shape(table)
+                self.assertEqual(set(table), {"names", "tasks"})
+                self.assertEqual(set(table["tasks"]), set(self.out["dailies"]))
+                self.assertEqual(set(table["names"]), set(self.out["starters"]))
+                self.assertFalse(set(table["names"]) & set(words(language)["names"]))
+                self.assertFalse(set(table["tasks"]) & set(words(language)["challenge"]["tasks"]))
+                for entry in table["tasks"].values():
+                    self.assertEqual(set(entry), {"name", "task", "hint", "fact"})
+                    self.assertTrue(all(entry.values()))
+                self.assertTrue(all(table["names"].values()))
+        self.assertEqual(shapes["zh"], shapes["en"])
+
+    def test_the_four_pages_load_the_daily_words_right_after_the_interface_words(self) -> None:
+        for language in ("zh", "en"):
+            for pages in (PAGES, LAB_PAGES):
+                with self.subTest(language=language, page=str(pages[language])):
+                    html = pages[language].read_text(encoding="utf-8")
+                    self.assertRegex(html, rf'<script src="(\.\./)*words\.{language}\.js" defer></script>\n<script src="(\.\./)*daily\.{language}\.js" defer></script>')
 
 
 @unittest.skipUnless(NODE, "Node.js runs the game logic")
@@ -599,8 +826,11 @@ class LabPageTests(unittest.TestCase):
         # GitHub Pages serves these compressed, so that is the weight a visitor pays for.
         size = lambda *names: sum(len(gzip.compress((SITE / n).read_bytes(), 9)) for n in names)
         for word_file in ("words.zh.js", "words.en.js"):
-            self.assertLessEqual(size("app.js", "chem.js", "editor.js", word_file), 39_000)
+            self.assertLessEqual(size("app.js", "chem.js", "editor.js", word_file), HOME_BUDGET)
         self.assertLessEqual(size("lab.js"), 9_000)
+        # The daily words are one more request on the four pages and are budgeted on their own.
+        for daily_file in ("daily.zh.js", "daily.en.js"):
+            self.assertLessEqual(size(daily_file), DAILY_BUDGET, daily_file)
 
 
 class ToolPlanTests(unittest.TestCase):

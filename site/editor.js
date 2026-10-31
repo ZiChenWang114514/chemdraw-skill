@@ -6,9 +6,9 @@
 // and all words come from words.<language>.js. The home page reads completely without this file.
 
 (() => {
-  const { MOLS, W, H, EL, fmt, load, analyse, bondLength, remove, inside, toSmiles, toCdxml, cleanUp, drawMarkup,
+  const { MOLS, STARTERS, W, H, EL, fmt, load, analyse, bondLength, remove, inside, toSmiles, toCdxml, cleanUp, drawMarkup,
     graphKey, targetOf, stars, localDate, dailyNumber, dailyPick, nextStreak, dailyShare, encodeDrawing, decodeDrawing, emptyStore, parseStore,
-    record, earned, STORE_KEY, applyTool, previewMarkup } = globalThis.Chem;
+    record, isLevel, earned, STORE_KEY, applyTool, previewMarkup } = globalThis.Chem;
 
   // Progress in this browser, or only in this page when storage is refused.
   function openStore() {
@@ -21,9 +21,11 @@
     };
   }
 
-  // Note a solved daily molecule: the level, the day and the streak. Returns the stars.
+  // Note a solved daily molecule: the level when it is one, the day and the streak. A molecule that
+  // is only ever a daily is not a level, so it never reaches the levels, the stars or the collection.
+  // Returns the stars.
   function solveDaily(store, c, date, moves, hinted) {
-    record(store, c.id, { moves, hinted });
+    if (isLevel(c.id)) record(store, c.id, { moves, hinted });
     const today = stars(moves, c.solve.length, hinted);
     const old = store.daily.solved[date];
     if (!old || today > old.stars) store.daily.solved[date] = { stars: today, moves };
@@ -95,7 +97,7 @@
 
     function refreshLog(info) {
       const original = analyse(JSON.parse(st.original));
-      const known = MOLS[st.name];
+      const known = MOLS[st.name] || STARTERS[st.name];
       setText("[data-log=ask]", fmt(T.ask, { name: st.title }).replace(/([\u4e00-\u9fff])([A-Z])/g, "$1 $2").replace(/([A-Za-z0-9])([\u4e00-\u9fff])/g, "$1 $2"));
       setText("[data-log=resolve]", known ? `${st.name} → ${known.smiles}` : st.title);
       setText("[data-log=build]", fmt(T.build, { name: st.name }));
@@ -176,17 +178,19 @@
     const stopPlay = () => doc.classList.remove("play");
 
     // Keep the current drawing for undo. Only a chemical edit counts as a move in a challenge;
-    // moving atoms and Clean Up leave the structure as it was.
-    function keep(counted) {
-      st.undo.push({ g: JSON.stringify(st.g), counted });
+    // moving atoms and Clean Up leave the structure as it was. Going round the elements or bond
+    // orders is one edit, so a run of changes to one atom or bond counts once.
+    function keep(counted, run) {
+      st.undo.push({ g: JSON.stringify(st.g), counted, run });
       if (st.undo.length > 40) st.undo.shift();
       st.redo = [];
     }
-    function change(message, mutate, counted = true) {
+    function change(message, mutate, counted = true, run) {
       stopPlay();
       cancelAnimationFrame(tween);
-      keep(counted);
-      if (quest && counted) quest.moves++;
+      const first = counted && (!run || st.undo.at(-1)?.run !== run);
+      keep(first, run);
+      if (quest && first) quest.moves++;
       mutate(st.g);
       update(message);
     }
@@ -206,9 +210,11 @@
       if (!plan) return;
       if (!plan.g) return update(T[plan.say]);
       if (plan.drop) aim = null;
-      const say = plan.say === "element" ? fmt(T.element, { sym: plan.sym })
-        : plan.say === "setBond" ? fmt(T.setBond, { order: T.order[plan.order - 1] }) : T[plan.say];
-      change(say, (d) => { d.atoms = plan.g.atoms; d.bonds = plan.g.bonds; });
+      const element = plan.say === "element", setBond = plan.say === "setBond";
+      const say = element ? fmt(T.element, { sym: plan.sym })
+        : setBond ? fmt(T.setBond, { order: T.order[plan.order - 1] }) : T[plan.say];
+      change(say, (d) => { d.atoms = plan.g.atoms; d.bonds = plan.g.bonds; }, true,
+        element ? `a${target.atom}` : setBond ? `b${target.bond}` : null);
     }
 
     // Under the pointer: the move a click would make, and what the atom or bond is. On a device
@@ -366,7 +372,7 @@
     function undo() {
       const last = st.undo.pop();
       if (!last) return;
-      st.redo.push({ g: JSON.stringify(st.g), counted: last.counted });
+      st.redo.push({ ...last, g: JSON.stringify(st.g) });
       st.g = JSON.parse(last.g);
       if (quest && quest.doc === st && last.counted) quest.moves = Math.max(0, quest.moves - 1);
       aim = null;
@@ -376,7 +382,7 @@
     function redo() {
       const next = st.redo.pop();
       if (!next) return;
-      st.undo.push({ g: JSON.stringify(st.g), counted: next.counted });
+      st.undo.push({ ...next, g: JSON.stringify(st.g) });
       st.g = JSON.parse(next.g);
       if (quest && quest.doc === st && next.counted) quest.moves++;
       aim = null;
@@ -461,11 +467,11 @@
       const key = e.key.toLowerCase();
       if (aim.atom !== undefined && aim.atom < st.g.atoms.length) {
         const i = aim.atom, sym = ELEMENT_KEYS[key];
-        if (sym && st.g.atoms[i].s !== sym) { e.preventDefault(); change(fmt(T.element, { sym }), (d) => { d.atoms[i].s = sym; }); }
+        if (sym && st.g.atoms[i].s !== sym) { e.preventDefault(); change(fmt(T.element, { sym }), (d) => { d.atoms[i].s = sym; }, true, `a${i}`); }
         else if (key === "delete" || key === "backspace") { e.preventDefault(); aim = null; change(T.erased, (d) => remove(d, i)); pickFirst(); }
       } else if (aim.bond !== undefined && aim.bond < st.g.bonds.length) {
         const k = aim.bond, order = { 1: 1, 2: 2, 3: 3 }[key];
-        if (order && st.g.bonds[k].o !== order) { e.preventDefault(); change(fmt(T.setBond, { order: T.order[order - 1] }), (d) => { d.bonds[k].o = order; }); }
+        if (order && st.g.bonds[k].o !== order) { e.preventDefault(); change(fmt(T.setBond, { order: T.order[order - 1] }), (d) => { d.bonds[k].o = order; }, true, `b${k}`); }
         else if (key === "delete" || key === "backspace") { e.preventDefault(); aim = null; change(T.erased, (d) => d.bonds.splice(k, 1)); pickFirst(); }
       }
     });
@@ -607,10 +613,12 @@
       st = stateOf(next);
       drag = null;
       aim = null;
-      tabs.forEach((t) => {
+      // A starting skeleton has no tab; the first tab then stays reachable by keyboard.
+      const shown = tabs.some((t) => t.dataset.mol === next);
+      tabs.forEach((t, k) => {
         const on = t.dataset.mol === next;
         t.setAttribute("aria-selected", on);
-        t.tabIndex = on ? 0 : -1;
+        t.tabIndex = on || (!shown && k === 0) ? 0 : -1;
       });
       update();
       if (animate && motion.matches) play(); else stopPlay();
