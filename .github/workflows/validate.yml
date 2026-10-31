@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+    # A change to the website alone runs site.yml instead; a merge runs everything.
+    paths-ignore:
+      - "site/**"
+      - "docs/website.md"
+      - "tests/site_smoke.mjs"
+      - "tests/test_site.py"
+      - "tests/daily_sources.json"
 
 permissions:
   contents: read
@@ -142,7 +149,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        # Oldest and newest supported; 3.12 runs on Ubuntu and macOS below.
+        python-version: ["3.10", "3.13"]
         include:
           - os: ubuntu-latest
             python-version: "3.12"
@@ -171,8 +179,7 @@ jobs:
         run: python -c "import cdxml_toolkit, importlib.metadata as m; assert m.version('cdxml-toolkit-community') == cdxml_toolkit.__version__"
 
       - name: Verify generated MCP reference
-        if: matrix.os == 'windows-latest' && matrix.python-version == '3.12'
-        shell: pwsh
+        if: matrix.os == 'ubuntu-latest'
         run: |
           python -m cdxml_toolkit.mcp_runtime.generate_reference --markdown docs/mcp-tools.md --json docs/mcp-schema.json
           git diff --exit-code -- docs/mcp-tools.md docs/mcp-schema.json
@@ -213,35 +220,6 @@ jobs:
 
       - name: Run MCP compatibility tests
         run: python -m pytest tests/test_mcp_compat.py tests/runtime/test_mcp_compat.py tests/runtime/test_mcp_stdio.py -q
-
-  site:
-    name: Website in headless Chrome
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      PYTHONDONTWRITEBYTECODE: "1"
-      SITE_BROWSER: "1"
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Python
-        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: toolkit/pyproject.toml
-
-      - name: Set up Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "22"
-
-      - name: Install RDKit
-        run: python -m pip install "rdkit>=2025.03"
-
-      - name: Check the chemistry and play the site
-        run: python -m unittest tests.test_site -v
 
   toolkit-package:
     uses: ./.github/workflows/build.yml
