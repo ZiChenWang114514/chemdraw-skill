@@ -101,7 +101,7 @@
         <div><dt>${L.moves}</dt><dd data-moves>0</dd></div>
         <div><dt>${L.par}</dt><dd>${c.solve.length}</dd></div>
       </dl>
-      <div class="acts"><button type="button" data-act="hint">${C.hint}</button><button type="button" data-act="restart">${L.restart}</button></div>
+      <div class="acts"><button type="button" class="btn sm" data-act="hint">${C.hint}</button><button type="button" class="btn sm" data-act="restart">${L.restart}</button></div>
       <p class="ch-hint" hidden>${task.hint}</p>
       <p class="sub">${L.starsHelp}</p>`;
   }
@@ -140,7 +140,7 @@
       record(store.data, c.id, { moves, hinted: current.hinted });
       const next = CHALLENGES.slice(k + 1).concat(CHALLENGES.slice(0, k)).find((x) => !store.data.levels[x.id]);
       const got = stars(moves, c.solve.length, current.hinted);
-      winPanel(c, moves, got, `${next ? `<a class="go" href="#level-${next.id}">${L.nextLevel}</a>` : ""}<a href="#levels">${L.backToRoute}</a><a href="#dex">${L.modes.dex}</a>`);
+      winPanel(c, moves, got, `${next ? `<a class="btn sm primary" href="#level-${next.id}">${L.nextLevel}</a>` : ""}<a href="#levels">${L.backToRoute}</a><a href="#dex">${L.modes.dex}</a>`);
     });
     missionFor(c, `${fmt(C.title, { n: k + 1, total: CHALLENGES.length })}: ${chapter}`, sub);
     mission.insertAdjacentHTML("beforeend", `<p class="sub"><a href="#levels">${L.backToRoute}</a></p>`);
@@ -152,7 +152,7 @@
     playChallenge(c, (moves) => {
       const got = solveDaily(store.data, c, today, moves, current.hinted);
       current.score = { got, moves };
-      winPanel(c, moves, got, `<button type="button" class="go" data-act="share">${D.share}</button><a href="#levels">${L.modes.levels}</a>`);
+      winPanel(c, moves, got, `<button type="button" class="btn sm primary" data-act="share">${D.share}</button><a href="#levels">${L.modes.levels}</a>`);
     });
     missionFor(c, fmt(D.title, { n: dailyNumber(today) }), done ? `${rings(done.stars)} ${D.solved}` : "");
     if (done) current.score = { got: done.stars, moves: done.moves };
@@ -297,7 +297,7 @@
       <div class="chips">${chips}</div>
       <p class="sub" data-iso-count>${found.length >= set.count ? L.isoDone : fmt(L.isoProgress, { n: found.length, total: set.count })}</p>
       <ol class="slots">${slots}</ol>
-      <div class="acts"><button type="button" data-act="iso-clear">${L.isoClear}</button></div>`;
+      <div class="acts"><button type="button" class="btn sm" data-act="iso-clear">${L.isoClear}</button></div>`;
   }
 
   function showIsomers(set) {
@@ -333,7 +333,7 @@
         <h3>${task.name}</h3>${rings(got.stars)}
         <p>${task.fact}</p>
         <code>${smiles}</code>
-        <div class="acts"><button type="button" data-act="dex-save" data-id="${c.id}">${L.saveCdxml}</button><button type="button" data-act="dex-ask" data-id="${c.id}">${L.copyAsk}</button><a href="#s=${encodeDrawing(targetOf(c))}">${L.openBoard}</a></div>
+        <div class="acts"><button type="button" class="btn sm" data-act="dex-save" data-id="${c.id}">${L.saveCdxml}</button><button type="button" class="btn sm" data-act="dex-ask" data-id="${c.id}">${L.copyAsk}</button><a href="#s=${encodeDrawing(targetOf(c))}">${L.openBoard}</a></div>
       </li>`;
     }).join("");
     const have = store.data.badges;
@@ -349,12 +349,12 @@
   // ---- sketchpad and shared links ---------------------------------------------------
 
   function missionFree() {
-    const chips = Object.keys(MOLS).map((m) => `<button type="button" data-act="free-load" data-id="${m}">${T.names[m]}</button>`).join("");
+    const chips = Object.keys(MOLS).map((m) => `<button type="button" class="btn sm" data-act="free-load" data-id="${m}">${T.names[m]}</button>`).join("");
     mission.innerHTML = `
       <h2>${L.modes.free}</h2>
       <p class="task">${L.freeIntro}</p>
       <p class="sub">${L.freeLoad}</p>
-      <div class="chips"><button type="button" data-act="free-blank">${L.freeBlank}</button>${chips}</div>`;
+      <div class="chips"><button type="button" class="btn sm" data-act="free-blank">${L.freeBlank}</button>${chips}</div>`;
   }
   function showFree() {
     view("board", "free");

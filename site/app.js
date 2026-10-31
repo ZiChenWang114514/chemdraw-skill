@@ -248,7 +248,7 @@ if (filters && words) {
   filters.hidden = false;
   document.querySelectorAll(".try").forEach((box) => {
     const ask = box.querySelector(".ask");
-    const btn = Object.assign(document.createElement("button"), { type: "button", className: "ask-copy", textContent: words.copyAsk });
+    const btn = Object.assign(document.createElement("button"), { type: "button", className: "btn sm", textContent: words.copyAsk });
     btn.addEventListener("click", () => copyText(ask.textContent, btn, words.copiedAsk));
     ask.after(btn);
   });

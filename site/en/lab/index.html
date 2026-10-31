@@ -82,7 +82,7 @@
         <i class="snap" hidden aria-hidden="true"></i>
         <div class="foot">
           <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>Reset</button>
-            <div class="export" hidden><button type="button" data-export="smiles">Copy SMILES</button><button type="button" data-export="cdxml">Save .cdxml</button><button type="button" data-export="link">Copy share link</button></div></div>
+            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">Copy SMILES</button><button class="btn sm" type="button" data-export="cdxml">Save .cdxml</button><button class="btn sm" type="button" data-export="link">Copy share link</button></div></div>
           <div class="analysis">
             <div>Chemical Formula: <span data-a="formula"></span></div>
             <div>Exact Mass: <span data-a="exact"></span></div>
@@ -106,7 +106,7 @@
         <p class="intro">The agent’s drawing has one error. Compare it with the correct structure and click the wrong atom or bond. These structures are wrong on purpose, for this game only.</p>
         <span class="hunt-best"></span>
       </div>
-      <button class="go" type="button" data-act="hunt-start">Start a game</button>
+      <button class="btn primary" type="button" data-act="hunt-start">Start a game</button>
       <div class="hunt-play" hidden>
         <p class="hunt-meta"></p>
         <div class="hunt-pair">
@@ -114,7 +114,7 @@
           <figure class="hunt-drawn"><svg class="mol hunt-canvas" viewBox="0 0 323 262" role="group" aria-label="Agent’s drawing"></svg><figcaption class="hunt-caption">Agent’s drawing</figcaption></figure>
         </div>
         <p class="hunt-say" role="status"></p>
-        <button class="go" type="button" data-act="hunt-next" hidden>Next round</button>
+        <button class="btn primary" type="button" data-act="hunt-next" hidden>Next round</button>
       </div>
     </div>
     <div class="dex-view" data-view="dex" hidden></div>

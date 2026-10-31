@@ -679,8 +679,8 @@
         <button type="button" data-ch="close" aria-label="${T.challenge.close}" title="${T.challenge.close}">×</button></div>
       <p class="ch-task">${won ? `${fmt(T.challenge.done, { moves: result.moves })} ${task.fact}` : task.task}</p>
       <div class="ch-actions">${won
-        ? `<button type="button" data-ch="share">${D.share}</button><a href="${labUrl}">${D.lab}</a>`
-        : `<button type="button" data-ch="hint">${T.challenge.hint}</button>`}</div>
+        ? `<button class="btn sm" type="button" data-ch="share">${D.share}</button><a href="${labUrl}">${D.lab}</a>`
+        : `<button class="btn sm" type="button" data-ch="hint">${T.challenge.hint}</button>`}</div>
       <p class="ch-hint"${hinted && !won ? "" : " hidden"}>${task.hint}</p>`;
   }
   function start() {

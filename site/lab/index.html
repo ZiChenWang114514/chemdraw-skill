@@ -82,7 +82,7 @@
         <i class="snap" hidden aria-hidden="true"></i>
         <div class="foot">
           <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>恢复原样</button>
-            <div class="export" hidden><button type="button" data-export="smiles">复制 SMILES</button><button type="button" data-export="cdxml">下载 .cdxml</button><button type="button" data-export="link">复制分享链接</button></div></div>
+            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">复制 SMILES</button><button class="btn sm" type="button" data-export="cdxml">下载 .cdxml</button><button class="btn sm" type="button" data-export="link">复制分享链接</button></div></div>
           <div class="analysis">
             <div>Chemical Formula: <span data-a="formula"></span></div>
             <div>Exact Mass: <span data-a="exact"></span></div>
@@ -106,7 +106,7 @@
         <p class="intro">Agent 交来的图里有一处错。对照正确结构，点出错的原子或键。这些结构是故意改错的，只用于游戏。</p>
         <span class="hunt-best"></span>
       </div>
-      <button class="go" type="button" data-act="hunt-start">开始一局</button>
+      <button class="btn primary" type="button" data-act="hunt-start">开始一局</button>
       <div class="hunt-play" hidden>
         <p class="hunt-meta"></p>
         <div class="hunt-pair">
@@ -114,7 +114,7 @@
           <figure class="hunt-drawn"><svg class="mol hunt-canvas" viewBox="0 0 323 262" role="group" aria-label="Agent 的图"></svg><figcaption class="hunt-caption">Agent 的图</figcaption></figure>
         </div>
         <p class="hunt-say" role="status"></p>
-        <button class="go" type="button" data-act="hunt-next" hidden>下一题</button>
+        <button class="btn primary" type="button" data-act="hunt-next" hidden>下一题</button>
       </div>
     </div>
     <div class="dex-view" data-view="dex" hidden></div>

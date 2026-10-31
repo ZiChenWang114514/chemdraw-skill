@@ -602,6 +602,97 @@ class LabPageTests(unittest.TestCase):
         self.assertLessEqual(size("lab.js"), 8_000)
 
 
+class DesignSystemTests(unittest.TestCase):
+    """The stylesheet may only reach for the shared tokens."""
+
+    MARGIN_SCALE = {0, 4, 8, 12, 16, 24, 32, 48, 64}
+    WEIGHTS = {"400", "500", "600", "700", "inherit"}
+    FAMILIES = {"var(--sans)", "var(--display)", "var(--mono)", "var(--chem)", "inherit"}
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        css = re.sub(r"/\*.*?\*/", "", (SITE / "styles.css").read_text(encoding="utf-8"), flags=re.S)
+        css = re.sub(r"@font-face\s*\{[^}]*\}", "", css)
+        cls.css = css
+        cls.rules = re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+
+    def declarations(self, *names):
+        for selector, body in self.rules:
+            for declaration in filter(None, map(str.strip, body.split(";"))):
+                name, _, value = declaration.partition(":")
+                if name.strip() in names:
+                    yield selector.strip(), name.strip(), value.strip()
+
+    def drawn_text(self, selector: str, value: str = "") -> bool:
+        """Text inside the imitation ChemDraw window keeps ChemDraw's own fixed sizes."""
+        return "var(--chem)" in value or bool(re.search(r"\.analysis|\.thumb \.a", selector))
+
+    def test_radii_are_tokens(self) -> None:
+        for selector, _, value in self.declarations("border-radius"):
+            for part in value.split():
+                with self.subTest(selector=selector):
+                    self.assertRegex(part, r"^(0|50%|var\(--r-(xs|sm|md|pill)\))$")
+
+    def test_font_sizes_are_tokens(self) -> None:
+        for selector, _, value in self.declarations("font-size"):
+            if not self.drawn_text(selector):
+                with self.subTest(selector=selector):
+                    self.assertRegex(value, r"^(0|inherit|var\(--fs-[a-z0-9]+\))$")
+        for selector, _, value in self.declarations("font"):
+            if value != "inherit" and not self.drawn_text(selector, value):
+                with self.subTest(selector=selector):
+                    self.assertRegex(value, r"var\(--fs-[a-z0-9]+\)")
+
+    def test_only_four_weights(self) -> None:
+        for selector, _, value in self.declarations("font-weight"):
+            with self.subTest(selector=selector):
+                self.assertIn(value, self.WEIGHTS)
+        for selector, _, value in self.declarations("font"):
+            weight = re.match(r"(\d{3})\s", value)
+            if weight:
+                with self.subTest(selector=selector):
+                    self.assertIn(weight.group(1), self.WEIGHTS)
+
+    def test_only_four_families(self) -> None:
+        for selector, _, value in self.declarations("font-family"):
+            with self.subTest(selector=selector):
+                self.assertIn(value, self.FAMILIES)
+        for selector, _, value in self.declarations("font"):
+            if value != "inherit":
+                with self.subTest(selector=selector):
+                    self.assertRegex(value, r"var\(--(sans|display|mono|chem)\)$")
+
+    def test_counters_are_not_set_in_the_code_face(self) -> None:
+        for selector, _, value in self.declarations("font", "font-family"):
+            if "var(--mono)" in value:
+                with self.subTest(selector=selector):
+                    self.assertRegex(selector, r"^(code, pre|\.log)$")
+
+    def test_margins_stay_on_the_spacing_scale(self) -> None:
+        names = ("margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "margin-inline", "margin-block")
+        for selector, _, value in self.declarations(*names):
+            for number in re.findall(r"(?<![-\w.(,])(\d+(?:\.\d+)?)px", re.sub(r"clamp\([^)]*\)", "", value)):
+                with self.subTest(selector=selector, value=value):
+                    self.assertIn(float(number), self.MARGIN_SCALE)
+
+    def test_soft_shadows_are_tokens(self) -> None:
+        for selector, _, value in self.declarations("box-shadow"):
+            if value.startswith("var(--shadow-") or value == "none":
+                continue
+            with self.subTest(selector=selector, value=value):
+                # Hairline rings stand in for borders; anything with blur is a real shadow
+                self.assertRegex(value, r"^(inset )?0 0 0 ")
+
+    def test_every_button_shares_one_base(self) -> None:
+        for name in (".go", ".run-btn", ".acts button", ".chips button", ".export button", ".ch-actions button", ".ask-copy"):
+            with self.subTest(selector=name):
+                self.assertNotRegex(self.css, re.escape(name) + r"(?![\w-])")
+        self.assertRegex(self.css, r"\.btn:active")
+        self.assertRegex(self.css, r"\.btn\.sm\b")
+        self.assertRegex(self.css, r"\.btn\.ghost\b")
+        self.assertRegex(self.css, r"@media \(pointer: coarse\)[^{]*\{[^}]*\.btn")
+
+
 @unittest.skipUnless(os.environ.get("SITE_BROWSER"), "set SITE_BROWSER=1 to drive headless Chrome")
 class BrowserSmokeTests(unittest.TestCase):
     def test_the_site_works_with_real_input_in_a_browser(self) -> None:
