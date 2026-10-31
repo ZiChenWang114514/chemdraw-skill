@@ -137,6 +137,28 @@ async function main() {
   await send("Browser.grantPermissions", { origin: new URL(base).origin, permissions: ["clipboardReadWrite", "clipboardSanitizedWrite"] });
   await send("Browser.setDownloadBehavior", { behavior: "allow", downloadPath: folder });
 
+  // Reading progress: one segment per chapter, and the header follows along
+  await open("");
+  const chapters = await run(`document.querySelectorAll("main section[id]").length + 1`);
+  check("one progress segment per chapter", (await count(".progress a")) === chapters);
+  const fills = () => run(`[...document.querySelectorAll(".progress a i i")].map((i) => new DOMMatrix(getComputedStyle(i).transform).a)`);
+  check("nothing read at the top", (await fills()).every((f) => f < 0.05), await fills());
+  await run(`scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" })`);
+  await sleep(120);
+  check("everything read at the bottom", (await fills()).every((f) => f > 0.99), await fills());
+  check("the last chapter is lit in the header", await run(`document.querySelector('.nav a[href="#faq"]').getAttribute("aria-current") === "true"`));
+  await run(`scrollTo({ top: 0, behavior: "instant" })`);
+  await sleep(120);
+  check("no chapter is lit at the top", (await count(`.nav [aria-current]`)) === 0);
+  const segment = await run(`(() => { const r = document.querySelector(".progress a[href='#start']").getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+  await move(segment);
+  await sleep(200);
+  check("a hovered segment thickens", await run(`new DOMMatrix(getComputedStyle(document.querySelector(".progress a[href='#start'] > i")).transform).d > 1.5`));
+  check("a hovered segment names its chapter", await run(`document.querySelector(".progress a[href='#start']").dataset.label === document.querySelector("#start h2").textContent.trim()`));
+  await clickAt(segment);
+  check("a segment jumps to its chapter", await until(`Math.abs(document.querySelector("#start").getBoundingClientRect().top - 72) < 3`, 2500));
+  await run(`scrollTo({ top: 0, behavior: "instant" })`);
+
   // Home: the editor and the daily molecule in the hero
   await open("");
   check("home draws aspirin", (await count(`${canvas} .hit [data-atom]`)) === 13);
@@ -172,6 +194,9 @@ async function main() {
   // Progress survives a reload and fills the route and the collection
   await open("lab/#levels");
   check("route shows solved levels", (await count(".node.solved")) === 20, await count(".node.solved"));
+  check("the Lab has no reading bar", (await count(".top .progress")) === 0);
+  check("every chapter's stars are full", await run(`[...document.querySelectorAll(".progress.stars i i")].every((i) => new DOMMatrix(getComputedStyle(i).transform).a === 1)`));
+  check("the star bar says its value", await run(`document.querySelector(".progress.stars").getAttribute("aria-valuenow") === "60"`));
   check("stars counted", (await run(`document.querySelector("[data-stat=stars]").textContent`)).startsWith("60"));
   await hash("#dex");
   check("collection unlocked", (await count(".dex > li:not(.locked)")) === 20);

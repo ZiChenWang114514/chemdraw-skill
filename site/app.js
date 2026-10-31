@@ -1,5 +1,5 @@
 // Copy buttons, the before/after viewer, the theme switch, scroll-in, the install picker,
-// the reading-progress arrow, the capability filter with its example requests, and the
+// the chapter progress bar, the capability filter with its example requests, and the
 // figure viewer. The hero editor lives in editor.js. The page reads completely without
 // either file; they only add behaviour. Words come from words.<language>.js.
 
@@ -211,18 +211,49 @@ if (picker) {
   update();
 }
 
-// Reading progress: a reaction arrow under the header that grows as the page is read.
-const progress = document.querySelector(".progress i");
+// Reading progress: a segment per chapter along the header, filled as the page is read, and
+// the chapter in view lit in the navigation. The segments are for the mouse; keyboards and
+// screen readers have the navigation, so the bar stays out of both.
+const progress = document.querySelector(".top .progress");
 if (progress) {
-  let queued = false;
+  const chapters = [document.querySelector(".hero"), ...document.querySelectorAll("main section[id]")].map((el) => {
+    const id = el.id || "main";
+    const link = Object.assign(document.createElement("a"), { href: `#${id}`, tabIndex: -1, innerHTML: "<i><i></i></i>" });
+    link.dataset.label = el.querySelector("h2")?.textContent.trim() || words?.progressTop || "";
+    progress.append(link);
+    return { el, link, fill: link.querySelector("i i"), nav: document.querySelector(`.nav a[href="#${id}"]`), top: 0, height: 1, shown: -1 };
+  });
+  let queued = false, lit = null;
   const paint = () => {
     queued = false;
     const room = document.documentElement.scrollHeight - innerHeight;
-    progress.style.setProperty("--p", room > 0 ? Math.min(1, scrollY / room) : 0);
+    const read = room > 0 ? Math.min(1, scrollY / room) : 0;
+    // This line runs from the window's top to its bottom over the page, so the bar starts empty and ends full
+    const line = scrollY + innerHeight * read;
+    for (const c of chapters) {
+      const part = Math.round(Math.max(0, Math.min(1, (line - c.top) / c.height)) * 1000) / 1000;
+      if (part !== c.shown) { c.shown = part; c.fill.style.transform = `scaleX(${part})`; }
+    }
+    const here = read > 0.995 ? chapters.at(-1) : chapters.filter((c) => c.top <= scrollY + innerHeight * 0.35).at(-1);
+    if (here !== lit) {
+      lit?.nav?.removeAttribute("aria-current");
+      here?.nav?.setAttribute("aria-current", "true");
+      lit = here;
+    }
+  };
+  const measure = () => {
+    for (const c of chapters) {
+      const box = c.el.getBoundingClientRect();
+      c.top = box.top + scrollY;
+      c.height = box.height;
+      c.link.style.flexGrow = box.height;
+    }
+    paint();
   };
   addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(paint); } }, { passive: true });
-  addEventListener("resize", paint);
-  paint();
+  addEventListener("resize", measure);
+  new ResizeObserver(measure).observe(document.body);
+  measure();
 }
 
 // Capabilities: filter the list by kind, and copy any example request.

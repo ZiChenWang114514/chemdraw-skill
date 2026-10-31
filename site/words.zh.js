@@ -167,6 +167,7 @@ globalThis.ChemWords = {
   }
  },
  "run": "运行一遍",
+ "progressTop": "开头",
  "running": "运行中…",
  "rerun": "再运行一遍",
  "copyAsk": "复制",

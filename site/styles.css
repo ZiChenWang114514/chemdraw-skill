@@ -200,17 +200,31 @@ button { font: inherit; color: inherit; }
 .theme[data-mode="dark"] .moon, .theme[data-mode="light"] .sun { display: none; }
 @media (max-width: 760px) { .nav .hide-sm { display: none; } .nav { gap: 14px; } }
 
-/* Reading progress: a reaction arrow along the bottom of the header, its head at the reader's place */
-.progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; pointer-events: none; }
-.progress i {
-  position: absolute; left: 0; top: 0; height: 2px; width: calc(var(--p, 0) * 100%);
-  background: var(--teal);
+/* Progress: one segment per chapter, drawn with transforms so scrolling never reflows.
+   The header's bar follows the reader; the Lab's bar counts stars. */
+.progress { display: flex; gap: 3px; height: 3px; }
+.top .progress { position: absolute; inset: auto 0 -2px; overflow-x: clip; }
+.progress a, .progress > i { position: relative; flex: 1 1 0; min-width: 0; }
+.progress a > i, .progress > i { display: block; height: 100%; overflow: hidden; border-radius: var(--r-pill); background: var(--rule); }
+.progress i i { display: block; height: 100%; background: var(--teal); transform: scaleX(0); transform-origin: left; }
+.nav a[aria-current] { color: var(--ink); text-decoration: underline 2px var(--teal); text-underline-offset: 6px; }
+@media (hover: hover) and (pointer: fine) {
+  .progress a::before { content: ""; position: absolute; inset: -7px 0 -6px; }
+  .progress a::after {
+    content: attr(data-label); position: absolute; top: 12px; left: 50%; translate: -50% 4px; padding: 4px 8px;
+    border-radius: var(--r-sm); background: var(--ink); color: var(--canvas); box-shadow: var(--shadow-float);
+    font: 500 var(--fs-xs)/1.4 var(--sans); white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity var(--t-fast) var(--ease), translate var(--t-fast) var(--ease);
+  }
+  .progress a:hover::after { opacity: 1; translate: -50% 0; }
+  .progress a:first-child::after { left: 8px; translate: 0 4px; }
+  .progress a:last-child::after { left: auto; right: 8px; translate: 0 4px; }
+  .progress a:first-child:hover::after, .progress a:last-child:hover::after { translate: 0 0; }
+  .progress a > i { transition: transform var(--t-fast) var(--ease); }
+  .progress a:hover > i { transform: scaleY(2); }
 }
-.progress i::after {
-  content: ""; position: absolute; right: -7px; top: -4px; width: 9px; height: 10px;
-  background: var(--teal); clip-path: polygon(0 0, 100% 50%, 0 100%, 28% 50%);
-  opacity: min(1, calc(var(--p, 0) * 40));
-}
+@media (hover: none), (pointer: coarse) { .progress a { pointer-events: none; } }
+@media (prefers-reduced-motion: no-preference) { .progress.stars i i { transition: transform var(--t-slow) var(--ease); } }
 
 /* Hero: the pitch on the left, a ChemDraw window on the right */
 .hero {
@@ -868,6 +882,7 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 .lab-head h1 { margin: 0 0 8px; font-size: var(--fs-title); line-height: 1.2; letter-spacing: -.02em; }
 .lab-head .lede { margin: 0; max-width: 38rem; }
 .stats { display: flex; gap: 28px; margin: 0; }
+.lab-head .stars { flex-basis: 100%; }
 .stats div { display: flex; flex-direction: column-reverse; }
 .stats dt { font-size: var(--fs-xs); color: var(--mute); }
 .stats dd { margin: 0; font-size: var(--fs-xl); font-weight: 600; font-variant-numeric: tabular-nums; }

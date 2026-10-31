@@ -20,6 +20,7 @@
   const views = [...root.querySelectorAll("[data-view]")];
   const modes = [...root.querySelectorAll("[data-mode]")];
   const toastEl = root.querySelector(".toast");
+  const starBar = root.querySelector(".progress.stars");
 
   const blank = () => ({ atoms: [], bonds: [] });
   const nameOf = (id) => (MOLS[id] ? T.names[id] : C.tasks[id].name);
@@ -49,6 +50,15 @@
     fill("streak", store.data.daily.streak);
     fill("compounds", `${levels.length} / ${CHALLENGES.length}`);
     fill("badges", `${store.data.badges.length} / ${BADGES.length}`);
+    const won = levels.reduce((t, l) => t + l.stars, 0);
+    starBar.setAttribute("aria-valuenow", won);
+    starBar.setAttribute("aria-valuemax", CHALLENGES.length * 3);
+    starBar.setAttribute("aria-label", L.stats.stars);
+    starBar.innerHTML = CHAPTERS.map((chapter) => {
+      const list = CHALLENGES.filter((c) => c.chapter === chapter);
+      const got = list.reduce((t, c) => t + (store.data.levels[c.id]?.stars || 0), 0);
+      return `<i style="flex-grow:${list.length}"><i style="transform:scaleX(${got / (list.length * 3)})"></i></i>`;
+    }).join("");
   }
 
   function saveProgress() {
