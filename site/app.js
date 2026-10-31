@@ -211,6 +211,41 @@ if (picker) {
   update();
 }
 
+// Jumps inside a page: a short glide instead of a long roll past every figure. A far jump
+// hops to one screen away first. The wheel, a touch or a key takes the page back at once.
+function glide(target) {
+  const offset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+  const goal = () => Math.max(0, target.getBoundingClientRect().top + scrollY - offset);
+  if (!motion.matches) { scrollTo(0, goal()); return; }
+  const gap = goal() - scrollY;
+  if (Math.abs(gap) > innerHeight * 2) scrollTo(0, goal() - Math.sign(gap) * innerHeight);
+  const from = scrollY, start = performance.now();
+  let frame = 0;
+  const stop = () => {
+    cancelAnimationFrame(frame);
+    for (const type of ["wheel", "touchstart", "keydown"]) removeEventListener(type, stop);
+  };
+  const step = (now) => {
+    const t = Math.max(0, Math.min(1, (now - start) / 360));
+    scrollTo(0, from + (goal() - from) * (1 - (1 - t) ** 3));
+    if (t < 1) frame = requestAnimationFrame(step); else stop();
+  };
+  for (const type of ["wheel", "touchstart", "keydown"]) addEventListener(type, stop, { passive: true });
+  frame = requestAnimationFrame(step);
+}
+
+document.addEventListener("click", (e) => {
+  const link = e.target.closest('a[href^="#"]:not(.skip)');
+  if (!link || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const target = document.getElementById(link.hash.slice(1));
+  if (!target) return;
+  e.preventDefault();
+  history.pushState(null, "", link.hash);
+  target.tabIndex = -1;
+  target.focus({ preventScroll: true });
+  glide(target);
+});
+
 // Reading progress: a segment per chapter along the header, filled as the page is read, and
 // the chapter in view lit in the navigation. The segments are for the mouse; keyboards and
 // screen readers have the navigation, so the bar stays out of both.

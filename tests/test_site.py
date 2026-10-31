@@ -602,6 +602,44 @@ class LabPageTests(unittest.TestCase):
         self.assertLessEqual(size("lab.js"), 8_000)
 
 
+class PageMotionTests(unittest.TestCase):
+    """Moving between pages and through them stays cheap and stays optional."""
+
+    css = (SITE / "styles.css").read_text(encoding="utf-8")
+
+    def test_every_page_declares_its_colours_before_the_stylesheet(self) -> None:
+        for path in (*PAGES.values(), *LAB_PAGES.values()):
+            with self.subTest(page=path.name):
+                html = path.read_text(encoding="utf-8")
+                self.assertIn('<meta name="color-scheme" content="light dark">', html)
+                self.assertLess(html.index('name="color-scheme"'), html.index('rel="stylesheet"'))
+
+    def test_every_page_prefetches_only_its_own_site(self) -> None:
+        for path in (*PAGES.values(), *LAB_PAGES.values()):
+            with self.subTest(page=path.name):
+                html = path.read_text(encoding="utf-8")
+                rules = re.search(r'<script type="speculationrules">(.*?)</script>', html, re.S)
+                self.assertTrue(rules)
+                prefetch = json.loads(rules.group(1))["prefetch"]
+                self.assertEqual(prefetch[0]["eagerness"], "moderate")
+                self.assertNotIn("github", rules.group(1))
+
+    def test_images_decode_off_the_main_thread(self) -> None:
+        for path in PAGES.values():
+            for tag in re.findall(r"<img\b[^>]*>", path.read_text(encoding="utf-8")):
+                with self.subTest(tag=tag[:80]):
+                    self.assertIn('decoding="async"', tag)
+
+    def test_scrolling_stays_off_the_expensive_paths(self) -> None:
+        self.assertNotIn("backdrop-filter", self.css)
+        self.assertNotIn("scroll-behavior: smooth", self.css)
+
+    def test_page_transitions_are_skipped_without_motion(self) -> None:
+        guarded = re.search(r"@media \(prefers-reduced-motion: no-preference\) \{\s*@view-transition", self.css)
+        self.assertTrue(guarded)
+        self.assertEqual(self.css.count("@view-transition"), 1)
+
+
 class DesignSystemTests(unittest.TestCase):
     """The stylesheet may only reach for the shared tokens."""
 

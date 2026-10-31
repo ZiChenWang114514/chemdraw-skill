@@ -21,6 +21,11 @@
   const modes = [...root.querySelectorAll("[data-mode]")];
   const toastEl = root.querySelector(".toast");
   const starBar = root.querySelector(".progress.stars");
+  const tabs = root.querySelector(".modes");
+  const tabMark = root.querySelector(".tab-mark");
+  const status = root.querySelector(".lab-status");
+  const labWindow = root.querySelector(".lab-window");
+  const openTab = () => modes.find((m) => m.hasAttribute("aria-current"));
 
   const blank = () => ({ atoms: [], bonds: [] });
   const nameOf = (id) => (MOLS[id] ? T.names[id] : C.tasks[id].name);
@@ -86,11 +91,20 @@
   editor.on("win", (result) => { if (onWin) onWin(result); });
   editor.on("export", () => { store.data.exported = true; saveProgress(); });
 
+  function markTab() {
+    const tab = openTab();
+    if (!tab) return;
+    tabMark.style.width = `${tab.offsetWidth}px`;
+    tabMark.style.transform = `translateX(${tab.offsetLeft}px)`;
+    if (tab.offsetLeft < tabs.scrollLeft || tab.offsetLeft + tab.offsetWidth > tabs.scrollLeft + tabs.clientWidth) tabs.scrollLeft = tab.offsetLeft - 8;
+  }
+
   function view(name, mode) {
     views.forEach((v) => { v.hidden = v.dataset.view !== name; });
     modes.forEach((m) => {
       if (m.dataset.mode === mode) m.setAttribute("aria-current", "page"); else m.removeAttribute("aria-current");
     });
+    markTab();
     onChange = null;
     onWin = null;
     editor.quest(null);
@@ -392,7 +406,34 @@
     const open = { levels: showRoute, hunt: showHunt, isomers: () => showIsomers(ISOMERS[0]), dex: showDex, free: showFree }[h];
     return (open || playDaily)();
   }
-  addEventListener("hashchange", route);
+
+  // A new mode slides in from the side its tab is on, and focus goes with it. route() runs inside
+  // the transition so both ends are captured; without one the swap is immediate.
+  function settle(before) {
+    const tab = openTab();
+    if (tab === before) return;
+    status.textContent = tab.textContent;
+    const shown = views.find((v) => !v.hidden);
+    const heading = shown.querySelector("h2, .intro");
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+    if (labWindow.getBoundingClientRect().top < 0) glide(labWindow);
+  }
+  addEventListener("hashchange", () => {
+    const before = openTab();
+    if (!document.startViewTransition || !matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+      route();
+      settle(before);
+      return;
+    }
+    const clear = () => { delete document.documentElement.dataset.slide; };
+    document.startViewTransition(() => {
+      route();
+      document.documentElement.dataset.slide = modes.indexOf(openTab()) < modes.indexOf(before) ? "back" : "next";
+      settle(before);
+    }).finished.then(clear, clear);
+  });
+  addEventListener("resize", markTab);
 
   root.addEventListener("click", (e) => {
     const act = e.target.closest("[data-act]");
@@ -447,4 +488,5 @@
   root.classList.add("ready");
   saveProgress();
   route();
+  document.fonts.ready.then(() => { markTab(); tabs.dataset.ready = ""; });
 })();

@@ -138,8 +138,7 @@
 
 * { box-sizing: border-box; }
 html:lang(en) { --fs-hero: clamp(2.2rem, 4.3vw, 3.45rem); }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 72px; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 72px; background: var(--canvas); }
 
 body {
   margin: 0;
@@ -154,6 +153,7 @@ img { max-width: 100%; height: auto; display: block; }
 a { color: var(--teal-ink); text-underline-offset: 3px; text-decoration-thickness: 1px; }
 a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: var(--r-xs); }
+[tabindex="-1"]:focus { outline: none; }
 code, pre { font-family: var(--mono); }
 :not(pre) > code {
   font-size: var(--fs-code);
@@ -172,8 +172,8 @@ button { font: inherit; color: inherit; }
 /* Header */
 .top {
   position: sticky; top: 0; z-index: 5;
-  background: color-mix(in srgb, var(--canvas) 88%, transparent);
-  backdrop-filter: saturate(1.4) blur(10px);
+  background: color-mix(in srgb, var(--canvas) 96%, transparent);
+  view-transition-name: top;
   border-bottom: 1px solid var(--grid);
 }
 .top .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
@@ -406,6 +406,13 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: no-preference) { .snap { transition: transform .06s linear; } }
 
 .foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 6px 16px; margin-top: 0; }
+/* The editor adds its tabs and buttons on load: hold their room so the hero does not jump */
+@media (scripting: enabled) {
+  .hero .doc-bar { min-height: 43px; }
+  .hero .foot { min-height: 107px; }
+  html:lang(en) .hero .foot { min-height: 124px; }
+}
+@media (scripting: enabled) and (max-width: 520px) { .hero .foot, html:lang(en) .hero .foot { min-height: 179px; } }
 .side { flex: 1 1 12rem; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
 .status { margin: 0; min-height: 2.8em; font: var(--fs-xs)/1.4 var(--sans); color: var(--mute); }
 .status[data-state="warn"] { color: var(--oxygen); }
@@ -888,14 +895,26 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 .stats dd { margin: 0; font-size: var(--fs-xl); font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .lab-window { border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--canvas); overflow: hidden; }
-.modes { display: flex; gap: 2px; padding: 6px 8px 0; overflow-x: auto; scrollbar-width: none; background: var(--sheet); border-bottom: 1px solid var(--rule); }
+.modes {
+  position: relative; display: flex; gap: 2px; padding: 6px 8px 0; overflow-x: auto; scrollbar-width: none;
+  background: linear-gradient(var(--rule), var(--rule)) bottom / 100% 1px no-repeat var(--sheet);
+}
 .modes::-webkit-scrollbar { display: none; }
 .modes a {
-  padding: 8px 14px; white-space: nowrap; text-decoration: none; color: var(--ink-2); font-size: var(--fs-sm);
-  border: 1px solid transparent; border-bottom: 0; border-radius: var(--r-sm) var(--r-sm) 0 0; margin-bottom: -1px;
+  position: relative; z-index: 1; padding: 8px 16px; white-space: nowrap; text-decoration: none;
+  color: var(--ink-2); font-size: var(--fs-sm); font-weight: 500;
+  transition: color var(--t-fast) var(--ease);
 }
-.modes a:hover { color: var(--ink); }
-.modes a[aria-current] { background: var(--canvas); border-color: var(--rule); color: var(--ink); font-weight: 600; }
+.modes a:hover { color: var(--teal-ink); }
+.modes a[aria-current] { color: var(--ink); }
+/* The open tab: one sheet that slides along the bar */
+.tab-mark {
+  position: absolute; left: 0; top: 6px; bottom: 0; width: 0;
+  border: 1px solid var(--rule); border-bottom: 0; border-radius: var(--r-sm) var(--r-sm) 0 0; background: var(--canvas);
+}
+.modes[data-ready] .tab-mark { transition: transform var(--t-med) var(--ease), width var(--t-med) var(--ease); }
+.lab-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lab-body { min-height: 46rem; view-transition-name: lab-body; }
 .lab [hidden] { display: none; }
 
 .board { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
@@ -1021,3 +1040,24 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
   .rxn-arrow { rotate: 90deg; flex: none; margin: 24px 0 24px 32px; }
   .stats { gap: 20px; }
 }
+
+/* Moving between pages: the header stays and the page beneath it fades up. Lab modes slide
+   in the direction of their tab. Browsers without view transitions simply switch. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition { pointer-events: none; }
+  ::view-transition-group(top) { animation: none; z-index: 1; }
+  ::view-transition-old(top) { display: none; }
+  ::view-transition-new(top) { animation: none; }
+  ::view-transition-old(root) { animation: fade-out var(--t-fast) var(--ease) both; }
+  ::view-transition-new(root) { animation: rise 160ms var(--ease) both; }
+  html[data-slide]::view-transition-old(root) { display: none; }
+  html[data-slide]::view-transition-new(root) { animation: none; }
+  ::view-transition-group(lab-body) { animation: none; }
+  ::view-transition-old(lab-body) { animation: fade-out 90ms var(--ease) both; }
+  ::view-transition-new(lab-body) { animation: slide-in 180ms var(--ease) both; }
+  html[data-slide="back"]::view-transition-new(lab-body) { --from: -12px; }
+}
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes slide-in { from { opacity: 0; transform: translateX(var(--from, 12px)); } }

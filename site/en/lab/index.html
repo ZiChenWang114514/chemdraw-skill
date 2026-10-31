@@ -20,11 +20,13 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
 <script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../../styles.css">
+<script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -32,7 +34,7 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="../" aria-label="ChemDraw Skill">
-      <img src="../../favicon.svg" width="26" height="26" alt="">
+      <img decoding="async" src="../../favicon.svg" width="26" height="26" alt="">
       ChemDraw Skill
     </a>
     <nav class="nav" aria-label="Main">
@@ -62,7 +64,9 @@
   </div>
   <noscript><p class="wrap">The Lab’s games need JavaScript. Everything else is on the <a href="../">home page</a>.</p></noscript>
   <div class="wrap lab-window">
-    <nav class="modes" aria-label="Lab modes"><a data-mode="daily" href="#daily">Daily</a><a data-mode="levels" href="#levels">Route map</a><a data-mode="hunt" href="#hunt">Spot the error</a><a data-mode="isomers" href="#isomers">Isomers</a><a data-mode="dex" href="#dex">Collection</a><a data-mode="free" href="#free">Sketchpad</a></nav>
+    <nav class="modes" aria-label="Lab modes"><a data-mode="daily" href="#daily">Daily</a><a data-mode="levels" href="#levels">Route map</a><a data-mode="hunt" href="#hunt">Spot the error</a><a data-mode="isomers" href="#isomers">Isomers</a><a data-mode="dex" href="#dex">Collection</a><a data-mode="free" href="#free">Sketchpad</a><i class="tab-mark" aria-hidden="true"></i></nav>
+    <p class="lab-status" aria-live="polite"></p>
+    <div class="lab-body">
     <div class="board" data-view="board">
       <figure class="doc">
       <div class="doc-bar"><i></i><i></i><i></i><span class="fname">structure.cdxml</span>
@@ -118,6 +122,7 @@
       </div>
     </div>
     <div class="dex-view" data-view="dex" hidden></div>
+    </div>
   </div>
   <div class="wrap lab-foot">
     <p class="prereq-note">This canvas runs in your browser and needs no ChemDraw. Saved .cdxml files open in ChemDraw; to have an agent render natively, first <a href="../#start">install the Skill and desktop ChemDraw</a>.</p>

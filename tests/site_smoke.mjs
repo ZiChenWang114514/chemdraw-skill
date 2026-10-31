@@ -79,7 +79,12 @@ const open = async (path) => {
   await until(`document.readyState === "complete"`);
   await sleep(120);
 };
-const hash = async (route) => { await run(`location.hash = ${JSON.stringify(route)}`); await sleep(60); };
+// The route change runs on the next frame, inside the view transition when there is one
+const hash = async (route) => {
+  await run(`location.hash = ${JSON.stringify(route)}`);
+  await run(`new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))`);
+  await until(`!document.documentElement.dataset.slide`);
+};
 const count = (selector) => run(`document.querySelectorAll(${JSON.stringify(selector)}).length`);
 const store = async () => JSON.parse(await run(`localStorage.getItem("chemdraw-skill-lab")`) || "null");
 
@@ -139,6 +144,12 @@ async function main() {
 
   // Reading progress: one segment per chapter, and the header follows along
   await open("");
+  const shift = () => run(`new Promise((done) => {
+    let total = 0;
+    new PerformanceObserver((list) => { for (const e of list.getEntries()) if (!e.hadRecentInput) total += e.value; }).observe({ type: "layout-shift", buffered: true });
+    setTimeout(() => done(total), 200);
+  })`);
+  check("the hero does not jump as the editor loads", (await shift()) < 0.005, await shift());
   const chapters = await run(`document.querySelectorAll("main section[id]").length + 1`);
   check("one progress segment per chapter", (await count(".progress a")) === chapters);
   const fills = () => run(`[...document.querySelectorAll(".progress a i i")].map((i) => new DOMMatrix(getComputedStyle(i).transform).a)`);
@@ -158,6 +169,32 @@ async function main() {
   await clickAt(segment);
   check("a segment jumps to its chapter", await until(`Math.abs(document.querySelector("#start").getBoundingClientRect().top - 72) < 3`, 2500));
   await run(`scrollTo({ top: 0, behavior: "instant" })`);
+
+  // Jumps inside the page: short, cancellable and recorded in the address
+  const faqTop = `Math.abs(document.querySelector("#faq").getBoundingClientRect().top - 72)`;
+  await click('.nav a[href="#faq"]');
+  check("a link glides to its chapter", await until(`${faqTop} < 3`, 1500), await run(faqTop));
+  check("a glide updates the address", await run(`location.hash === "#faq"`));
+  await run(`scrollTo({ top: 0, behavior: "instant" }); history.replaceState(null, "", location.pathname)`);
+  await click('.nav a[href="#faq"]');
+  await sleep(50);
+  await send("Input.dispatchMouseEvent", { type: "mouseWheel", x: 640, y: 450, deltaX: 0, deltaY: -160 });
+  await sleep(600);
+  check("the wheel stops a glide", (await run(faqTop)) > 40, await run(faqTop));
+  await run(`scrollTo({ top: 0, behavior: "instant" }); history.replaceState(null, "", location.pathname)`);
+
+  // Switching Lab modes keeps the window steady and hands focus to the new view
+  await open("lab/#daily");
+  const steadyHeight = await run(`document.querySelector(".lab-body").offsetHeight`);
+  await hash("#hunt");
+  await sleep(320);
+  check("a short view keeps the window's height", (await run(`document.querySelector(".lab-body").offsetHeight`)) >= steadyHeight - 90);
+  check("the tab mark sits under the open tab", await run(`Math.abs(document.querySelector(".tab-mark").getBoundingClientRect().left - document.querySelector('.modes [aria-current]').getBoundingClientRect().left) < 2`));
+  check("focus moves into the new view", await until(`!!document.activeElement.closest("[data-view=hunt]")`, 800));
+  check("the mode is announced", await run(`document.querySelector(".lab-status").textContent.includes(document.querySelector('.modes [aria-current]').textContent)`));
+  check("the slide cleans up", await until(`!document.documentElement.dataset.slide`, 800));
+  await hash("#daily");
+  await sleep(320);
 
   // Home: the editor and the daily molecule in the hero
   await open("");

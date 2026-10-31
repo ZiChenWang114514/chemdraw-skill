@@ -20,11 +20,13 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="../styles.css">
+<script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 </head>
 <body>
 <a class="skip" href="#main">跳到正文</a>
@@ -32,7 +34,7 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="../" aria-label="ChemDraw Skill">
-      <img src="../favicon.svg" width="26" height="26" alt="">
+      <img decoding="async" src="../favicon.svg" width="26" height="26" alt="">
       ChemDraw Skill
     </a>
     <nav class="nav" aria-label="主导航">
@@ -62,7 +64,9 @@
   </div>
   <noscript><p class="wrap">实验室的玩法需要 JavaScript。其余内容都在<a href="../">主页</a>上。</p></noscript>
   <div class="wrap lab-window">
-    <nav class="modes" aria-label="实验室模式"><a data-mode="daily" href="#daily">今日分子</a><a data-mode="levels" href="#levels">路线图</a><a data-mode="hunt" href="#hunt">找错</a><a data-mode="isomers" href="#isomers">异构体</a><a data-mode="dex" href="#dex">图鉴</a><a data-mode="free" href="#free">画板</a></nav>
+    <nav class="modes" aria-label="实验室模式"><a data-mode="daily" href="#daily">今日分子</a><a data-mode="levels" href="#levels">路线图</a><a data-mode="hunt" href="#hunt">找错</a><a data-mode="isomers" href="#isomers">异构体</a><a data-mode="dex" href="#dex">图鉴</a><a data-mode="free" href="#free">画板</a><i class="tab-mark" aria-hidden="true"></i></nav>
+    <p class="lab-status" aria-live="polite"></p>
+    <div class="lab-body">
     <div class="board" data-view="board">
       <figure class="doc">
       <div class="doc-bar"><i></i><i></i><i></i><span class="fname">structure.cdxml</span>
@@ -118,6 +122,7 @@
       </div>
     </div>
     <div class="dex-view" data-view="dex" hidden></div>
+    </div>
   </div>
   <div class="wrap lab-foot">
     <p class="prereq-note">这里的画布在浏览器里运行，不需要 ChemDraw。下载的 .cdxml 用 ChemDraw 打开；让 Agent 原生渲染，需要先<a href="../#start">安装 Skill 和桌面版 ChemDraw</a>。</p>
