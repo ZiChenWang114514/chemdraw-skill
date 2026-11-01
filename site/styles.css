@@ -300,6 +300,7 @@ button { font: inherit; color: inherit; }
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.5 3.5L13 4.5'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .btn[hidden] { display: none; }
+.btn[aria-busy] { opacity: .6; }
 .btn.primary { background: var(--teal); border-color: var(--teal); color: var(--on-teal); }
 .btn.primary:hover:not(:disabled) { background: var(--teal-ink); border-color: var(--teal-ink); color: var(--on-teal); }
 .btn.ghost { border-color: transparent; background: none; color: var(--ink-2); }

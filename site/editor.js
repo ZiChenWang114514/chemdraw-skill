@@ -6,7 +6,7 @@
 // and all words come from words.<language>.js. The home page reads completely without this file.
 
 (() => {
-  const { MOLS, STARTERS, W, H, EL, fmt, load, analyse, bondLength, remove, inside, toSmiles, toCdxml, cleanUp, drawMarkup,
+  const { fileName, MOLS, STARTERS, W, H, EL, fmt, load, analyse, bondLength, remove, inside, toSmiles, toCdxml, cleanUp, drawMarkup,
     graphKey, targetOf, stars, localDate, dailyNumber, dailyPick, nextStreak, dailyShare, encodeDrawing, decodeDrawing, emptyStore, parseStore,
     record, isLevel, earned, STORE_KEY, applyTool, previewMarkup } = globalThis.Chem;
 
@@ -99,8 +99,8 @@
       const original = analyse(JSON.parse(st.original));
       const known = MOLS[st.name] || STARTERS[st.name];
       setText("[data-log=ask]", fmt(T.ask, { name: st.title }).replace(/([\u4e00-\u9fff])([A-Z])/g, "$1 $2").replace(/([A-Za-z0-9])([\u4e00-\u9fff])/g, "$1 $2"));
-      setText("[data-log=resolve]", known ? `${st.name} → ${known.smiles}` : st.title);
-      setText("[data-log=build]", fmt(T.build, { name: st.name }));
+      setText("[data-log=resolve]", known ? `${fileName(st.name)} → ${known.smiles}` : st.title);
+      setText("[data-log=build]", fmt(T.build, { name: fileName(st.name) }));
       if (!st.g.atoms.length) {
         setText("[data-log=readback]", `${T.empty} <span class="no">✗</span>`);
       } else if (quest && quest.doc === st) {
@@ -149,7 +149,7 @@
       cleanBtn.disabled = st.g.atoms.length < 2;
       exportBar.querySelectorAll("[data-export]").forEach((b) => { b.disabled = empty; });
       svg.setAttribute("aria-label", fmt(T.aria, { name: st.title, formula: empty ? "—" : info.text }));
-      if (fname) fname.textContent = `${st.name}.cdxml`;
+      if (fname) fname.textContent = `${fileName(st.name)}.cdxml`;
 
       const badAtom = info.over.indexOf(true);
       if (badAtom >= 0) {
@@ -583,7 +583,7 @@
     }
     function saveFile(g, base) {
       const url = URL.createObjectURL(new Blob([toCdxml(g)], { type: "chemical/x-cdxml" }));
-      const a = Object.assign(document.createElement("a"), { href: url, download: `${base}.cdxml` });
+      const a = Object.assign(document.createElement("a"), { href: url, download: `${fileName(base)}.cdxml` });
       document.body.append(a);
       a.click();
       a.remove();
@@ -709,9 +709,17 @@
   const store = openStore();
   const today = localDate();
   const c = dailyPick(today);
-  const task = T.challenge.tasks[c.id];
   const D = T.daily;
-  let quest = null, hinted = false;
+  let quest = null, hinted = false, task = null, loading = null;
+
+  // The tasks are a tenth of the page's scripts and most visitors never open the daily, so they wait for it.
+  const loadTasks = () => loading ||= new Promise((done, fail) => {
+    const script = document.createElement("script");
+    script.src = document.querySelector('script[src*="words."]').src.replace(/words(\.\w+\.js)$/, "daily$1");
+    script.onload = done;
+    script.onerror = () => { loading = null; script.remove(); fail(); };
+    document.head.append(script);
+  });
 
   const paintButton = () => {
     if (store.data.daily.streak && store.data.daily.last) button.dataset.count = fmt(D.streak, { n: store.data.daily.streak });
@@ -728,7 +736,10 @@
         : `<button class="btn sm" type="button" data-ch="hint">${T.challenge.hint}</button>`}</div>
       <p class="ch-hint"${hinted && !won ? "" : " hidden"}>${task.hint}</p>`;
   }
-  function start() {
+  async function start() {
+    button.setAttribute("aria-busy", "true");
+    try { await loadTasks(); } catch { editor.status(D.offline); return; } finally { button.removeAttribute("aria-busy"); }
+    task = T.challenge.tasks[c.id];
     hinted = false;
     editor.restart(c.mol);
     const target = targetOf(c);
@@ -760,7 +771,8 @@
     store.save();
   });
 
-  button.addEventListener("click", () => (quest ? stop() : start()));
+  button.addEventListener("click", () => { if (!button.hasAttribute("aria-busy")) quest ? stop() : start(); });
+  button.addEventListener("pointerenter", () => loadTasks().catch(() => {}), { once: true });
   strip.addEventListener("click", async (e) => {
     const act = e.target.closest("[data-ch]");
     if (!act) return;

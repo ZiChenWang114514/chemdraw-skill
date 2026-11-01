@@ -352,8 +352,17 @@ async function main() {
   await press("z", (process.platform === "darwin" ? 4 : 2) | 8);
   check("redo with the keyboard", (await count(`${canvas} .hit [data-atom]`)) === 12);
   const daily = await run(`(() => { const d = Chem.dailyPick(Chem.localDate()); return { id: d.id, solve: d.solve }; })()`);
+  const dailyWords = () => run(`performance.getEntriesByType("resource").some((r) => /daily\\.\\w+\\.js/.test(r.name))`);
+  check("the home page leaves the daily words until they are wanted", !(await dailyWords()));
+  await send("Network.setBlockedURLs", { urls: ["*daily.*.js"] });
   await click("[data-challenge-open]");
-  check("daily strip opens at home", await run(`!document.querySelector(".challenge").hidden`));
+  check("a failed load says so", await until(`document.querySelector(".hero .status").textContent === ChemWords.daily.offline`));
+  check("a failed load leaves the strip shut", await run(`document.querySelector(".challenge").hidden`));
+  await send("Network.setBlockedURLs", { urls: [] });
+  await click("[data-challenge-open]");
+  check("daily strip opens at home", await until(`!document.querySelector(".challenge").hidden`));
+  check("the daily words arrive on demand", await dailyWords());
+  check("the task is in the strip", await run(`document.querySelector(".challenge .ch-task").textContent === ChemWords.challenge.tasks[Chem.dailyPick(Chem.localDate()).id].task`));
   for (const m of daily.solve) await playMove(m);
   check("daily solved at home", await until(`Chem.parseStore(localStorage.getItem("chemdraw-skill-lab")).daily.streak === 1`), await store());
   check("button shows the streak", await run(`/1/.test(document.querySelector("[data-challenge-open]").dataset.count)`));
@@ -673,7 +682,11 @@ async function main() {
     await open("");
     await run(`localStorage.clear()`);
     await open(where === "hero" ? "" : "lab/#daily");
-    if (where === "hero") await click("[data-challenge-open]");
+    if (where === "hero") {
+      await click("[data-challenge-open]");
+      await until(`!document.querySelector(".challenge").hidden`);
+    }
+    else check(`no internal id in the file name (${pick.mol})`, await run(`!/[A-Z]/.test(document.querySelector(".fname").textContent)`), await run(`document.querySelector(".fname").textContent`));
     check(`daily-only ${pick.id} starts from ${pick.mol}, which has no hero tab (${where})`, await run(`Chem.dailyPick(Chem.localDate()).id === ${JSON.stringify(pick.id)} && !document.querySelector('[data-mol="${pick.mol}"]')`));
     for (const m of pick.solve) await playMove(m);
     const saved = async () => (await store())?.daily?.solved?.[day];
