@@ -46,6 +46,8 @@
 
   const fmt = (s, o) => s.replace(/\{(\w+)\}/g, (_, k) => o[k]);
   const f1 = (n) => n.toFixed(1);
+  // What a person sees of an id such as aceticAcid: in a file name, or in the agent's log.
+  const fileName = (id) => id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 
   function load(name) {
     const m = MOLS[name] || STARTERS[name];
@@ -931,7 +933,7 @@
   }
 
   const api = {
-    applyTool, previewMarkup, MOLS, STARTERS, W, H, EL, CYCLE, CHALLENGES, DAILIES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
+    applyTool, previewMarkup, fileName, MOLS, STARTERS, W, H, EL, CYCLE, CHALLENGES, DAILIES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
     fmt, load, analyse, bondLength, neighbours, remove, inside, freeAngle, place, toSmiles, toCdxml, cleanUp, drawMarkup, thumb,
     applyMoves, graphKey, targetOf, challengeKey, formulaDelta, stars,
     localDate, dailyNumber, dailyPick, isLevel, nextStreak, dailyShare,

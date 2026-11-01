@@ -26,6 +26,9 @@
   const status = root.querySelector(".lab-status");
   const labWindow = root.querySelector(".lab-window");
   const openTab = () => modes.find((m) => m.hasAttribute("aria-current"));
+  // On a wide screen the side panel holds the task; below the canvas, on a phone, it is out of sight.
+  const quest = Object.assign(document.createElement("p"), { className: "quest", hidden: true });
+  root.querySelector(".board .doc-bar").after(quest);
 
   const blank = () => ({ atoms: [], bonds: [] });
   const nameOf = (id) => (MOLS[id] ? T.names[id] : C.tasks[id].name);
@@ -108,6 +111,7 @@
   }
 
   function view(name, mode) {
+    quest.hidden = true;
     views.forEach((v) => { v.hidden = v.dataset.view !== name; });
     modes.forEach((m) => {
       if (m.dataset.mode === mode) m.setAttribute("aria-current", "page"); else m.removeAttribute("aria-current");
@@ -122,9 +126,17 @@
 
   const stillNeeded = (g, target) => formulaDelta(g, target).map((d) => `${d.n > 0 ? "+" : "\u2212"}${Math.abs(d.n)} ${d.s}`).join(L.deltaJoin) || L.deltaDone;
 
+  function paintQuest(c, g, moves) {
+    const left = stillNeeded(g, targetOf(c));
+    quest.lastChild.textContent = `${L.moves} ${moves} / ${c.solve.length} \u00b7 ${left === L.deltaDone ? left : `${L.delta} ${left}`}`;
+  }
+
   function missionFor(c, title, sub) {
     const task = C.tasks[c.id];
     const target = analyse(targetOf(c));
+    quest.innerHTML = `${task.task}<span data-progress></span>`;
+    quest.hidden = false;
+    paintQuest(c, load(c.mol), 0);
     mission.innerHTML = `
       <h2>${title}</h2>
       ${sub ? `<p class="sub">${sub}</p>` : ""}
@@ -143,6 +155,7 @@
 
   function winPanel(c, moves, got, actions) {
     const task = C.tasks[c.id];
+    quest.hidden = true;
     mission.innerHTML = `
       <h2>${task.name}</h2>
       <div class="result">${rings(got)}<p>${fmt(L.solvedIn, { moves })}</p></div>
@@ -162,11 +175,17 @@
       if (el) el.textContent = current.quest.moves;
       const delta = mission.querySelector("[data-delta]");
       if (delta) delta.textContent = stillNeeded(g, target);
+      paintQuest(c, g, current.quest.moves);
     };
     onWin = ({ moves }) => {
       finish(moves);
       saveProgress();
       burst(editor.canvas);
+      // Let the burst play on the canvas, then show the stars and the way on if they are out of sight
+      setTimeout(() => {
+        const panel = mission.getBoundingClientRect();
+        if (!mission.closest("[hidden]") && (panel.top < 0 || panel.top > innerHeight / 2)) glide(mission);
+      }, 900);
     };
   }
 
