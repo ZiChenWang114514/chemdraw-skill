@@ -132,12 +132,12 @@
 
 ## `engines.registry`
 
-- **function**, line 114: `by_task(task: str) -> list` - No public docstring in the audited version.
+- **function**, line 154: `by_task(task: str) -> list` - No public docstring in the audited version.
 
 ## `engines.worker`
 
 - **function**, line 25: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
-- **function**, line 300: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 314: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
