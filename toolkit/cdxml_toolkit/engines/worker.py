@@ -172,19 +172,35 @@ def _decimer_local(params, data_dir, spec):
 
 
 def _segment(params, data_dir, spec):
+    """Find structures with the mask network, then cut each one from the page with a margin.
+
+    The network's own crops are masked and can clip labels and bond ends, so only its boxes are used.
+    """
     import cv2
     from decimer_segmentation import segment_chemical_structures
     os.makedirs(params['out_dir'], exist_ok=True)
     out = []
     for page_index, path in enumerate(params['images']):
         image = cv2.imread(path)
-        segments = segment_chemical_structures(image, expand=True, visualization=False) if image is not None else []
-        files = []
-        for number, segment in enumerate(segments, 1):
+        if image is None:
+            out.append({'source': path, 'segments': [], 'bboxes': []})
+            continue
+        _, boxes = segment_chemical_structures(image, expand=True, visualization=False, return_bboxes=True)
+        height, width = image.shape[:2]
+        files, found = [], []
+        for number, (y0, x0, y1, x1) in enumerate(boxes, 1):
+            if y1 <= y0 or x1 <= x0:
+                continue
+            margin = max(16, int(0.08 * max(y1 - y0, x1 - x0)))
+            left, top = max(0, x0 - margin), max(0, y0 - margin)
+            right, bottom = min(width, x1 + margin), min(height, y1 + margin)
+            crop = cv2.copyMakeBorder(image[top:bottom, left:right], 12, 12, 12, 12, cv2.BORDER_CONSTANT,
+                                      value=(255, 255, 255))
             target = os.path.join(params['out_dir'], f'{params["stem"]}-p{page_index + 1}-s{number}.png')
-            cv2.imwrite(target, segment)
+            cv2.imwrite(target, crop)
             files.append(target)
-        out.append({'source': path, 'segments': files})
+            found.append([int(left), int(top), int(right), int(bottom)])
+        out.append({'source': path, 'segments': files, 'bboxes': found})
     return out
 
 

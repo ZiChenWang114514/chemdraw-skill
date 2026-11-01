@@ -61,8 +61,10 @@ def _no_installed_mappers(monkeypatch, tmp_path_factory):
 
 
 @pytest.fixture(autouse=True)
-def _no_installed_engines(monkeypatch, tmp_path_factory):
+def _no_installed_engines(request, monkeypatch, tmp_path_factory):
     """OCSR, retrosynthesis and NMR engines are absent unless a test builds one in an empty home."""
+    if request.node.get_closest_marker("engine_live"):
+        return  # live tests use the engines the user installed
     monkeypatch.setenv("CHEMDRAW_ENGINE_HOME", str(tmp_path_factory.getbasetemp() / "no-engines"))
 
 

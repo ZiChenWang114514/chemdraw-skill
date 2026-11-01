@@ -64,7 +64,8 @@ def _segment(pages, out_dir: Path, segmenter: str, warnings: list) -> tuple:
             'images': [p for _, p in pages], 'out_dir': str(out_dir / 'segments'), 'stem': 'seg'})
         segments = []
         for (number, _), answer in zip(pages, answers):
-            segments += [{'page': number, 'path': path, 'bbox': None} for path in answer['segments']]
+            segments += [{'page': number, 'path': path, 'bbox': box}
+                         for path, box in zip(answer['segments'], answer.get('bboxes') or [None] * len(answer['segments']))]
         return segments, 'decimer-segmentation'
     if segmenter == 'auto':
         warnings.append('DECIMER Segmentation is not installed: used the OpenCV segmenter, which merges and '

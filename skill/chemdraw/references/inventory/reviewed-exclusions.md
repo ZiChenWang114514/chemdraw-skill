@@ -88,7 +88,7 @@
 
 ## `engines.document`
 
-- **function**, line 102: `extract(path: str, out_dir: str, pages = None, engines: str = 'molscribe,molvec', segmenter: str = 'auto', dpi: int = 200, confirm_upload: bool = False, hand_drawn: bool = False) -> dict` - Segment, recognize and compare. ``out_dir`` must be new or empty; nothing existing is overwritten.
+- **function**, line 103: `extract(path: str, out_dir: str, pages = None, engines: str = 'molscribe,molvec', segmenter: str = 'auto', dpi: int = 200, confirm_upload: bool = False, hand_drawn: bool = False) -> dict` - Segment, recognize and compare. ``out_dir`` must be new or empty; nothing existing is overwritten.
 
 ## `engines.env`
 
@@ -137,7 +137,7 @@
 ## `engines.worker`
 
 - **function**, line 25: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
-- **function**, line 314: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 330: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
