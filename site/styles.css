@@ -21,7 +21,7 @@
 :root {
   --ink: #16232a;
   --ink-2: #42545d;
-  --mute: #66787f;
+  --mute: #5f7178;
   --canvas: #ffffff;
   --sheet: #f2f5f6;
   --grid: #e3eaed;
@@ -197,7 +197,7 @@ button { font: inherit; color: inherit; }
 .theme[hidden] { display: none; }
 .theme svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .theme[data-mode="dark"] .moon, .theme[data-mode="light"] .sun { display: none; }
-@media (max-width: 760px) { .nav .hide-sm { display: none; } .nav { gap: 14px; } }
+@media (max-width: 860px) { .nav .hide-sm { display: none; } .nav { gap: 14px; } }
 
 /* Progress: one segment per chapter, drawn with transforms so scrolling never reflows.
    The header's bar follows the reader; the Lab's bar counts stars. */
@@ -304,7 +304,7 @@ button { font: inherit; color: inherit; }
 .btn.primary:hover:not(:disabled) { background: var(--teal-ink); border-color: var(--teal-ink); color: var(--on-teal); }
 .btn.ghost { border-color: transparent; background: none; color: var(--ink-2); }
 .btn.ghost:hover:not(:disabled) { border-color: transparent; background: var(--sheet); color: var(--ink); }
-@media (pointer: coarse) { .btn, .btn.sm, .filters button, .seg span { min-height: 40px; } .palette button { height: 32px; } }
+@media (pointer: coarse) { .btn, .btn.sm, .filters button, .seg span { min-height: 40px; } }
 @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn:active:not(:disabled) { transform: none; } }
 .agents { margin: 24px 0 0; font-size: var(--fs-sm); color: var(--mute); max-width: 34rem; }
 .agents b { color: var(--ink-2); font-weight: 600; }
@@ -756,7 +756,7 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 .filters button span { font-size: var(--fs-xs); color: var(--mute); font-variant-numeric: tabular-nums; }
 .filters button:hover { border-color: var(--teal); color: var(--teal-ink); }
 .filters button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--on-teal); }
-.filters button[aria-pressed="true"] span { color: inherit; opacity: .8; }
+.filters button[aria-pressed="true"] span { color: inherit; }
 
 /* Each capability can show a request to try */
 .try { margin-top: 8px; }
@@ -974,9 +974,18 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
   .analysis { font-size: 10.5px; }
   .status { min-height: 4.2em; }
   .log { padding-inline: 14px; font-size: var(--fs-xs); }
-  .log li { grid-template-columns: 5.4rem minmax(0, 1fr); gap: 6px; }
+  .log li { grid-template-columns: 6rem minmax(0, 1fr); gap: 6px; }
   .log li span { overflow-wrap: anywhere; }
 }
+/* After the phone rules, or they would win: a finger needs the whole tool at any width. */
+@media (pointer: coarse) {
+  .doc.live { grid-template-columns: 44px minmax(0, 1fr); }
+  .palette { gap: 2px; }
+  .palette button { width: 40px; height: 40px; }
+  .palette svg { width: 20px; height: 20px; }
+  .faq-search input { font-size: var(--fs-md); }
+}
+@media (pointer: coarse) and (scripting: enabled) { .hero .doc { grid-template-columns: 44px minmax(0, 1fr); } }
 .start .prereq { margin: 0 0 8px; padding-left: 1.1em; color: var(--ink-2); font-size: var(--fs-sm); }
 .start .prereq li { margin-bottom: 4px; }
 
@@ -1046,6 +1055,7 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 .board .doc { border: 0; border-right: 1px solid var(--grid); border-radius: 0; box-shadow: none; }
 .board .mol { max-width: 520px; }
 .mission { padding: clamp(18px, 3vw, 28px); min-width: 0; }
+.quest { display: none; }
 .mission h2 { margin: 0 0 8px; font-size: var(--fs-xl); line-height: 1.25; }
 .mission .task { margin: 0 0 12px; font-size: var(--fs-md); color: var(--ink); }
 .mission .sub { margin: 8px 0 4px; font-size: var(--fs-sm); color: var(--mute); }
@@ -1176,6 +1186,11 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 @media (max-width: 860px) {
   .board { grid-template-columns: minmax(0, 1fr); }
   .board .doc { border-right: 0; border-bottom: 1px solid var(--grid); }
+  .quest:not([hidden]) {
+    grid-column: 1 / -1; display: block; margin: 0; padding: 8px 14px;
+    border-bottom: 1px solid var(--grid); background: var(--sheet); font-size: var(--fs-sm); line-height: 1.5; color: var(--ink);
+  }
+  .quest span { display: block; font-size: var(--fs-xs); color: var(--mute); font-variant-numeric: tabular-nums; }
   .hunt-pair { grid-template-columns: minmax(0, 1fr); }
   .hunt-truth .thumb { height: 150px; }
   .rxn-row { flex-direction: column; align-items: flex-start; gap: 0; }

@@ -571,7 +571,64 @@ async function main() {
   for (let d = 60; d <= 240; d += 60) await touch("touchMove", [{ x: 600 - d, y: 380, id: 0 }, { x: 680 + d, y: 380, id: 1 }]);
   await touch("touchEnd", []);
   check("pinch zooms", await until(`document.querySelector(".lb-stage img").style.transform !== ${JSON.stringify(fitted)}`, 800), { fitted, now: await scale() });
+  // A phone: tools a finger can hit, the task beside the canvas and the result brought into view
+  await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+  const finger = async (selector) => {
+    const at = await where(selector);
+    if (!at) throw new Error(`nothing to tap: ${selector}`);
+    await touch("touchStart", [at]);
+    await touch("touchEnd", []);
+    await sleep(60);
+  };
+  const inView = (selector) => run(`(() => { const r = document.querySelector(${JSON.stringify(selector)})?.getBoundingClientRect(); return !!r && r.height > 0 && r.top >= 0 && r.bottom <= innerHeight; })()`);
+  await open("");
+  await run(`localStorage.clear()`);
+  for (const page of ["", "lab/#daily"]) {
+    await open(page);
+    const small = await run(`[...document.querySelectorAll(".doc .palette button")].filter((b) => b.offsetWidth && (b.offsetWidth < 40 || b.offsetHeight < 40)).length`);
+    check(`every tool takes a finger (${page || "home"})`, small === 0, small);
+  }
+  await open("");
+  check("focusing the FAQ search does not zoom iOS", await run(`parseFloat(getComputedStyle(document.querySelector(".faq-search input")).fontSize) >= 16`));
+  check("the log's tool names stay on one line", await run(`[...document.querySelectorAll(".log .k")].every((k) => { const lines = document.createRange(); lines.selectNodeContents(k); return lines.getClientRects().length === 1; })`));
+  const shiftPhone = await run(`new Promise((done) => {
+    let total = 0;
+    new PerformanceObserver((list) => { for (const e of list.getEntries()) if (!e.hadRecentInput) total += e.value; }).observe({ type: "layout-shift", buffered: true });
+    setTimeout(() => done(total), 200);
+  })`);
+  check("the hero does not jump on a phone", shiftPhone < 0.005, shiftPhone);
+  await open("lab/#level-salicylic");
+  const words = await run(`Chem.CHALLENGES.find((c) => c.id === "salicylic").solve`);
+  check("the task sits above the canvas on a phone", await inView(".board .quest") && await run(`document.querySelector(".board .quest").textContent.includes(ChemWords.challenge.tasks.salicylic.task)`));
+  check("the canvas still fits the first screen", await inView(".board .mol"));
+  const line = () => run(`document.querySelector(".board .quest [data-progress]").textContent`);
+  const counted = await line();
+  check("the strip counts moves against the par", counted.includes(`0 / ${words.length}`), counted);
+  await finger(`.doc [data-tool="erase"]`);
+  for (const [name, i] of words) {
+    if (name !== "erase") throw new Error(`salicylic needs a touch step for ${name}`);
+    await finger(`${canvas} .hit [data-atom="${i}"]`);
+  }
+  check("the panel with the stars and the next step comes into view after a win", await until(`(() => { const r = document.querySelector(".mission .result")?.getBoundingClientRect(); return !!r && r.top >= 0 && r.bottom <= innerHeight; })()`, 3000));
+  check("the strip is gone once the level is won", await run(`document.querySelector(".board .quest").hidden`));
+  await hash("#free");
+  check("the sketchpad has no task strip", await run(`document.querySelector(".board .quest").hidden`));
+  check("the open tab is scrolled into its bar", await run(`(() => { const t = document.querySelector(".modes [aria-current]").getBoundingClientRect(), bar = document.querySelector(".modes").getBoundingClientRect(); return t.left >= bar.left - 1 && t.right <= bar.right + 1; })()`));
+  await run(`localStorage.clear()`);
   await send("Emulation.setTouchEmulationEnabled", { enabled: false });
+
+  // A tablet is too narrow for the whole header and too wide for the phone one
+  for (const width of [761, 780, 800, 810, 820, 834, 859]) {
+    await send("Emulation.setDeviceMetricsOverride", { width, height: 1100, deviceScaleFactor: 1, mobile: false });
+    for (const page of ["", "en/"]) {
+      await open(page);
+      const wide = await run(`document.documentElement.scrollWidth`);
+      check(`${page || "home"} fits ${width} px`, wide <= width, wide);
+    }
+  }
+  await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+  await open("lab/#level-salicylic");
+  check("the side panel keeps the task on a wide screen", await run(`getComputedStyle(document.querySelector(".board .quest")).display === "none"`));
 
   // Every page at phone width, both languages and colour schemes, and with motion off
   await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });

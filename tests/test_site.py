@@ -1166,6 +1166,36 @@ class DesignSystemTests(unittest.TestCase):
         self.assertRegex(self.css, r"@media \(pointer: coarse\)[^{]*\{[^}]*\.btn")
 
 
+class AccessibilityTests(unittest.TestCase):
+    """The checks axe-core and Lighthouse made by hand, kept so they stay fixed."""
+
+    @staticmethod
+    def luminance(colour: str) -> float:
+        channels = [int(colour[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        r, g, b = [c / 12.92 if c <= .03928 else ((c + .055) / 1.055) ** 2.4 for c in channels]
+        return .2126 * r + .7152 * g + .0722 * b
+
+    def contrast(self, one: str, other: str) -> float:
+        a, b = sorted((self.luminance(one), self.luminance(other)), reverse=True)
+        return (a + .05) / (b + .05)
+
+    def test_muted_text_is_readable_on_every_surface(self) -> None:
+        css = (SITE / "styles.css").read_text(encoding="utf-8")
+        for block in re.findall(r"--mute:[^}]*\}", css):
+            mute = re.search(r"--mute:\s*(#[0-9a-f]{6})", block).group(1)
+            sheet = re.search(r"--sheet:\s*(#[0-9a-f]{6})", block).group(1)
+            self.assertGreaterEqual(self.contrast(mute, sheet), 4.5, (mute, sheet))
+
+    def test_filter_counts_are_not_faded_on_the_teal_chip(self) -> None:
+        css = (SITE / "styles.css").read_text(encoding="utf-8")
+        rule = re.search(r'\.filters button\[aria-pressed="true"\] span \{([^}]*)\}', css).group(1)
+        self.assertNotIn("opacity", rule)
+
+    def test_the_clone_command_scrolls_by_keyboard(self) -> None:
+        for page in ("index.html", "en/index.html"):
+            self.assertRegex((SITE / page).read_text(encoding="utf-8"), r'<code id="clone" tabindex="0"')
+
+
 @unittest.skipUnless(os.environ.get("SITE_BROWSER"), "set SITE_BROWSER=1 to drive headless Chrome")
 class BrowserSmokeTests(unittest.TestCase):
     def test_the_site_works_with_real_input_in_a_browser(self) -> None:
