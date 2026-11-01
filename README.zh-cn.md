@@ -169,6 +169,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
+| **更多引擎与预测** | 可选引擎各自在独立环境中运行：MolScribe、MolNexTR、MolVec 与 DECIMER 对同一张图并排比较；在 PDF 中找出结构并生成供目检的接触表；预测产物、前体与合成路线（AiZynthFinder、SynPlanner、ReactionT5）以及 1H/13C 化学位移（MagNET）。所有结果都标注为预测；引擎意见不一致时不会合并。详见[引擎说明](skill/chemdraw/references/engines.md)。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
 | **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；试剂安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
@@ -531,6 +532,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 | 分子比较或 ChemScript SDK 调用 | 可移植相似度比较使用 RDKit；精确检查和原始 SDK 程序需 Windows 主机上的兼容 ChemScript DLL（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作） |
 | 可编辑的 Word 或 PowerPoint 对象 | 用桌面版 ChemDraw 生成；PDF 预览需桌面版 Word 和/或 PowerPoint（macOS 上需已激活） |
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖 |
+| 更多 OCSR 引擎、逆合成、产物与核磁预测 | `cdx.py install-engines`：每个引擎一个独立环境，连同模型文件从数百 MB 到数 GB 不等（见[引擎说明](skill/chemdraw/references/engines.md)） |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络通道 |
 
 项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。安装选项、手动创建运行时和诊断方法见[安装指南](docs/guide.zh-cn.md#首次安装)。
@@ -542,6 +544,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 - CI 在 Windows 和 Linux 上运行 Skill 测试（Python 3.12，MCP 1.28.1 与 2.0.0），在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做端到端安装测试。ChemDraw、ChemScript 和 Office 的原生功能在一台已授权的 Windows 工作站上手动测试；macOS 的 AppleScript 路径在 macOS 26.6（Apple 芯片）和 ChemDraw 26.0 上测试过。
 - 工具只写入新的输出路径，除非你明确要求，否则不会覆盖已有文件。
 - 图像识别只把选定的图片发送到 DECIMER API。`cdx.py decimer --preflight` 可以先看将要发送什么，要求离线时不上传。各类报告和映射器在本地运行，ChemDraw 的化学计量表由本机的 ChemDraw 计算；只有报告在名称不在内置表中时才会联网查询，设置 `CHEMDRAW_OFFLINE=1` 可关闭。
+- 可选的预测引擎在各自的独立环境中本地运行，不上传任何内容；下载内容按固定哈希校验。它们的结果是模型预测，并会如此标注。
 - 远程使用 HTTP 服务时需要 Bearer 密钥和允许的主机列表，并应放在加密隧道或 HTTPS 代理之后。详见[安全策略](.github/SECURITY.md)。
 
 ## 常见问题

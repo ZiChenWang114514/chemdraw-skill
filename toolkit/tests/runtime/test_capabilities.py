@@ -9,7 +9,7 @@ from cdxml_toolkit.mcp_runtime import capabilities, mcp_server, tool_registry
 def test_profiles_are_stable_and_capability_aware():
     expected_counts = {
         "core": 16,
-        "full": 59,
+        "full": 65,
         "office": 21,
         "analysis": 21,
         "chemscript": 22,

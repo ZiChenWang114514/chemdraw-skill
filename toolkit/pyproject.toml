@@ -155,4 +155,5 @@ include = ["cdxml_toolkit*"]
 testpaths = ["tests"]
 markers = [
     "network: tests requiring internet access",
+    "engine_live: runs a real installed engine (set CDX_ENGINES_LIVE=1)",
 ]

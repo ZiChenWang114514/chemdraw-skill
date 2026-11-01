@@ -15,6 +15,7 @@ Treat `skill/chemdraw/` as the deployable agent Skill and the source of truth fo
 - Preserve existing public tool names unless a documented breaking release is intentional.
 - Keep chemistry grounded: do not invent or hand-edit SMILES, do not silently resolve ambiguous OCSR, and do not overwrite source artifacts.
 - For image-recognition tasks, use the DECIMER API directly (`cdx.py decimer`); do not add a separate upload-confirmation question, except once for sources marked unpublished or confidential. Respect explicit local/offline or no-upload requests. Keep the no-upload preflight (`--preflight`) available.
+- Optional engines (`cdx.py ocsr`, `predict`, `install-engines`; `skill/chemdraw/references/engines.md`) run in their own environments, never upload while running, and return model predictions with `provenance: "model_prediction"`. Several OCSR engines are compared, never merged: `selected` stays null and disagreement leaves `agreed_smiles` empty. Never present a prediction (structure, precursor, route, NMR shift) as measured or literature data, never write predicted shifts into an experimental characterization line, and never add an engine without a stated licence, a pinned version or hash, and a notice entry.
 
 ## Changes
 

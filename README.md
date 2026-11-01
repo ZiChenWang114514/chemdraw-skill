@@ -169,6 +169,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec, with abbreviation nodes, rich text, Chinese notes, arrows and boxed compound codes. |
 | **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
 | **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
+| **More engines and predictions** | Optional engines in their own environments: MolScribe, MolNexTR, MolVec and DECIMER compared on the same image, structures found in a PDF with a contact sheet for review, and predicted products, precursors and routes (AiZynthFinder, SynPlanner, ReactionT5) and 1H/13C shifts (MagNET). Every result is a labelled prediction; disagreeing engines are never merged. See [engines](skill/chemdraw/references/engines.md). |
 | **Molecule comparison** | RDKit fingerprint similarity everywhere; exact-identity checks through ChemScript on Windows or ChemDraw for macOS. |
 | **Calculators and reports** | ChemDraw's own stoichiometry grid for amounts and yield, read back as data; SI materials tables with process mass intensity; HRMS lines and whole characterization paragraphs; reagent safety reminders; overall yield of a route; atom mapping; property sheets, reaction balance and structure export. [Details below](#reaction-calculator-and-chemistry-reports). |
 | **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly. |
@@ -531,6 +532,7 @@ macOS differences — the Automation permission, the hidden ChemDraw instance, f
 | Molecule comparison or ChemScript SDK calls | RDKit for portable similarity; compatible ChemScript DLLs on a Windows host for exact checks and raw SDK programs (macOS answers the ChemScript operations with ChemDraw, OPSIN and RDKit) |
 | Editable Word or PowerPoint objects | Desktop ChemDraw to build them; desktop Word and/or PowerPoint (activated on macOS) for PDF previews |
 | Local optical structure recognition | DECIMER model weights and their runtime dependencies |
+| More OCSR engines, retrosynthesis, product and NMR prediction | `cdx.py install-engines`: each engine in its own environment, from hundreds of MB to a few GB with model files ([engines](skill/chemdraw/references/engines.md)) |
 | Remote access to a ChemDraw workstation | A Windows host plus authenticated HTTP configuration and an encrypted network path |
 
 ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled. The [setup guide](docs/guide.md#first-time-setup) covers installation options, manual runtimes and diagnostics.
@@ -542,6 +544,7 @@ ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled
 - CI runs the Skill tests on Windows and Linux (Python 3.12, MCP 1.28.1 and 2.0.0), the toolkit suite on Python 3.10–3.13, and an end-to-end install on Windows, Linux and macOS. Native ChemDraw, ChemScript and Office features are tested by hand on a licensed Windows workstation. The macOS AppleScript path was tested on macOS 26.6 (Apple silicon) with ChemDraw 26.0.
 - Tools write to a new output path and refuse to overwrite an existing file unless you ask.
 - Image recognition sends only the selected images to the DECIMER API. `cdx.py decimer --preflight` shows what would be sent, and an offline request is honored. The reports and the mappers run locally, and ChemDraw's stoichiometry grid is computed by ChemDraw on your machine. Only the reports look a name up online, when it is not in the built-in table; `CHEMDRAW_OFFLINE=1` turns that off.
+- Optional prediction engines run locally in separate environments and upload nothing; their downloads are checked against pinned hashes. Their answers are model predictions and are labelled as such.
 - The HTTP server needs a bearer key and an allowed host list for remote use, and should sit behind an encrypted tunnel or an HTTPS proxy. See the [security policy](.github/SECURITY.md).
 
 ## Common questions
