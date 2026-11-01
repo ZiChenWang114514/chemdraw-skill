@@ -752,6 +752,34 @@ def cmd_install_mappers(ns):
     return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.mapping_backends', *ns.rest], env=_chemscript_env())
 
 
+def cmd_engines(ns):
+    """Which optional engines (OCSR, retrosynthesis, NMR) are installed; `install-engines NAME...` adds them."""
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', '--status'], env=_chemscript_env())
+
+
+def cmd_install_engines(ns):
+    """Install optional engines, each in its own environment (hundreds of MB to a few GB with weights)."""
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', *ns.rest], env=_chemscript_env())
+
+
+def cmd_ocsr(ns):
+    kwargs = {'image_path': str(Path(ns.image).resolve()), 'engines': ns.engines, 'hand_drawn': ns.hand_drawn,
+              'confirm_upload': not (ns.preflight or ns.no_upload), 'timeout_seconds': ns.timeout}
+    if ns.out:
+        kwargs['output_path'] = str(Path(ns.out).resolve())
+    return _emit('recognize_structure', _worker('recognize_structure', kwargs))
+
+
+def cmd_predict(ns):
+    tool = {'products': 'predict_products', 'retro': 'predict_retrosynthesis', 'nmr': 'predict_nmr'}[ns.task]
+    kwargs = json.loads(ns.json) if ns.json else {}
+    if ns.smiles:
+        kwargs[{'products': 'reactants', 'retro': 'product', 'nmr': 'smiles'}[ns.task]] = ns.smiles
+    if ns.engine:
+        kwargs['engine'] = ns.engine
+    return _emit(tool, _worker(tool, kwargs))
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     # `sig` reads a generated reference and help is static: both work before a runtime exists.
@@ -761,6 +789,8 @@ def main(argv=None):
         return cmd_py(argparse.Namespace(rest=argv[1:]))
     if argv[:1] == ['calc']:  # the grid module's own parser handles every flag, including -h
         return cmd_calc(argparse.Namespace(rest=argv[1:]))
+    if argv[:1] == ['install-engines']:  # flags such as --status or --task may come first
+        return cmd_install_engines(argparse.Namespace(rest=argv[1:]))
     if argv[:1] == ['install-mappers']:  # likewise: `--status` or `--dry-run` may come first
         return cmd_install_mappers(argparse.Namespace(rest=argv[1:]))
     p = argparse.ArgumentParser(prog='cdx.py', description=__doc__.split('\n')[0])
@@ -806,6 +836,30 @@ def main(argv=None):
     s.add_argument('--timeout', type=int, default=120)
     s.add_argument('--out', help='new JSON file for the raw recognition result')
     s.set_defaults(fn=cmd_decimer)
+    s = sub.add_parser('ocsr', help='recognize one structure image with several engines and compare them: '
+                                    'cdx.py ocsr image.png --engines molscribe,molnextr,molvec|all (predictions, '
+                                    'never picked silently; decimer-api uploads, --no-upload keeps it local)')
+    s.add_argument('image')
+    s.add_argument('--engines', default='decimer-api')
+    s.add_argument('--hand-drawn', action='store_true')
+    s.add_argument('--preflight', action='store_true', help='no upload; the remote engine only reports what it would send')
+    s.add_argument('--no-upload', action='store_true', help='never use a remote engine')
+    s.add_argument('--timeout', type=int, default=600)
+    s.add_argument('--out', help='new JSON file for the raw DECIMER response')
+    s.set_defaults(fn=cmd_ocsr)
+    s = sub.add_parser('predict', help='model predictions: cdx.py predict products "A.B" | retro "TARGET" | nmr "SMILES" '
+                                       '[--engine NAME] [--json ARGS]; always labelled as predictions')
+    s.add_argument('task', choices=['products', 'retro', 'nmr'])
+    s.add_argument('smiles', nargs='?')
+    s.add_argument('--engine')
+    s.add_argument('--json', help='further tool arguments as a JSON object (steps, count, nucleus, solvent, ...)')
+    s.set_defaults(fn=cmd_predict)
+    s = sub.add_parser('engines', help='list the optional OCSR / retrosynthesis / NMR engines and whether each is installed')
+    s.set_defaults(fn=cmd_engines)
+    s = sub.add_parser('install-engines', help='install optional engines, each in its own environment: cdx.py install-engines '
+                                               'molscribe molnextr molvec | --task ocsr [--dry-run] [--status]')
+    s.add_argument('rest', nargs=argparse.REMAINDER)
+    s.set_defaults(fn=cmd_install_engines)
     s = sub.add_parser('markush', help='Markush workflow from an image: init, next task, submit an answer, status')
     s.add_argument('action', choices=['init', 'next', 'submit', 'status'])
     s.add_argument('workdir')

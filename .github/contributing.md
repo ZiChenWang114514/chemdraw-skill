@@ -22,7 +22,7 @@ See the [project guide](../docs/guide.md#development-validation) for native Chem
 - Preserve public tool names, `cdx.py` commands and response contracts unless the change is intentionally breaking and documented in the pull request.
 - Add a failing test before implementing a bug fix or new behavior.
 - Use runtime discovery instead of machine-specific usernames or installation paths.
-- Do not commit credentials, proprietary binaries, ChemDraw installers, Office files containing private data, or DECIMER model weights.
+- Do not commit credentials, proprietary binaries, ChemDraw installers, Office files containing private data, DECIMER or other engine model weights, or environments created by `cdx.py install-engines`.
 - Keep repository documentation consolidated. Do not add a standalone document when an existing section is the authoritative home.
 
 ## Toolkit (`toolkit/`)

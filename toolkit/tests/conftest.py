@@ -60,6 +60,12 @@ def _no_installed_mappers(monkeypatch, tmp_path_factory):
     monkeypatch.setenv("CHEMDRAW_MAPPER_HOME", str(tmp_path_factory.getbasetemp() / "no-mappers"))
 
 
+@pytest.fixture(autouse=True)
+def _no_installed_engines(monkeypatch, tmp_path_factory):
+    """OCSR, retrosynthesis and NMR engines are absent unless a test builds one in an empty home."""
+    monkeypatch.setenv("CHEMDRAW_ENGINE_HOME", str(tmp_path_factory.getbasetemp() / "no-engines"))
+
+
 @pytest.fixture
 def project_root():
     """Absolute path to the chem-tools project root."""

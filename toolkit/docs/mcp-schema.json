@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 59,
+  "tool_count": 65,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -190,6 +190,14 @@
       "description": "Extract embedded ChemDraw objects from a PPTX, DOCX, XLS, or XLSX file.\n\nOffice files (PPTX/DOCX/XLSX) are ZIP archives that may contain ChemDraw OLE\nobjects as binary blobs. XLS files are OLE2 compound documents with embedded\nChemDraw objects stored in MBD* sub-storages. This tool extracts every\nChemDraw object, converts it to CDXML, and writes the files to output_dir.\n\nRequires: olefile. CDX→CDXML conversion uses available backends.\n\nArgs:\n    file_path:  Path to a .pptx, .docx, .xlsx, or .xls file.\n    output_dir: Directory for extracted CDXML files. Default: a folder\n                named \"<basename>_chemdraw/\" next to the input file.\n\nReturns:\n    Dict with keys: ok, input, output_dir, objects (list of: source_path,\n    cdxml_output, cdx_output, error for each extracted object).\n    Returns {ok: False, error: \"...\"} if extraction fails entirely.\n\nSafety override: Extract every object transactionally; publish nothing on partial failure."
     },
     {
+      "name": "extract_structures_from_document",
+      "signature": "(path: str, out_dir: str, pages: Optional[list[int]] = None, engines: str = 'molscribe,molvec', segmenter: str = 'auto', dpi: int = 200, confirm_upload: bool = False, hand_drawn: bool = False) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 3600,
+      "description": "Find every structure on a PDF (pages are 1-based, up to 50) or an image, read each with several engines.\n\nPages are rendered, segmented (DECIMER Segmentation if installed, else the OpenCV segmenter), and each\nsegment goes through recognize_structure with `engines` (local engines by default; decimer-api uploads\neach segment only with confirm_upload). Writes crops, `structures.json` and a `contact-sheet.png` that\nputs each crop beside the structures the engines read, into a new `out_dir`. Segments where the engines\ndisagree are listed in `needs_review`. Segmentation can miss, merge or split structures: look at the sheet."
+    },
+    {
       "name": "extract_structures_from_image",
       "signature": "(image_path: str, detect_labels: bool = True) -> dict",
       "group": "official",
@@ -252,6 +260,14 @@
       "resource_class": null,
       "timeout_seconds": 240,
       "description": "Catalog every public ChemScript type/member, with filtering or a complete JSON export."
+    },
+    {
+      "name": "list_engines",
+      "signature": "() -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "List the optional OCSR, segmentation, reaction, retrosynthesis and NMR engines and which are installed.\n\nInstall with `cdx.py install-engines NAME...` (each engine gets its own environment). Remote engines\nupload data and need the user's consent (see the Skill's upload rule)."
     },
     {
       "name": "map_reaction_atoms",
@@ -358,6 +374,30 @@
       "description": "Run the audited deterministic polishing pipeline on a CDXML scheme."
     },
     {
+      "name": "predict_nmr",
+      "signature": "(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: Optional[str] = None, output_path: Optional[str] = None, timeout_seconds: int = 900) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 1200,
+      "description": "Predict 1H and/or 13C chemical shifts (`nucleus` \"1H\", \"13C\" or \"both\") of one molecule in a solvent.\n\nEngine: magnet (local; MagNET, supports H, C, N, O, F, Cl, S; install with\n`cdx.py install-engines magnet`). Returns peaks grouped by symmetry (shift, proton count, atom indices)\nmarked `predicted: true`. With `output_path` (a new file) it also writes a simulated `ppm,intensity`\nspectrum of singlets that scientific_workflow(operation=\"nmr\") can read. Predictions are not measured data:\nnever put them in an experimental characterization line."
+    },
+    {
+      "name": "predict_products",
+      "signature": "(reactants: str, reagents: Optional[str] = None, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 600) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 900,
+      "description": "Predict likely products of a reaction from reactant SMILES (dot-separated) with a learned model.\n\nEngine: reactiont5-forward (local; install with `cdx.py install-engines reactiont5-forward`). Returns up\nto `count` ranked candidates with beam scores and ready `reactions` (A.B>>P). These are predictions,\nnot literature facts; the true product may not be among them."
+    },
+    {
+      "name": "predict_retrosynthesis",
+      "signature": "(product: str, engine: Optional[str] = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 1200,
+      "description": "Suggest precursors (steps=\"single\") or full routes to purchasable stock (steps=\"multi\") for a target.\n\nEngines: aizynthfinder (local, single and multi-step, USPTO policies and ZINC stock), synplanner\n(local, multi-step only, USPTO rules and MCULE/Molport building blocks; a target that is itself\npurchasable is reported as such without a search) and reactiont5-retro (local, single step). Routes list `reactions` (A.B>>P per step) that render_scheme and\nroute_summary accept, `starting_materials` and whether all are in stock. Learned-template suggestions\nonly: check selectivity, conditions and availability before relying on them."
+    },
+    {
       "name": "publication_figure",
       "signature": "(operation: str, spec_path: str, output_dir: str) -> dict",
       "group": "extended",
@@ -372,6 +412,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Analyze grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo.\n\nInput records accept smiles/CXSMILES, molblock, or file (CDXML/MOL/SDF).\nAtom indices are zero-based and refer to each input's atom order. Options:\nmax_results (1..128), only_unassigned (stereoisomers, default true),\ninclude_molblock, timeout (MCS, 1..30 seconds). R-group decomposition uses\nmolecules[0] as the explicit core. set_stereo takes configurations={index:\nR/S/unspecified} for one molecule, verifies the achieved CIP labels, and emits\na connectivity-preserving diff. Enumeration creates candidate structures,\nnot predictions of populations, reaction products, or experimental ratios.\nWrites provenance, bounded candidate results and truncation status to JSON."
+    },
+    {
+      "name": "recognize_structure",
+      "signature": "(image_path: str, engines: str = 'decimer-api', hand_drawn: bool = False, output_path: Optional[str] = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: Optional[str] = None, approved_origin: Optional[str] = None) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 1800,
+      "description": "Read one structure image with one or several OCSR engines and compare the answers.\n\n`engines` is a name or comma-separated list from decimer-api, decimer-local, molscribe, molnextr,\nmolvec, or `all` (every installed local engine, plus decimer-api only when confirm_upload is true).\nThe default stays the remote DECIMER service. The result lists each engine's structures and a\n`comparison`: engines that agree give `agreed_smiles` as a candidate, any disagreement leaves it null\nand sets `needs_review`. Nothing is picked silently; compare every structure with the image.\nRemote engines follow the same upload rule as extract_structures_via_decimer_api (preflight, consent,\noffline refusal); local engines never upload."
     },
     {
       "name": "render_cdxml_files",

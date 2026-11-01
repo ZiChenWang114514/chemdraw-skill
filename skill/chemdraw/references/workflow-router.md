@@ -35,7 +35,7 @@ For multi-structure images or publication reconstruction, follow [image-visual-r
 
 1. Default to the DECIMER API (`cdx.py decimer CROP.png`), including when local weights are installed, following the upload rule in SKILL.md.
 2. Use `extract_structures_from_image` only when the user explicitly requests local or offline recognition. Do not install local models or silently switch to them after an API failure; follow the bounded retry guidance in [decimer-api.md](decimer-api.md).
-3. Inspect every candidate and validation warning; never select by position alone.
+3. Inspect every candidate and validation warning; never select by position alone. For a second opinion, or when DECIMER output fails review, run `cdx.py ocsr CROP.png --engines molscribe,molnextr,molvec` (installed engines only; see [engines.md](engines.md)). Engines that disagree leave `agreed_smiles` empty: decide from the image, not by majority. A PDF with many structures: `extract_structures_from_document`.
 4. For a complete reaction screenshot, crop and recognize each species as above, then rebuild the reaction with `render_scheme`. No tool assigns reactant, reagent and product roles from an image, so read them from the arrow layout yourself and state any role you could not decide.
 
 ## Convert Or Render

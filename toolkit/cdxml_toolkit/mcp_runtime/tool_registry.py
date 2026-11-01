@@ -24,6 +24,7 @@ from .com_call import COM_TOOLS
 from .object_tools import OBJECT_TOOLS
 from .report_tools import REPORT_TOOLS
 from .scientific_tool import SCIENTIFIC_TOOLS
+from .engine_tools import ENGINE_TOOLS
 from .figure_draw import draw_figure
 from .publication_figure import publication_figure
 
@@ -96,6 +97,11 @@ def _tool_timeout(name: str) -> int | None:
         "markush_compile": 180,
         "markush_detect": 120,
         "stoichiometry_grid": 300,
+        "recognize_structure": 1800,
+        "extract_structures_from_document": 3600,
+        "predict_products": 900,
+        "predict_nmr": 1200,
+        "predict_retrosynthesis": 1200,
     }.get(name)
 
 
@@ -214,6 +220,9 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     )
     extended_functions = _merge_named_tools(
         extended_functions, SCIENTIFIC_TOOLS, source="scientific workflow tools"
+    )
+    extended_functions = _merge_named_tools(
+        extended_functions, ENGINE_TOOLS, source="prediction engine tools"
     )
     extended = {
         name: ToolSpec(
