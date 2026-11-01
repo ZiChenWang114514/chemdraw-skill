@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "assets/readme/gallery/**"
       - "docs/website.md"
       - "tests/site_smoke.mjs"
       - "tests/test_site.py"
@@ -13,6 +14,7 @@ on:
   pull_request:
     paths:
       - "site/**"
+      - "assets/readme/gallery/**"
       - "docs/website.md"
       - "tests/site_smoke.mjs"
       - "tests/test_site.py"

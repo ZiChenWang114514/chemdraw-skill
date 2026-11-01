@@ -1196,6 +1196,59 @@ class AccessibilityTests(unittest.TestCase):
             self.assertRegex((SITE / page).read_text(encoding="utf-8"), r'<code id="clone" tabindex="0"')
 
 
+class GalleryImageTests(unittest.TestCase):
+    """The pages show WebP copies of the READMEs' PNGs, which stay beside them in assets/readme/gallery."""
+
+    GALLERY = ROOT / "assets" / "readme" / "gallery"
+    PAGES = ("index.html", "en/index.html")
+    BUDGET = 330_000  # bytes of all the copies together; the PNGs are 1.19 MB
+
+    def shown(self) -> set:
+        found = set()
+        for page in self.PAGES:
+            found |= set(re.findall(r'<img\b[^>]*\bsrc="(?:\.\./)?gallery/([^"]+)"', (SITE / page).read_text(encoding="utf-8")))
+        return found
+
+    def test_the_pages_show_only_webp(self) -> None:
+        names = self.shown()
+        self.assertEqual({n for n in names if not n.endswith(".webp")}, set())
+        self.assertEqual(len(names), 11)
+
+    def test_every_copy_exists_and_stays_small(self) -> None:
+        copies = sorted(self.GALLERY.glob("*.webp"))
+        self.assertEqual({p.stem for p in copies}, {p.stem for p in self.GALLERY.glob("*.png")})
+        self.assertLessEqual(sum(p.stat().st_size for p in copies), self.BUDGET)
+
+    def test_every_copy_is_its_png(self) -> None:
+        try:
+            from PIL import Image, ImageChops, ImageStat
+        except ImportError:
+            self.skipTest("Pillow compares the images")
+        for png in self.GALLERY.glob("*.png"):
+            def flat(path):
+                with Image.open(path) as image:
+                    rgba = image.convert("RGBA")
+                paper = Image.new("RGBA", rgba.size, "white")
+                paper.alpha_composite(rgba)
+                return paper.convert("L")
+            with self.subTest(png.name):
+                original, copy = flat(png), flat(png.with_suffix(".webp"))
+                self.assertEqual(copy.size, original.size)
+                difference = ImageChops.difference(original.resize((96, 96)), copy.resize((96, 96)))
+                self.assertLess(ImageStat.Stat(difference).mean[0], 1.0)
+
+    def test_width_and_height_match_the_image(self) -> None:
+        try:
+            from PIL import Image
+        except ImportError:
+            self.skipTest("Pillow reads the image size")
+        for page in self.PAGES:
+            for tag in re.findall(r'<img\b[^>]*\bsrc="(?:\.\./)?gallery/[^"]+"[^>]*>', (SITE / page).read_text(encoding="utf-8")):
+                name = re.search(r'gallery/([^"]+)"', tag).group(1)
+                with Image.open(self.GALLERY / name) as image:
+                    self.assertEqual(image.size, (int(re.search(r'width="(\d+)"', tag).group(1)), int(re.search(r'height="(\d+)"', tag).group(1))), name)
+
+
 @unittest.skipUnless(os.environ.get("SITE_BROWSER"), "set SITE_BROWSER=1 to drive headless Chrome")
 class BrowserSmokeTests(unittest.TestCase):
     def test_the_site_works_with_real_input_in_a_browser(self) -> None:
