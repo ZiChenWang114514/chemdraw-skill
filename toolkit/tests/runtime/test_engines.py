@@ -213,7 +213,7 @@ def test_the_worker_receives_what_it_needs_to_verify_downloads(monkeypatch, tmp_
     (tmp_path / 'synplanner' / env.RECEIPT).write_text('{}')
     monkeypatch.setattr(env.subprocess, 'run', run)
     env.call('synplanner', 'predict', {'smiles': 'CCO'})
-    assert captured['request']['spec']['sha256'] and captured['request']['data_dir'].endswith('synplanner/data')
+    assert captured['request']['spec']['sha256'] and captured['request']['data_dir'].replace(chr(92), '/').endswith('synplanner/data')
     assert captured['env']['PYSTOW_HOME'] == captured['request']['data_dir']  # model caches stay inside the engine
     assert captured['env']['HF_HUB_OFFLINE'] == '1'  # running an engine never reaches the network
 
