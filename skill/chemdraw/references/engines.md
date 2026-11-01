@@ -19,6 +19,7 @@ Each engine installs into its own folder under `~/.local/share/chemdraw-skill/en
 | `decimer-local` | OCSR | runtime (extra `decimer`) | MIT | existing |
 | `molscribe` | OCSR | own env, Python 3.10 | MIT / MIT | 0.8 GB + 1.1 GB |
 | `molnextr` | OCSR | own env, Python 3.10 | Apache-2.0 / Apache-2.0 | 1.5 GB + 1.1 GB |
+| `molparser` | OCSR (also Markush) | own env, Python 3.10 to 3.12 | Apache-2.0 / **CC BY-NC-SA 4.0, non-commercial only** | 1.5 GB + 20 MB |
 | `molvec` | OCSR | Java jar | Apache-2.0 | 1.3 MB |
 | `decimer-segmentation` | find structures on a page | own env, Python 3.10 or 3.11 | MIT | TensorFlow 2.14 env |
 | `aizynthfinder` | retrosynthesis, single and multi-step | own env, Python 3.12 | MIT | 1.0 GB + 0.8 GB data |
@@ -26,7 +27,7 @@ Each engine installs into its own folder under `~/.local/share/chemdraw-skill/en
 | `reactiont5-retro` | retrosynthesis, single step | own env, Python 3.12 | MIT / MIT | same environment |
 | `magnet` | 1H and 13C shifts | own env, Python 3.12 | MIT / MIT | PyTorch env |
 
-Licences are those stated by each project; the weights of an engine are covered by their own terms, shown in `cdx.py install-engines --dry-run`. The full notices are in `toolkit/NOTICE.md`.
+MolParser's weights may not be used commercially; check this before using it in paid or company work. Licences are those stated by each project; the weights of an engine are covered by their own terms, shown in `cdx.py install-engines --dry-run`. The full notices are in `toolkit/NOTICE.md`.
 
 ## Reading a structure image
 
@@ -43,7 +44,7 @@ When engines disagree, show the user the groups, look at the image, and decide p
 
 Real-paper accuracy is low for every open model. A 2026 benchmark of 5,029 structures from recent papers reports about 41% exact match for the best graph models (a self-reported figure on a third-party listing); clean computer-drawn images are much easier. Hand-drawn structures need `hand_drawn` with a DECIMER engine.
 
-Measured here with `scripts/ocsr_benchmark.py` on 10 clean RDKit drawings (full InChIKey match, Apple-silicon CPU): MolScribe 10/10 at about 7 s per image, MolNexTR 10/10 at about 11 s, MolVec 10/10 at about 2 s. This is an upper bound for clean computer drawings, not an accuracy figure for papers.
+Measured here with `scripts/ocsr_benchmark.py` on 10 clean RDKit drawings (full InChIKey match, Apple-silicon CPU): MolScribe 10/10 at about 7 s per image, MolNexTR 10/10 at about 11 s, MolParser 10/10 at about 11 s, MolVec 10/10 at about 2 s. This is an upper bound for clean computer drawings, not an accuracy figure for papers.
 
 ## Structures in a PDF
 

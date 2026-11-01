@@ -44,7 +44,8 @@ def fetch(engine, params, data_dir, spec):
         return {'weights': {'repo': weights['repo'], 'path': path}}
     receipt = {}
     for name in weights['files']:
-        path = hf_hub_download(weights['repo'], name, repo_type=weights['type'], local_dir=data_dir)
+        path = hf_hub_download(weights['repo'], name, repo_type=weights['type'], local_dir=data_dir,
+                               revision=weights.get('revision'))
         digest = _sha256(path)
         expected = weights['sha256'][name]
         if digest != expected:
@@ -137,6 +138,19 @@ def _molnextr(params, data_dir, spec):
         try:
             result = model.predict_final_results(path, return_atoms_bonds=False)
             out.append({'smiles': result['predicted_smiles']})
+        except Exception as exc:
+            out.append({'error': f'{type(exc).__name__}: {exc}'})
+    return out
+
+
+def _molparser(params, data_dir, spec):
+    from molparser import MolParser
+    model = MolParser(molparser_model_path=data_dir, device='cpu')
+    out = []
+    for path in params['images']:
+        try:
+            results = model.parse(path, rec_only=True)
+            out.append({'smiles': results[0].smi or None} if results else {'error': 'no result'})
         except Exception as exc:
             out.append({'error': f'{type(exc).__name__}: {exc}'})
     return out
@@ -301,7 +315,7 @@ def spec_elements(params):
     return ('H', 'C', 'N', 'O', 'F', 'Cl', 'S')
 
 
-ENGINES = {'molscribe': _molscribe, 'molnextr': _molnextr, 'decimer-local': _decimer_local,
+ENGINES = {'molscribe': _molscribe, 'molnextr': _molnextr, 'molparser': _molparser, 'decimer-local': _decimer_local,
            'decimer-segmentation': _segment, 'reactiont5-forward': _reactiont5, 'reactiont5-retro': _reactiont5,
            'aizynthfinder': _aizynthfinder, 'synplanner': _synplanner, 'magnet': _magnet}
 

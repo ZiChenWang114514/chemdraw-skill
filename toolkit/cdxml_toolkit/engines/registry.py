@@ -8,6 +8,8 @@ an engine is stored in this repository.
 from __future__ import annotations
 
 MOLNEXTR_COMMIT = '6f6502b4ed9733dba8b1ee45d2da474576683194'
+MOLPARSER_COMMIT = '8b67a082355a8fcf3b099e0e95c5ad948cbd7dcd'
+MOLPARSER_WEIGHTS_REVISION = '6b3cbae494e6870252cb218865ae01fc8aaa55dc'
 
 ENGINES = {
     'decimer-api': {
@@ -37,6 +39,44 @@ ENGINES = {
                                '5990bc19aaafa5cf44e9d04e06fb8e2b5aea50c66e1e925f662bdff7d2a6422c'}},
         'size': '1.5 GB environment, 1.1 GB weights',
         'note': 'Installed from a pinned commit; weights are loaded with torch weights_only.',
+    },
+    'molparser': {
+        'title': 'MolParser', 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0 (code); CC BY-NC-SA 4.0 (weights)',
+        'python': (10, 12), 'module': 'molparser',
+        'requirements': [f'molparser @ https://github.com/dptech-corp/MolParser/archive/{MOLPARSER_COMMIT}.tar.gz#sha256=a2985311661811a4ed57762a5636fee8ede3018e78e23b46fbc0cba4122a0c2e',
+                         'torch', 'transformers', 'timm', 'safetensors', 'huggingface_hub', 'opencv-python-headless',
+                         'numpy', 'pillow'],
+        'weights': {'repo': 'UniParser/MolParser-Mobile-V2', 'type': 'model', 'revision': MOLPARSER_WEIGHTS_REVISION,
+                    'files': ['config.json', 'generation_config.json', 'image_processing_molparser_mobile.py', 'modeling_molparser_mobile.py', 'preprocessor_config.json', 'processing_molparser_mobile.py', 'processor_config.json', 'tokenization_molparser_mobile.py', 'tokenizer_config.json', 'vocab.txt', 'model.safetensors'],
+                    'sha256': {
+                               'config.json':
+                               'bb4b58b3b5e4e0db94af12569171b98737b0866c17aae2aad76ffe5f83e38e84',
+                               'generation_config.json':
+                               '9d51ec7c3bde6ce383fe05dcf346aa047db11a8c37133f96a86ad80e0e8b582c',
+                               'image_processing_molparser_mobile.py':
+                               'c64cbdc618c41f16a5c69d037697c112e8a44e969d3ad92f5605562069950b38',
+                               'modeling_molparser_mobile.py':
+                               'b95eb024613114b26968769964b37f2517277e4250d9e7e5fd61fdcf9b0bd065',
+                               'preprocessor_config.json':
+                               '2a70bd084b5e8bcd8fe9e58f08e96ae53740b78c9b5d2af6881ee7a8b15e0db9',
+                               'processing_molparser_mobile.py':
+                               '0109cde7457c78e8401c3b10f4670e7f71eb781d2f0202408cb1e4c111954d3d',
+                               'processor_config.json':
+                               'df03c932442eb3917cc486162895eb5fd789d9c93d933fce92301eb40fb876d3',
+                               'tokenization_molparser_mobile.py':
+                               'ea33f3484caf2d8da6f67b959a324e71b78050d8a6b07d935b9ea7ab22bac6f3',
+                               'tokenizer_config.json':
+                               '889fcbf784f1ea9eaef57f32758c972a4bebcaeab3bb2b57c2226e58c161ff83',
+                               'vocab.txt':
+                               '891652d9889d68eaaa8b27d490c0a966108e9da5689e67a9473cf5304b3e88fb',
+                               'model.safetensors':
+                               '2204a871f7975780ead6eee8ac354de11f859c4eccc8863c3462e6f9eb110f02',
+                    }},
+        'size': '1.5 GB environment, 20 MB weights',
+        'note': 'Reads Markush and extended structures; only the base SMILES is used. The weights are licensed '
+                'for non-commercial use only (CC BY-NC-SA 4.0). The model repository ships Python files that '
+                'transformers runs on load; they are pinned by hash. The YOLO detector (ultralytics, AGPL) is '
+                'not installed.',
     },
     'molvec': {
         'title': 'MolVec', 'task': 'ocsr', 'kind': 'jar', 'license': 'Apache-2.0',

@@ -89,6 +89,14 @@ licence is that of its project; model files carry their own terms.
 from a pinned commit; its checkpoint is downloaded from the project's Hugging Face dataset repository
 (Apache-2.0) and loaded with PyTorch's `weights_only` mode.
 
+## MolParser (structure recognition)
+
+[MolParser](https://github.com/dptech-corp/MolParser) by the UniParser team (DP Technology), Apache License 2.0,
+installed from a pinned commit and checked against a pinned hash. The `MolParser-Mobile-V2` weights are downloaded
+from Hugging Face at a pinned revision and are licensed **CC BY-NC-SA 4.0: non-commercial use only**. The model
+repository includes Python files that transformers runs when the model loads; they are pinned by hash. The YOLO
+detector (ultralytics, AGPL-3.0) is not installed or used.
+
 ## MolVec (structure recognition)
 
 [MolVec](https://github.com/ncats/molvec) by the NCATS informatics group, Apache License 2.0. The release jar

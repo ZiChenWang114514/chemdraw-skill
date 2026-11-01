@@ -27,7 +27,7 @@ def test_every_engine_is_complete_and_licensed():
         if spec['kind'] == 'local':
             low, high = spec['python']
             assert 8 <= low <= high <= 13 and spec['requirements'], name
-    assert by_task('ocsr') == ['decimer-api', 'decimer-local', 'molscribe', 'molnextr', 'molvec']
+    assert by_task('ocsr') == ['decimer-api', 'decimer-local', 'molscribe', 'molnextr', 'molparser', 'molvec']
 
 
 def test_downloaded_files_are_pinned_by_hash():
