@@ -46,6 +46,109 @@ def test_arguments_that_are_neither_json_nor_a_file_get_a_plain_message(tmp_path
     assert '--json' in str(error.value) and 'missing.json' in str(error.value)
 
 
+def test_broken_json_arguments_get_a_plain_message():
+    with pytest.raises(SystemExit) as error:
+        cdx._load_args(argparse.Namespace(json='{bad', args=None))
+    assert 'not valid JSON' in str(error.value) and '{bad' in str(error.value)
+
+
+def test_broken_json_in_a_file_names_the_file(tmp_path):
+    arguments = tmp_path / 'a.json'
+    arguments.write_text('{bad', encoding='utf-8')
+    with pytest.raises(SystemExit) as error:
+        cdx._load_args(argparse.Namespace(json=str(arguments), args=None))
+    assert 'a.json' in str(error.value) and 'not valid JSON' in str(error.value)
+
+
+@pytest.mark.parametrize('task, field, words', [
+    ('products', 'reactants', 'cdx.py predict products'),
+    ('retro', 'product', 'cdx.py predict retro'),
+    ('nmr', 'smiles', 'cdx.py predict nmr'),
+    ('conditions', 'reactants', '--products'),
+])
+def test_predict_without_a_molecule_shows_an_example_instead_of_a_python_error(task, field, words):
+    with mock.patch.object(cdx, '_worker') as worker, pytest.raises(SystemExit) as error:
+        cdx.main(['predict', task])
+    assert words in str(error.value) and not worker.called
+
+
+def test_predict_conditions_needs_the_product_as_well():
+    with mock.patch.object(cdx, '_worker') as worker, pytest.raises(SystemExit) as error:
+        cdx.main(['predict', 'conditions', 'CCO'])
+    assert '--products' in str(error.value) and not worker.called
+
+
+def test_predict_conditions_takes_the_product_as_a_flag(capsys):
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+        cdx.main(['predict', 'conditions', 'CCO.CC(=O)O', '--products', 'CCOC(C)=O', '--engine', 'reacon'])
+    assert worker.call_args.args == ('predict_conditions',
+                                     {'reactants': 'CCO.CC(=O)O', 'products': 'CCOC(C)=O', 'engine': 'reacon'})
+
+
+def test_predict_products_flag_is_refused_outside_conditions():
+    with mock.patch.object(cdx, '_worker') as worker, pytest.raises(SystemExit) as error:
+        cdx.main(['predict', 'nmr', 'CCO', '--products', 'CC'])
+    assert 'predict conditions' in str(error.value) and not worker.called
+
+
+def test_predict_json_gets_the_same_handling_as_call(tmp_path):
+    arguments = tmp_path / 'a.json'
+    arguments.write_text('{"steps": "multi"}', encoding='utf-8')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+        cdx.main(['predict', 'retro', 'CCO', '--json', str(arguments)])
+    assert worker.call_args.args == ('predict_retrosynthesis', {'steps': 'multi', 'product': 'CCO'})
+    with mock.patch.object(cdx, '_worker') as worker, pytest.raises(SystemExit) as error:
+        cdx.main(['predict', 'retro', 'CCO', '--json', '{bad'])
+    assert 'not valid JSON' in str(error.value) and not worker.called
+
+
+def _message(capsys, *argv):
+    """What the user reads when a command stops: one plain line, never a Python traceback."""
+    with pytest.raises(SystemExit) as stopped:
+        cdx.main(list(argv))
+    assert isinstance(stopped.value.code, str)
+    assert 'Traceback' not in stopped.value.code and '\n' not in stopped.value.code
+    return stopped.value.code
+
+
+def test_build_and_draw_name_a_missing_file(tmp_path, capsys):
+    spec = str(tmp_path / 'missing.json')
+    assert 'missing.json' in _message(capsys, 'build', spec, str(tmp_path / 'new.cdxml'))
+    assert 'missing.json' in _message(capsys, 'draw', spec)
+
+
+@pytest.mark.parametrize('text, words', [
+    ('{bad', 'not valid JSON'),
+    ('{}', 'objects'),
+    ('{"objects": [{"type": "molecule"}]}', 'smiles'),
+])
+def test_build_explains_a_spec_it_cannot_use(tmp_path, capsys, text, words):
+    spec = tmp_path / 'spec.json'
+    spec.write_text(text, encoding='utf-8')
+    target = tmp_path / 'new.cdxml'
+    assert words in _message(capsys, 'build', str(spec), str(target))
+    assert not target.exists()
+
+
+def test_render_reports_a_missing_file_in_its_usual_line(tmp_path, capsys, render_log):
+    with mock.patch.object(cdx, '_worker') as worker:
+        assert cdx.main(['render', str(tmp_path / 'gone' / 'a.cdxml')]) == 1
+    line = json.loads(capsys.readouterr().out)
+    assert line['ok'] is False and line['png'] is None and 'not found' in line['error']
+    assert not worker.called and not (tmp_path / 'gone').exists()
+
+
+def test_a_missing_markush_image_leaves_no_folder_behind(tmp_path, capsys):
+    work = tmp_path / 'run'
+    assert 'a.png' in _message(capsys, 'markush', 'init', str(work), '--image', str(tmp_path / 'a.png'))
+    assert not work.exists()
+
+
+def test_a_markush_step_without_a_session_says_how_to_start_one(tmp_path, capsys):
+    for action in ('next', 'status'):
+        assert 'cdx.py markush init' in _message(capsys, 'markush', action, str(tmp_path / 'run'))
+
+
 def test_large_result_goes_to_evidence_file_and_summary_is_small(tmp_path, capsys):
     result = {'ok': True, 'result': {'ok': True, 'raw_response': 'x' * 40000, 'warnings': ['Inspect chirality']}}
     with mock.patch.object(cdx, '_worker', return_value=result):

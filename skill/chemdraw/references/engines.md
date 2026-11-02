@@ -9,6 +9,7 @@ cdx.py install-engines --bundle ocsr-standard   # or engine names, or --task ocs
 cdx.py remove-engines molnextr              # dry run; add --yes to delete
 cdx.py ocsr crop.png --engines molscribe,molnextr,molvec
 cdx.py predict retro "CC(=O)Oc1ccccc1C(=O)O" --json '{"steps": "multi"}'
+cdx.py predict conditions "CCO.CC(=O)O" --products "CCOC(C)=O"
 ```
 
 Each engine installs into its own folder under `~/.local/share/chemdraw-skill/engines` (`%LOCALAPPDATA%\chemdraw-skill\engines` on Windows; `CHEMDRAW_ENGINE_HOME` moves it), with its own Python, so PyTorch 1.x, TensorFlow 2.14 and the numpy 1.x/2.x stacks never meet. The runtime itself never imports an engine. Weights are downloaded at install time, checked against a pinned sha256 and recorded in a receipt; nothing is stored in the repository. Installation needs a network; running an engine does not (`HF_HUB_OFFLINE` is set for every run) and never uploads anything.

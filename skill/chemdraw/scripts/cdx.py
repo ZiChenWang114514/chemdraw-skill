@@ -273,7 +273,10 @@ def _load_args(ns):
     else:
         raise SystemExit(f"{given!r} is neither a JSON object nor an existing file; "
                          "pass inline JSON with --json '{...}' or a file with --args FILE")
-    value = json.loads(text)
+    try:
+        value = json.loads(text)
+    except ValueError as exc:
+        raise SystemExit(f'{given!r} is not valid JSON: {exc}') from None
     if not isinstance(value, dict):
         raise SystemExit('Tool arguments must be a JSON object')
     return value
@@ -344,6 +347,11 @@ def cmd_render(ns):
         raise SystemExit(f'Several inputs would render to the same file: {", ".join(clashes)}; render them separately')
     status = 0
     for source, out_dir, png in jobs:
+        if not source.is_file():
+            status = 1
+            print(json.dumps({'source': str(source), 'png': None, 'ok': False, 'error': f'{source} not found'},
+                             ensure_ascii=False))
+            continue
         # Replace only a PNG this command wrote and nobody changed since: next to a
         # reconstructed CDXML, the same name is often the user's source image.
         if png.exists() and not ns.replace and _render_log().get(str(png)) != _sha256(png):
@@ -378,7 +386,13 @@ def cmd_build(ns):
     import acs_builder
     if Path(ns.output).exists():
         raise SystemExit(f'Refusing to overwrite existing {Path(ns.output).resolve()}; choose a new output name')
-    out = acs_builder.build_from_spec(ns.spec, ns.output)
+    try:
+        out = acs_builder.build_from_spec(ns.spec, ns.output)
+    except ValueError as exc:
+        raise SystemExit(f'{ns.spec} is not valid JSON: {exc}' if isinstance(exc, json.JSONDecodeError)
+                         else f'{ns.spec}: {exc}') from None
+    except KeyError as exc:
+        raise SystemExit(f'{ns.spec}: an object is missing {exc}') from None
     print(json.dumps({'cdxml': str(out), 'ok': True}))
     if ns.render:
         return cmd_render(argparse.Namespace(files=[str(out)], out_dir=None, replace=False))
@@ -409,8 +423,13 @@ def cmd_markush(ns):
     if ns.action == 'init':
         if not ns.image:
             raise SystemExit('init needs --image')
+        for given in filter(None, (ns.image, ns.text)):  # before the folder is created
+            if not Path(given).is_file():
+                raise SystemExit(f'{given} not found')
         crop = [int(v) for v in ns.crop] if ns.crop else None
         out = workflow.init(ns.workdir, ns.image, text=ns.text, crop=crop, reuse=ns.reuse)
+    elif not (Path(ns.workdir) / 'state.json').is_file():
+        raise SystemExit(f'No Markush run in {ns.workdir}; start one with: cdx.py markush init WORKDIR --image IMAGE')
     elif ns.action == 'next':
         out = workflow.next_task(ns.workdir, renderer=_markush_render)
     elif ns.action == 'submit':
@@ -776,15 +795,28 @@ def cmd_ocsr(ns):
     return _emit('recognize_structure', _worker('recognize_structure', kwargs))
 
 
+PREDICT = {  # task: (tool, the argument SMILES fills, a working example)
+    'products': ('predict_products', 'reactants', 'cdx.py predict products "CCO.CC(=O)O"'),
+    'retro': ('predict_retrosynthesis', 'product', 'cdx.py predict retro "CC(=O)Oc1ccccc1C(=O)O"'),
+    'nmr': ('predict_nmr', 'smiles', 'cdx.py predict nmr "CCOC(C)=O"'),
+    'conditions': ('predict_conditions', 'reactants',
+                   'cdx.py predict conditions "CCO.CC(=O)O" --products "CCOC(C)=O"'),
+}
+
+
 def cmd_predict(ns):
-    tool = {'products': 'predict_products', 'retro': 'predict_retrosynthesis', 'nmr': 'predict_nmr',
-            'conditions': 'predict_conditions'}[ns.task]
-    kwargs = json.loads(ns.json) if ns.json else {}
+    tool, field, example = PREDICT[ns.task]
+    if ns.products and ns.task != 'conditions':
+        raise SystemExit('--products belongs to `cdx.py predict conditions`')
+    kwargs = _load_args(ns)
     if ns.smiles:
-        kwargs[{'products': 'reactants', 'retro': 'product', 'nmr': 'smiles',
-                   'conditions': 'reactants'}[ns.task]] = ns.smiles
+        kwargs[field] = ns.smiles
+    if ns.products:
+        kwargs['products'] = ns.products
     if ns.engine:
         kwargs['engine'] = ns.engine
+    if not kwargs.get(field) or (ns.task == 'conditions' and not kwargs.get('products')):
+        raise SystemExit(f'Say which molecules to predict for, for example: {example}')
     return _emit(tool, _worker(tool, kwargs))
 
 
@@ -858,13 +890,14 @@ def main(argv=None):
     s.add_argument('--out', help='new JSON file for the raw DECIMER response')
     s.set_defaults(fn=cmd_ocsr)
     s = sub.add_parser('predict', help='model predictions: cdx.py predict products "A.B" | retro "TARGET" | nmr "SMILES" | '
-                                       'conditions "A.B" --json \'{"products": "P"}\' '
+                                       'conditions "A.B" --products "P" '
                                        '[--engine NAME] [--json ARGS]; always labelled as predictions')
-    s.add_argument('task', choices=['products', 'retro', 'nmr', 'conditions'])
+    s.add_argument('task', choices=list(PREDICT))
     s.add_argument('smiles', nargs='?')
+    s.add_argument('--products', help='with conditions: the product SMILES')
     s.add_argument('--engine')
-    s.add_argument('--json', help='further tool arguments as a JSON object (steps, count, nucleus, solvent, ...)')
-    s.set_defaults(fn=cmd_predict)
+    s.add_argument('--json', help='further tool arguments as a JSON object or file (steps, count, nucleus, solvent, ...)')
+    s.set_defaults(fn=cmd_predict, args=None)
     s = sub.add_parser('engines', help='list the optional engines, what each is for and its disk use; '
                                        '--recommend ocsr|pdf|products|retro|nmr|conditions suggests what to install (downloads nothing)')
     s.add_argument('--recommend', metavar='NEED')
@@ -924,7 +957,10 @@ def main(argv=None):
     s.add_argument('--check', action='store_true', help='report stale pages and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_catalog)
     ns = p.parse_args(argv)
-    return ns.fn(ns)
+    try:
+        return ns.fn(ns)
+    except OSError as exc:  # a missing or unreadable file is the user's to fix, not a crash
+        raise SystemExit(f'{exc.strerror}: {exc.filename}' if exc.filename else str(exc)) from None
 
 
 if __name__ == '__main__':

@@ -87,7 +87,7 @@ cdx.py build SPEC.json NEW.cdxml [--render]
 cdx.py draw BRIEF.json [OUTPUT] [--render] [--out NEW.json]   checked scheme, scope panel or mechanism from a brief
 cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--timeout S] [--out NEW.json]
 cdx.py ocsr IMAGE [--engines a,b|all] [--hand-drawn] [--preflight] [--no-upload] [--timeout S] [--out NEW.json]   several OCSR engines, compared
-cdx.py predict products|retro|nmr|conditions SMILES [--engine NAME] [--json ARGS]   model predictions (see engines.md)
+cdx.py predict products|retro|nmr|conditions SMILES [--products P] [--engine NAME] [--json ARGS]   model predictions (see engines.md)
 cdx.py engines [--recommend NEED]         which optional engines are installed, their disk use; what to install for a need
 cdx.py install-engines NAME... [--bundle B] [--task T] [--dry-run] [--status]   optional engines, each in its own environment
 cdx.py remove-engines NAME... [--yes]     delete installed engines (dry run without --yes)
