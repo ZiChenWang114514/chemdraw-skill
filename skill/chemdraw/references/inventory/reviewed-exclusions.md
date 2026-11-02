@@ -84,34 +84,34 @@
 
 ## `engines.consensus`
 
-- **function**, line 11: `compare(entries: list) -> dict` - Group the engines by the structure they read (full InChIKey).
+- **function**, line 21: `compare(entries: list) -> dict` - Group the engines by the structure they read.
 
 ## `engines.document`
 
-- **function**, line 103: `extract(path: str, out_dir: str, pages = None, engines: str = 'molscribe,molvec', segmenter: str = 'auto', dpi: int = 200, confirm_upload: bool = False, hand_drawn: bool = False) -> dict` - Segment, recognize and compare. ``out_dir`` must be new or empty; nothing existing is overwritten.
+- **function**, line 106: `extract(path: str, out_dir: str, pages = None, engines: str = 'molscribe,molvec', segmenter: str = 'auto', dpi: int = 200, confirm_upload: bool = False, hand_drawn: bool = False) -> dict` - Segment, recognize and compare. ``out_dir`` must be new or empty; nothing existing is overwritten.
 
 ## `engines.env`
 
-- **function**, line 126: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
-- **function**, line 139: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
+- **function**, line 127: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
+- **function**, line 140: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
 - **function**, line 78: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
-- **function**, line 305: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
+- **function**, line 309: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
 - **class**, line 31: `EngineError` - An engine is missing, could not run, or returned something unusable.
 - **class**, line 35: `EngineMissing` - The engine is not installed. ``hint`` says what installing it would cost, for the user to decide.
 - **function**, line 67: `environment(name: str) -> Path` - No public docstring in the audited version.
 - **function**, line 43: `hint(name: str) -> dict` - What to tell the user when ``name`` is needed but absent: use, size, licence and the command.
 - **function**, line 56: `home() -> Path` - No public docstring in the audited version.
-- **function**, line 247: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
+- **function**, line 251: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
 - **function**, line 71: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
-- **function**, line 102: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
+- **function**, line 103: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
 - **function**, line 83: `java() -> str | None` - No public docstring in the audited version.
-- **function**, line 114: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
-- **function**, line 94: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
-- **function**, line 332: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (ocsr, pdf, products, retro, nmr), with what each costs. Reads only; nothing is downloaded.
-- **function**, line 354: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
-- **function**, line 175: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
-- **function**, line 187: `sha256_of(path) -> str` - No public docstring in the audited version.
-- **function**, line 320: `status() -> dict` - No public docstring in the audited version.
+- **function**, line 115: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
+- **function**, line 95: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
+- **function**, line 336: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a key of ``RECOMMEND``), with what each costs. Reads only; nothing is downloaded.
+- **function**, line 358: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
+- **function**, line 179: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
+- **function**, line 191: `sha256_of(path) -> str` - No public docstring in the audited version.
+- **function**, line 324: `status() -> dict` - No public docstring in the audited version.
 
 ## `engines.envelope`
 
@@ -122,30 +122,30 @@
 
 ## `engines.nmr`
 
-- **function**, line 79: `predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict` - ``engine`` may name several, comma separated: each runs and the peaks are compared, never merged.
+- **function**, line 92: `predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict` - ``engine`` may name several, comma separated: each runs and the peaks are compared, never merged. An engine that fails is listed in ``failed_engines`` and the others still answer.
 - **function**, line 37: `simulate(peaks: list, nucleus: str, frequency_mhz: float, width_hz: float = 1.5, points: int = 16384) -> list` - Lorentzian singlets on a ppm axis (no coupling): a picture of where the lines fall, not a multiplet pattern.
 
 ## `engines.ocsr`
 
-- **function**, line 55: `recognize(image_path: str, engines = 'decimer-api', hand_drawn: bool = False, output_path: str | None = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: str | None = None, approved_origin: str | None = None) -> dict` - Run the chosen engines on one image. ``all`` means every installed local engine, plus the remote DECIMER only when ``confirm_upload`` is true. One engine failing never stops the others.
+- **function**, line 56: `recognize(image_path: str, engines = 'decimer-api', hand_drawn: bool = False, output_path: str | None = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: str | None = None, approved_origin: str | None = None) -> dict` - Run the chosen engines on one image. ``all`` means every installed local engine, plus the remote DECIMER only when ``confirm_upload`` is true. One engine failing never stops the others. ``output_path`` is a new JSON file for the raw response of the remote DECIMER; the local engines have none.
 - **function**, line 12: `resolve(engines) -> list` - Engine names from ``"decimer-api"``, ``"molscribe,molvec"``, a list, or ``"all"`` (see ``recognize``).
 
 ## `engines.reactions`
 
-- **function**, line 144: `conditions(reactants: str, products: str, engine: str | None = None, count: int = 5, timeout_seconds: int = 900) -> dict` - Rank catalyst, solvent and reagent combinations for a reaction the user already drew.
+- **function**, line 145: `conditions(reactants: str, products: str, engine: str | None = None, count: int = 5, timeout_seconds: int = 900) -> dict` - Rank catalyst, solvent and reagent combinations for a reaction the user already drew.
 - **function**, line 31: `products(reactants: str, reagents: str | None = None, engine: str | None = None, count: int = 5, timeout_seconds: int = 600) -> dict` - Predict the products of ``reactants`` (dot-separated SMILES), optionally with ``reagents``.
 - **function**, line 78: `retrosynthesis(product: str, engine: str | None = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict` - Suggest precursors (``steps='single'``) or whole routes (``'multi'``) for ``product``.
 
 ## `engines.registry`
 
-- **function**, line 240: `by_task(task: str) -> list` - No public docstring in the audited version.
-- **function**, line 303: `disk_mb(names) -> int` - No public docstring in the audited version.
+- **function**, line 243: `by_task(task: str) -> list` - No public docstring in the audited version.
+- **function**, line 306: `disk_mb(names) -> int` - No public docstring in the audited version.
 
 ## `engines.worker`
 
-- **function**, line 27: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
-- **function**, line 235: `remote_range(url, first, last)` - No public docstring in the audited version.
-- **function**, line 757: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 42: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
+- **function**, line 258: `remote_range(url, first, last)` - No public docstring in the audited version.
+- **function**, line 796: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
@@ -279,12 +279,12 @@
 
 ## `mcp_runtime.engine_tools`
 
-- **function**, line 102: `extract_structures_from_document(path: str, out_dir: str, pages: Optional[list[int]] = None, engines: str = 'molscribe,molvec', segmenter: str = 'auto', dpi: int = 200, confirm_upload: bool = False, hand_drawn: bool = False) -> dict[str, Any]` - Find every structure on a PDF (pages are 1-based, up to 50) or an image, read each with several engines.
-- **function**, line 12: `list_engines() -> dict[str, Any]` - List the optional OCSR, segmentation, reaction, retrosynthesis and NMR engines and which are installed.
-- **function**, line 84: `predict_conditions(reactants: str, products: str, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 900) -> dict[str, Any]` - Rank catalyst, solvent and reagent combinations for a reaction (reactants and products as SMILES).
-- **function**, line 123: `predict_nmr(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: Optional[str] = None, output_path: Optional[str] = None, timeout_seconds: int = 900) -> dict[str, Any]` - Predict 1H and/or 13C chemical shifts (`nucleus` "1H", "13C" or "both") of one molecule in a solvent.
-- **function**, line 49: `predict_products(reactants: str, reagents: Optional[str] = None, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 600) -> dict[str, Any]` - Predict likely products of a reaction from reactant SMILES (dot-separated) with a learned model.
-- **function**, line 65: `predict_retrosynthesis(product: str, engine: Optional[str] = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict[str, Any]` - Suggest precursors (steps="single") or full routes to purchasable stock (steps="multi") for a target.
+- **function**, line 105: `extract_structures_from_document(path: str, out_dir: str, pages: Optional[list[int]] = None, engines: str = 'molscribe,molvec', segmenter: str = 'auto', dpi: int = 200, confirm_upload: bool = False, hand_drawn: bool = False) -> dict[str, Any]` - Find every structure on a PDF (pages are 1-based, up to 50) or an image, read each with several engines.
+- **function**, line 12: `list_engines() -> dict[str, Any]` - List the optional OCSR, segmentation, reaction, retrosynthesis, condition and NMR engines and which are installed.
+- **function**, line 87: `predict_conditions(reactants: str, products: str, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 900) -> dict[str, Any]` - Rank catalyst, solvent and reagent combinations for a reaction (reactants and products as SMILES).
+- **function**, line 126: `predict_nmr(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: Optional[str] = None, output_path: Optional[str] = None, timeout_seconds: int = 900) -> dict[str, Any]` - Predict 1H and/or 13C chemical shifts (`nucleus` "1H", "13C" or "both") of one molecule in a solvent.
+- **function**, line 50: `predict_products(reactants: str, reagents: Optional[str] = None, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 600) -> dict[str, Any]` - Predict likely products of a reaction from reactant SMILES (dot-separated) with a learned model.
+- **function**, line 66: `predict_retrosynthesis(product: str, engine: Optional[str] = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict[str, Any]` - Suggest precursors (steps="single") or full routes to purchasable stock (steps="multi") for a target.
 - **function**, line 24: `recognize_structure(image_path: str, engines: str = 'decimer-api', hand_drawn: bool = False, output_path: Optional[str] = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: Optional[str] = None, approved_origin: Optional[str] = None) -> dict[str, Any]` - Read one structure image with one or several OCSR engines and compare the answers.
 
 ## `mcp_runtime.extended_tools`
