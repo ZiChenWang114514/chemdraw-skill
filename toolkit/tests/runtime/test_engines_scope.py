@@ -142,6 +142,49 @@ def test_the_install_command_reads_bundles_and_estimates_the_download(home, monk
     assert [r['engine'] for r in out['reports']] == ['molvec'] and out['download_mb_estimate'] == 2
 
 
+def _refused(capsys, *argv):
+    from cdxml_toolkit.engines import __main__ as cli
+    with pytest.raises(SystemExit) as stopped:
+        cli.main(list(argv))
+    assert stopped.value.code == 2
+    return capsys.readouterr().err
+
+
+def test_each_command_speaks_with_its_own_name(home, capsys):
+    assert 'cdx.py engines' in _refused(capsys, '--recommend', 'lava').splitlines()[0]
+    assert 'cdx.py remove-engines' in _refused(capsys, '--remove', 'lava').splitlines()[0]
+    assert 'cdx.py install-engines' in _refused(capsys, 'lava').splitlines()[0]
+
+
+def test_a_mistaken_command_gets_one_line_not_the_whole_usage(home, capsys):
+    assert 'usage:' not in _refused(capsys, 'lava')
+    assert 'usage:' not in _refused(capsys, '--recommend', 'lava')
+
+
+def test_installing_nothing_points_to_the_recommendation(home, capsys):
+    assert 'cdx.py engines --recommend' in _refused(capsys)
+
+
+def test_removing_nothing_says_how_to_remove(home, capsys):
+    message = _refused(capsys, '--remove')
+    assert 'cdx.py remove-engines' in message and 'NAME' in message
+
+
+def test_an_unknown_task_lists_the_tasks(home, capsys):
+    message = _refused(capsys, '--task', 'lava')
+    assert "'lava'" in message and 'retrosynthesis' in message
+
+
+def test_the_help_lists_every_need(capsys):
+    from cdxml_toolkit.engines import __main__ as cli
+    from cdxml_toolkit.engines.registry import RECOMMEND
+    with pytest.raises(SystemExit):
+        cli.main(['--help'])
+    text = ' '.join(capsys.readouterr().out.split())
+    offered = text.split('--recommend NEED')[-1].split('--remove')[0]
+    assert all(need in offered for need in RECOMMEND)
+
+
 def test_the_new_needs_are_recommended_with_their_limits_and_nothing_is_downloaded():
     assert [o['bundle'] for o in env.recommend('retro')['options']] == ['retro', 'retro-chimera']
     assert [o['bundle'] for o in env.recommend('nmr')['options']] == ['nmr', 'nmr-pp']
