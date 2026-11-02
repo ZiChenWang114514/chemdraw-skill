@@ -4,7 +4,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `65`
+Tools: `66`
 
 ## Extended Tools
 
@@ -378,6 +378,16 @@ Parse SciFinder RDF and optionally enrich CAS data over the network.
 ### `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, typing.Any]`
 
 Run the audited deterministic polishing pipeline on a CDXML scheme.
+
+### `predict_conditions(reactants: str, products: str, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 900) -> dict[str, typing.Any]`
+
+Rank catalyst, solvent and reagent combinations for a reaction (reactants and products as SMILES).
+
+Engine: reacon (local; install with `cdx.py install-engines reacon`; the authors' repository states no
+licence). The reaction is atom-mapped first (`mapped_reaction` is returned so the map can be checked).
+Options list a catalyst, up to two solvents and up to three reagents with a score, learned from patent
+reactions. They are candidates only: no temperature, time, amounts or yield, and a new reaction type may
+be answered poorly.
 
 ### `predict_nmr(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: Optional[str] = None, output_path: Optional[str] = None, timeout_seconds: int = 900) -> dict[str, typing.Any]`
 

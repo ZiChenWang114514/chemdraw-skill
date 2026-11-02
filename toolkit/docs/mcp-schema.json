@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 65,
+  "tool_count": 66,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -372,6 +372,14 @@
       "resource_class": "chemdraw_com",
       "timeout_seconds": null,
       "description": "Run the audited deterministic polishing pipeline on a CDXML scheme."
+    },
+    {
+      "name": "predict_conditions",
+      "signature": "(reactants: str, products: str, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 900) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": 1200,
+      "description": "Rank catalyst, solvent and reagent combinations for a reaction (reactants and products as SMILES).\n\nEngine: reacon (local; install with `cdx.py install-engines reacon`; the authors' repository states no\nlicence). The reaction is atom-mapped first (`mapped_reaction` is returned so the map can be checked).\nOptions list a catalyst, up to two solvents and up to three reagents with a score, learned from patent\nreactions. They are candidates only: no temperature, time, amounts or yield, and a new reaction type may\nbe answered poorly."
     },
     {
       "name": "predict_nmr",
