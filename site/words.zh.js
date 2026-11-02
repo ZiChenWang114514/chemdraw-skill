@@ -129,6 +129,7 @@ globalThis.ChemWords = {
  "drawing": "这个结构",
  "daily": {
   "offline": "今日题目没有加载出来，请检查网络后再试。",
+  "ready": "今日题目已加载。再点一次按钮开始，当前绘图会被替换。",
   "button": "今日分子",
   "title": "今日分子 #{n}",
   "streak": "连续 {n} 天",

@@ -736,9 +736,14 @@
         : `<button class="btn sm" type="button" data-ch="hint">${T.challenge.hint}</button>`}</div>
       <p class="ch-hint"${hinted && !won ? "" : " hidden"}>${task.hint}</p>`;
   }
+  // On a slow connection the visitor may go on drawing while the tasks load: that drawing is not ours to replace.
+  let drawing = "";
+  editor.on("change", (g) => { drawing = JSON.stringify(g); });
   async function start() {
+    const before = drawing;
     button.setAttribute("aria-busy", "true");
     try { await loadTasks(); } catch { editor.status(D.offline); return; } finally { button.removeAttribute("aria-busy"); }
+    if (drawing !== before) { editor.status(D.ready); return; }
     task = T.challenge.tasks[c.id];
     hinted = false;
     editor.restart(c.mol);
