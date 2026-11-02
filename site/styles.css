@@ -9,13 +9,41 @@
    families, one spacing scale for margins and two shadows. Reach for a token; if none
    fits, change the token. docs/website.md has the rules. */
 
+/* Type. Headings are a serif, text is a sans, and each stack names its Latin face and its
+   Chinese face together, so a line that mixes the two never changes class half way through.
+   Headings: Source Serif 4 for Latin and Noto Serif SC for Chinese. Noto Serif SC draws its
+   Latin from Source Serif, so the two share stroke, colour and weight. Both are self-hosted
+   at one weight (600), trimmed to what the headings use; any other character falls through
+   to the system serif. Text: the system UI face and its Chinese partner. */
 @font-face {
-  font-family: "Schibsted Grotesk";
-  src: url("fonts/schibsted-grotesk-latin.woff2") format("woff2");
-  font-weight: 400 900;
+  font-family: "Source Serif 4";
+  src: url("fonts/source-serif-4-latin.woff2") format("woff2");
+  font-weight: 600;
   font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
     U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Noto Serif SC";
+  src: url("fonts/noto-serif-sc-heading.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+/* Quotes, dashes, ellipsis and the middle dot belong to the Chinese face in Chinese text:
+   full width, centred in the em box. The Latin face of the system font would set them narrow. */
+@font-face {
+  font-family: "CJK punctuation";
+  src: local("PingFangSC-Regular"), local("Microsoft YaHei"), local("MicrosoftYaHei"),
+    local("NotoSansCJKsc-Regular"), local("SourceHanSansSC-Regular");
+  font-weight: 400 500;
+  unicode-range: U+00B7, U+2014, U+2018-201D, U+2026;
+}
+@font-face {
+  font-family: "CJK punctuation";
+  src: local("PingFangSC-Semibold"), local("Microsoft YaHei Bold"), local("MicrosoftYaHei-Bold"),
+    local("NotoSansCJKsc-Bold"), local("SourceHanSansSC-Bold");
+  font-weight: 600 700;
+  unicode-range: U+00B7, U+2014, U+2018-201D, U+2026;
 }
 
 :root {
@@ -42,14 +70,17 @@
   --code-var: #8fe0c8;
   --on-teal: #ffffff;
 
-  --sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont,
-    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
-    Helvetica, Arial, sans-serif;
-  --display: "Schibsted Grotesk", "Segoe UI Variable Display", "Segoe UI", -apple-system,
-    BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, "Cascadia Code", SFMono-Regular, Menlo, Consolas, monospace;
+  --sans-base: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont,
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC",
+    "Noto Sans CJK SC", Helvetica, Arial, sans-serif;
+  --display-base: "Source Serif 4", "Noto Serif SC", Georgia, "Songti SC", "Source Han Serif SC",
+    "Noto Serif CJK SC", STSong, SimSun, "Times New Roman", serif;
+  --sans: var(--sans-base);
+  --display: var(--display-base);
+  --mono: ui-monospace, "Cascadia Code", SFMono-Regular, Menlo, Consolas, "PingFang SC",
+    "Microsoft YaHei", "Noto Sans CJK SC", monospace;
   /* ChemDraw's own label face, used wherever the page imitates the drawing window */
-  --chem: Arial, Helvetica, sans-serif;
+  --chem: Arial, Helvetica, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
 
   /* Radii: inline, small surfaces, windows and panels, buttons and chips */
   --r-xs: 4px;
@@ -78,6 +109,10 @@
   --shadow-window: 0 1px 0 var(--grid), 0 28px 64px -32px rgb(22 35 42 / .4);
   --shadow-float: 0 12px 32px -12px rgb(8 14 17 / .45);
 
+  /* Where pinned titles stop: under the header, then below it with room to breathe */
+  --head-h: 61px;
+  --pin: 96px;
+  --modes-h: 47px;
   --measure: 36rem;
   --gutter: clamp(16px, 4vw, 40px);
   --wide: 1180px;
@@ -138,6 +173,14 @@
 
 * { box-sizing: border-box; }
 html:lang(en) { --fs-hero: clamp(2.2rem, 4.3vw, 3.45rem); }
+/* In Chinese the Chinese face goes first: it takes the hanzi and the punctuation it carries and
+   leaves every Latin letter and digit to the face beside it. */
+html:lang(zh) {
+  --sans: "CJK punctuation", var(--sans-base);
+  --display: "Noto Serif SC", var(--display-base);
+  --track: .01em;
+}
+html:lang(en) { --track: -.015em; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: 72px; background: var(--canvas); }
 
 body {
@@ -178,7 +221,7 @@ button { font: inherit; color: inherit; }
 .top .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
 .brand {
   display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none;
-  font: 600 var(--fs-md)/1 var(--display); letter-spacing: -.01em;
+  font: 600 var(--fs-lg)/1 var(--display); letter-spacing: 0; font-synthesis: none;
 }
 .nav { display: flex; gap: 22px; margin-left: auto; align-items: center; font-size: var(--fs-sm); }
 .nav a { color: var(--ink-2); text-decoration: none; }
@@ -254,8 +297,8 @@ button { font: inherit; color: inherit; }
   font-family: var(--display);
   font-size: var(--fs-hero);
   line-height: 1.2;
-  letter-spacing: -.028em;
-  font-weight: 700;
+  letter-spacing: calc(var(--track) * 1.6);
+  font-weight: 600; font-synthesis: none;
   margin: 0 0 24px;
   text-wrap: balance;
 }
@@ -571,14 +614,34 @@ kbd { padding: 0 4px; border: 1px solid var(--rule); border-radius: var(--r-xs);
 section { padding: clamp(64px, 9vw, 112px) 0; }
 section + section { border-top: 1px solid var(--grid); }
 .head { max-width: var(--measure); margin-bottom: clamp(28px, 4vw, 44px); }
+h1 { font-family: var(--display); font-weight: 600; font-synthesis: none; letter-spacing: var(--track); }
 h2 {
-  font-family: var(--display); font-weight: 700;
-  font-size: var(--fs-section); line-height: 1.2; letter-spacing: -.022em;
+  font-family: var(--display); font-weight: 600; font-synthesis: none;
+  font-size: var(--fs-section); line-height: 1.25; letter-spacing: var(--track);
   margin: 0 0 12px; text-wrap: balance;
 }
 h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing: -.005em; }
 .head p { margin: 0; color: var(--ink-2); font-size: var(--fs-md); }
 .head p + p { margin-top: 12px; }
+
+/* Pinned titles. Every section keeps its title in view while its content scrolls past.
+   Beside the content (split layouts) the title waits in its column. Where the content needs the
+   full width, as in the gallery, the title and its line become a slim bar under the header. The
+   Lab pins its mode tabs and, under them, the name of the chapter being read. Pinning needs room:
+   below 900 px wide or 600 px tall the titles scroll with the page. */
+.head.bar {
+  max-width: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 24px;
+  margin: 0 0 24px; padding: 12px 0; background: var(--canvas); border-bottom: 1px solid var(--grid);
+}
+.head.bar h2 { margin: 0; font-size: var(--fs-xl); }
+.head.bar p { font-size: var(--fs-sm); }
+.head.bar { position: relative; }
+.head.bar::after { content: ""; position: absolute; inset: 100% 0 auto; height: 20px; background: linear-gradient(var(--canvas) 30%, transparent); pointer-events: none; }
+.nb { white-space: nowrap; }
+@media (min-width: 901px) and (min-height: 600px) {
+  :is(.how, .faq-layout, .start, .lab-teaser, .caps-layout) > .head { position: sticky; top: var(--pin); margin-bottom: 0; }
+  .head.bar { position: sticky; top: var(--head-h); z-index: 4; }
+}
 
 /* Before / after viewer: two comparisons behind tabs */
 .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 16px; border-bottom: 1px solid var(--rule); }
@@ -632,8 +695,7 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 /* How it works: a vertical reaction scheme. Each step is a reaction arrow with
    the tool written beside it, as reagents are, leading to the file it produces. */
 .how { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
-.how .head { position: sticky; top: 96px; }
-@media (max-width: 900px) { .how { grid-template-columns: minmax(0, 1fr); } .how .head { position: static; } }
+@media (max-width: 900px) { .how { grid-template-columns: minmax(0, 1fr); } }
 
 .scheme { margin: 0; min-width: 0; }
 .scheme ol { list-style: none; margin: 0; padding: 0; }
@@ -734,7 +796,9 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 }
 
 /* Capabilities: a definition list, read like a reference table */
-.caps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 56px; margin: 0; }
+.caps-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
+.caps-layout .filters { margin: 24px 0 0; }
+.caps { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; }
 .caps div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 16px; padding: 16px 0; border-top: 1px solid var(--grid); }
 .caps dt { font-weight: 600; }
 .caps dd { margin: 0; color: var(--ink-2); font-size: var(--fs-sm); }
@@ -742,7 +806,7 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 @media (prefers-reduced-motion: no-preference) {
   .caps > .pop { animation: line .32s ease-out backwards; animation-delay: calc(min(var(--k), 14) * 22ms); }
 }
-@media (max-width: 900px) { .caps { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .caps-layout { grid-template-columns: minmax(0, 1fr); } }
 
 /* Filter chips above the list, styled like the install picker */
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 24px; }
@@ -837,6 +901,9 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 @keyframes lb-in { from { opacity: 0; scale: .96; } }
 
 /* Calculator: text on the left, ChemDraw's rendered grid on the right (the layout of .how) */
+.calc-body { min-width: 0; }
+.calc-body ul { margin: 24px 0 0; padding-left: 1.1rem; color: var(--ink-2); font-size: var(--fs-md); line-height: 1.55; }
+.calc-body li + li { margin-top: 8px; }
 .head ul { margin: 16px 0 0; padding-left: 1.1rem; color: var(--ink-2); font-size: var(--fs-md); line-height: 1.55; }
 .head li + li { margin-top: 8px; }
 .calc-shot { margin: 0; }
@@ -883,8 +950,7 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 
 /* FAQ: the title and search stay put while the answers scroll beside them */
 .faq-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
-.faq-layout .head { position: sticky; top: 96px; margin-bottom: 0; }
-@media (max-width: 900px) { .faq-layout { grid-template-columns: minmax(0, 1fr); } .faq-layout .head { position: static; } }
+@media (max-width: 900px) { .faq-layout { grid-template-columns: minmax(0, 1fr); } }
 .faq-tools { margin-top: 16px; }
 .faq-tools[hidden] { display: none; }
 .faq-search { display: block; position: relative; }
@@ -987,7 +1053,7 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
   .faq-search input { font-size: var(--fs-md); }
 }
 @media (pointer: coarse) and (scripting: enabled) { .hero .doc { grid-template-columns: 44px minmax(0, 1fr); } }
-.start .prereq { margin: 0 0 8px; padding-left: 1.1em; color: var(--ink-2); font-size: var(--fs-sm); }
+.start .prereq { margin: 0 0 24px; padding-left: 1.1em; color: var(--ink-2); font-size: var(--fs-sm); }
 .start .prereq li { margin-bottom: 4px; }
 
 /* The editor's additions: the keyboard cursor and the bond being dragged */
@@ -1006,14 +1072,14 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 .lab-teaser li { padding: 14px 0; border-top: 1px solid var(--grid); color: var(--ink-2); }
 .lab-teaser li:first-child { border-top: 0; padding-top: 0; }
 .lab-teaser li b { display: block; color: var(--ink); }
-@media (max-width: 760px) { .lab-teaser { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .lab-teaser { grid-template-columns: minmax(0, 1fr); } }
 
 /* The Molecule Lab. One window: the modes are its open documents, and the route map is the
    page's one large gesture, a reaction scheme from five starting materials to twenty products.
    A product not yet made is ChemDraw's dashed selection box waiting for its structure. */
 .lab { padding-bottom: 40px; }
 .lab-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px 48px; padding: clamp(32px, 5vw, 56px) 0 clamp(20px, 3vw, 28px); }
-.lab-head h1 { margin: 0 0 8px; font-size: var(--fs-title); line-height: 1.2; letter-spacing: -.02em; }
+.lab-head h1 { margin: 0 0 8px; font: 600 var(--fs-title)/1.2 var(--display); letter-spacing: var(--track); font-synthesis: none; }
 .lab-head .lede { margin: 0; max-width: 38rem; }
 .stats { display: flex; gap: 28px; margin: 0; }
 .lab-head .stars { flex-basis: 100%; }
@@ -1021,7 +1087,7 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 .stats dt { font-size: var(--fs-xs); color: var(--mute); }
 .stats dd { margin: 0; font-size: var(--fs-xl); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-.lab-window { border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--canvas); overflow: hidden; }
+.lab-window { border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--canvas); overflow: clip; }
 .modes {
   position: relative; display: flex; gap: 2px; padding: 6px 8px 0; overflow-x: auto; scrollbar-width: none;
   background: linear-gradient(var(--rule), var(--rule)) bottom / 100% 1px no-repeat var(--sheet);
@@ -1029,7 +1095,7 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 .modes::-webkit-scrollbar { display: none; }
 .modes a {
   position: relative; z-index: 1; padding: 8px 16px; white-space: nowrap; text-decoration: none;
-  color: var(--ink-2); font-size: var(--fs-sm); font-weight: 500;
+  color: var(--ink-2); font-size: var(--fs-sm); font-weight: 500; line-height: 25px;
   transition: color var(--t-fast) var(--ease);
 }
 .modes a:hover { color: var(--teal-ink); }
@@ -1099,9 +1165,14 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 .route { padding: clamp(18px, 3vw, 32px); background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 28px 28px; background-position: -1px -1px; }
 .lab .chapter { padding: 0; border: 0; }
 .lab .chapter + .chapter { margin-top: 32px; }
-.chapter > h2 { display: inline; font-size: var(--fs-2xl); margin: 0 12px 0 0; background: var(--canvas); padding: 0 6px; }
-.chapter > h2 .count { margin-left: 4px; font: 500 var(--fs-sm)/1 var(--sans); font-variant-numeric: tabular-nums; color: var(--mute); }
-.chapter > p { display: inline; margin: 0; color: var(--ink-2); background: var(--canvas); padding: 0 6px; }
+.chap-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; padding: 8px 6px; background: var(--canvas); border-bottom: 1px solid var(--grid); }
+.chap-head h2 { margin: 0; font-size: var(--fs-xl); }
+.chap-head h2 .count { margin-left: 4px; font: 500 var(--fs-sm)/1 var(--sans); font-variant-numeric: tabular-nums; color: var(--mute); }
+.chap-head p { margin: 0; color: var(--ink-2); }
+@media (min-width: 901px) and (min-height: 600px) {
+  .modes { position: sticky; top: var(--head-h); z-index: 3; }
+  .chap-head { position: sticky; top: calc(var(--head-h) + var(--modes-h)); z-index: 2; }
+}
 .scheme-rows { list-style: none; margin: 16px 0 0; padding: 0; }
 .rxn-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
 .parent { margin: 0; flex: 0 0 132px; text-align: center; background: var(--canvas); padding: 4px; }

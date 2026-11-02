@@ -26,6 +26,7 @@
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preload" href="../fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../styles.css">
 <script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 <script type="application/ld+json">
@@ -195,7 +196,7 @@
 
 <section id="gallery">
   <div class="wrap">
-    <div class="head">
+    <div class="head bar">
       <h2>From a paper figure to an editable ChemDraw document</h2>
       <p>Drag the divider to compare the original image with the agent's ChemDraw rebuild.</p>
     </div>
@@ -315,6 +316,12 @@ Bonds:   13</code></pre></details></div>
     <div class="head">
       <h2>Reaction amounts, yields and the numbers around them</h2>
       <p>For a reaction you give as SMILES or a ChemDraw file, <code>cdx.py calc</code> runs ChemDraw's own Structure &gt; Analyze Stoichiometry and opens the result in ChemDraw. You type an amount into the grid and ChemDraw computes the rest.</p>
+    </div>
+    <div class="calc-body">
+      <figure class="calc-shot">
+        <img decoding="async" src="../gallery/stoichiometry-grid.webp" data-zoom width="1245" height="693" loading="lazy" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
+        <figcaption>ChemDraw's own stoichiometry grid for benzyl alcohol and acetyl chloride, rendered by ChemDraw. The bold italic mass is the amount typed in; ChemDraw computed the moles.</figcaption>
+      </figure>
       <ul>
         <li>Equivalents, sample mass, molarity, density, volume and moles for each reactant and reagent; expected mass, measured mass, purity and yield for the product.</li>
         <li><code>cdx.py calc --read</code> returns the saved grid as data, so the agent quotes ChemDraw's numbers instead of its own. Reading needs no ChemDraw; drawing the grid needs desktop ChemDraw.</li>
@@ -323,10 +330,6 @@ Bonds:   13</code></pre></details></div>
         <li>Also available: characterization paragraphs in ACS order with the NMR peak counts checked, the overall yield and PMI of a multi-step route, and atom mapping with a reaction-type label.</li>
       </ul>
     </div>
-    <figure class="calc-shot">
-      <img decoding="async" src="../gallery/stoichiometry-grid.webp" data-zoom width="1245" height="693" loading="lazy" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
-      <figcaption>ChemDraw's own stoichiometry grid for benzyl alcohol and acetyl chloride, rendered by ChemDraw. The bold italic mass is the amount typed in; ChemDraw computed the moles.</figcaption>
-    </figure>
   </div>
 </section>
 
@@ -343,13 +346,13 @@ Bonds:   13</code></pre></details></div>
 </section>
 
 <section id="capabilities">
-  <div class="wrap">
+  <div class="wrap caps-layout">
     <div class="head">
       <h2>What it handles</h2>
       <p>Fifteen kinds of job: drawing, and the calculations that go with it.</p>
       <p class="try-note">Each comes with a request you can give your agent as it stands. Native rendering and Office embedding need desktop ChemDraw; see <a href="#start">what you need first</a>.</p>
+      <div class="filters" role="group" aria-label="Filter by kind" hidden><button type="button" data-filter="all" aria-pressed="true">All<span>15</span></button><button type="button" data-filter="draw" aria-pressed="false">Drawing<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">Reading figures<span>2</span></button><button type="button" data-filter="data" aria-pressed="false">Data and documents<span>4</span></button><button type="button" data-filter="calc" aria-pressed="false">Calculations<span>4</span></button></div>
     </div>
-    <div class="filters" role="group" aria-label="Filter by kind" hidden><button type="button" data-filter="all" aria-pressed="true">All<span>15</span></button><button type="button" data-filter="draw" aria-pressed="false">Drawing<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">Reading figures<span>2</span></button><button type="button" data-filter="data" aria-pressed="false">Data and documents<span>4</span></button><button type="button" data-filter="calc" aria-pressed="false">Calculations<span>4</span></button></div>
     <dl class="caps">
       <div data-kind="draw"><dt>Structures and reactions</dt><dd>Resolve names and identifiers; draw, edit, clean, merge, split, convert and render CDXML or CDX.<details class="try"><summary>Try asking</summary><p class="ask">Convert this CDX file to CDXML, clean up the structures and render a PNG with ChemDraw.</p></details></dd></div>
       <div data-kind="read"><dt>Paper figures</dt><dd>Crop the source, read it with DECIMER, compare side by side, fix the chemistry and assemble the layout.<details class="try"><summary>Try asking</summary><p class="ask">Rebuild the reaction scheme in this paper screenshot as an editable ChemDraw file and show it next to the original.</p></details></dd></div>
@@ -374,15 +377,15 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap start">
     <div class="head">
       <h2>Start in three steps</h2>
+      <p class="note">Pick your agent and system and the commands update to match. For project-level installs and other options, see <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">agent integration</a>.</p>
+    </div>
+    <div>
       <ul class="prereq">
         <li><b>ChemDraw.</b> Native rendering, the PNG in step 3 and Office embedding need licensed desktop ChemDraw on Windows or macOS. Without it the Skill still builds, edits, checks and recognises structures and runs the calculators.</li>
         <li><b>Python.</b> The installer runs on Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the runtime on Windows, macOS or Linux.</li>
         <li><b>Disk.</b> The default runtime takes about 760 MB. <code>--extras</code> with no names installs the core only.</li>
         <li><b>Optional.</b> Add <code>--opsin</code> for name-to-structure through OPSIN, which needs Java (fetched on Windows, installed by you elsewhere). Text recognition in the <code>image</code> extra needs Tesseract.</li>
       </ul>
-      <p class="note">Pick your agent and system and the commands update to match. For project-level installs and other options, see <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">agent integration</a>.</p>
-    </div>
-    <div>
       <div class="choose" hidden>
         <fieldset>
           <legend>Agent</legend>

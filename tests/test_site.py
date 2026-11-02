@@ -1092,6 +1092,14 @@ class DesignSystemTests(unittest.TestCase):
         cls.css = css
         cls.rules = re.findall(r"([^{}]+)\{([^{}]*)\}", css)
 
+    @staticmethod
+    def declarations_of(css: str, *names):
+        for selector, body in re.findall(r"([^{}]+)\{([^{}]*)\}", re.sub(r"/\*.*?\*/", "", css, flags=re.S)):
+            for declaration in filter(None, map(str.strip, body.split(";"))):
+                name, _, value = declaration.partition(":")
+                if name.strip() in names:
+                    yield selector.strip(), name.strip(), value.strip()
+
     def declarations(self, *names):
         for selector, body in self.rules:
             for declaration in filter(None, map(str.strip, body.split(";"))):
@@ -1167,6 +1175,94 @@ class DesignSystemTests(unittest.TestCase):
         self.assertRegex(self.css, r"\.btn\.sm\b")
         self.assertRegex(self.css, r"\.btn\.ghost\b")
         self.assertRegex(self.css, r"@media \(pointer: coarse\)[^{]*\{[^}]*\.btn")
+
+
+class PinnedTitleAndTypeTests(unittest.TestCase):
+    """Every section pins its title, and every heading and text face is paired Latin with Chinese."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.css = (SITE / "styles.css").read_text(encoding="utf-8")
+
+    def test_every_home_section_pins_its_title(self) -> None:
+        pinned = re.search(r":is\(([^)]*)\) > \.head \{ position: sticky", self.css)
+        self.assertTrue(pinned)
+        layouts = {name.strip().lstrip(".") for name in pinned.group(1).split(",")}
+        for lang, path in PAGES.items():
+            html = path.read_text(encoding="utf-8")
+            sections = re.findall(r'<section id="(\w+)">\s*<div class="wrap([^"]*)">\s*<div class="head([^"]*)"', html)
+            self.assertEqual(len(sections), 7, lang)
+            for name, wrap, head in sections:
+                with self.subTest(lang=lang, section=name):
+                    self.assertTrue("bar" in head.split() or layouts & set(wrap.split()), (wrap, head))
+
+    def test_pinned_titles_need_room(self) -> None:
+        self.assertIn("@media (min-width: 901px) and (min-height: 600px) {\n  :is(", self.css)
+        self.assertEqual(self.css.count("position: sticky"), self.css.count("var(--pin)") + self.css.count("var(--head-h)") + 1)
+
+    def test_lab_pins_its_tabs_and_chapters(self) -> None:
+        self.assertIn(".modes { position: sticky; top: var(--head-h);", self.css)
+        self.assertIn(".chap-head { position: sticky; top: calc(var(--head-h) + var(--modes-h));", self.css)
+        self.assertRegex(self.css, r"\.lab-window \{[^}]*overflow: clip;")  # hidden would make it the scroller
+        self.assertIn('<header class="chap-head">', (SITE / "lab.js").read_text(encoding="utf-8"))
+
+    def test_each_text_stack_pairs_a_latin_and_a_chinese_face_of_one_class(self) -> None:
+        stack = lambda name: re.search(rf"--{name}: ([^;]+);", self.css).group(1)
+        serif, sans = stack("display-base"), stack("sans-base")
+        self.assertTrue(serif.rstrip().endswith("serif") and not serif.rstrip().endswith("sans-serif"))
+        self.assertTrue(sans.rstrip().endswith("sans-serif"))
+        self.assertLess(serif.index('"Source Serif 4"'), serif.index('"Noto Serif SC"'))
+        self.assertIn('"Songti SC"', serif)
+        for chinese in ('"PingFang SC"', '"Microsoft YaHei"', '"Noto Sans CJK SC"'):
+            self.assertIn(chinese, sans)
+        for generic in ("mono", "chem"):  # Chinese inside code and drawn labels stays sans, not the browser's default serif
+            self.assertIn('"PingFang SC"', stack(generic))
+        self.assertNotIn("Schibsted", self.css)
+
+    def test_chinese_puts_its_own_face_first(self) -> None:
+        zh = re.search(r"html:lang\(zh\) \{([^}]*)\}", self.css).group(1)
+        self.assertIn('--display: "Noto Serif SC", var(--display-base)', zh)
+        self.assertIn('--sans: "CJK punctuation", var(--sans-base)', zh)
+        self.assertNotIn("CJK punctuation", re.search(r"html:lang\(en\) \{[^}]*\}", self.css).group(0))
+
+    def test_headings_use_the_one_weight_the_serif_files_carry(self) -> None:
+        for selector, _, value in DesignSystemTests.declarations_of(self.css, "font-weight"):
+            if selector in ("h2", ".hero h1"):
+                self.assertEqual(value, "600")
+        self.assertGreaterEqual(self.css.count("font-synthesis: none"), 4)  # brand, hero h1, h2, Lab h1: never a faux bold
+
+    def test_font_files_licences_and_preloads(self) -> None:
+        files = re.findall(r'url\("fonts/([^"]+)"\)', self.css)
+        self.assertEqual(sorted(files), ["noto-serif-sc-heading.woff2", "source-serif-4-latin.woff2"])
+        for name in files:
+            self.assertTrue((SITE / "fonts" / name).is_file(), name)
+            self.assertLess((SITE / "fonts" / name).stat().st_size, 60_000, name)
+        for licence in ("OFL-source-serif-4.txt", "OFL-noto-serif-sc.txt"):
+            self.assertIn("SIL Open Font License", (SITE / "fonts" / licence).read_text(encoding="utf-8"))
+        self.assertEqual(sorted(p.name for p in (SITE / "fonts").iterdir()), sorted(files + ["OFL-source-serif-4.txt", "OFL-noto-serif-sc.txt"]))
+        pages = {PAGES["zh"]: 2, LAB_PAGES["zh"]: 2, PAGES["en"]: 1, LAB_PAGES["en"]: 1}
+        for path, expected in pages.items():
+            html = path.read_text(encoding="utf-8")
+            hrefs = re.findall(r'<link rel="preload" href="([^"]+)" as="font" type="font/woff2" crossorigin>', html)
+            with self.subTest(page=path.relative_to(SITE).as_posix()):
+                self.assertEqual(len(hrefs), expected)
+                for href in hrefs:
+                    self.assertTrue((path.parent / href).resolve().is_file(), href)
+                self.assertLess(html.index("preload"), html.index("styles.css"))
+
+    def test_chinese_heading_glyphs_are_in_the_trimmed_font(self) -> None:
+        try:
+            from fontTools.ttLib import TTFont
+            cmap = TTFont(SITE / "fonts" / "noto-serif-sc-heading.woff2").getBestCmap()
+        except ImportError:
+            self.skipTest("fontTools with brotli is not installed")
+        for path in (PAGES["zh"], LAB_PAGES["zh"]):
+            html = path.read_text(encoding="utf-8")
+            for tag in re.findall(r"<(?:h1|h2)[^>]*>(.*?)</(?:h1|h2)>", html, re.S):
+                for char in re.sub(r"<[^>]+>", "", unescape(tag)):
+                    if "\u3400" <= char <= "\u9fff" or char in "，。、；：？！“”（）":
+                        with self.subTest(char=char):
+                            self.assertIn(ord(char), cmap)
 
 
 class AccessibilityTests(unittest.TestCase):

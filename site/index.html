@@ -27,6 +27,8 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preload" href="fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/noto-serif-sc-heading.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="styles.css">
 <script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 <script type="application/ld+json">
@@ -197,7 +199,7 @@
 
 <section id="gallery">
   <div class="wrap">
-    <div class="head">
+    <div class="head bar">
       <h2>从论文图片到可编辑的 ChemDraw 文档</h2>
       <p>拖动分隔线，对比原图和 Agent 复刻出的 ChemDraw 文档。</p>
     </div>
@@ -315,8 +317,14 @@ Bonds:   13</code></pre></details></div>
 <section id="calculator">
   <div class="wrap how">
     <div class="head">
-      <h2>反应用量、收率和相关数字</h2>
+      <h2><span class="nb">反应用量、</span><span class="nb">收率和相关数字</span></h2>
       <p>对你以 SMILES 或 ChemDraw 文件给出的反应，<code>cdx.py calc</code> 会运行 ChemDraw 自带的 Structure &gt; Analyze Stoichiometry，并在 ChemDraw 里打开结果。在表里填一个用量，其余数值由 ChemDraw 算出。</p>
+    </div>
+    <div class="calc-body">
+      <figure class="calc-shot">
+        <img decoding="async" src="gallery/stoichiometry-grid.webp" data-zoom width="1245" height="693" loading="lazy" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
+        <figcaption>苯甲醇与乙酰氯的 ChemDraw 化学计量表，由 ChemDraw 渲染。粗斜体的质量是填入的用量，物质的量由 ChemDraw 算出。</figcaption>
+      </figure>
       <ul>
         <li>每个反应物和试剂的当量、样品质量、摩尔浓度、密度、体积和物质的量；产物的预期质量、实测质量、纯度和收率。</li>
         <li><code>cdx.py calc --read</code> 把保存后的计量表以数据返回，智能体引用的是 ChemDraw 的数值，而不是它自己算的。读回不需要 ChemDraw；生成计量表需要桌面版 ChemDraw。</li>
@@ -325,10 +333,6 @@ Bonds:   13</code></pre></details></div>
         <li>旁边还有：按 ACS 顺序的表征段落（核磁峰数会核对）、多步路线的总收率和 PMI、带反应类型标注的原子映射。</li>
       </ul>
     </div>
-    <figure class="calc-shot">
-      <img decoding="async" src="gallery/stoichiometry-grid.webp" data-zoom width="1245" height="693" loading="lazy" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
-      <figcaption>苯甲醇与乙酰氯的 ChemDraw 化学计量表，由 ChemDraw 渲染。粗斜体的质量是填入的用量，物质的量由 ChemDraw 算出。</figcaption>
-    </figure>
   </div>
 </section>
 
@@ -345,13 +349,13 @@ Bonds:   13</code></pre></details></div>
 </section>
 
 <section id="capabilities">
-  <div class="wrap">
+  <div class="wrap caps-layout">
     <div class="head">
       <h2>能做什么</h2>
       <p>十五类工作：绘图，以及随之而来的计算。</p>
       <p class="try-note">每一类都附了一句可以直接对 Agent 说的话。原生渲染和 Office 嵌入需要桌面版 ChemDraw，见<a href="#start">运行前提</a>。</p>
+      <div class="filters" role="group" aria-label="按类别筛选" hidden><button type="button" data-filter="all" aria-pressed="true">全部<span>15</span></button><button type="button" data-filter="draw" aria-pressed="false">绘图<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">读图复刻<span>2</span></button><button type="button" data-filter="data" aria-pressed="false">数据与文档<span>4</span></button><button type="button" data-filter="calc" aria-pressed="false">计算<span>4</span></button></div>
     </div>
-    <div class="filters" role="group" aria-label="按类别筛选" hidden><button type="button" data-filter="all" aria-pressed="true">全部<span>15</span></button><button type="button" data-filter="draw" aria-pressed="false">绘图<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">读图复刻<span>2</span></button><button type="button" data-filter="data" aria-pressed="false">数据与文档<span>4</span></button><button type="button" data-filter="calc" aria-pressed="false">计算<span>4</span></button></div>
     <dl class="caps">
       <div data-kind="draw"><dt>结构与反应</dt><dd>解析名称和标识符；绘制、编辑、清理、合并、拆分、转换和渲染 CDXML / CDX。<details class="try"><summary>试着这样说</summary><p class="ask">把这个 CDX 文件转成 CDXML，清理结构后用 ChemDraw 渲染成 PNG。</p></details></dd></div>
       <div data-kind="read"><dt>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对、修正化学，组装条件与版面。<details class="try"><summary>试着这样说</summary><p class="ask">把这张论文截图里的反应路线复刻成可编辑的 ChemDraw 文件，并和原图并排对比。</p></details></dd></div>
@@ -376,15 +380,15 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap start">
     <div class="head">
       <h2>三步开始使用</h2>
+      <p class="note">选择 Agent 和系统后，右边的命令会随之改写。安装到项目目录等其他用法见 <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">Agent 接入说明</a>。</p>
+    </div>
+    <div>
       <ul class="prereq">
         <li><b>ChemDraw。</b>原生渲染、第 3 步的 PNG 和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。没有它时，Skill 仍可构建、编辑、检查和识别结构，也能使用各类计算器。</li>
         <li><b>Python。</b>安装脚本需要 Python 3.9 以上，会自动找到 64 位 Python 3.10–3.13 作为运行时，Windows、macOS、Linux 都能装。</li>
         <li><b>磁盘。</b>默认运行时约占 760 MB。<code>--extras</code> 后不跟名称时只安装核心部分。</li>
         <li><b>可选。</b>加 <code>--opsin</code> 可用 OPSIN 把名称转成结构，它需要 Java（Windows 上自动下载，其他系统需自行安装）。<code>image</code> 依赖组的文字识别需要 Tesseract。</li>
       </ul>
-      <p class="note">选择 Agent 和系统后，右边的命令会随之改写。安装到项目目录等其他用法见 <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/agent-integration.md">Agent 接入说明</a>。</p>
-    </div>
-    <div>
       <div class="choose" hidden>
         <fieldset>
           <legend>Agent</legend>

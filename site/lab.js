@@ -237,7 +237,7 @@
           }).join("")}</ul>
         </li>`).join("");
       const solved = list.filter((c) => store.data.levels[c.id]).length;
-      return `<section class="chapter"><h2>${L.chapters[chapter].title} <span class="count">${solved} / ${list.length}</span></h2><p>${L.chapters[chapter].text}</p><ol class="scheme-rows">${rows}</ol></section>`;
+      return `<section class="chapter"><header class="chap-head"><h2>${L.chapters[chapter].title} <span class="count">${solved} / ${list.length}</span></h2><p>${L.chapters[chapter].text}</p></header><ol class="scheme-rows">${rows}</ol></section>`;
     }).join("");
   }
 
