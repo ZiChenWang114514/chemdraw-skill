@@ -280,7 +280,7 @@ Catalog every public ChemScript type/member, with filtering or a complete JSON e
 
 ### `list_engines() -> dict[str, typing.Any]`
 
-List the optional OCSR, segmentation, reaction, retrosynthesis and NMR engines and which are installed.
+List the optional OCSR, segmentation, reaction, retrosynthesis, condition and NMR engines and which are installed.
 
 Install with `cdx.py install-engines NAME...` (each engine gets its own environment). Remote engines
 upload data and need the user's consent (see the Skill's upload rule).
@@ -393,11 +393,13 @@ be answered poorly.
 
 Predict 1H and/or 13C chemical shifts (`nucleus` "1H", "13C" or "both") of one molecule in a solvent.
 
-Engine: magnet (local; MagNET, supports H, C, N, O, F, Cl, S; install with
-`cdx.py install-engines magnet`). Returns peaks grouped by symmetry (shift, proton count, atom indices)
-marked `predicted: true`. With `output_path` (a new file) it also writes a simulated `ppm,intensity`
-spectrum of singlets that scientific_workflow(operation="nmr") can read. Predictions are not measured data:
-never put them in an experimental characterization line.
+Engines: magnet (local; MagNET, supports H, C, N, O, F, Cl, S) and nmrnet-pp (local; NMRNet++, which takes
+no solvent); install with `cdx.py install-engines NAME`. `engine="magnet,nmrnet-pp"` runs both and adds a
+peak-by-peak `comparison`, never an average; an engine that fails is listed in `failed_engines`. Returns
+peaks grouped by symmetry (shift, proton count, atom indices) marked `predicted: true`. With `output_path`
+(a new file) it also writes a simulated `ppm,intensity` spectrum of singlets that
+scientific_workflow(operation="nmr") can read. Predictions are not measured data: never put them in an
+experimental characterization line.
 
 ### `predict_products(reactants: str, reagents: Optional[str] = None, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 600) -> dict[str, typing.Any]`
 
@@ -413,9 +415,11 @@ Suggest precursors (steps="single") or full routes to purchasable stock (steps="
 
 Engines: aizynthfinder (local, single and multi-step, USPTO policies and ZINC stock), synplanner
 (local, multi-step only, USPTO rules and MCULE/Molport building blocks; a target that is itself
-purchasable is reported as such without a search) and reactiont5-retro (local, single step). Routes list `reactions` (A.B>>P per step) that render_scheme and
-route_summary accept, `starting_materials` and whether all are in stock. Learned-template suggestions
-only: check selectivity, conditions and availability before relying on them.
+purchasable is reported as such without a search), retrochimera (local, single and multi-step, multi-step
+searched with Syntheseus; for research use, read only its first 5 to 10 answers) and reactiont5-retro
+(local, single step). Routes list `reactions` (A.B>>P per step) that render_scheme and route_summary
+accept, `starting_materials` and whether all are in stock. Learned suggestions only: check selectivity,
+conditions and availability before relying on them.
 
 ### `publication_figure(operation: str, spec_path: str, output_dir: str) -> dict`
 
@@ -448,7 +452,8 @@ Writes provenance, bounded candidate results and truncation status to JSON.
 Read one structure image with one or several OCSR engines and compare the answers.
 
 `engines` is a name or comma-separated list from decimer-api, decimer-local, molscribe, molnextr,
-molvec, or `all` (every installed local engine, plus decimer-api only when confirm_upload is true).
+molparser, molvec, or `all` (every installed local engine, plus decimer-api only when confirm_upload is
+true). `output_path` is a new JSON file for the raw decimer-api response.
 The default stays the remote DECIMER service. The result lists each engine's structures and a
 `comparison`: engines that agree give `agreed_smiles` as a candidate, any disagreement leaves it null
 and sets `needs_review`. Nothing is picked silently; compare every structure with the image.
