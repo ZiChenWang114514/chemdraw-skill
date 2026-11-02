@@ -18,7 +18,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from .registry import ENGINES
+from .registry import BUNDLES, ENGINES, GUIDE, RECOMMEND, disk_mb
 
 WORKER = Path(__file__).with_name('worker.py')
 RUN_TIMEOUT = 900  # the first import of PyTorch can take a minute on a cold disk
@@ -29,6 +29,27 @@ MARKER = '@@ENGINE-RESULT@@'  # worker.py prefixes its one JSON line with this
 
 class EngineError(RuntimeError):
     """An engine is missing, could not run, or returned something unusable."""
+
+
+class EngineMissing(EngineError):
+    """The engine is not installed. ``hint`` says what installing it would cost, for the user to decide."""
+
+    def __init__(self, name: str, message: str):
+        super().__init__(message)
+        self.hint = hint(name)
+
+
+def hint(name: str) -> dict:
+    """What to tell the user when ``name`` is needed but absent: use, size, licence and the command."""
+    spec = ENGINES[name]
+    guide = GUIDE.get(name, {})
+    return {'engine': name, 'title': spec['title'], 'use_when': guide.get('use_when'),
+            'size_mb': guide.get('disk_mb'), 'license': spec.get('license'), 'needs': guide.get('needs', []),
+            'command': f'cdx.py install-engines {name}', 'asks_the_network': True}
+
+
+def _offline() -> bool:
+    return os.environ.get('CHEMDRAW_OFFLINE', '').strip().lower() in ('1', 'true', 'yes', 'on')
 
 
 def home() -> Path:
@@ -119,7 +140,7 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
     python = python_for(name)
     title = ENGINES[name]['title']
     if python is None:
-        raise EngineError(f'{title} is not installed: run `cdx.py install-engines {name}`')
+        raise EngineMissing(name, f'{title} is not installed: run `cdx.py install-engines {name}`')
     request = {'engine': name, 'action': action, 'params': params,
                'data_dir': str(data_dir(name)), 'spec': {k: ENGINES[name].get(k) for k in ('weights', 'data', 'family', 'download', 'sha256')}}
     env = dict(os.environ, TOKENIZERS_PARALLELISM='false', PYTHONIOENCODING='utf-8', PYTHONUNBUFFERED='1')
@@ -152,8 +173,8 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
 def run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess:
     jar = jar_path(name)
     if jar is None or not java():
-        raise EngineError(f'{ENGINES[name]["title"]} is not installed (it needs Java and its jar): '
-                          f'run `cdx.py install-engines {name}`')
+        raise EngineMissing(name, f'{ENGINES[name]["title"]} is not installed (it needs Java and its jar): '
+                                  f'run `cdx.py install-engines {name}`')
     try:
         return subprocess.run([java(), '-Djava.awt.headless=true', '-cp', str(jar), *args], capture_output=True,
                               text=True, encoding='utf-8', errors='replace', timeout=timeout)
@@ -229,6 +250,11 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
     if spec['kind'] in ('remote', 'runtime'):
         report.update(ok=available()[name], note=spec.get('note') or 'nothing to install here')
         return report
+    report['disk_mb'] = GUIDE.get(name, {}).get('disk_mb')
+    if not dry_run and _offline():
+        report.update(ok=False, error='CHEMDRAW_OFFLINE is set: installing downloads packages and weights, so nothing '
+                                      'was installed')
+        return report
     if dry_run:
         report['python_needed'] = f'3.{spec["python"][0]} to 3.{spec["python"][1]}' if 'python' in spec else 'Java'
         return report
@@ -271,8 +297,69 @@ def _drop_receipt(env: Path):
         pass
 
 
+def disk_usage(name: str) -> int:
+    """Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed."""
+    root = environment(name)
+    if not root.is_dir() or root.is_symlink():
+        return 0
+    total = 0
+    for base, _dirs, files in os.walk(root, followlinks=False):
+        for file in files:
+            try:
+                total += os.lstat(os.path.join(base, file)).st_size
+            except OSError:
+                pass
+    return total
+
+
 def status() -> dict:
     found = available()
-    return {'home': str(home()), 'engines': {name: {
-        'title': spec['title'], 'task': spec['task'], 'kind': spec['kind'], 'available': found[name],
-        'license': spec.get('license'), 'size': spec.get('size')} for name, spec in ENGINES.items()}}
+    engines, total = {}, 0
+    for name, spec in ENGINES.items():
+        used = disk_usage(name) if spec['kind'] in ('local', 'jar') else 0
+        total += used
+        engines[name] = {'title': spec['title'], 'task': spec['task'], 'kind': spec['kind'], 'available': found[name],
+                         'license': spec.get('license'), 'size': spec.get('size'), 'disk_used_mb': round(used / 1e6, 1),
+                         'use_when': GUIDE.get(name, {}).get('use_when')}
+    return {'home': str(home()), 'disk_used_mb': round(total / 1e6, 1), 'engines': engines}
+
+
+def recommend(task: str) -> dict:
+    """The smallest set of engines that serves ``task`` (ocsr, pdf, products, retro, nmr), with what each costs.
+    Reads only; nothing is downloaded."""
+    if task not in RECOMMEND:
+        raise ValueError(f'unknown need {task!r} (choose from {", ".join(RECOMMEND)})')
+    found = available()
+    options = []
+    for bundle in RECOMMEND[task]:
+        names = BUNDLES[bundle]['engines']
+        missing = [n for n in names if not found[n]]
+        options.append({
+            'bundle': bundle, 'about': BUNDLES[bundle]['about'], 'engines': names, 'missing': missing,
+            'download_mb': disk_mb(missing),
+            'details': [{'engine': n, 'installed': found[n], 'license': ENGINES[n].get('license'),
+                         'size_mb': GUIDE[n]['disk_mb'], 'use_when': GUIDE[n]['use_when'],
+                         'skip_when': GUIDE[n]['skip_when'], 'needs': GUIDE[n].get('needs', [])} for n in names],
+            'command': f'cdx.py install-engines --bundle {bundle}' if missing else None})
+    return {'ok': True, 'task': task, 'suggested': options[0]['bundle'], 'already_installed': not options[0]['missing'],
+            'options': options, 'offline': _offline(),
+            'note': 'Installing downloads packages and weights; it never uploads anything.'}
+
+
+def remove(name: str, *, dry_run: bool = True) -> dict:
+    """Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed."""
+    spec = ENGINES[name]
+    root = environment(name)
+    report = {'engine': name, 'path': str(root), 'disk_mb': round(disk_usage(name) / 1e6, 1)}
+    if spec['kind'] not in ('local', 'jar'):
+        return {**report, 'ok': False, 'error': 'nothing to remove: this engine has no folder of its own'}
+    if not root.exists() and not root.is_symlink():
+        return {**report, 'ok': True, 'removed': False, 'note': 'not installed'}
+    looks_like_engine = (root / RECEIPT).is_file() or (root / 'pyvenv.cfg').is_file()
+    if root.is_symlink() or not root.is_dir() or root.resolve().parent != home().resolve() or not looks_like_engine:
+        return {**report, 'ok': False, 'error': 'refused: this folder is not an engine installation made by '
+                                                 'install-engines (nothing was deleted)'}
+    if dry_run:
+        return {**report, 'ok': True, 'removed': False, 'dry_run': True}
+    shutil.rmtree(root)
+    return {**report, 'ok': True, 'removed': True}

@@ -54,7 +54,7 @@ For confidential or offline work set `CHEMDRAW_OFFLINE=1`: PubChem lookups, the 
 
 ## Optional prediction engines
 
-`cdx.py engines` lists the engines that can read structure images with more than one model, find the structures in a PDF, and predict products, precursors, routes and 1H/13C shifts. `cdx.py install-engines molscribe molnextr molvec` (or `--task ocsr`, `--dry-run` first for sizes) installs each one in its own environment; model files are downloaded once, checked against a pinned hash, and every later run is offline. Results are labelled model predictions. Engines that disagree about an image are shown side by side and never merged. Details, limits and the engines that were considered and left out: [engines](../skill/chemdraw/references/engines.md).
+`cdx.py engines` lists the engines that can read structure images with more than one model, find the structures in a PDF, and predict products, precursors, routes and 1H/13C shifts. `cdx.py engines --recommend ocsr` says what is worth installing for a need and what it costs, without downloading anything. `cdx.py install-engines --bundle ocsr-standard` (or engine names, or `--task ocsr`; `--dry-run` first for sizes) installs each one in its own environment, only after you agree, and `cdx.py remove-engines NAME --yes` deletes one again; model files are downloaded once, checked against a pinned hash, and every later run is offline. Results are labelled model predictions. Engines that disagree about an image are shown side by side and never merged. Details, limits and the engines that were considered and left out: [engines](../skill/chemdraw/references/engines.md).
 
 ## ChemDraw interface coverage
 

@@ -532,7 +532,7 @@ macOS differences — the Automation permission, the hidden ChemDraw instance, f
 | Molecule comparison or ChemScript SDK calls | RDKit for portable similarity; compatible ChemScript DLLs on a Windows host for exact checks and raw SDK programs (macOS answers the ChemScript operations with ChemDraw, OPSIN and RDKit) |
 | Editable Word or PowerPoint objects | Desktop ChemDraw to build them; desktop Word and/or PowerPoint (activated on macOS) for PDF previews |
 | Local optical structure recognition | DECIMER model weights and their runtime dependencies |
-| More OCSR engines, retrosynthesis, product and NMR prediction | `cdx.py install-engines`: each engine in its own environment, from hundreds of MB to a few GB with model files ([engines](skill/chemdraw/references/engines.md)) |
+| More OCSR engines, retrosynthesis, product and NMR prediction | `cdx.py engines --recommend NEED` then `cdx.py install-engines --bundle NAME`, once you agree: each engine in its own environment, from 2 MB to a few GB with model files, removable with `remove-engines` ([engines](skill/chemdraw/references/engines.md)) |
 | Remote access to a ChemDraw workstation | A Windows host plus authenticated HTTP configuration and an encrypted network path |
 
 ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled. The [setup guide](docs/guide.md#first-time-setup) covers installation options, manual runtimes and diagnostics.

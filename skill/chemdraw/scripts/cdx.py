@@ -753,8 +753,14 @@ def cmd_install_mappers(ns):
 
 
 def cmd_engines(ns):
-    """Which optional engines (OCSR, retrosynthesis, NMR) are installed; `install-engines NAME...` adds them."""
-    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', '--status'], env=_chemscript_env())
+    """Which optional engines are installed and how much disk each uses; `--recommend NEED` says what to install."""
+    flags = ['--recommend', ns.recommend] if ns.recommend else ['--status']
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', *flags], env=_chemscript_env())
+
+
+def cmd_remove_engines(ns):
+    """Delete installed engines (a dry run unless --yes)."""
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', '--remove', *ns.rest], env=_chemscript_env())
 
 
 def cmd_install_engines(ns):
@@ -791,6 +797,8 @@ def main(argv=None):
         return cmd_calc(argparse.Namespace(rest=argv[1:]))
     if argv[:1] == ['install-engines']:  # flags such as --status or --task may come first
         return cmd_install_engines(argparse.Namespace(rest=argv[1:]))
+    if argv[:1] == ['remove-engines']:
+        return cmd_remove_engines(argparse.Namespace(rest=argv[1:]))
     if argv[:1] == ['install-mappers']:  # likewise: `--status` or `--dry-run` may come first
         return cmd_install_mappers(argparse.Namespace(rest=argv[1:]))
     p = argparse.ArgumentParser(prog='cdx.py', description=__doc__.split('\n')[0])
@@ -854,10 +862,16 @@ def main(argv=None):
     s.add_argument('--engine')
     s.add_argument('--json', help='further tool arguments as a JSON object (steps, count, nucleus, solvent, ...)')
     s.set_defaults(fn=cmd_predict)
-    s = sub.add_parser('engines', help='list the optional OCSR / retrosynthesis / NMR engines and whether each is installed')
+    s = sub.add_parser('engines', help='list the optional engines, what each is for and its disk use; '
+                                       '--recommend ocsr|pdf|products|retro|nmr suggests what to install (downloads nothing)')
+    s.add_argument('--recommend', metavar='NEED')
     s.set_defaults(fn=cmd_engines)
+    s = sub.add_parser('remove-engines', help='delete installed engines: cdx.py remove-engines molnextr [--yes] (dry run '
+                                              'without --yes)')
+    s.add_argument('rest', nargs=argparse.REMAINDER)
+    s.set_defaults(fn=cmd_remove_engines)
     s = sub.add_parser('install-engines', help='install optional engines, each in its own environment: cdx.py install-engines '
-                                               'molscribe molnextr molvec | --task ocsr [--dry-run] [--status]')
+                                               'molscribe molnextr molvec | --bundle ocsr-standard | --task ocsr [--dry-run] [--status]')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_install_engines)
     s = sub.add_parser('markush', help='Markush workflow from an image: init, next task, submit an answer, status')

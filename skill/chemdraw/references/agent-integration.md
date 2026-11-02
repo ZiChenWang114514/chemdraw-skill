@@ -88,8 +88,9 @@ cdx.py draw BRIEF.json [OUTPUT] [--render] [--out NEW.json]   checked scheme, sc
 cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--timeout S] [--out NEW.json]
 cdx.py ocsr IMAGE [--engines a,b|all] [--hand-drawn] [--preflight] [--no-upload] [--timeout S] [--out NEW.json]   several OCSR engines, compared
 cdx.py predict products|retro|nmr SMILES [--engine NAME] [--json ARGS]   model predictions (see engines.md)
-cdx.py engines                            which optional engines are installed
-cdx.py install-engines NAME... [--task T] [--dry-run] [--status]   optional engines, each in its own environment
+cdx.py engines [--recommend NEED]         which optional engines are installed, their disk use; what to install for a need
+cdx.py install-engines NAME... [--bundle B] [--task T] [--dry-run] [--status]   optional engines, each in its own environment
+cdx.py remove-engines NAME... [--yes]     delete installed engines (dry run without --yes)
 cdx.py markush init|next|submit|status WORKDIR [TASK ANSWER.json] [--image IMG --text CLAIM --crop X0 Y0 X1 Y1 --reuse OLD]
 cdx.py office-edit DOCUMENT [--object N] [--workdir NEW_DIR] [--no-open]
 cdx.py office-edit DOCUMENT|EDIT_DIR --finish [--output NEW] [--wait S] [--pdf]

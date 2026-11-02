@@ -37,9 +37,13 @@ def result(task: str, engine: str, spec: dict, structures=None, **extra) -> dict
     return out
 
 
-def failure(task: str, engine: str, spec: dict, error: str, **extra) -> dict:
-    return {'ok': False, 'task': task, 'engine': engine, 'kind': spec.get('kind'), 'provenance': PROVENANCE,
-            'structures': [], 'warnings': [], 'error': error, **extra}
+def failure(task: str, engine: str, spec: dict, error, **extra) -> dict:
+    """``error`` may be the exception itself: a missing engine then carries ``install_hint`` (what to ask the user)."""
+    out = {'ok': False, 'task': task, 'engine': engine, 'kind': spec.get('kind'), 'provenance': PROVENANCE,
+           'structures': [], 'warnings': [], 'error': str(error), **extra}
+    if getattr(error, 'hint', None):
+        out['install_hint'] = error.hint
+    return out
 
 
 def molfile_to_smiles(molfile: str) -> str | None:

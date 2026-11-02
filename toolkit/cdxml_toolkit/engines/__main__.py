@@ -7,7 +7,7 @@ import json
 import sys
 
 from . import env
-from .registry import ENGINES
+from .registry import BUNDLES, ENGINES
 
 
 def main(argv=None) -> int:
@@ -16,22 +16,43 @@ def main(argv=None) -> int:
         f'{env.home()} (hundreds of MB to a few GB each, with weights). Nothing is uploaded.'))
     parser.add_argument('engines', nargs='*', metavar='ENGINE', help=f'{", ".join(ENGINES)}')
     parser.add_argument('--task', help='install every local engine of one task (ocsr, retrosynthesis, ...)')
+    parser.add_argument('--bundle', help=f'install a ready-made set: {", ".join(BUNDLES)}')
     parser.add_argument('--dry-run', action='store_true', help='print what would be installed')
+    parser.add_argument('--recommend', metavar='NEED', help='what to install for a need (ocsr, pdf, products, retro, nmr), '
+                                                           'with sizes; downloads nothing')
+    parser.add_argument('--remove', action='store_true', help='delete the named engines (a dry run unless --yes)')
+    parser.add_argument('--yes', action='store_true', help='with --remove: really delete')
     parser.add_argument('--status', action='store_true', help='print which engines are available; install nothing')
     ns = parser.parse_args(argv)
     unknown = [name for name in ns.engines if name not in ENGINES]
     if unknown:
         parser.error(f'unknown engine {unknown[0]!r} (choose from {", ".join(ENGINES)})')
+    if ns.bundle and ns.bundle not in BUNDLES:
+        parser.error(f'unknown bundle {ns.bundle!r} (choose from {", ".join(BUNDLES)})')
     if ns.status:
         print(json.dumps(env.status(), indent=2))
         return 0
+    if ns.recommend:
+        try:
+            print(json.dumps(env.recommend(ns.recommend), indent=2))
+        except ValueError as exc:
+            parser.error(str(exc))
+        return 0
     names = list(ns.engines)
+    if ns.bundle:
+        names += BUNDLES[ns.bundle]['engines']
     if ns.task:
         names += [n for n, s in ENGINES.items() if s['task'] == ns.task and s['kind'] in ('local', 'jar')]
     if not names:
-        parser.error('name at least one engine, or use --task or --status')
+        parser.error('name at least one engine, or use --bundle, --task or --status')
+    if ns.remove:
+        reports = [env.remove(name, dry_run=not ns.yes) for name in dict.fromkeys(names)]
+        print(json.dumps({'home': str(env.home()), 'removed_mb': sum(r['disk_mb'] for r in reports if r.get('removed')),
+                          'reports': reports, 'note': None if ns.yes else 'dry run: add --yes to delete'}, indent=2))
+        return 0 if all(r.get('ok') for r in reports) else 1
     reports = [env.install(name, dry_run=ns.dry_run) for name in dict.fromkeys(names)]
-    print(json.dumps({'home': str(env.home()), 'reports': reports}, indent=2))
+    total = sum(r.get('disk_mb') or 0 for r in reports)
+    print(json.dumps({'home': str(env.home()), 'download_mb_estimate': total, 'reports': reports}, indent=2))
     return 0 if ns.dry_run or all(r.get('ok') for r in reports) else 1
 
 

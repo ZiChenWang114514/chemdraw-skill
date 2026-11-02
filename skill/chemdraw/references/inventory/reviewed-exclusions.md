@@ -92,27 +92,32 @@
 
 ## `engines.env`
 
-- **function**, line 104: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
-- **function**, line 117: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
-- **function**, line 56: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
+- **function**, line 125: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
+- **function**, line 138: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
+- **function**, line 77: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
+- **function**, line 300: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
 - **class**, line 30: `EngineError` - An engine is missing, could not run, or returned something unusable.
-- **function**, line 45: `environment(name: str) -> Path` - No public docstring in the audited version.
-- **function**, line 34: `home() -> Path` - No public docstring in the audited version.
-- **function**, line 223: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
-- **function**, line 49: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
-- **function**, line 80: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
-- **function**, line 61: `java() -> str | None` - No public docstring in the audited version.
-- **function**, line 92: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
-- **function**, line 72: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
-- **function**, line 152: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
-- **function**, line 164: `sha256_of(path) -> str` - No public docstring in the audited version.
-- **function**, line 274: `status() -> dict` - No public docstring in the audited version.
+- **class**, line 34: `EngineMissing` - The engine is not installed. ``hint`` says what installing it would cost, for the user to decide.
+- **function**, line 66: `environment(name: str) -> Path` - No public docstring in the audited version.
+- **function**, line 42: `hint(name: str) -> dict` - What to tell the user when ``name`` is needed but absent: use, size, licence and the command.
+- **function**, line 55: `home() -> Path` - No public docstring in the audited version.
+- **function**, line 244: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
+- **function**, line 70: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
+- **function**, line 101: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
+- **function**, line 82: `java() -> str | None` - No public docstring in the audited version.
+- **function**, line 113: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
+- **function**, line 93: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
+- **function**, line 327: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (ocsr, pdf, products, retro, nmr), with what each costs. Reads only; nothing is downloaded.
+- **function**, line 349: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
+- **function**, line 173: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
+- **function**, line 185: `sha256_of(path) -> str` - No public docstring in the audited version.
+- **function**, line 315: `status() -> dict` - No public docstring in the audited version.
 
 ## `engines.envelope`
 
 - **function**, line 8: `describe(smiles: str | None, score = None, **extra) -> dict` - A predicted structure: the engine's SMILES plus what RDKit can say about it.
-- **function**, line 40: `failure(task: str, engine: str, spec: dict, error: str, **extra) -> dict` - No public docstring in the audited version.
-- **function**, line 45: `molfile_to_smiles(molfile: str) -> str | None` - No public docstring in the audited version.
+- **function**, line 40: `failure(task: str, engine: str, spec: dict, error, **extra) -> dict` - ``error`` may be the exception itself: a missing engine then carries ``install_hint`` (what to ask the user).
+- **function**, line 49: `molfile_to_smiles(molfile: str) -> str | None` - No public docstring in the audited version.
 - **function**, line 30: `result(task: str, engine: str, spec: dict, structures = None, **extra) -> dict` - The envelope: ``ok`` is true when the engine ran, not when its answer is right.
 
 ## `engines.nmr`
@@ -133,6 +138,7 @@
 ## `engines.registry`
 
 - **function**, line 154: `by_task(task: str) -> list` - No public docstring in the audited version.
+- **function**, line 204: `disk_mb(names) -> int` - No public docstring in the audited version.
 
 ## `engines.worker`
 

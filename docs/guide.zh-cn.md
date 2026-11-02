@@ -54,7 +54,7 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 ## 可选的预测引擎
 
-`cdx.py engines` 列出可用的引擎：用多个模型读取结构图片、在 PDF 中找出结构，以及预测产物、前体、合成路线和 1H/13C 化学位移。`cdx.py install-engines molscribe molnextr molvec`（也可用 `--task ocsr`，先加 `--dry-run` 查看体积）会把每个引擎装进各自的独立环境；模型文件只下载一次并按固定哈希校验，之后每次运行都不联网。结果都标注为模型预测。对同一张图意见不一致的引擎会并排显示，不会被合并。详情、限制以及评估后未纳入的引擎见[引擎说明](../skill/chemdraw/references/engines.md)。
+`cdx.py engines` 列出可用的引擎：用多个模型读取结构图片、在 PDF 中找出结构，以及预测产物、前体、合成路线和 1H/13C 化学位移。`cdx.py engines --recommend ocsr` 会说明某个需求值得安装什么、各需要多大空间，不会下载任何东西。`cdx.py install-engines --bundle ocsr-standard`（也可写引擎名或 `--task ocsr`，先加 `--dry-run` 查看体积）会在你同意后把每个引擎装进各自的独立环境，`cdx.py remove-engines NAME --yes` 可再把它删掉；模型文件只下载一次并按固定哈希校验，之后每次运行都不联网。结果都标注为模型预测。对同一张图意见不一致的引擎会并排显示，不会被合并。详情、限制以及评估后未纳入的引擎见[引擎说明](../skill/chemdraw/references/engines.md)。
 
 ## ChemDraw 接口覆盖
 

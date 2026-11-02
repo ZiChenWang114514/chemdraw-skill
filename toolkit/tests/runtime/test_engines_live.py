@@ -77,3 +77,17 @@ def test_nmr_of_ethyl_acetate_has_the_expected_peak_counts():
     out = nmr.predict('CCOC(C)=O', nucleus='both')
     assert len(out['peaks']['1H']) == 3 and len(out['peaks']['13C']) == 4
     assert all(p['predicted'] for p in out['peaks']['1H'] + out['peaks']['13C'])
+
+
+def test_a_tiny_engine_installs_reads_and_removes_in_a_scratch_home(tmp_path, monkeypatch):
+    """The whole on-demand cycle with MolVec (1.3 MB, needs Java); the user's own engines are untouched."""
+    if not env.java():
+        pytest.skip('Java not found')
+    monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(tmp_path / 'scratch'))
+    assert env.recommend('ocsr')['options'][1]['missing'] == ['molvec']
+    report = env.install('molvec')
+    assert report['ok'], report
+    out = ocsr.recognize(drawing(tmp_path / 'a.png'), engines='molvec')
+    assert out['engines'][0]['structures'][0]['inchikey'] == key(ASPIRIN)
+    assert env.remove('molvec', dry_run=False)['removed']
+    assert not env.available()['molvec'] and not (tmp_path / 'scratch' / 'molvec').exists()

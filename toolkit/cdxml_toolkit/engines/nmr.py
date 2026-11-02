@@ -79,7 +79,7 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
     try:
         raw = env.call(name, 'predict', {'smiles': canonical, 'solvent': key}, timeout=timeout_seconds)
     except env.EngineError as exc:
-        return envelope.failure('nmr', name, ENGINES[name], str(exc))
+        return envelope.failure('nmr', name, ENGINES[name], exc)
     nuclei = ['1H', '13C'] if nucleus == 'both' else [nucleus]
     spectra = {}
     peaks = {n: _peaks(raw['atoms'], n) for n in nuclei}

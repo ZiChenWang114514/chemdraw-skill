@@ -153,3 +153,53 @@ TASKS = ('ocsr', 'segmentation', 'products', 'retrosynthesis', 'conditions', 'nm
 
 def by_task(task: str) -> list:
     return [name for name, spec in ENGINES.items() if spec['task'] == task]
+
+
+# --- when an engine is worth installing -----------------------------------------------------------------
+# ``disk_mb`` is the measured folder size of a finished install on macOS arm64 (rounded up). Nothing here
+# downloads anything: it is what the Skill reads to recommend an engine, with its size, before the user agrees.
+
+GUIDE = {
+    'molscribe': {'disk_mb': 2000, 'use_when': 'a second opinion on a structure image, good on clean and mid-quality drawings',
+                  'skip_when': 'the default DECIMER read is already confirmed against the image'},
+    'molnextr': {'disk_mb': 2400, 'use_when': 'hard drawings with wedges and ring stereochemistry, as an extra vote',
+                 'skip_when': 'two other engines already agree and the image checks out'},
+    'molparser': {'disk_mb': 1100, 'use_when': 'Markush or extended structures, and as a third vote',
+                  'skip_when': 'the work is commercial (its weights are non-commercial) or the structure is plain'},
+    'molvec': {'disk_mb': 2, 'use_when': 'a rule-based second opinion that errs differently from the neural models; tiny',
+               'skip_when': 'photographs, hand drawings or scans (it needs clean line art)', 'needs': ['java']},
+    'decimer-segmentation': {'disk_mb': 2000, 'use_when': 'many structures on PDF pages that must be cut out and read',
+                             'skip_when': 'one structure in one image (the OpenCV segmenter is enough for clean pages)'},
+    'aizynthfinder': {'disk_mb': 1800, 'use_when': 'multi-step routes to purchasable starting materials',
+                      'skip_when': 'a single quick guess at precursors is enough'},
+    'synplanner': {'disk_mb': 2500, 'use_when': 'a second route planner with its own building-block list',
+                   'skip_when': 'AiZynthFinder already gave a usable route'},
+    'reactiont5-forward': {'disk_mb': 1600, 'use_when': 'ranked candidate products for given reactants',
+                           'skip_when': 'the product is known or only needs an atom-balance check'},
+    'reactiont5-retro': {'disk_mb': 1600, 'use_when': 'quick single-step precursor ideas',
+                         'skip_when': 'AiZynthFinder is installed (it is more reliable)'},
+    'magnet': {'disk_mb': 1300, 'use_when': 'predicted 1H and 13C shifts of one molecule',
+               'skip_when': 'measured spectra are available (those are plotted without a model)'},
+}
+
+BUNDLES = {
+    'ocsr-lite': {'engines': ['molvec'], 'task': 'ocsr',
+                  'about': 'a tiny rule-based second opinion (needs Java)'},
+    'ocsr-standard': {'engines': ['molscribe', 'molvec'], 'task': 'ocsr',
+                      'about': 'two engines that err differently, enough for a comparison'},
+    'ocsr-full': {'engines': ['molscribe', 'molnextr', 'molparser', 'molvec'], 'task': 'ocsr',
+                  'about': 'every local OCSR engine, for hard drawings and Markush structures'},
+    'pdf': {'engines': ['decimer-segmentation', 'molscribe', 'molvec'], 'task': 'pdf',
+            'about': 'cut the structures out of PDF pages and read them with two engines'},
+    'products': {'engines': ['reactiont5-forward'], 'task': 'products', 'about': 'candidate products of a reaction'},
+    'retro': {'engines': ['aizynthfinder'], 'task': 'retro', 'about': 'single and multi-step retrosynthesis'},
+    'nmr': {'engines': ['magnet'], 'task': 'nmr', 'about': 'predicted 1H and 13C shifts'},
+}
+
+# What to suggest for a need: the smallest set that does the job first, then larger alternatives.
+RECOMMEND = {'ocsr': ['ocsr-standard', 'ocsr-lite', 'ocsr-full'], 'pdf': ['pdf'], 'products': ['products'],
+             'retro': ['retro'], 'nmr': ['nmr']}
+
+
+def disk_mb(names) -> int:
+    return sum(GUIDE.get(name, {}).get('disk_mb', 0) for name in names)

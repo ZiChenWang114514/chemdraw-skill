@@ -532,7 +532,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 | 分子比较或 ChemScript SDK 调用 | 可移植相似度比较使用 RDKit；精确检查和原始 SDK 程序需 Windows 主机上的兼容 ChemScript DLL（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作） |
 | 可编辑的 Word 或 PowerPoint 对象 | 用桌面版 ChemDraw 生成；PDF 预览需桌面版 Word 和/或 PowerPoint（macOS 上需已激活） |
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖 |
-| 更多 OCSR 引擎、逆合成、产物与核磁预测 | `cdx.py install-engines`：每个引擎一个独立环境，连同模型文件从数百 MB 到数 GB 不等（见[引擎说明](skill/chemdraw/references/engines.md)） |
+| 更多 OCSR 引擎、逆合成、产物与核磁预测 | `cdx.py engines --recommend 需求` 后经你同意再 `cdx.py install-engines --bundle 名称`：每个引擎一个独立环境，连同模型文件从 2 MB 到数 GB 不等，可用 `remove-engines` 删除（见[引擎说明](skill/chemdraw/references/engines.md)） |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络通道 |
 
 项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。安装选项、手动创建运行时和诊断方法见[安装指南](docs/guide.zh-cn.md#首次安装)。

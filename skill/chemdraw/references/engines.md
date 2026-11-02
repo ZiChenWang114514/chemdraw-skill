@@ -3,8 +3,10 @@
 Optional engines for reading structure images with more than one model, finding the structures in a PDF, and predicting products, precursors and NMR shifts. Everything here is a **model prediction**: results carry `provenance: "model_prediction"`, are never merged or picked silently, and must be checked before they reach a figure or a report. Signatures: [mcp-signatures.md](mcp-signatures.md).
 
 ```bash
-cdx.py engines                              # which engines are installed
-cdx.py install-engines molscribe molvec     # or --task ocsr; --dry-run shows size and Python needs first
+cdx.py engines                              # installed or not, what each is for, disk used
+cdx.py engines --recommend ocsr             # what to install for a need, with sizes; downloads nothing
+cdx.py install-engines --bundle ocsr-standard   # or engine names, or --task ocsr; --dry-run shows sizes first
+cdx.py remove-engines molnextr              # dry run; add --yes to delete
 cdx.py ocsr crop.png --engines molscribe,molnextr,molvec
 cdx.py predict retro "CC(=O)Oc1ccccc1C(=O)O" --json '{"steps": "multi"}'
 ```
@@ -28,6 +30,45 @@ Each engine installs into its own folder under `~/.local/share/chemdraw-skill/en
 | `magnet` | 1H and 13C shifts | own env, Python 3.12 | MIT / MIT | PyTorch env |
 
 MolParser's weights may not be used commercially; check this before using it in paid or company work. Licences are those stated by each project; the weights of an engine are covered by their own terms, shown in `cdx.py install-engines --dry-run`. The full notices are in `toolkit/NOTICE.md`.
+
+## When to offer an engine, and how to install it
+
+Nothing here is installed or downloaded until the user agrees. The default path (remote DECIMER, the upload rule in [SKILL.md](../SKILL.md)) needs no engine at all.
+
+**Offer an engine when** the request needs something the default cannot do and the matching engine is missing:
+
+| The user wants | Offer | Download |
+| --- | --- | --- |
+| a second opinion on a structure image, or DECIMER's read failed the visual check | `ocsr-standard` (MolScribe + MolVec); `ocsr-lite` (MolVec alone, 2 MB, needs Java) when disk is tight | about 2 GB |
+| hard drawings, Markush structures, the widest coverage | `ocsr-full` | about 5.5 GB |
+| every structure from a PDF | `pdf` (segmenter + two OCSR engines) | about 4 GB |
+| candidate products | `products` | about 1.6 GB |
+| precursors or routes | `retro` | about 1.8 GB |
+| predicted 1H/13C shifts | `nmr` | about 1.3 GB |
+
+Sizes are measured folder sizes of finished installs. A tool that needs a missing engine answers `ok: false` with an `install_hint` (engine, use, size, licence, command): relay it instead of searching the documentation, and install only after the user says yes.
+
+**How to offer:** run `cdx.py engines --recommend NEED`, then say in a sentence or two what it is for, the download size, the licence in one line (MolParser's weights are non-commercial) and that it needs a network to install but not to run. After a yes, run `cdx.py install-engines --bundle NAME` and check `cdx.py engines`.
+
+**Do not offer** when the task is already solved by the default path, when the user asked for offline or no-download work (`CHEMDRAW_OFFLINE=1` also makes installation refuse), in tasks unrelated to these needs, or again after the user declined in this conversation.
+
+## Bundles
+
+| Bundle | Engines | For |
+| --- | --- | --- |
+| `ocsr-lite` | `molvec` | a tiny rule-based second opinion |
+| `ocsr-standard` | `molscribe`, `molvec` | an ordinary comparison |
+| `ocsr-full` | `molscribe`, `molnextr`, `molparser`, `molvec` | hard drawings and Markush structures |
+| `pdf` | `decimer-segmentation`, `molscribe`, `molvec` | structures from PDF pages |
+| `products` | `reactiont5-forward` | candidate products |
+| `retro` | `aizynthfinder` | single and multi-step retrosynthesis |
+| `nmr` | `magnet` | predicted shifts |
+
+`SynPlanner`, `ReactionT5` retrosynthesis and the individual OCSR engines are installed by name.
+
+## Removing an engine
+
+`cdx.py remove-engines NAME...` shows what it would delete and how much space that frees; `--yes` deletes. It removes only that engine's own folder under the engines home, and refuses a folder that is a symbolic link, outside the home, or not an installation made by `install-engines`. Downloaded package caches outside the folder are not touched. Reinstalling later downloads again.
 
 ## Reading a structure image
 

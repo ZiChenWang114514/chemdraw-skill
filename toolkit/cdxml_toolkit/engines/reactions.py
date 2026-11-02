@@ -39,7 +39,7 @@ def products(reactants: str, reagents: str | None = None, engine: str | None = N
         answers = env.call(name, 'predict', {'inputs': [f'REACTANT:{clean}REAGENT:{reagent}'], 'count': count},
                            timeout=timeout_seconds)[0]
     except env.EngineError as exc:
-        return envelope.failure('products', name, ENGINES[name], str(exc))
+        return envelope.failure('products', name, ENGINES[name], exc)
     structures = [envelope.describe(a['smiles'], a['score'], rank=i) for i, a in enumerate(answers, 1)]
     return envelope.result('products', name, ENGINES[name], structures, reactants=clean, reagents=reagent.strip() or None,
                            score_meaning='mean log-probability of the generated sequence (closer to 0 is likelier)',
@@ -107,7 +107,7 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
                     body['target_in_stock'] = True
                     body['note'] = 'the target is itself a purchasable building block: no search was run'
     except env.EngineError as exc:
-        return envelope.failure('retrosynthesis', name, ENGINES[name], str(exc))
+        return envelope.failure('retrosynthesis', name, ENGINES[name], exc)
     out = envelope.result('retrosynthesis', name, ENGINES[name], [], target=target, elapsed_s=round(time.time() - started, 2),
                           warnings=['model predictions: precursors are suggestions from learned reaction templates; '
                                     'check chemistry, selectivity and availability before use'], **body)

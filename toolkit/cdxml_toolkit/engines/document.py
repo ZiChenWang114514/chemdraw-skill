@@ -133,6 +133,8 @@ def extract(path: str, out_dir: str, pages=None, engines: str = 'molscribe,molve
               'elapsed_s': round(time.time() - started, 1),
               'warnings': warnings + ['predicted structures: compare every segment with the sheet and the page; '
                                       'segmentation can miss, merge or split structures']}
+    if method == 'opencv':  # an optional upgrade, for the user to decide
+        report['install_hint'] = env.hint('decimer-segmentation')
     (target / 'structures.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     report['output_dir'] = str(target)
     return report

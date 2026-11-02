@@ -76,7 +76,7 @@ def recognize(image_path: str, engines='decimer-api', hand_drawn: bool = False, 
             try:
                 entry = envelope.result('ocsr', name, spec, _local(name, image, hand_drawn, timeout_seconds))
             except (env.EngineError, ValueError, OSError) as exc:
-                entry = envelope.failure('ocsr', name, spec, str(exc))
+                entry = envelope.failure('ocsr', name, spec, exc)
         entry['elapsed_s'] = round(time.time() - started, 2)
         entries.append(entry)
     return {'ok': any(e['ok'] for e in entries), 'task': 'ocsr', 'provenance': envelope.PROVENANCE, 'image': image,
