@@ -68,7 +68,7 @@ def heading_text(language: str, site: Path = SITE) -> str:
 
 
 def is_chinese(char: str) -> bool:
-    return "㐀" <= char <= "鿿"
+    return "\u3400" <= char <= "\u9fff"
 
 
 def _download(source: dict) -> bytes:
