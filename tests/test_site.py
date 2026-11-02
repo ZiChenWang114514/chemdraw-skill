@@ -30,7 +30,7 @@ WORDS = {"zh": SITE / "words.zh.js", "en": SITE / "words.en.js"}
 DAILY_WORDS = {"zh": SITE / "daily.zh.js", "en": SITE / "daily.en.js"}
 DAILY_SOURCES = ROOT / "tests" / "daily_sources.json"
 HOME_BUDGET = 41_800   # gzip bytes: app.js, chem.js, editor.js and one words file; CI packs about 170 worse than a Mac
-DAILY_BUDGET = 9_500   # gzip bytes of each daily.<language>.js
+DAILY_BUDGET = 13_500  # gzip bytes of each daily.<language>.js, which the home page fetches only when the daily is opened
 VALENCE = {"C": 4, "N": 3, "O": 2, "S": 2, "F": 1, "Cl": 1, "Br": 1}
 NODE = shutil.which("node")
 
@@ -85,7 +85,7 @@ class HeroEditorTests(unittest.TestCase):
                 keys[language] = table_words
                 self.assertRegex(html, rf'<script src="(\.\./)?words\.{language}\.js" defer></script>')
                 self.assertRegex(html, r'<script src="(\.\./)?chem\.js" defer></script>')
-                self.assertEqual(set(table_words["names"]), set(table))
+                self.assertEqual(set(table_words["names"]), set(table) | set(run_editor("console.log(JSON.stringify(Object.keys(E.STARTERS)))")))
                 tabs = re.findall(r'data-mol="(\w+)"', html)
                 self.assertEqual(tabs, list(table))
                 for marker in ("ask", "resolve", "build", "readback"):
@@ -303,9 +303,10 @@ console.log(JSON.stringify([E.graphKey(a) === E.graphKey(moved), E.graphKey(a) =
         for language, path in PAGES.items():
             with self.subTest(page=language):
                 table = words(language)["challenge"]
-                self.assertEqual(set(table["tasks"]), ids)
+                tasks = daily_words(language)["tasks"]
+                self.assertLessEqual(ids, set(tasks))
                 for cid in ids:
-                    entry = table["tasks"][cid]
+                    entry = tasks[cid]
                     self.assertTrue(entry["name"] and entry["task"] and entry["hint"] and entry["fact"])
                 for key in ("title", "hint", "skip", "next", "close", "done", "matches", "aim"):
                     self.assertIn(key, table)
@@ -503,23 +504,21 @@ console.log(JSON.stringify({
             with self.subTest(language=language):
                 table = daily_words(language)
                 shapes[language] = key_shape(table)
-                self.assertEqual(set(table), {"names", "tasks"})
-                self.assertEqual(set(table["tasks"]), set(self.out["dailies"]))
-                self.assertEqual(set(table["names"]), set(self.out["starters"]))
-                self.assertFalse(set(table["names"]) & set(words(language)["names"]))
-                self.assertFalse(set(table["tasks"]) & set(words(language)["challenge"]["tasks"]))
+                self.assertEqual(set(table), {"tasks", "lab"})
+                self.assertEqual(set(table["tasks"]), set(self.out["dailies"]) | set(CHALLENGE_ANSWERS))
+                self.assertLessEqual(set(self.out["starters"]), set(words(language)["names"]))
                 for entry in table["tasks"].values():
                     self.assertEqual(set(entry), {"name", "task", "hint", "fact"})
                     self.assertTrue(all(entry.values()))
-                self.assertTrue(all(table["names"].values()))
         self.assertEqual(shapes["zh"], shapes["en"])
 
-    def test_the_four_pages_load_the_daily_words_right_after_the_interface_words(self) -> None:
+    def test_the_lab_loads_the_game_words_and_the_home_page_waits_for_the_daily(self) -> None:
         for language in ("zh", "en"):
-            for pages in (PAGES, LAB_PAGES):
-                with self.subTest(language=language, page=str(pages[language])):
-                    html = pages[language].read_text(encoding="utf-8")
-                    self.assertRegex(html, rf'<script src="(\.\./)*words\.{language}\.js" defer></script>\n<script src="(\.\./)*daily\.{language}\.js" defer></script>')
+            with self.subTest(language=language):
+                self.assertRegex(LAB_PAGES[language].read_text(encoding="utf-8"), rf'<script src="(\.\./)*words\.{language}\.js" defer></script>\n<script src="(\.\./)*daily\.{language}\.js" defer></script>')
+                self.assertNotIn(f"daily.{language}.js", PAGES[language].read_text(encoding="utf-8"))
+                self.assertNotIn("lab", words(language))
+                self.assertEqual(words(language)["challenge"]["tasks"], {})
 
 
 @unittest.skipUnless(NODE, "Node.js runs the game logic")
@@ -631,7 +630,7 @@ console.log(JSON.stringify({ seen, ids: E.BADGES }));
         self.assertEqual(set(out["seen"][3]), set(out["ids"]))
         self.assertLessEqual(len(out["ids"]), 8)
         for language in PAGES:
-            self.assertEqual(set(words(language)["lab"]["badges"]), set(out["ids"]))
+            self.assertEqual(set(daily_words(language)["lab"]["badges"]), set(out["ids"]))
 
     def test_every_hunt_round_has_one_findable_error(self) -> None:
         out = run_editor("""
@@ -656,7 +655,7 @@ console.log(JSON.stringify({ rounds, kinds, size: [...size], repeat, distinct })
         self.assertEqual(out["distinct"], 8)
         self.assertEqual(set(out["kinds"]), {"element", "ringN", "order", "extra", "missing", "valence"})
         for language in PAGES:
-            self.assertEqual(set(words(language)["lab"]["huntKinds"]), set(out["kinds"]))
+            self.assertEqual(set(daily_words(language)["lab"]["huntKinds"]), set(out["kinds"]))
         for round_ in out["rounds"]:
             self.assertTrue(round_["differs"], round_)
             self.assertGreater(round_["hit"], 0, round_)
@@ -761,6 +760,10 @@ class InteractionMarkupTests(unittest.TestCase):
                 kinds[language] = [kind for kind, _ in items]
         self.assertEqual(kinds["zh"], kinds["en"])
 
+    def test_file_names_never_show_an_internal_id(self) -> None:
+        out = run_editor('console.log(JSON.stringify(["aceticAcid", "aspirin", "phenylAcetate", "wintergreen-edited"].map(E.fileName)))')
+        self.assertEqual(out, ["acetic-acid", "aspirin", "phenyl-acetate", "wintergreen-edited"])
+
     def test_both_pages_carry_the_same_interface_words(self) -> None:
         tables = {language: words(language) for language in PAGES}
         for language, table in tables.items():
@@ -828,7 +831,7 @@ class LabPageTests(unittest.TestCase):
         for word_file in ("words.zh.js", "words.en.js"):
             self.assertLessEqual(size("app.js", "chem.js", "editor.js", word_file), HOME_BUDGET)
         self.assertLessEqual(size("lab.js"), 9_000)
-        # The daily words are one more request on the four pages and are budgeted on their own.
+        # The Lab's words and every task: one more request in the Lab, budgeted on its own.
         for daily_file in ("daily.zh.js", "daily.en.js"):
             self.assertLessEqual(size(daily_file), DAILY_BUDGET, daily_file)
 
@@ -1164,6 +1167,89 @@ class DesignSystemTests(unittest.TestCase):
         self.assertRegex(self.css, r"\.btn\.sm\b")
         self.assertRegex(self.css, r"\.btn\.ghost\b")
         self.assertRegex(self.css, r"@media \(pointer: coarse\)[^{]*\{[^}]*\.btn")
+
+
+class AccessibilityTests(unittest.TestCase):
+    """The checks axe-core and Lighthouse made by hand, kept so they stay fixed."""
+
+    @staticmethod
+    def luminance(colour: str) -> float:
+        channels = [int(colour[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        r, g, b = [c / 12.92 if c <= .03928 else ((c + .055) / 1.055) ** 2.4 for c in channels]
+        return .2126 * r + .7152 * g + .0722 * b
+
+    def contrast(self, one: str, other: str) -> float:
+        a, b = sorted((self.luminance(one), self.luminance(other)), reverse=True)
+        return (a + .05) / (b + .05)
+
+    def test_muted_text_is_readable_on_every_surface(self) -> None:
+        css = (SITE / "styles.css").read_text(encoding="utf-8")
+        for block in re.findall(r"--mute:[^}]*\}", css):
+            mute = re.search(r"--mute:\s*(#[0-9a-f]{6})", block).group(1)
+            sheet = re.search(r"--sheet:\s*(#[0-9a-f]{6})", block).group(1)
+            self.assertGreaterEqual(self.contrast(mute, sheet), 4.5, (mute, sheet))
+
+    def test_filter_counts_are_not_faded_on_the_teal_chip(self) -> None:
+        css = (SITE / "styles.css").read_text(encoding="utf-8")
+        rule = re.search(r'\.filters button\[aria-pressed="true"\] span \{([^}]*)\}', css).group(1)
+        self.assertNotIn("opacity", rule)
+
+    def test_the_clone_command_scrolls_by_keyboard(self) -> None:
+        for page in ("index.html", "en/index.html"):
+            self.assertRegex((SITE / page).read_text(encoding="utf-8"), r'<code id="clone" tabindex="0"')
+
+
+class GalleryImageTests(unittest.TestCase):
+    """The pages show WebP copies of the READMEs' PNGs, which stay beside them in assets/readme/gallery."""
+
+    GALLERY = ROOT / "assets" / "readme" / "gallery"
+    PAGES = ("index.html", "en/index.html")
+    BUDGET = 330_000  # bytes of all the copies together; the PNGs are 1.19 MB
+
+    def shown(self) -> set:
+        found = set()
+        for page in self.PAGES:
+            found |= set(re.findall(r'<img\b[^>]*\bsrc="(?:\.\./)?gallery/([^"]+)"', (SITE / page).read_text(encoding="utf-8")))
+        return found
+
+    def test_the_pages_show_only_webp(self) -> None:
+        names = self.shown()
+        self.assertEqual({n for n in names if not n.endswith(".webp")}, set())
+        self.assertEqual(len(names), 11)
+
+    def test_every_copy_exists_and_stays_small(self) -> None:
+        copies = sorted(self.GALLERY.glob("*.webp"))
+        self.assertEqual({p.stem for p in copies}, {p.stem for p in self.GALLERY.glob("*.png")})
+        self.assertLessEqual(sum(p.stat().st_size for p in copies), self.BUDGET)
+
+    def test_every_copy_is_its_png(self) -> None:
+        try:
+            from PIL import Image, ImageChops, ImageStat
+        except ImportError:
+            self.skipTest("Pillow compares the images")
+        for png in self.GALLERY.glob("*.png"):
+            def flat(path):
+                with Image.open(path) as image:
+                    rgba = image.convert("RGBA")
+                paper = Image.new("RGBA", rgba.size, "white")
+                paper.alpha_composite(rgba)
+                return paper.convert("L")
+            with self.subTest(png.name):
+                original, copy = flat(png), flat(png.with_suffix(".webp"))
+                self.assertEqual(copy.size, original.size)
+                difference = ImageChops.difference(original.resize((96, 96)), copy.resize((96, 96)))
+                self.assertLess(ImageStat.Stat(difference).mean[0], 1.0)
+
+    def test_width_and_height_match_the_image(self) -> None:
+        try:
+            from PIL import Image
+        except ImportError:
+            self.skipTest("Pillow reads the image size")
+        for page in self.PAGES:
+            for tag in re.findall(r'<img\b[^>]*\bsrc="(?:\.\./)?gallery/[^"]+"[^>]*>', (SITE / page).read_text(encoding="utf-8")):
+                name = re.search(r'gallery/([^"]+)"', tag).group(1)
+                with Image.open(self.GALLERY / name) as image:
+                    self.assertEqual(image.size, (int(re.search(r'width="(\d+)"', tag).group(1)), int(re.search(r'height="(\d+)"', tag).group(1))), name)
 
 
 @unittest.skipUnless(os.environ.get("SITE_BROWSER"), "set SITE_BROWSER=1 to drive headless Chrome")

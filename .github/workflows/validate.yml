@@ -7,6 +7,7 @@ on:
     # A change to the website alone runs site.yml instead; a merge runs everything.
     paths-ignore:
       - "site/**"
+      - "assets/readme/gallery/**"
       - "docs/website.md"
       - "tests/site_smoke.mjs"
       - "tests/test_site.py"

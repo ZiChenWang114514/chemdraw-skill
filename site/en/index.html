@@ -109,7 +109,7 @@
       <h1>Let your AI agent draw in ChemDraw</h1>
       <p class="lede">ChemDraw Skill lets an AI coding agent make ChemDraw files. You say which molecule or figure you want; the agent looks the structure up, writes the CDXML, has ChemDraw render it and reads the file back to check it. What you open is an ordinary ChemDraw document, with atoms and bonds you can keep editing. The same Skill also does the arithmetic around a reaction: reagent amounts, yields, characterization text and atom maps.</p>
       <div class="install">
-        <code id="clone">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
+        <code id="clone" tabindex="0">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
         <button class="copy" type="button" data-copy="#clone">Copy</button>
       </div>
       <div class="actions">
@@ -206,8 +206,8 @@
     <div class="panel" id="p-scheme" role="tabpanel" aria-labelledby="t-scheme">
       <p>The left side is the original image from the paper; the right side is the ChemDraw rebuild. Five structures, conditions, yields and compound numbers are all editable.</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="../gallery/paper-scheme-original.png" width="1600" height="275" alt="Original reaction scheme from a paper">
-        <div class="after"><img decoding="async" src="../gallery/paper-scheme-chemdraw.png" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
+        <img decoding="async" src="../gallery/paper-scheme-original.webp" width="1600" height="275" alt="Original reaction scheme from a paper">
+        <div class="after"><img decoding="async" src="../gallery/paper-scheme-chemdraw.webp" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the original and the ChemDraw rebuild">
         <span class="seam"></span>
       </div>
@@ -216,8 +216,8 @@
     <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden>
       <p>A generic structure from a patent figure: R groups, two variable rings, a group that can sit on three ring positions, and repeat counts. An agent given only the Skill, the image and the claim text ran the whole extraction; the structure is also saved as CXSMILES and a V3000 molfile.</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="../gallery/markush-original.png" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
-        <div class="after"><img decoding="async" src="../gallery/markush-chemdraw.png" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
+        <img decoding="async" src="../gallery/markush-original.webp" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
+        <div class="after"><img decoding="async" src="../gallery/markush-chemdraw.webp" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the patent figure and the ChemDraw rebuild">
         <span class="seam"></span>
       </div>
@@ -226,27 +226,27 @@
 
     <div class="works">
       <figure class="lg">
-        <div class="plate"><img decoding="async" data-zoom src="../gallery/complex-synthesis.png" width="720" height="450" loading="lazy" alt="A complex multistep synthesis rebuilt in ChemDraw"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/complex-synthesis.webp" width="720" height="450" loading="lazy" alt="A complex multistep synthesis rebuilt in ChemDraw"></div>
         <figcaption><b>Complex synthesis.</b> A full multistep route with every compound, condition and mechanism arrow.</figcaption>
       </figure>
       <figure class="lg">
-        <div class="plate"><img decoding="async" data-zoom src="../gallery/mechanism.png" width="720" height="450" loading="lazy" alt="A reaction mechanism redrawn natively in ChemDraw"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/mechanism.webp" width="720" height="450" loading="lazy" alt="A reaction mechanism redrawn natively in ChemDraw"></div>
         <figcaption><b>Reaction mechanism.</b> Eight structures, electron-pushing arrows, charges and counterions.</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img decoding="async" data-zoom src="../gallery/twenty-structures.png" width="720" height="450" loading="lazy" alt="A twenty-structure synthesis rebuilt in ChemDraw"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/twenty-structures.webp" width="720" height="450" loading="lazy" alt="A twenty-structure synthesis rebuilt in ChemDraw"></div>
         <figcaption><b>Twenty-structure route.</b> ChemScript and RDKit agree on stereochemistry for 20 of 20 structures.</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img decoding="async" data-zoom src="../gallery/acs1996.png" width="720" height="450" loading="lazy" alt="An ACS Document 1996 hydrogenation drawing built from JSON"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/acs1996.webp" width="720" height="450" loading="lazy" alt="An ACS Document 1996 hydrogenation drawing built from JSON"></div>
         <figcaption><b>Exam and lecture drawings.</b> A small JSON file becomes an ACS Document 1996 drawing, with C<sub>10</sub>H<sub>21</sub> abbreviations and annotations.</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img decoding="async" data-zoom src="../gallery/tlc-apparatus.png" width="720" height="450" loading="lazy" alt="A native TLC plate and reflux apparatus"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/tlc-apparatus.webp" width="720" height="450" loading="lazy" alt="A native TLC plate and reflux apparatus"></div>
         <figcaption><b>TLC and apparatus.</b> Native TLC plates, lanes, spots and Rf values, plus ChemDraw apparatus templates.</figcaption>
       </figure>
       <figure>
-        <div class="plate"><img decoding="async" data-zoom src="../gallery/nmr.png" width="720" height="450" loading="lazy" alt="An editable experimental NMR spectrum"></div>
+        <div class="plate"><img decoding="async" data-zoom src="../gallery/nmr.webp" width="720" height="450" loading="lazy" alt="An editable experimental NMR spectrum"></div>
         <figcaption><b>Spectra and plots.</b> Peak picking and integration on processed 1D NMR, and numeric data as editable curves.</figcaption>
       </figure>
     </div>
@@ -324,7 +324,7 @@ Bonds:   13</code></pre></details></div>
       </ul>
     </div>
     <figure class="calc-shot">
-      <img decoding="async" src="../gallery/stoichiometry-grid.png" data-zoom width="1245" height="693" loading="lazy" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
+      <img decoding="async" src="../gallery/stoichiometry-grid.webp" data-zoom width="1245" height="693" loading="lazy" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
       <figcaption>ChemDraw's own stoichiometry grid for benzyl alcohol and acetyl chloride, rendered by ChemDraw. The bold italic mass is the amount typed in; ChemDraw computed the moles.</figcaption>
     </figure>
   </div>
@@ -534,7 +534,6 @@ cd chemdraw-skill
 </footer>
 
 <script src="../words.en.js" defer></script>
-<script src="../daily.en.js" defer></script>
 <script src="../app.js" defer></script>
 <script src="../chem.js" defer></script>
 <script src="../editor.js" defer></script>

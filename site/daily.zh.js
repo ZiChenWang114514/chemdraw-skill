@@ -1,23 +1,130 @@
-// Names, tasks, hints and facts of the molecules that are only ever the daily one, and the names of the
-// starting skeletons, in Chinese. Same keys as daily.en.js; merged into ChemWords after words.zh.js.
+// The words only the game needs, in Chinese: every level's and daily's name, task, hint and fact, and
+// the Lab's own words. Same keys as daily.en.js; merged into ChemWords after words.zh.js. The Lab loads
+// this file with the page, the home page only when the daily is opened.
 
 {
   const daily = {
- "names": {
-  "benzene": "苯",
-  "pyridine": "吡啶",
-  "pyrimidine": "嘧啶",
-  "imidazole": "咪唑",
-  "indole": "吲哚",
-  "naphthalene": "萘",
-  "cyclohexane": "环己烷",
-  "thiophene": "噻吩",
-  "furan": "呋喃",
-  "purine": "嘌呤",
-  "aceticAcid": "乙酸",
-  "hexane": "己烷"
- },
  "tasks": {
+  "salicylic": {
+   "name": "水杨酸",
+   "task": "像体内水解那样，去掉阿司匹林的乙酰基，留下酚羟基。",
+   "hint": "选橡皮，删掉左边的甲基、羰基碳和它的双键氧，共三个原子。",
+   "fact": "阿司匹林在体内水解后就生成水杨酸，它也是祛痘护肤品里的常见成分。"
+  },
+  "aminophenol": {
+   "name": "4-氨基苯酚",
+   "task": "把对乙酰氨基酚退回它的前体：4-氨基苯酚。",
+   "hint": "删掉乙酰基的三个原子，留下 NH₂。",
+   "fact": "工业上常用它做对乙酰氨基酚的最后一步原料，乙酰化后就得到成品。"
+  },
+  "acetanilide": {
+   "name": "乙酰苯胺",
+   "task": "去掉对乙酰氨基酚的羟基，得到乙酰苯胺。",
+   "hint": "用橡皮点掉环上的 OH。",
+   "fact": "1886 年它以“退热冰”之名作为退烧药上市，是最早的合成解热药之一。"
+  },
+  "phenylAcetate": {
+   "name": "乙酸苯酯",
+   "task": "去掉阿司匹林的羧基，留下乙酸苯酯。",
+   "hint": "删掉环上的 COOH：羧基碳和两个氧，共三个原子。",
+   "fact": "它是 Fries 重排的经典底物：酰基从氧迁移到苯环上。"
+  },
+  "theophylline": {
+   "name": "茶碱",
+   "task": "咖啡因少一个甲基就是茶碱：去掉五元环氮上的甲基。",
+   "hint": "五元环上连着甲基的是左下方的 N。用橡皮点掉那个甲基。",
+   "fact": "茶叶里含有微量茶碱，它也是治疗哮喘和慢阻肺的支气管扩张药。"
+  },
+  "theobromine": {
+   "name": "可可碱",
+   "task": "换一个甲基去掉：这次删掉两个羰基之间的氮上的甲基。",
+   "hint": "找夹在两个 C=O 之间的 N，用橡皮点掉它的甲基。",
+   "fact": "它是可可和巧克力里的主要生物碱。名字来自可可属 Theobroma，分子里并没有溴。"
+  },
+  "paraxanthine": {
+   "name": "副黄嘌呤",
+   "task": "去掉连在六元环、又靠近五元环那个氮上的甲基。",
+   "hint": "这个 N 一边是 C=O，一边连着五六元环的稠合碳。用橡皮点掉它的甲基。",
+   "fact": "你喝下的咖啡因，大部分在肝脏里变成了副黄嘌呤。"
+  },
+  "xanthine": {
+   "name": "黄嘌呤",
+   "task": "三个甲基全部去掉，露出母核黄嘌呤。",
+   "hint": "用橡皮把三个氮上的甲基都点掉。",
+   "fact": "它是嘌呤代谢的中间体，黄嘌呤氧化酶会把它继续氧化成尿酸。"
+  },
+  "ibufenac": {
+   "name": "异丁苯乙酸",
+   "task": "布洛芬去掉 α-甲基，就是它的前辈异丁苯乙酸。",
+   "hint": "找羧基旁边的 CH，用橡皮点掉它上面的甲基。",
+   "fact": "它是布洛芬的前身，上市后因肝毒性撤市。多一个甲基的布洛芬安全得多。"
+  },
+  "protocatechuic": {
+   "name": "原儿茶醛",
+   "task": "去掉香草醛甲氧基上的甲基，得到两个相邻的羟基。",
+   "hint": "用橡皮点掉 O 上的甲基。",
+   "fact": "给它的一个羟基接上甲基，就得到香草醛；接在另一个上，就得到异香草醛。"
+  },
+  "fluoroacetanilide": {
+   "name": "4-氟乙酰苯胺",
+   "task": "把对乙酰氨基酚的 OH 换成氟。",
+   "hint": "用原子工具连点 OH 氧，切换到 F。用键盘时，把光标放在它上面按 F。",
+   "fact": "用氟取代芳环上容易被代谢的位置，是药物化学的常用手法。"
+  },
+  "vanillylAlcohol": {
+   "name": "香草醇",
+   "task": "把香草醛的醛基还原成醇。",
+   "hint": "用化学键工具点 C=O 双键，点到它变成单键。",
+   "fact": "用硼氢化钠还原香草醛得到它，这是本科有机实验里的常见一步。"
+  },
+  "ibuprofenAmide": {
+   "name": "布洛芬酰胺",
+   "task": "把布洛芬的羧基变成伯酰胺。",
+   "hint": "用原子工具连点 OH 氧，切换到 N。",
+   "fact": "羧酸变成酰胺后，酸性的 OH 就没有了，分子的极性和溶解性也随之改变。"
+  },
+  "isovanillin": {
+   "name": "异香草醛",
+   "task": "让香草醛的甲基换个位置：从一个氧搬到相邻的另一个氧。",
+   "hint": "删掉 O 上的甲基，再用化学键工具点环上的 OH 氧，接一个碳。",
+   "fact": "它和香草醛的分子式完全相同，只是 OH 和 OCH₃ 互换了位置。分子式一致，不代表结构正确。"
+  },
+  "wintergreen": {
+   "name": "水杨酸甲酯",
+   "task": "从阿司匹林出发，做出冬青油的主要成分水杨酸甲酯。",
+   "hint": "先像第一关那样去掉乙酰基，再在羧基的 OH 上接一个碳。",
+   "fact": "冬青油的香气主要来自它，许多外用镇痛药膏里也有它。"
+  },
+  "ibuprofenMethyl": {
+   "name": "布洛芬甲酯",
+   "task": "把布洛芬变成它的甲酯。",
+   "hint": "用化学键工具点羧基里的 OH 氧，接一个碳。",
+   "fact": "气相色谱分析羧酸之前，常先把它们做成这样的甲酯。"
+  },
+  "vanillic": {
+   "name": "香草酸",
+   "task": "把香草醛的醛基氧化成羧酸。",
+   "hint": "用化学键工具点醛基碳接一个碳，再用原子工具把新原子切换到 O。",
+   "fact": "香草醛氧化就得到它，香草豆的风味物质里也有它。"
+  },
+  "ethylVanillin": {
+   "name": "乙基香草醛",
+   "task": "把香草醛的甲氧基加长成乙氧基。",
+   "hint": "用化学键工具点甲基，再接一个碳。",
+   "fact": "一种合成香料，香气比香草醛更浓，天然香草里并没有它。"
+  },
+  "veratraldehyde": {
+   "name": "藜芦醛",
+   "task": "把香草醛的酚羟基也做成甲氧基。",
+   "hint": "用化学键工具点环上的 OH 氧，接一个碳。",
+   "fact": "它是香草醛甲基化的产物，常作香料和药物合成的中间体。"
+  },
+  "phenacetin": {
+   "name": "非那西丁",
+   "task": "给对乙酰氨基酚的羟基接上乙基。",
+   "hint": "用化学键工具点 OH 氧接一个碳，再点这个碳接第二个碳。",
+   "fact": "它曾是常用止痛药，后因肾毒性退市。它在体内主要转化成对乙酰氨基酚。"
+  },
   "alanine": {
    "name": "丙氨酸",
    "task": "把乙酸变成丙氨酸：让甲基碳带上一个氨基和一个自己的甲基。",
@@ -618,8 +725,138 @@
    "hint": "用橡皮擦掉乙酰基的三个原子，以及羧基的 OH 氧。",
    "fact": "浓度较高时有苦杏仁味，是香豆素的前体。"
   }
+ },
+ "lab": {
+  "modes": {
+   "daily": "今日分子",
+   "levels": "路线图",
+   "hunt": "找错",
+   "isomers": "异构体",
+   "dex": "图鉴",
+   "free": "画板"
+  },
+  "chapters": {
+   "take": {
+    "title": "拆",
+    "text": "从五个常见分子出发，去掉基团。"
+   },
+   "swap": {
+    "title": "改",
+    "text": "换一个原子，或挪动一个基团。"
+   },
+   "add": {
+    "title": "造",
+    "text": "接上新的碳，把分子做长。"
+   }
+  },
+  "stats": {
+   "stars": "星",
+   "streak": "连续天数",
+   "compounds": "化合物",
+   "badges": "成就"
+  },
+  "moves": "步数",
+  "par": "最少步数",
+  "delta": "分子式还差",
+  "deltaJoin": "、",
+  "deltaDone": "分子式已一致，再看连接方式",
+  "target": "目标分子式",
+  "starsLabel": "{n} 颗星（共 3 颗）",
+  "unsolved": "未完成",
+  "lockedName": "未解锁",
+  "backToRoute": "返回路线图",
+  "restart": "重新开始",
+  "nextLevel": "下一关",
+  "solvedIn": "完成！用了 {moves} 步。",
+  "starsHelp": "在最少步数内完成且不看提示得 3 星，不看提示得 2 星，看了提示得 1 星。连续切换同一个原子或键只算一步。",
+  "dexIntro": "完成一关就解锁一种化合物。每种都能下载 CDXML，也能复制一句话交给你的 Agent。",
+  "dexEmpty": "去路线图完成第一关，这里就会出现第一种化合物。",
+  "saveCdxml": "下载 .cdxml",
+  "copyAsk": "复制 Agent 请求",
+  "openBoard": "在画板打开",
+  "ask": "用 ChemDraw Skill 把{name}画成可编辑的 CDXML，用 ChemDraw 渲染后给我看 PNG。",
+  "badgesTitle": "成就",
+  "badges": {
+   "first": {
+    "title": "第一个分子",
+    "text": "完成任意一关。"
+   },
+   "perfect": {
+    "title": "一步不多",
+    "text": "拿到一次 3 星。"
+   },
+   "xanthines": {
+    "title": "黄嘌呤一家",
+    "text": "完成咖啡因的四个亲戚。"
+   },
+   "complete": {
+    "title": "路线走完",
+    "text": "完成全部 20 关。"
+   },
+   "readback": {
+    "title": "readback 全对",
+    "text": "找错模式连过 8 题。"
+   },
+   "isomers": {
+    "title": "一个不漏",
+    "text": "找齐一组同分异构体。"
+   },
+   "streak": {
+    "title": "连续一周",
+    "text": "连续 7 天完成今日分子。"
+   },
+   "export": {
+    "title": "带回 ChemDraw",
+    "text": "下载一个 .cdxml 文件。"
+   }
+  },
+  "badgeUnlocked": "解锁成就：{title}",
+  "badgeView": "查看",
+  "huntIntro": "Agent 交来的图里有一处错。对照正确结构，点出错的原子或键。这些结构是故意改错的，只用于游戏。",
+  "huntStart": "开始一局",
+  "huntAgain": "再来一局",
+  "huntNext": "下一题",
+  "huntRound": "第 {n} 题，共 {total} 题",
+  "huntLives": "还剩 {n} 次机会",
+  "huntTruth": "正确结构",
+  "huntDrawn": "Agent 的图",
+  "huntFound": "找到了：{kind}",
+  "huntMiss": "这里没错，再看看。",
+  "huntOver": "这局过了 {n} 题，最好成绩 {best} 题。",
+  "huntClear": "8 题全对。readback 就是这样抓住错误的。",
+  "huntBest": "最好成绩 {n} / 8",
+  "huntMirror": "这张图左右翻转了。",
+  "huntAtom": "{sym} 原子",
+  "huntBond": "{order}键",
+  "huntKinds": {
+   "element": "元素写错了。",
+   "ringN": "环上的碳被写成了氮。",
+   "order": "键级写错了。",
+   "extra": "多了一个甲基。",
+   "missing": "少了一个原子。",
+   "valence": "这里的碳超过了四价。"
+  },
+  "isoIntro": "从空白画布开始，画出这个分子式的所有构造异构体。不计立体异构。",
+  "isoPick": "选一个分子式",
+  "isoProgress": "已找到 {n} / {total}",
+  "isoFound": "找到一个新的！",
+  "isoSeen": "这个已经找到过了。",
+  "isoDone": "全部找齐了。",
+  "isoClear": "清空画布",
+  "isoHint": "当前分子式 {formula}",
+  "isoEmpty": "空白画布",
+  "freeIntro": "随便画，复制 SMILES、下载 CDXML，或者把结构做成链接发给别人。",
+  "freeLoad": "从这里开始",
+  "freeBlank": "空白画布",
+  "sharedLoaded": "已打开分享的结构。",
+  "sharedBad": "这个链接里的结构无法读取，已打开空白画布。",
+  "reset": "清除进度",
+  "resetConfirm": "再点一次确认清除",
+  "resetDone": "进度已清除。",
+  "prog": "进度只保存在这个浏览器里，不会上传。",
+  "from": "起始分子"
  }
 };
-  Object.assign(globalThis.ChemWords.names, daily.names);
   Object.assign(globalThis.ChemWords.challenge.tasks, daily.tasks);
+  globalThis.ChemWords.lab = daily.lab;
 }
