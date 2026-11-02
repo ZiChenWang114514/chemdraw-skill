@@ -419,17 +419,23 @@ def _markush_render(source, png):
 
 
 def cmd_markush(ns):
-    from cdxml_toolkit.markush import workflow
+    # Plain checks first: the workflow needs the runtime's optional image packages.
     if ns.action == 'init':
         if not ns.image:
             raise SystemExit('init needs --image')
         for given in filter(None, (ns.image, ns.text)):  # before the folder is created
             if not Path(given).is_file():
                 raise SystemExit(f'{given} not found')
-        crop = [int(v) for v in ns.crop] if ns.crop else None
-        out = workflow.init(ns.workdir, ns.image, text=ns.text, crop=crop, reuse=ns.reuse)
     elif not (Path(ns.workdir) / 'state.json').is_file():
         raise SystemExit(f'No Markush run in {ns.workdir}; start one with: cdx.py markush init WORKDIR --image IMAGE')
+    try:
+        from cdxml_toolkit.markush import workflow
+    except ImportError as exc:
+        raise SystemExit(f'cdx.py markush needs the image extra ({exc.name} is missing). '
+                         f'Rebuild the runtime: {install_help()[0]}') from None
+    if ns.action == 'init':
+        crop = [int(v) for v in ns.crop] if ns.crop else None
+        out = workflow.init(ns.workdir, ns.image, text=ns.text, crop=crop, reuse=ns.reuse)
     elif ns.action == 'next':
         out = workflow.next_task(ns.workdir, renderer=_markush_render)
     elif ns.action == 'submit':

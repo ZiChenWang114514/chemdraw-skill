@@ -149,6 +149,13 @@ def test_a_markush_step_without_a_session_says_how_to_start_one(tmp_path, capsys
         assert 'cdx.py markush init' in _message(capsys, 'markush', action, str(tmp_path / 'run'))
 
 
+def test_markush_without_the_image_packages_says_what_is_missing(tmp_path, capsys):
+    (tmp_path / 'state.json').write_text('{}', encoding='utf-8')
+    with mock.patch.dict(sys.modules, {'cdxml_toolkit.markush.workflow': None}):
+        message = _message(capsys, 'markush', 'status', str(tmp_path))
+    assert 'image extra' in message
+
+
 def test_large_result_goes_to_evidence_file_and_summary_is_small(tmp_path, capsys):
     result = {'ok': True, 'result': {'ok': True, 'raw_response': 'x' * 40000, 'warnings': ['Inspect chirality']}}
     with mock.patch.object(cdx, '_worker', return_value=result):
