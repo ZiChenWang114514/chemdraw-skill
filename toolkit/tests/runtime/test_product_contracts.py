@@ -15,6 +15,11 @@ def interpret(value):
         timeout=90, duration=0.1, output_limit=4096)
 
 
+def test_a_tool_that_lists_its_errors_shows_them_in_the_error_message():
+    result = interpret({'ok': False, 'errors': ['species: list every structure.', 'steps: give at least one step.']})
+    assert result['error']['message'] == 'species: list every structure.; steps: give at least one step.'
+
+
 @pytest.mark.parametrize('encoded', [False, True])
 @pytest.mark.parametrize('error', ['Invalid structure', {'code': 'invalid_structure', 'message': 'Invalid structure'}])
 def test_business_failure_propagates_without_losing_original_result(encoded, error):
