@@ -8,6 +8,8 @@ fails on some Apple Silicon setups.
 """
 
 import hashlib
+import http.client
+import urllib.error
 import json
 import os
 import subprocess
@@ -36,6 +38,8 @@ def fetch(engine, params, data_dir, spec):
         return _fetch_file(data_dir, spec['download'])
     if spec.get('data') == 'synplanner-preset':
         return _fetch_synplanner(data_dir, spec)
+    if spec.get('data') in ('retrochimera-pistachio', 'nmrnet-pp', 'reacon'):
+        return _fetch_bundle(data_dir, spec)
     weights = spec['weights']
     from huggingface_hub import hf_hub_download, snapshot_download
     if weights.get('snapshot'):
@@ -55,29 +59,204 @@ def fetch(engine, params, data_dir, spec):
     return {'weights': receipt}
 
 
-def _fetch_file(data_dir, download):
-    """One file by URL, with retries, checked against its pinned hash (pystow looks for it under PYSTOW_HOME)."""
-    import shutil
+def _download(url, partial, attempts=80, headers=None):
+    """Download ``url`` into ``partial``, resuming with a Range request after a dropped connection.
+
+    A transfer that ends before the announced length is retried (resumed when the host supports Range, otherwise
+    started again), so a connection closed early is never taken for a finished file.
+    """
     import time
     import urllib.request
+    for attempt in range(attempts):  # model hosts sometimes drop a connection mid-transfer
+        have = os.path.getsize(partial) if os.path.exists(partial) else 0
+        request = urllib.request.Request(url, headers=dict(headers or {}, **({'Range': f'bytes={have}-'} if have else {})))
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                resumed = bool(have) and getattr(response, 'status', 200) == 206
+                length = response.headers.get('Content-Length')
+                expected = (have if resumed else 0) + int(length) if length and length.isdigit() else None
+                with open(partial, 'ab' if resumed else 'wb') as out:
+                    while True:
+                        block = response.read(1 << 20)
+                        if not block:
+                            break
+                        out.write(block)
+            if expected is None or os.path.getsize(partial) >= expected:
+                return
+        except urllib.error.HTTPError as exc:
+            if exc.code == 416:  # nothing left to ask for: the file is complete
+                return
+            if attempt == attempts - 1:
+                raise
+        except (OSError, http.client.HTTPException):
+            if attempt == attempts - 1:
+                raise
+        time.sleep(min(3 * (attempt + 1), 30))
+    raise RuntimeError(f'{url} could not be downloaded completely')
+
+
+def _extract(archive, kind, destination):
+    """Unpack a .tar.gz (dropping the single top folder GitHub adds) or a .zip, refusing paths that escape."""
+    import tarfile
+    import zipfile
+    root = os.path.realpath(destination)
+    os.makedirs(root, exist_ok=True)
+
+    def safe(name):
+        target = os.path.realpath(os.path.join(root, name))
+        if target != root and not target.startswith(root + os.sep):
+            raise RuntimeError(f'archive member {name!r} points outside the target folder')
+        return target
+    if kind == 'tar.gz':
+        with tarfile.open(archive) as tar:
+            for member in tar.getmembers():
+                parts = member.name.split('/', 1)
+                if len(parts) < 2 or not parts[1] or not (member.isfile() or member.isdir()):
+                    continue  # the top folder itself, links, devices
+                target = safe(parts[1])
+                if member.isdir():
+                    os.makedirs(target, exist_ok=True)
+                else:
+                    os.makedirs(os.path.dirname(target), exist_ok=True)
+                    with tar.extractfile(member) as source, open(target, 'wb') as out:
+                        out.write(source.read())
+    elif kind == 'zip':
+        with zipfile.ZipFile(archive) as bundle:
+            for name in bundle.namelist():
+                safe(name)
+            bundle.extractall(root)
+    else:
+        raise RuntimeError(f'unknown archive type {kind!r}')
+
+
+def _fetch_file(data_dir, download):
+    """One file by URL, resumable, checked against its pinned hash (pystow looks for it under PYSTOW_HOME).
+
+    ``extract`` ('tar.gz' or 'zip') unpacks it into ``into`` (default: ``data_dir``) and removes the archive.
+    """
     target = os.path.join(data_dir, download['path'])
     os.makedirs(os.path.dirname(target), exist_ok=True)
     partial = target + '.part'
-    for attempt in range(5):  # model hosts sometimes drop a TLS connection mid-handshake
-        try:
-            with urllib.request.urlopen(download['url'], timeout=120) as response, open(partial, 'wb') as out:
-                shutil.copyfileobj(response, out)
-            break
-        except OSError:
-            if attempt == 4:
-                raise
-            time.sleep(3 * (attempt + 1))
+    _download(download['url'], partial)
     digest = _sha256(partial)
     if digest != download['sha256']:
         os.remove(partial)
         raise RuntimeError(f'{download["path"]} does not match the pinned sha256 (got {digest}); nothing was kept')
     os.replace(partial, target)
+    if download.get('extract'):
+        _extract(target, download['extract'], os.path.join(data_dir, download.get('into', '')))
+        os.remove(target)
     return {'data': {download['path']: digest}}
+
+
+class _RangeFile:
+    """A read-only seekable view of a remote file, fetched with Range requests (enough for zipfile)."""
+
+    def __init__(self, url):
+        import urllib.request
+        self.url, self.pos = url, 0
+        request = urllib.request.Request(url, headers={'Range': 'bytes=0-0'})
+        with urllib.request.urlopen(request, timeout=60) as response:
+            self.size = int(response.headers['Content-Range'].rsplit('/', 1)[1])
+
+    def seekable(self):
+        return True
+
+    def tell(self):
+        return self.pos
+
+    def seek(self, offset, whence=0):
+        self.pos = {0: offset, 1: self.pos + offset, 2: self.size + offset}[whence]
+        return self.pos
+
+    def read(self, count=-1):
+        import urllib.request
+        end = self.size if count is None or count < 0 else min(self.size, self.pos + count)
+        if self.pos >= end:
+            return b''
+        request = urllib.request.Request(self.url, headers={'Range': f'bytes={self.pos}-{end - 1}'})
+        with urllib.request.urlopen(request, timeout=60) as response:
+            data = response.read()
+        self.pos += len(data)
+        return data
+
+
+def _fetch_zip_members(data_dir, source):
+    """Take only the named members out of a large remote zip (Range requests), checking each result's hash.
+
+    ``source``: ``{'url', 'members': [{'match': name suffix or contains-all list, 'path': where, 'sha256'}]}``.
+    """
+    import struct
+    import zipfile
+    import zlib
+    remote = _RangeFile(source['url'])
+    with zipfile.ZipFile(remote) as bundle:
+        infos = bundle.infolist()
+    receipt = {}
+    for want in source['members']:
+        found = [i for i in infos if all(part in i.filename for part in want['match'])]
+        if len(found) != 1:
+            raise RuntimeError(f'expected one member matching {want["match"]}, found {len(found)}')
+        info = found[0]
+        target = os.path.join(data_dir, want['path'])
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        if os.path.exists(target) and _sha256(target) == want['sha256']:
+            receipt[want['path']] = want['sha256']
+            continue
+        head = remote_range(source['url'], info.header_offset, info.header_offset + 29 + 4096)
+        name_len, extra_len = struct.unpack('<HH', head[26:30])
+        start = info.header_offset + 30 + name_len + extra_len
+        partial = target + '.part'
+        _download_range(source['url'], start, start + info.compress_size - 1, partial)
+        inflater = zlib.decompressobj(-15) if info.compress_type == 8 else None
+        crc, written = 0, 0
+        with open(partial, 'rb') as raw, open(target + '.tmp', 'wb') as out:
+            for block in iter(lambda: raw.read(1 << 22), b''):
+                block = inflater.decompress(block) if inflater else block
+                crc, written = zlib.crc32(block, crc), written + len(block)
+                out.write(block)
+            if inflater:
+                block = inflater.flush()
+                crc, written = zlib.crc32(block, crc), written + len(block)
+                out.write(block)
+        os.remove(partial)
+        if crc != info.CRC or written != info.file_size:
+            os.remove(target + '.tmp')
+            raise RuntimeError(f'{want["path"]} is damaged (CRC mismatch); nothing was kept')
+        digest = _sha256(target + '.tmp')
+        if digest != want['sha256']:
+            os.remove(target + '.tmp')
+            raise RuntimeError(f'{want["path"]} does not match the pinned sha256 (got {digest}); nothing was kept')
+        os.replace(target + '.tmp', target)
+        receipt[want['path']] = digest
+    return receipt
+
+
+def remote_range(url, first, last):
+    import urllib.request
+    request = urllib.request.Request(url, headers={'Range': f'bytes={first}-{last}'})
+    with urllib.request.urlopen(request, timeout=60) as response:
+        return response.read()
+
+
+def _download_range(url, first, last, partial, attempts=200):
+    """Fetch bytes ``first``..``last`` of ``url`` into ``partial``, resuming after a dropped connection."""
+    import time
+    import urllib.request
+    total = last - first + 1
+    for attempt in range(attempts):
+        have = os.path.getsize(partial) if os.path.exists(partial) else 0
+        if have >= total:
+            return
+        request = urllib.request.Request(url, headers={'Range': f'bytes={first + have}-{last}'})
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response, open(partial, 'ab') as out:
+                for block in iter(lambda: response.read(1 << 20), b''):
+                    out.write(block)
+        except OSError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(min(3 * (attempt + 1), 30))
 
 
 def _synplan_cli():
@@ -108,6 +287,83 @@ def _fetch_synplanner(data_dir, spec):
         for value in blocks.values():
             for item in (value if isinstance(value, list) else [value]):
                 out.write(item['smiles'] + '\n')
+    return {'data': receipt}
+
+
+def _canonical_chunk(chunk):
+    from rdkit import Chem, RDLogger
+    RDLogger.DisableLog('rdApp.*')
+    out = set()
+    for smiles in chunk:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is not None:
+            out.add(Chem.MolToSmiles(mol))
+    return out
+
+
+def _blocks_to_smiles(json_gz, smiles_path):
+    """Write the building blocks as RDKit-canonical, de-duplicated SMILES (Syntheseus matches exact strings)."""
+    import gzip
+    import multiprocessing
+    with gzip.open(json_gz, 'rt', encoding='utf-8') as handle:
+        blocks = json.load(handle)
+    raw = [item['smiles'] for value in blocks.values() for item in (value if isinstance(value, list) else [value])]
+    del blocks
+    chunks = [raw[i:i + 20000] for i in range(0, len(raw), 20000)]
+    seen = set()
+    with multiprocessing.Pool(max(1, min(8, (os.cpu_count() or 2) - 1))) as pool:
+        for part in pool.imap_unordered(_canonical_chunk, chunks):
+            seen |= part
+    with open(smiles_path, 'w', encoding='utf-8') as out:
+        out.writelines(smiles + '\n' for smiles in sorted(seen))
+
+
+def _fetch_archive_members(data_dir, source):
+    """Members of a zip that a host builds on the fly (no Range support): download it, keep only the named members.
+
+    The zip itself is not stable, so only the members are pinned (by sha256). The archive is deleted afterwards.
+    """
+    import zipfile
+    partial = os.path.join(data_dir, '_archive.zip.part')
+    receipt = {}
+    pending = [m for m in source['members']
+               if not (os.path.exists(os.path.join(data_dir, m['path'])) and _sha256(os.path.join(data_dir, m['path'])) == m['sha256'])]
+    if pending:
+        _download(source['url'], partial)
+        with zipfile.ZipFile(partial) as bundle:
+            for want in pending:
+                target = os.path.join(data_dir, want['path'])
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                digest = hashlib.sha256()
+                with bundle.open(want['name']) as src, open(target + '.tmp', 'wb') as out:
+                    for block in iter(lambda: src.read(1 << 20), b''):
+                        digest.update(block)
+                        out.write(block)
+                if digest.hexdigest() != want['sha256']:
+                    os.remove(target + '.tmp')
+                    raise RuntimeError(f'{want["path"]} does not match the pinned sha256 (got {digest.hexdigest()}); nothing was kept')
+                os.replace(target + '.tmp', target)
+        os.remove(partial)
+    for want in source['members']:
+        receipt[want['path']] = want['sha256']
+    return receipt
+
+
+def _fetch_bundle(data_dir, spec):
+    """Pinned archives, members of a large remote zip, and a building-block list, as the engine's spec names them."""
+    receipt = {}
+    for download in spec.get('downloads') or []:
+        receipt.update(_fetch_file(data_dir, download)['data'])
+    sources = spec.get('zip_members') or []
+    for source in ([sources] if isinstance(sources, dict) else sources):
+        receipt.update(_fetch_zip_members(data_dir, source))
+    if spec.get('archive_members'):
+        receipt.update(_fetch_archive_members(data_dir, spec['archive_members']))
+    if spec.get('stock'):
+        stock = _fetch_file(data_dir, spec['stock'])
+        receipt.update(stock['data'])
+        _blocks_to_smiles(os.path.join(data_dir, spec['stock']['path']),
+                          os.path.join(data_dir, 'building_blocks', 'building_blocks.smi'))
     return {'data': receipt}
 
 
@@ -300,6 +556,52 @@ def _synplanner(params, data_dir, spec):
             'routes': [_tree(route) for route in routes[:int(params.get('count', 5))]]}
 
 
+def _syntheseus_tree(graph, node, chosen):
+    """A solved route (the AND/OR nodes a search kept) as the tree shape the other planners return."""
+    item = {'smiles': node.mol.smiles, 'in_stock': bool(node.mol.metadata.get('is_purchasable'))}
+    for step in graph.successors(node):
+        if step in chosen:
+            item['reaction'] = {'metadata': {'policy_probability': (step.reaction.metadata or {}).get('probability')},
+                                'reactants': [_syntheseus_tree(graph, child, chosen) for child in graph.successors(step)]}
+    return item
+
+
+def _retrochimera(params, data_dir, spec):
+    from syntheseus.interface.molecule import Molecule
+    smiles = params['smiles']
+    count = int(params.get('count', 5))
+    single = params.get('steps') == 'single'
+    inventory = None
+    if not single:  # a target that can be bought needs no model at all
+        from syntheseus.search.mol_inventory import SmilesListInventory
+        with open(os.path.join(data_dir, 'building_blocks', 'building_blocks.smi'), encoding='utf-8') as handle:
+            inventory = SmilesListInventory([line.strip() for line in handle if line.strip()], canonicalize=False)
+        if inventory.is_purchasable(Molecule(smiles)):
+            return {'steps': 'multi', 'target': smiles, 'solved': True, 'target_in_stock': True, 'top_score': None,
+                    'routes': []}
+    from retrochimera import RetroChimeraModel
+    model = RetroChimeraModel(model_dir=data_dir, device='cpu')
+    if single:
+        reactions = model([Molecule(smiles)], num_results=count)[0]
+        return {'steps': 'single', 'target': smiles, 'options': [{
+            'reactants': [[m.smiles for m in r.reactants]],
+            'probability': (r.metadata or {}).get('probability'), 'score': (r.metadata or {}).get('score'),
+            'individual_ranks': (r.metadata or {}).get('individual_ranks')} for r in reactions]}
+    from syntheseus.search.algorithms.best_first.retro_star import RetroStarSearch
+    from syntheseus.search.analysis.route_extraction import iter_routes_time_order
+    from syntheseus.search.node_evaluation.common import ConstantNodeEvaluator, ReactionModelLogProbCost
+    search = RetroStarSearch(
+        reaction_model=model, mol_inventory=inventory, time_limit_s=float(params.get('time_limit', 60)),
+        limit_iterations=int(params.get('iterations', 1000)), limit_reaction_model_calls=int(params.get('iterations', 1000)),
+        prevent_repeat_mol_in_trees=True, stop_on_first_solution=False,
+        value_function=ConstantNodeEvaluator(0.0), and_node_cost_fn=ReactionModelLogProbCost())
+    graph, _ = search.run_from_mol(Molecule(smiles))
+    routes = [_syntheseus_tree(graph, graph.root_node, set(nodes))
+              for nodes in iter_routes_time_order(graph, max_routes=count)]
+    return {'steps': 'multi', 'target': smiles, 'solved': bool(graph.root_node.has_solution), 'top_score': None,
+            'routes': routes}
+
+
 def _magnet(params, data_dir, spec):
     """1H and 13C shifts from an RDKit conformer (MMFF) with MagNET-Zero and MagNET-PCM."""
     import numpy as np
@@ -327,13 +629,139 @@ def _magnet(params, data_dir, spec):
             'conformer_energy_kcal': float(energies[best][1]), 'geometry': 'RDKit ETKDG + MMFF94 (lowest of the conformers)'}
 
 
+def _nmrnet_pp(params, data_dir, spec):
+    """1H and 13C shifts with NMRNet++ (fold 0 of the authors' five cross-validation models), run by their own infer.py."""
+    import pickle
+    import tempfile
+    import lmdb
+    import numpy as np
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+    mol = Chem.AddHs(Chem.MolFromSmiles(params['smiles']))
+    if AllChem.EmbedMolecule(mol, randomSeed=42) != 0:
+        raise ValueError('no 3D conformer could be generated for this structure')
+    try:
+        AllChem.MMFFOptimizeMolecule(mol)
+    except Exception:
+        pass  # the authors fall back to the embedded geometry too
+    atoms = [a.GetSymbol() for a in mol.GetAtoms()]
+    coordinates = mol.GetConformer().GetPositions().astype(np.float32)
+    work = tempfile.mkdtemp(prefix='nmrnetpp-')
+    shifts = {}
+    for nucleus in params.get('nuclei') or ['1H', '13C']:
+        element = {'1H': 'H', '13C': 'C'}[nucleus]
+        data = os.path.join(work, 'data-' + element)
+        os.makedirs(data)
+        record = {'smiles': params['smiles'], 'atoms': atoms, 'coordinates': coordinates,
+                  'atoms_target_mask': np.array([1 if a == element else 0 for a in atoms], dtype=np.int32),
+                  'atoms_target': np.zeros(len(atoms), dtype=np.float32), 'nmr_frequency': 400, 'nmr_solvent': 'CDCl3'}
+        database = lmdb.open(os.path.join(data, 'valid.lmdb'), subdir=False, readonly=False, lock=False,
+                             readahead=False, meminit=False, map_size=int(1e9))
+        with database.begin(write=True) as transaction:
+            transaction.put(b'0', pickle.dumps(record))
+        database.close()
+        folder = os.path.join(data_dir, element)
+        checkpoint = os.path.join(folder, 'cv_seed_42_fold_0')
+        results = os.path.join(work, 'results-' + element)
+        command = [sys.executable, 'uninmr/infer.py', '--user-dir', 'uninmr', data, '--valid-subset', 'valid',
+                   '--results-path', results, '--saved-dir', folder, '--num-workers', '0', '--ddp-backend=c10d',
+                   '--batch-size', '4', '--task', 'uninmr', '--loss', 'atom_regloss_mae', '--arch', 'unimol_large',
+                   '--dict-name', os.path.join(data_dir, 'weight', 'dict.txt'),
+                   '--path', os.path.join(checkpoint, 'checkpoint_last.pt'), '--cpu', '--log-interval', '50',
+                   '--log-format', 'simple', '--required-batch-size-multiple', '1', '--selected-atom', element,
+                   '--gaussian-kernel', '--atom-descriptor', '0', '--split-mode', 'infer']
+        done = subprocess.run(command, cwd=os.path.join(data_dir, 'code'), capture_output=True, text=True)
+        if done.returncode != 0:
+            raise RuntimeError('NMRNet++ inference failed: ' + (done.stderr or done.stdout)[-300:])
+        with open(os.path.join(results, 'cv_seed_42_fold_0_valid.out.pkl'), 'rb') as handle:
+            output = pickle.load(handle)[0]
+        selected = output['select_atom'].view(-1).numpy()[1:len(atoms) + 1]  # drop the start token
+        indices = [i for i, flag in enumerate(selected) if flag == 1]
+        values = np.asarray(output['predict']).reshape(-1)
+        if len(indices) != len(values):
+            raise RuntimeError('NMRNet++ returned a different number of shifts than selected atoms')
+        shifts.update({i: float(v) for i, v in zip(indices, values)})
+    ranks = list(Chem.CanonicalRankAtoms(mol, breakTies=False))
+    return {'atoms': [{'index': a.GetIdx(), 'element': a.GetSymbol(), 'shift': shifts.get(a.GetIdx()),
+                       'class': ranks[a.GetIdx()], 'neighbors': [n.GetIdx() for n in a.GetNeighbors()]}
+                      for a in mol.GetAtoms()],
+            'geometry': 'RDKit ETKDG (seed 42) + MMFF94, one conformer, as in the authors\' data preparation',
+            'warnings': ['NMRNet++ is a single cross-validation model (fold 0), not the published five-model average; '
+                         'the 1H model takes no solvent, so the solvent argument does not change its answer']}
+
+
+def _reacon(params, data_dir, spec):
+    """Ranked catalyst / solvent / reagent sets for a mapped reaction, with the authors' own code and models."""
+    import gzip
+    import types
+    code = os.path.join(data_dir, 'code')
+    sys.path.insert(0, code)
+    import ast
+    import tempfile
+    tempfile_dir = tempfile.mkdtemp(prefix='reacon-')
+    os.chdir(tempfile_dir)
+    import prediction
+    import template_extractor
+    from chemprop.args import PredictArgs
+    from chemprop.train.make_predictions import make_predictions
+    from GetMpnnData.get_data import remove_reagent
+    from rdkit.Chem import rdChemReactions
+    from rdkit.Chem.rdChemReactions import RemoveMappingNumbersFromReactions
+    mapped = params['mapped_reaction']
+    reactants, products = mapped.split('>>')
+    record = {'_id': 0, 'reactants': reactants, 'products': products}
+    r0 = template_extractor.extract_from_reaction(record, 0).get('reaction_smarts', '')
+    r1 = template_extractor.extract_from_reaction(record, 1).get('reaction_smarts', '')
+    r0_star = ''
+    if r0:
+        reaction = rdChemReactions.ReactionFromSmarts(r0)
+        RemoveMappingNumbersFromReactions(reaction)
+        r0_star = rdChemReactions.ReactionToSmiles(reaction)
+    model_input = remove_reagent(mapped)
+    dummy = os.path.join(tempfile_dir, 'input.csv')
+    with open(dummy, 'w', encoding='utf-8') as handle:
+        handle.write('reaction\n' + model_input + '\n')
+    scores = []
+    for target in ('cat', 'solv0', 'solv1', 'reag0', 'reag1', 'reag2'):
+        arguments = PredictArgs().parse_args(['--test_path', dummy, '--checkpoint_dir', os.path.join(code, 'models', 'MPNN_' + target),
+                                              '--preds_path', os.path.join(tempfile_dir, 'p.csv'), '--num_workers', '0'])
+        scores.append(list(make_predictions(arguments, [[model_input]])[0][0]))
+    prediction.condition_key = prediction.get_condition_labels(os.path.join(code, 'data', 'labels'))
+    libraries = os.path.join(data_dir, 'condition_library')
+
+    def load(name):
+        with gzip.open(os.path.join(libraries, name), 'rt', encoding='utf-8') as handle:
+            return json.load(handle)
+
+    ranked, level = [], 'none'
+    for level_name, template, library_file in (('r1', r1, 'condition_library_r1.json.gz'), ('r0', r0, 'condition_library_r0.json.gz'),
+                                               ('r0*', r0_star, 'condition_library_r0_1.json.gz')):
+        if not template:
+            continue
+        library = load(library_file)
+        if template in library:
+            ranked = prediction.condition_selector(types.SimpleNamespace(), template, scores, library)
+            level = level_name
+            break
+    if not ranked:
+        ranked = prediction.Nu_condition_selector(scores, [3, 3, 3, 3, 3])
+        level = 'none'
+    candidates = []
+    for text, score in ranked[:int(params.get('count', 5))]:
+        catalyst, solvent0, solvent1, reagent0, reagent1, reagent2 = ast.literal_eval(text)
+        candidates.append({'catalyst': None if catalyst == 'None' else catalyst, 'solvents': [x for x in (solvent0, solvent1) if x != 'None'],
+                           'reagents': [x for x in (reagent0, reagent1, reagent2) if x != 'None'], 'score': float(score)})
+    return {'template_level': level, 'templates': {'r1': r1, 'r0': r0}, 'candidates': candidates}
+
+
 def spec_elements(params):
     return ('H', 'C', 'N', 'O', 'F', 'Cl', 'S')
 
 
 ENGINES = {'molscribe': _molscribe, 'molnextr': _molnextr, 'molparser': _molparser, 'decimer-local': _decimer_local,
            'decimer-segmentation': _segment, 'reactiont5-forward': _reactiont5, 'reactiont5-retro': _reactiont5,
-           'aizynthfinder': _aizynthfinder, 'synplanner': _synplanner, 'magnet': _magnet}
+           'aizynthfinder': _aizynthfinder, 'synplanner': _synplanner, 'magnet': _magnet,
+           'retrochimera': _retrochimera, 'nmrnet-pp': _nmrnet_pp, 'reacon': _reacon}
 
 
 def main():

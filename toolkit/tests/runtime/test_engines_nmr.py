@@ -32,7 +32,7 @@ def engine(monkeypatch):
 
 def test_equivalent_protons_become_one_peak_and_everything_is_marked_predicted(engine):
     answer = predict_nmr('CCO', '1H', 'CDCl3')
-    assert engine['params'] == {'smiles': 'CCO', 'solvent': 'chloroform'}  # NMR solvent names are understood
+    assert engine['params'] == {'smiles': 'CCO', 'solvent': 'chloroform', 'nuclei': ['1H']}  # NMR solvent names are understood
     peaks = answer['peaks']['1H']
     assert [(p['shift_ppm'], p['count']) for p in peaks] == [(3.72, 2), (2.4, 1), (1.2, 3)]
     assert all(p['predicted'] for p in peaks) and answer['predicted'] is True
@@ -76,3 +76,31 @@ def test_inputs_are_checked_before_the_engine_starts(monkeypatch):
 def test_a_missing_engine_is_reported_with_the_install_command():
     answer = predict_nmr('CCO')
     assert answer['ok'] is False and 'install-engines magnet' in answer['error']
+
+
+def test_two_engines_are_compared_peak_by_peak_and_never_averaged(monkeypatch):
+    seen = []
+    shifted = ethanol_atoms()
+    shifted['atoms'][1]['shift'] = 64.5  # the second engine puts the CH2 carbon 6.5 ppm away
+
+    def call(name, action, params, timeout=0):
+        seen.append(name)
+        return ethanol_atoms() if name == 'magnet' else shifted
+
+    monkeypatch.setattr(env, 'call', call)
+    answer = predict_nmr('CCO', 'both', engine='magnet,nmrnet-pp')
+    assert seen == ['magnet', 'nmrnet-pp'] and answer['engine'] == 'magnet,nmrnet-pp'
+    assert [e['engine'] for e in answer['engines']] == ['magnet', 'nmrnet-pp']
+    rows = {tuple(r['atoms']): r for r in answer['comparison']['peaks']['13C']}
+    assert rows[(1,)]['shift_ppm'] == {'magnet': 58.0, 'nmrnet-pp': 64.5} and rows[(1,)]['spread_ppm'] == 6.5
+    assert rows[(1,)]['needs_review'] is True and rows[(0,)]['needs_review'] is False
+    assert answer['comparison']['needs_review'] is True and answer['predicted'] is True
+    assert answer['provenance'] == 'model_prediction'
+
+
+def test_every_named_engine_must_support_the_elements(monkeypatch):
+    monkeypatch.setattr(env, 'call', lambda *a, **k: pytest.fail('engine must not start'))
+    with pytest.raises(ValueError, match='MagNET supports'):
+        predict_nmr('CBr', engine='nmrnet-pp,magnet')
+    with pytest.raises(ValueError, match='each engine once'):
+        predict_nmr('CCO', engine='magnet,magnet')

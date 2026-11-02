@@ -36,7 +36,8 @@ FORBIDDEN = [
 ]
 # Third parties whose code, data or service the toolkit uses; each needs a notice entry.
 THIRD_PARTIES = ["ChemScanner", "RDKit", "OPSIN", "PubChem", "DECIMER", "MolScribe", "MolNexTR", "MolVec",
-                 "AiZynthFinder", "SynPlanner", "ReactionT5", "MagNET"]
+                 "AiZynthFinder", "SynPlanner", "ReactionT5", "MagNET",
+                 "RetroChimera", "Syntheseus", "NMRNet++", "Uni-Core", "Reacon"]
 # Test-data identifiers stay out of the landing pages (README galleries may name the paper compound).
 HOMEPAGE_FORBIDDEN = ["Sceptrin"]
 

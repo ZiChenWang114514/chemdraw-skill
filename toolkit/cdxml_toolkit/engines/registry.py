@@ -146,6 +146,92 @@ ENGINES = {
         'elements': ['H', 'C', 'N', 'O', 'F', 'Cl', 'S'],
         'size': 'PyTorch environment',
     },
+    'retrochimera': {
+        'title': 'RetroChimera + Syntheseus', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
+        'python': (10, 10), 'module': 'retrochimera',
+        'requirements': ['torch==2.2.2', 'torch_geometric==2.5.2', 'pytorch-lightning==2.2.2', 'torchmetrics<0.11', 'h5py',
+                         'scipy<1.12', 'rdkit', 'numpy<2', 'pebble~=5.2.0', 'loky', 'omegaconf', 'more_itertools', 'tqdm',
+                         'pandas', 'networkx', 'setuptools<81', 'retrochimera==1.3.0', 'syntheseus==0.9.0'],
+        'data': 'retrochimera-pistachio',
+        'zip_members': {
+            'url': 'https://ndownloader.figshare.com/files/59468882',
+            'members': [
+                {'match': ['models.json'], 'path': 'models.json', 'sha256': 'f9d5e152b7fb4713bf5df802aa6f5ddd1141adce164ca404965bd620a79e68ac'},
+                {'match': ['template_localization/combined.ckpt'], 'path': 'template_localization/combined.ckpt',
+                 'sha256': '4deac13c05c050eb66a78f46692e32704dac45c426937ca2274017cab637304c'},
+                {'match': ['template_localization/template_lib.json'], 'path': 'template_localization/template_lib.json',
+                 'sha256': '2238c363a29b0ffd8a54524d5223eff31e383d69bb1c87d0d738afcad2f8e9d6'},
+                {'match': ['smiles_transformer/combined.ckpt'], 'path': 'smiles_transformer/combined.ckpt',
+                 'sha256': 'f6013a4cc078614df687c603d252584497b9a3fc480b0d3e57f5c0f199ea92b2'},
+                {'match': ['smiles_transformer/vocab.txt'], 'path': 'smiles_transformer/vocab.txt', 'sha256': '96f751c4cafa8724a0d7bc940421b95dad7a9b82da433bb29371a677b98e4e22'}]},
+        'stock': {'url': 'https://huggingface.co/Laboratoire-De-Chemoinformatique/SynPlanner-data/resolve/main/'
+                         'building_blocks/mcule-molport-2026-08/building_blocks.json.gz',
+                  'path': 'building_blocks/building_blocks.json.gz',
+                  'sha256': '0fea071b828e70baa8012216d91e929f896951329509ce8af6c93c136b57eb81'},
+        'size': '0.7 GB environment, 4.7 GB model (Pistachio ensemble), 0.5 GB building blocks; the model is a 4.2 GB '
+                'download and building the stock list takes about 15 minutes',
+        'note': "Microsoft Research's RetroChimera (Nature 2026) with the Syntheseus search. Single step (steps=\"single\") "
+                'or whole routes (steps="multi"). The authors state it is for research and experiments: an expert must '
+                'check every route, and lower-ranked reactions are more likely to be hallucinated.',
+    },
+    'nmrnet-pp': {
+        'title': 'NMRNet++', 'task': 'nmr', 'kind': 'local', 'license': 'MIT', 'python': (11, 11), 'module': 'unicore',
+        'requirements': ['torch==2.5.1', 'numpy', 'setuptools<81', 'wheel', 'rdkit', 'lmdb', 'pandas', 'scikit-learn',
+                         'scipy', 'joblib', 'tqdm', 'ml_collections', 'tensorboardX'],
+        'late_requirements': ['https://github.com/dptech-corp/Uni-Core/archive/ace6fae1c8479a9751f2bb1e1d6e4047427bc134.tar.gz'
+                              '#sha256=ae240ff27dfc4c698081260d58ce4bee30d4f437fef23bed89d4033625f21583'],
+        'data': 'nmrnet-pp',
+        'downloads': [{'url': 'https://github.com/YongqiJin/NMRNetplusplus/archive/'
+                              '3ba8b9c2f3d0a390d00685d238618345c6ab24d7.tar.gz',
+                       'path': 'code.tar.gz', 'sha256': 'e074c870b642790483eb0e65b23451901ee40bcfa8905e2721b1b2c8dc1580e6',
+                       'extract': 'tar.gz', 'into': 'code'}],
+        'zip_members': [
+            {'url': 'https://zenodo.org/records/18232165/files/checkpoints.zip?download=1',
+             'members': [
+                 {'match': ['scratch_H_pretraining_molecular_unimol_large_atom_regloss_mae_lr_0.0004_bs1_4_bs2_16_wu_0.03_ep_10_wgt_16_T__ratio_4_16_20250930_033837', 'fold_0/checkpoint_last.pt'], 'path': 'H/cv_seed_42_fold_0/checkpoint_last.pt',
+                  'sha256': 'bc12977a19ddad7057c8c4d190203cdae8130b52e54f3ddbf37d875663de04e9'},
+                 {'match': ['scratch_H_pretraining_molecular_unimol_large_atom_regloss_mae_lr_0.0004_bs1_4_bs2_16_wu_0.03_ep_10_wgt_16_T__ratio_4_16_20250930_033837', 'target_scaler.ss'], 'path': 'H/target_scaler.ss',
+                  'sha256': 'dfd9201d59b0beadc11b4e9b98c4ac8e3dbf0724ccd3408e77488b62f718cc41'},
+                 {'match': ['scratch_C_pretraining_molecular_unimol_large_atom_regloss_mae_lr_0.0004_bs1_4_bs2_16_wu_0.03_ep_10_wgt_16_T__ratio_4_16_20251004_182236', 'fold_0/checkpoint_last.pt'], 'path': 'C/cv_seed_42_fold_0/checkpoint_last.pt',
+                  'sha256': '888c2fdcdd0379ded4c6de7322414fcf98658f4092adf8687a54329643c0376a'},
+                 {'match': ['scratch_C_pretraining_molecular_unimol_large_atom_regloss_mae_lr_0.0004_bs1_4_bs2_16_wu_0.03_ep_10_wgt_16_T__ratio_4_16_20251004_182236', 'target_scaler.ss'], 'path': 'C/target_scaler.ss',
+                  'sha256': '8d9af306251634c2c064e4a61ba0f71344d8569573c7d517b25b4cf42678a39b'}]},
+            {'url': 'https://zenodo.org/records/18232165/files/weight.zip?download=1',
+             'members': [{'match': ['weight/dict.txt'], 'path': 'weight/dict.txt',
+                          'sha256': 'f4fafdbc445449c8f8ef613fee36c8ee7610e3c7c2766666635edc8d962ba134'}]}],
+        'elements': ['H', 'C', 'N', 'O', 'S', 'Cl', 'F', 'Br', 'I', 'Si', 'P', 'B'],
+        'size': '0.8 GB environment, about 1.2 GB checkpoints',
+        'note': 'ICML 2026; one of its five cross-validation checkpoints per nucleus (fold 0) is used, so it is a single '
+                'model, not the published ensemble. The authors include DP Technology staff; no company affiliation '
+                'is claimed here.',
+    },
+    'reacon': {
+        'title': 'Reacon', 'task': 'conditions', 'kind': 'local',
+        'license': 'not declared by the authors (no LICENSE file in their repository)',
+        'python': (10, 10), 'module': 'torch',
+        'requirements': ['torch==2.5.1', 'chemprop==1.6.1', 'torch-geometric==2.3.0', 'pandas==1.5.3', 'numpy<2', 'setuptools<81', 'rdkit'],
+        'data': 'reacon',
+        'downloads': [{'url': 'https://github.com/wzhstat/Reaction-Condition-Selector/archive/'
+                              'aeedf1b8682d5b61f2ee3ea5a987fdd0c571c7b0.tar.gz',
+                       'path': 'code.tar.gz', 'sha256': '28031acb05f16dde46096ca96107ac4727f26b16099236d80f504fed192150f7',
+                       'extract': 'tar.gz', 'into': 'code'}],
+        'archive_members': {
+            'url': 'https://www.dropbox.com/scl/fo/v1rhyes2wvead9dz3x4fb/h?rlkey=nqtst7azldcry3ixnoigmcv3v&dl=1',
+            'members': [
+                {'name': 'USPTO_condition/data/condition_library/condition_library_r1.json.gz',
+                 'path': 'condition_library/condition_library_r1.json.gz',
+                 'sha256': 'cf40e8c5a105f1a2845ec4e4ab2d779ac915f714361cd47a57c8735355f49eb6'},
+                {'name': 'USPTO_condition/data/condition_library/condition_library_r0.json.gz',
+                 'path': 'condition_library/condition_library_r0.json.gz',
+                 'sha256': 'bb8e86e1c363bc61c8ded75f435e97b23922d7f29fa9dab34d6764c3922dcba1'},
+                {'name': 'USPTO_condition/data/condition_library/condition_library_r0_1.json.gz',
+                 'path': 'condition_library/condition_library_r0_1.json.gz',
+                 'sha256': 'c86a86f3aa57d3a785049917561a51d1895bb5fcb79d1b341b3f38a85e81f014'}]},
+        'size': '1.0 GB environment, 0.14 GB repository with trained models, 0.12 GB condition libraries (a 2 GB '
+                'download from the authors, deleted after the libraries are taken out)',
+        'note': "Chem. Sci. 2025. The authors' repository states no licence, so the code and models are not "
+                'redistributed here: they are downloaded from the authors at a pinned commit, on request.',
+    },
 }
 
 TASKS = ('ocsr', 'segmentation', 'products', 'retrosynthesis', 'conditions', 'nmr')
@@ -178,6 +264,15 @@ GUIDE = {
                            'skip_when': 'the product is known or only needs an atom-balance check'},
     'reactiont5-retro': {'disk_mb': 1600, 'use_when': 'quick single-step precursor ideas',
                          'skip_when': 'AiZynthFinder is installed (it is more reliable)'},
+    'retrochimera': {'disk_mb': 5900, 'use_when': 'the strongest single-step precursor suggestions available here, '
+                                                  'and routes searched with them',
+                     'skip_when': 'a quick idea is enough (AiZynthFinder is much smaller), or the work needs a commercial '
+                                  'licence check first: the authors state research use only'},
+    'nmrnet-pp': {'disk_mb': 1900, 'use_when': 'a second opinion on predicted 1H and 13C shifts, including Br, I, Si, P and B',
+                  'skip_when': 'measured spectra are available (those are plotted without a model)'},
+    'reacon': {'disk_mb': 1100, 'use_when': 'candidate catalysts, solvents and reagents for a reaction already drawn',
+               'skip_when': 'the conditions are in the source, or the reaction type is new (it learned from patents); '
+                            "its authors' repository declares no licence"},
     'magnet': {'disk_mb': 1300, 'use_when': 'predicted 1H and 13C shifts of one molecule',
                'skip_when': 'measured spectra are available (those are plotted without a model)'},
 }
@@ -194,11 +289,15 @@ BUNDLES = {
     'products': {'engines': ['reactiont5-forward'], 'task': 'products', 'about': 'candidate products of a reaction'},
     'retro': {'engines': ['aizynthfinder'], 'task': 'retro', 'about': 'single and multi-step retrosynthesis'},
     'nmr': {'engines': ['magnet'], 'task': 'nmr', 'about': 'predicted 1H and 13C shifts'},
+    'nmr-pp': {'engines': ['nmrnet-pp'], 'task': 'nmr', 'about': 'a second NMR model to compare with MagNET'},
+    'retro-chimera': {'engines': ['retrochimera'], 'task': 'retro',
+                      'about': 'RetroChimera single-step suggestions and Syntheseus route search (research use)'},
+    'conditions': {'engines': ['reacon'], 'task': 'conditions', 'about': 'candidate reaction conditions (unlicensed code)'},
 }
 
 # What to suggest for a need: the smallest set that does the job first, then larger alternatives.
 RECOMMEND = {'ocsr': ['ocsr-standard', 'ocsr-lite', 'ocsr-full'], 'pdf': ['pdf'], 'products': ['products'],
-             'retro': ['retro'], 'nmr': ['nmr']}
+             'retro': ['retro', 'retro-chimera'], 'nmr': ['nmr', 'nmr-pp'], 'conditions': ['conditions']}
 
 
 def disk_mb(names) -> int:

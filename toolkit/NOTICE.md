@@ -127,3 +127,25 @@ License; the forward and retrosynthesis models are downloaded from Hugging Face 
 
 [MagNET](https://huggingface.co/ekwan16/MagNET) by the Kwan group, MIT License, with PyTorch Geometric
 extension wheels from the PyG project.
+
+## RetroChimera and Syntheseus (retrosynthesis)
+
+[RetroChimera](https://github.com/microsoft/retrochimera) and [Syntheseus](https://github.com/microsoft/syntheseus) by
+Microsoft Research, MIT License, installed from PyPI at pinned versions. The Pistachio checkpoints are downloaded from
+the authors' figshare record and checked against pinned hashes. The authors release the model for research and
+experiments and ask that an expert check every suggestion. The building-block list is the MCULE/Molport file of
+SynPlanner (MIT), checked against a pinned hash.
+
+## NMRNet++ and Uni-Core (NMR shift prediction)
+
+[NMRNet++](https://github.com/YongqiJin/NMRNetplusplus) by Yongqi Jin and co-authors, MIT License, and
+[Uni-Core](https://github.com/dptech-corp/Uni-Core) by DP Technology, MIT License, both installed from pinned archives
+checked against pinned hashes. The fine-tuned checkpoints (Zenodo record 18232165, CC BY 4.0) are downloaded at install
+time and checked against pinned hashes.
+
+## Reacon (reaction conditions)
+
+[Reacon](https://github.com/wzhstat/Reaction-Condition-Selector) by its authors (Chem. Sci. 2025). **The authors'
+repository states no licence.** Nothing from it is included in or redistributed with this project: it is downloaded
+from the authors' repository, at a pinned commit and checked against a pinned hash, only when the user installs the
+engine, and runs in its own environment. Its dependencies are chemprop (MIT), PyTorch Geometric (MIT), PyTorch and RDKit.

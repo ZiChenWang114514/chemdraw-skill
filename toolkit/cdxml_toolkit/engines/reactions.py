@@ -67,9 +67,17 @@ def _leaves(node, out):
             _leaves(reactant, out)
 
 
+def _short_of_atoms(reaction: str) -> bool:
+    """True when the reactants hold fewer heavy atoms than the product: no reaction can make it from them."""
+    from rdkit import Chem
+    left, right = reaction.split('>>')
+    count = lambda text: sum(m.GetNumHeavyAtoms() for m in (Chem.MolFromSmiles(x) for x in text.split('.')) if m is not None)
+    return count(left) < count(right)
+
+
 def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single', count: int = 5,
                    time_limit: int = 60, timeout_seconds: int = 900) -> dict:
-    """Suggest precursors (``steps='single'``) or whole routes (``'multi'``, AiZynthFinder only) for ``product``."""
+    """Suggest precursors (``steps='single'``) or whole routes (``'multi'``) for ``product``."""
     name = _pick(engine, 'retrosynthesis', 'aizynthfinder')
     if steps not in ('single', 'multi'):
         raise ValueError("steps must be 'single' or 'multi'")
@@ -90,7 +98,8 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
                            timeout=timeout_seconds)
             if steps == 'single':
                 options = [{'rank': i, 'reactants': ['.'.join(group) for group in o['reactants']][0].split('.'),
-                            'probability': o['probability'], 'template': o['template']}
+                            'probability': o['probability'], 'template': o.get('template'),
+                            **({'score': o['score']} if o.get('score') is not None else {})}
                            for i, o in enumerate(raw['options'], 1)]
                 body = {'steps': 'single', 'options': options}
             else:
@@ -101,7 +110,8 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
                     _leaves(route, leaves)
                     routes.append({'rank': i, 'steps': len(flat), 'reactions': flat,
                                    'starting_materials': [{'smiles': s, 'in_stock': stock} for s, stock in leaves],
-                                   'all_in_stock': all(stock for _, stock in leaves), 'tree': route})
+                                   'all_in_stock': all(stock for _, stock in leaves), 'tree': route,
+                                   'unbalanced_steps': [r for r in flat if _short_of_atoms(r)]})
                 body = {'steps': 'multi', 'solved': raw['solved'], 'top_score': raw['top_score'], 'routes': routes}
                 if raw.get('target_in_stock'):
                     body['target_in_stock'] = True
@@ -115,7 +125,53 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
         out['warnings'].append('reactiont5-retro lists reagents and solvents together with the reactants and can miss '
                                'the obvious precursor (for aspirin it did not propose acetic anhydride); prefer '
                                'aizynthfinder and treat these sets as hints')
+    if any(route.get('unbalanced_steps') for route in out.get('routes', [])):
+        out['warnings'].append('some route steps list fewer heavy atoms in the reactants than in the product (see '
+                               '`unbalanced_steps`): a missing partner or a hallucinated step; do not follow those routes')
+    if name == 'retrochimera':
+        out['warnings'].append('RetroChimera is released for research and experiments: an expert must check every '
+                               'suggestion, and lower-ranked reactions are more likely to be hallucinated (its authors '
+                               'advise reading only the first 5 to 10); its training data ends in 2023')
+        if steps == 'multi':
+            out['warnings'].append('routes are searched with RetroChimera and the MCULE/Molport building blocks; '
+                                   '"in stock" means the molecule is in that list, not that it can be bought today')
     for option in out.get('options', []):
         option['reaction'] = _reaction_smiles(option['reactants'], target)
         option['reactants_checked'] = [envelope.describe(r) for r in option['reactants']]
+    return out
+
+
+def conditions(reactants: str, products: str, engine: str | None = None, count: int = 5,
+               timeout_seconds: int = 900) -> dict:
+    """Rank catalyst, solvent and reagent combinations for a reaction the user already drew.
+
+    The model needs the atoms mapped from reactants to products; the mapping is made here with the
+    toolkit's own mapper (``map_reaction_atoms``) and returned, so it can be checked.
+    """
+    name = _pick(engine, 'conditions', 'reacon')
+    left = _canonical(reactants, 'reactants')
+    right = _canonical(products, 'products')
+    from ..mcp_runtime.report_tools import map_reaction_atoms
+    mapping = map_reaction_atoms(f'{left}>>{right}')
+    if mapping.get('status') != 'complete':
+        raise ValueError('the reaction could not be mapped atom to atom without ambiguity: draw it with the '
+                         'reactants that supply every product atom, or map it first with map_reaction_atoms')
+    mapped = mapping['mapped_reaction']
+    started = time.time()
+    try:
+        raw = env.call(name, 'predict', {'mapped_reaction': mapped, 'count': count}, timeout=timeout_seconds)
+    except env.EngineError as exc:
+        return envelope.failure('conditions', name, ENGINES[name], exc)
+    options = [{'rank': i, **candidate} for i, candidate in enumerate(raw['candidates'][:count], 1)]
+    out = envelope.result('conditions', name, ENGINES[name], [], reactants=left, products=right,
+                          mapped_reaction=mapped, mapping_method=mapping.get('method'),
+                          template_level=raw.get('template_level'), options=options,
+                          score_meaning='product of the component probabilities from six learned classifiers',
+                          elapsed_s=round(time.time() - started, 2),
+                          warnings=['model predictions learned from patent reactions: candidates, not a recommended '
+                                    'procedure; they carry no temperature, time, amounts or yield',
+                                    'the atom mapping is a prediction too: a wrong map changes the answer'])
+    if raw.get('template_level') in (None, 'none'):
+        out['warnings'].append('no template in the condition library matched this reaction: the options combine the '
+                               'top three answers of each classifier and are less reliable')
     return out

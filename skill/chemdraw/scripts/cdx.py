@@ -777,10 +777,12 @@ def cmd_ocsr(ns):
 
 
 def cmd_predict(ns):
-    tool = {'products': 'predict_products', 'retro': 'predict_retrosynthesis', 'nmr': 'predict_nmr'}[ns.task]
+    tool = {'products': 'predict_products', 'retro': 'predict_retrosynthesis', 'nmr': 'predict_nmr',
+            'conditions': 'predict_conditions'}[ns.task]
     kwargs = json.loads(ns.json) if ns.json else {}
     if ns.smiles:
-        kwargs[{'products': 'reactants', 'retro': 'product', 'nmr': 'smiles'}[ns.task]] = ns.smiles
+        kwargs[{'products': 'reactants', 'retro': 'product', 'nmr': 'smiles',
+                   'conditions': 'reactants'}[ns.task]] = ns.smiles
     if ns.engine:
         kwargs['engine'] = ns.engine
     return _emit(tool, _worker(tool, kwargs))
@@ -855,15 +857,16 @@ def main(argv=None):
     s.add_argument('--timeout', type=int, default=600)
     s.add_argument('--out', help='new JSON file for the raw DECIMER response')
     s.set_defaults(fn=cmd_ocsr)
-    s = sub.add_parser('predict', help='model predictions: cdx.py predict products "A.B" | retro "TARGET" | nmr "SMILES" '
+    s = sub.add_parser('predict', help='model predictions: cdx.py predict products "A.B" | retro "TARGET" | nmr "SMILES" | '
+                                       'conditions "A.B" --json \'{"products": "P"}\' '
                                        '[--engine NAME] [--json ARGS]; always labelled as predictions')
-    s.add_argument('task', choices=['products', 'retro', 'nmr'])
+    s.add_argument('task', choices=['products', 'retro', 'nmr', 'conditions'])
     s.add_argument('smiles', nargs='?')
     s.add_argument('--engine')
     s.add_argument('--json', help='further tool arguments as a JSON object (steps, count, nucleus, solvent, ...)')
     s.set_defaults(fn=cmd_predict)
     s = sub.add_parser('engines', help='list the optional engines, what each is for and its disk use; '
-                                       '--recommend ocsr|pdf|products|retro|nmr suggests what to install (downloads nothing)')
+                                       '--recommend ocsr|pdf|products|retro|nmr|conditions suggests what to install (downloads nothing)')
     s.add_argument('--recommend', metavar='NEED')
     s.set_defaults(fn=cmd_engines)
     s = sub.add_parser('remove-engines', help='delete installed engines: cdx.py remove-engines molnextr [--yes] (dry run '

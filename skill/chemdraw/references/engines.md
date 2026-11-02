@@ -1,6 +1,6 @@
 # Prediction Engines
 
-Optional engines for reading structure images with more than one model, finding the structures in a PDF, and predicting products, precursors and NMR shifts. Everything here is a **model prediction**: results carry `provenance: "model_prediction"`, are never merged or picked silently, and must be checked before they reach a figure or a report. Signatures: [mcp-signatures.md](mcp-signatures.md).
+Optional engines for reading structure images with more than one model, finding the structures in a PDF, and predicting products, precursors, reaction conditions and NMR shifts. Everything here is a **model prediction**: results carry `provenance: "model_prediction"`, are never merged or picked silently, and must be checked before they reach a figure or a report. Signatures: [mcp-signatures.md](mcp-signatures.md).
 
 ```bash
 cdx.py engines                              # installed or not, what each is for, disk used
@@ -28,8 +28,11 @@ Each engine installs into its own folder under `~/.local/share/chemdraw-skill/en
 | `reactiont5-forward` | products | own env, Python 3.12 | MIT / MIT | 0.8 GB + weights |
 | `reactiont5-retro` | retrosynthesis, single step | own env, Python 3.12 | MIT / MIT | same environment |
 | `magnet` | 1H and 13C shifts | own env, Python 3.12 | MIT / MIT | PyTorch env |
+| `nmrnet-pp` | 1H and 13C shifts (a second model) | own env, Python 3.11 | MIT / CC BY 4.0 | 0.8 GB + 1.1 GB |
+| `retrochimera` | retrosynthesis, single step and routes (Microsoft Research, with Syntheseus) | own env, Python 3.10 | MIT / MIT | 0.7 GB + 4.7 GB + 0.5 GB stock (about 6 GB installed) |
+| `reacon` | reaction conditions | own env, Python 3.10 | **no licence stated by the authors** | 0.8 GB + 0.25 GB |
 
-MolParser's weights may not be used commercially; check this before using it in paid or company work. Licences are those stated by each project; the weights of an engine are covered by their own terms, shown in `cdx.py install-engines --dry-run`. The full notices are in `toolkit/NOTICE.md`.
+MolParser's weights may not be used commercially; check this before using it in paid or company work. RetroChimera's authors release it for research and experiments only. Reacon's authors state no licence at all, so it is never bundled: it is downloaded from their repository at a pinned commit, only when the user asks for it. Licences are those stated by each project; the weights of an engine are covered by their own terms, shown in `cdx.py install-engines --dry-run`. The full notices are in `toolkit/NOTICE.md`.
 
 ## When to offer an engine, and how to install it
 
@@ -45,6 +48,9 @@ Nothing here is installed or downloaded until the user agrees. The default path 
 | candidate products | `products` | about 1.6 GB |
 | precursors or routes | `retro` | about 1.8 GB |
 | predicted 1H/13C shifts | `nmr` | about 1.3 GB |
+| a second NMR model to compare, or Br, I, Si, P, B in the molecule | `nmr-pp` | about 1.9 GB |
+| the strongest single-step precursors, or routes searched with them (research use) | `retro-chimera` | about 6 GB (4.2 GB download; about 20 minutes of set-up after it) |
+| catalyst, solvent and reagent candidates for a drawn reaction | `conditions` (code without a stated licence) | about 1.1 GB, 2 GB download |
 
 Sizes are measured folder sizes of finished installs. A tool that needs a missing engine answers `ok: false` with an `install_hint` (engine, use, size, licence, command): relay it instead of searching the documentation, and install only after the user says yes.
 
@@ -63,6 +69,9 @@ Sizes are measured folder sizes of finished installs. A tool that needs a missin
 | `products` | `reactiont5-forward` | candidate products |
 | `retro` | `aizynthfinder` | single and multi-step retrosynthesis |
 | `nmr` | `magnet` | predicted shifts |
+| `nmr-pp` | `nmrnet-pp` | a second NMR model to compare with MagNET |
+| `retro-chimera` | `retrochimera` | RetroChimera suggestions and Syntheseus route search (research use) |
+| `conditions` | `reacon` | candidate reaction conditions (unlicensed code) |
 
 `SynPlanner`, `ReactionT5` retrosynthesis and the individual OCSR engines are installed by name.
 
@@ -96,8 +105,9 @@ Measured here with `scripts/ocsr_benchmark.py` on 10 clean RDKit drawings (full 
 | Tool | Engines | What comes back |
 | --- | --- | --- |
 | `predict_products(reactants, reagents)` | `reactiont5-forward` | ranked candidate products with beam scores, and `reactions` (`A.B>>P`) |
-| `predict_retrosynthesis(product, steps)` | `aizynthfinder`; `reactiont5-retro` (single step) | precursor options, or routes with `reactions`, `starting_materials` and `all_in_stock` |
-| `predict_nmr(smiles, nucleus, solvent)` | `magnet` | peaks grouped by symmetry, marked `predicted: true`; with `output_path` a simulated `ppm,intensity` CSV |
+| `predict_retrosynthesis(product, steps)` | `aizynthfinder`; `retrochimera` (single step and routes); `synplanner` (routes); `reactiont5-retro` (single step) | precursor options, or routes with `reactions`, `starting_materials` and `all_in_stock` |
+| `predict_nmr(smiles, nucleus, solvent, engine)` | `magnet`, `nmrnet-pp`, or both (`engine="magnet,nmrnet-pp"`) | peaks grouped by symmetry, marked `predicted: true`; with two engines a `comparison` of each peak (never averaged); with `output_path` a simulated `ppm,intensity` CSV |
+| `predict_conditions(reactants, products)` | `reacon` | ranked catalyst, solvent and reagent sets; the atom-mapped reaction is returned for checking |
 
 Limits to state when reporting:
 
@@ -105,6 +115,9 @@ Limits to state when reporting:
 - `reactiont5-retro` mixes reagents and solvents into its reactant sets and can miss the obvious precursor; prefer `aizynthfinder`.
 - AiZynthFinder's building-block check uses the ZINC stock that ships with its public data, not the user's catalogue.
 - MagNET supports H, C, N, O, F, Cl and S. The toolkit gives it an RDKit/MMFF conformer, but the model was trained on AIMNet2 geometries, so errors can exceed the published ones. Exchangeable OH/NH shifts are rough. Simulated spectra draw singlets only.
+- RetroChimera: the authors release it for research and experiments; an expert must check every suggestion, lower-ranked reactions are more likely to be hallucinated (read the first 5 to 10), and its data end in 2023. Routes use the MCULE/Molport building-block list shared with SynPlanner; "in stock" means listed there, not buyable today. A CPU run takes tens of seconds per target because the model loads on every call.
+- NMRNet++ uses fold 0 of the authors' five cross-validation models, not their ensemble. Its 1H model does not take the solvent, and the geometry is one RDKit/MMFF conformer. When it and MagNET differ by more than 0.3 ppm (1H) or 5 ppm (13C) the peak is flagged in `comparison`: at least one of them is wrong, and neither is the reference.
+- Reacon learned from USPTO patents and returns catalyst, solvent and reagent sets, never temperature, time, amounts or yield. It maps the reaction first (so a wrong map changes the answer); when no template of the library matches, the options combine each classifier's top three and are less reliable (`template_level: "none"`).
 - Never put predicted values into an experimental characterization line or an SI table; label them as predicted. `scientific_workflow(operation="nmr")` accepts the simulated CSV for plotting.
 
 Route steps feed `render_scheme`, `route_summary` and `draw_figure` as ordinary reaction SMILES; title such a figure as predicted.
@@ -113,8 +126,8 @@ Route steps feed `render_scheme`, `route_summary` and `draw_figure` as ordinary 
 
 Checked and left out, with the reason:
 
-- **Reacon** (reaction conditions): the paper is published, but no code or weights could be found.
-- **Other condition predictors** found with weights depend on commercial reaction-classification software or on data that is not public, so `predict_conditions` is not provided.
+- **Other condition predictors** found with weights depend on commercial reaction-classification software or on data that is not public.
+- **NMRNet** (the first, 2025 version): its weights are 38 GB; NMRNet++ is provided instead.
 - **IBM RXN**: needs an account key and its API contract could not be verified without one.
 - **nmrdb.org**: a browser page without a programmatic interface.
 - **Molecular Transformer**: no licence is stated in its repository.

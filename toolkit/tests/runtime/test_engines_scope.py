@@ -61,7 +61,7 @@ def test_recommend_marks_what_is_already_there(home, monkeypatch):
 
 def test_recommend_rejects_an_unknown_need():
     with pytest.raises(ValueError, match='unknown need'):
-        env.recommend('conditions')
+        env.recommend('weather')
 
 
 # --- a missing engine explains itself ------------------------------------------------------------
@@ -140,3 +140,51 @@ def test_the_install_command_reads_bundles_and_estimates_the_download(home, monk
     assert cli.main(['--bundle', 'ocsr-lite', '--dry-run']) == 0
     out = json.loads(capsys.readouterr().out)
     assert [r['engine'] for r in out['reports']] == ['molvec'] and out['download_mb_estimate'] == 2
+
+
+def test_the_new_needs_are_recommended_with_their_limits_and_nothing_is_downloaded():
+    assert [o['bundle'] for o in env.recommend('retro')['options']] == ['retro', 'retro-chimera']
+    assert [o['bundle'] for o in env.recommend('nmr')['options']] == ['nmr', 'nmr-pp']
+    conditions = env.recommend('conditions')['options'][0]
+    assert conditions['missing'] == ['reacon'] and conditions['command'] == 'cdx.py install-engines --bundle conditions'
+    assert env.hint('reacon')['license'].startswith('not declared')
+    assert env.hint('retrochimera')['size_mb'] >= 5000
+
+
+def test_a_download_cut_short_is_retried_instead_of_accepted(tmp_path):
+    """A host that closes the connection early (and ignores Range) must not leave a truncated file behind."""
+    import threading
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    from cdxml_toolkit.engines import worker
+
+    body = bytes(range(256)) * 4096  # 1 MiB
+    calls = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            calls.append(self.headers.get('Range'))
+            self.send_response(200)
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body[:300_000] if len(calls) == 1 else body)  # the first answer stops early
+
+        def log_message(self, *args):
+            pass
+
+    server = HTTPServer(('127.0.0.1', 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        target = tmp_path / 'file.bin'
+        worker._download(f'http://127.0.0.1:{server.server_port}/f', str(target), attempts=5)
+    finally:
+        server.shutdown()
+    assert target.read_bytes() == body and len(calls) == 2
+
+
+def test_a_bundle_without_downloads_in_its_spec_still_fetches(tmp_path):
+    """The installer sends None for every spec key an engine lacks; the worker must treat that as empty."""
+    from cdxml_toolkit.engines import worker
+
+    spec = {'data': 'retrochimera-pistachio', 'downloads': None, 'zip_members': None, 'archive_members': None, 'stock': None}
+    assert worker._fetch_bundle(str(tmp_path), spec) == {'data': {}}

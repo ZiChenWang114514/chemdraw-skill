@@ -81,6 +81,24 @@ def predict_retrosynthesis(
     return reactions.retrosynthesis(product, engine, steps, count, time_limit, timeout_seconds)
 
 
+def predict_conditions(
+    reactants: str,
+    products: str,
+    engine: Optional[str] = None,
+    count: int = 5,
+    timeout_seconds: int = 900,
+) -> dict[str, Any]:
+    """Rank catalyst, solvent and reagent combinations for a reaction (reactants and products as SMILES).
+
+    Engine: reacon (local; install with `cdx.py install-engines reacon`; the authors' repository states no
+    licence). The reaction is atom-mapped first (`mapped_reaction` is returned so the map can be checked).
+    Options list a catalyst, up to two solvents and up to three reagents with a score, learned from patent
+    reactions. They are candidates only: no temperature, time, amounts or yield, and a new reaction type may
+    be answered poorly.
+    """
+    return reactions.conditions(reactants, products, engine, count, timeout_seconds)
+
+
 def extract_structures_from_document(
     path: str,
     out_dir: str,
@@ -128,6 +146,7 @@ ENGINE_TOOLS = {
     "extract_structures_from_document": extract_structures_from_document,
     "predict_products": predict_products,
     "predict_retrosynthesis": predict_retrosynthesis,
+    "predict_conditions": predict_conditions,
     "predict_nmr": predict_nmr,
 }
 

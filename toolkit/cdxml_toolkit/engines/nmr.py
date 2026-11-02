@@ -51,11 +51,40 @@ def simulate(peaks: list, nucleus: str, frequency_mhz: float, width_hz: float = 
     return out[::-1]  # NMR convention: high ppm first
 
 
+def _compare(by_engine: dict, nuclei: list) -> dict:
+    """Pair each engine's peaks with the nearest peak of the first engine; large gaps are listed for review."""
+    names = list(by_engine)
+    first = names[0]
+    out = {}
+    for nucleus in nuclei:
+        limit = 0.3 if nucleus == '1H' else 5.0
+        rows = []
+        for peak in by_engine[first][nucleus]:
+            row = {'atoms': peak['atoms'], 'count': peak['count'], 'shift_ppm': {first: peak['shift_ppm']}}
+            for other in names[1:]:
+                match = next((q for q in by_engine[other][nucleus] if q['atoms'] == peak['atoms']), None)
+                if match is None:
+                    match = next((q for q in by_engine[other][nucleus] if set(q['atoms']) & set(peak['atoms'])), None)
+                row['shift_ppm'][other] = match['shift_ppm'] if match else None
+            values = [v for v in row['shift_ppm'].values() if v is not None]
+            row['spread_ppm'] = round(max(values) - min(values), 2) if len(values) > 1 else None
+            row['needs_review'] = len(values) < len(names) or (row['spread_ppm'] or 0) > limit
+            rows.append(row)
+        out[nucleus] = rows
+    return {'peaks': out, 'needs_review': any(r['needs_review'] for rows in out.values() for r in rows),
+            'review_threshold_ppm': {'1H': 0.3, '13C': 5.0},
+            'note': 'engines are compared, never averaged: a gap means at least one of them is wrong for this molecule'}
+
+
 def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0,
             engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict:
-    name = engine or 'magnet'
-    if name not in ENGINES or ENGINES[name]['task'] != 'nmr':
-        raise ValueError(f'unknown nmr engine {name!r} (choose from {", ".join(by_task("nmr"))})')
+    """``engine`` may name several, comma separated: each runs and the peaks are compared, never merged."""
+    names = [n.strip() for n in (engine or 'magnet').split(',') if n.strip()]
+    for name in names:
+        if name not in ENGINES or ENGINES[name]['task'] != 'nmr':
+            raise ValueError(f'unknown nmr engine {name!r} (choose from {", ".join(by_task("nmr"))})')
+    if len(set(names)) != len(names):
+        raise ValueError('name each engine once')
     if nucleus not in ('1H', '13C', 'both'):
         raise ValueError("nucleus must be '1H', '13C' or 'both'")
     key = ALIASES.get(solvent.strip().lower(), solvent.strip().lower())
@@ -70,37 +99,58 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
         raise ValueError(f'smiles is not valid: {smiles!r}')
     if '.' in Chem.MolToSmiles(mol):
         raise ValueError('give one molecule (no salts or mixtures)')
-    unsupported = sorted({a.GetSymbol() for a in mol.GetAtoms()} - set(ENGINES[name]['elements']))
-    if unsupported:
-        raise ValueError(f'{ENGINES[name]["title"]} supports {", ".join(ENGINES[name]["elements"])} only; found '
-                         + ", ".join(unsupported))
+    present = {a.GetSymbol() for a in mol.GetAtoms()}
+    for name in names:
+        unsupported = sorted(present - set(ENGINES[name]['elements']))
+        if unsupported:
+            raise ValueError(f'{ENGINES[name]["title"]} supports {", ".join(ENGINES[name]["elements"])} only; found '
+                             + ", ".join(unsupported))
     canonical = Chem.MolToSmiles(mol)
-    started = time.time()
-    try:
-        raw = env.call(name, 'predict', {'smiles': canonical, 'solvent': key}, timeout=timeout_seconds)
-    except env.EngineError as exc:
-        return envelope.failure('nmr', name, ENGINES[name], exc)
     nuclei = ['1H', '13C'] if nucleus == 'both' else [nucleus]
+    started = time.time()
+    raws, failed = {}, None
+    for name in names:
+        try:
+            raws[name] = env.call(name, 'predict', {'smiles': canonical, 'solvent': key, 'nuclei': nuclei},
+                                  timeout=timeout_seconds)
+        except env.EngineError as exc:
+            failed = envelope.failure('nmr', name, ENGINES[name], exc)
+            break
+    if failed:
+        return failed
+    by_engine = {name: {n: _peaks(raw['atoms'], n) for n in nuclei} for name, raw in raws.items()}
     spectra = {}
-    peaks = {n: _peaks(raw['atoms'], n) for n in nuclei}
     if output_path:
         base = Path(output_path).expanduser().resolve()
+        first = names[0]
         for n in nuclei:
             target = base if len(nuclei) == 1 else base.with_name(f'{base.stem}-{n}{base.suffix}')
             if target.exists():
                 raise ValueError(f'{target} exists: choose a new file name')
             target.parent.mkdir(parents=True, exist_ok=True)
-            rows = simulate(peaks[n], n, float(frequency_mhz))
+            rows = simulate(by_engine[first][n], n, float(frequency_mhz))
             with open(target, 'x', encoding='utf-8') as handle:
                 handle.write('ppm,intensity\n')
                 handle.writelines(f'{x:.5f},{y:.6f}\n' for x, y in rows)
             spectra[n] = str(target)
-    return envelope.result('nmr', name, ENGINES[name], [], smiles=canonical, solvent=key, frequency_mhz=float(frequency_mhz),
-                           peaks=peaks, simulated_spectra=spectra, geometry=raw.get('geometry'),
-                           elapsed_s=round(time.time() - started, 2), predicted=True,
-                           warnings=['predicted shifts, not measured data: do not report them as experimental values',
-                                     'the geometry is an RDKit/MMFF conformer; MagNET-Zero was trained on AIMNet2 '
-                                     'geometries, so errors can be larger than the published ones',
-                                     'simulated spectra draw singlets only (no coupling or multiplets)'] +
-                           (['OH/NH/SH proton shifts depend on concentration and exchange; treat them as rough'] if any(
-                               p['exchangeable'] for n in nuclei for p in peaks[n]) else []))
+    warnings = ['predicted shifts, not measured data: do not report them as experimental values']
+    for name in names:
+        warnings += [w for w in raws[name].get('warnings', []) if w not in warnings]
+    if 'magnet' in names:
+        warnings.append('the geometry is an RDKit/MMFF conformer; MagNET-Zero was trained on AIMNet2 '
+                        'geometries, so errors can be larger than the published ones')
+    warnings.append('simulated spectra draw singlets only (no coupling or multiplets)')
+    if any(p['exchangeable'] for name in names for n in nuclei for p in by_engine[name][n]):
+        warnings.append('OH/NH/SH proton shifts depend on concentration and exchange; treat them as rough')
+    first = names[0]
+    common = dict(smiles=canonical, solvent=key, frequency_mhz=float(frequency_mhz), simulated_spectra=spectra,
+                  elapsed_s=round(time.time() - started, 2), predicted=True, warnings=warnings)
+    if len(names) == 1:
+        return envelope.result('nmr', first, ENGINES[first], [], peaks=by_engine[first], geometry=raws[first].get('geometry'),
+                               **common)
+    out = envelope.result('nmr', ','.join(names), {'kind': 'local', 'license': 'see each engine'}, [],
+                          engines=[{'engine': name, 'license': ENGINES[name].get('license'), 'peaks': by_engine[name],
+                                    'geometry': raws[name].get('geometry')} for name in names],
+                          peaks=by_engine[first], comparison=_compare(by_engine, nuclei), **common)
+    out['note'] = f'`peaks` repeats the first engine ({first}); see `engines` and `comparison` for all of them'
+    return out

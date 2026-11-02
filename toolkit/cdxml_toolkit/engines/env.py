@@ -23,6 +23,7 @@ from .registry import BUNDLES, ENGINES, GUIDE, RECOMMEND, disk_mb
 WORKER = Path(__file__).with_name('worker.py')
 RUN_TIMEOUT = 900  # the first import of PyTorch can take a minute on a cold disk
 VENV_TIMEOUT = 600
+FETCH_TIMEOUT = 6 * 3600  # large model files on a slow link; every download resumes, so a retry loses nothing
 RECEIPT = '.engine.json'
 MARKER = '@@ENGINE-RESULT@@'  # worker.py prefixes its one JSON line with this
 
@@ -142,7 +143,8 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
     if python is None:
         raise EngineMissing(name, f'{title} is not installed: run `cdx.py install-engines {name}`')
     request = {'engine': name, 'action': action, 'params': params,
-               'data_dir': str(data_dir(name)), 'spec': {k: ENGINES[name].get(k) for k in ('weights', 'data', 'family', 'download', 'sha256')}}
+               'data_dir': str(data_dir(name)), 'spec': {k: ENGINES[name].get(k) for k in ('weights', 'data', 'family', 'download', 'downloads', 'zip_members',
+                                                                           'archive_members', 'stock', 'sha256')}}
     env = dict(os.environ, TOKENIZERS_PARALLELISM='false', PYTHONIOENCODING='utf-8', PYTHONUNBUFFERED='1')
     if ENGINES[name]['kind'] == 'local':  # libraries that cache models with pystow keep them inside the engine
         env['PYSTOW_HOME'] = str(data_dir(name))
@@ -210,8 +212,9 @@ def _create(name: str, env: Path, log) -> Path:
     return interpreter(env)
 
 
-def _pip(python, requirements, log, find_links=None):
+def _pip(python, requirements, log, find_links=None, no_build_isolation=False):
     links = ['--find-links', find_links] if find_links else []
+    links += ['--no-build-isolation'] if no_build_isolation else []  # packages whose setup.py imports torch
     if _uv():
         subprocess.run([_uv(), 'pip', 'install', '--python', str(python), *links, *requirements], check=True,
                        stdout=log, env={**os.environ, 'UV_HTTP_TIMEOUT': '300'})
@@ -272,8 +275,10 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
         _pip(python, spec['requirements'], log, spec.get('find_links'))
         if spec.get('extra_requirements'):
             _pip(python, spec['extra_requirements'], log, spec.get('find_links'))
+        if spec.get('late_requirements'):  # built against what is already installed
+            _pip(python, spec['late_requirements'], log, spec.get('find_links'), no_build_isolation=True)
         (env / RECEIPT).write_text(json.dumps({'engine': name, 'installing': True}), encoding='utf-8')
-        fetched = call(name, 'fetch', {}, timeout=3 * RUN_TIMEOUT) if (spec.get('weights') or spec.get('data')) else {}
+        fetched = call(name, 'fetch', {}, timeout=FETCH_TIMEOUT) if (spec.get('weights') or spec.get('data')) else {}
         (env / RECEIPT).write_text(json.dumps({'engine': name, 'requirements': spec['requirements'], **fetched}),
                                    encoding='utf-8')
         report.update(ok=True, python=str(python), fetched=fetched)

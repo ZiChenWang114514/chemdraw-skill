@@ -100,6 +100,7 @@ def _tool_timeout(name: str) -> int | None:
         "recognize_structure": 1800,
         "extract_structures_from_document": 3600,
         "predict_products": 900,
+        "predict_conditions": 1200,
         "predict_nmr": 1200,
         "predict_retrosynthesis": 1200,
     }.get(name)

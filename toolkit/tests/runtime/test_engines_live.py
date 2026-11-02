@@ -79,6 +79,43 @@ def test_nmr_of_ethyl_acetate_has_the_expected_peak_counts():
     assert all(p['predicted'] for p in out['peaks']['1H'] + out['peaks']['13C'])
 
 
+def test_nmrnet_pp_agrees_with_experiment_for_ethyl_acetate_and_is_compared_with_magnet():
+    need('nmrnet-pp')
+    out = nmr.predict('CCOC(C)=O', nucleus='both', engine='nmrnet-pp')
+    h = sorted(p['shift_ppm'] for p in out['peaks']['1H'])
+    c = sorted(p['shift_ppm'] for p in out['peaks']['13C'])
+    assert len(h) == 3 and len(c) == 4
+    assert abs(h[0] - 1.26) < 0.2 and abs(h[2] - 4.12) < 0.2 and abs(c[3] - 171.0) < 3  # literature values
+    if env.available().get('magnet'):
+        both = nmr.predict('CCOC(C)=O', nucleus='both', engine='magnet,nmrnet-pp')
+        assert both['comparison']['peaks']['1H'] and both['predicted'] is True
+
+
+def test_retrochimera_proposes_acetic_anhydride_and_salicylic_acid_for_aspirin():
+    need('retrochimera')
+    out = reactions.retrosynthesis(ASPIRIN, engine='retrochimera', steps='single', count=5)
+    assert out['ok'], out
+    sets = [frozenset(o['reactants']) for o in out['options']]
+    assert frozenset({'CC(=O)OC(C)=O', 'O=C(O)c1ccccc1O'}) in sets
+
+
+def test_retrochimera_plans_a_route_to_purchasable_blocks():
+    need('retrochimera')
+    bought = reactions.retrosynthesis('CC(=O)Nc1ccc(O)cc1', engine='retrochimera', steps='multi')
+    assert bought['ok'] and bought['target_in_stock'] and bought['routes'] == []  # paracetamol is itself a building block
+    out = reactions.retrosynthesis('CC(=O)Nc1ccc(OCC(=O)NCC)cc1', engine='retrochimera', steps='multi', time_limit=60)
+    assert out['ok'], out
+    assert out['solved'] and out['routes']
+    assert any(r['all_in_stock'] and not r['unbalanced_steps'] for r in out['routes'])
+
+
+def test_reacon_ranks_conditions_for_a_mapped_aspirin_acylation():
+    need('reacon')
+    out = reactions.conditions('CC(=O)OC(C)=O.OC(=O)c1ccccc1O', ASPIRIN)
+    assert out['ok'], out
+    assert out['options'] and out['provenance'] == 'model_prediction' and out['mapped_reaction']
+
+
 def test_a_tiny_engine_installs_reads_and_removes_in_a_scratch_home(tmp_path, monkeypatch):
     """The whole on-demand cycle with MolVec (1.3 MB, needs Java); the user's own engines are untouched."""
     if not env.java():
