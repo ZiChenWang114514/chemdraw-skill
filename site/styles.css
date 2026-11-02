@@ -11,23 +11,27 @@
 
 /* Type. Headings are a serif, text is a sans, and each stack names its Latin face and its
    Chinese face together, so a line that mixes the two never changes class half way through.
-   Headings: Source Serif 4 for Latin and Noto Serif SC for Chinese. Noto Serif SC draws its
-   Latin from Source Serif, so the two share stroke, colour and weight. Both are self-hosted
-   at one weight (600), trimmed to what the headings use; any other character falls through
-   to the system serif. Text: the system UI face and its Chinese partner. */
+   Headings: Skill Serif for Latin and Noto Serif SC for Chinese. Skill Serif is Source Serif 4
+   trimmed and renamed, as the font's licence asks of a modified copy, and Noto Serif SC draws
+   its Latin from the same design, so the two share stroke, colour and weight. Both are
+   self-hosted at one weight (600), trimmed to what the headings use by
+   scripts/build_site_fonts.py; any other character falls through to the system serif. The
+   Chinese face claims only Chinese, so an English page never fetches it.
+   Text: the system UI face and its Chinese partner. */
 @font-face {
-  font-family: "Source Serif 4";
-  src: url("fonts/source-serif-4-latin.woff2") format("woff2");
+  font-family: "Skill Serif";
+  src: url("fonts/skill-serif-latin.woff2") format("woff2");
   font-weight: 600;
   font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    U+0304, U+0308, U+0329, U+03B1-03B4, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: "Noto Serif SC";
   src: url("fonts/noto-serif-sc-heading.woff2") format("woff2");
   font-weight: 600;
   font-display: swap;
+  unicode-range: U+2014, U+2018-2019, U+201C-201D, U+2026, U+3000-303F, U+3400-9FFF, U+FF00-FFEF;
 }
 /* Quotes, dashes, ellipsis and the middle dot belong to the Chinese face in Chinese text:
    full width, centred in the em box. The Latin face of the system font would set them narrow. */
@@ -73,7 +77,7 @@
   --sans-base: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont,
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC",
     "Noto Sans CJK SC", Helvetica, Arial, sans-serif;
-  --display-base: "Source Serif 4", "Noto Serif SC", Georgia, "Songti SC", "Source Han Serif SC",
+  --display-base: "Skill Serif", "Noto Serif SC", Georgia, "Songti SC", "Source Han Serif SC",
     "Noto Serif CJK SC", STSong, SimSun, "Times New Roman", serif;
   --sans: var(--sans-base);
   --display: var(--display-base);
@@ -112,7 +116,9 @@
   /* Where pinned titles stop: under the header, then below it with room to breathe */
   --head-h: 61px;
   --pin: 96px;
+  --bar-h: 76px;
   --modes-h: 47px;
+  --chap-h: 47px;
   --measure: 36rem;
   --gutter: clamp(16px, 4vw, 40px);
   --wide: 1180px;
@@ -630,17 +636,21 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
    Lab pins its mode tabs and, under them, the name of the chapter being read. Pinning needs room:
    below 900 px wide or 600 px tall the titles scroll with the page. */
 .head.bar {
-  max-width: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 24px;
+  position: relative; max-width: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 24px;
   margin: 0 0 24px; padding: 12px 0; background: var(--canvas); border-bottom: 1px solid var(--grid);
 }
 .head.bar h2 { margin: 0; font-size: var(--fs-xl); }
 .head.bar p { font-size: var(--fs-sm); }
-.head.bar { position: relative; }
 .head.bar::after { content: ""; position: absolute; inset: 100% 0 auto; height: 20px; background: linear-gradient(var(--canvas) 30%, transparent); pointer-events: none; }
 .nb { white-space: nowrap; }
 @media (min-width: 901px) and (min-height: 600px) {
   :is(.how, .faq-layout, .start, .lab-teaser, .caps-layout) > .head { position: sticky; top: var(--pin); margin-bottom: 0; }
   .head.bar { position: sticky; top: var(--head-h); z-index: 4; }
+  /* Keyboard focus and glides stop below whatever is pinned there, on top of the scroll padding
+     that clears the header. */
+  .head.bar ~ * :is(a, button, input, [tabindex]) { scroll-margin-top: calc(var(--bar-h) + 8px); }
+  .lab-window :is(a, button, input, select, [tabindex], .mission, .fresh) { scroll-margin-top: calc(var(--modes-h) + 8px); }
+  .chapter :is(a, button, [tabindex]) { scroll-margin-top: calc(var(--modes-h) + var(--chap-h) + 8px); }
 }
 
 /* Before / after viewer: two comparisons behind tabs */
@@ -900,12 +910,11 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 }
 @keyframes lb-in { from { opacity: 0; scale: .96; } }
 
-/* Calculator: text on the left, ChemDraw's rendered grid on the right (the layout of .how) */
+/* Calculator: the title waits on the left, ChemDraw's rendered grid and the notes under it
+   scroll on the right (the layout of .how) */
 .calc-body { min-width: 0; }
 .calc-body ul { margin: 24px 0 0; padding-left: 1.1rem; color: var(--ink-2); font-size: var(--fs-md); line-height: 1.55; }
 .calc-body li + li { margin-top: 8px; }
-.head ul { margin: 16px 0 0; padding-left: 1.1rem; color: var(--ink-2); font-size: var(--fs-md); line-height: 1.55; }
-.head li + li { margin-top: 8px; }
 .calc-shot { margin: 0; }
 .calc-shot img { width: 100%; height: auto; display: block; box-sizing: border-box; padding: 12px; border: 1px solid var(--rule); border-radius: var(--r-sm); background: var(--plate); }
 .calc-shot figcaption { margin-top: 12px; font-size: var(--fs-sm); line-height: 1.55; color: var(--ink-2); }

@@ -1,3 +1,4 @@
+Copyright (c) 2017-2024 Adobe (http://www.adobe.com/).
 Copyright 2012 Google Inc. All Rights Reserved.
 
 This Font Software is licensed under the SIL Open Font License,

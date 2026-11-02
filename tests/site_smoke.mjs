@@ -677,6 +677,35 @@ async function main() {
     check(`${page}: the mode tabs stay under the header`, got.n >= 3 && got.modes === got.head, got);
     check(`${page}: the chapter being read stays under the tabs, and --modes-h is the tabs' real height`, got.first === got.head + got.tabs && Math.abs(got.tall - got.tabs) <= 1, got);
   }
+  // Walking back through a page with the keyboard, the focused control must not end up under a pinned title.
+  const underPin = `(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return null;
+    const box = el.getBoundingClientRect();
+    if (!box.height) return null;
+    const top = document.elementFromPoint(box.left + box.width / 2, box.top + Math.min(box.height / 2, 12));
+    return top && (el === top || el.contains(top) || top.contains(el)) ? null : (el.className || el.tagName).toString().slice(0, 24) + " at " + Math.round(box.top);
+  })()`;
+  for (const [width, height, page, from] of [[1280, 800, "lab/#levels", ".route a:last-of-type"], [1280, 800, "en/lab/#levels", ".route a:last-of-type"],
+    [1280, 800, "", "#calculator"], [1280, 800, "en/", "#calculator"], [1024, 768, "en/", "#calculator"]]) {
+    await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
+    await open(page);
+    await run(`(() => { document.documentElement.style.scrollBehavior = "auto"; const all = document.querySelectorAll(${JSON.stringify(from)}), el = all[all.length - 1]; el.tabIndex = el.matches("a") ? el.tabIndex : -1; el.focus(); return 1; })()`);
+    const hidden = [];
+    for (let i = 0; i < 40; i++) {
+      await press("Tab", 8);
+      await sleep(30);
+      const found = await run(underPin);
+      if (found) hidden.push(found);
+    }
+    check(`${page || "home"} at ${width} px: keyboard focus stays clear of the pinned titles`, !hidden.length, hidden.slice(0, 4));
+  }
+  await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+  await open("lab/#level-salicylic");
+  await run(`scrollTo(0, 600); glide(document.querySelector(".mission")); 1`);
+  await sleep(600);
+  check("a glide to the task panel stops below the mode tabs", await run(`document.querySelector(".mission").getBoundingClientRect().top >= document.querySelector(".modes").getBoundingClientRect().bottom`));
+
   // Not enough room, not pinned
   await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   await open("");
@@ -697,11 +726,11 @@ async function main() {
         loaded: [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/"/g, "")),
       };
     })()`);
-    check(`${page || "home"}: headings are set in a serif`, /^("?Noto Serif SC"?|"?Source Serif 4"?)/.test(got.h1) && got.h2 === got.h1 && /serif$/.test(await run(`getComputedStyle(document.documentElement).getPropertyValue("--display").trim()`)), got);
-    check(`${page || "home"}: the serif Latin face loads`, got.loaded.includes("Source Serif 4"), got.loaded);
+    check(`${page || "home"}: headings are set in a serif`, /^("?Noto Serif SC"?|"?Skill Serif"?)/.test(got.h1) && got.h2 === got.h1 && /serif$/.test(await run(`getComputedStyle(document.documentElement).getPropertyValue("--display").trim()`)), got);
+    check(`${page || "home"}: the serif Latin face loads`, got.loaded.includes("Skill Serif"), got.loaded);
     check(`${page || "home"}: ${zh ? "the Chinese serif loads, leads, and gives quotes their full width" : "English pages do not fetch the Chinese serif and keep narrow quotes"}`,
       zh ? got.loaded.includes("Noto Serif SC") && got.h1.startsWith('"Noto Serif SC"') && got.quote >= 90 && got.han >= 95
-         : !got.loaded.includes("Noto Serif SC") && got.h1.startsWith('"Source Serif 4"') && got.quote < 60, got);
+         : !got.loaded.includes("Noto Serif SC") && got.h1.startsWith('"Skill Serif"') && got.quote < 60, got);
     check(`${page || "home"}: ${zh ? "Chinese text puts the Chinese punctuation face first" : "English text does not"}`, zh === got.sans.startsWith('"CJK punctuation"'), got.sans);
   }
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import gzip
+import importlib.util
 from html import unescape
 import json
 import os
@@ -1211,7 +1212,7 @@ class PinnedTitleAndTypeTests(unittest.TestCase):
         serif, sans = stack("display-base"), stack("sans-base")
         self.assertTrue(serif.rstrip().endswith("serif") and not serif.rstrip().endswith("sans-serif"))
         self.assertTrue(sans.rstrip().endswith("sans-serif"))
-        self.assertLess(serif.index('"Source Serif 4"'), serif.index('"Noto Serif SC"'))
+        self.assertLess(serif.index('"Skill Serif"'), serif.index('"Noto Serif SC"'))
         self.assertIn('"Songti SC"', serif)
         for chinese in ('"PingFang SC"', '"Microsoft YaHei"', '"Noto Sans CJK SC"'):
             self.assertIn(chinese, sans)
@@ -1233,7 +1234,7 @@ class PinnedTitleAndTypeTests(unittest.TestCase):
 
     def test_font_files_licences_and_preloads(self) -> None:
         files = re.findall(r'url\("fonts/([^"]+)"\)', self.css)
-        self.assertEqual(sorted(files), ["noto-serif-sc-heading.woff2", "source-serif-4-latin.woff2"])
+        self.assertEqual(sorted(files), ["noto-serif-sc-heading.woff2", "skill-serif-latin.woff2"])
         for name in files:
             self.assertTrue((SITE / "fonts" / name).is_file(), name)
             self.assertLess((SITE / "fonts" / name).stat().st_size, 60_000, name)
@@ -1250,19 +1251,56 @@ class PinnedTitleAndTypeTests(unittest.TestCase):
                     self.assertTrue((path.parent / href).resolve().is_file(), href)
                 self.assertLess(html.index("preload"), html.index("styles.css"))
 
-    def test_chinese_heading_glyphs_are_in_the_trimmed_font(self) -> None:
+    @staticmethod
+    def font_build():
+        spec = importlib.util.spec_from_file_location("build_site_fonts", ROOT / "scripts" / "build_site_fonts.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def fonts(self):
+        """The two trimmed fonts. The website job has fontTools and must not skip what they check."""
         try:
             from fontTools.ttLib import TTFont
-            cmap = TTFont(SITE / "fonts" / "noto-serif-sc-heading.woff2").getBestCmap()
+            return (TTFont(SITE / "fonts" / "noto-serif-sc-heading.woff2"), TTFont(SITE / "fonts" / "skill-serif-latin.woff2"))
         except ImportError:
+            if os.environ.get("SITE_BROWSER"):
+                raise
             self.skipTest("fontTools with brotli is not installed")
-        for path in (PAGES["zh"], LAB_PAGES["zh"]):
-            html = path.read_text(encoding="utf-8")
-            for tag in re.findall(r"<(?:h1|h2)[^>]*>(.*?)</(?:h1|h2)>", html, re.S):
-                for char in re.sub(r"<[^>]+>", "", unescape(tag)):
-                    if "\u3400" <= char <= "\u9fff" or char in "，。、；：？！“”（）":
-                        with self.subTest(char=char):
-                            self.assertIn(ord(char), cmap)
+
+    def test_every_heading_character_is_in_the_trimmed_fonts(self) -> None:
+        chinese, latin = (font.getBestCmap() for font in self.fonts())
+        build = self.font_build()
+        text = {language: build.heading_text(language) for language in ("zh", "en")}
+        self.assertIn("\u62c6", text["zh"])  # a chapter title, only ever written by lab.js
+        self.assertIn("\u6768", text["zh"])  # from a task name, in the words the home page does not even load
+        missing = [c for c in text["zh"] if build.is_chinese(c) and ord(c) not in chinese]
+        missing += [c for c in text["zh"] + text["en"] if not build.is_chinese(c) and ord(c) not in latin and ord(c) not in chinese]
+        self.assertFalse(missing, "add them with: python scripts/build_site_fonts.py")
+        self.assertIn(ord("\u03b3"), latin)  # gamma in a compound name must not send an English page to the Chinese font
+
+    def test_a_trimmed_font_does_not_carry_the_reserved_name(self) -> None:
+        for font in self.fonts():
+            names = [r.toUnicode() for r in font["name"].names if r.nameID not in (0, 7)]  # the copyright and the trademark notice stay
+            self.assertFalse([n for n in names if "Source" in n])
+            self.assertNotIn("ExtraLight", " ".join(names))
+            self.assertEqual(font["OS/2"].usWeightClass, 600)
+
+    def test_each_licence_opens_with_the_notice_inside_its_font(self) -> None:
+        chinese, latin = self.fonts()
+        for font, licence in ((latin, "OFL-source-serif-4.txt"), (chinese, "OFL-noto-serif-sc.txt")):
+            notice = font["name"].getDebugName(0)
+            years, holder = re.search(r"(\d{4} ?- ?\d{4}) (Adobe)", notice).groups()
+            head = (SITE / "fonts" / licence).read_text(encoding="utf-8").split("\n\n")[0]
+            self.assertIn(f"{years} {holder}", head)
+        head = (SITE / "fonts" / "OFL-source-serif-4.txt").read_text(encoding="utf-8").split("\n\n")[0]
+        self.assertIn("Reserved Font Name", head)
+
+    def test_the_chinese_face_is_not_fetched_for_anything_else(self) -> None:
+        face = re.search(r'@font-face \{\s*font-family: "Noto Serif SC";[^}]*\}', self.css).group(0)
+        self.assertRegex(face, r"unicode-range: [^;]*U\+3400-9FFF")
+        self.assertNotIn("U+0", face)  # no Latin, no Greek
+        self.assertIn("U+03B1-03B4", re.search(r'@font-face \{\s*font-family: "Skill Serif";[^}]*\}', self.css).group(0))
 
 
 class AccessibilityTests(unittest.TestCase):
