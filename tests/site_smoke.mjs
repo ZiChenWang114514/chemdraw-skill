@@ -648,6 +648,92 @@ async function main() {
     }
   }
   await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+
+  // Every section keeps its title in view: beside its content, as a slim bar under the header, and in the Lab
+  // as the mode tabs with the chapter being read under them. A title that is not pinned scrolls off instead.
+  for (const page of ["", "en/"]) {
+    await open(page);
+    const ids = await run(`[...document.querySelectorAll("section[id]")].filter((s) => s.querySelector(".head")).map((s) => s.id)`);
+    check(`${page || "home"} has a title to pin in every section`, ids.length === 7, ids);
+    for (const id of ids) {
+      await open(page);
+      const got = await run(`(() => {
+        const head = document.querySelector("#${id} .head"), style = getComputedStyle(head), pin = parseFloat(style.top);
+        // Put the title's own place 24 px above where it pins: a pinned title waits there, a loose one is gone
+        scrollTo(0, head.getBoundingClientRect().top + scrollY - pin + 24);
+        return { position: style.position, pin, at: Math.round(head.getBoundingClientRect().top) };
+      })()`);
+      check(`${page || "home"} #${id}: the title stays under the header while its section scrolls`, got.position === "sticky" && Math.abs(got.at - got.pin) <= 1, got);
+    }
+  }
+  for (const page of ["lab/", "en/lab/"]) {
+    await open(`${page}#levels`);
+    const got = await run(`(() => {
+      const css = getComputedStyle(document.documentElement), px = (name) => parseFloat(css.getPropertyValue(name));
+      const modes = document.querySelector(".modes"), heads = [...document.querySelectorAll(".chap-head")];
+      scrollTo(0, modes.getBoundingClientRect().top + scrollY + 400);
+      return { n: heads.length, modes: Math.round(modes.getBoundingClientRect().top), first: Math.round(heads[0].getBoundingClientRect().top), head: px("--head-h"), tabs: px("--modes-h"), tall: Math.round(modes.getBoundingClientRect().height) };
+    })()`);
+    check(`${page}: the mode tabs stay under the header`, got.n >= 3 && got.modes === got.head, got);
+    check(`${page}: the chapter being read stays under the tabs, and --modes-h is the tabs' real height`, got.first === got.head + got.tabs && Math.abs(got.tall - got.tabs) <= 1, got);
+  }
+  // Walking back through a page with the keyboard, the focused control must not end up under a pinned title.
+  const underPin = `(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return null;
+    const box = el.getBoundingClientRect();
+    if (!box.height) return null;
+    const top = document.elementFromPoint(box.left + box.width / 2, box.top + Math.min(box.height / 2, 12));
+    return top && (el === top || el.contains(top) || top.contains(el)) ? null : (el.className || el.tagName).toString().slice(0, 24) + " at " + Math.round(box.top);
+  })()`;
+  for (const [width, height, page, from] of [[1280, 800, "lab/#levels", ".route a:last-of-type"], [1280, 800, "en/lab/#levels", ".route a:last-of-type"],
+    [1280, 800, "", "#calculator"], [1280, 800, "en/", "#calculator"], [1024, 768, "en/", "#calculator"]]) {
+    await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
+    await open(page);
+    await run(`(() => { document.documentElement.style.scrollBehavior = "auto"; const all = document.querySelectorAll(${JSON.stringify(from)}), el = all[all.length - 1]; el.tabIndex = el.matches("a") ? el.tabIndex : -1; el.focus(); return 1; })()`);
+    const hidden = [];
+    for (let i = 0; i < 40; i++) {
+      await press("Tab", 8);
+      await sleep(30);
+      const found = await run(underPin);
+      if (found) hidden.push(found);
+    }
+    check(`${page || "home"} at ${width} px: keyboard focus stays clear of the pinned titles`, !hidden.length, hidden.slice(0, 4));
+  }
+  await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+  await open("lab/#level-salicylic");
+  await run(`scrollTo(0, 600); glide(document.querySelector(".mission")); 1`);
+  await sleep(600);
+  check("a glide to the task panel stops below the mode tabs", await run(`document.querySelector(".mission").getBoundingClientRect().top >= document.querySelector(".modes").getBoundingClientRect().bottom`));
+
+  // Not enough room, not pinned
+  await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+  await open("");
+  check("titles scroll with the page on a phone", await run(`["#how", "#faq", "#start", "#gallery"].every((id) => getComputedStyle(document.querySelector(id + " .head")).position !== "sticky")`));
+  await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+
+  // Type: serif headings whose Latin and Chinese come from one lineage, a sans for text, and the
+  // Chinese face first for Chinese so its quotes and dashes keep full width
+  for (const [page, zh] of [["", true], ["en/", false]]) {
+    await open(page);
+    await run(`document.fonts.ready.then(() => true)`);
+    const got = await run(`(() => {
+      const w = (text, family) => { const s = document.createElement("span"); s.style.cssText = "position:absolute;visibility:hidden;white-space:pre;font:600 100px " + family; s.textContent = text; document.body.append(s); const width = s.getBoundingClientRect().width; s.remove(); return Math.round(width); };
+      const css = getComputedStyle(document.documentElement);
+      return {
+        h1: getComputedStyle(document.querySelector("h1")).fontFamily, h2: getComputedStyle(document.querySelector("h2")).fontFamily,
+        sans: css.getPropertyValue("--sans").trim().slice(0, 18), quote: w("\u201c", "var(--display)"), han: w("\u672a", "var(--display)"),
+        loaded: [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/"/g, "")),
+      };
+    })()`);
+    check(`${page || "home"}: headings are set in a serif`, /^("?Noto Serif SC"?|"?Skill Serif"?)/.test(got.h1) && got.h2 === got.h1 && /serif$/.test(await run(`getComputedStyle(document.documentElement).getPropertyValue("--display").trim()`)), got);
+    check(`${page || "home"}: the serif Latin face loads`, got.loaded.includes("Skill Serif"), got.loaded);
+    check(`${page || "home"}: ${zh ? "the Chinese serif loads, leads, and gives quotes their full width" : "English pages do not fetch the Chinese serif and keep narrow quotes"}`,
+      zh ? got.loaded.includes("Noto Serif SC") && got.h1.startsWith('"Noto Serif SC"') && got.quote >= 90 && got.han >= 95
+         : !got.loaded.includes("Noto Serif SC") && got.h1.startsWith('"Skill Serif"') && got.quote < 60, got);
+    check(`${page || "home"}: ${zh ? "Chinese text puts the Chinese punctuation face first" : "English text does not"}`, zh === got.sans.startsWith('"CJK punctuation"'), got.sans);
+  }
+
   await open("lab/#level-salicylic");
   check("the side panel keeps the task on a wide screen", await run(`getComputedStyle(document.querySelector(".board .quest")).display === "none"`));
 

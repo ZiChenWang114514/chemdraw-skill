@@ -220,7 +220,8 @@ if (picker) {
 // Jumps inside a page: a short glide instead of a long roll past every figure. A far jump
 // hops to one screen away first. The wheel, a touch or a key takes the page back at once.
 function glide(target) {
-  const offset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+  const offset = (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0)
+    + (parseFloat(getComputedStyle(target).scrollMarginTop) || 0);
   const goal = () => Math.max(0, target.getBoundingClientRect().top + scrollY - offset);
   if (!motion.matches) { scrollTo(0, goal()); return; }
   const gap = goal() - scrollY;
