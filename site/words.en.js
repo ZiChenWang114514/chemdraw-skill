@@ -129,6 +129,7 @@ globalThis.ChemWords = {
  "drawing": "this structure",
  "daily": {
   "offline": "The puzzle did not load. Check your connection and try again.",
+  "ready": "The puzzle is ready. Press the button again to start; it replaces your drawing.",
   "button": "Daily molecule",
   "title": "Daily molecule #{n}",
   "streak": "{n}-day streak",

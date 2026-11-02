@@ -50,9 +50,11 @@ async function connect() {
 const ws = await connect();
 let nextId = 0;
 const waiting = new Map();
+const held = [];
 ws.addEventListener("message", ({ data }) => {
   const msg = JSON.parse(data);
   if (msg.id && waiting.has(msg.id)) { waiting.get(msg.id)(msg); waiting.delete(msg.id); }
+  if (msg.method === "Fetch.requestPaused") held.push(msg.params.requestId);
   if (msg.method === "Runtime.exceptionThrown") problems.push(`exception: ${msg.params.exceptionDetails.exception?.description || msg.params.exceptionDetails.text}`);
   if (msg.method === "Runtime.consoleAPICalled" && msg.params.type === "error") problems.push(`console.error: ${msg.params.args.map((a) => a.value ?? a.description).join(" ")}`);
   if (msg.method === "Network.requestWillBeSent") {
@@ -359,6 +361,16 @@ async function main() {
   check("a failed load says so", await until(`document.querySelector(".hero .status").textContent === ChemWords.daily.offline`));
   check("a failed load leaves the strip shut", await run(`document.querySelector(".challenge").hidden`));
   await send("Network.setBlockedURLs", { urls: [] });
+  await send("Fetch.enable", { patterns: [{ urlPattern: "*daily.*.js" }] });
+  await click("[data-challenge-open]");
+  for (let i = 0; i < 50 && !held.length; i++) await sleep(50);
+  await tool("bond");
+  await click(atom(0));
+  const drawn = await count(`${canvas} .hit [data-atom]`);
+  await send("Fetch.continueRequest", { requestId: held.shift() });
+  await send("Fetch.disable");
+  check("a slow load says when it is ready", await until(`document.querySelector(".hero .status").textContent === ChemWords.daily.ready`));
+  check("a slow load leaves what was drawn meanwhile", (await count(`${canvas} .hit [data-atom]`)) === drawn && await run(`document.querySelector(".challenge").hidden`));
   await click("[data-challenge-open]");
   check("daily strip opens at home", await until(`!document.querySelector(".challenge").hidden`));
   check("the daily words arrive on demand", await dailyWords());
