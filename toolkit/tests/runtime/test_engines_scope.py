@@ -188,3 +188,186 @@ def test_a_bundle_without_downloads_in_its_spec_still_fetches(tmp_path):
 
     spec = {'data': 'retrochimera-pistachio', 'downloads': None, 'zip_members': None, 'archive_members': None, 'stock': None}
     assert worker._fetch_bundle(str(tmp_path), spec) == {'data': {}}
+
+
+def _worker():
+    from cdxml_toolkit.engines import worker
+    return worker
+
+
+def _serve(handler):
+    import threading
+    from http.server import HTTPServer
+
+    server = HTTPServer(('127.0.0.1', 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server
+
+
+def test_a_permanent_http_error_is_not_retried_for_an_hour(tmp_path, monkeypatch):
+    from http.server import BaseHTTPRequestHandler
+    from urllib.error import HTTPError
+
+    worker = _worker()
+    calls = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            calls.append(self.path)
+            self.send_response(404)
+            self.send_header('Content-Length', '0')
+            self.end_headers()
+
+        def log_message(self, *args):
+            pass
+
+    monkeypatch.setattr('time.sleep', lambda s: pytest.fail('a missing file must not be retried'))
+    server = _serve(Handler)
+    url = f'http://127.0.0.1:{server.server_port}/gone'
+    try:
+        with pytest.raises(HTTPError):
+            worker._download(url, str(tmp_path / 'a.part'))
+        with pytest.raises(HTTPError):
+            worker._download_range(url, 0, 9, str(tmp_path / 'b.part'))
+    finally:
+        server.shutdown()
+    assert len(calls) == 2
+
+
+def test_a_busy_host_is_still_retried(tmp_path, monkeypatch):
+    from http.server import BaseHTTPRequestHandler
+
+    worker = _worker()
+    calls = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            calls.append(self.path)
+            first = len(calls) == 1
+            self.send_response(429 if first else 200)
+            self.send_header('Content-Length', '0' if first else '2')
+            self.end_headers()
+            if not first:
+                self.wfile.write(b'ok')
+
+        def log_message(self, *args):
+            pass
+
+    monkeypatch.setattr('time.sleep', lambda s: None)
+    server = _serve(Handler)
+    target = tmp_path / 'a.part'
+    try:
+        worker._download(f'http://127.0.0.1:{server.server_port}/f', str(target))
+    finally:
+        server.shutdown()
+    assert target.read_bytes() == b'ok' and len(calls) == 2
+
+
+def test_a_garbled_answer_during_a_range_download_is_retried(tmp_path, monkeypatch):
+    import http.client
+    import io
+    import urllib.request
+
+    worker = _worker()
+    answers = [http.client.BadStatusLine('garbage'), io.BytesIO(b'0123456789')]
+
+    def urlopen(request, timeout=0):
+        answer = answers.pop(0)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+    monkeypatch.setattr(urllib.request, 'urlopen', urlopen)
+    monkeypatch.setattr('time.sleep', lambda s: None)
+    target = tmp_path / 'a.part'
+    worker._download_range('http://host/f', 0, 9, str(target))
+    assert target.read_bytes() == b'0123456789'
+
+
+def test_a_file_already_verified_is_not_downloaded_again(tmp_path, monkeypatch):
+    import hashlib
+
+    worker = _worker()
+    (tmp_path / 'stock').mkdir()
+    (tmp_path / 'stock' / 'blocks.gz').write_bytes(b'blocks')
+    digest = hashlib.sha256(b'blocks').hexdigest()
+    monkeypatch.setattr(worker, '_download', lambda *a, **k: pytest.fail('nothing to download'))
+    answer = worker._fetch_file(str(tmp_path), {'url': 'http://host/f', 'path': 'stock/blocks.gz', 'sha256': digest})
+    assert answer == {'data': {'stock/blocks.gz': digest}}
+
+
+def test_the_scratch_folder_of_a_run_is_gone_when_the_worker_exits():
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    worker = _worker()
+    code = (f'import sys; sys.path.insert(0, {str(Path(worker.__file__).parent)!r}); import os, worker; '
+            "work = worker._scratch('t-'); os.chdir(work); print(work)")
+    done = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True)
+    assert done.returncode == 0 and done.stdout.strip() and not Path(done.stdout.strip()).exists()
+    assert Path(worker.__file__).read_text(encoding='utf-8').count('mkdtemp') == 1  # every engine goes through it
+
+
+def _ready_to_install(home, monkeypatch, name='magnet'):
+    python = home / name / 'bin' / 'python3'
+    python.parent.mkdir(parents=True)
+    python.write_text('')
+    monkeypatch.setattr(env, '_pip', lambda *a, **k: None)
+
+
+def test_an_install_stopped_during_its_download_does_not_count_as_installed(home, monkeypatch):
+    _ready_to_install(home, monkeypatch)
+    started = []
+
+    def run(command, **kwargs):
+        started.append(command[0])
+        raise KeyboardInterrupt  # the terminal closed, the machine slept: no handler gets to clean up
+
+    monkeypatch.setattr(env.subprocess, 'run', run)
+    with pytest.raises(KeyboardInterrupt):
+        env.install('magnet')
+    assert started == [str(home / 'magnet' / 'bin' / 'python3')]  # the download ran in the engine's own interpreter
+    assert env.available()['magnet'] is False
+
+
+def test_installing_again_withdraws_the_old_receipt_until_the_download_ends(home, monkeypatch):
+    _ready_to_install(home, monkeypatch)
+    (home / 'magnet' / env.RECEIPT).write_text('{}')
+    seen = []
+
+    class Done:
+        stdout = env.MARKER + '{"ok": true, "result": {"weights": {}}}'
+        stderr = ''
+
+    def run(command, **kwargs):
+        seen.append(env.available()['magnet'])
+        return Done()
+
+    monkeypatch.setattr(env.subprocess, 'run', run)
+    assert env.install('magnet')['ok'] is True
+    assert seen == [False] and env.available()['magnet'] is True
+
+
+def test_java_is_found_the_way_the_rest_of_the_toolkit_finds_it(monkeypatch):
+    """The macOS /usr/bin/java stub is not Java, and an extracted runtime is not on PATH."""
+    from cdxml_toolkit.resolve import jre_manager
+
+    asked = {}
+
+    def get_java(download=True):
+        asked['download'] = download
+        return '/opt/jre/bin/java'
+
+    monkeypatch.setattr(jre_manager, 'get_java', get_java)
+    assert env.java() == '/opt/jre/bin/java' and asked == {'download': False}  # looking never downloads
+
+
+@pytest.mark.skipif(os.name == 'nt', reason='the stand-in interpreter is a shell script')
+def test_bytes_that_are_not_utf8_cannot_lose_the_answer(home):
+    python = home / 'molnextr' / 'bin' / 'python3'
+    python.parent.mkdir(parents=True)
+    python.write_text("#!/bin/sh\ncat > /dev/null\nprintf '\\377\\n" + env.MARKER + '{"ok": true, "result": [1]}' + "\\n'\n")
+    python.chmod(0o755)
+    (home / 'molnextr' / env.RECEIPT).write_text('{}')
+    assert env.call('molnextr', 'predict', {}) == [1]

@@ -97,10 +97,11 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
             raw = env.call(name, 'predict', {'smiles': target, 'steps': steps, 'count': count, 'time_limit': time_limit},
                            timeout=timeout_seconds)
             if steps == 'single':
-                options = [{'rank': i, 'reactants': ['.'.join(group) for group in o['reactants']][0].split('.'),
+                found = [o for o in raw['options'] if o['reactants'] and o['reactants'][0]]
+                options = [{'rank': i, 'reactants': '.'.join(o['reactants'][0]).split('.'),
                             'probability': o['probability'], 'template': o.get('template'),
                             **({'score': o['score']} if o.get('score') is not None else {})}
-                           for i, o in enumerate(raw['options'], 1)]
+                           for i, o in enumerate(found, 1)]
                 body = {'steps': 'single', 'options': options}
             else:
                 routes = []

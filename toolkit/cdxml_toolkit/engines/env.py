@@ -81,7 +81,8 @@ def data_dir(name: str) -> Path:
 
 
 def java() -> str | None:
-    return shutil.which('java')
+    from ..resolve.jre_manager import get_java
+    return get_java(download=False)
 
 
 def _find_spec(module: str) -> bool:
@@ -137,8 +138,11 @@ def available() -> dict:
 
 
 def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict:
-    """Run ``action`` of engine ``name`` in its environment and return the worker's ``result``."""
-    python = python_for(name)
+    """Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
+
+    ``fetch`` is part of installing, so it runs before the engine counts as installed.
+    """
+    python = interpreter(environment(name)) if action == 'fetch' else python_for(name)
     title = ENGINES[name]['title']
     if python is None:
         raise EngineMissing(name, f'{title} is not installed: run `cdx.py install-engines {name}`')
@@ -151,7 +155,7 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
     env.update(HF_HUB_OFFLINE='0' if action == 'fetch' else '1', TRANSFORMERS_OFFLINE='0' if action == 'fetch' else '1')
     try:
         done = subprocess.run([str(python), '-W', 'ignore', str(WORKER)], input=json.dumps(request),
-                              capture_output=True, text=True, encoding='utf-8', timeout=timeout, env=env)
+                              capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=timeout, env=env)
     except subprocess.TimeoutExpired as exc:
         raise EngineError(f'{title} did not finish within {timeout} s') from exc
     except OSError as exc:
@@ -277,7 +281,7 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
             _pip(python, spec['extra_requirements'], log, spec.get('find_links'))
         if spec.get('late_requirements'):  # built against what is already installed
             _pip(python, spec['late_requirements'], log, spec.get('find_links'), no_build_isolation=True)
-        (env / RECEIPT).write_text(json.dumps({'engine': name, 'installing': True}), encoding='utf-8')
+        _drop_receipt(env)  # the receipt says the weights are complete: it is written after the download only
         fetched = call(name, 'fetch', {}, timeout=FETCH_TIMEOUT) if (spec.get('weights') or spec.get('data')) else {}
         (env / RECEIPT).write_text(json.dumps({'engine': name, 'requirements': spec['requirements'], **fetched}),
                                    encoding='utf-8')
@@ -330,7 +334,7 @@ def status() -> dict:
 
 
 def recommend(task: str) -> dict:
-    """The smallest set of engines that serves ``task`` (ocsr, pdf, products, retro, nmr), with what each costs.
+    """The smallest set of engines that serves ``task`` (a key of ``RECOMMEND``), with what each costs.
     Reads only; nothing is downloaded."""
     if task not in RECOMMEND:
         raise ValueError(f'unknown need {task!r} (choose from {", ".join(RECOMMEND)})')

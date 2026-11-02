@@ -104,3 +104,53 @@ def test_every_named_engine_must_support_the_elements(monkeypatch):
         predict_nmr('CBr', engine='nmrnet-pp,magnet')
     with pytest.raises(ValueError, match='each engine once'):
         predict_nmr('CCO', engine='magnet,magnet')
+
+
+def test_simulated_lines_keep_their_height_wherever_they_fall_on_the_grid():
+    from cdxml_toolkit.engines import nmr
+
+    for nucleus in ('1H', '13C'):
+        for frequency in (300.0, 400.0, 1200.0):
+            for shift in (1.2, 1.2037, 7.2613, 10.019):
+                peak = {'shift_ppm': shift, 'count': 1}
+                top = max(y for _, y in nmr.simulate([peak], nucleus, frequency, points=16384))
+                assert 0.9 <= top <= 1.0001, (nucleus, frequency, shift, top)
+
+
+def test_a_shift_beyond_the_usual_range_stays_on_the_spectrum():
+    from cdxml_toolkit.engines import nmr
+
+    for nucleus, shift in (('1H', 13.2), ('1H', -2.5), ('13C', 245.0), ('13C', -20.0)):
+        rows = nmr.simulate([{'shift_ppm': shift, 'count': 1}], nucleus, 400.0)
+        top = max(rows, key=lambda row: row[1])
+        assert top[1] > 0.9 and abs(top[0] - shift) < 0.05, (nucleus, shift)
+        assert rows[0][0] > rows[-1][0]
+
+
+def test_one_missing_engine_does_not_throw_away_the_finished_answer(monkeypatch):
+    def call(name, action, params, timeout=0):
+        if name == 'nmrnet-pp':
+            raise env.EngineMissing(name, 'NMRNet++ is not installed: run `cdx.py install-engines nmrnet-pp`')
+        return ethanol_atoms()
+
+    monkeypatch.setattr(env, 'call', call)
+    answer = predict_nmr('CCO', 'both', engine='magnet,nmrnet-pp')
+    assert answer['ok'] is True and answer['engine'] == 'magnet' and answer['peaks']['13C'][0]['shift_ppm'] == 58.0
+    assert 'comparison' not in answer and any('nmrnet-pp' in w and 'compare' in w for w in answer['warnings'])
+    failed = answer['failed_engines'][0]
+    assert failed['engine'] == 'nmrnet-pp' and failed['install_hint']['command'] == 'cdx.py install-engines nmrnet-pp'
+
+
+def test_when_every_engine_fails_each_install_hint_is_kept():
+    answer = predict_nmr('CCO', engine='magnet,nmrnet-pp')
+    assert answer['ok'] is False and answer['engine'] == 'magnet'
+    assert [f['engine'] for f in answer['failed_engines']] == ['magnet', 'nmrnet-pp']
+    assert all(f['install_hint'] for f in answer['failed_engines'])
+
+
+def test_an_existing_output_file_is_refused_before_the_engine_runs(tmp_path, monkeypatch):
+    monkeypatch.setattr(env, 'call', lambda *a, **k: pytest.fail('engine must not start'))
+    (tmp_path / 'spectrum-13C.csv').write_text('keep')
+    with pytest.raises(ValueError, match='exists'):
+        predict_nmr('CCO', 'both', output_path=str(tmp_path / 'spectrum.csv'))
+    assert (tmp_path / 'spectrum-13C.csv').read_text() == 'keep'

@@ -168,3 +168,31 @@ def test_a_route_step_that_cannot_make_its_product_is_flagged(monkeypatch):
     answer = predict_retrosynthesis(bad['smiles'], engine='retrochimera', steps='multi')
     assert answer['routes'][0]['unbalanced_steps'] and answer['routes'][1]['unbalanced_steps'] == []
     assert any('unbalanced_steps' in w for w in answer['warnings'])
+
+
+class Template:
+    """What the worker reads from an AiZynthFinder action: nothing is known until the template is applied."""
+
+    def __init__(self, name, *outcomes):
+        self.metadata = {'template': name}
+        self.reactants = tuple(tuple(type('Mol', (), {'smiles': s}) for s in outcome) for outcome in outcomes)
+
+
+def test_templates_that_do_not_apply_never_use_up_the_requested_options():
+    from cdxml_toolkit.engines import worker
+
+    ranked = [(Template('a', ['CC', 'O']), 0.5), (Template('none'), 0.2), (Template('b', ['CO'], ['CN']), 0.1),
+              (Template('c', ['O', 'CC']), 0.05), (Template('d', ['CS']), 0.01)]
+    options = worker._disconnections(ranked, 3)
+    assert [o['reactants'] for o in options] == [[['CC', 'O']], [['CO']], [['CN']]]
+    assert [o['template'] for o in options] == ['a', 'b', 'b'] and options[1]['probability'] == 0.1
+    everything = worker._disconnections(ranked, 10)
+    assert [o['template'] for o in everything] == ['a', 'b', 'b', 'd']  # 'c' repeats the first answer
+
+
+def test_an_option_without_precursors_does_not_stop_the_others(monkeypatch):
+    monkeypatch.setattr(env, 'call', lambda *a, **k: {'steps': 'single', 'options': [
+        {'reactants': [], 'template': 'empty', 'probability': 0.9},
+        {'reactants': [['CC(=O)OC(C)=O', 'O=C(O)c1ccccc1O']], 'template': 't', 'probability': 0.7}]})
+    answer = predict_retrosynthesis(ASPIRIN)
+    assert [(o['rank'], o['template']) for o in answer['options']] == [(1, 't')]

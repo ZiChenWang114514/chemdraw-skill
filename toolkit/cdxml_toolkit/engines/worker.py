@@ -9,11 +9,26 @@ fails on some Apple Silicon setups.
 
 import hashlib
 import http.client
-import urllib.error
 import json
 import os
 import subprocess
 import sys
+import urllib.error
+
+
+def _scratch(prefix):
+    """A private folder for this run (it holds the user's molecule), removed when the worker exits."""
+    import atexit
+    import shutil
+    import tempfile
+    work = tempfile.mkdtemp(prefix=prefix)
+
+    def remove():
+        os.chdir(os.path.dirname(work))  # Windows cannot delete the current folder
+        shutil.rmtree(work, ignore_errors=True)
+
+    atexit.register(remove)
+    return work
 
 
 def _sha256(path):
@@ -44,8 +59,9 @@ def fetch(engine, params, data_dir, spec):
     from huggingface_hub import hf_hub_download, snapshot_download
     if weights.get('snapshot'):
         path = snapshot_download(weights['repo'], repo_type=weights['type'], local_dir=data_dir,
+                                 revision=weights.get('revision'),
                                  allow_patterns=[weights['include']] if weights.get('include') else None)
-        return {'weights': {'repo': weights['repo'], 'path': path}}
+        return {'weights': {'repo': weights['repo'], 'revision': weights.get('revision'), 'path': path}}
     receipt = {}
     for name in weights['files']:
         path = hf_hub_download(weights['repo'], name, repo_type=weights['type'], local_dir=data_dir,
@@ -57,6 +73,11 @@ def fetch(engine, params, data_dir, spec):
             raise RuntimeError(f'{name} does not match the pinned sha256 (got {digest}); nothing was kept')
         receipt[name] = digest
     return {'weights': receipt}
+
+
+def _permanent(exc):
+    """A 4xx answer stays the same however often it is asked; 408, 425 and 429 mean try again later."""
+    return 400 <= exc.code < 500 and exc.code not in (408, 425, 429)
 
 
 def _download(url, partial, attempts=80, headers=None):
@@ -86,7 +107,7 @@ def _download(url, partial, attempts=80, headers=None):
         except urllib.error.HTTPError as exc:
             if exc.code == 416:  # nothing left to ask for: the file is complete
                 return
-            if attempt == attempts - 1:
+            if _permanent(exc) or attempt == attempts - 1:
                 raise
         except (OSError, http.client.HTTPException):
             if attempt == attempts - 1:
@@ -136,6 +157,8 @@ def _fetch_file(data_dir, download):
     """
     target = os.path.join(data_dir, download['path'])
     os.makedirs(os.path.dirname(target), exist_ok=True)
+    if os.path.isfile(target) and _sha256(target) == download['sha256']:  # an earlier install got this far
+        return {'data': {download['path']: download['sha256']}}
     partial = target + '.part'
     _download(download['url'], partial)
     digest = _sha256(partial)
@@ -253,8 +276,8 @@ def _download_range(url, first, last, partial, attempts=200):
             with urllib.request.urlopen(request, timeout=60) as response, open(partial, 'ab') as out:
                 for block in iter(lambda: response.read(1 << 20), b''):
                     out.write(block)
-        except OSError:
-            if attempt == attempts - 1:
+        except (OSError, http.client.HTTPException) as exc:
+            if isinstance(exc, urllib.error.HTTPError) and _permanent(exc) or attempt == attempts - 1:
                 raise
             time.sleep(min(3 * (attempt + 1), 30))
 
@@ -491,6 +514,27 @@ def _tree(node):
     return {'smiles': node.get('smiles')}
 
 
+def _disconnections(ranked, count):
+    """The first ``count`` different precursor sets from (template, prior) pairs, best template first.
+
+    The policy ranks templates without applying them: many do not match the target at all and some give
+    several outcomes, so what counts is the outcomes, not the templates.
+    """
+    options, seen = [], set()
+    for action, prior in ranked:
+        for group in action.reactants:
+            reactants = [m.smiles for m in group]
+            key = tuple(sorted(reactants))
+            if not reactants or key in seen:
+                continue
+            seen.add(key)
+            options.append({'reactants': [reactants], 'template': action.metadata.get('template'),
+                            'probability': float(prior)})
+            if len(options) == count:
+                return options
+    return options
+
+
 def _aizynthfinder(params, data_dir, spec):
     from aizynthfinder.aizynthfinder import AiZynthFinder
     finder = AiZynthFinder(configfile=os.path.join(data_dir, 'config.yml'))
@@ -501,10 +545,8 @@ def _aizynthfinder(params, data_dir, spec):
     if params.get('steps') == 'single':
         from aizynthfinder.chem import TreeMolecule
         actions, priors = finder.expansion_policy.get_actions([TreeMolecule(parent=None, smiles=smiles)])
-        return {'steps': 'single', 'target': smiles, 'options': [{
-            'reactants': [[m.smiles for m in group] for group in action.reactants],
-            'template': action.metadata.get('template'), 'probability': float(prior)}
-            for action, prior in list(zip(actions, priors))[:int(params.get('count', 10))]]}
+        return {'steps': 'single', 'target': smiles,
+                'options': _disconnections(zip(actions, priors), int(params.get('count', 10)))}
     finder.config.search.time_limit = int(params.get('time_limit', 60))
     finder.config.search.iteration_limit = int(params.get('iterations', 100))
     finder.target_smiles = smiles
@@ -518,8 +560,7 @@ def _aizynthfinder(params, data_dir, spec):
 
 def _synplanner(params, data_dir, spec):
     import csv
-    import tempfile
-    work = tempfile.mkdtemp(prefix='synplan-')
+    work = _scratch('synplan-')
     target = os.path.join(work, 'target.smi')
     with open(target, 'w', encoding='utf-8') as handle:
         handle.write(params['smiles'] + '\n')
@@ -632,7 +673,6 @@ def _magnet(params, data_dir, spec):
 def _nmrnet_pp(params, data_dir, spec):
     """1H and 13C shifts with NMRNet++ (fold 0 of the authors' five cross-validation models), run by their own infer.py."""
     import pickle
-    import tempfile
     import lmdb
     import numpy as np
     from rdkit import Chem
@@ -646,7 +686,7 @@ def _nmrnet_pp(params, data_dir, spec):
         pass  # the authors fall back to the embedded geometry too
     atoms = [a.GetSymbol() for a in mol.GetAtoms()]
     coordinates = mol.GetConformer().GetPositions().astype(np.float32)
-    work = tempfile.mkdtemp(prefix='nmrnetpp-')
+    work = _scratch('nmrnetpp-')
     shifts = {}
     for nucleus in params.get('nuclei') or ['1H', '13C']:
         element = {'1H': 'H', '13C': 'C'}[nucleus]
@@ -687,7 +727,7 @@ def _nmrnet_pp(params, data_dir, spec):
                       for a in mol.GetAtoms()],
             'geometry': 'RDKit ETKDG (seed 42) + MMFF94, one conformer, as in the authors\' data preparation',
             'warnings': ['NMRNet++ is a single cross-validation model (fold 0), not the published five-model average; '
-                         'the 1H model takes no solvent, so the solvent argument does not change its answer']}
+                         'its models take no solvent, so the solvent argument does not change its answer']}
 
 
 def _reacon(params, data_dir, spec):
@@ -697,8 +737,7 @@ def _reacon(params, data_dir, spec):
     code = os.path.join(data_dir, 'code')
     sys.path.insert(0, code)
     import ast
-    import tempfile
-    tempfile_dir = tempfile.mkdtemp(prefix='reacon-')
+    tempfile_dir = _scratch('reacon-')
     os.chdir(tempfile_dir)
     import prediction
     import template_extractor

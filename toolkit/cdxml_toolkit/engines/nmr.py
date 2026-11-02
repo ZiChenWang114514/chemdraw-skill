@@ -36,11 +36,12 @@ def _peaks(atoms: list, nucleus: str) -> list:
 
 def simulate(peaks: list, nucleus: str, frequency_mhz: float, width_hz: float = 1.5, points: int = 16384) -> list:
     """Lorentzian singlets on a ppm axis (no coupling): a picture of where the lines fall, not a multiplet pattern."""
-    low, high = (-1.0, 12.0) if nucleus == '1H' else (-10.0, 230.0)
-    half = width_hz / frequency_mhz / 2  # half width in ppm (1H axis; 13C uses the same Hz-to-ppm rule)
-    if nucleus == '13C':
-        half = width_hz / (frequency_mhz * 0.2515) / 2
+    low, high, margin = (-1.0, 12.0, 1.0) if nucleus == '1H' else (-10.0, 230.0, 10.0)
+    shifts = [peak['shift_ppm'] for peak in peaks]
+    low, high = min([low, *(s - margin for s in shifts)]), max([high, *(s + margin for s in shifts)])
     step = (high - low) / (points - 1)
+    half = width_hz / (frequency_mhz * (1.0 if nucleus == '1H' else 0.2515)) / 2  # half width in ppm
+    half = max(half, 2 * step)  # narrower lines fall between grid points and lose height at random
     axis = [low + i * step for i in range(points)]
     out = []
     for x in axis:
@@ -76,9 +77,22 @@ def _compare(by_engine: dict, nuclei: list) -> dict:
             'note': 'engines are compared, never averaged: a gap means at least one of them is wrong for this molecule'}
 
 
+def _targets(output_path: str | None, nuclei: list) -> dict:
+    """Where each simulated spectrum goes; an existing file is refused before any engine runs."""
+    if not output_path:
+        return {}
+    base = Path(output_path).expanduser().resolve()
+    targets = {n: base if len(nuclei) == 1 else base.with_name(f'{base.stem}-{n}{base.suffix}') for n in nuclei}
+    for target in targets.values():
+        if target.exists():
+            raise ValueError(f'{target} exists: choose a new file name')
+    return targets
+
+
 def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0,
             engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict:
-    """``engine`` may name several, comma separated: each runs and the peaks are compared, never merged."""
+    """``engine`` may name several, comma separated: each runs and the peaks are compared, never merged.
+    An engine that fails is listed in ``failed_engines`` and the others still answer."""
     names = [n.strip() for n in (engine or 'magnet').split(',') if n.strip()]
     for name in names:
         if name not in ENGINES or ENGINES[name]['task'] != 'nmr':
@@ -107,33 +121,31 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
                              + ", ".join(unsupported))
     canonical = Chem.MolToSmiles(mol)
     nuclei = ['1H', '13C'] if nucleus == 'both' else [nucleus]
+    targets = _targets(output_path, nuclei)
     started = time.time()
-    raws, failed = {}, None
+    raws, failed = {}, []
     for name in names:
         try:
             raws[name] = env.call(name, 'predict', {'smiles': canonical, 'solvent': key, 'nuclei': nuclei},
                                   timeout=timeout_seconds)
         except env.EngineError as exc:
-            failed = envelope.failure('nmr', name, ENGINES[name], exc)
-            break
-    if failed:
-        return failed
+            failed.append(envelope.failure('nmr', name, ENGINES[name], exc))
+    if not raws:
+        return {**failed[0], 'failed_engines': failed} if len(failed) > 1 else failed[0]
+    names = list(raws)
     by_engine = {name: {n: _peaks(raw['atoms'], n) for n in nuclei} for name, raw in raws.items()}
     spectra = {}
-    if output_path:
-        base = Path(output_path).expanduser().resolve()
-        first = names[0]
-        for n in nuclei:
-            target = base if len(nuclei) == 1 else base.with_name(f'{base.stem}-{n}{base.suffix}')
-            if target.exists():
-                raise ValueError(f'{target} exists: choose a new file name')
-            target.parent.mkdir(parents=True, exist_ok=True)
-            rows = simulate(by_engine[first][n], n, float(frequency_mhz))
-            with open(target, 'x', encoding='utf-8') as handle:
-                handle.write('ppm,intensity\n')
-                handle.writelines(f'{x:.5f},{y:.6f}\n' for x, y in rows)
-            spectra[n] = str(target)
+    for n, target in targets.items():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        rows = simulate(by_engine[names[0]][n], n, float(frequency_mhz))
+        with open(target, 'x', encoding='utf-8') as handle:
+            handle.write('ppm,intensity\n')
+            handle.writelines(f'{x:.5f},{y:.6f}\n' for x, y in rows)
+        spectra[n] = str(target)
     warnings = ['predicted shifts, not measured data: do not report them as experimental values']
+    if failed:
+        warnings.append('did not run, so there is nothing to compare with: ' + ', '.join(f['engine'] for f in failed)
+                        + ' (see `failed_engines`)')
     for name in names:
         warnings += [w for w in raws[name].get('warnings', []) if w not in warnings]
     if 'magnet' in names:
@@ -144,7 +156,8 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
         warnings.append('OH/NH/SH proton shifts depend on concentration and exchange; treat them as rough')
     first = names[0]
     common = dict(smiles=canonical, solvent=key, frequency_mhz=float(frequency_mhz), simulated_spectra=spectra,
-                  elapsed_s=round(time.time() - started, 2), predicted=True, warnings=warnings)
+                  elapsed_s=round(time.time() - started, 2), predicted=True, warnings=warnings,
+                  **({'failed_engines': failed} if failed else {}))
     if len(names) == 1:
         return envelope.result('nmr', first, ENGINES[first], [], peaks=by_engine[first], geometry=raws[first].get('geometry'),
                                **common)

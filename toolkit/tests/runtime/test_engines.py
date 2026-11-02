@@ -244,3 +244,64 @@ def test_decimer_local_needs_its_weights_and_never_gets_a_private_cache(monkeypa
     (tmp_path / 'models' / 'DECIMER_model' / 'saved_model.pb').write_text('x')
     found = env.python_for('decimer-local')
     assert (found is not None) == (env._find_spec('DECIMER'))
+
+
+def test_structures_inchi_cannot_express_are_not_taken_for_each_other():
+    """R groups and `*` have no InChIKey: two different Markush readings must stay two readings."""
+    split = consensus.compare([entry('molscribe', '*c1ccccc1'), entry('molvec', '*CCCCO')])
+    assert split['agreement'] == 'split' and split['agreed_smiles'] is None and split['needs_review'] is True
+    assert len(split['groups']) == 2 and 'different structures' in split['notes'][0]
+    same = consensus.compare([entry('molscribe', '*c1ccccc1'), entry('molvec', 'c1ccc(*)cc1')])
+    assert same['agreement'] == 'all' and same['agreed_smiles'] == '*c1ccccc1'
+    charged = consensus.compare([entry('molscribe', '*[N-]C'), entry('molvec', '*[N-]O')])
+    assert 'different structures' in charged['notes'][0]  # a charge sign in the SMILES is not an InChIKey separator
+    assert envelope.describe('*c1ccccc1')['inchikey'] is None
+
+
+def test_a_snapshot_download_is_held_to_its_commit(monkeypatch, tmp_path):
+    import types
+
+    from cdxml_toolkit.engines import worker
+
+    seen = {}
+
+    def snapshot_download(repo, **kwargs):
+        seen.update(kwargs, repo=repo)
+        return str(tmp_path)
+
+    hub = types.ModuleType('huggingface_hub')
+    hub.snapshot_download, hub.hf_hub_download = snapshot_download, None
+    monkeypatch.setitem(sys.modules, 'huggingface_hub', hub)
+    spec = ENGINES['magnet']
+    assert worker.fetch('magnet', {}, str(tmp_path), spec)['weights']['revision'] == spec['weights']['revision']
+    assert seen['revision'] == spec['weights']['revision'] and seen['allow_patterns'] == ['model_checkpoints/*']
+
+
+def test_nothing_is_downloaded_from_a_moving_branch_or_an_open_version():
+    for name, spec in ENGINES.items():
+        weights = spec.get('weights') or {}
+        if weights.get('snapshot'):
+            assert len(weights['revision']) == 40, name
+    assert 'aizynthfinder==4.4.1' in ENGINES['aizynthfinder']['requirements']
+    assert 'magnet-nmr==0.2.1' in ENGINES['magnet']['requirements']
+
+
+def test_the_remote_engine_keeps_its_raw_response_where_asked(image, tmp_path, monkeypatch):
+    from cdxml_toolkit.mcp_runtime import decimer_api
+
+    target = str(tmp_path / 'raw.json')
+    seen = {}
+
+    def recognize_image(path, **kwargs):
+        seen.update(kwargs)
+        return {'structures': [{'smiles': 'CCO'}], 'output_path': kwargs['output_path'], 'warnings': []}
+
+    monkeypatch.setattr(decimer_api, 'recognize_image', recognize_image)
+    answer = ocsr.recognize(image, 'decimer-api', output_path=target, confirm_upload=True)
+    assert seen['output_path'] == target and answer['engines'][0]['output_path'] == target
+
+
+def test_output_path_without_the_remote_engine_says_nothing_was_written(image, tmp_path, monkeypatch):
+    monkeypatch.setattr(env, 'call', lambda *a, **k: [{'smiles': 'CCO'}])
+    answer = ocsr.recognize(image, 'molscribe', output_path=str(tmp_path / 'raw.json'))
+    assert any('output_path' in w and 'decimer-api' in w for w in answer['warnings'])

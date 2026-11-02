@@ -20,7 +20,7 @@ def describe(smiles: str | None, score=None, **extra) -> dict:
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             return item
-        item.update(valid=True, canonical=Chem.MolToSmiles(mol), inchikey=Chem.MolToInchiKey(mol),
+        item.update(valid=True, canonical=Chem.MolToSmiles(mol), inchikey=Chem.MolToInchiKey(mol) or None,
                     formula=rdMolDescriptors.CalcMolFormula(mol))
     except ImportError:
         pass

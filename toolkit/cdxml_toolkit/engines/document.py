@@ -13,7 +13,7 @@ PAGE_LIMIT = 50
 SEGMENT_LIMIT = 200
 
 
-def _render_pages(source: Path, pages, out_dir: Path, dpi: int) -> list:
+def _render_pages(source: Path, pages, out_dir: Path, dpi: int, warnings: list) -> list:
     """PNG files for the requested pages (1-based) of a PDF; an image file is its own single page."""
     if source.suffix.lower() != '.pdf':
         return [(1, str(source))]
@@ -27,6 +27,11 @@ def _render_pages(source: Path, pages, out_dir: Path, dpi: int) -> list:
     out = []
     with pymupdf.open(str(source)) as document:
         wanted = sorted(set(pages)) if pages else range(1, min(document.page_count, PAGE_LIMIT) + 1)
+        if len(wanted) > PAGE_LIMIT:
+            raise ValueError(f'at most {PAGE_LIMIT} pages per call')
+        if not pages and document.page_count > PAGE_LIMIT:
+            warnings.append(f'the PDF has {document.page_count} pages; only the first {PAGE_LIMIT} were read: '
+                            'name the others in `pages`')
         for number in wanted:
             if not 1 <= number <= document.page_count:
                 raise ValueError(f'page {number} is outside 1..{document.page_count}')
@@ -34,8 +39,6 @@ def _render_pages(source: Path, pages, out_dir: Path, dpi: int) -> list:
             target.parent.mkdir(parents=True, exist_ok=True)
             document[number - 1].get_pixmap(dpi=dpi).save(str(target))
             out.append((number, str(target)))
-    if len(out) > PAGE_LIMIT:
-        raise ValueError(f'at most {PAGE_LIMIT} pages per call')
     return out
 
 
@@ -112,7 +115,7 @@ def extract(path: str, out_dir: str, pages=None, engines: str = 'molscribe,molve
     target.mkdir(parents=True, exist_ok=True)
     started = time.time()
     warnings: list = []
-    page_files = _render_pages(source, pages, target, dpi)
+    page_files = _render_pages(source, pages, target, dpi, warnings)
     segments, method = _segment(page_files, target, segmenter, warnings)
     if len(segments) > SEGMENT_LIMIT:
         warnings.append(f'{len(segments)} segments found; only the first {SEGMENT_LIMIT} were read')

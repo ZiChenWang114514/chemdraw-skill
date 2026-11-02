@@ -49,14 +49,16 @@ def _remote(image: str, hand_drawn: bool, timeout: int, output_path, confirm_upl
     structures = [envelope.describe(s.get('smiles')) for s in answer.get('structures', [])]
     return envelope.result('ocsr', 'decimer-api', spec, structures, sha256=answer.get('sha256'),
                            api_origin=answer.get('api_origin'), network_used=True,
-                           upstream_warnings=answer.get('warnings', []))
+                           upstream_warnings=answer.get('warnings', []),
+                           **({'output_path': answer['output_path']} if answer.get('output_path') else {}))
 
 
 def recognize(image_path: str, engines='decimer-api', hand_drawn: bool = False, output_path: str | None = None,
               timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: str | None = None,
               approved_origin: str | None = None) -> dict:
     """Run the chosen engines on one image. ``all`` means every installed local engine, plus the remote
-    DECIMER only when ``confirm_upload`` is true. One engine failing never stops the others."""
+    DECIMER only when ``confirm_upload`` is true. One engine failing never stops the others. ``output_path``
+    is a new JSON file for the raw response of the remote DECIMER; the local engines have none."""
     names = resolve(engines)
     if 'all' in names:
         wanted = [n for n in by_task('ocsr') if ENGINES[n]['kind'] != 'remote' and env.available()[n]]
@@ -71,7 +73,7 @@ def recognize(image_path: str, engines='decimer-api', hand_drawn: bool = False, 
         started = time.time()
         spec = ENGINES[name]
         if name == 'decimer-api':
-            entry = _remote(image, hand_drawn, timeout_seconds, None, confirm_upload, approved_sha256, approved_origin)
+            entry = _remote(image, hand_drawn, timeout_seconds, output_path, confirm_upload, approved_sha256, approved_origin)
         else:
             try:
                 entry = envelope.result('ocsr', name, spec, _local(name, image, hand_drawn, timeout_seconds))
@@ -79,6 +81,8 @@ def recognize(image_path: str, engines='decimer-api', hand_drawn: bool = False, 
                 entry = envelope.failure('ocsr', name, spec, exc)
         entry['elapsed_s'] = round(time.time() - started, 2)
         entries.append(entry)
+    warnings = ['predicted structures: compare each with the image before use']
+    if output_path and 'decimer-api' not in names:
+        warnings.append('output_path holds the raw decimer-api response; that engine did not run, so nothing was written')
     return {'ok': any(e['ok'] for e in entries), 'task': 'ocsr', 'provenance': envelope.PROVENANCE, 'image': image,
-            'engines': entries, 'comparison': consensus.compare(entries),
-            'warnings': ['predicted structures: compare each with the image before use']}
+            'engines': entries, 'comparison': consensus.compare(entries), 'warnings': warnings}

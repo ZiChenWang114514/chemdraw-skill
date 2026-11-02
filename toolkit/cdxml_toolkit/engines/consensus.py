@@ -8,8 +8,18 @@ def _primary(entry: dict) -> dict | None:
     return next((s for s in entry.get('structures', []) if s.get('valid')), None)
 
 
+def _identity(item: dict) -> str:
+    """The full InChIKey, or the canonical SMILES of a structure InChI cannot express (R groups, ``*``)."""
+    return item['inchikey'] or item['canonical']
+
+
+def _skeleton(group: dict) -> str:
+    """The connectivity block of the InChIKey; without a key, the structure itself."""
+    return group['inchikey'].split('-')[0] if group['inchikey'] else group['canonical']
+
+
 def compare(entries: list) -> dict:
-    """Group the engines by the structure they read (full InChIKey).
+    """Group the engines by the structure they read.
 
     ``agreed_smiles`` is set only when at least two engines ran and every engine that produced a valid
     structure produced the same one; even then it is a candidate to check against the image, not a
@@ -26,14 +36,14 @@ def compare(entries: list) -> dict:
         if primary is None:
             silent.append({'engine': entry.get('engine'), 'reason': 'no valid structure'})
             continue
-        group = groups.setdefault(primary['inchikey'], {'inchikey': primary['inchikey'], 'canonical': primary['canonical'],
-                                                        'formula': primary['formula'], 'engines': []})
+        group = groups.setdefault(_identity(primary), {'inchikey': primary['inchikey'], 'canonical': primary['canonical'],
+                                                       'formula': primary['formula'], 'engines': []})
         group['engines'].append(entry['engine'])
-    ordered = sorted(groups.values(), key=lambda g: (-len(g['engines']), g['inchikey']))
+    ordered = sorted(groups.values(), key=lambda g: (-len(g['engines']), _identity(g)))
     ran = sum(len(g['engines']) for g in ordered)
     notes = []
     if len(ordered) > 1:
-        blocks = {g['inchikey'].split('-')[0] for g in ordered}
+        blocks = {_skeleton(g) for g in ordered}
         if len(blocks) == 1:
             notes.append('the engines agree on the connectivity and differ only in stereochemistry or isotopes')
         else:

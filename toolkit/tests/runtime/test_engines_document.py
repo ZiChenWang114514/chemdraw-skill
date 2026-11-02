@@ -73,3 +73,28 @@ def test_existing_output_is_never_overwritten(page, tmp_path, fake_engines):
 def test_a_missing_deep_segmenter_is_named_when_asked_for_explicitly(page, tmp_path, fake_engines):
     with pytest.raises(ValueError, match='install-engines decimer-segmentation'):
         extract_structures_from_document(str(page), str(tmp_path / 'o'), segmenter='decimer-segmentation')
+
+
+def _blank_pdf(path, pages):
+    with pymupdf.open() as doc:
+        for _ in range(pages):
+            doc.new_page(width=100, height=100)
+        doc.save(path)
+
+
+def test_a_pdf_longer_than_the_limit_says_which_pages_were_left_out(tmp_path, fake_engines, monkeypatch):
+    pdf = tmp_path / 'book.pdf'
+    _blank_pdf(pdf, 52)
+    monkeypatch.setattr(document, '_segment', lambda *a: ([], 'opencv'))
+    report = extract_structures_from_document(str(pdf), str(tmp_path / 'out'), engines='molscribe', dpi=20)
+    assert report['pages'] == list(range(1, 51))
+    assert any('52 pages' in w and 'first 50' in w and '`pages`' in w for w in report['warnings'])
+
+
+def test_too_many_requested_pages_are_refused_before_any_is_rendered(tmp_path, fake_engines):
+    pdf = tmp_path / 'book.pdf'
+    _blank_pdf(pdf, 52)
+    out = tmp_path / 'out'
+    with pytest.raises(ValueError, match='at most 50 pages'):
+        extract_structures_from_document(str(pdf), str(out), pages=list(range(1, 52)), dpi=20)
+    assert not (out / 'pages').exists()
