@@ -7,7 +7,7 @@ import json
 import sys
 
 from . import env
-from .registry import BUNDLES, ENGINES, RECOMMEND
+from .registry import BUNDLES, ENGINES, RECOMMEND, RECOMMEND_ALIASES
 
 LOCAL = ('local', 'jar')  # installable here; the rest are remote services
 
@@ -29,7 +29,8 @@ def main(argv=None) -> int:
     parser.add_argument('--task', help=f'install every local engine of one task: {", ".join(tasks)}')
     parser.add_argument('--bundle', help=f'install a ready-made set: {", ".join(BUNDLES)}')
     parser.add_argument('--dry-run', action='store_true', help='print what would be installed')
-    parser.add_argument('--recommend', metavar='NEED', help=f'what to install for a need ({", ".join(RECOMMEND)}), '
+    parser.add_argument('--recommend', metavar='NEED', help=f'what to install for a need '
+                                                           f'({", ".join([*RECOMMEND, *RECOMMEND_ALIASES])}), '
                                                            'with sizes; downloads nothing')
     parser.add_argument('--remove', action='store_true', help='delete the named engines (a dry run unless --yes)')
     parser.add_argument('--yes', action='store_true', help='with --remove: really delete')

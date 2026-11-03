@@ -24,9 +24,9 @@ def fake_install(home, name, megabytes=1):
 
 # --- the data ------------------------------------------------------------------------------------
 
-def test_every_local_engine_says_when_to_install_it_and_what_it_costs():
+def test_every_installable_engine_says_when_to_install_it_and_what_it_costs():
     for name, spec in ENGINES.items():
-        if spec['kind'] in ('local', 'jar'):
+        if spec['kind'] != 'remote':
             guide = GUIDE[name]
             assert guide['use_when'] and guide['skip_when'] and guide['disk_mb'] > 0, name
 
@@ -34,7 +34,8 @@ def test_every_local_engine_says_when_to_install_it_and_what_it_costs():
 def test_bundles_name_real_engines_and_every_need_has_a_bundle():
     for name, bundle in BUNDLES.items():
         assert bundle['engines'] and all(e in ENGINES for e in bundle['engines']), name
-        assert all(ENGINES[e]['kind'] in ('local', 'jar') for e in bundle['engines']), name
+        assert all(ENGINES[e]['kind'] != 'remote' for e in bundle['engines']), name
+    assert any('decimer-local' in BUNDLES[b]['engines'] for b in RECOMMEND['ocsr'])
     assert all(b in BUNDLES for options in RECOMMEND.values() for b in options)
     assert disk_mb(BUNDLES['ocsr-lite']['engines']) < disk_mb(BUNDLES['ocsr-standard']['engines']) < \
         disk_mb(BUNDLES['ocsr-full']['engines'])
@@ -60,8 +61,55 @@ def test_recommend_marks_what_is_already_there(home, monkeypatch):
 
 
 def test_recommend_rejects_an_unknown_need():
-    with pytest.raises(ValueError, match='unknown need'):
+    with pytest.raises(ValueError, match='unknown need') as caught:
         env.recommend('weather')
+    assert 'retrosynthesis' in str(caught.value)  # the task names are offered too
+
+
+def test_every_engine_task_name_is_accepted_as_a_need(home):
+    from cdxml_toolkit.engines.registry import RECOMMEND
+    for task in {spec['task'] for spec in ENGINES.values()}:
+        out = env.recommend(task)
+        assert out['task'] == task and out['need'] in RECOMMEND, task
+    assert env.recommend('retrosynthesis')['options'] == env.recommend('retro')['options']
+    assert env.recommend('segmentation')['need'] == 'pdf'
+
+
+# --- an engine that runs in the toolkit runtime itself -----------------------------------------
+
+@pytest.fixture
+def runtime_extra(monkeypatch):
+    """The toolkit metadata as an installed runtime reports it, and a recorder for pip and the weights step."""
+    import importlib.metadata
+    import subprocess
+    calls = {'pip': [], 'run': []}
+    requires = ['rdkit>=2023.9', 'tensorflow>=2.16; extra == "decimer"', 'decimer>=2.6; extra == "decimer"',
+                'pywin32>=306; sys_platform == "win32" and extra == "decimer"', 'decimer>=2.6; extra == "all"']
+    monkeypatch.setattr(importlib.metadata, 'requires', lambda dist: requires)
+    monkeypatch.setattr(importlib.metadata, 'version', lambda dist: '1.26.4')
+    monkeypatch.setattr(env, '_pip', lambda python, reqs, log, *a, **k: calls['pip'].append((str(python), list(reqs))))
+    monkeypatch.setattr(subprocess, 'run', lambda cmd, **k: calls['run'].append(cmd))
+    return calls
+
+
+def test_the_runtime_engine_installs_the_decimer_extra_named_in_the_toolkit_metadata(home, runtime_extra, monkeypatch):
+    import sys
+    monkeypatch.setattr(env, 'available', lambda: {n: True for n in ENGINES})
+    report = env.install('decimer-local')
+    assert report['ok'] and report['python'] == sys.executable
+    (python, reqs), = runtime_extra['pip']
+    assert python == sys.executable
+    assert reqs == ['tensorflow>=2.16', 'decimer>=2.6', 'pywin32>=306; sys_platform == "win32"', 'numpy==1.26.4']
+    weights, = runtime_extra['run']
+    assert weights[1:3] == ['-m', 'cdxml_toolkit.mcp_runtime.install_decimer_models']
+
+
+def test_the_runtime_engine_dry_run_and_offline_install_nothing(home, runtime_extra, monkeypatch):
+    dry = env.install('decimer-local', dry_run=True)
+    assert 'tensorflow>=2.16' in dry['requirements'] and not runtime_extra['pip']
+    monkeypatch.setenv('CHEMDRAW_OFFLINE', '1')
+    offline = env.install('decimer-local')
+    assert offline['ok'] is False and 'CHEMDRAW_OFFLINE' in offline['error'] and not runtime_extra['pip']
 
 
 # --- a missing engine explains itself ------------------------------------------------------------
@@ -231,6 +279,65 @@ def test_a_bundle_without_downloads_in_its_spec_still_fetches(tmp_path):
 
     spec = {'data': 'retrochimera-pistachio', 'downloads': None, 'zip_members': None, 'archive_members': None, 'stock': None}
     assert worker._fetch_bundle(str(tmp_path), spec) == {'data': {}}
+
+
+def _blocks(path, smiles):
+    import gzip
+    import json
+    with gzip.open(path, 'wt', encoding='utf-8') as handle:
+        json.dump({str(i): {'smiles': s} for i, s in enumerate(smiles)}, handle)
+
+
+def test_building_blocks_are_not_rebuilt_when_the_source_hash_matches(tmp_path, monkeypatch):
+    from cdxml_toolkit.engines import worker
+
+    source, target = tmp_path / 'blocks.json.gz', tmp_path / 'blocks.smi'
+    _blocks(source, ['OCC', 'CCO', 'c1ccccc1'])
+    worker._ensure_smiles(str(source), str(target))
+    assert target.read_text(encoding='utf-8').split() == sorted({'CCO', 'c1ccccc1'})
+    built = []
+    monkeypatch.setattr(worker, '_blocks_to_smiles', lambda *a: built.append(a))
+    worker._ensure_smiles(str(source), str(target))
+    assert built == []
+
+
+def test_changed_source_hash_rebuilds(tmp_path):
+    from cdxml_toolkit.engines import worker
+
+    source, target = tmp_path / 'blocks.json.gz', tmp_path / 'blocks.smi'
+    _blocks(source, ['CCO'])
+    worker._ensure_smiles(str(source), str(target))
+    _blocks(source, ['CCN'])
+    worker._ensure_smiles(str(source), str(target))
+    assert target.read_text(encoding='utf-8').split() == ['CCN']
+
+
+def test_aizynthfinder_fetch_rejects_missing_or_unpinned_files(tmp_path, monkeypatch):
+    from cdxml_toolkit.engines import worker
+
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        (tmp_path / 'config.yml').write_text('expansion:\n  uspto:\n    - uspto_model.onnx\n    - uspto_templates.csv.gz\n'
+                                             'stock:\n  zinc: zinc_stock.hdf5\n', encoding='utf-8')
+        (tmp_path / 'uspto_model.onnx').write_bytes(b'model')
+        return worker.subprocess.CompletedProcess(cmd, 0, '', '')
+
+    monkeypatch.setattr(worker.subprocess, 'run', fake_run)
+    monkeypatch.setattr(worker.time, 'sleep', lambda s: None)
+    spec = {'data': 'aizynthfinder-public-data', 'sha256': {'uspto_model.onnx': worker.hashlib.sha256(b'model').hexdigest()}}
+    with pytest.raises(RuntimeError, match='uspto_templates.csv.gz'):
+        worker.fetch('aizynthfinder', {}, str(tmp_path), spec)
+    assert len(calls) == 3  # retried before giving up
+    (tmp_path / 'uspto_templates.csv.gz').write_bytes(b'templates')
+    (tmp_path / 'zinc_stock.hdf5').write_bytes(b'stock')
+    with pytest.raises(RuntimeError, match='pinned sha256'):  # a file in config.yml without a pin is refused
+        worker.fetch('aizynthfinder', {}, str(tmp_path), spec)
+    spec['sha256'].update({'uspto_templates.csv.gz': worker.hashlib.sha256(b'templates').hexdigest(),
+                           'zinc_stock.hdf5': worker.hashlib.sha256(b'stock').hexdigest()})
+    receipt = worker.fetch('aizynthfinder', {}, str(tmp_path), spec)
+    assert sorted(receipt['data']) == ['uspto_model.onnx', 'uspto_templates.csv.gz', 'zinc_stock.hdf5']
 
 
 def _worker():
@@ -415,7 +522,24 @@ def _ready_to_install(home, monkeypatch, name='magnet'):
     python = home / name / 'bin' / 'python3'
     python.parent.mkdir(parents=True)
     python.write_text('')
+    (home / name / 'pyvenv.cfg').write_text('home = /usr/bin\n')
     monkeypatch.setattr(env, '_pip', lambda *a, **k: None)
+
+
+def test_a_folder_with_an_interpreter_but_no_pyvenv_cfg_is_made_a_venv_again(home, monkeypatch):
+    """Without pyvenv.cfg the launcher runs the base Python: packages would land there and the engine never works."""
+    folder = home / 'magnet'
+    (folder / 'bin').mkdir(parents=True)
+    (folder / 'bin' / 'python3').write_text('')
+    created = []
+    monkeypatch.setattr(env, '_create', lambda name, where, log: created.append(name) or where / 'bin' / 'python3')
+    monkeypatch.setattr(env, '_pip', lambda *a, **k: (_ for _ in ()).throw(RuntimeError('stop after the venv step')))
+    env.install('magnet')
+    assert created == ['magnet']
+    (folder / 'pyvenv.cfg').write_text('home = /usr/bin\n')
+    created.clear()
+    env.install('magnet')
+    assert created == []
 
 
 def test_an_install_stopped_during_its_download_does_not_count_as_installed(home, monkeypatch):

@@ -280,23 +280,31 @@ def install_runtime(plan, skill):
 
 
 def needs_local_config(skill, python):
-    """True when cdx.py would not find `python` by its default search order."""
-    return Path(python).resolve() not in {
-        venv_python(skill.parent / 'chemdraw-venv').resolve(), venv_python(cdx.default_runtime_dir()).resolve()}
+    """True when cdx.py's default search (a `chemdraw-venv` beside the Skill, then the shared venv) would not
+    reach `python` first."""
+    python = Path(python).resolve()
+    beside = venv_python(skill.parent / 'chemdraw-venv')
+    if python == beside.resolve():
+        return False
+    return python != venv_python(cdx.default_runtime_dir()).resolve() or beside.is_file()
 
 
 def record_runtime(skills, python):
-    """Write runtime.local.json into every Skill folder that could not find `python` otherwise.
+    """Point every Skill folder at `python`: write runtime.local.json where cdx.py would not find it by default,
+    and remove a runtime.local.json that would otherwise keep cdx.py on an older interpreter.
 
     The repository checkout (SOURCE) is included so `cdx.py` works from the checkout too; the
     file is ignored by Git and never copied into installations."""
-    written = []
+    written, removed = [], []
     for skill in skills:
+        config = skill / 'runtime.local.json'
         if needs_local_config(skill, python):
-            (skill / 'runtime.local.json').write_text(
-                json.dumps({'runtime_python': str(python)}, indent=2) + '\n', encoding='utf-8')
-            written.append(skill / 'runtime.local.json')
-    return written
+            config.write_text(json.dumps({'runtime_python': str(python)}, indent=2) + '\n', encoding='utf-8')
+            written.append(config)
+        elif config.is_file():
+            config.unlink()
+            removed.append(config)
+    return {'written': written, 'removed': removed}
 
 
 def parse(argv):
@@ -374,7 +382,12 @@ def main(argv=None):
             record['status'] = 'installed_runtime_failed'
             code = 1
     if ns.runtime and runtime.get('status') == 'installed':
-        runtime['local_config'] = [str(p) for p in record_runtime([*targets, SOURCE], runtime['python'])]
+        recorded = record_runtime([*targets, SOURCE], runtime['python'])
+        runtime['local_config'] = [str(p) for p in recorded['written']]
+        runtime['local_config_removed'] = [str(p) for p in recorded['removed']]
+        explicit = os.environ.get('CHEMDRAW_MCP_PYTHON')
+        if explicit and Path(explicit).resolve() != Path(runtime['python']).resolve():
+            runtime['overridden_by'] = f'CHEMDRAW_MCP_PYTHON={explicit} (cdx.py uses it before this runtime)'
     mapping = record['mapping']
     if mapping['backends']:
         if runtime.get('status') == 'installed':

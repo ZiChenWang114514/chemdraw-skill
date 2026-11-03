@@ -11,8 +11,10 @@ import hashlib
 import http.client
 import json
 import os
+import re
 import subprocess
 import sys
+import time
 import urllib.error
 
 
@@ -39,16 +41,44 @@ def _sha256(path):
     return digest.hexdigest()
 
 
+_CONFIG_FILE = re.compile(r'(?:^\s*-\s+|:\s+)(\S.*\.(?:onnx|gz|hdf5|csv|zip))\s*$')
+
+
+def _config_files(config):
+    """Base names of the data files a ``config.yml`` points at (the paths in it are absolute)."""
+    with open(config, encoding='utf-8') as handle:
+        return sorted({re.split(r'[\\/]', m.group(1))[-1] for line in handle if (m := _CONFIG_FILE.search(line))})
+
+
+def _fetch_aizynthfinder(data_dir, spec, attempts=3):
+    """Run AiZynthFinder's downloader until every file its config names exists, then check them against the pins."""
+    config, missing, message = os.path.join(data_dir, 'config.yml'), None, ''
+    for attempt in range(attempts):
+        done = subprocess.run([sys.executable, '-m', 'aizynthfinder.tools.download_public_data', data_dir],
+                              capture_output=True, text=True)
+        message = (done.stderr or done.stdout or '')[-300:]
+        if os.path.isfile(config):
+            missing = [name for name in _config_files(config) if not os.path.isfile(os.path.join(data_dir, name))]
+            if done.returncode == 0 and not missing:
+                break
+        time.sleep(min(5 * (attempt + 1), 30))
+    else:
+        raise RuntimeError(f'download_public_data did not finish after {attempts} attempts'
+                           + (f'; missing {", ".join(missing)}' if missing else '') + (f': {message}' if message else ''))
+    pins, receipt = spec.get('sha256') or {}, {}
+    for name in _config_files(config):
+        digest = _sha256(os.path.join(data_dir, name))
+        if pins.get(name) != digest:
+            raise RuntimeError(f'{name} does not match the pinned sha256 (got {digest})')
+        receipt[name] = digest
+    return {'data': receipt}
+
+
 def fetch(engine, params, data_dir, spec):
     """Download weights or data into ``data_dir`` and return a receipt (hashes, revisions)."""
     os.makedirs(data_dir, exist_ok=True)
     if spec.get('data') == 'aizynthfinder-public-data':
-        done = subprocess.run([sys.executable, '-m', 'aizynthfinder.tools.download_public_data', data_dir],
-                              capture_output=True, text=True)
-        if done.returncode != 0 or not os.path.isfile(os.path.join(data_dir, 'config.yml')):
-            raise RuntimeError('download_public_data failed: ' + (done.stderr or done.stdout)[-300:])
-        return {'data': {name: _sha256(os.path.join(data_dir, name)) for name in sorted(os.listdir(data_dir))
-                         if os.path.isfile(os.path.join(data_dir, name)) and name.endswith(('.onnx', '.hdf5', '.yml'))}}
+        return _fetch_aizynthfinder(data_dir, spec)
     if spec.get('data') == 'decimer-segmentation-model':
         return _fetch_file(data_dir, spec['download'])
     if spec.get('data') == 'synplanner-preset':
@@ -75,6 +105,26 @@ def fetch(engine, params, data_dir, spec):
     return {'weights': receipt}
 
 
+class _Progress:
+    """A line on stderr for every 5 % of a long step, or every 30 s; the installer shows stderr while it fetches."""
+
+    def __init__(self, label, total, unit='MB', scale=1e6):
+        self.label, self.total, self.unit, self.scale = label, total, unit, scale
+        self.shown, self.when = None, 0.0
+
+    def update(self, done):
+        share = min(1.0, done / self.total) if self.total else 0.0
+        now = time.monotonic()
+        if self.shown is not None and share < 1 and share - self.shown < 0.05 and now - self.when < 30:
+            return
+        if self.shown == 1.0:
+            return
+        self.shown, self.when = share, now
+        sys.stderr.write(f'{self.label}: {done / self.scale:,.0f} of {self.total / self.scale:,.0f} {self.unit} '
+                         f'({share:.0%})\n')
+        sys.stderr.flush()
+
+
 FORBIDDEN_RETRIES = 8  # figshare redirects each request to a freshly signed URL whose host sometimes answers 403
 
 
@@ -97,7 +147,6 @@ def _give_up(exc, attempt, attempts):
 
 def _range_bytes(url, first, last, attempts=20):
     """Bytes ``first``..``last`` of ``url`` in one Range request, repeated after a transient failure."""
-    import time
     import urllib.request
     for attempt in range(attempts):
         request = urllib.request.Request(url, headers={'Range': f'bytes={first}-{last}'})
@@ -116,8 +165,8 @@ def _download(url, partial, attempts=80, headers=None):
     A transfer that ends before the announced length is retried (resumed when the host supports Range, otherwise
     started again), so a connection closed early is never taken for a finished file.
     """
-    import time
     import urllib.request
+    label = os.path.basename(partial).removesuffix('.part')
     for attempt in range(attempts):  # model hosts sometimes drop a connection mid-transfer
         have = os.path.getsize(partial) if os.path.exists(partial) else 0
         request = urllib.request.Request(url, headers=dict(headers or {}, **({'Range': f'bytes={have}-'} if have else {})))
@@ -126,12 +175,17 @@ def _download(url, partial, attempts=80, headers=None):
                 resumed = bool(have) and getattr(response, 'status', 200) == 206
                 length = response.headers.get('Content-Length')
                 expected = (have if resumed else 0) + int(length) if length and length.isdigit() else None
+                progress = _Progress(label, expected) if expected else None
+                written = have if resumed else 0
                 with open(partial, 'ab' if resumed else 'wb') as out:
                     while True:
                         block = response.read(1 << 20)
                         if not block:
                             break
                         out.write(block)
+                        written += len(block)
+                        if progress:
+                            progress.update(written)
             if expected is None or os.path.getsize(partial) >= expected:
                 return
         except urllib.error.HTTPError as exc:
@@ -286,9 +340,9 @@ def remote_range(url, first, last):
 
 def _download_range(url, first, last, partial, attempts=200):
     """Fetch bytes ``first``..``last`` of ``url`` into ``partial``, resuming after a dropped connection."""
-    import time
     import urllib.request
     total = last - first + 1
+    progress = _Progress(os.path.basename(partial).removesuffix('.part'), total)
     for attempt in range(attempts):
         have = os.path.getsize(partial) if os.path.exists(partial) else 0
         if have >= total:
@@ -298,6 +352,8 @@ def _download_range(url, first, last, partial, attempts=200):
             with urllib.request.urlopen(request, timeout=60) as response, open(partial, 'ab') as out:
                 for block in iter(lambda: response.read(1 << 20), b''):
                     out.write(block)
+                    have += len(block)
+                    progress.update(have)
         except (OSError, http.client.HTTPException) as exc:
             if _give_up(exc, attempt, attempts):
                 raise
@@ -356,11 +412,30 @@ def _blocks_to_smiles(json_gz, smiles_path):
     del blocks
     chunks = [raw[i:i + 20000] for i in range(0, len(raw), 20000)]
     seen = set()
+    progress = _Progress('building blocks', len(chunks), unit='chunks', scale=1)
     with multiprocessing.Pool(max(1, min(8, (os.cpu_count() or 2) - 1))) as pool:
-        for part in pool.imap_unordered(_canonical_chunk, chunks):
+        for done, part in enumerate(pool.imap_unordered(_canonical_chunk, chunks), 1):
             seen |= part
-    with open(smiles_path, 'w', encoding='utf-8') as out:
+            progress.update(done)
+    with open(smiles_path + '.tmp', 'w', encoding='utf-8') as out:
         out.writelines(smiles + '\n' for smiles in sorted(seen))
+    os.replace(smiles_path + '.tmp', smiles_path)
+
+
+def _ensure_smiles(json_gz, smiles_path):
+    """Build the SMILES list unless one built from the same source with the same RDKit is already there."""
+    import rdkit
+    stamp = {'sha256': _sha256(json_gz), 'rdkit': rdkit.__version__}
+    sidecar = smiles_path + '.source.json'
+    try:
+        with open(sidecar, encoding='utf-8') as handle:
+            if json.load(handle) == stamp and os.path.isfile(smiles_path):
+                return
+    except (OSError, ValueError):
+        pass
+    _blocks_to_smiles(json_gz, smiles_path)
+    with open(sidecar, 'w', encoding='utf-8') as handle:
+        json.dump(stamp, handle)
 
 
 def _fetch_archive_members(data_dir, source):
@@ -407,8 +482,8 @@ def _fetch_bundle(data_dir, spec):
     if spec.get('stock'):
         stock = _fetch_file(data_dir, spec['stock'])
         receipt.update(stock['data'])
-        _blocks_to_smiles(os.path.join(data_dir, spec['stock']['path']),
-                          os.path.join(data_dir, 'building_blocks', 'building_blocks.smi'))
+        _ensure_smiles(os.path.join(data_dir, spec['stock']['path']),
+                       os.path.join(data_dir, 'building_blocks', 'building_blocks.smi'))
     return {'data': receipt}
 
 

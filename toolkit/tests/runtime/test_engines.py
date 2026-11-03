@@ -225,6 +225,41 @@ def test_the_worker_receives_what_it_needs_to_verify_downloads(monkeypatch, tmp_
     assert captured['env']['HF_HUB_OFFLINE'] == '1'  # running an engine never reaches the network
 
 
+def test_a_download_shows_its_progress_while_a_prediction_keeps_its_output(monkeypatch, tmp_path):
+    # a multi-GB fetch otherwise runs for an hour without a line on the terminal
+    import subprocess
+    monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(tmp_path))
+    python = tmp_path / 'synplanner' / 'bin' / 'python3'
+    python.parent.mkdir(parents=True)
+    python.write_text('')
+    (tmp_path / 'synplanner' / env.RECEIPT).write_text('{}')
+    seen = {}
+
+    class Done:
+        stdout = env.MARKER + json.dumps({'ok': True, 'result': {}})
+        stderr = None
+
+    def run(command, **kwargs):
+        seen[json.loads(kwargs['input'])['action']] = kwargs
+        return Done()
+
+    monkeypatch.setattr(env.subprocess, 'run', run)
+    env.call('synplanner', 'fetch', {})
+    env.call('synplanner', 'predict', {})
+    assert seen['fetch']['stdout'] == subprocess.PIPE and seen['fetch'].get('stderr') is None
+    assert seen['predict'].get('capture_output') or seen['predict'].get('stderr') == subprocess.PIPE
+
+
+def test_progress_lines_are_few_and_end_at_the_total(capsys, monkeypatch):
+    from cdxml_toolkit.engines import worker
+    monkeypatch.setattr(worker.time, 'monotonic', lambda: 0.0)
+    progress = worker._Progress('weights.bin', 1000, unit='MB', scale=10)
+    for done in range(0, 1001):
+        progress.update(done)
+    lines = capsys.readouterr().err.splitlines()
+    assert len(lines) == 21 and lines[-1] == 'weights.bin: 100 of 100 MB (100%)'  # one line per 5 %
+
+
 def test_chatty_engines_cannot_break_the_result(monkeypatch, tmp_path):
     """Engines print progress and debug lines to stdout; only the marked line is the answer."""
     monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(tmp_path))

@@ -239,13 +239,47 @@ class InstallerTests(unittest.TestCase):
             copy.mkdir(parents=True)
             checkout.mkdir(parents=True)
             python = root / "elsewhere" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-            written = install.record_runtime([copy, checkout], python)
+            written = install.record_runtime([copy, checkout], python)["written"]
             self.assertEqual(written, [copy / "runtime.local.json", checkout / "runtime.local.json"])
             self.assertEqual(json.loads((checkout / "runtime.local.json").read_text(encoding="utf-8")),
                              {"runtime_python": str(python)})
             # A venv in a searched location needs no record.
             beside = install.venv_python(copy.parent / "chemdraw-venv")
-            self.assertEqual(install.record_runtime([copy], beside), [])
+            self.assertEqual(install.record_runtime([copy], beside)["written"], [])
+
+    def _shared(self, install, root):
+        shared = root / "shared-venv"
+        return mock.patch.object(install.cdx, "default_runtime_dir", return_value=shared), install.venv_python(shared)
+
+    def test_a_stale_runtime_record_is_removed_when_cdx_finds_the_new_venv_by_default(self) -> None:
+        # The record would otherwise keep cdx.py on the old interpreter after --runtime-only rebuilt the shared venv.
+        install = self._module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            checkout = root / "repo" / "skill" / "chemdraw"
+            checkout.mkdir(parents=True)
+            (checkout / "runtime.local.json").write_text(json.dumps({"runtime_python": str(root / "old" / "python")}))
+            patch, shared_python = self._shared(install, root)
+            with patch:
+                result = install.record_runtime([checkout], shared_python)
+            self.assertEqual(result, {"written": [], "removed": [checkout / "runtime.local.json"]})
+            self.assertFalse((checkout / "runtime.local.json").exists())
+
+    def test_a_chemdraw_venv_beside_the_skill_outranks_the_shared_venv(self) -> None:
+        install = self._module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            skill = root / "skills" / "chemdraw"
+            skill.mkdir(parents=True)
+            beside = install.venv_python(skill.parent / "chemdraw-venv")
+            beside.parent.mkdir(parents=True)
+            beside.write_text("")
+            patch, shared_python = self._shared(install, root)
+            with patch:
+                written = install.record_runtime([skill], shared_python)["written"]
+            self.assertEqual(written, [skill / "runtime.local.json"])
+            self.assertEqual(json.loads((skill / "runtime.local.json").read_text(encoding="utf-8")),
+                             {"runtime_python": str(shared_python)})
 
     def test_runtime_only_leaves_installed_skill_copies_alone(self) -> None:
         # Rebuilding the runtime for a checkout must not replace the user's installed Skill.
@@ -262,7 +296,7 @@ class InstallerTests(unittest.TestCase):
         self.assertNotEqual(record["runtime"]["action"], "skip")
         with mock.patch.object(install, "install_one") as install_one, \
                 mock.patch.object(install, "install_runtime") as install_runtime, \
-                mock.patch.object(install, "record_runtime", return_value=[]), \
+                mock.patch.object(install, "record_runtime", return_value={"written": [], "removed": []}), \
                 mock.patch.object(install, "runtime_plan", return_value={"action": "reuse", "python": "py"}), \
                 mock.patch("builtins.print"):
             self.assertEqual(install.main(["--runtime-only", "--apply"]), 0)
