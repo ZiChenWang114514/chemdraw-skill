@@ -95,23 +95,23 @@
 - **function**, line 127: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
 - **function**, line 140: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
 - **function**, line 78: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
-- **function**, line 309: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
+- **function**, line 399: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
 - **class**, line 31: `EngineError` - An engine is missing, could not run, or returned something unusable.
 - **class**, line 35: `EngineMissing` - The engine is not installed. ``hint`` says what installing it would cost, for the user to decide.
 - **function**, line 67: `environment(name: str) -> Path` - No public docstring in the audited version.
 - **function**, line 43: `hint(name: str) -> dict` - What to tell the user when ``name`` is needed but absent: use, size, licence and the command.
 - **function**, line 56: `home() -> Path` - No public docstring in the audited version.
-- **function**, line 251: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
+- **function**, line 330: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
 - **function**, line 71: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
 - **function**, line 103: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
 - **function**, line 83: `java() -> str | None` - No public docstring in the audited version.
 - **function**, line 115: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
 - **function**, line 95: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
-- **function**, line 336: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a key of ``RECOMMEND``), with what each costs. Reads only; nothing is downloaded.
-- **function**, line 358: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
-- **function**, line 179: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
-- **function**, line 191: `sha256_of(path) -> str` - No public docstring in the audited version.
-- **function**, line 324: `status() -> dict` - No public docstring in the audited version.
+- **function**, line 426: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a need in ``RECOMMEND`` or an engine task name), with what each costs. Reads only; nothing is downloaded.
+- **function**, line 449: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
+- **function**, line 181: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
+- **function**, line 193: `sha256_of(path) -> str` - No public docstring in the audited version.
+- **function**, line 414: `status() -> dict` - No public docstring in the audited version.
 
 ## `engines.envelope`
 
@@ -138,14 +138,14 @@
 
 ## `engines.registry`
 
-- **function**, line 243: `by_task(task: str) -> list` - No public docstring in the audited version.
-- **function**, line 306: `disk_mb(names) -> int` - No public docstring in the audited version.
+- **function**, line 258: `by_task(task: str) -> list` - No public docstring in the audited version.
+- **function**, line 327: `disk_mb(names) -> int` - No public docstring in the audited version.
 
 ## `engines.worker`
 
-- **function**, line 42: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
-- **function**, line 283: `remote_range(url, first, last)` - No public docstring in the audited version.
-- **function**, line 823: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 78: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
+- **function**, line 338: `remote_range(url, first, last)` - No public docstring in the audited version.
+- **function**, line 965: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
