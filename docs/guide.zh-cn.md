@@ -16,7 +16,7 @@ python scripts/install.py --agent claude agents --runtime --apply    # 安装 Sk
 
 `--agent` 可以同时指定 `claude`、`agents`（大多数 agent 都会读取的共享目录 `~/.agents/skills`）、`gemini`、`copilot`、`cursor`、`opencode`、`kimi` 和 `pi` 中的一个或多个；`--project <仓库>` 改为安装项目级副本，`--destination <目录>` 可安装到任意位置。自动检测找不到合适解释器时用 `--python <解释器>` 指定基础解释器，`--extras` 选择 toolkit 的可选依赖组（默认安装适用于当前操作系统的全部依赖组），`--runtime-dir` 可改变共享 venv 的位置。
 
-安装器会先暂存并校验每一份副本，把已有安装移到共享备份目录（位于所有 Skill 目录之外），失败时自动还原，然后为所有副本安装一次运行时，并写入 `manifest.json` 以便日后检测漂移。重复运行即升级 Skill 并复用 venv。当 venv 不在 `cdx.py` 默认搜索的位置时，安装器会把 `runtime.local.json` 写入每份副本和当前仓库检出目录（该文件已被 Git 忽略），因此在仓库里直接运行 `cdx.py` 也能找到运行时。
+安装器会先暂存并校验每一份副本，把已有安装移到共享备份目录（位于所有 Skill 目录之外），失败时自动还原，然后为所有副本安装一次运行时，并写入 `manifest.json` 以便日后检测漂移。重复运行即升级 Skill 并复用 venv。当 `cdx.py` 自己不会选中这个 venv 时（它放在自定义位置，或者 Skill 目录旁边还有一个会优先被选中的旧版 `chemdraw-venv`），安装器会把 `runtime.local.json` 写入每份副本和当前仓库检出目录（该文件已被 Git 忽略），因此在仓库里直接运行 `cdx.py` 也会用上它；不再需要的旧 `runtime.local.json` 会被删除。
 
 ### macOS
 

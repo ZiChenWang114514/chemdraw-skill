@@ -26,6 +26,7 @@ import time
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 REFERENCES = SKILL_ROOT / 'references'
 SIGNATURES = REFERENCES / 'mcp-signatures.md'
+ENGINES_REFERENCE = REFERENCES / 'engines.md'
 # Inventory shards that regen-catalog owns; the curated shards beside them are never touched.
 CATALOG_SHARDS = ('chemscript-', 'com-', 'cdxml-attributes-')
 BASELINE = SKILL_ROOT / 'runtime.json'
@@ -556,6 +557,13 @@ def write_signatures():
     text = generate_reference.render_reference()
     text = re.sub(r'^Profile: .*$', 'Profile: `full (default)`', text, count=1, flags=re.M)
     SIGNATURES.write_bytes(text.encode('utf-8').replace(b'\r\n', b'\n'))
+    write_engine_tables()
+
+
+def write_engine_tables():
+    """The engine and bundle tables of engines.md, from the engine registry."""
+    from cdxml_toolkit.engines import table
+    ENGINES_REFERENCE.write_bytes(table.render(ENGINES_REFERENCE.read_text(encoding='utf-8')).encode('utf-8'))
 
 
 def _catalog_pages():

@@ -47,7 +47,7 @@ def test_recommend_lists_the_smallest_useful_set_first_and_downloads_nothing(hom
     out = env.recommend('ocsr')
     assert out['suggested'] == 'ocsr-standard' and not out['already_installed']
     first = out['options'][0]
-    assert first['missing'] == ['molscribe', 'molvec'] and first['download_mb'] == 2002
+    assert first['missing'] == ['molscribe', 'molvec'] and first['download_mb'] == GUIDE['molscribe']['disk_mb'] + GUIDE['molvec']['disk_mb']
     assert first['command'] == 'cdx.py install-engines --bundle ocsr-standard'
     assert list(home.iterdir()) == []  # reading only
 
@@ -640,3 +640,15 @@ def test_bytes_that_are_not_utf8_cannot_lose_the_answer(home):
     python.chmod(0o755)
     (home / 'molnextr' / env.RECEIPT).write_text('{}')
     assert env.call('molnextr', 'predict', {}) == [1]
+
+
+def test_the_engines_tables_come_from_the_registry_and_need_their_markers():
+    from cdxml_toolkit.engines import table
+    with pytest.raises(ValueError, match='engines-table'):
+        table.render('no markers here')
+    text = table.render('\n'.join(table.MARKERS['engines'] + table.MARKERS['bundles']))
+    assert text == table.render(text)  # rendering twice changes nothing
+    for name, spec in ENGINES.items():
+        row = next(line for line in text.splitlines() if line.startswith(f'| `{name}` |'))
+        assert (f'**{spec["license"]}**' in row) == bool(spec.get('restricted'))
+    assert all(f'| `{name}` |' in text for name in BUNDLES)
