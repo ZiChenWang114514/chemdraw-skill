@@ -149,6 +149,24 @@ def test_retrochimera_starts_a_bounded_number_of_rule_processes(monkeypatch, tmp
     monkeypatch.setenv('CHEMDRAW_ENGINE_PROCESSES', '1')
     assert worker._rule_processes() == 1
     assert worker._available_gb is not None
+    monkeypatch.delenv('CHEMDRAW_ENGINE_PROCESSES')
+    monkeypatch.setattr(worker, '_available_gb', lambda: None)
+    assert worker._rule_processes() == 1  # memory unknown: the one process measured safe, not one per CPU
+
+
+def test_free_memory_is_read_from_vm_stat_on_a_mac():
+    # macOS has no /proc/meminfo; without this a 16 GB Mac started four 3 GB rule processes beside a 12 GB model
+    from cdxml_toolkit.engines import worker
+    sample = ('Mach Virtual Memory Statistics: (page size of 16384 bytes)\n'
+              'Pages free:                                   100000.\n'
+              'Pages active:                                 800000.\n'
+              'Pages inactive:                               500000.\n'
+              'Pages speculative:                              2000.\n'
+              'Pages throttled:                                   0.\n'
+              'Pages wired down:                             200000.\n'
+              'Pages purgeable:                               10000.\n')
+    assert abs(worker._vm_stat_gb(sample) - 612000 * 16384 / 1e9) < 1e-9
+    assert worker._vm_stat_gb('vm_stat: not available') is None
 
 
 def test_retrochimera_multi_step_route_is_searched_and_flattened(monkeypatch):

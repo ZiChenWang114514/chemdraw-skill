@@ -749,10 +749,22 @@ def _available_gb():
                                                                      'total_virtual', 'avail_virtual', 'extended')]
             status = Status(length=ctypes.sizeof(Status))
             return status.avail / 1e9 if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)) else None
+        if sys.platform == 'darwin':
+            return _vm_stat_gb(subprocess.run(['vm_stat'], capture_output=True, text=True, timeout=10).stdout)
         with open('/proc/meminfo', encoding='ascii') as handle:
             return next(int(line.split()[1]) / 1e6 for line in handle if line.startswith('MemAvailable:'))
     except Exception:
         return None
+
+
+def _vm_stat_gb(text):
+    """Free, inactive, speculative and purgeable pages from macOS ``vm_stat``, in GB: what the system can hand out
+    without swapping (macOS has no /proc/meminfo)."""
+    size = re.search(r'page size of (\d+) bytes', text)
+    pages = {key.strip().lower(): int(value) for key, value in re.findall(r'^Pages ([^:]+):\s+(\d+)\.', text, re.M)}
+    if not size or 'free' not in pages:
+        return None
+    return sum(pages.get(key, 0) for key in ('free', 'inactive', 'speculative', 'purgeable')) * int(size[1]) / 1e9
 
 
 # RetroChimera starts one rule process per CPU by default; under spawn (Windows, macOS) each one holds its own
@@ -765,8 +777,8 @@ def _rule_processes():
         return max(1, int(os.environ['CHEMDRAW_ENGINE_PROCESSES']))
     ceiling = min(os.cpu_count() or 1, 4)
     free = _available_gb()
-    if free is None:
-        return ceiling
+    if free is None:  # unknown memory: one process, the measured safe case; CHEMDRAW_ENGINE_PROCESSES raises it
+        return 1
     return max(1, min(ceiling, int((free - RULE_MODEL_GB) // RULE_PROCESS_GB)))
 
 

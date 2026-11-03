@@ -257,6 +257,9 @@ def test_an_engine_uses_the_gpu_only_when_cuda_works_and_cpu_is_not_forced(monke
     cuda = types.SimpleNamespace(is_available=lambda: True)
     monkeypatch.setitem(sys.modules, 'torch', types.SimpleNamespace(cuda=cuda))
     monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE', raising=False)
+    monkeypatch.setattr(worker.sys, 'platform', 'darwin')
+    assert worker._device() == 'cpu'  # a Mac stays on the CPU even when torch claims CUDA
+    monkeypatch.setattr(worker.sys, 'platform', 'linux')  # the rest holds on Windows and Linux, whatever runs the test
     assert worker._device() == 'cuda'
     monkeypatch.setenv('CHEMDRAW_ENGINE_DEVICE', 'cpu')
     assert worker._device() == 'cpu'
