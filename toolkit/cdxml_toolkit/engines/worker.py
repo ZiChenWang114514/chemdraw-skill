@@ -3,8 +3,9 @@
 Request ``{"engine", "action": "fetch" | "predict", "params", "data_dir", "spec"}``; result
 ``{"ok": true, "result": ...}`` or ``{"ok": false, "error": ...}``. Started by ``env.call`` with the
 interpreter of the engine's own environment, so it imports nothing from this package and uses the
-standard library plus the engine only. Everything runs on the CPU: the engines' own device probing
-fails on some Apple Silicon setups.
+standard library plus the engine only. Engines run on the CPU, except that an engine whose environment
+was given a CUDA build of torch (an NVIDIA GPU was found at install time) runs on the GPU; Macs always use
+the CPU, because the engines' own device probing fails on some Apple Silicon setups.
 """
 
 import hashlib
@@ -489,10 +490,39 @@ def _fetch_bundle(data_dir, spec):
 
 # --- OCSR -----------------------------------------------------------------------------------------
 
+def _device():
+    """'cuda' when this environment's torch can use an NVIDIA GPU, else 'cpu'; CHEMDRAW_ENGINE_DEVICE=cpu forces
+    the CPU. Engines whose torch was installed without CUDA, and every Mac, stay on the CPU."""
+    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').lower() == 'cpu' or sys.platform == 'darwin':
+        return 'cpu'
+    try:
+        import torch
+        return 'cuda' if torch.cuda.is_available() else 'cpu'
+    except Exception:  # an engine without torch, or a broken CUDA install
+        return 'cpu'
+
+
+class _OneThreadPool:
+    """Stands in for ``multiprocessing.Pool`` in an engine's post-processing: a pool of one thread."""
+
+    def __new__(cls, *args, **kwargs):
+        from multiprocessing.pool import ThreadPool
+        return ThreadPool(1)
+
+
+def _serial_pools(*modules):
+    """Engines that open ``multiprocessing.Pool(16)`` for every image start 16 fresh Pythons on Windows, each
+    importing torch again (several GB per image); the work they do is light, so one thread does it."""
+    import types
+    for module in modules:
+        module.multiprocessing = types.SimpleNamespace(**{**vars(module.multiprocessing), 'Pool': _OneThreadPool})
+
+
 def _molscribe(params, data_dir, spec):
     import torch
-    from molscribe import MolScribe
-    model = MolScribe(os.path.join(data_dir, 'swin_base_char_aux_1m.pth'), device=torch.device('cpu'))
+    from molscribe import MolScribe, chemistry
+    _serial_pools(chemistry)
+    model = MolScribe(os.path.join(data_dir, 'swin_base_char_aux_1m.pth'), device=torch.device(_device()))
     out = []
     for path in params['images']:
         try:
@@ -507,8 +537,10 @@ def _molnextr(params, data_dir, spec):
     import functools
     import torch
     torch.load = functools.partial(torch.load, weights_only=True)  # the checkpoint holds tensors only
+    from MolNexTR import chemical
     from MolNexTR.model import molnextr
-    model = molnextr(os.path.join(data_dir, 'molnextr_best.pth'), torch.device('cpu'))
+    _serial_pools(chemical)
+    model = molnextr(os.path.join(data_dir, 'molnextr_best.pth'), torch.device(_device()))
     out = []
     for path in params['images']:
         try:
@@ -521,7 +553,7 @@ def _molnextr(params, data_dir, spec):
 
 def _molparser(params, data_dir, spec):
     from molparser import MolParser
-    model = MolParser(molparser_model_path=data_dir, device='cpu')
+    model = MolParser(molparser_model_path=data_dir, device=_device())
     out = []
     for path in params['images']:
         try:
@@ -586,11 +618,12 @@ def _reactiont5(params, data_dir, spec):
     import torch
     from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(data_dir)
-    model = AutoModelForSeq2SeqLM.from_pretrained(data_dir).eval()
+    device = _device()
+    model = AutoModelForSeq2SeqLM.from_pretrained(data_dir).eval().to(device)
     count = max(1, int(params.get('count', 5)))
     out = []
     for text in params['inputs']:
-        inputs = tokenizer(text, return_tensors='pt')
+        inputs = tokenizer(text, return_tensors='pt').to(device)
         with torch.no_grad():
             result = model.generate(**inputs, max_length=int(params.get('max_length', 150)), num_beams=max(count, 5),
                                     num_return_sequences=count, return_dict_in_generate=True, output_scores=True)

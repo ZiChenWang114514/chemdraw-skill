@@ -18,7 +18,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from .registry import BUNDLES, ENGINES, GUIDE, RECOMMEND, RECOMMEND_ALIASES, disk_mb
+from .registry import BUNDLES, CUDA_TORCH, ENGINES, GUIDE, RECOMMEND, RECOMMEND_ALIASES, disk_mb
 
 WORKER = Path(__file__).with_name('worker.py')
 RUN_TIMEOUT = 900  # the first import of PyTorch can take a minute on a cold disk
@@ -219,15 +219,60 @@ def _create(name: str, env: Path, log) -> Path:
     return interpreter(env)
 
 
-def _pip(python, requirements, log, find_links=None, no_build_isolation=False):
+def _pip(python, requirements, log, find_links=None, no_build_isolation=False, index_url=None):
     links = ['--find-links', find_links] if find_links else []
     links += ['--no-build-isolation'] if no_build_isolation else []  # packages whose setup.py imports torch
+    if index_url:  # the CUDA wheels: torch from this index, everything else still from PyPI
+        links += ['--index-url', index_url, '--extra-index-url', 'https://pypi.org/simple']
+    # Package downloads (several GB for PyTorch) are cached beside the engines, on the disk the user chose for them
+    cache = home() / '.cache'
+    environment = {'UV_HTTP_TIMEOUT': '300', 'UV_CACHE_DIR': str(cache / 'uv'), 'PIP_CACHE_DIR': str(cache / 'pip'),
+                   **os.environ}
     if _uv():
-        subprocess.run([_uv(), 'pip', 'install', '--python', str(python), *links, *requirements], check=True,
-                       stdout=log, env={**os.environ, 'UV_HTTP_TIMEOUT': '300'})
+        strategy = ['--index-strategy', 'unsafe-best-match'] if index_url else []
+        subprocess.run([_uv(), 'pip', 'install', '--python', str(python), *links, *strategy, *requirements],
+                       check=True, stdout=log, env=environment)
     else:
         subprocess.run([str(python), '-m', 'pip', 'install', '--default-timeout', '120', '--retries', '8',
-                        *links, *requirements], check=True, stdout=log)
+                        *links, *requirements], check=True, stdout=log, env=environment)
+
+
+def _nvidia_gpu() -> str | None:
+    """The name of an NVIDIA GPU that a CUDA build of torch can use, or None (also when CPU use is forced)."""
+    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').lower() == 'cpu' or sys.platform == 'darwin':
+        return None
+    smi = shutil.which('nvidia-smi')
+    if not smi:
+        return None
+    try:
+        done = subprocess.run([smi, '--query-gpu=name', '--format=csv,noheader'], capture_output=True, text=True,
+                              timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    name = done.stdout.strip().splitlines()[0].strip() if done.returncode == 0 and done.stdout.strip() else ''
+    return name or None
+
+
+def _has_package(python, package: str) -> bool:
+    code = f'import importlib.util, sys; sys.exit(0 if importlib.util.find_spec({package!r}) else 1)'
+    return subprocess.run([str(python), '-c', code], capture_output=True, timeout=120).returncode == 0
+
+
+def _cuda_torch(name: str, python, log) -> dict:
+    """Swap the engine's torch for the CUDA build when it can use one and an NVIDIA GPU is here."""
+    gpu = _nvidia_gpu() if ENGINES[name].get('gpu') else None
+    if not gpu:
+        return {'device': 'cpu'}
+    tag = CUDA_TORCH['tag']
+    requirements = [f'torch=={CUDA_TORCH["torch"]}+{tag}']
+    if _has_package(python, 'torchvision'):
+        requirements.append(f'torchvision=={CUDA_TORCH["torchvision"]}+{tag}')
+    try:
+        _pip(python, requirements, log, index_url=CUDA_TORCH['index'])
+    except subprocess.CalledProcessError as exc:  # the CPU build stays and still works
+        return {'device': 'cpu', 'gpu': gpu, 'gpu_error': f'the CUDA build of torch did not install (status '
+                                                          f'{exc.returncode}); the engine runs on the CPU'}
+    return {'device': 'cuda', 'gpu': gpu, 'torch': requirements[0].split('==', 1)[1]}
 
 
 def _fetch_jar(name: str):
@@ -325,11 +370,12 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
             _pip(python, spec['extra_requirements'], log, spec.get('find_links'))
         if spec.get('late_requirements'):  # built against what is already installed
             _pip(python, spec['late_requirements'], log, spec.get('find_links'), no_build_isolation=True)
+        device = _cuda_torch(name, python, log)
         _drop_receipt(env)  # the receipt says the weights are complete: it is written after the download only
         fetched = call(name, 'fetch', {}, timeout=FETCH_TIMEOUT) if (spec.get('weights') or spec.get('data')) else {}
-        (env / RECEIPT).write_text(json.dumps({'engine': name, 'requirements': spec['requirements'], **fetched}),
-                                   encoding='utf-8')
-        report.update(ok=True, python=str(python), fetched=fetched)
+        (env / RECEIPT).write_text(json.dumps({'engine': name, 'requirements': spec['requirements'], **fetched,
+                                               'device': device['device']}), encoding='utf-8')
+        report.update(ok=True, python=str(python), fetched=fetched, **device)
     except subprocess.CalledProcessError as exc:
         _drop_receipt(env)
         report.update(ok=False, error=f'installation failed: a step exited with status {exc.returncode} (see the '

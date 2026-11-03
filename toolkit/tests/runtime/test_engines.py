@@ -225,6 +225,37 @@ def test_the_worker_receives_what_it_needs_to_verify_downloads(monkeypatch, tmp_
     assert captured['env']['HF_HUB_OFFLINE'] == '1'  # running an engine never reaches the network
 
 
+def test_engine_post_processing_pools_stay_in_one_process():
+    """MolScribe and MolNexTR open Pool(16) per image: on Windows that is 16 new Pythons importing torch."""
+    import multiprocessing
+    import types
+    from cdxml_toolkit.engines import worker
+
+    module = types.SimpleNamespace(multiprocessing=multiprocessing)
+    worker._serial_pools(module)
+    with module.multiprocessing.Pool(16) as pool:
+        assert pool.map(abs, [-1, -2]) == [1, 2]
+        assert type(pool).__module__.startswith('multiprocessing.pool')  # a thread pool, no child process
+        assert pool._processes == 1
+    assert multiprocessing.Pool is not module.multiprocessing.Pool  # the real module is left alone
+
+
+def test_an_engine_uses_the_gpu_only_when_cuda_works_and_cpu_is_not_forced(monkeypatch):
+    import sys
+    import types
+    from cdxml_toolkit.engines import worker
+
+    cuda = types.SimpleNamespace(is_available=lambda: True)
+    monkeypatch.setitem(sys.modules, 'torch', types.SimpleNamespace(cuda=cuda))
+    monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE', raising=False)
+    assert worker._device() == 'cuda'
+    monkeypatch.setenv('CHEMDRAW_ENGINE_DEVICE', 'cpu')
+    assert worker._device() == 'cpu'
+    monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE')
+    cuda.is_available = lambda: False
+    assert worker._device() == 'cpu'
+
+
 def test_a_download_shows_its_progress_while_a_prediction_keeps_its_output(monkeypatch, tmp_path):
     # a multi-GB fetch otherwise runs for an hour without a line on the terminal
     import subprocess

@@ -11,6 +11,11 @@ MOLNEXTR_COMMIT = '6f6502b4ed9733dba8b1ee45d2da474576683194'
 MOLPARSER_COMMIT = '8b67a082355a8fcf3b099e0e95c5ad948cbd7dcd'
 MOLPARSER_WEIGHTS_REVISION = '6b3cbae494e6870252cb218865ae01fc8aaa55dc'
 
+# An engine marked 'gpu' gets this CUDA build of torch (and of torchvision, when it has one) at install time
+# when an NVIDIA GPU is found; the others are pinned to a torch too old for current GPUs and stay on the CPU.
+CUDA_TORCH = {'index': 'https://download.pytorch.org/whl/cu130', 'tag': 'cu130', 'torch': '2.14.1',
+              'torchvision': '0.29.1'}
+
 ENGINES = {
     'decimer-api': {
         'title': 'DECIMER (remote)', 'task': 'ocsr', 'kind': 'remote', 'license': 'MIT (service by the Steinbeck Lab)',
@@ -32,7 +37,7 @@ ENGINES = {
         'size': '0.8 GB environment, 1.1 GB weights',
     },
     'molnextr': {
-        'title': 'MolNexTR', 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0', 'python': (10, 10),
+        'title': 'MolNexTR', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0', 'python': (10, 10),
         'module': 'MolNexTR',
         'requirements': [f'MolNexTR @ git+https://github.com/CYF2000127/MolNexTR@{MOLNEXTR_COMMIT}',
                          'numpy<2', 'huggingface_hub'],
@@ -43,7 +48,7 @@ ENGINES = {
         'note': 'Installed from a pinned commit; weights are loaded with torch weights_only.',
     },
     'molparser': {
-        'title': 'MolParser', 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0 (code); CC BY-NC-SA 4.0 (weights)',
+        'title': 'MolParser', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0 (code); CC BY-NC-SA 4.0 (weights)',
         'python': (10, 12), 'module': 'molparser',
         'requirements': [f'molparser @ https://github.com/dptech-corp/MolParser/archive/{MOLPARSER_COMMIT}.tar.gz#sha256=a2985311661811a4ed57762a5636fee8ede3018e78e23b46fbc0cba4122a0c2e',
                          'torch', 'transformers', 'timm', 'safetensors', 'huggingface_hub', 'opencv-python-headless',
@@ -113,7 +118,7 @@ ENGINES = {
         'size': '1.0 GB environment, 0.8 GB public data (USPTO policies, ZINC stock)',
     },
     'synplanner': {
-        'title': 'SynPlanner', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT', 'python': (10, 12),
+        'title': 'SynPlanner', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT', 'python': (10, 12),
         'module': 'synplan',
         'requirements': ['SynPlanner[cpu]==1.7.0'],
         'data': 'synplanner-preset',
@@ -133,7 +138,7 @@ ENGINES = {
                 'checked against pinned hashes before use.',
     },
     'reactiont5-forward': {
-        'title': 'ReactionT5v2 (products)', 'task': 'products', 'kind': 'local', 'license': 'MIT',
+        'title': 'ReactionT5v2 (products)', 'gpu': True, 'task': 'products', 'kind': 'local', 'license': 'MIT',
         'python': (10, 12), 'module': 'transformers', 'family': 'reactiont5',
         'requirements': ['torch', 'transformers==4.40.2', 'tokenizers==0.19.1', 'sentencepiece', 'numpy<2'],
         'weights': {'repo': 'sagawa/ReactionT5v2-forward', 'type': 'model', 'snapshot': True,
@@ -141,7 +146,7 @@ ENGINES = {
         'size': 'PyTorch environment, about 0.3 GB weights',
     },
     'reactiont5-retro': {
-        'title': 'ReactionT5v2 (retrosynthesis)', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
+        'title': 'ReactionT5v2 (retrosynthesis)', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
         'python': (10, 12), 'module': 'transformers', 'family': 'reactiont5',
         'requirements': ['torch', 'transformers==4.40.2', 'tokenizers==0.19.1', 'sentencepiece', 'numpy<2'],
         'weights': {'repo': 'sagawa/ReactionT5v2-retrosynthesis', 'type': 'model', 'snapshot': True,

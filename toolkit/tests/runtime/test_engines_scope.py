@@ -526,6 +526,49 @@ def _ready_to_install(home, monkeypatch, name='magnet'):
     monkeypatch.setattr(env, '_pip', lambda *a, **k: None)
 
 
+def _gpu_install(home, monkeypatch, gpu, name='molparser', has_vision=True):
+    _ready_to_install(home, monkeypatch, name)
+    calls = []
+    monkeypatch.setattr(env, '_pip', lambda python, reqs, log, *a, **k: calls.append((list(reqs), k.get('index_url'))))
+    monkeypatch.setattr(env, '_nvidia_gpu', lambda: gpu)
+    monkeypatch.setattr(env, '_has_package', lambda python, package: has_vision)
+    monkeypatch.setattr(env, 'call', lambda *a, **k: {})
+    return env.install(name), calls
+
+
+def test_an_nvidia_gpu_gets_a_cuda_build_of_torch_for_an_engine_that_can_use_it(home, monkeypatch):
+    from cdxml_toolkit.engines.registry import CUDA_TORCH
+    report, calls = _gpu_install(home, monkeypatch, 'NVIDIA GeForce RTX 5090 Laptop GPU')
+    reqs, index = calls[-1]
+    assert index == CUDA_TORCH['index']
+    assert reqs == [f'torch=={CUDA_TORCH["torch"]}+{CUDA_TORCH["tag"]}',
+                    f'torchvision=={CUDA_TORCH["torchvision"]}+{CUDA_TORCH["tag"]}']
+    assert report['ok'] and report['device'] == 'cuda'
+    receipt = json.loads((home / 'molparser' / env.RECEIPT).read_text())
+    assert receipt['device'] == 'cuda'
+
+
+def test_no_gpu_or_an_engine_pinned_to_an_old_torch_keeps_the_cpu_build(home, monkeypatch):
+    report, calls = _gpu_install(home, monkeypatch, None)
+    assert all(index is None for _, index in calls) and report['device'] == 'cpu'
+    report, calls = _gpu_install(home, monkeypatch, 'RTX', name='retrochimera')
+    assert all(index is None for _, index in calls) and report['device'] == 'cpu'
+
+
+def test_engine_downloads_are_cached_under_the_engine_home(home, monkeypatch):
+    import subprocess
+    seen = {}
+    monkeypatch.delenv('UV_CACHE_DIR', raising=False)
+    monkeypatch.delenv('PIP_CACHE_DIR', raising=False)
+    monkeypatch.setattr(env, '_uv', lambda: 'uv')
+    monkeypatch.setattr(subprocess, 'run', lambda cmd, **k: seen.update(k['env']))
+    env._pip('python', ['x'], None)
+    assert seen['UV_CACHE_DIR'] == str(home / '.cache' / 'uv') and seen['PIP_CACHE_DIR'] == str(home / '.cache' / 'pip')
+    monkeypatch.setenv('UV_CACHE_DIR', 'elsewhere')
+    env._pip('python', ['x'], None)
+    assert seen['UV_CACHE_DIR'] == 'elsewhere'  # a cache the user chose is kept
+
+
 def test_a_folder_with_an_interpreter_but_no_pyvenv_cfg_is_made_a_venv_again(home, monkeypatch):
     """Without pyvenv.cfg the launcher runs the base Python: packages would land there and the engine never works."""
     folder = home / 'magnet'
