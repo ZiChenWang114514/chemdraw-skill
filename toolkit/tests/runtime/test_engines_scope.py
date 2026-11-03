@@ -306,6 +306,65 @@ def test_a_busy_host_is_still_retried(tmp_path, monkeypatch):
     assert target.read_bytes() == b'ok' and len(calls) == 2
 
 
+def _forbidden_then(body, forbidden):
+    """A Range-serving handler that answers the first ``forbidden`` requests with 403."""
+    from http.server import BaseHTTPRequestHandler
+    calls = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            calls.append(self.headers.get('Range'))
+            if len(calls) <= forbidden:
+                self.send_response(403)
+                self.send_header('Content-Length', '0')
+                self.end_headers()
+                return
+            first, last = (int(x) for x in self.headers['Range'].split('=')[1].split('-'))
+            chunk = body[first:last + 1]
+            self.send_response(206)
+            self.send_header('Content-Range', f'bytes {first}-{last}/{len(body)}')
+            self.send_header('Content-Length', str(len(chunk)))
+            self.end_headers()
+            self.wfile.write(chunk)
+
+        def log_message(self, *args):
+            pass
+    return Handler, calls
+
+
+def test_a_sporadic_403_from_a_signed_url_host_is_retried_in_range_reads(tmp_path, monkeypatch):
+    # figshare redirects every request to a freshly signed URL, and that host sometimes answers 403
+    worker = _worker()
+    monkeypatch.setattr('time.sleep', lambda s: None)
+    body = bytes(range(100))
+    for read in (lambda url: worker._RangeFile(url).read(),
+                 lambda url: worker.remote_range(url, 10, 19),
+                 lambda url: (worker._download_range(url, 10, 19, str(tmp_path / 'r.part')),
+                              (tmp_path / 'r.part').read_bytes())[1]):
+        handler, calls = _forbidden_then(body, forbidden=2)
+        server = _serve(handler)
+        try:
+            data = read(f'http://127.0.0.1:{server.server_port}/f')
+        finally:
+            server.shutdown()
+        (tmp_path / 'r.part').unlink(missing_ok=True)
+        assert data in (body, body[10:20]) and len(calls) >= 3
+
+
+def test_a_lasting_403_still_ends_the_range_read(tmp_path, monkeypatch):
+    from urllib.error import HTTPError
+    worker = _worker()
+    monkeypatch.setattr('time.sleep', lambda s: None)
+    handler, calls = _forbidden_then(b'x' * 10, forbidden=10 ** 6)
+    server = _serve(handler)
+    try:
+        with pytest.raises(HTTPError):
+            worker.remote_range(f'http://127.0.0.1:{server.server_port}/f', 0, 9)
+    finally:
+        server.shutdown()
+    assert len(calls) == worker.FORBIDDEN_RETRIES + 1
+
+
 def test_a_garbled_answer_during_a_range_download_is_retried(tmp_path, monkeypatch):
     import http.client
     import io

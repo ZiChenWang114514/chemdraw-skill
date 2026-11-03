@@ -115,6 +115,33 @@ def test_retrochimera_single_step_carries_probability_and_the_research_warning(m
     assert any('research' in w and 'hallucinated' in w for w in answer['warnings'])
 
 
+def test_retrochimera_starts_a_bounded_number_of_rule_processes(monkeypatch, tmp_path):
+    # one rule process per CPU, each with its own copy of the rulebase under spawn, ran a 24-thread
+    # Windows machine out of memory while the 4.5 GB checkpoint was loading
+    import sys
+    import types
+    from cdxml_toolkit.engines import worker
+    seen = {}
+
+    class Model:
+        def __init__(self, **kwargs):
+            seen.update(kwargs)
+
+        def __call__(self, molecules, num_results):
+            return [[]]
+
+    molecule = types.ModuleType('syntheseus.interface.molecule')
+    molecule.Molecule = lambda smiles: smiles
+    for name, module in {'syntheseus': types.ModuleType('syntheseus'),
+                         'syntheseus.interface': types.ModuleType('syntheseus.interface'),
+                         'syntheseus.interface.molecule': molecule,
+                         'retrochimera': types.SimpleNamespace(RetroChimeraModel=Model)}.items():
+        monkeypatch.setitem(sys.modules, name, module)
+    worker._retrochimera({'smiles': ASPIRIN, 'steps': 'single'}, str(tmp_path), {})
+    assert seen['template_localization'] == {'num_processes': worker.RULE_PROCESSES}
+    assert 1 <= worker.RULE_PROCESSES <= 4
+
+
 def test_retrochimera_multi_step_route_is_searched_and_flattened(monkeypatch):
     route = {'smiles': ASPIRIN, 'in_stock': False, 'reaction': {'metadata': {'policy_probability': 0.9}, 'reactants': [
         {'smiles': 'CC(=O)OC(C)=O', 'in_stock': True}, {'smiles': 'O=C(O)c1ccccc1O', 'in_stock': True}]}}
