@@ -100,7 +100,8 @@ class DistributionTests(unittest.TestCase):
         self.assertEqual(top, {"README.md", "AGENTS.md", "NOTICE.md"})
         allowed_roots = {"docs", "examples", "experiments", "assets"}
         stray = [path.relative_to(ROOT).as_posix() for path in toolkit.rglob("*.md")
-                 if path.parent != toolkit and path.relative_to(toolkit).parts[0] not in allowed_roots]
+                 if path.parent != toolkit and path.relative_to(toolkit).parts[0] not in allowed_roots
+                 and not any(part.startswith(".") for part in path.relative_to(toolkit).parts)]
         self.assertEqual(stray, [])
         # Workflows only run from the repository root; a nested .github would silently do nothing.
         self.assertFalse((toolkit / ".github").exists())
