@@ -151,7 +151,7 @@
 
 - **function**, line 78: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
 - **function**, line 338: `remote_range(url, first, last)` - No public docstring in the audited version.
-- **function**, line 965: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 977: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
