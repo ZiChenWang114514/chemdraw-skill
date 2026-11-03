@@ -424,7 +424,8 @@ def chemdraw_process_count() -> int:
     try:
         if os.name == "nt":
             out = subprocess.run(["tasklist", "/FI", "IMAGENAME eq ChemDraw.exe", "/FO", "CSV", "/NH"],
-                                 capture_output=True, text=True, timeout=30).stdout
+                                 capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                 timeout=30).stdout
             return sum(1 for line in out.splitlines() if "ChemDraw.exe" in line)
         out = subprocess.run(["pgrep", "-ic", "chemdraw"], capture_output=True, text=True, timeout=30).stdout
         return int(out.strip() or 0)
