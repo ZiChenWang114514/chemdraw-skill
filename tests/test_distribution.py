@@ -75,8 +75,9 @@ class DistributionTests(unittest.TestCase):
             path.relative_to(ROOT).as_posix()
             for path in ROOT.rglob("*.md")
             if path.relative_to(ROOT).parts[0] not in {
-                ".git", "skill", "toolkit", ".pytest_cache", ".mypy_cache", ".ruff_cache"
+                ".git", "skill", "toolkit",
             }
+            and not any(p.startswith(".") and p != ".github" for p in path.relative_to(ROOT).parts)
         }
         self.assertEqual(
             repository_markdown,
