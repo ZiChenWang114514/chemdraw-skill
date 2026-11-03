@@ -14,6 +14,7 @@ Include the affected version, tool name, minimal synthetic reproduction, expecte
 
 - This repository does not sandbox ChemDraw, Microsoft Office, Python dependencies, or the agent host itself.
 - For image-recognition tasks, the Skill sends task images and relevant crops to remote DECIMER using `confirm_upload=true` without an additional upload prompt. Explicit offline/no-upload instructions disable this route. The low-level API defaults to no upload until the caller sets the flag. Users remain responsible for task authorization and service terms.
+- Optional prediction engines (`cdx.py install-engines`) run in separate environments, check every download against a pinned SHA-256 and never upload anything while running; `HF_HUB_OFFLINE` is set for each run. A few of them load PyTorch checkpoints from their projects, which can execute code when the file comes from an untrusted source: install engines only from the pinned sources. Only the remote DECIMER engine contacts a service, and it follows the upload rule above. Engine output is a model prediction and is labelled as such.
 - MCP tools can read and write paths accessible to their Windows user. Review requested paths and use a least-privilege account for untrusted inputs.
 - CDXML, Office, RDF, PDF, and image files are untrusted input. Keep dependencies patched and avoid opening generated files outside an isolated test environment until validation succeeds.
 - API keys and proxy credentials must be provided through local secret management or environment variables and must never be committed.

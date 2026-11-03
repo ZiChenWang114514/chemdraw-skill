@@ -287,6 +287,8 @@ def _interpret_worker_result(
         }
         if not outcome["ok"]:
             error = result_dict.get("error")
+            if not error and isinstance(result_dict.get("errors"), list):
+                error = "; ".join(str(item) for item in result_dict["errors"])
             details = error if isinstance(error, dict) else {}
             code = details.get("code")
             outcome["error"] = {

@@ -154,6 +154,22 @@ def _mapper_capabilities() -> dict[str, dict[str, Any]]:
     }
 
 
+def _engine_capabilities() -> dict[str, dict[str, Any]]:
+    """Optional prediction engines (found from their environments, nothing is imported or started)."""
+    from ..engines import env as engine_env
+    from ..engines.registry import ENGINES
+
+    found = engine_env.available()
+    return {
+        f"engine_{name.replace('-', '_')}": _status(
+            found[name],
+            **({} if found[name] else {"detail": f"not installed: cdx.py install-engines {name}"}),
+        )
+        for name, spec in ENGINES.items()
+        if spec["kind"] in ("local", "jar")
+    }
+
+
 def _decimer_capability() -> dict[str, Any]:
     configured = os.environ.get("DECIMER_MODEL_DIR")
     root = (
@@ -546,6 +562,7 @@ def diagnose_runtime(
     }
     capabilities["java"], capabilities["opsin"] = _java_opsin_capabilities()
     capabilities.update(_mapper_capabilities())
+    capabilities.update(_engine_capabilities())
     capabilities["office"] = _office_capability()
     capabilities["decimer_models"] = _decimer_capability()
 

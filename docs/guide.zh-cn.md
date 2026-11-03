@@ -52,6 +52,10 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 处理保密或需要离线的内容时设置 `CHEMDRAW_OFFLINE=1`：此后 PubChem 查询、Java 运行时下载以及 DECIMER 图片上传都会被拒绝（见 [operations](../skill/chemdraw/references/operations.md#environment-variables)）。
 
+## 可选的预测引擎
+
+`cdx.py engines` 列出可用的引擎：用多个模型读取结构图片、在 PDF 中找出结构，以及预测产物、前体、合成路线、反应条件和 1H/13C 化学位移。`cdx.py engines --recommend ocsr` 会说明某个需求值得安装什么、各需要多大空间，不会下载任何东西。`cdx.py install-engines --bundle ocsr-standard`（也可写引擎名或 `--task ocsr`，先加 `--dry-run` 查看体积）会在你同意后把每个引擎装进各自的独立环境，`cdx.py remove-engines NAME --yes` 可再把它删掉；模型文件只下载一次并按固定哈希校验，之后每次运行都不联网。结果都标注为模型预测。对同一张图意见不一致的引擎会并排显示，不会被合并。RetroChimera 仅限研究用途；Reacon 的作者未声明许可，因此只在你要求时才从其仓库下载。详情、限制以及评估后未纳入的引擎见[引擎说明](../skill/chemdraw/references/engines.md)。
+
 ## ChemDraw 接口覆盖
 
 本 Skill 为 Windows 上的 ChemDraw 22.2 建立了接口目录，并为每一条说明受支持的程度。目录覆盖四层：ChemScript SDK、ChemDraw 的 COM 自动化对象、CDXML 文档模型和菜单命令。每一条都有一个等级：

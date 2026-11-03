@@ -52,6 +52,10 @@ Allow the `python <skill>/scripts/cdx.py` prefix once in your agent's command al
 
 For confidential or offline work set `CHEMDRAW_OFFLINE=1`: PubChem lookups, the Java runtime download and DECIMER image uploads are then refused ([operations](../skill/chemdraw/references/operations.md#environment-variables)).
 
+## Optional prediction engines
+
+`cdx.py engines` lists the engines that can read structure images with more than one model, find the structures in a PDF, and predict products, precursors, routes, reaction conditions and 1H/13C shifts. `cdx.py engines --recommend ocsr` says what is worth installing for a need and what it costs, without downloading anything. `cdx.py install-engines --bundle ocsr-standard` (or engine names, or `--task ocsr`; `--dry-run` first for sizes) installs each one in its own environment, only after you agree, and `cdx.py remove-engines NAME --yes` deletes one again; model files are downloaded once, checked against a pinned hash, and every later run is offline. Results are labelled model predictions. Engines that disagree about an image are shown side by side and never merged. RetroChimera is released for research use, and Reacon's authors state no licence, so it is downloaded from their repository only when you ask for it. Details, limits and the engines that were considered and left out: [engines](../skill/chemdraw/references/engines.md).
+
 ## ChemDraw interface coverage
 
 The Skill catalogues what ChemDraw 22.2 exposes on Windows and states, for every entry, how far it is supported. Four layers are covered: the ChemScript SDK, ChemDraw's COM automation objects, the CDXML document model and the menu commands. Each entry has a tier:

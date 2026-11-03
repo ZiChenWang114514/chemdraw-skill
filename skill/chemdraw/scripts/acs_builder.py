@@ -283,6 +283,8 @@ def build_from_spec(spec_path, output_path):
     ]}
     """
     spec = json.loads(Path(spec_path).read_text(encoding='utf-8-sig'))
+    if not isinstance(spec, dict) or not isinstance(spec.get('objects'), list):
+        raise ValueError('a spec is a JSON object with an "objects" list')
     fig = Fig()
     for o in spec['objects']:
         kind = o['type']

@@ -91,6 +91,7 @@ Runtime selection and workers:
 - `CHEMDRAW_MCP_PYTHON` — runtime interpreter for `cdx.py` (otherwise `runtime.local.json`, a sibling `chemdraw-venv`, the shared venv, then a conda env named `cdxml`)
 - `CHEMDRAW_EXE` — explicit ChemDraw executable (on macOS the binary inside the `.app` or the bundle; otherwise `/Applications/ChemDraw*.app` is found)
 - `OPSIN_JAR`, `CDXML_TOOLKIT_OPSIN_JAR` — explicit OPSIN JAR (otherwise the one `install.py --opsin` placed beside the shared venv)
+- `CHEMDRAW_ENGINE_HOME` — folder with one environment per optional prediction engine (default: `chemdraw-skill/engines` in the user data folder); `cdx.py engines` shows what is there ([engines](engines.md))
 - `CHEMDRAW_MAPPER_HOME` — folder with one environment per learned atom-mapping backend (default: `chemdraw-skill/mappers` in the user data folder, beside the shared venv); `cdx.py install-mappers --status` shows what is there
 - `CHEMDRAW_NATIVE_TEMP` — writable ASCII-only root for native staging
 - `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`, `CHEMDRAW_MCP_WORKER_INPUT_BYTES`, `CHEMDRAW_MCP_WORKER_OUTPUT_BYTES`

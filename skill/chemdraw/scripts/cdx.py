@@ -273,7 +273,10 @@ def _load_args(ns):
     else:
         raise SystemExit(f"{given!r} is neither a JSON object nor an existing file; "
                          "pass inline JSON with --json '{...}' or a file with --args FILE")
-    value = json.loads(text)
+    try:
+        value = json.loads(text)
+    except ValueError as exc:
+        raise SystemExit(f'{given!r} is not valid JSON: {exc}') from None
     if not isinstance(value, dict):
         raise SystemExit('Tool arguments must be a JSON object')
     return value
@@ -344,6 +347,11 @@ def cmd_render(ns):
         raise SystemExit(f'Several inputs would render to the same file: {", ".join(clashes)}; render them separately')
     status = 0
     for source, out_dir, png in jobs:
+        if not source.is_file():
+            status = 1
+            print(json.dumps({'source': str(source), 'png': None, 'ok': False, 'error': f'{source} not found'},
+                             ensure_ascii=False))
+            continue
         # Replace only a PNG this command wrote and nobody changed since: next to a
         # reconstructed CDXML, the same name is often the user's source image.
         if png.exists() and not ns.replace and _render_log().get(str(png)) != _sha256(png):
@@ -378,7 +386,13 @@ def cmd_build(ns):
     import acs_builder
     if Path(ns.output).exists():
         raise SystemExit(f'Refusing to overwrite existing {Path(ns.output).resolve()}; choose a new output name')
-    out = acs_builder.build_from_spec(ns.spec, ns.output)
+    try:
+        out = acs_builder.build_from_spec(ns.spec, ns.output)
+    except ValueError as exc:
+        raise SystemExit(f'{ns.spec} is not valid JSON: {exc}' if isinstance(exc, json.JSONDecodeError)
+                         else f'{ns.spec}: {exc}') from None
+    except KeyError as exc:
+        raise SystemExit(f'{ns.spec}: an object is missing {exc}') from None
     print(json.dumps({'cdxml': str(out), 'ok': True}))
     if ns.render:
         return cmd_render(argparse.Namespace(files=[str(out)], out_dir=None, replace=False))
@@ -405,10 +419,21 @@ def _markush_render(source, png):
 
 
 def cmd_markush(ns):
-    from cdxml_toolkit.markush import workflow
+    # Plain checks first: the workflow needs the runtime's optional image packages.
     if ns.action == 'init':
         if not ns.image:
             raise SystemExit('init needs --image')
+        for given in filter(None, (ns.image, ns.text)):  # before the folder is created
+            if not Path(given).is_file():
+                raise SystemExit(f'{given} not found')
+    elif not (Path(ns.workdir) / 'state.json').is_file():
+        raise SystemExit(f'No Markush run in {ns.workdir}; start one with: cdx.py markush init WORKDIR --image IMAGE')
+    try:
+        from cdxml_toolkit.markush import workflow
+    except ImportError as exc:
+        raise SystemExit(f'cdx.py markush needs the image extra ({exc.name} is missing). '
+                         f'Rebuild the runtime: {install_help()[0]}') from None
+    if ns.action == 'init':
         crop = [int(v) for v in ns.crop] if ns.crop else None
         out = workflow.init(ns.workdir, ns.image, text=ns.text, crop=crop, reuse=ns.reuse)
     elif ns.action == 'next':
@@ -752,6 +777,55 @@ def cmd_install_mappers(ns):
     return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.mapping_backends', *ns.rest], env=_chemscript_env())
 
 
+def cmd_engines(ns):
+    """Which optional engines are installed and how much disk each uses; `--recommend NEED` says what to install."""
+    flags = ['--recommend', ns.recommend] if ns.recommend else ['--status']
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', *flags], env=_chemscript_env())
+
+
+def cmd_remove_engines(ns):
+    """Delete installed engines (a dry run unless --yes)."""
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', '--remove', *ns.rest], env=_chemscript_env())
+
+
+def cmd_install_engines(ns):
+    """Install optional engines, each in its own environment (hundreds of MB to a few GB with weights)."""
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', *ns.rest], env=_chemscript_env())
+
+
+def cmd_ocsr(ns):
+    kwargs = {'image_path': str(Path(ns.image).resolve()), 'engines': ns.engines, 'hand_drawn': ns.hand_drawn,
+              'confirm_upload': not (ns.preflight or ns.no_upload), 'timeout_seconds': ns.timeout}
+    if ns.out:
+        kwargs['output_path'] = str(Path(ns.out).resolve())
+    return _emit('recognize_structure', _worker('recognize_structure', kwargs))
+
+
+PREDICT = {  # task: (tool, the argument SMILES fills, a working example)
+    'products': ('predict_products', 'reactants', 'cdx.py predict products "CCO.CC(=O)O"'),
+    'retro': ('predict_retrosynthesis', 'product', 'cdx.py predict retro "CC(=O)Oc1ccccc1C(=O)O"'),
+    'nmr': ('predict_nmr', 'smiles', 'cdx.py predict nmr "CCOC(C)=O"'),
+    'conditions': ('predict_conditions', 'reactants',
+                   'cdx.py predict conditions "CCO.CC(=O)O" --products "CCOC(C)=O"'),
+}
+
+
+def cmd_predict(ns):
+    tool, field, example = PREDICT[ns.task]
+    if ns.products and ns.task != 'conditions':
+        raise SystemExit('--products belongs to `cdx.py predict conditions`')
+    kwargs = _load_args(ns)
+    if ns.smiles:
+        kwargs[field] = ns.smiles
+    if ns.products:
+        kwargs['products'] = ns.products
+    if ns.engine:
+        kwargs['engine'] = ns.engine
+    if not kwargs.get(field) or (ns.task == 'conditions' and not kwargs.get('products')):
+        raise SystemExit(f'Say which molecules to predict for, for example: {example}')
+    return _emit(tool, _worker(tool, kwargs))
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     # `sig` reads a generated reference and help is static: both work before a runtime exists.
@@ -761,6 +835,10 @@ def main(argv=None):
         return cmd_py(argparse.Namespace(rest=argv[1:]))
     if argv[:1] == ['calc']:  # the grid module's own parser handles every flag, including -h
         return cmd_calc(argparse.Namespace(rest=argv[1:]))
+    if argv[:1] == ['install-engines']:  # flags such as --status or --task may come first
+        return cmd_install_engines(argparse.Namespace(rest=argv[1:]))
+    if argv[:1] == ['remove-engines']:
+        return cmd_remove_engines(argparse.Namespace(rest=argv[1:]))
     if argv[:1] == ['install-mappers']:  # likewise: `--status` or `--dry-run` may come first
         return cmd_install_mappers(argparse.Namespace(rest=argv[1:]))
     p = argparse.ArgumentParser(prog='cdx.py', description=__doc__.split('\n')[0])
@@ -806,6 +884,38 @@ def main(argv=None):
     s.add_argument('--timeout', type=int, default=120)
     s.add_argument('--out', help='new JSON file for the raw recognition result')
     s.set_defaults(fn=cmd_decimer)
+    s = sub.add_parser('ocsr', help='recognize one structure image with several engines and compare them: '
+                                    'cdx.py ocsr image.png --engines molscribe,molnextr,molvec|all (predictions, '
+                                    'never picked silently; decimer-api uploads, --no-upload keeps it local)')
+    s.add_argument('image')
+    s.add_argument('--engines', default='decimer-api')
+    s.add_argument('--hand-drawn', action='store_true')
+    s.add_argument('--preflight', action='store_true', help='no upload; the remote engine only reports what it would send')
+    s.add_argument('--no-upload', action='store_true', help='never use a remote engine')
+    s.add_argument('--timeout', type=int, default=600)
+    s.add_argument('--out', help='new JSON file for the raw DECIMER response')
+    s.set_defaults(fn=cmd_ocsr)
+    s = sub.add_parser('predict', help='model predictions: cdx.py predict products "A.B" | retro "TARGET" | nmr "SMILES" | '
+                                       'conditions "A.B" --products "P" '
+                                       '[--engine NAME] [--json ARGS]; always labelled as predictions')
+    s.add_argument('task', choices=list(PREDICT))
+    s.add_argument('smiles', nargs='?')
+    s.add_argument('--products', help='with conditions: the product SMILES')
+    s.add_argument('--engine')
+    s.add_argument('--json', help='further tool arguments as a JSON object or file (steps, count, nucleus, solvent, ...)')
+    s.set_defaults(fn=cmd_predict, args=None)
+    s = sub.add_parser('engines', help='list the optional engines, what each is for and its disk use; '
+                                       '--recommend ocsr|pdf|products|retro|nmr|conditions suggests what to install (downloads nothing)')
+    s.add_argument('--recommend', metavar='NEED')
+    s.set_defaults(fn=cmd_engines)
+    s = sub.add_parser('remove-engines', help='delete installed engines: cdx.py remove-engines molnextr [--yes] (dry run '
+                                              'without --yes)')
+    s.add_argument('rest', nargs=argparse.REMAINDER)
+    s.set_defaults(fn=cmd_remove_engines)
+    s = sub.add_parser('install-engines', help='install optional engines, each in its own environment: cdx.py install-engines '
+                                               'molscribe molnextr molvec | --bundle ocsr-standard | --task ocsr [--dry-run] [--status]')
+    s.add_argument('rest', nargs=argparse.REMAINDER)
+    s.set_defaults(fn=cmd_install_engines)
     s = sub.add_parser('markush', help='Markush workflow from an image: init, next task, submit an answer, status')
     s.add_argument('action', choices=['init', 'next', 'submit', 'status'])
     s.add_argument('workdir')
@@ -853,7 +963,10 @@ def main(argv=None):
     s.add_argument('--check', action='store_true', help='report stale pages and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_catalog)
     ns = p.parse_args(argv)
-    return ns.fn(ns)
+    try:
+        return ns.fn(ns)
+    except OSError as exc:  # a missing or unreadable file is the user's to fix, not a crash
+        raise SystemExit(f'{exc.strerror}: {exc.filename}' if exc.filename else str(exc)) from None
 
 
 if __name__ == '__main__':

@@ -70,3 +70,82 @@ the Steinbeck group, or, with the `decimer` extra, runs the
 DECIMER is licensed under the MIT License; its model weights are downloaded by
 the `decimer` package and are not redistributed here. Uploads follow the terms
 of the service operator and are refused when `CHEMDRAW_OFFLINE=1` is set.
+
+## Optional prediction engines
+
+Nothing below is bundled. `cdx.py install-engines` downloads each engine and its model files from the
+project's own distribution into a separate environment on the user's machine, checks them against pinned
+SHA-256 hashes, and runs them locally; only the remote DECIMER engine contacts a service. Each engine's
+licence is that of its project; model files carry their own terms.
+
+## MolScribe (structure recognition)
+
+[MolScribe](https://github.com/thomas0809/MolScribe) by Yujie Qian and colleagues, MIT License; the
+`swin_base_char_aux_1m` checkpoint is downloaded from the project's Hugging Face repository.
+
+## MolNexTR (structure recognition)
+
+[MolNexTR](https://github.com/CYF2000127/MolNexTR) by Yufan Chen and colleagues, Apache License 2.0, installed
+from a pinned commit; its checkpoint is downloaded from the project's Hugging Face dataset repository
+(Apache-2.0) and loaded with PyTorch's `weights_only` mode.
+
+## MolParser (structure recognition)
+
+[MolParser](https://github.com/dptech-corp/MolParser) by the UniParser team (DP Technology), Apache License 2.0,
+installed from a pinned commit and checked against a pinned hash. The `MolParser-Mobile-V2` weights are downloaded
+from Hugging Face at a pinned revision and are licensed **CC BY-NC-SA 4.0: non-commercial use only**. The model
+repository includes Python files that transformers runs when the model loads; they are pinned by hash. The YOLO
+detector (ultralytics, AGPL-3.0) is not installed or used.
+
+## MolVec (structure recognition)
+
+[MolVec](https://github.com/ncats/molvec) by the NCATS informatics group, Apache License 2.0. The release jar
+with dependencies is downloaded from Maven Central and checked against a pinned hash.
+
+## DECIMER Segmentation (structure detection)
+
+[DECIMER Segmentation](https://github.com/Kohulan/DECIMER-Image-Segmentation) by the Steinbeck group, MIT
+License. Its Mask R-CNN model is downloaded from Zenodo at install time.
+
+## AiZynthFinder (retrosynthesis)
+
+[AiZynthFinder](https://github.com/MolecularAI/aizynthfinder) by AstraZeneca's Molecular AI group, MIT
+License, with the public USPTO policy models and ZINC stock it publishes.
+
+## SynPlanner (retrosynthesis)
+
+[SynPlanner](https://github.com/Laboratoire-de-Chemoinformatique/SynPlanner) by the Laboratoire de
+Chemoinformatique (University of Strasbourg), MIT License, with its published USPTO-based reaction rules and
+MCULE/Molport building-block list. Its checkpoints are PyTorch files from the project.
+
+## ReactionT5 (reaction prediction)
+
+[ReactionT5v2](https://github.com/sagawatatsuya/ReactionT5v2) by Tatsuya Sagawa and Ryosuke Kojima, MIT
+License; the forward and retrosynthesis models are downloaded from Hugging Face as safetensors.
+
+## MagNET (NMR shift prediction)
+
+[MagNET](https://huggingface.co/ekwan16/MagNET) by the Kwan group, MIT License, with PyTorch Geometric
+extension wheels from the PyG project.
+
+## RetroChimera and Syntheseus (retrosynthesis)
+
+[RetroChimera](https://github.com/microsoft/retrochimera) and [Syntheseus](https://github.com/microsoft/syntheseus) by
+Microsoft Research, MIT License, installed from PyPI at pinned versions. The Pistachio checkpoints are downloaded from
+the authors' figshare record and checked against pinned hashes. The authors release the model for research and
+experiments and ask that an expert check every suggestion. The building-block list is the MCULE/Molport file of
+SynPlanner (MIT), checked against a pinned hash.
+
+## NMRNet++ and Uni-Core (NMR shift prediction)
+
+[NMRNet++](https://github.com/YongqiJin/NMRNetplusplus) by Yongqi Jin and co-authors, MIT License, and
+[Uni-Core](https://github.com/dptech-corp/Uni-Core) by DP Technology, MIT License, both installed from pinned archives
+checked against pinned hashes. The fine-tuned checkpoints (Zenodo record 18232165, CC BY 4.0) are downloaded at install
+time and checked against pinned hashes.
+
+## Reacon (reaction conditions)
+
+[Reacon](https://github.com/wzhstat/Reaction-Condition-Selector) by its authors (Chem. Sci. 2025). **The authors'
+repository states no licence.** Nothing from it is included in or redistributed with this project: it is downloaded
+from the authors' repository, at a pinned commit and checked against a pinned hash, only when the user installs the
+engine, and runs in its own environment. Its dependencies are chemprop (MIT), PyTorch Geometric (MIT), PyTorch and RDKit.
