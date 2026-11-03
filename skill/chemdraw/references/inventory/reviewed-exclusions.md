@@ -138,8 +138,14 @@
 
 ## `engines.registry`
 
-- **function**, line 258: `by_task(task: str) -> list` - No public docstring in the audited version.
-- **function**, line 327: `disk_mb(names) -> int` - No public docstring in the audited version.
+- **function**, line 259: `by_task(task: str) -> list` - No public docstring in the audited version.
+- **function**, line 329: `disk_mb(names) -> int` - No public docstring in the audited version.
+
+## `engines.table`
+
+- **function**, line 37: `bundles_table() -> str` - No public docstring in the audited version.
+- **function**, line 29: `engines_table() -> str` - No public docstring in the audited version.
+- **function**, line 45: `render(text: str) -> str` - ``text`` with every marked table replaced by the one the registry gives; a missing marker is an error.
 
 ## `engines.worker`
 
