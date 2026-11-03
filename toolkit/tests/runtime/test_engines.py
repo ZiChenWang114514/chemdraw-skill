@@ -225,6 +225,15 @@ def test_the_worker_receives_what_it_needs_to_verify_downloads(monkeypatch, tmp_
     assert captured['env']['HF_HUB_OFFLINE'] == '1'  # running an engine never reaches the network
 
 
+def test_the_nmrnet_checkpoint_path_names_its_fold_after_a_split_on_slashes():
+    """infer.py takes path.split('/')[-2] as the output name; a Windows path with backslashes raised IndexError."""
+    from cdxml_toolkit.engines import worker
+
+    command = worker._nmrnet_command('D:\\engines\\nmrnet-pp\\data', 'D:\\w\\data-H', 'D:\\w\\results-H', 'H')
+    path = command[command.index('--path') + 1]
+    assert path.split('/')[-2] == 'cv_seed_42_fold_0' and path.endswith('/checkpoint_last.pt')
+
+
 def test_engine_post_processing_pools_stay_in_one_process():
     """MolScribe and MolNexTR open Pool(16) per image: on Windows that is 16 new Pythons importing torch."""
     import multiprocessing

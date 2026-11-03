@@ -737,9 +737,37 @@ def _syntheseus_tree(graph, node, chosen):
     return item
 
 
-# RetroChimera defaults to one rule process per CPU; under spawn (Windows, macOS) each holds its own rulebase,
-# which on a many-core machine leaves too little memory for the 4.5 GB template checkpoint.
-RULE_PROCESSES = min(os.cpu_count() or 1, 4)
+def _available_gb():
+    """Memory the system can still hand out, in GB, or None when it cannot be read."""
+    try:
+        if os.name == 'nt':
+            import ctypes
+
+            class Status(ctypes.Structure):
+                _fields_ = [('length', ctypes.c_ulong), ('load', ctypes.c_ulong)] + \
+                           [(name, ctypes.c_ulonglong) for name in ('total', 'avail', 'total_page', 'avail_page',
+                                                                     'total_virtual', 'avail_virtual', 'extended')]
+            status = Status(length=ctypes.sizeof(Status))
+            return status.avail / 1e9 if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)) else None
+        with open('/proc/meminfo', encoding='ascii') as handle:
+            return next(int(line.split()[1]) / 1e6 for line in handle if line.startswith('MemAvailable:'))
+    except Exception:
+        return None
+
+
+# RetroChimera starts one rule process per CPU by default; under spawn (Windows, macOS) each one holds its own
+# rulebase, so the count follows the free memory: the model takes RULE_MODEL_GB, each process RULE_PROCESS_GB.
+RULE_MODEL_GB, RULE_PROCESS_GB = 12, 3  # measured: 12 GB peak with one process (Windows, CPU)
+
+
+def _rule_processes():
+    if os.environ.get('CHEMDRAW_ENGINE_PROCESSES', '').isdigit():
+        return max(1, int(os.environ['CHEMDRAW_ENGINE_PROCESSES']))
+    ceiling = min(os.cpu_count() or 1, 4)
+    free = _available_gb()
+    if free is None:
+        return ceiling
+    return max(1, min(ceiling, int((free - RULE_MODEL_GB) // RULE_PROCESS_GB)))
 
 
 def _retrochimera(params, data_dir, spec):
@@ -756,7 +784,7 @@ def _retrochimera(params, data_dir, spec):
             return {'steps': 'multi', 'target': smiles, 'solved': True, 'target_in_stock': True, 'top_score': None,
                     'routes': []}
     from retrochimera import RetroChimeraModel
-    model = RetroChimeraModel(model_dir=data_dir, device='cpu', template_localization={'num_processes': RULE_PROCESSES})
+    model = RetroChimeraModel(model_dir=data_dir, device='cpu', template_localization={'num_processes': _rule_processes()})
     if single:
         reactions = model([Molecule(smiles)], num_results=count)[0]
         return {'steps': 'single', 'target': smiles, 'options': [{
@@ -805,6 +833,20 @@ def _magnet(params, data_dir, spec):
             'conformer_energy_kcal': float(energies[best][1]), 'geometry': 'RDKit ETKDG + MMFF94 (lowest of the conformers)'}
 
 
+def _nmrnet_command(data_dir, data, results, element):
+    """The authors' inference command. infer.py names its output after ``--path`` split on "/", so that path is
+    written with forward slashes (Windows accepts them)."""
+    folder = os.path.join(data_dir, element)
+    checkpoint = os.path.join(folder, 'cv_seed_42_fold_0', 'checkpoint_last.pt').replace('\\', '/')
+    return [sys.executable, 'uninmr/infer.py', '--user-dir', 'uninmr', data, '--valid-subset', 'valid',
+            '--results-path', results, '--saved-dir', folder, '--num-workers', '0', '--ddp-backend=c10d',
+            '--batch-size', '4', '--task', 'uninmr', '--loss', 'atom_regloss_mae', '--arch', 'unimol_large',
+            '--dict-name', os.path.join(data_dir, 'weight', 'dict.txt'),
+            '--path', checkpoint, '--cpu', '--log-interval', '50',
+            '--log-format', 'simple', '--required-batch-size-multiple', '1', '--selected-atom', element,
+            '--gaussian-kernel', '--atom-descriptor', '0', '--split-mode', 'infer']
+
+
 def _nmrnet_pp(params, data_dir, spec):
     """1H and 13C shifts with NMRNet++ (fold 0 of the authors' five cross-validation models), run by their own infer.py."""
     import pickle
@@ -835,16 +877,8 @@ def _nmrnet_pp(params, data_dir, spec):
         with database.begin(write=True) as transaction:
             transaction.put(b'0', pickle.dumps(record))
         database.close()
-        folder = os.path.join(data_dir, element)
-        checkpoint = os.path.join(folder, 'cv_seed_42_fold_0')
         results = os.path.join(work, 'results-' + element)
-        command = [sys.executable, 'uninmr/infer.py', '--user-dir', 'uninmr', data, '--valid-subset', 'valid',
-                   '--results-path', results, '--saved-dir', folder, '--num-workers', '0', '--ddp-backend=c10d',
-                   '--batch-size', '4', '--task', 'uninmr', '--loss', 'atom_regloss_mae', '--arch', 'unimol_large',
-                   '--dict-name', os.path.join(data_dir, 'weight', 'dict.txt'),
-                   '--path', os.path.join(checkpoint, 'checkpoint_last.pt'), '--cpu', '--log-interval', '50',
-                   '--log-format', 'simple', '--required-batch-size-multiple', '1', '--selected-atom', element,
-                   '--gaussian-kernel', '--atom-descriptor', '0', '--split-mode', 'infer']
+        command = _nmrnet_command(data_dir, data, results, element)
         done = subprocess.run(command, cwd=os.path.join(data_dir, 'code'), capture_output=True, text=True)
         if done.returncode != 0:
             raise RuntimeError('NMRNet++ inference failed: ' + (done.stderr or done.stdout)[-300:])

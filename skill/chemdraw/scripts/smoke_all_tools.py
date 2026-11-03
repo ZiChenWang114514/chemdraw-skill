@@ -312,6 +312,7 @@ def main(argv=None):
     parser.add_argument('--network', action='store_true', help='allow network lookups and the DECIMER upload')
     parser.add_argument('--lcms-pdf', nargs='+', default=[], help='LCMS report PDFs for the analysis tools')
     parser.add_argument('--only', help='comma-separated tool names to run')
+    parser.add_argument('--skip-engine', default='', help='comma-separated engines whose cases are skipped')
     ns = parser.parse_args(argv)
     out = Path(ns.output_dir).resolve()
     if out.exists():
@@ -320,7 +321,9 @@ def main(argv=None):
     if not ns.network:
         os.environ['CHEMDRAW_OFFLINE'] = '1'
     from cdxml_toolkit.engines.env import available
-    ctx = Context(out, ns.network, [str(Path(p).resolve()) for p in ns.lcms_pdf], machine(), available())
+    skipped = {name.strip() for name in ns.skip_engine.split(',') if name.strip()}
+    engines = {name: ok and name not in skipped for name, ok in available().items()}
+    ctx = Context(out, ns.network, [str(Path(p).resolve()) for p in ns.lcms_pdf], machine(), engines)
     rows = run(ctx, CASES, set(ns.only.split(',')) if ns.only else None)
     counts = {status: sum(r['status'] == status for r in rows) for status in ('pass', 'fail', 'skipped')}
     report = {'counts': counts, 'network': ns.network, 'machine': ctx.machine,

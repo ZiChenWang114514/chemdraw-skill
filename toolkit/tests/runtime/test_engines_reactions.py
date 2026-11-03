@@ -137,9 +137,18 @@ def test_retrochimera_starts_a_bounded_number_of_rule_processes(monkeypatch, tmp
                          'syntheseus.interface.molecule': molecule,
                          'retrochimera': types.SimpleNamespace(RetroChimeraModel=Model)}.items():
         monkeypatch.setitem(sys.modules, name, module)
+    monkeypatch.setattr(worker, '_available_gb', lambda: 18.0)
+    monkeypatch.setattr(worker.os, 'cpu_count', lambda: 24)
+    monkeypatch.delenv('CHEMDRAW_ENGINE_PROCESSES', raising=False)
     worker._retrochimera({'smiles': ASPIRIN, 'steps': 'single'}, str(tmp_path), {})
-    assert seen['template_localization'] == {'num_processes': worker.RULE_PROCESSES}
-    assert 1 <= worker.RULE_PROCESSES <= 4
+    assert seen['template_localization'] == {'num_processes': 2}  # (18 - 12) // 3, never one per CPU
+    monkeypatch.setattr(worker, '_available_gb', lambda: 6.0)
+    assert worker._rule_processes() == 1  # short of memory: one process, never zero
+    monkeypatch.setattr(worker, '_available_gb', lambda: 64.0)
+    assert worker._rule_processes() == 4
+    monkeypatch.setenv('CHEMDRAW_ENGINE_PROCESSES', '1')
+    assert worker._rule_processes() == 1
+    assert worker._available_gb is not None
 
 
 def test_retrochimera_multi_step_route_is_searched_and_flattened(monkeypatch):
