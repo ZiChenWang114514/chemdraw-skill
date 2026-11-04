@@ -18,7 +18,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from .registry import BUNDLES, ENGINES, GUIDE, RECOMMEND, disk_mb
+from .registry import BUNDLES, CUDA_TORCH, ENGINES, GUIDE, RECOMMEND, RECOMMEND_ALIASES, disk_mb
 
 WORKER = Path(__file__).with_name('worker.py')
 RUN_TIMEOUT = 900  # the first import of PyTorch can take a minute on a cold disk
@@ -153,9 +153,11 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
     if ENGINES[name]['kind'] == 'local':  # libraries that cache models with pystow keep them inside the engine
         env['PYSTOW_HOME'] = str(data_dir(name))
     env.update(HF_HUB_OFFLINE='0' if action == 'fetch' else '1', TRANSFORMERS_OFFLINE='0' if action == 'fetch' else '1')
+    # A download shows its progress lines on the terminal; a prediction's output stays captured.
+    streams = {'stdout': subprocess.PIPE} if action == 'fetch' else {'capture_output': True}
     try:
-        done = subprocess.run([str(python), '-W', 'ignore', str(WORKER)], input=json.dumps(request),
-                              capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=timeout, env=env)
+        done = subprocess.run([str(python), '-W', 'ignore', str(WORKER)], input=json.dumps(request), **streams,
+                              text=True, encoding='utf-8', errors='replace', timeout=timeout, env=env)
     except subprocess.TimeoutExpired as exc:
         raise EngineError(f'{title} did not finish within {timeout} s') from exc
     except OSError as exc:
@@ -170,7 +172,7 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
             break
     if payload is None:
         tail = (done.stderr or done.stdout or '').strip().splitlines()[-1:]
-        raise EngineError(f'{title} failed to start: {tail[0][:300] if tail else "no output"}')
+        raise EngineError(f'{title} failed to start: {tail[0][:300] if tail else "see the messages above"}')
     if not payload.get('ok'):
         raise EngineError(f'{title}: {payload.get("error")}')
     return payload['result']
@@ -204,7 +206,8 @@ def _create(name: str, env: Path, log) -> Path:
     low, high = ENGINES[name]['python']
     env.parent.mkdir(parents=True, exist_ok=True)
     if _uv():  # uv fetches a matching Python itself
-        subprocess.run([_uv(), 'venv', '--python', f'3.{high}', str(env)], check=True, stdout=log, timeout=VENV_TIMEOUT)
+        subprocess.run([_uv(), 'venv', '--allow-existing', '--python', f'3.{high}', str(env)], check=True, stdout=log,
+                       timeout=VENV_TIMEOUT)
     else:
         for minor in range(high, low - 1, -1):
             base = shutil.which(f'python3.{minor}')
@@ -216,15 +219,60 @@ def _create(name: str, env: Path, log) -> Path:
     return interpreter(env)
 
 
-def _pip(python, requirements, log, find_links=None, no_build_isolation=False):
+def _pip(python, requirements, log, find_links=None, no_build_isolation=False, index_url=None):
     links = ['--find-links', find_links] if find_links else []
     links += ['--no-build-isolation'] if no_build_isolation else []  # packages whose setup.py imports torch
+    if index_url:  # the CUDA wheels: torch from this index, everything else still from PyPI
+        links += ['--index-url', index_url, '--extra-index-url', 'https://pypi.org/simple']
+    # Package downloads (several GB for PyTorch) are cached beside the engines, on the disk the user chose for them
+    cache = home() / '.cache'
+    environment = {'UV_HTTP_TIMEOUT': '300', 'UV_CACHE_DIR': str(cache / 'uv'), 'PIP_CACHE_DIR': str(cache / 'pip'),
+                   **os.environ}
     if _uv():
-        subprocess.run([_uv(), 'pip', 'install', '--python', str(python), *links, *requirements], check=True,
-                       stdout=log, env={**os.environ, 'UV_HTTP_TIMEOUT': '300'})
+        strategy = ['--index-strategy', 'unsafe-best-match'] if index_url else []
+        subprocess.run([_uv(), 'pip', 'install', '--python', str(python), *links, *strategy, *requirements],
+                       check=True, stdout=log, env=environment)
     else:
         subprocess.run([str(python), '-m', 'pip', 'install', '--default-timeout', '120', '--retries', '8',
-                        *links, *requirements], check=True, stdout=log)
+                        *links, *requirements], check=True, stdout=log, env=environment)
+
+
+def _nvidia_gpu() -> str | None:
+    """The name of an NVIDIA GPU that a CUDA build of torch can use, or None (also when CPU use is forced)."""
+    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').lower() == 'cpu' or sys.platform == 'darwin':
+        return None
+    smi = shutil.which('nvidia-smi')
+    if not smi:
+        return None
+    try:
+        done = subprocess.run([smi, '--query-gpu=name', '--format=csv,noheader'], capture_output=True, text=True,
+                              timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    name = done.stdout.strip().splitlines()[0].strip() if done.returncode == 0 and done.stdout.strip() else ''
+    return name or None
+
+
+def _has_package(python, package: str) -> bool:
+    code = f'import importlib.util, sys; sys.exit(0 if importlib.util.find_spec({package!r}) else 1)'
+    return subprocess.run([str(python), '-c', code], capture_output=True, timeout=120).returncode == 0
+
+
+def _cuda_torch(name: str, python, log) -> dict:
+    """Swap the engine's torch for the CUDA build when it can use one and an NVIDIA GPU is here."""
+    gpu = _nvidia_gpu() if ENGINES[name].get('gpu') else None
+    if not gpu:
+        return {'device': 'cpu'}
+    tag = CUDA_TORCH['tag']
+    requirements = [f'torch=={CUDA_TORCH["torch"]}+{tag}']
+    if _has_package(python, 'torchvision'):
+        requirements.append(f'torchvision=={CUDA_TORCH["torchvision"]}+{tag}')
+    try:
+        _pip(python, requirements, log, index_url=CUDA_TORCH['index'])
+    except subprocess.CalledProcessError as exc:  # the CPU build stays and still works
+        return {'device': 'cpu', 'gpu': gpu, 'gpu_error': f'the CUDA build of torch did not install (status '
+                                                          f'{exc.returncode}); the engine runs on the CPU'}
+    return {'device': 'cuda', 'gpu': gpu, 'torch': requirements[0].split('==', 1)[1]}
 
 
 def _fetch_jar(name: str):
@@ -248,25 +296,65 @@ def _fetch_jar(name: str):
     return target
 
 
+def _extra_requirements(extra: str) -> list[str]:
+    """The requirements of toolkit extra ``extra`` as this runtime's installed metadata records them, so the list
+    lives only in pyproject.toml. The ``extra == ...`` clause is removed; any other marker is kept."""
+    import importlib.metadata
+    import re
+    clause = rf'extra\s*==\s*["\']{re.escape(extra)}["\']'
+    out = []
+    for requirement in importlib.metadata.requires('cdxml-toolkit-community') or []:
+        name, _, marker = requirement.partition(';')
+        if not re.search(clause, marker):
+            continue
+        marker = re.sub(rf'\s*\band\s+{clause}|{clause}\s+and\b\s*|{clause}', '', marker).strip()
+        out.append(f'{name.strip()}; {marker}' if marker else name.strip())
+    return out
+
+
+def _install_into_runtime(name: str, log) -> dict:
+    """Add an engine that runs inside the toolkit runtime: the toolkit extra it needs, then its weights."""
+    import importlib.metadata
+    requirements = _extra_requirements(ENGINES[name]['extra'])
+    try:  # TensorFlow must not move the numpy that RDKit and the rest of the runtime were installed against
+        requirements.append(f'numpy=={importlib.metadata.version("numpy")}')
+    except importlib.metadata.PackageNotFoundError:
+        pass
+    _pip(sys.executable, requirements, log)
+    target = os.environ.get('DECIMER_MODEL_DIR') or str(Path.home() / '.data' / 'DECIMER-V2')
+    subprocess.run([sys.executable, '-m', 'cdxml_toolkit.mcp_runtime.install_decimer_models', '--target', target],
+                   check=True, stdout=log, timeout=FETCH_TIMEOUT)
+    return {'python': sys.executable, 'requirements': requirements, 'weights': target}
+
+
 def install(name: str, *, dry_run: bool = False, log=None) -> dict:
     """Create the environment (or fetch the jar), install the pinned requirements and the weights."""
     spec = ENGINES[name]
     env = environment(name)
     report = {'engine': name, 'environment': str(env), 'license': spec.get('license'), 'size': spec.get('size'),
               'requirements': spec.get('requirements') or ([spec['jar']['url']] if 'jar' in spec else [])}
-    if spec['kind'] in ('remote', 'runtime'):
+    if spec['kind'] == 'remote':
         report.update(ok=available()[name], note=spec.get('note') or 'nothing to install here')
         return report
+    if spec['kind'] == 'runtime':
+        report.update(environment=sys.executable, requirements=_extra_requirements(spec['extra']))
     report['disk_mb'] = GUIDE.get(name, {}).get('disk_mb')
     if not dry_run and _offline():
         report.update(ok=False, error='CHEMDRAW_OFFLINE is set: installing downloads packages and weights, so nothing '
                                       'was installed')
         return report
     if dry_run:
-        report['python_needed'] = f'3.{spec["python"][0]} to 3.{spec["python"][1]}' if 'python' in spec else 'Java'
+        report['python_needed'] = (f'3.{spec["python"][0]} to 3.{spec["python"][1]}' if 'python' in spec
+                                   else 'this runtime' if spec['kind'] == 'runtime' else 'Java')
         return report
     log = log or sys.stderr
     try:
+        if spec['kind'] == 'runtime':
+            report.update(_install_into_runtime(name, log))
+            report.update(ok=available()[name])
+            if not report['ok']:
+                report['error'] = 'installed, but the module or its weights are still not found'
+            return report
         if spec['kind'] == 'jar':
             if not java():
                 raise RuntimeError('Java was not found on PATH')
@@ -275,17 +363,19 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
             (env / RECEIPT).write_text(json.dumps({'engine': name, 'sha256': spec['jar']['sha256']}), encoding='utf-8')
             report.update(ok=True)
             return report
-        python = interpreter(env) or _create(name, env, log)
+        # Without pyvenv.cfg the launcher falls back to the base Python, so the folder is made a venv again
+        python = (interpreter(env) if (env / 'pyvenv.cfg').is_file() else None) or _create(name, env, log)
         _pip(python, spec['requirements'], log, spec.get('find_links'))
         if spec.get('extra_requirements'):
             _pip(python, spec['extra_requirements'], log, spec.get('find_links'))
         if spec.get('late_requirements'):  # built against what is already installed
             _pip(python, spec['late_requirements'], log, spec.get('find_links'), no_build_isolation=True)
+        device = _cuda_torch(name, python, log)
         _drop_receipt(env)  # the receipt says the weights are complete: it is written after the download only
         fetched = call(name, 'fetch', {}, timeout=FETCH_TIMEOUT) if (spec.get('weights') or spec.get('data')) else {}
-        (env / RECEIPT).write_text(json.dumps({'engine': name, 'requirements': spec['requirements'], **fetched}),
-                                   encoding='utf-8')
-        report.update(ok=True, python=str(python), fetched=fetched)
+        (env / RECEIPT).write_text(json.dumps({'engine': name, 'requirements': spec['requirements'], **fetched,
+                                               'device': device['device']}), encoding='utf-8')
+        report.update(ok=True, python=str(python), fetched=fetched, **device)
     except subprocess.CalledProcessError as exc:
         _drop_receipt(env)
         report.update(ok=False, error=f'installation failed: a step exited with status {exc.returncode} (see the '
@@ -334,13 +424,14 @@ def status() -> dict:
 
 
 def recommend(task: str) -> dict:
-    """The smallest set of engines that serves ``task`` (a key of ``RECOMMEND``), with what each costs.
-    Reads only; nothing is downloaded."""
-    if task not in RECOMMEND:
-        raise ValueError(f'unknown need {task!r} (choose from {", ".join(RECOMMEND)})')
+    """The smallest set of engines that serves ``task`` (a need in ``RECOMMEND`` or an engine task name), with what
+    each costs. Reads only; nothing is downloaded."""
+    need = RECOMMEND_ALIASES.get(task, task)
+    if need not in RECOMMEND:
+        raise ValueError(f'unknown need {task!r} (choose from {", ".join([*RECOMMEND, *RECOMMEND_ALIASES])})')
     found = available()
     options = []
-    for bundle in RECOMMEND[task]:
+    for bundle in RECOMMEND[need]:
         names = BUNDLES[bundle]['engines']
         missing = [n for n in names if not found[n]]
         options.append({
@@ -350,7 +441,7 @@ def recommend(task: str) -> dict:
                          'size_mb': GUIDE[n]['disk_mb'], 'use_when': GUIDE[n]['use_when'],
                          'skip_when': GUIDE[n]['skip_when'], 'needs': GUIDE[n].get('needs', [])} for n in names],
             'command': f'cdx.py install-engines --bundle {bundle}' if missing else None})
-    return {'ok': True, 'task': task, 'suggested': options[0]['bundle'], 'already_installed': not options[0]['missing'],
+    return {'ok': True, 'task': task, 'need': need, 'suggested': options[0]['bundle'], 'already_installed': not options[0]['missing'],
             'options': options, 'offline': _offline(),
             'note': 'Installing downloads packages and weights; it never uploads anything.'}
 

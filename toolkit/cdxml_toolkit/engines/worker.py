@@ -3,16 +3,19 @@
 Request ``{"engine", "action": "fetch" | "predict", "params", "data_dir", "spec"}``; result
 ``{"ok": true, "result": ...}`` or ``{"ok": false, "error": ...}``. Started by ``env.call`` with the
 interpreter of the engine's own environment, so it imports nothing from this package and uses the
-standard library plus the engine only. Everything runs on the CPU: the engines' own device probing
-fails on some Apple Silicon setups.
+standard library plus the engine only. Engines run on the CPU, except that an engine whose environment
+was given a CUDA build of torch (an NVIDIA GPU was found at install time) runs on the GPU; Macs always use
+the CPU, because the engines' own device probing fails on some Apple Silicon setups.
 """
 
 import hashlib
 import http.client
 import json
 import os
+import re
 import subprocess
 import sys
+import time
 import urllib.error
 
 
@@ -39,16 +42,44 @@ def _sha256(path):
     return digest.hexdigest()
 
 
+_CONFIG_FILE = re.compile(r'(?:^\s*-\s+|:\s+)(\S.*\.(?:onnx|gz|hdf5|csv|zip))\s*$')
+
+
+def _config_files(config):
+    """Base names of the data files a ``config.yml`` points at (the paths in it are absolute)."""
+    with open(config, encoding='utf-8') as handle:
+        return sorted({re.split(r'[\\/]', m.group(1))[-1] for line in handle if (m := _CONFIG_FILE.search(line))})
+
+
+def _fetch_aizynthfinder(data_dir, spec, attempts=3):
+    """Run AiZynthFinder's downloader until every file its config names exists, then check them against the pins."""
+    config, missing, message = os.path.join(data_dir, 'config.yml'), None, ''
+    for attempt in range(attempts):
+        done = subprocess.run([sys.executable, '-m', 'aizynthfinder.tools.download_public_data', data_dir],
+                              capture_output=True, text=True)
+        message = (done.stderr or done.stdout or '')[-300:]
+        if os.path.isfile(config):
+            missing = [name for name in _config_files(config) if not os.path.isfile(os.path.join(data_dir, name))]
+            if done.returncode == 0 and not missing:
+                break
+        time.sleep(min(5 * (attempt + 1), 30))
+    else:
+        raise RuntimeError(f'download_public_data did not finish after {attempts} attempts'
+                           + (f'; missing {", ".join(missing)}' if missing else '') + (f': {message}' if message else ''))
+    pins, receipt = spec.get('sha256') or {}, {}
+    for name in _config_files(config):
+        digest = _sha256(os.path.join(data_dir, name))
+        if pins.get(name) != digest:
+            raise RuntimeError(f'{name} does not match the pinned sha256 (got {digest})')
+        receipt[name] = digest
+    return {'data': receipt}
+
+
 def fetch(engine, params, data_dir, spec):
     """Download weights or data into ``data_dir`` and return a receipt (hashes, revisions)."""
     os.makedirs(data_dir, exist_ok=True)
     if spec.get('data') == 'aizynthfinder-public-data':
-        done = subprocess.run([sys.executable, '-m', 'aizynthfinder.tools.download_public_data', data_dir],
-                              capture_output=True, text=True)
-        if done.returncode != 0 or not os.path.isfile(os.path.join(data_dir, 'config.yml')):
-            raise RuntimeError('download_public_data failed: ' + (done.stderr or done.stdout)[-300:])
-        return {'data': {name: _sha256(os.path.join(data_dir, name)) for name in sorted(os.listdir(data_dir))
-                         if os.path.isfile(os.path.join(data_dir, name)) and name.endswith(('.onnx', '.hdf5', '.yml'))}}
+        return _fetch_aizynthfinder(data_dir, spec)
     if spec.get('data') == 'decimer-segmentation-model':
         return _fetch_file(data_dir, spec['download'])
     if spec.get('data') == 'synplanner-preset':
@@ -75,6 +106,26 @@ def fetch(engine, params, data_dir, spec):
     return {'weights': receipt}
 
 
+class _Progress:
+    """A line on stderr for every 5 % of a long step, or every 30 s; the installer shows stderr while it fetches."""
+
+    def __init__(self, label, total, unit='MB', scale=1e6):
+        self.label, self.total, self.unit, self.scale = label, total, unit, scale
+        self.shown, self.when = None, 0.0
+
+    def update(self, done):
+        share = min(1.0, done / self.total) if self.total else 0.0
+        now = time.monotonic()
+        if self.shown is not None and share < 1 and share - self.shown < 0.05 and now - self.when < 30:
+            return
+        if self.shown == 1.0:
+            return
+        self.shown, self.when = share, now
+        sys.stderr.write(f'{self.label}: {done / self.scale:,.0f} of {self.total / self.scale:,.0f} {self.unit} '
+                         f'({share:.0%})\n')
+        sys.stderr.flush()
+
+
 FORBIDDEN_RETRIES = 8  # figshare redirects each request to a freshly signed URL whose host sometimes answers 403
 
 
@@ -97,7 +148,6 @@ def _give_up(exc, attempt, attempts):
 
 def _range_bytes(url, first, last, attempts=20):
     """Bytes ``first``..``last`` of ``url`` in one Range request, repeated after a transient failure."""
-    import time
     import urllib.request
     for attempt in range(attempts):
         request = urllib.request.Request(url, headers={'Range': f'bytes={first}-{last}'})
@@ -116,8 +166,8 @@ def _download(url, partial, attempts=80, headers=None):
     A transfer that ends before the announced length is retried (resumed when the host supports Range, otherwise
     started again), so a connection closed early is never taken for a finished file.
     """
-    import time
     import urllib.request
+    label = os.path.basename(partial).removesuffix('.part')
     for attempt in range(attempts):  # model hosts sometimes drop a connection mid-transfer
         have = os.path.getsize(partial) if os.path.exists(partial) else 0
         request = urllib.request.Request(url, headers=dict(headers or {}, **({'Range': f'bytes={have}-'} if have else {})))
@@ -126,12 +176,17 @@ def _download(url, partial, attempts=80, headers=None):
                 resumed = bool(have) and getattr(response, 'status', 200) == 206
                 length = response.headers.get('Content-Length')
                 expected = (have if resumed else 0) + int(length) if length and length.isdigit() else None
+                progress = _Progress(label, expected) if expected else None
+                written = have if resumed else 0
                 with open(partial, 'ab' if resumed else 'wb') as out:
                     while True:
                         block = response.read(1 << 20)
                         if not block:
                             break
                         out.write(block)
+                        written += len(block)
+                        if progress:
+                            progress.update(written)
             if expected is None or os.path.getsize(partial) >= expected:
                 return
         except urllib.error.HTTPError as exc:
@@ -286,9 +341,9 @@ def remote_range(url, first, last):
 
 def _download_range(url, first, last, partial, attempts=200):
     """Fetch bytes ``first``..``last`` of ``url`` into ``partial``, resuming after a dropped connection."""
-    import time
     import urllib.request
     total = last - first + 1
+    progress = _Progress(os.path.basename(partial).removesuffix('.part'), total)
     for attempt in range(attempts):
         have = os.path.getsize(partial) if os.path.exists(partial) else 0
         if have >= total:
@@ -298,6 +353,8 @@ def _download_range(url, first, last, partial, attempts=200):
             with urllib.request.urlopen(request, timeout=60) as response, open(partial, 'ab') as out:
                 for block in iter(lambda: response.read(1 << 20), b''):
                     out.write(block)
+                    have += len(block)
+                    progress.update(have)
         except (OSError, http.client.HTTPException) as exc:
             if _give_up(exc, attempt, attempts):
                 raise
@@ -356,11 +413,30 @@ def _blocks_to_smiles(json_gz, smiles_path):
     del blocks
     chunks = [raw[i:i + 20000] for i in range(0, len(raw), 20000)]
     seen = set()
+    progress = _Progress('building blocks', len(chunks), unit='chunks', scale=1)
     with multiprocessing.Pool(max(1, min(8, (os.cpu_count() or 2) - 1))) as pool:
-        for part in pool.imap_unordered(_canonical_chunk, chunks):
+        for done, part in enumerate(pool.imap_unordered(_canonical_chunk, chunks), 1):
             seen |= part
-    with open(smiles_path, 'w', encoding='utf-8') as out:
+            progress.update(done)
+    with open(smiles_path + '.tmp', 'w', encoding='utf-8') as out:
         out.writelines(smiles + '\n' for smiles in sorted(seen))
+    os.replace(smiles_path + '.tmp', smiles_path)
+
+
+def _ensure_smiles(json_gz, smiles_path):
+    """Build the SMILES list unless one built from the same source with the same RDKit is already there."""
+    import rdkit
+    stamp = {'sha256': _sha256(json_gz), 'rdkit': rdkit.__version__}
+    sidecar = smiles_path + '.source.json'
+    try:
+        with open(sidecar, encoding='utf-8') as handle:
+            if json.load(handle) == stamp and os.path.isfile(smiles_path):
+                return
+    except (OSError, ValueError):
+        pass
+    _blocks_to_smiles(json_gz, smiles_path)
+    with open(sidecar, 'w', encoding='utf-8') as handle:
+        json.dump(stamp, handle)
 
 
 def _fetch_archive_members(data_dir, source):
@@ -407,17 +483,46 @@ def _fetch_bundle(data_dir, spec):
     if spec.get('stock'):
         stock = _fetch_file(data_dir, spec['stock'])
         receipt.update(stock['data'])
-        _blocks_to_smiles(os.path.join(data_dir, spec['stock']['path']),
-                          os.path.join(data_dir, 'building_blocks', 'building_blocks.smi'))
+        _ensure_smiles(os.path.join(data_dir, spec['stock']['path']),
+                       os.path.join(data_dir, 'building_blocks', 'building_blocks.smi'))
     return {'data': receipt}
 
 
 # --- OCSR -----------------------------------------------------------------------------------------
 
+def _device():
+    """'cuda' when this environment's torch can use an NVIDIA GPU, else 'cpu'; CHEMDRAW_ENGINE_DEVICE=cpu forces
+    the CPU. Engines whose torch was installed without CUDA, and every Mac, stay on the CPU."""
+    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').lower() == 'cpu' or sys.platform == 'darwin':
+        return 'cpu'
+    try:
+        import torch
+        return 'cuda' if torch.cuda.is_available() else 'cpu'
+    except Exception:  # an engine without torch, or a broken CUDA install
+        return 'cpu'
+
+
+class _OneThreadPool:
+    """Stands in for ``multiprocessing.Pool`` in an engine's post-processing: a pool of one thread."""
+
+    def __new__(cls, *args, **kwargs):
+        from multiprocessing.pool import ThreadPool
+        return ThreadPool(1)
+
+
+def _serial_pools(*modules):
+    """Engines that open ``multiprocessing.Pool(16)`` for every image start 16 fresh Pythons on Windows, each
+    importing torch again (several GB per image); the work they do is light, so one thread does it."""
+    import types
+    for module in modules:
+        module.multiprocessing = types.SimpleNamespace(**{**vars(module.multiprocessing), 'Pool': _OneThreadPool})
+
+
 def _molscribe(params, data_dir, spec):
     import torch
-    from molscribe import MolScribe
-    model = MolScribe(os.path.join(data_dir, 'swin_base_char_aux_1m.pth'), device=torch.device('cpu'))
+    from molscribe import MolScribe, chemistry
+    _serial_pools(chemistry)
+    model = MolScribe(os.path.join(data_dir, 'swin_base_char_aux_1m.pth'), device=torch.device(_device()))
     out = []
     for path in params['images']:
         try:
@@ -432,8 +537,10 @@ def _molnextr(params, data_dir, spec):
     import functools
     import torch
     torch.load = functools.partial(torch.load, weights_only=True)  # the checkpoint holds tensors only
+    from MolNexTR import chemical
     from MolNexTR.model import molnextr
-    model = molnextr(os.path.join(data_dir, 'molnextr_best.pth'), torch.device('cpu'))
+    _serial_pools(chemical)
+    model = molnextr(os.path.join(data_dir, 'molnextr_best.pth'), torch.device(_device()))
     out = []
     for path in params['images']:
         try:
@@ -446,7 +553,7 @@ def _molnextr(params, data_dir, spec):
 
 def _molparser(params, data_dir, spec):
     from molparser import MolParser
-    model = MolParser(molparser_model_path=data_dir, device='cpu')
+    model = MolParser(molparser_model_path=data_dir, device=_device())
     out = []
     for path in params['images']:
         try:
@@ -511,11 +618,12 @@ def _reactiont5(params, data_dir, spec):
     import torch
     from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(data_dir)
-    model = AutoModelForSeq2SeqLM.from_pretrained(data_dir).eval()
+    device = _device()
+    model = AutoModelForSeq2SeqLM.from_pretrained(data_dir).eval().to(device)
     count = max(1, int(params.get('count', 5)))
     out = []
     for text in params['inputs']:
-        inputs = tokenizer(text, return_tensors='pt')
+        inputs = tokenizer(text, return_tensors='pt').to(device)
         with torch.no_grad():
             result = model.generate(**inputs, max_length=int(params.get('max_length', 150)), num_beams=max(count, 5),
                                     num_return_sequences=count, return_dict_in_generate=True, output_scores=True)
@@ -629,9 +737,37 @@ def _syntheseus_tree(graph, node, chosen):
     return item
 
 
-# RetroChimera defaults to one rule process per CPU; under spawn (Windows, macOS) each holds its own rulebase,
-# which on a many-core machine leaves too little memory for the 4.5 GB template checkpoint.
-RULE_PROCESSES = min(os.cpu_count() or 1, 4)
+def _available_gb():
+    """Memory the system can still hand out, in GB, or None when it cannot be read."""
+    try:
+        if os.name == 'nt':
+            import ctypes
+
+            class Status(ctypes.Structure):
+                _fields_ = [('length', ctypes.c_ulong), ('load', ctypes.c_ulong)] + \
+                           [(name, ctypes.c_ulonglong) for name in ('total', 'avail', 'total_page', 'avail_page',
+                                                                     'total_virtual', 'avail_virtual', 'extended')]
+            status = Status(length=ctypes.sizeof(Status))
+            return status.avail / 1e9 if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)) else None
+        with open('/proc/meminfo', encoding='ascii') as handle:
+            return next(int(line.split()[1]) / 1e6 for line in handle if line.startswith('MemAvailable:'))
+    except Exception:
+        return None
+
+
+# RetroChimera starts one rule process per CPU by default; under spawn (Windows, macOS) each one holds its own
+# rulebase, so the count follows the free memory: the model takes RULE_MODEL_GB, each process RULE_PROCESS_GB.
+RULE_MODEL_GB, RULE_PROCESS_GB = 12, 3  # measured: 12 GB peak with one process (Windows, CPU)
+
+
+def _rule_processes():
+    if os.environ.get('CHEMDRAW_ENGINE_PROCESSES', '').isdigit():
+        return max(1, int(os.environ['CHEMDRAW_ENGINE_PROCESSES']))
+    ceiling = min(os.cpu_count() or 1, 4)
+    free = _available_gb()
+    if free is None:
+        return ceiling
+    return max(1, min(ceiling, int((free - RULE_MODEL_GB) // RULE_PROCESS_GB)))
 
 
 def _retrochimera(params, data_dir, spec):
@@ -648,7 +784,7 @@ def _retrochimera(params, data_dir, spec):
             return {'steps': 'multi', 'target': smiles, 'solved': True, 'target_in_stock': True, 'top_score': None,
                     'routes': []}
     from retrochimera import RetroChimeraModel
-    model = RetroChimeraModel(model_dir=data_dir, device='cpu', template_localization={'num_processes': RULE_PROCESSES})
+    model = RetroChimeraModel(model_dir=data_dir, device='cpu', template_localization={'num_processes': _rule_processes()})
     if single:
         reactions = model([Molecule(smiles)], num_results=count)[0]
         return {'steps': 'single', 'target': smiles, 'options': [{
@@ -697,6 +833,20 @@ def _magnet(params, data_dir, spec):
             'conformer_energy_kcal': float(energies[best][1]), 'geometry': 'RDKit ETKDG + MMFF94 (lowest of the conformers)'}
 
 
+def _nmrnet_command(data_dir, data, results, element):
+    """The authors' inference command. infer.py names its output after ``--path`` split on "/", so that path is
+    written with forward slashes (Windows accepts them)."""
+    folder = os.path.join(data_dir, element)
+    checkpoint = os.path.join(folder, 'cv_seed_42_fold_0', 'checkpoint_last.pt').replace('\\', '/')
+    return [sys.executable, 'uninmr/infer.py', '--user-dir', 'uninmr', data, '--valid-subset', 'valid',
+            '--results-path', results, '--saved-dir', folder, '--num-workers', '0', '--ddp-backend=c10d',
+            '--batch-size', '4', '--task', 'uninmr', '--loss', 'atom_regloss_mae', '--arch', 'unimol_large',
+            '--dict-name', os.path.join(data_dir, 'weight', 'dict.txt'),
+            '--path', checkpoint, '--cpu', '--log-interval', '50',
+            '--log-format', 'simple', '--required-batch-size-multiple', '1', '--selected-atom', element,
+            '--gaussian-kernel', '--atom-descriptor', '0', '--split-mode', 'infer']
+
+
 def _nmrnet_pp(params, data_dir, spec):
     """1H and 13C shifts with NMRNet++ (fold 0 of the authors' five cross-validation models), run by their own infer.py."""
     import pickle
@@ -727,16 +877,8 @@ def _nmrnet_pp(params, data_dir, spec):
         with database.begin(write=True) as transaction:
             transaction.put(b'0', pickle.dumps(record))
         database.close()
-        folder = os.path.join(data_dir, element)
-        checkpoint = os.path.join(folder, 'cv_seed_42_fold_0')
         results = os.path.join(work, 'results-' + element)
-        command = [sys.executable, 'uninmr/infer.py', '--user-dir', 'uninmr', data, '--valid-subset', 'valid',
-                   '--results-path', results, '--saved-dir', folder, '--num-workers', '0', '--ddp-backend=c10d',
-                   '--batch-size', '4', '--task', 'uninmr', '--loss', 'atom_regloss_mae', '--arch', 'unimol_large',
-                   '--dict-name', os.path.join(data_dir, 'weight', 'dict.txt'),
-                   '--path', os.path.join(checkpoint, 'checkpoint_last.pt'), '--cpu', '--log-interval', '50',
-                   '--log-format', 'simple', '--required-batch-size-multiple', '1', '--selected-atom', element,
-                   '--gaussian-kernel', '--atom-descriptor', '0', '--split-mode', 'infer']
+        command = _nmrnet_command(data_dir, data, results, element)
         done = subprocess.run(command, cwd=os.path.join(data_dir, 'code'), capture_output=True, text=True)
         if done.returncode != 0:
             raise RuntimeError('NMRNet++ inference failed: ' + (done.stderr or done.stdout)[-300:])

@@ -905,7 +905,8 @@ def main(argv=None):
     s.add_argument('--json', help='further tool arguments as a JSON object or file (steps, count, nucleus, solvent, ...)')
     s.set_defaults(fn=cmd_predict, args=None)
     s = sub.add_parser('engines', help='list the optional engines, what each is for and its disk use; '
-                                       '--recommend ocsr|pdf|products|retro|nmr|conditions suggests what to install (downloads nothing)')
+                                       '--recommend NEED (a task such as ocsr, pdf or retrosynthesis; an unknown one '
+                                       'lists them) suggests what to install (downloads nothing)')
     s.add_argument('--recommend', metavar='NEED')
     s.set_defaults(fn=cmd_engines)
     s = sub.add_parser('remove-engines', help='delete installed engines: cdx.py remove-engines molnextr [--yes] (dry run '

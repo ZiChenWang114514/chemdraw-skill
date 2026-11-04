@@ -11,6 +11,11 @@ MOLNEXTR_COMMIT = '6f6502b4ed9733dba8b1ee45d2da474576683194'
 MOLPARSER_COMMIT = '8b67a082355a8fcf3b099e0e95c5ad948cbd7dcd'
 MOLPARSER_WEIGHTS_REVISION = '6b3cbae494e6870252cb218865ae01fc8aaa55dc'
 
+# An engine marked 'gpu' gets this CUDA build of torch (and of torchvision, when it has one) at install time
+# when an NVIDIA GPU is found; the others are pinned to a torch too old for current GPUs and stay on the CPU.
+CUDA_TORCH = {'index': 'https://download.pytorch.org/whl/cu130', 'tag': 'cu130', 'torch': '2.14.1',
+              'torchvision': '0.29.1'}
+
 ENGINES = {
     'decimer-api': {
         'title': 'DECIMER (remote)', 'task': 'ocsr', 'kind': 'remote', 'license': 'MIT (service by the Steinbeck Lab)',
@@ -18,7 +23,9 @@ ENGINES = {
     },
     'decimer-local': {
         'title': 'DECIMER (local)', 'task': 'ocsr', 'kind': 'runtime', 'module': 'DECIMER', 'license': 'MIT',
-        'note': 'Runs in the runtime itself (extra: decimer); weights come from install_decimer_models.',
+        'extra': 'decimer', 'size': '1.5 GB of packages in the runtime (TensorFlow), 0.7 GB weights',
+        'note': 'Runs in the runtime itself: installing adds the toolkit extra "decimer" (TensorFlow) to the runtime '
+                'and the DECIMER weights to DECIMER_MODEL_DIR (default ~/.data/DECIMER-V2).',
     },
     'molscribe': {
         'title': 'MolScribe', 'task': 'ocsr', 'kind': 'local', 'license': 'MIT', 'python': (10, 10),
@@ -30,7 +37,7 @@ ENGINES = {
         'size': '0.8 GB environment, 1.1 GB weights',
     },
     'molnextr': {
-        'title': 'MolNexTR', 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0', 'python': (10, 10),
+        'title': 'MolNexTR', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0', 'python': (10, 10),
         'module': 'MolNexTR',
         'requirements': [f'MolNexTR @ git+https://github.com/CYF2000127/MolNexTR@{MOLNEXTR_COMMIT}',
                          'numpy<2', 'huggingface_hub'],
@@ -41,7 +48,7 @@ ENGINES = {
         'note': 'Installed from a pinned commit; weights are loaded with torch weights_only.',
     },
     'molparser': {
-        'title': 'MolParser', 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0 (code); CC BY-NC-SA 4.0 (weights)',
+        'title': 'MolParser', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0 (code); CC BY-NC-SA 4.0 (weights)',
         'python': (10, 12), 'module': 'molparser',
         'requirements': [f'molparser @ https://github.com/dptech-corp/MolParser/archive/{MOLPARSER_COMMIT}.tar.gz#sha256=a2985311661811a4ed57762a5636fee8ede3018e78e23b46fbc0cba4122a0c2e',
                          'torch', 'transformers', 'timm', 'safetensors', 'huggingface_hub', 'opencv-python-headless',
@@ -100,10 +107,18 @@ ENGINES = {
         'python': (10, 12), 'module': 'aizynthfinder',
         'requirements': ['aizynthfinder==4.4.1', 'pyarrow<20'],
         'data': 'aizynthfinder-public-data',
+        'sha256': {  # the files config.yml names; config.yml itself holds local paths and is not pinned
+            'uspto_model.onnx': 'bd0a3cb74cd7068de474c8fb789a00a66bc42c75636d66510ccac585ebe928f8',
+            'uspto_templates.csv.gz': 'a4f1945e90cfa195538320833d68aed38f14e2fcc2f8afb5d958bc920edcafbe',
+            'uspto_ringbreaker_model.onnx': '1bf0690352d9e9212d7dbe8b35649caf74f73ef0b30edefdfdac37fce38085be',
+            'uspto_ringbreaker_templates.csv.gz': '5616a056454b10a2f044e69e027422128986856ebd958541a3bf9f837e3a0d14',
+            'uspto_filter_model.onnx': 'ad29aa32bdfcbe37065045546493806cf04899c55386c438905d83fb14bb6320',
+            'zinc_stock.hdf5': '99d39a6f807c3e815487500bafc2b4a9dc66a31af189e3b1776874fb0d4a188d',
+        },
         'size': '1.0 GB environment, 0.8 GB public data (USPTO policies, ZINC stock)',
     },
     'synplanner': {
-        'title': 'SynPlanner', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT', 'python': (10, 12),
+        'title': 'SynPlanner', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT', 'python': (10, 12),
         'module': 'synplan',
         'requirements': ['SynPlanner[cpu]==1.7.0'],
         'data': 'synplanner-preset',
@@ -123,7 +138,7 @@ ENGINES = {
                 'checked against pinned hashes before use.',
     },
     'reactiont5-forward': {
-        'title': 'ReactionT5v2 (products)', 'task': 'products', 'kind': 'local', 'license': 'MIT',
+        'title': 'ReactionT5v2 (products)', 'gpu': True, 'task': 'products', 'kind': 'local', 'license': 'MIT',
         'python': (10, 12), 'module': 'transformers', 'family': 'reactiont5',
         'requirements': ['torch', 'transformers==4.40.2', 'tokenizers==0.19.1', 'sentencepiece', 'numpy<2'],
         'weights': {'repo': 'sagawa/ReactionT5v2-forward', 'type': 'model', 'snapshot': True,
@@ -131,7 +146,7 @@ ENGINES = {
         'size': 'PyTorch environment, about 0.3 GB weights',
     },
     'reactiont5-retro': {
-        'title': 'ReactionT5v2 (retrosynthesis)', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
+        'title': 'ReactionT5v2 (retrosynthesis)', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
         'python': (10, 12), 'module': 'transformers', 'family': 'reactiont5',
         'requirements': ['torch', 'transformers==4.40.2', 'tokenizers==0.19.1', 'sentencepiece', 'numpy<2'],
         'weights': {'repo': 'sagawa/ReactionT5v2-retrosynthesis', 'type': 'model', 'snapshot': True,
@@ -249,6 +264,8 @@ def by_task(task: str) -> list:
 # downloads anything: it is what the Skill reads to recommend an engine, with its size, before the user agrees.
 
 GUIDE = {
+    'decimer-local': {'disk_mb': 2300, 'use_when': 'the DECIMER reading is wanted but the image may not be uploaded',
+                      'skip_when': 'uploading is allowed: the DECIMER API runs the same model'},
     'molscribe': {'disk_mb': 2000, 'use_when': 'a second opinion on a structure image, good on clean and mid-quality drawings',
                   'skip_when': 'the default DECIMER read is already confirmed against the image'},
     'molnextr': {'disk_mb': 2400, 'use_when': 'hard drawings with wedges and ring stereochemistry, as an extra vote',
@@ -287,6 +304,8 @@ BUNDLES = {
                       'about': 'two engines that err differently, enough for a comparison'},
     'ocsr-full': {'engines': ['molscribe', 'molnextr', 'molparser', 'molvec'], 'task': 'ocsr',
                   'about': 'every local OCSR engine, for hard drawings and Markush structures'},
+    'decimer-local': {'engines': ['decimer-local'], 'task': 'ocsr',
+                      'about': 'the DECIMER model on this computer, for images that may not be uploaded (TensorFlow)'},
     'pdf': {'engines': ['decimer-segmentation', 'molscribe', 'molvec'], 'task': 'pdf',
             'about': 'cut the structures out of PDF pages and read them with two engines'},
     'products': {'engines': ['reactiont5-forward'], 'task': 'products', 'about': 'candidate products of a reaction'},
@@ -299,8 +318,10 @@ BUNDLES = {
 }
 
 # What to suggest for a need: the smallest set that does the job first, then larger alternatives.
-RECOMMEND = {'ocsr': ['ocsr-standard', 'ocsr-lite', 'ocsr-full'], 'pdf': ['pdf'], 'products': ['products'],
+RECOMMEND = {'ocsr': ['ocsr-standard', 'ocsr-lite', 'ocsr-full', 'decimer-local'], 'pdf': ['pdf'], 'products': ['products'],
              'retro': ['retro', 'retro-chimera'], 'nmr': ['nmr', 'nmr-pp'], 'conditions': ['conditions']}
+# Engine task names that differ from the need they are recommended under.
+RECOMMEND_ALIASES = {'retrosynthesis': 'retro', 'segmentation': 'pdf'}
 
 
 def disk_mb(names) -> int:
