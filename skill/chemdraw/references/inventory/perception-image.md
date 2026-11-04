@@ -58,10 +58,10 @@
 
 ## `image.reaction_from_image`
 
-- **function**, line 792: `build_reaction_scheme(structures: List[Dict], reactant_indices: List[int], product_indices: List[int], conditions_above: List[str], conditions_below: List[str], verbose: bool = False, expanded_above: Optional['ExpandedItems'] = None, expanded_below: Optional['ExpandedItems'] = None) -> str` - Assemble a CDXML reaction scheme from extracted structures + descriptor.
-- **function**, line 1190: `build_reaction_scheme_chemscript(structures: List[Dict], cs_fragments: Dict[int, Tuple[str, float, float, float, float]], reactant_indices: List[int], product_indices: List[int], conditions_above: List[str], conditions_below: List[str], verbose: bool = False, expanded_above: Optional['ExpandedItems'] = None, expanded_below: Optional['ExpandedItems'] = None) -> str` - Assemble a CDXML reaction scheme using ChemScript-cleaned fragment XML.
-- **function**, line 1410: `reaction_from_image(image_path: str, descriptor: Dict, page: int = 0, segment: bool = True, hand_drawn: bool = False, verbose: bool = False, merge_gap: Optional[int] = None, cleanup: bool = False, expand: bool = False) -> str` - Full pipeline: image + reaction descriptor → CDXML reaction scheme.
-- **function**, line 1530: `reaction_from_image_to_json(image_path: str, descriptor: Dict, output_path: Optional[str] = None, page: int = 0, segment: bool = True, hand_drawn: bool = False, verbose: bool = False, merge_gap: Optional[int] = None, use_network: bool = True) -> 'ReactionDescriptor'` - Full pipeline: image + reaction descriptor → ReactionDescriptor JSON.
+- **function**, line 798: `build_reaction_scheme(structures: List[Dict], reactant_indices: List[int], product_indices: List[int], conditions_above: List[str], conditions_below: List[str], verbose: bool = False, expanded_above: Optional['ExpandedItems'] = None, expanded_below: Optional['ExpandedItems'] = None) -> str` - Assemble a CDXML reaction scheme from extracted structures + descriptor.
+- **function**, line 1196: `build_reaction_scheme_chemscript(structures: List[Dict], cs_fragments: Dict[int, Tuple[str, float, float, float, float]], reactant_indices: List[int], product_indices: List[int], conditions_above: List[str], conditions_below: List[str], verbose: bool = False, expanded_above: Optional['ExpandedItems'] = None, expanded_below: Optional['ExpandedItems'] = None) -> str` - Assemble a CDXML reaction scheme using ChemScript-cleaned fragment XML.
+- **function**, line 1416: `reaction_from_image(image_path: str, descriptor: Dict, page: int = 0, segment: bool = True, hand_drawn: bool = False, verbose: bool = False, merge_gap: Optional[int] = None, cleanup: bool = False, expand: bool = False) -> str` - Full pipeline: image + reaction descriptor → CDXML reaction scheme.
+- **function**, line 1536: `reaction_from_image_to_json(image_path: str, descriptor: Dict, output_path: Optional[str] = None, page: int = 0, segment: bool = True, hand_drawn: bool = False, verbose: bool = False, merge_gap: Optional[int] = None, use_network: bool = True) -> 'ReactionDescriptor'` - Full pipeline: image + reaction descriptor → ReactionDescriptor JSON.
 - **function**, line 89: `resolve_abbreviation(text: str) -> str` - Look up text in the reagent database.
 
 ## `image.structure_from_image`
@@ -117,7 +117,7 @@
 ## `perception.reaction_parser`
 
 - **function**, line 419: `extract_conditions_from_text(text: str) -> List[str]` - Extract condition tokens (temperature, time, atmosphere) from text.
-- **function**, line 1852: `parse_reaction(cdxml: Optional[str] = None, cdx: Optional[str] = None, csv: Optional[str] = None, rxn: Optional[str] = None, input_dir: Optional[str] = None, experiment: Optional[str] = None, use_rxnmapper: bool = False, use_rxn_insight: bool = True, use_network: bool = True, verbose: bool = False) -> ReactionDescriptor` - Parse reaction from ELN files and return a ReactionDescriptor.
+- **function**, line 1856: `parse_reaction(cdxml: Optional[str] = None, cdx: Optional[str] = None, csv: Optional[str] = None, rxn: Optional[str] = None, input_dir: Optional[str] = None, experiment: Optional[str] = None, use_rxnmapper: bool = False, use_rxn_insight: bool = True, use_network: bool = True, verbose: bool = False) -> ReactionDescriptor` - Parse reaction from ELN files and return a ReactionDescriptor.
 - **function**, line 285: `reaction_summary(json_path: str, species_fields: Optional[List[str]] = None, top_fields: Optional[List[str]] = None, eln_fields: Optional[List[str]] = None) -> dict` - Load a reaction JSON and return a slim summary for LLM context.
 - **class**, line 109: `ReactionDescriptor` - Complete parsed reaction description.
 - **method**, line 143: `ReactionDescriptor.from_dict(d: dict) -> 'ReactionDescriptor'` - No public docstring in the audited version.
@@ -134,7 +134,7 @@
 
 ## `perception.scheme_reader`
 
-- **function**, line 2654: `read_scheme(cdxml_path: str, use_network: bool = True, use_chemscript: bool = False, verbose: bool = False, segment: bool = False, _scheme_filter: Optional[Set[str]] = None) -> SchemeDescription` - Read a CDXML reaction scheme and return a structured description.
+- **function**, line 2658: `read_scheme(cdxml_path: str, use_network: bool = True, use_chemscript: bool = False, verbose: bool = False, segment: bool = False, _scheme_filter: Optional[Set[str]] = None) -> SchemeDescription` - Read a CDXML reaction scheme and return a structured description.
 - **class**, line 116: `SchemeDescription` - Complete structured description of a reaction scheme.
 - **method**, line 173: `SchemeDescription.from_dict(d: dict) -> 'SchemeDescription'` - No public docstring in the audited version.
 - **method**, line 168: `SchemeDescription.from_json(path: str) -> 'SchemeDescription'` - No public docstring in the audited version.

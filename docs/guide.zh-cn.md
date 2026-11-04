@@ -14,7 +14,7 @@ python scripts/install.py --agent claude agents --runtime            # 预览
 python scripts/install.py --agent claude agents --runtime --apply    # 安装 Skill 副本 + 共享运行时
 ```
 
-`--agent` 可以同时指定 `claude`、`agents`（大多数 agent 都会读取的共享目录 `~/.agents/skills`）、`gemini`、`copilot`、`cursor`、`opencode`、`kimi` 和 `pi` 中的一个或多个；`--project <仓库>` 改为安装项目级副本，`--destination <目录>` 可安装到任意位置。自动检测找不到合适解释器时用 `--python <解释器>` 指定基础解释器，`--extras` 选择 toolkit 的可选依赖组（默认安装适用于当前操作系统的全部依赖组），`--runtime-dir` 可改变共享 venv 的位置。
+`--agent` 可以指定 `auto`（自动检测本机已存在的 agent 目录），或同时指定主目标 `claude`、`agents`（大多数 agent 都会读取的共享目录 `~/.agents/skills`）、`gemini`、`copilot`、`cursor`、`opencode`、`kimi` 和 `pi` 以及命令行别名 `codex`、`antigravity`、`windsurf` 中的一个或多个；`--project <仓库>` 改为安装项目级副本，`--destination <目录>` 可安装到任意位置。自动检测找不到合适解释器时用 `--python <解释器>` 指定基础解释器，`--extras` 选择 toolkit 的可选依赖组（默认安装适用于当前操作系统的全部依赖组），`--runtime-dir` 可改变共享 venv 的位置。
 
 安装器会先暂存并校验每一份副本，把已有安装移到共享备份目录（位于所有 Skill 目录之外），失败时自动还原，然后为所有副本安装一次运行时，并写入 `manifest.json` 以便日后检测漂移。重复运行即升级 Skill 并复用 venv。当 `cdx.py` 自己不会选中这个 venv 时（它放在自定义位置，或者 Skill 目录旁边还有一个会优先被选中的旧版 `chemdraw-venv`），安装器会把 `runtime.local.json` 写入每份副本和当前仓库检出目录（该文件已被 Git 忽略），因此在仓库里直接运行 `cdx.py` 也会用上它；不再需要的旧 `runtime.local.json` 会被删除。
 
@@ -54,7 +54,7 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 ## 可选的预测引擎
 
-`cdx.py engines` 列出可用的引擎：用多个模型读取结构图片、在 PDF 中找出结构，以及预测产物、前体、合成路线、反应条件和 1H/13C 化学位移。`cdx.py engines --recommend ocsr` 会说明某个需求值得安装什么、各需要多大空间，不会下载任何东西。`cdx.py install-engines --bundle ocsr-standard`（也可写引擎名或 `--task ocsr`，先加 `--dry-run` 查看体积）会在你同意后把每个引擎装进各自的独立环境，`cdx.py remove-engines NAME --yes` 可再把它删掉；模型文件只下载一次并按固定哈希校验，之后每次运行都不联网。每个引擎占用从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存）；Windows 上的体积包含 CUDA 版 PyTorch，只用 CPU 时会小一些。`decimer-local` 在本机运行 DECIMER 模型，直接装进工具包运行环境。有 NVIDIA 显卡时引擎会使用显卡，设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭。`CHEMDRAW_ENGINE_HOME` 用来把引擎装到其他磁盘，之后要一直保留这个设置。结果都标注为模型预测。对同一张图意见不一致的引擎会并排显示，不会被合并。MolParser 的权重不得用于商业用途，RetroChimera 仅限研究用途，Reacon 的作者未声明许可，因此只在你要求时才从其仓库下载。详情、限制以及评估后未纳入的引擎见[引擎说明](../skill/chemdraw/references/engines.md)。
+`cdx.py engines` 列出可用的引擎：用多个模型读取结构图片、在 PDF 中找出结构，以及预测产物、前体、合成路线、反应条件和 1H/13C 化学位移。`cdx.py engines --recommend ocsr` 会说明某个需求值得安装什么、各需要多大空间，不会下载任何东西。`cdx.py install-engines --bundle ocsr-standard`（也可写引擎名或 `--task ocsr`，先加 `--dry-run` 查看体积）会在你同意后把每个引擎装进各自的独立环境，`cdx.py remove-engines NAME --yes` 可再把它删掉；模型文件只下载一次并按固定哈希校验，之后每次运行都不联网。每个引擎占用从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存）；Windows 上的体积包含 CUDA 版 PyTorch，只用 CPU 时会小一些。`decimer-local` 在本机运行 DECIMER 模型，直接装进工具包运行环境。有 NVIDIA 显卡时引擎会使用显卡，设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭。自适应复杂度分类器（`--accel auto|on|off`、`--task-hint`）让简单单次调用保持无状态子进程，并在复杂、批量或连续突发任务中自动启用多图批处理 OCSR（`recognize_batch`）与本地回环常驻工作守护进程（可用 `cdx.py engines --stop-daemons` 停止）；每次回复都会记录 `execution.device`。在无需引擎的科研与分析工作流中，一维 NMR 可通过 `nmrglue` 原生加载 Bruker `1r`/`fid`、JCAMP-DX `.jdx`/`.dx`、JEOL `.jdf` 和 Varian/Agilent `.fid` 及 CSV/FT 数据，LCMS 工作流则支持解析 Waters PDF、OpenLynx `.rpt`、Waters `.raw`、Shimadzu `.daml`、Agilent `report.txt` 和开放格式 `mzML`/`mzXML`，并提供 Cl/Br `M+2` 同位素核对与内标（`IS`）归一化。`CHEMDRAW_ENGINE_HOME` 用来把引擎装到其他磁盘，之后要一直保留这个设置。结果都标注为模型预测。对同一张图意见不一致的引擎会并排显示，不会被合并。MolParser 的权重不得用于商业用途，RetroChimera 仅限研究用途，Reacon 的作者未声明许可，因此只在你要求时才从其仓库下载。详情、限制以及评估后未纳入的引擎见[引擎说明](../skill/chemdraw/references/engines.md)。
 
 ## ChemDraw 接口覆盖
 

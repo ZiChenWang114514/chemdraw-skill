@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+from typing import Any, Iterable
 
 from . import env, envelope
 from .registry import ENGINES, by_task
@@ -27,10 +28,18 @@ def _peaks(atoms: list, nucleus: str) -> list:
     peaks = []
     for members in groups.values():
         shift = sum(a['shift'] for a in members) / len(members)
-        host = by_index[members[0]['neighbors'][0]]['element'] if nucleus == '1H' and members[0]['neighbors'] else None
-        peaks.append({'nucleus': nucleus, 'shift_ppm': round(shift, 2), 'count': len(members),
-                      'atoms': sorted(a['index'] for a in members), 'predicted': True,
-                      'exchangeable': host in ('O', 'N', 'S')})
+        host = by_index[members[0]['neighbors'][0]]['element'] if nucleus == '1H' and members[0].get('neighbors') else None
+        entry = {'nucleus': nucleus, 'shift_ppm': round(shift, 2), 'count': len(members),
+                 'atoms': sorted(a['index'] for a in members), 'predicted': True,
+                 'exchangeable': host in ('O', 'N', 'S')}
+        if 'j_couplings' in members[0]:
+            entry['j_couplings'] = members[0]['j_couplings']
+        if 'multiplicity_hint' in members[0]:
+            entry['multiplicity_hint'] = members[0]['multiplicity_hint']
+        if 'shift_std' in members[0]:
+            stds = [a['shift_std'] for a in members if a.get('shift_std') is not None]
+            entry['shift_std'] = round(sum(stds) / len(stds), 3) if stds else None
+        peaks.append(entry)
     return sorted(peaks, key=lambda p: -p['shift_ppm'])
 
 
@@ -186,6 +195,7 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
     if len(runs) == 1:
         one = runs[0]
         return envelope.result('nmr', first, ENGINES[first], [], peaks=by_engine[first],
+                               atoms=raws[first].get('atoms', []),
                                geometry=raws[first].get('geometry'), device=one['device'],
                                **({'accel': one['accel']} if one.get('accel') else {}),
                                **({'device_fallback': True} if one.get('device_fallback') else {}), **common)
@@ -201,7 +211,237 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
                                     **({'accel': r['accel']} if r.get('accel') else {}),
                                     **({'device_fallback': True} if r.get('device_fallback') else {}),
                                     'peaks': by_engine[r['engine']],
+                                    'atoms': raws[r['engine']].get('atoms', []),
                                     'geometry': raws[r['engine']].get('geometry')} for r in runs],
-                          peaks=by_engine[first], comparison=_compare(by_engine, nuclei), **common)
+                          peaks=by_engine[first], atoms=raws[first].get('atoms', []),
+                          comparison=_compare(by_engine, nuclei), **common)
     out['note'] = f'`peaks` repeats the first engine ({first}); see `engines` and `comparison` for all of them'
     return out
+
+
+predict_shifts = predict
+
+
+def _heuristic_topological_groups(smiles: str) -> dict[str, list[dict[str, Any]]]:
+    """Topological group fallback using RDKit symmetry classes when ML engines are unavailable."""
+    from rdkit import Chem
+
+    mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
+    ranks = list(Chem.CanonicalRankAtoms(mol, breakTies=False))
+    atoms = []
+    for a in mol.GetAtoms():
+        idx = a.GetIdx()
+        sym = a.GetSymbol()
+        shift: float | None = None
+        if sym == 'C':
+            hyb = str(a.GetHybridization())
+            het_neighbors = sum(1 for n in a.GetNeighbors() if n.GetAtomicNum() not in (1, 6))
+            if a.GetIsAromatic():
+                shift = 128.0 + 8.0 * het_neighbors
+            elif 'SP2' in hyb:
+                shift = 170.0 if het_neighbors >= 2 else (135.0 + 15.0 * het_neighbors)
+            elif 'SP' == hyb:
+                shift = 80.0 + 10.0 * het_neighbors
+            else:
+                shift = 20.0 + 25.0 * het_neighbors
+        elif sym == 'H':
+            nbr = a.GetNeighbors()[0] if a.GetNeighbors() else None
+            if nbr is None:
+                shift = 1.0
+            elif nbr.GetAtomicNum() != 6:
+                shift = 4.5
+            elif nbr.GetIsAromatic():
+                shift = 7.3
+            elif 'SP2' in str(nbr.GetHybridization()):
+                shift = 5.8
+            else:
+                het = sum(1 for n in nbr.GetNeighbors() if n.GetAtomicNum() not in (1, 6))
+                shift = 1.2 + 2.2 * het
+        atoms.append({
+            'index': idx,
+            'element': sym,
+            'shift': shift,
+            'class': ranks[idx],
+            'neighbors': [n.GetIdx() for n in a.GetNeighbors()],
+        })
+    return {'1H': _peaks(atoms, '1H'), '13C': _peaks(atoms, '13C')}
+
+
+def _normalize_predicted_groups(
+    smiles: str,
+    predicted_result: dict[str, Any] | None,
+    need_1h: bool,
+    need_13c: bool,
+    solvent: str,
+    engines: Iterable[str],
+) -> dict[str, list[dict[str, Any]]]:
+    """Extract {'1H': [...], '13C': [...]} topological peak groups from predicted_result or engine call."""
+    if predicted_result is not None:
+        if 'atoms' in predicted_result and isinstance(predicted_result['atoms'], list) and 'peaks' not in predicted_result:
+            atoms = predicted_result['atoms']
+            return {'1H': _peaks(atoms, '1H'), '13C': _peaks(atoms, '13C')}
+        peaks_container = predicted_result.get('peaks', predicted_result)
+        if isinstance(peaks_container, dict):
+            out: dict[str, list[dict[str, Any]]] = {'1H': [], '13C': []}
+            for nuc in ('1H', '13C'):
+                raw_list = peaks_container.get(nuc) or peaks_container.get(nuc.lower()) or []
+                if isinstance(raw_list, dict) and 'peaks' in raw_list:
+                    raw_list = raw_list['peaks']
+                for idx, item in enumerate(raw_list):
+                    if isinstance(item, (int, float)):
+                        out[nuc].append({
+                            'nucleus': nuc,
+                            'shift_ppm': float(item),
+                            'count': 1,
+                            'atoms': [idx],
+                        })
+                    elif isinstance(item, dict):
+                        s_val = item.get('shift_ppm', item.get('shift', item.get('ppm')))
+                        if s_val is not None:
+                            atoms_idx = item.get('atoms', item.get('atom_indices', [idx]))
+                            out[nuc].append({
+                                'nucleus': nuc,
+                                'shift_ppm': float(s_val),
+                                'count': int(item.get('count', len(atoms_idx) or 1)),
+                                'atoms': list(atoms_idx),
+                                **({'multiplicity_hint': item['multiplicity_hint']} if 'multiplicity_hint' in item else {}),
+                                **({'j_couplings': item['j_couplings']} if 'j_couplings' in item else {}),
+                                **({'shift_std': item['shift_std']} if 'shift_std' in item else {}),
+                            })
+            if out['1H'] or out['13C']:
+                return out
+
+    nuc_arg = 'both' if (need_1h and need_13c) else ('13C' if need_13c and not need_1h else '1H')
+    eng_str = ','.join(engines) if not isinstance(engines, str) else engines
+    try:
+        res = predict(smiles, nucleus=nuc_arg, solvent=solvent, engine=eng_str)
+        if res.get('ok') and isinstance(res.get('peaks'), dict):
+            return {
+                '1H': list(res['peaks'].get('1H', [])),
+                '13C': list(res['peaks'].get('13C', [])),
+            }
+    except Exception:
+        pass
+    return _heuristic_topological_groups(smiles)
+
+
+def _match_nucleus_hungarian(
+    nucleus: str,
+    pred_groups: list[dict[str, Any]],
+    exp_peaks: list[Any] | None,
+    outlier_threshold: float,
+) -> tuple[list[dict[str, Any]], float | None, float | None, list[dict[str, Any]]]:
+    """Use scipy.optimize.linear_sum_assignment to match predicted topological groups to experimental peaks."""
+    import numpy as np
+    from scipy.optimize import linear_sum_assignment
+
+    if not exp_peaks or not pred_groups:
+        return [], None, None, []
+
+    exp_vals: list[float] = []
+    for item in exp_peaks:
+        if isinstance(item, (int, float)):
+            exp_vals.append(float(item))
+        elif isinstance(item, dict):
+            v = item.get('ppm', item.get('shift', item.get('shift_ppm')))
+            if v is not None:
+                exp_vals.append(float(v))
+    if not exp_vals:
+        return [], None, None, []
+
+    cost = np.zeros((len(pred_groups), len(exp_vals)), dtype=float)
+    for i, pg in enumerate(pred_groups):
+        p_shift = float(pg['shift_ppm'])
+        for j, e_shift in enumerate(exp_vals):
+            cost[i, j] = abs(p_shift - e_shift)
+
+    row_ind, col_ind = linear_sum_assignment(cost)
+    matches: list[dict[str, Any]] = []
+    outliers: list[dict[str, Any]] = []
+
+    for r, c in zip(row_ind, col_ind):
+        pg = pred_groups[int(r)]
+        pred_ppm = round(float(pg['shift_ppm']), 4)
+        exp_ppm = round(float(exp_vals[int(c)]), 4)
+        abs_err = round(abs(pred_ppm - exp_ppm), 4)
+        signed_err = round(exp_ppm - pred_ppm, 4)
+        is_outlier = bool(abs_err > outlier_threshold)
+        entry: dict[str, Any] = {
+            'nucleus': nucleus,
+            'atoms': list(pg.get('atoms', [])),
+            'atom_indices': list(pg.get('atoms', [])),
+            'count': int(pg.get('count', len(pg.get('atoms', [])) or 1)),
+            'predicted_shift': pred_ppm,
+            'experimental_shift': exp_ppm,
+            'predicted_ppm': pred_ppm,
+            'experimental_ppm': exp_ppm,
+            'error': signed_err,
+            'abs_error': abs_err,
+            'is_outlier': is_outlier,
+        }
+        if 'multiplicity_hint' in pg:
+            entry['multiplicity_hint'] = pg['multiplicity_hint']
+        if 'j_couplings' in pg:
+            entry['j_couplings'] = pg['j_couplings']
+        if 'shift_std' in pg:
+            entry['shift_std'] = pg['shift_std']
+        matches.append(entry)
+        if is_outlier:
+            outliers.append(entry)
+
+    matches.sort(key=lambda m: -m['predicted_shift'])
+    abs_errors = [m['abs_error'] for m in matches]
+    mae = round(float(sum(abs_errors) / len(abs_errors)), 4) if abs_errors else None
+    max_err = round(float(max(abs_errors)), 4) if abs_errors else None
+    return matches, mae, max_err, outliers
+
+
+def compare_shifts(
+    smiles: str,
+    experimental_1h: list[float] | None = None,
+    experimental_13c: list[float] | None = None,
+    *,
+    solvent: str = 'CDCl3',
+    engines: Iterable[str] = ('magnet',),
+    predicted_result: dict[str, Any] | None = None,
+    outlier_threshold_1h: float = 0.5,
+    outlier_threshold_13c: float = 5.0,
+) -> dict[str, Any]:
+    """Compare predicted NMR shifts against experimental 1H/13C peak lists using Hungarian matching."""
+    from rdkit import Chem, RDLogger
+
+    RDLogger.DisableLog('rdApp.*')
+    mol = Chem.MolFromSmiles((smiles or '').strip())
+    if mol is None:
+        raise ValueError(f'smiles is not valid: {smiles!r}')
+    canonical = Chem.MolToSmiles(mol)
+
+    groups = _normalize_predicted_groups(
+        canonical,
+        predicted_result,
+        need_1h=bool(experimental_1h),
+        need_13c=bool(experimental_13c),
+        solvent=solvent,
+        engines=engines,
+    )
+
+    matches_1h, mae_1h, max_err_1h, out_1h = _match_nucleus_hungarian(
+        '1H', groups.get('1H', []), experimental_1h, outlier_threshold_1h
+    )
+    matches_13c, mae_13c, max_err_13c, out_13c = _match_nucleus_hungarian(
+        '13C', groups.get('13C', []), experimental_13c, outlier_threshold_13c
+    )
+
+    return {
+        'kind': 'model_assisted_candidate_assignment',
+        'smiles': canonical,
+        'solvent': solvent,
+        'matches_1h': matches_1h,
+        'matches_13c': matches_13c,
+        'mae_1h': mae_1h,
+        'mae_13c': mae_13c,
+        'max_error_1h': max_err_1h,
+        'max_error_13c': max_err_13c,
+        'outliers': out_1h + out_13c,
+        'warning': 'Model-assisted candidate assignment only; verify with 2D NMR (COSY/HSQC/HMBC).',
+    }

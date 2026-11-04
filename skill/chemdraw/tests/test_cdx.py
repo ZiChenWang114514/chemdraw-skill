@@ -835,9 +835,12 @@ def test_doctor_returns_nonzero_when_requested_probe_fails_without_breaking_defa
         'chemscript': {'status': 'unverified'},
     }
     # Default `cdx.py doctor` stays 0 even when optional desktop capabilities are missing/unverified.
-    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'outputs': {'capabilities': unverified_caps}}}):
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'outputs': {'capabilities': unverified_caps, 'passive_capabilities': {'chemscript_dll': 'missing', 'office_com': 'available'}}}}):
         assert cdx.main(['doctor']) == 0
-    capsys.readouterr()
+    doc_out = json.loads(capsys.readouterr().out)
+    assert doc_out['passive_capabilities'] == {'chemscript_dll': 'missing', 'office_com': 'available'}
+    assert doc_out['capabilities']['chemscript'] == 'unverified'
+    assert doc_out['capabilities']['office'] == 'unverified'
 
     # Explicit probe fails when inner['ok'] is False or the requested capability is not available.
     for flag in ('--native', '--office', '--chemscript'):
@@ -864,4 +867,8 @@ def test_accel_and_task_hint_flags_and_engines_stop_daemons(monkeypatch):
 
     with mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
         assert cdx.main(['engines', '--stop-daemons']) == 0
+    assert call.call_args.args[0][-1:] == ['--stop-daemons']
+
+    with mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
+        assert cdx.main(['predict', 'stop-daemons']) == 0
     assert call.call_args.args[0][-1:] == ['--stop-daemons']

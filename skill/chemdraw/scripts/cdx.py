@@ -700,8 +700,34 @@ def cmd_doctor(ns):
                                         'run_chemscript_probe': ns.chemscript})
     layers = _layers(diag)
     inner = layers[-1] if layers else {}
-    caps = (inner.get('outputs') or {}).get('capabilities') or {}
+    outputs = inner.get('outputs') or {}
+    caps = outputs.get('capabilities') or {}
     report['capabilities'] = {k: (v.get('status') if isinstance(v, dict) else v) for k, v in caps.items()}
+    passive = outputs.get('passive_capabilities')
+    if not isinstance(passive, dict):
+        cs_cap = caps.get('chemscript') if isinstance(caps.get('chemscript'), dict) else {}
+        of_cap = caps.get('office') if isinstance(caps.get('office'), dict) else {}
+        passive = {
+            'chemscript_dll': (
+                'available'
+                if report['capabilities'].get('chemscript') == 'available'
+                or cs_cap.get('passive_status') == 'available'
+                or cs_cap.get('dll_available')
+                or (report['capabilities'].get('chemscript') == 'unverified'
+                    and report['capabilities'].get('chemdraw') == 'available')
+                else 'missing'
+            ),
+            'office_com': (
+                'available'
+                if report['capabilities'].get('office') == 'available'
+                or of_cap.get('passive_status') == 'available'
+                or (report['capabilities'].get('office') == 'unverified'
+                    and (report['capabilities'].get('chemdraw_com') == 'available'
+                         or report['capabilities'].get('chemdraw') == 'available'))
+                else 'missing'
+            ),
+        }
+    report['passive_capabilities'] = passive
     report['warnings'] = inner.get('warnings') or []
     if ns.full:
         report['diagnose_runtime'] = inner
@@ -895,6 +921,8 @@ PREDICT = {  # task: (tool, the argument SMILES fills, a working example)
 
 
 def cmd_predict(ns):
+    if getattr(ns, 'stop_daemons', False) or ns.task == 'stop-daemons':
+        return cmd_engines(argparse.Namespace(stop_daemons=True, recommend=None, sizes=False))
     _apply_accel_flags(ns)
     tool, field, example = PREDICT[ns.task]
     if ns.products and ns.task != 'conditions':
@@ -988,9 +1016,9 @@ def main(argv=None):
     s.add_argument('--task-hint', metavar='TEXT', help='complexity hint for the internal classifier')
     s.set_defaults(fn=cmd_ocsr)
     s = sub.add_parser('predict', help='model predictions: cdx.py predict products "A.B" | retro "TARGET" | nmr "SMILES" | '
-                                       'conditions "A.B" --products "P" '
+                                       'conditions "A.B" --products "P" | stop-daemons '
                                        '[--engine NAME] [--json ARGS | --args FILE] [--out FILE]; always labelled as predictions')
-    s.add_argument('task', choices=list(PREDICT))
+    s.add_argument('task', choices=[*PREDICT, 'stop-daemons'])
     s.add_argument('smiles', nargs='?')
     s.add_argument('--products', help='with conditions: the product SMILES')
     s.add_argument('--engine')
@@ -1000,6 +1028,7 @@ def main(argv=None):
     s.add_argument('--accel', choices=['auto', 'on', 'off', 'simple', 'complex'],
                    help='task-complexity acceleration mode (default: auto classifier)')
     s.add_argument('--task-hint', metavar='TEXT', help='complexity hint for the internal classifier')
+    s.add_argument('--stop-daemons', action='store_true', help='stop any warm resident engine workers immediately')
     s.set_defaults(fn=cmd_predict)
     s = sub.add_parser('engines', help='list the optional engines, what each is for and its disk use; '
                                        '--recommend NEED (a task such as ocsr, pdf or retrosynthesis; an unknown one '

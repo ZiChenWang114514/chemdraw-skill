@@ -34,8 +34,11 @@
 
 ## `scientific.spectra`
 
-- **function**, line 618: `analyze_spectrum(path, options = None)` - No public docstring in the audited version.
-- **function**, line 520: `read_spectrum(path)` - No public docstring in the audited version.
+- **function**, line 620: `analyze_spectrum(path, options = None)` - No public docstring in the audited version.
+- **function**, line 860: `build_nmr_cdxml(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> str` - Build a ChemDraw CDXML document for an NMR spectrum with optional zoomed ``inset_region``.
+- **function**, line 1014: `nmr_to_cdxml(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> str` - Convert NMR spectrum arrays, peak list, or file path into a CDXML string (with optional ``inset_region``).
+- **function**, line 1042: `plot_nmr(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, output_dir: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> Union[str, dict[str, Any]]` - Plot an NMR spectrum to CDXML (and optional ``output_dir`` bundle) with ``inset_region`` zoom support.
+- **function**, line 522: `read_spectrum(path)` - No public docstring in the audited version.
 
 ## `scientific.tlc`
 

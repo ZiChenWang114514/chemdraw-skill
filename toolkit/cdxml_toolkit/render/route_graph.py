@@ -34,6 +34,50 @@ def _graph(steps: list[StepDescriptor]):
     return producer, consumers, feeders
 
 
+def _detect_catalytic_cycle(
+    steps: list[StepDescriptor],
+    producer: dict[str, int],
+    consumers: dict[str, list[int]],
+    feeders: list[list[int]],
+    *,
+    min_steps: int = 3,
+) -> list[int] | None:
+    """Return the step indices around a closed catalytic cycle, or None if not a single cycle."""
+    n = len(steps)
+    if n < min_steps:
+        return None
+    if any(len(f) != 1 for f in feeders):
+        return None
+    if any(len(users) > 1 for sp, users in consumers.items() if sp in producer):
+        return None
+    successors: dict[int, list[int]] = {i: [] for i in range(n)}
+    for step_idx, f_list in enumerate(feeders):
+        successors[f_list[0]].append(step_idx)
+    if any(len(succ) != 1 for succ in successors.values()):
+        return None
+    order: list[int] = []
+    visited: set[int] = set()
+    cur = 0
+    while cur not in visited:
+        visited.add(cur)
+        order.append(cur)
+        cur = successors[cur][0]
+    if cur == 0 and len(order) == n:
+        return order
+    return None
+
+
+def cycle_order(steps: list[StepDescriptor]) -> list[int]:
+    """Return the step order for a catalytic cycle (or sequential order if open)."""
+    if not steps:
+        raise ValueError("The route has no steps.")
+    producer, consumers, feeders = _graph(steps)
+    detected = _detect_catalytic_cycle(steps, producer, consumers, feeders, min_steps=2)
+    if detected is not None:
+        return detected
+    return list(range(len(steps)))
+
+
 def _topological(feeders: list[list[int]]) -> list[int]:
     remaining, order = set(range(len(feeders))), []
     while remaining:
@@ -46,10 +90,13 @@ def _topological(feeders: list[list[int]]) -> list[int]:
 
 
 def classify_route(steps: list[StepDescriptor]) -> tuple[str, list[int]]:
-    """Return ``(kind, order)``: kind is linear, convergent or divergent, order the step indices to draw."""
+    """Return ``(kind, order)``: kind is linear, convergent, divergent or catalytic-cycle."""
     if not steps:
         raise ValueError("The route has no steps.")
     producer, consumers, feeders = _graph(steps)
+    cycle = _detect_catalytic_cycle(steps, producer, consumers, feeders, min_steps=3)
+    if cycle is not None:
+        return "catalytic-cycle", cycle
     order = _topological(feeders)
     if len(steps) == 1:
         return "linear", [0]

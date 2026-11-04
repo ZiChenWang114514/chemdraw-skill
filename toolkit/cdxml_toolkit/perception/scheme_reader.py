@@ -1008,6 +1008,12 @@ def _extract_variable_labels(frag_el: ET.Element) -> List[str]:
     return labels
 
 
+def _get_shared_chemscript_bridge():
+    """Return the process-level shared ChemScriptBridge singleton."""
+    from ..rdkit_utils import _get_shared_chemscript_bridge as _get_bridge
+    return _get_bridge()
+
+
 def _build_static_species_registry(
     page: ET.Element,
     id_map: Dict[str, ET.Element],
@@ -1032,8 +1038,7 @@ def _build_static_species_registry(
         except ImportError:
             pass
         try:
-            from ..chemdraw.chemscript_bridge import ChemScriptBridge
-            _cs_bridge = ChemScriptBridge()
+            _cs_bridge = _get_shared_chemscript_bridge()
         except Exception:
             pass
 
@@ -1184,8 +1189,7 @@ def _build_species_registry(
             _log("ChemScript not available, using RDKit resolution")
         # Also get ChemScript bridge for IUPAC name generation
         try:
-            from ..chemdraw.chemscript_bridge import ChemScriptBridge
-            _cs_bridge = ChemScriptBridge()
+            _cs_bridge = _get_shared_chemscript_bridge()
             _log("ChemScript IUPAC naming enabled")
         except Exception:
             pass

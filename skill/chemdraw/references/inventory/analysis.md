@@ -38,6 +38,10 @@
 - **class**, line 61: `FileModifiers` - Metadata stripped from a filename before categorization.
 - **class**, line 73: `TrackingGroup` - A group of tracking files sharing a common prefix.
 
+## `analysis.deterministic.lcms_file_parser`
+
+- **function**, line 90: `parse_lcms_file(path: Union[str, Path], *, sample: Optional[Union[int, str]] = None) -> LCMSAnalysis` - Parse an LCMS file or directory into an ``LCMSAnalysis`` instance.
+
 ## `analysis.deterministic.lcms_identifier`
 
 - **class**, line 63: `IdentifiedCompound` - A multi-LCMS compound matched to an expected species.
@@ -62,33 +66,62 @@
 
 ## `analysis.deterministic.multi_lcms_analyzer`
 
-- **class**, line 102: `AnalysisResult` - Complete result of the multi-file LCMS analysis.
-- **function**, line 1060: `analyze(files: List[FileEntry], rt_tol: float, mz_tol: float, trend_threshold: float, ignore_instrument: bool, use_run_time: bool = True, max_ion_rank: Optional[int] = None, pick_biggest_group: bool = False) -> List[AnalysisResult]` - Top-level analysis.  Groups files by (instrument, method) and runs peak matching within each group.
-- **function**, line 243: `attach_peak_to_compound(compound: Compound, peak: ChromPeak, file_idx: int)` - Add a peak's data to an existing compound.
-- **function**, line 189: `check_uv_compatibility(ratio_a: Optional[float], ratio_b: Optional[float]) -> Optional[bool]` - Check if two UV ratios are compatible. Returns True (compatible), False (incompatible), or None (inconclusive).
-- **function**, line 361: `cluster_ions(compound: Compound, mz_tol: float, total_files: int, max_ion_rank: Optional[int] = None)` - Group ions within mz_tol, split into recurring vs other.
-- **class**, line 72: `Compound` - A matched compound tracked across multiple LCMS files.
-- **function**, line 348: `compute_canonical_rt(compound: Compound)` - Set canonical RT by majority vote (mode of rounded values).
-- **function**, line 452: `compute_trend(compound: Compound, total_files: int, threshold: float, excluded_files: set = None)` - Determine area% trend: increasing / decreasing / stable.
-- **function**, line 560: `compute_uv_consensus(compound: Compound)` - Deduplicate UV lambda-max across all observations.
-- **function**, line 174: `compute_uv_ratio(peak: ChromPeak) -> Optional[float]` - Compute area_220nm / area_254nm for a peak. Returns None if either area is missing or zero (inconclusive data). Only returns a meaningful ratio when both areas are present and non-zero.
-- **function**, line 226: `create_compound(cid: int, peak: ChromPeak, ratio: Optional[float], file_idx: int) -> Compound` - Create a new Compound from a seed peak.
-- **function**, line 565: `detect_outlier_files(files: List[FileEntry]) -> Tuple[set, set]` - Flag files that look like blanks/outliers or have ambiguous timing.
-- **function**, line 619: `detect_outlier_files_conservative(files: List[FileEntry], compounds: List[Compound], excluded_files: set, significance_floor: float = 5.0, threshold: float = 0.5) -> set` - Second-pass outlier detection based on multi-species behaviour.
-- **function**, line 118: `extract_run_datetime(pdf_path: str, report: Optional[LCMSReport] = None) -> Optional[str]` - Extract the acquisition date+time from a supported LCMS report. Returns ISO-format string 'YYYY-MM-DD HH:MM:SS' or None.
-- **class**, line 50: `FileEntry` - Metadata for one LCMS file in the analysis.
-- **function**, line 259: `find_and_match(peak: ChromPeak, ratio: Optional[float], compounds: List[Compound], rt_tol: float, used_ids: set) -> Optional[Compound]` - Find the best matching compound for a peak. Returns the compound or None if no match found.
-- **function**, line 917: `format_json_report(result: AnalysisResult) -> str` - Render structured JSON output.
-- **function**, line 719: `format_text_report(result: AnalysisResult, min_summary_area: float = 2.0, hide_other_ions: bool = False) -> str` - Render the full text report.
-- **class**, line 63: `IonCluster` - A group of m/z values across files that represent the same ion.
-- **function**, line 980: `load_analysis_from_json(json_path: str) -> AnalysisResult` - Reconstruct an AnalysisResult from a JSON file produced by format_json_report().
-- **function**, line 294: `match_peaks_across_files(files: List[FileEntry], rt_tol: float) -> List[Compound]` - Match peaks across all files and return a list of Compounds. Files must be pre-sorted chronologically.
+- **class**, line 206: `AnalysisResult` - Complete result of the multi-file LCMS analysis.
+- **function**, line 1335: `analyze(files: List[FileEntry], rt_tol: float = LCMS_RT_TOLERANCE, mz_tol: float = LCMS_MZ_TOLERANCE, trend_threshold: float = LCMS_TREND_THRESHOLD, ignore_instrument: bool = False, use_run_time: bool = True, max_ion_rank: Optional[int] = None, pick_biggest_group: bool = False, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None, internal_standard_name: str = 'IS') -> List[AnalysisResult]` - Top-level analysis.  Groups files by (instrument, method) and runs peak matching within each group.
+- **function**, line 1569: `analyze_multi_lcms(files: Optional[Sequence[Any]] = None, *, analyses: Optional[Sequence[Any]] = None, reports: Optional[Sequence[Any]] = None, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None, internal_standard_name: str = 'IS', rt_tol: float = 0.15, mz_tol: float = LCMS_MZ_TOLERANCE, trend_threshold: float = LCMS_TREND_THRESHOLD, ignore_instrument: bool = True, use_run_time: bool = False, max_ion_rank: Optional[int] = None, pick_biggest_group: bool = False) -> Dict[str, Any]` - Collate multiple LCMS chromatograms/reports with optional internal standard (IS) normalization.
+- **function**, line 351: `attach_peak_to_compound(compound: Compound, peak: ChromPeak, file_idx: int)` - Add a peak's data to an existing compound.
+- **function**, line 295: `check_uv_compatibility(ratio_a: Optional[float], ratio_b: Optional[float]) -> Optional[bool]` - Check if two UV ratios are compatible. Returns True (compatible), False (incompatible), or None (inconclusive).
+- **function**, line 471: `cluster_ions(compound: Compound, mz_tol: float, total_files: int, max_ion_rank: Optional[int] = None)` - Group ions within mz_tol, split into recurring vs other.
+- **class**, line 171: `Compound` - A matched compound tracked across multiple LCMS files.
+- **function**, line 458: `compute_canonical_rt(compound: Compound)` - Set canonical RT by majority vote (mode of rounded values).
+- **function**, line 562: `compute_trend(compound: Compound, total_files: int, threshold: float, excluded_files: set = None)` - Determine area% trend: increasing / decreasing / stable.
+- **function**, line 670: `compute_uv_consensus(compound: Compound)` - Deduplicate UV lambda-max across all observations.
+- **function**, line 280: `compute_uv_ratio(peak: ChromPeak) -> Optional[float]` - Compute area_220nm / area_254nm for a peak. Returns None if either area is missing or zero (inconclusive data). Only returns a meaningful ratio when both areas are present and non-zero.
+- **function**, line 332: `create_compound(cid: int, peak: ChromPeak, ratio: Optional[float], file_idx: int) -> Compound` - Create a new Compound from a seed peak.
+- **function**, line 675: `detect_outlier_files(files: List[FileEntry]) -> Tuple[set, set]` - Flag files that look like blanks/outliers or have ambiguous timing.
+- **function**, line 729: `detect_outlier_files_conservative(files: List[FileEntry], compounds: List[Compound], excluded_files: set, significance_floor: float = 5.0, threshold: float = 0.5) -> set` - Second-pass outlier detection based on multi-species behaviour.
+- **function**, line 224: `extract_run_datetime(pdf_path: str, report: Optional[LCMSReport] = None) -> Optional[str]` - Extract the acquisition date+time from a supported LCMS report. Returns ISO-format string 'YYYY-MM-DD HH:MM:SS' or None.
+- **class**, line 149: `FileEntry` - Metadata for one LCMS file in the analysis.
+- **function**, line 369: `find_and_match(peak: ChromPeak, ratio: Optional[float], compounds: List[Compound], rt_tol: float, used_ids: set) -> Optional[Compound]` - Find the best matching compound for a peak. Returns the compound or None if no match found.
+- **function**, line 1027: `format_json_report(result: AnalysisResult) -> str` - Render structured JSON output.
+- **function**, line 829: `format_text_report(result: AnalysisResult, min_summary_area: float = 2.0, hide_other_ions: bool = False) -> str` - Render the full text report.
+- **class**, line 162: `IonCluster` - A group of m/z values across files that represent the same ion.
+- **function**, line 1107: `load_analysis_from_json(json_path: str) -> AnalysisResult` - Reconstruct an AnalysisResult from a JSON file produced by format_json_report().
+- **class**, line 82: `MassResolver` - Helper to match chromatographic peaks against a target molecular weight.
+- **method**, line 89: `MassResolver.expected_adduct_mzs(mw: float) -> Dict[str, List[float]]` - No public docstring in the audited version.
+- **method**, line 118: `MassResolver.match_peak(peak: Any, target_mw: float, mz_tol: float = 1.0) -> bool` - No public docstring in the audited version.
+- **function**, line 404: `match_peaks_across_files(files: List[FileEntry], rt_tol: float) -> List[Compound]` - Match peaks across all files and return a list of Compounds. Files must be pre-sorted chronologically.
+- **class**, line 48: `NormalizedRatio` - A float (primary/latest IS-normalized ratio) that also indexes per-timepoint ratios.
+- **property**, line 59: `NormalizedRatio.values` - No public docstring in the audited version.
+
+## `analysis.deterministic.mzml_parser`
+
+- **class**, line 133: `Chromatogram` - Chromatographic trace (TIC, BPC, or UV/DAD).
+- **property**, line 151: `Chromatogram.name` - No public docstring in the audited version.
+- **property**, line 143: `Chromatogram.retention_times` - No public docstring in the audited version.
+- **property**, line 147: `Chromatogram.rt` - No public docstring in the audited version.
+- **function**, line 312: `decode_binary_array(b64_text: Optional[str], *, precision: int = 64, compressed: bool = False, byte_order: str = '<') -> List[float]` - Decode base64-encoded (optionally zlib-compressed) 32/64-bit float array.
+- **class**, line 199: `LCMSAnalysis` - Complete parsed open-format or raw LCMS dataset.
+- **method**, line 238: `LCMSAnalysis.get_chromatogram(trace_type: str = 'TIC') -> Optional[Chromatogram]` - No public docstring in the audited version.
+- **property**, line 235: `LCMSAnalysis.tac_peaks` - No public docstring in the audited version.
+- **method**, line 245: `LCMSAnalysis.to_dict() -> Dict[str, Any]` - No public docstring in the audited version.
+- **class**, line 156: `LCMSPeak` - An integrated chromatographic peak with associated mass spectra.
+- **property**, line 182: `LCMSPeak.mz_values` - No public docstring in the audited version.
+- **property**, line 190: `LCMSPeak.top_ions` - No public docstring in the audited version.
+- **class**, line 45: `MassSpectrum` - Mass spectrum for a single scan or chromatographic peak (ES+ or ES-).
+- **function**, line 815: `parse_mzml(path: Union[str, Path]) -> LCMSAnalysis` - Parse an ``.mzML`` or ``.mzXML`` file into an ``LCMSAnalysis`` object.
+- **class**, line 25: `SampleInfoDict` - Dictionary of sample metadata that also compares equal to Sample Description string.
 
 ## `analysis.deterministic.procedure_writer`
 
 - **function**, line 77: `discover_files(input_dir: str, experiment_name: Optional[str] = None) -> ExperimentData` - Discover all files for an experiment.
 - **function**, line 126: `extract_nmr_data(pdf_path: str) -> List[str]` - Extract reported NMR data strings from an NMR PDF.
 - **function**, line 178: `parse_all_nmr(exp: ExperimentData) -> None` - Extract NMR data from all NMR PDFs (with cross-file deduplication).
+
+## `analysis.deterministic.waters_raw`
+
+- **function**, line 65: `parse_waters_header(raw_dir: Union[str, Path]) -> Dict[str, str]` - Read ``_HEADER.TXT`` (or ``_header.txt``) inside a Waters ``.raw`` directory.
+- **function**, line 132: `parse_waters_raw(raw_dir: Union[str, Path]) -> LCMSAnalysis` - Parse a Waters ``.raw`` directory and attach ``_HEADER.TXT`` metadata onto ``LCMSAnalysis``.
 
 ## `analysis.format_procedure_entry`
 

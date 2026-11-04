@@ -2,6 +2,28 @@
 
 Load one section matching the user's intent. Exact signatures live only in [mcp-signatures.md](mcp-signatures.md); `cdx.py sig TOOL` prints one. Run a tool named below as `python <skill>/scripts/cdx.py call TOOL --args ARGS.json` (a file holding the arguments as a JSON object; `--json '{...}'` also works in bash). `cdx.py render` and `cdx.py draw` are shortcuts for rendering and for `draw_figure`.
 
+## High-Frequency Tool Quick-Reference (Top 15)
+
+Use this inline table to invoke the 15 most common tools directly without an extra `cdx.py sig` round-trip. Where a CLI shortcut or canonical tool alias exists, both the quick-reference name and underlying registry name are shown.
+
+| Tool (`cdx.py call` / CLI) | Required JSON Parameters | Optional JSON Parameters | 1-Line Summary |
+| :--- | :--- | :--- | :--- |
+| `draw_figure` (`cdx.py draw`) | `brief: dict\|str` | `output_path: str=None`, `render: bool=False` | Draw a reaction scheme, multi-step route, substrate-scope panel, catalytic cycle, or arrow-pushing mechanism from a structured JSON brief. |
+| `resolve_name` | `name: str` | `none` | Resolve a chemical name, abbreviation, formula, CAS number, or SMILES to verified SMILES, formula, molecular weight, and source provenance. |
+| `build_acs_figure` (`compose_chemical_figure` / `cdx.py build`) | `spec: dict` (or `cdx.py build SPEC.json OUT.cdxml`) | `output_path: str=None`, `allow_network: bool=False` | Build an ACS Document 1996 multi-panel figure, grid, comparison card, or coordinate-positioned layout from a JSON specification. |
+| `render_cdxml` (`render_cdxml_files` / `render_to_png` / `cdx.py render`) | `cdxml_path: str` (or `inputs: list[str]\|str` for batch) | `output_path: str=None`, `output_dir: str=None`, `output_format: str='png'`, `dpi: int=300`, `overwrite: bool=False` | Render one or more CDXML/CDX files to native 300 dpi PNG or SVG via desktop ChemDraw. |
+| `convert_cdxml` (`convert_cdx_cdxml`) | `input_path: str` | `output_path: str=None`, `direction: str='auto'` | Convert between binary `.cdx` and XML `.cdxml` while preserving native ChemDraw geometry and styling. |
+| `reconstruct_scheme` (`render_scheme` / `parse_scheme`) | `scheme_text: str` (or `cdxml_path: str` to parse) | `output_path: str=None`, `layout: str='sequential'`, `wrap: str='repeat'`, `steps_per_row: int=4`, `extract_reagents: bool=True` | Parse an existing CDXML scheme into structured steps or reconstruct a clean ACS 1996 scheme from compact text DSL. |
+| `extract_structures_from_image` (`extract_structures_via_decimer_api` / `recognize_structure`) | `image_path: str` | `output_path: str=None`, `hand_drawn: bool=False`, `confirm_upload: bool=False`, `engines: list[str]\|str='decimer-api'` | Segment and recognize chemical structures from a raster figure crop via DECIMER API or local OCSR engines. |
+| `analyze_lcms` (`parse_analysis_file` / `analyze_lcms_series`) | `file_path: str` (or `files: list[str]` for series) | `output_dir: str=None`, `expected_mw: float=None`, `target_mz: float=None`, `track_ions: list=None`, `internal_standard_rt: float=None` | Parse LCMS reports (Waters PDF/OpenLynx `.rpt`/`.raw`, Shimadzu `.daml`, Agilent `Report.TXT`, `mzML`/`mzXML`), match adducts/Cl-Br `M+2` isotopes, or track time/pH series. |
+| `format_lab_entry` | `none` (provide `reaction_path` or `procedure_json`) | `reaction_path: str=None`, `procedure_json: str=None`, `compound_name: str=''`, `style: str='jacs'`, `nmr_text: str=''`, `hr_ms: str=''`, `yield_mass: str=''`, `yield_pct: str=''`, `output_path: str=None` | Generate a journal-formatted experimental procedure paragraph (JACS, Angewandte, RSC, or Nature style) from reaction data and characterization inputs. |
+| `characterization_text` | `data: dict\|str` | `style: str='jacs'` | Format structured 1H/13C/19F/31P NMR, HRMS, IR, melting-point, and optical-rotation records into a publication characterization string. |
+| `si_materials_tables` | `entries: list[dict]\|str` | `style: str='jacs'` | Build formatted Supporting Information materials/reagents and instrumentation tables with deduplicated CAS/supplier/purity columns. |
+| `stoichiometry_grid` (`cdx.py calc`) | `input_str: str` | `limiting_amount: str='1.0 mmol'`, `solvents: list=None`, `concentration: str=None`, `output_path: str=None`, `format: str='json'` | Compute a complete stoichiometry table (MW, equivalents, mmol, mass, volume, density, limiting reagent, and reaction volume) from a reaction SMILES or CDXML. |
+| `map_reaction_atoms` | `reaction: str` | `method: str='auto'`, `include_unchanged: bool=False`, `output_path: str=None` | Map reactant-to-product atom correspondence and identify bond changes (`formed`, `broken`, `order_changed`) using RXNMapper, LocalMapper, or RDKit MCS. |
+| `molecule_report` | `input_str: str` | `include_safety: bool=True` | Generate a comprehensive molecular profile (IUPAC name, formula, exact mass, Lipinski/QED descriptors, stereocenters, functional groups, and GHS safety/SMARTS alerts). |
+| `check_reaction_balance` | `reaction: str` | `auto_fix: bool=True` | Audit elemental and charge balance across a reaction SMILES or CDXML and suggest missing small-molecule condensates or byproducts (`H2O`, `HX`, `ROH`, `CO2`, `N2`). |
+
 ## Draw Or Modify A Molecule
 
 For exam or lecture figures with abbreviations, Chinese notes or compound codes, use [ACS 1996 drawings](acs1996-drawings.md) instead.

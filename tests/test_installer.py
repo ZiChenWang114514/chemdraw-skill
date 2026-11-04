@@ -155,6 +155,52 @@ class InstallerTests(unittest.TestCase):
                        for i in json.loads(result.stdout)["installations"]}
         self.assertEqual(folders, {".kimi-code/skills/chemdraw", ".pi/agent/skills/chemdraw"})
 
+    def test_agent_auto_detects_existing_agent_folders_and_falls_back_when_none_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve() / "home"
+            home.mkdir()
+            # Fallback when no agent folders exist yet: claude + agents.
+            empty = run("--agent", "auto", home=home)
+            self.assertEqual(empty.returncode, 0, empty.stderr)
+            empty_folders = [
+                Path(i["destination"]).relative_to(home).as_posix()
+                for i in json.loads(empty.stdout)["installations"]
+            ]
+            self.assertEqual(empty_folders, [".claude/skills/chemdraw", ".agents/skills/chemdraw"])
+
+            # Detect existing user-level agent folders (.claude, .gemini, .codex, .kimi).
+            (home / ".claude").mkdir()
+            (home / ".gemini").mkdir()
+            (home / ".codex").mkdir()
+            (home / ".kimi").mkdir()
+            detected = run("--agent", "auto", home=home)
+            self.assertEqual(detected.returncode, 0, detected.stderr)
+            user_folders = {
+                Path(i["destination"]).relative_to(home).as_posix()
+                for i in json.loads(detected.stdout)["installations"]
+            }
+            self.assertEqual(
+                user_folders,
+                {
+                    ".claude/skills/chemdraw",
+                    ".gemini/skills/chemdraw",
+                    ".agents/skills/chemdraw",
+                    ".kimi-code/skills/chemdraw",
+                },
+            )
+
+            # Detect project-level agent folders (.github and .cursor).
+            project = Path(tmp).resolve() / "workspace"
+            (project / ".github").mkdir(parents=True)
+            (project / ".cursor").mkdir(parents=True)
+            proj_res = run("--agent", "auto", "--project", str(project), home=home)
+            self.assertEqual(proj_res.returncode, 0, proj_res.stderr)
+            proj_folders = {
+                Path(i["destination"]).relative_to(project).as_posix()
+                for i in json.loads(proj_res.stdout)["installations"]
+            }
+            self.assertEqual(proj_folders, {".github/skills/chemdraw", ".cursor/skills/chemdraw"})
+
     def test_apply_installs_each_agent_copy_with_a_manifest_and_no_caches(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             home = Path(tmp).resolve()
@@ -165,6 +211,7 @@ class InstallerTests(unittest.TestCase):
                 self.assertEqual(item["installed_fingerprint"], record["source_fingerprint"])
                 skill = Path(item["destination"])
                 self.assertEqual(list(skill.rglob("__pycache__")), [])
+                self.assertFalse((skill / "tests").exists())
                 check = subprocess.run([sys.executable, str(skill / "scripts" / "check_installation.py")],
                                        capture_output=True, text=True)
                 self.assertEqual(check.returncode, 0, check.stdout + check.stderr)

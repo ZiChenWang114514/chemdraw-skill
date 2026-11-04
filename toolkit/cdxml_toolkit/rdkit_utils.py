@@ -18,11 +18,45 @@ All RDKit imports are lazy so this module can be imported even if RDKit
 is not installed (functions will raise ImportError at call time).
 """
 
+import atexit
 import math
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from .constants import ACS_BOND_LENGTH
+
+try:
+    from .chemdraw.chemscript_bridge import ChemScriptBridge
+except Exception:
+    ChemScriptBridge = None  # type: ignore[assignment,misc]
+
+_shared_chemscript_bridge: Optional[Any] = None
+
+
+def _close_shared_chemscript_bridge() -> None:
+    """Close the process-level shared ChemScriptBridge singleton on exit."""
+    global _shared_chemscript_bridge
+    bridge = _shared_chemscript_bridge
+    _shared_chemscript_bridge = None
+    if bridge is not None:
+        try:
+            bridge.close()
+        except Exception:
+            pass
+
+
+atexit.register(_close_shared_chemscript_bridge)
+
+
+def _get_shared_chemscript_bridge() -> Any:
+    """Return a cached process-level ChemScriptBridge singleton."""
+    global _shared_chemscript_bridge
+    if _shared_chemscript_bridge is None:
+        cls = ChemScriptBridge
+        if cls is None:
+            from .chemdraw.chemscript_bridge import ChemScriptBridge as cls
+        _shared_chemscript_bridge = cls()
+    return _shared_chemscript_bridge
 
 
 # ---------------------------------------------------------------------------
@@ -274,7 +308,7 @@ def frag_to_smiles_chemscript(frag_elem: ET.Element) -> Optional[str]:
         tmp.close()
         tmp_path = tmp.name
 
-        cs = ChemScriptBridge()
+        cs = _get_shared_chemscript_bridge()
         info = cs.get_info(tmp_path)
         if info and info.get("ok"):
             smi = info.get("smiles")

@@ -4,9 +4,11 @@
 
 ## `cdxml_builder`
 
-- **function**, line 636: `build_molecule_cdxml(atoms: List[Dict], bonds: List[Dict], start_id: int = 1000) -> str` - Build a CDXML document containing a single molecule fragment.
-- **function**, line 680: `build_reaction_cdxml(reactants: List[Dict], products: List[Dict], conditions: Optional[Dict] = None, arrow_y: Optional[float] = None, arrow_tail_x: Optional[float] = None, arrow_head_x: Optional[float] = None, start_id: int = 1000) -> str` - Build a CDXML reaction scheme document.
-- **function**, line 100: `element_number(symbol: str) -> int` - Atomic number for *symbol*; 0 only when the symbol is not an element.
+- **function**, line 840: `build_molecule_cdxml(atoms: Any, bonds: Optional[List[Dict]] = None, start_id: int = 1000) -> str` - Build a CDXML document containing a single molecule fragment.
+- **function**, line 891: `build_reaction_cdxml(reactants: List[Dict], products: List[Dict], conditions: Optional[Dict] = None, arrow_y: Optional[float] = None, arrow_tail_x: Optional[float] = None, arrow_head_x: Optional[float] = None, start_id: int = 1000) -> str` - Build a CDXML reaction scheme document.
+- **function**, line 114: `element_number(symbol: str) -> int` - Atomic number for *symbol*; 0 only when the symbol is not an element.
+- **function**, line 680: `mol_to_atom_bond_dicts(mol_or_smiles: Any, offset_index: int = 0, normalize: bool = True, center_x: float = 200.0, center_y: float = 300.0) -> Tuple[List[Dict], List[Dict]]` - Convert an RDKit Mol or SMILES string into (atoms, bonds) dicts preserving dative/coordination bonds (Order="dative"), radicals (Radical="Doublet" / "Triplet"), and axial chirality / tetrahedral stereochemistry.
+- **function**, line 834: `mol_to_cdxml(mol_or_smiles: Any, start_id: int = 1000) -> str` - Build a complete CDXML document directly from an RDKit Mol or SMILES string.
 
 ## `cdxml_utils`
 
@@ -97,16 +99,17 @@
 
 ## `render.renderer`
 
-- **function**, line 2648: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
-- **function**, line 2670: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
-- **function**, line 2636: `render_with(build) -> str` - Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
+- **function**, line 3026: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 3048: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **function**, line 3014: `render_with(build) -> str` - Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
 - **class**, line 147: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
 - **class**, line 162: `ResolvedStep` - A step with all structures resolved and laid out.
 
 ## `render.route_graph`
 
-- **function**, line 48: `classify_route(steps: list[StepDescriptor]) -> tuple[str, list[int]]` - Return ``(kind, order)``: kind is linear, convergent or divergent, order the step indices to draw.
-- **function**, line 69: `convergent_sections(steps: list[StepDescriptor]) -> list[list[StepDescriptor]]` - Rows of a convergent route: each arm first, then the merge row (with any chain after it).
+- **function**, line 92: `classify_route(steps: list[StepDescriptor]) -> tuple[str, list[int]]` - Return ``(kind, order)``: kind is linear, convergent, divergent or catalytic-cycle.
+- **function**, line 116: `convergent_sections(steps: list[StepDescriptor]) -> list[list[StepDescriptor]]` - Rows of a convergent route: each arm first, then the merge row (with any chain after it).
+- **function**, line 70: `cycle_order(steps: list[StepDescriptor]) -> list[int]` - Return the step order for a catalytic cycle (or sequential order if open).
 
 ## `render.schema`
 

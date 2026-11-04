@@ -74,13 +74,13 @@
 
 ## `chemistry_semantics`
 
-- **function**, line 101: `document_inventory(path)` - No public docstring in the audited version.
-- **function**, line 43: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
-- **function**, line 80: `read_molecules(value)` - No public docstring in the audited version.
-- **function**, line 31: `require_supported(mol)` - No public docstring in the audited version.
+- **function**, line 135: `document_inventory(path)` - No public docstring in the audited version.
+- **function**, line 68: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
+- **function**, line 114: `read_molecules(value)` - No public docstring in the audited version.
+- **function**, line 36: `require_supported(mol, *, allow_radicals: bool = False, allow_dative: bool = True, allow_atropisomers: bool = True)` - No public docstring in the audited version.
 - **function**, line 10: `semantic_key(mol)` - No public docstring in the audited version.
-- **function**, line 105: `validate_document_preserved(source, output)` - No public docstring in the audited version.
-- **function**, line 84: `validate_fragment(smiles, xml)` - No public docstring in the audited version.
+- **function**, line 139: `validate_document_preserved(source, output)` - No public docstring in the audited version.
+- **function**, line 118: `validate_fragment(smiles, xml, *, allow_radicals: bool = True)` - No public docstring in the audited version.
 
 ## `engines.accel`
 
@@ -139,8 +139,9 @@
 
 ## `engines.nmr`
 
-- **function**, line 114: `predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict` - ``engine`` may name several, comma separated: each runs and the peaks are compared, never merged. An engine that fails is listed in ``failed_engines`` and the others still answer.
-- **function**, line 37: `simulate(peaks: list, nucleus: str, frequency_mhz: float, width_hz: float = 1.5, points: int = 16384) -> list` - Lorentzian singlets on a ppm axis (no coupling): a picture of where the lines fall, not a multiplet pattern.
+- **function**, line 399: `compare_shifts(smiles: str, experimental_1h: list[float] | None = None, experimental_13c: list[float] | None = None, *, solvent: str = 'CDCl3', engines: Iterable[str] = ('magnet',), predicted_result: dict[str, Any] | None = None, outlier_threshold_1h: float = 0.5, outlier_threshold_13c: float = 5.0) -> dict[str, Any]` - Compare predicted NMR shifts against experimental 1H/13C peak lists using Hungarian matching.
+- **function**, line 123: `predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict` - ``engine`` may name several, comma separated: each runs and the peaks are compared, never merged. An engine that fails is listed in ``failed_engines`` and the others still answer.
+- **function**, line 46: `simulate(peaks: list, nucleus: str, frequency_mhz: float, width_hz: float = 1.5, points: int = 16384) -> list` - Lorentzian singlets on a ppm axis (no coupling): a picture of where the lines fall, not a multiplet pattern.
 
 ## `engines.ocsr`
 
@@ -170,7 +171,7 @@
 
 - **function**, line 78: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
 - **function**, line 351: `remote_range(url, first, last)` - No public docstring in the audited version.
-- **function**, line 1109: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 1312: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
@@ -357,9 +358,10 @@
 
 ## `mcp_runtime.figure_validation`
 
-- **function**, line 49: `compare_inventories(a, b)` - No public docstring in the audited version.
-- **function**, line 16: `inspect_document(path)` - No public docstring in the audited version.
-- **function**, line 78: `validate_figure(input_path: str, output_dir: str, native: bool = False, cross_reader: bool = False) -> dict` - Write a diagnostic directory without changing the source. CLI-only operation.
+- **function**, line 76: `compare_inventories(a, b)` - No public docstring in the audited version.
+- **function**, line 43: `inspect_document(path)` - No public docstring in the audited version.
+- **function**, line 105: `validate_figure(input_path: str, output_dir: str, native: bool = False, cross_reader: bool = False, session = None, render_png: bool = False) -> dict` - Write a diagnostic directory without changing the source. CLI-only operation.
+- **function**, line 160: `validate_figures(input_paths, output_dir: str, native: bool = False, cross_reader: bool = False, session = None, render_png: bool = False) -> dict` - Validate multiple CDXML figures in a batch reusing a shared NativeRenderSession.
 
 ## `mcp_runtime.generate_reference`
 
@@ -490,7 +492,7 @@
 
 ## `mcp_runtime.runtime_diagnostics`
 
-- **function**, line 612: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
+- **function**, line 657: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
 
 ## `mcp_runtime.runtime_discovery`
 
@@ -641,12 +643,14 @@
 
 ## `spectral_text`
 
-- **function**, line 258: `describe(record: dict, mol, label: str) -> dict` - The paragraph (without HRMS) of one compound, with the checks that were run and their warnings.
-- **function**, line 147: `distinct_carbons(mol) -> int` - Carbons that differ by symmetry (what a decoupled 13C spectrum can show at most).
-- **function**, line 115: `format_peak(peak: dict) -> str` - No public docstring in the audited version.
-- **function**, line 123: `format_peaks(peaks) -> str` - No public docstring in the audited version.
-- **function**, line 143: `formula_hydrogens(mol) -> int` - No public docstring in the audited version.
-- **function**, line 127: `known_multiplicity(mult: str) -> bool` - No public docstring in the audited version.
-- **function**, line 92: `normalize_peaks(items, decimals: int) -> list[dict]` - Peaks given as text, numbers or dicts -> the dicts :func:`parse_peaks` returns.
-- **function**, line 132: `nucleus_ok(name: str) -> bool` - No public docstring in the audited version.
-- **function**, line 66: `parse_peaks(text: str) -> list[dict]` - Peaks of an NMR list such as ``7.40-7.30 (m, 5H), 5.11 (s, 2H)`` as dicts.
+- **function**, line 416: `describe(record: dict, mol, label: str) -> dict` - The paragraph (without HRMS) of one compound, with the checks that were run and their warnings.
+- **function**, line 235: `distinct_carbons(mol) -> int` - Carbons that differ by symmetry (what a decoupled 13C spectrum can show at most).
+- **function**, line 278: `filter_solvent_peaks_1h(peaks: list, solvent: str, tolerance: float = 0.05) -> list` - Filter out 1H residual solvent and HDO peaks from ``peaks`` (numbers, dicts, or peak objects).
+- **function**, line 203: `format_peak(peak: dict) -> str` - No public docstring in the audited version.
+- **function**, line 211: `format_peaks(peaks) -> str` - No public docstring in the audited version.
+- **function**, line 231: `formula_hydrogens(mol) -> int` - No public docstring in the audited version.
+- **function**, line 255: `is_solvent_peak_1h(ppm: float, solvent: str, tolerance: float = 0.05) -> dict | None` - Return the matched 1H residual solvent peak dict if ``ppm`` is within ``tolerance``, else ``None``.
+- **function**, line 215: `known_multiplicity(mult: str) -> bool` - No public docstring in the audited version.
+- **function**, line 180: `normalize_peaks(items, decimals: int) -> list[dict]` - Peaks given as text, numbers or dicts -> the dicts :func:`parse_peaks` returns.
+- **function**, line 220: `nucleus_ok(name: str) -> bool` - No public docstring in the audited version.
+- **function**, line 154: `parse_peaks(text: str) -> list[dict]` - Peaks of an NMR list such as ``7.40-7.30 (m, 5H), 5.11 (s, 2H)`` as dicts.

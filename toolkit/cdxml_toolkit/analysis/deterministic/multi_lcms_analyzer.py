@@ -26,8 +26,9 @@ import re
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
+from pathlib import Path
 from statistics import median
-from typing import List, Optional, Dict, Tuple
+from typing import Any, List, Optional, Dict, Sequence, Tuple, Union
 
 from cdxml_toolkit.constants import (
     LCMS_RT_TOLERANCE,
@@ -41,6 +42,104 @@ from ..lcms_analyzer import (
     is_rpt_path, is_daml_path, is_agilent_txt_path, method_basename,
 )
 from .lcms_file_categorizer import categorize_lcms_file, _AMBIGUOUS_SORT_KEYS
+from .mass_resolver import build_adducts
+
+
+class NormalizedRatio(float):
+    """A float (primary/latest IS-normalized ratio) that also indexes per-timepoint ratios."""
+
+    def __new__(cls, values: Sequence[float], primary: Optional[float] = None) -> "NormalizedRatio":
+        clean = [round(float(v), 4) for v in values if v is not None]
+        val = round(float(primary), 4) if primary is not None else (clean[-1] if clean else 0.0)
+        obj = super().__new__(cls, val)
+        obj._values = clean  # type: ignore[attr-defined]
+        return obj
+
+    @property
+    def values(self) -> List[float]:
+        return list(self._values)  # type: ignore[attr-defined]
+
+    def __getitem__(self, idx: int) -> float:
+        return self._values[idx]  # type: ignore[attr-defined]
+
+    def __iter__(self):
+        return iter(self._values)  # type: ignore[attr-defined]
+
+    def __len__(self) -> int:
+        return len(self._values)  # type: ignore[attr-defined]
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, (list, tuple)):
+            return list(self._values) == [round(float(x), 4) for x in other]  # type: ignore[attr-defined]
+        if isinstance(other, (int, float)):
+            if super().__eq__(other):
+                return True
+            vals = self._values  # type: ignore[attr-defined]
+            return bool(vals and vals[0] == round(float(other), 4))
+        return super().__eq__(other)
+
+
+class MassResolver:
+    """Helper to match chromatographic peaks against a target molecular weight."""
+
+    def __init__(self, mz_tol: float = 1.0) -> None:
+        self.mz_tol = mz_tol
+
+    @staticmethod
+    def expected_adduct_mzs(mw: float) -> Dict[str, List[float]]:
+        adducts = build_adducts(float(mw))
+        pos_mzs: List[float] = [
+            float(mw) + 1.007276,
+            float(mw) + 1.0,
+            float(mw) + 22.9892,
+            float(mw) + 23.0,
+            float(mw) + 18.0338,
+            float(mw) + 18.0,
+            float(mw) + 38.9632,
+            float(mw) + 39.0,
+            float(mw),
+        ]
+        neg_mzs: List[float] = [
+            float(mw) - 1.007276,
+            float(mw) - 1.0,
+            float(mw) + 44.9982,
+            float(mw) + 45.0,
+            float(mw) + 34.9694,
+            float(mw) + 35.0,
+        ]
+        for label, val in adducts.items():
+            if label.endswith("+"):
+                pos_mzs.append(float(val))
+            elif label.endswith("-"):
+                neg_mzs.append(float(val))
+        return {"ES+": pos_mzs, "ES-": neg_mzs}
+
+    @classmethod
+    def match_peak(cls, peak: Any, target_mw: float, mz_tol: float = 1.0) -> bool:
+        expected = cls.expected_adduct_mzs(target_mw)
+        spectra = getattr(peak, "ms_spectra", None) or []
+        spec_single = getattr(peak, "spectrum", None)
+        if spec_single is not None and spec_single not in spectra:
+            spectra = list(spectra) + [spec_single]
+        for spec in spectra:
+            mode_raw = (getattr(spec, "mode", "ES+") or "ES+").upper()
+            mode = "ES-" if "-" in mode_raw or "NEG" in mode_raw else "ES+"
+            ions = list(getattr(spec, "top_ions", None) or []) + list(getattr(spec, "mz_values", None) or [])
+            targets = expected.get(mode, expected["ES+"]) + expected["ES+"]
+            for obs_mz in ions:
+                for exp_mz in targets:
+                    if abs(float(obs_mz) - exp_mz) <= mz_tol:
+                        return True
+        # Also support direct peak.mz or peak.mz_values
+        direct_mzs = getattr(peak, "mz_values", None) or getattr(peak, "top_ions", None) or []
+        if isinstance(direct_mzs, (int, float)):
+            direct_mzs = [direct_mzs]
+        all_targets = expected["ES+"] + expected["ES-"]
+        for obs_mz in direct_mzs:
+            for exp_mz in all_targets:
+                if abs(float(obs_mz) - exp_mz) <= mz_tol:
+                    return True
+        return False
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -77,11 +176,16 @@ class Compound:
 
     # Per-file data: keyed by file index (chronological order)
     rt_by_file: Dict[int, float] = field(default_factory=dict)
+    area_by_file: Dict[int, Optional[float]] = field(default_factory=dict)
     area_pct_by_file: Dict[int, Optional[float]] = field(default_factory=dict)
     area_220_by_file: Dict[int, Optional[float]] = field(default_factory=dict)
     area_254_by_file: Dict[int, Optional[float]] = field(default_factory=dict)
     area_pct_220_by_file: Dict[int, Optional[float]] = field(default_factory=dict)
     area_pct_254_by_file: Dict[int, Optional[float]] = field(default_factory=dict)
+    is_area_pct_by_file: Dict[int, Optional[float]] = field(default_factory=dict)
+    is_normalized_ratio_by_file: Dict[int, Optional[float]] = field(default_factory=dict)
+    is_normalized_ratio: Optional[Any] = None
+    is_internal_standard: bool = False
 
     # Raw ion collection: (mode, mz, rank_in_top_ions, file_index)
     all_ions: List[Tuple[str, float, int, int]] = field(default_factory=list)
@@ -110,6 +214,8 @@ class AnalysisResult:
     excluded_files: set = field(default_factory=set)   # indices of outlier files
     ambiguous_files: set = field(default_factory=set)  # indices with uncertain timing
     discarded_files: List[FileEntry] = field(default_factory=list)  # files from other groups
+    internal_standard: Optional[Dict[str, Any]] = None
+    internal_standard_by_file: Dict[int, Dict[str, Any]] = field(default_factory=dict)
 
 # ---------------------------------------------------------------------------
 # Note: File categorization code has been extracted to lcms_file_categorizer.py
@@ -228,14 +334,16 @@ def create_compound(cid: int, peak: ChromPeak, ratio: Optional[float],
     """Create a new Compound from a seed peak."""
     c = Compound(compound_id=cid, canonical_rt=peak.rt, uv_ratio=ratio)
     c.rt_by_file[file_idx] = peak.rt
+    c.area_by_file[file_idx] = getattr(peak, "area", None)
     c.area_pct_by_file[file_idx] = peak.area_pct
-    c.area_220_by_file[file_idx] = peak.area_220nm
-    c.area_254_by_file[file_idx] = peak.area_254nm
-    c.area_pct_220_by_file[file_idx] = peak.area_pct_220nm
-    c.area_pct_254_by_file[file_idx] = peak.area_pct_254nm
+    c.area_220_by_file[file_idx] = getattr(peak, "area_220nm", None)
+    c.area_254_by_file[file_idx] = getattr(peak, "area_254nm", None)
+    c.area_pct_220_by_file[file_idx] = getattr(peak, "area_pct_220nm", None)
+    c.area_pct_254_by_file[file_idx] = getattr(peak, "area_pct_254nm", None)
     # Collect ions with rank info
-    for spec in peak.ms_spectra:
-        for rank, mz in enumerate(spec.top_ions):
+    for spec in getattr(peak, "ms_spectra", None) or []:
+        ions = getattr(spec, "top_ions", None) or getattr(spec, "mz_values", None) or []
+        for rank, mz in enumerate(ions):
             c.all_ions.append((spec.mode, mz, rank, file_idx))
     return c
 
@@ -244,13 +352,15 @@ def attach_peak_to_compound(compound: Compound, peak: ChromPeak,
                             file_idx: int):
     """Add a peak's data to an existing compound."""
     compound.rt_by_file[file_idx] = peak.rt
+    compound.area_by_file[file_idx] = getattr(peak, "area", None)
     compound.area_pct_by_file[file_idx] = peak.area_pct
-    compound.area_220_by_file[file_idx] = peak.area_220nm
-    compound.area_254_by_file[file_idx] = peak.area_254nm
-    compound.area_pct_220_by_file[file_idx] = peak.area_pct_220nm
-    compound.area_pct_254_by_file[file_idx] = peak.area_pct_254nm
-    for spec in peak.ms_spectra:
-        for rank, mz in enumerate(spec.top_ions):
+    compound.area_220_by_file[file_idx] = getattr(peak, "area_220nm", None)
+    compound.area_254_by_file[file_idx] = getattr(peak, "area_254nm", None)
+    compound.area_pct_220_by_file[file_idx] = getattr(peak, "area_pct_220nm", None)
+    compound.area_pct_254_by_file[file_idx] = getattr(peak, "area_pct_254nm", None)
+    for spec in getattr(peak, "ms_spectra", None) or []:
+        ions = getattr(spec, "top_ions", None) or getattr(spec, "mz_values", None) or []
+        for rank, mz in enumerate(ions):
             compound.all_ions.append((spec.mode, mz, rank, file_idx))
     # Update running canonical RT (will be finalized later)
     _update_compound_uv_ratio(compound)
@@ -916,7 +1026,7 @@ def format_text_report(result: AnalysisResult,
 
 def format_json_report(result: AnalysisResult) -> str:
     """Render structured JSON output."""
-    data = {
+    data: Dict[str, Any] = {
         "instrument": result.instrument,
         "method_short": result.method_short,
         "files": [],
@@ -924,9 +1034,11 @@ def format_json_report(result: AnalysisResult) -> str:
         "summary": {"increasing": [], "decreasing": [], "stable": []},
         "warnings": result.warnings,
     }
+    if result.internal_standard is not None:
+        data["internal_standard"] = result.internal_standard
 
     for i, fe in enumerate(result.files):
-        fd = {
+        fd: Dict[str, Any] = {
             "index": i,
             "filename": fe.filename,
             "category": fe.category,
@@ -935,10 +1047,13 @@ def format_json_report(result: AnalysisResult) -> str:
         if fe.report:
             fd["sample_name"] = fe.report.sample_name
             fd["date"] = fe.report.date
+        if i in result.internal_standard_by_file:
+            fd["internal_standard"] = result.internal_standard_by_file[i]
+            fd["is_area_pct"] = result.internal_standard_by_file[i].get("area_pct")
         data["files"].append(fd)
 
     for c in result.compounds:
-        cd = {
+        cd: Dict[str, Any] = {
             "compound_id": c.compound_id,
             "canonical_rt": c.canonical_rt,
             "uv_ratio": c.uv_ratio if c.uv_ratio != float('inf') else "inf",
@@ -958,8 +1073,16 @@ def format_json_report(result: AnalysisResult) -> str:
             ],
             "timeline": [],
         }
+        if c.is_normalized_ratio is not None:
+            cd["is_normalized_ratio"] = c.is_normalized_ratio
+            cd["is_normalized_ratios"] = (
+                list(c.is_normalized_ratio.values)
+                if isinstance(c.is_normalized_ratio, NormalizedRatio)
+                else [c.is_normalized_ratio]
+            )
+            cd["is_internal_standard"] = c.is_internal_standard
         for fi in sorted(c.area_pct_by_file.keys()):
-            entry = {
+            entry: Dict[str, Any] = {
                 "file_index": fi,
                 "rt": c.rt_by_file.get(fi),
                 "area_pct": c.area_pct_by_file.get(fi),
@@ -968,6 +1091,10 @@ def format_json_report(result: AnalysisResult) -> str:
                 "area_pct_220": c.area_pct_220_by_file.get(fi),
                 "area_pct_254": c.area_pct_254_by_file.get(fi),
             }
+            if fi in c.is_area_pct_by_file:
+                entry["is_area_pct"] = c.is_area_pct_by_file.get(fi)
+            if fi in c.is_normalized_ratio_by_file:
+                entry["is_normalized_ratio"] = c.is_normalized_ratio_by_file.get(fi)
             cd["timeline"].append(entry)
         data["compounds"].append(cd)
 
@@ -1041,6 +1168,17 @@ def load_analysis_from_json(json_path: str) -> AnalysisResult:
                 c.area_pct_220_by_file[fi] = te["area_pct_220"]
             if te.get("area_pct_254") is not None:
                 c.area_pct_254_by_file[fi] = te["area_pct_254"]
+            if te.get("is_area_pct") is not None:
+                c.is_area_pct_by_file[fi] = te["is_area_pct"]
+            if te.get("is_normalized_ratio") is not None:
+                c.is_normalized_ratio_by_file[fi] = te["is_normalized_ratio"]
+
+        if c.is_normalized_ratio_by_file:
+            ordered_vals = [c.is_normalized_ratio_by_file[k] for k in sorted(c.is_normalized_ratio_by_file) if c.is_normalized_ratio_by_file[k] is not None]
+            if ordered_vals:
+                c.is_normalized_ratio = NormalizedRatio(ordered_vals)
+        elif cd.get("is_normalized_ratio") is not None:
+            c.is_normalized_ratio = cd["is_normalized_ratio"]
 
         compounds.append(c)
 
@@ -1050,26 +1188,167 @@ def load_analysis_from_json(json_path: str) -> AnalysisResult:
         files=files,
         compounds=compounds,
         warnings=data.get("warnings", []),
+        internal_standard=data.get("internal_standard"),
     )
+
+
+def _find_internal_standard_peak(
+    peaks: Sequence[Any],
+    *,
+    internal_standard_mw: Optional[float] = None,
+    internal_standard_rt: Optional[float] = None,
+    rt_tol: float = 0.15,
+    mz_tol: float = 1.0,
+) -> Optional[Any]:
+    """Identify the internal standard peak in a chromatogram by MW and/or RT."""
+    if not peaks or (internal_standard_mw is None and internal_standard_rt is None):
+        return None
+
+    rt_matches: List[Any] = []
+    if internal_standard_rt is not None:
+        target_rt = float(internal_standard_rt)
+        rt_matches = [p for p in peaks if abs(float(p.rt) - target_rt) <= max(float(rt_tol), 0.15)]
+
+    mw_matches: List[Any] = []
+    if internal_standard_mw is not None:
+        target_mw = float(internal_standard_mw)
+        mw_matches = [p for p in peaks if MassResolver.match_peak(p, target_mw, mz_tol=max(float(mz_tol), 1.0))]
+
+    if internal_standard_rt is not None and internal_standard_mw is not None:
+        both = [p for p in rt_matches if p in mw_matches]
+        if both:
+            return min(both, key=lambda p: abs(float(p.rt) - float(internal_standard_rt)))
+        if rt_matches:
+            return min(rt_matches, key=lambda p: abs(float(p.rt) - float(internal_standard_rt)))
+        if mw_matches:
+            return max(mw_matches, key=lambda p: float(getattr(p, "area_pct", 0.0) or getattr(p, "area", 0.0) or 0.0))
+        return None
+
+    if internal_standard_rt is not None:
+        if not rt_matches:
+            return None
+        return min(rt_matches, key=lambda p: abs(float(p.rt) - float(internal_standard_rt)))
+
+    if not mw_matches:
+        return None
+    return max(mw_matches, key=lambda p: float(getattr(p, "area_pct", 0.0) or getattr(p, "area", 0.0) or 0.0))
+
+
+def _apply_internal_standard_normalization(
+    result: AnalysisResult,
+    *,
+    internal_standard_mw: Optional[float] = None,
+    internal_standard_rt: Optional[float] = None,
+    internal_standard_name: str = "IS",
+    rt_tol: float = 0.15,
+    mz_tol: float = 1.0,
+) -> None:
+    """Populate IS peak metadata and per-compound ``is_normalized_ratio`` across files."""
+    if internal_standard_mw is None and internal_standard_rt is None:
+        return
+
+    is_by_file: Dict[int, Dict[str, Any]] = {}
+    for fi, fe in enumerate(result.files):
+        if fe.report is None or not fe.report.peaks:
+            continue
+        is_peak = _find_internal_standard_peak(
+            fe.report.peaks,
+            internal_standard_mw=internal_standard_mw,
+            internal_standard_rt=internal_standard_rt,
+            rt_tol=max(rt_tol, 0.15),
+            mz_tol=max(mz_tol, 1.0),
+        )
+        if is_peak is None:
+            continue
+        is_rt = round(float(is_peak.rt), 4)
+        is_area_pct = round(float(getattr(is_peak, "area_pct", 0.0) or 0.0), 4)
+        is_area_raw = float(getattr(is_peak, "area", 0.0) or 0.0)
+        is_by_file[fi] = {
+            "name": internal_standard_name,
+            "rt": is_rt,
+            "area": round(is_area_raw, 4) if is_area_raw > 0 else is_area_pct,
+            "area_pct": is_area_pct,
+            "is_area_pct": is_area_pct,
+        }
+
+    result.internal_standard_by_file = is_by_file
+
+    for comp in result.compounds:
+        ratios_for_comp: List[float] = []
+        is_hit_count = 0
+        for fi in sorted(comp.rt_by_file.keys()):
+            if fi not in is_by_file:
+                continue
+            is_info = is_by_file[fi]
+            is_area_pct = float(is_info["area_pct"])
+            is_area_raw = float(is_info["area"])
+            comp.is_area_pct_by_file[fi] = is_area_pct
+
+            comp_rt = comp.rt_by_file.get(fi)
+            if comp_rt is not None and abs(comp_rt - float(is_info["rt"])) <= 0.05:
+                is_hit_count += 1
+
+            sp_area_raw = comp.area_by_file.get(fi)
+            sp_area_pct = comp.area_pct_by_file.get(fi)
+            if sp_area_raw is not None and sp_area_raw > 0 and is_area_raw > 0:
+                ratio = round(float(sp_area_raw) / is_area_raw, 4)
+            elif sp_area_pct is not None and is_area_pct > 0:
+                ratio = round(float(sp_area_pct) / is_area_pct, 4)
+            else:
+                ratio = 0.0
+            comp.is_normalized_ratio_by_file[fi] = ratio
+            ratios_for_comp.append(ratio)
+
+        if is_hit_count > 0 and is_hit_count >= len(comp.rt_by_file) / 2:
+            comp.is_internal_standard = True
+        if ratios_for_comp:
+            comp.is_normalized_ratio = NormalizedRatio(ratios_for_comp)
+
+    if is_by_file:
+        rts = [float(v["rt"]) for v in is_by_file.values()]
+        area_pcts = [float(v["area_pct"]) for v in is_by_file.values()]
+        result.internal_standard = {
+            "name": internal_standard_name,
+            "mw": internal_standard_mw,
+            "rt": round(float(median(rts)), 4),
+            "area_pct": round(float(area_pcts[0] if len(area_pcts) == 1 else sum(area_pcts) / len(area_pcts)), 4),
+            "is_area_pct": round(float(area_pcts[0] if len(area_pcts) == 1 else sum(area_pcts) / len(area_pcts)), 4),
+            "area_pct_by_file": [round(float(is_by_file[k]["area_pct"]), 4) for k in sorted(is_by_file)],
+            "rt_by_file": [round(float(is_by_file[k]["rt"]), 4) for k in sorted(is_by_file)],
+            "by_file": is_by_file,
+        }
+    else:
+        result.internal_standard = {
+            "name": internal_standard_name,
+            "mw": internal_standard_mw,
+            "rt": internal_standard_rt,
+            "area_pct": None,
+            "is_area_pct": None,
+            "by_file": {},
+        }
 
 
 # ---------------------------------------------------------------------------
 # Orchestration
 # ---------------------------------------------------------------------------
 
-def analyze(files: List[FileEntry], rt_tol: float, mz_tol: float,
-            trend_threshold: float,
-            ignore_instrument: bool,
+def analyze(files: List[FileEntry], rt_tol: float = LCMS_RT_TOLERANCE,
+            mz_tol: float = LCMS_MZ_TOLERANCE,
+            trend_threshold: float = LCMS_TREND_THRESHOLD,
+            ignore_instrument: bool = False,
             use_run_time: bool = True,
             max_ion_rank: Optional[int] = None,
-            pick_biggest_group: bool = False) -> List[AnalysisResult]:
+            pick_biggest_group: bool = False,
+            internal_standard_mw: Optional[float] = None,
+            internal_standard_rt: Optional[float] = None,
+            internal_standard_name: str = "IS") -> List[AnalysisResult]:
     """
     Top-level analysis.  Groups files by (instrument, method) and runs
     peak matching within each group.
 
     Args:
         pick_biggest_group: When True and multiple (instrument, method) groups
-            exist, only analyze the largest group — discard the rest.  Used by
+            exist, only analyze the largest group -- discard the rest.  Used by
             the procedure_writer pipeline where cross-method comparison is not
             meaningful.  When False (default / CLI), analyze each group
             separately and return one AnalysisResult per group.
@@ -1087,7 +1366,7 @@ def analyze(files: List[FileEntry], rt_tol: float, mz_tol: float,
         # Legacy mode: ignore instrument but still respect method
         groups: Dict[str, List[FileEntry]] = defaultdict(list)
         for f in valid:
-            meth = method_basename(f.report.method_path)
+            meth = method_basename(getattr(f.report, "method_path", "") or getattr(f.report, "method", "") or "")
             groups[f"all|{meth}"].append(f)
         # If all files share the same method, simplify key to "all"
         if len(groups) == 1:
@@ -1096,8 +1375,8 @@ def analyze(files: List[FileEntry], rt_tol: float, mz_tol: float,
     else:
         groups = defaultdict(list)
         for f in valid:
-            inst = f.report.instrument
-            meth = method_basename(f.report.method_path)
+            inst = getattr(f.report, "instrument", "Unknown") or "Unknown"
+            meth = method_basename(getattr(f.report, "method_path", "") or getattr(f.report, "method", "") or "")
             groups[f"{inst}|{meth}"].append(f)
 
     if len(groups) > 1:
@@ -1107,7 +1386,7 @@ def analyze(files: List[FileEntry], rt_tol: float, mz_tol: float,
             inst_part = parts[0]
             meth_part = parts[1] if len(parts) > 1 else "?"
             # Use method_short for human-readable display
-            meth_display = v[0].report.method_short if v[0].report else meth_part
+            meth_display = getattr(v[0].report, "method_short", "") if v[0].report else meth_part
             group_summaries.append(
                 f"{inst_part}/{meth_display} ({len(v)} files)")
         warnings.append(
@@ -1131,7 +1410,7 @@ def analyze(files: List[FileEntry], rt_tol: float, mz_tol: float,
     for inst_key, group_files in groups.items():
         method_warn = []
 
-        # Sort by sort_key — this is the single source of truth for ordering.
+        # Sort by sort_key -- this is the single source of truth for ordering.
         # For Group 1 tracking files this is filename-derived (chemist controls
         # submission order).  For Group 2+ it may be recalibrated to actual
         # acquisition timestamps by the caller (lcms_identifier.py).
@@ -1159,7 +1438,7 @@ def analyze(files: List[FileEntry], rt_tol: float, mz_tol: float,
         # Match peaks (uses all files for matching, even excluded ones)
         compounds = match_peaks_across_files(group_files, rt_tol)
 
-        # Post-process — compute canonical RT, UV, ions BEFORE outlier 2nd pass
+        # Post-process -- compute canonical RT, UV, ions BEFORE outlier 2nd pass
         for compound in compounds:
             compute_canonical_rt(compound)
             _update_compound_uv_ratio(compound)
@@ -1195,10 +1474,11 @@ def analyze(files: List[FileEntry], rt_tol: float, mz_tol: float,
 
         first_report = group_files[0].report
         meth_key = method_basename(
-            first_report.method_path) if first_report else ""
+            getattr(first_report, "method_path", "") or getattr(first_report, "method", "") or ""
+        ) if first_report else ""
         result = AnalysisResult(
-            instrument=first_report.instrument if first_report else "Unknown",
-            method_short=first_report.method_short if first_report else "Unknown",
+            instrument=getattr(first_report, "instrument", "Unknown") if first_report else "Unknown",
+            method_short=getattr(first_report, "method_short", "Unknown") if first_report else "Unknown",
             method_key=meth_key,
             files=group_files,
             compounds=compounds,
@@ -1207,9 +1487,197 @@ def analyze(files: List[FileEntry], rt_tol: float, mz_tol: float,
             ambiguous_files=ambiguous,
             discarded_files=discarded_all,
         )
+        if internal_standard_mw is not None or internal_standard_rt is not None:
+            _apply_internal_standard_normalization(
+                result,
+                internal_standard_mw=internal_standard_mw,
+                internal_standard_rt=internal_standard_rt,
+                internal_standard_name=internal_standard_name,
+                rt_tol=max(rt_tol, 0.15),
+                mz_tol=max(mz_tol, 1.0),
+            )
         results.append(result)
 
     return results
+
+
+def _coerce_to_file_entry(item: Any, index: int) -> FileEntry:
+    """Convert a FileEntry, LCMSAnalysis, LCMSReport, path, or dict into a FileEntry."""
+    if isinstance(item, FileEntry):
+        return item
+    if isinstance(item, (str, Path)):
+        from .lcms_file_parser import parse_lcms_file
+
+        p = Path(item)
+        analysis = parse_lcms_file(p)
+        cat, sk = categorize_lcms_file(p.name)
+        return FileEntry(
+            path=str(p.resolve()),
+            filename=p.name,
+            category=cat,
+            sort_key=float(index) if sk == 100 else sk,
+            report=analysis,  # type: ignore[arg-type]
+        )
+    if isinstance(item, dict):
+        from .mzml_parser import LCMSAnalysis, LCMSPeak, MassSpectrum
+
+        peaks_list = []
+        raw_peaks = item.get("peaks", [])
+        total_area = sum(float(p.get("area", p.get("area_pct", 0.0)) or 0.0) for p in raw_peaks) or 1.0
+        for pid, pk in enumerate(raw_peaks, start=1):
+            mzs = pk.get("mz_values") or pk.get("top_ions") or ([pk["mz"]] if "mz" in pk else [])
+            ints = pk.get("intensities") or [100.0] * len(mzs)
+            mode = pk.get("mode", "ES+")
+            spectra = pk.get("ms_spectra") or ([MassSpectrum(mzs, ints, mode, rt=pk.get("rt"))] if mzs else [])
+            area_val = float(pk.get("area", pk.get("area_pct", 0.0)) or 0.0)
+            area_pct_val = float(pk.get("area_pct", round(100.0 * area_val / total_area, 2)))
+            peaks_list.append(
+                LCMSPeak(
+                    peak_id=pk.get("peak_id", pid),
+                    rt=float(pk.get("rt", 0.0)),
+                    area=area_val,
+                    area_pct=area_pct_val,
+                    ms_spectra=spectra,
+                )
+            )
+        fname = item.get("filename") or item.get("sample") or item.get("name") or f"sample_{index + 1}"
+        rep = LCMSAnalysis(
+            filename=fname,
+            peaks=peaks_list,
+            instrument=item.get("instrument", "Unknown"),
+            method=item.get("method", ""),
+            sample_name=fname,
+        )
+        return FileEntry(
+            path=fname,
+            filename=fname,
+            category=item.get("category", "tracking"),
+            sort_key=float(item.get("sort_key", index)),
+            report=rep,  # type: ignore[arg-type]
+        )
+    # LCMSAnalysis or LCMSReport instance
+    fname = getattr(item, "filename", "") or getattr(item, "sample_name", "") or f"sample_{index + 1}"
+    return FileEntry(
+        path=getattr(item, "file_path", fname) or fname,
+        filename=fname,
+        category="tracking",
+        sort_key=float(index),
+        report=item,
+    )
+
+
+def analyze_multi_lcms(
+    files: Optional[Sequence[Any]] = None,
+    *,
+    analyses: Optional[Sequence[Any]] = None,
+    reports: Optional[Sequence[Any]] = None,
+    internal_standard_mw: Optional[float] = None,
+    internal_standard_rt: Optional[float] = None,
+    internal_standard_name: str = "IS",
+    rt_tol: float = 0.15,
+    mz_tol: float = LCMS_MZ_TOLERANCE,
+    trend_threshold: float = LCMS_TREND_THRESHOLD,
+    ignore_instrument: bool = True,
+    use_run_time: bool = False,
+    max_ion_rank: Optional[int] = None,
+    pick_biggest_group: bool = False,
+) -> Dict[str, Any]:
+    """Collate multiple LCMS chromatograms/reports with optional internal standard (IS) normalization.
+
+    Identifies the internal standard peak in each chromatogram (by matching
+    ``internal_standard_mw`` via :class:`MassResolver` or ``internal_standard_rt``
+    within tolerance ``0.15 min``) and computes ``is_area_pct`` and
+    ``is_normalized_ratio = round(species_area / is_area, 4)`` for each tracked
+    species across samples/timepoints.
+    """
+    raw_items = files if files is not None else (analyses if analyses is not None else (reports or []))
+    entries = [_coerce_to_file_entry(item, idx) for idx, item in enumerate(raw_items)]
+
+    results = analyze(
+        entries,
+        rt_tol=rt_tol,
+        mz_tol=mz_tol,
+        trend_threshold=trend_threshold,
+        ignore_instrument=ignore_instrument,
+        use_run_time=use_run_time,
+        max_ion_rank=max_ion_rank,
+        pick_biggest_group=pick_biggest_group,
+        internal_standard_mw=internal_standard_mw,
+        internal_standard_rt=internal_standard_rt,
+        internal_standard_name=internal_standard_name,
+    )
+
+    if not results:
+        empty_out: Dict[str, Any] = {
+            "instrument": "Unknown",
+            "method_short": "Unknown",
+            "files": [],
+            "samples": [],
+            "compounds": [],
+            "species": [],
+            "summary": {"increasing": [], "decreasing": [], "stable": []},
+            "warnings": [],
+        }
+        if internal_standard_mw is not None or internal_standard_rt is not None:
+            empty_out["internal_standard"] = {
+                "name": internal_standard_name,
+                "mw": internal_standard_mw,
+                "rt": internal_standard_rt,
+                "area_pct": None,
+            }
+        return empty_out
+
+    primary = results[0]
+    report_dict: Dict[str, Any] = json.loads(format_json_report(primary))
+
+    # Attach rich NormalizedRatio objects onto compounds/species for both float & list indexing
+    for cd, comp in zip(report_dict.get("compounds", []), primary.compounds):
+        cd["rt"] = comp.canonical_rt
+        if comp.is_normalized_ratio is not None:
+            cd["is_normalized_ratio"] = comp.is_normalized_ratio
+        if comp.is_area_pct_by_file:
+            first_fi = sorted(comp.is_area_pct_by_file)[0]
+            cd["is_area_pct"] = comp.is_area_pct_by_file[first_fi]
+
+    # Build per-sample summary with per-species is_normalized_ratio
+    samples_list: List[Dict[str, Any]] = []
+    for fi, fe in enumerate(primary.files):
+        is_info = primary.internal_standard_by_file.get(fi)
+        sample_species: List[Dict[str, Any]] = []
+        for comp in primary.compounds:
+            if fi not in comp.rt_by_file:
+                continue
+            sp_entry: Dict[str, Any] = {
+                "compound_id": comp.compound_id,
+                "rt": comp.rt_by_file[fi],
+                "area": comp.area_by_file.get(fi),
+                "area_pct": comp.area_pct_by_file.get(fi),
+                "is_internal_standard": comp.is_internal_standard,
+            }
+            if fi in comp.is_area_pct_by_file:
+                sp_entry["is_area_pct"] = comp.is_area_pct_by_file[fi]
+            if fi in comp.is_normalized_ratio_by_file:
+                sp_entry["is_normalized_ratio"] = comp.is_normalized_ratio_by_file[fi]
+            sample_species.append(sp_entry)
+
+        samp_dict: Dict[str, Any] = {
+            "file_index": fi,
+            "filename": fe.filename,
+            "species": sample_species,
+        }
+        if is_info is not None:
+            samp_dict["internal_standard"] = is_info
+            samp_dict["is_area_pct"] = is_info.get("area_pct")
+        samples_list.append(samp_dict)
+
+    report_dict["samples"] = samples_list
+    report_dict["timepoints"] = samples_list
+    report_dict["species"] = report_dict["compounds"]
+    if primary.internal_standard is not None:
+        report_dict["internal_standard"] = primary.internal_standard
+        report_dict["is_area_pct"] = primary.internal_standard.get("area_pct")
+
+    return report_dict
 
 
 def _collect_uv_lambda_max(compound: Compound, files: List[FileEntry]):

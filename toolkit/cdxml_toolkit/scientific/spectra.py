@@ -3,10 +3,12 @@ import contextlib
 import hashlib
 import io
 import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Any, Optional, Sequence, Tuple, Union
 import numpy as np
 from scipy.signal import find_peaks
-from .common import number
+from .common import Drawing, number
 
 
 # Known residual solvent peaks in 1H and 13C NMR (ppm).
@@ -624,7 +626,7 @@ def analyze_spectrum(path, options=None):
         options = dict(spec_dict.get('processing') or {})
         for k in ('solvent', 'nucleus', 'frequency_mhz', 'exclude_solvent', 'multiplet_max_j_hz',
                   'baseline_windows', 'baseline_degree', 'prominence', 'integration_regions',
-                  'normalization_region', 'normalization_value'):
+                  'normalization_region', 'normalization_value', 'inset_region'):
             if k in spec_dict and k not in options:
                 options[k] = spec_dict[k]
         path = raw_path
@@ -634,7 +636,7 @@ def analyze_spectrum(path, options=None):
     allowed = {
         'baseline_windows', 'baseline_degree', 'prominence', 'integration_regions',
         'normalization_region', 'normalization_value', 'solvent', 'nucleus',
-        'frequency_mhz', 'exclude_solvent', 'multiplet_max_j_hz',
+        'frequency_mhz', 'exclude_solvent', 'multiplet_max_j_hz', 'inset_region',
     }
     if not isinstance(options, dict) or set(options) - allowed:
         raise ValueError('Unknown spectrum processing options')
@@ -734,7 +736,7 @@ def analyze_spectrum(path, options=None):
     if meta.get('raw_processing'):
         processing_info.update(meta['raw_processing'])
 
-    return {
+    out_result = {
         'source': str(path),
         'sha256': _hash_source(path),
         'sample_count': len(x),
@@ -752,3 +754,328 @@ def analyze_spectrum(path, options=None):
         ),
         'spectrum': {'ppm': x.tolist(), 'intensity': y.tolist()},
     }
+    if options.get('inset_region') is not None:
+        ir = options['inset_region']
+        out_result['inset_region'] = [float(min(ir)), float(max(ir))]
+        out_result['cdxml'] = build_nmr_cdxml(
+            x, y, peaks=reported_peaks, inset_region=ir, nucleus=nucleus
+        )
+    return out_result
+
+
+def _extract_nmr_arrays_and_peaks(
+    ppm: Any = None,
+    intensity: Any = None,
+    *,
+    peaks: Optional[Sequence[Any]] = None,
+    x: Any = None,
+    y: Any = None,
+    spectrum: Any = None,
+) -> Tuple[np.ndarray, np.ndarray, list[dict[str, float]]]:
+    """Normalize flexible NMR inputs into (ppm_array, intensity_array, peak_dicts)."""
+    if isinstance(ppm, (str, Path)):
+        rx, ry = read_spectrum(ppm)
+        ppm, intensity = rx, ry
+    elif isinstance(ppm, dict):
+        d = ppm
+        if peaks is None and 'peaks' in d:
+            peaks = d['peaks']
+        spec_sub = d.get('spectrum') if isinstance(d.get('spectrum'), dict) else d
+        ppm = spec_sub.get('ppm') if 'ppm' in spec_sub else spec_sub.get('x')
+        intensity = spec_sub.get('intensity') if 'intensity' in spec_sub else spec_sub.get('y')
+    elif spectrum is not None and isinstance(spectrum, dict):
+        ppm = spectrum.get('ppm') if 'ppm' in spectrum else spectrum.get('x')
+        intensity = spectrum.get('intensity') if 'intensity' in spectrum else spectrum.get('y')
+
+    if ppm is None and x is not None:
+        ppm = x
+    if intensity is None and y is not None:
+        intensity = y
+
+    norm_peaks: list[dict[str, float]] = []
+    if peaks:
+        for pk in peaks:
+            if isinstance(pk, (int, float)):
+                norm_peaks.append({'ppm': float(pk), 'intensity': 1.0})
+            elif isinstance(pk, dict):
+                pv = pk.get('ppm', pk.get('shift', pk.get('center')))
+                iv = pk.get('intensity', pk.get('height', 1.0))
+                if pv is not None:
+                    norm_peaks.append({'ppm': float(pv), 'intensity': float(iv if iv is not None else 1.0)})
+            else:
+                pv = getattr(pk, 'ppm', getattr(pk, 'shift', None))
+                iv = getattr(pk, 'intensity', getattr(pk, 'height', 1.0))
+                if pv is not None:
+                    norm_peaks.append({'ppm': float(pv), 'intensity': float(iv if iv is not None else 1.0)})
+
+    if ppm is None or intensity is None:
+        if norm_peaks:
+            p_vals = [p['ppm'] for p in norm_peaks]
+            p_min = min(min(p_vals) - 0.5, 0.0)
+            p_max = max(max(p_vals) + 0.5, 10.0)
+            x_arr = np.linspace(p_min, p_max, 2048, dtype=float)
+            y_arr = np.zeros_like(x_arr)
+            gamma = max((p_max - p_min) * 0.002, 0.003)
+            for p in norm_peaks:
+                y_arr += p['intensity'] * (gamma ** 2) / ((x_arr - p['ppm']) ** 2 + gamma ** 2)
+        else:
+            x_arr = np.linspace(0.0, 10.0, 512, dtype=float)
+            y_arr = np.zeros_like(x_arr)
+    else:
+        x_arr = np.asarray(ppm, dtype=float).reshape(-1)
+        y_arr = np.asarray(intensity, dtype=float).reshape(-1)
+        if len(x_arr) != len(y_arr) or len(x_arr) < 2:
+            raise ValueError('ppm and intensity arrays must have matching length >= 2')
+
+    order = np.argsort(x_arr)
+    x_arr = x_arr[order]
+    y_arr = y_arr[order]
+
+    if not norm_peaks and len(x_arr) >= 3:
+        ptp = float(np.ptp(y_arr))
+        if ptp > 0:
+            pk_idx, _ = find_peaks(y_arr, prominence=max(ptp * 0.08, 1e-12))
+            for i in pk_idx[:50]:
+                norm_peaks.append({'ppm': float(x_arr[i]), 'intensity': float(y_arr[i])})
+
+    return x_arr, y_arr, norm_peaks
+
+
+def _downsample_indices(values: np.ndarray, max_points: int = 800) -> list[int]:
+    """Select min/max envelope indices to keep CDXML curve compact while preserving sharp peaks."""
+    n = len(values)
+    if n <= max_points:
+        return list(range(n))
+    buckets = max(2, max_points // 2)
+    edges = np.linspace(0, n, buckets + 1, dtype=int)
+    chosen = {0, n - 1}
+    for a, b in zip(edges[:-1], edges[1:]):
+        if b > a:
+            seg = values[a:b]
+            chosen.add(int(a + np.argmin(seg)))
+            chosen.add(int(a + np.argmax(seg)))
+    return sorted(chosen)
+
+
+def build_nmr_cdxml(
+    ppm: Any = None,
+    intensity: Any = None,
+    *,
+    peaks: Optional[Sequence[Any]] = None,
+    inset_region: Optional[Union[Tuple[float, float], list[float]]] = None,
+    title: str = '1H NMR Spectrum',
+    nucleus: str = '1H',
+    output_path: Optional[Union[str, Path]] = None,
+    x: Any = None,
+    y: Any = None,
+    spectrum: Any = None,
+) -> str:
+    """Build a ChemDraw CDXML document for an NMR spectrum with optional zoomed ``inset_region``.
+
+    When ``inset_region=(ppm_low, ppm_high)`` is passed, renders a secondary
+    magnified inset box in the upper area of the spectrum showing the zoomed-in
+    curve, peak ticks, and its own mini ppm axis for ``[min(inset_region), max(inset_region)]``.
+    """
+    if isinstance(ppm, dict) and inset_region is None and ppm.get('inset_region') is not None:
+        inset_region = ppm['inset_region']
+
+    x_arr, y_arr, norm_peaks = _extract_nmr_arrays_and_peaks(
+        ppm, intensity, peaks=peaks, x=x, y=y, spectrum=spectrum
+    )
+
+    drawing = Drawing(title)
+    x0, y0, w, h = 60.0, 50.0, 420.0, 220.0
+    x_min, x_max = float(x_arr[0]), float(x_arr[-1])
+    if x_max <= x_min:
+        x_max = x_min + 1.0
+    y_min, y_max = float(np.min(y_arr)), float(np.max(y_arr))
+    y_span = (y_max - y_min) if y_max > y_min else 1.0
+
+    # Reversed x-axis for NMR (high ppm on left, low ppm on right)
+    def sx_main(val: float) -> float:
+        return x0 + (x_max - float(val)) / (x_max - x_min) * w
+
+    def sy_main(val: float) -> float:
+        return y0 + h - 18.0 - ((float(val) - y_min) / y_span) * (h - 42.0)
+
+    main_group = drawing.add('group', {'BoundingBox': f'{x0:.2f} {y0:.2f} {x0 + w:.2f} {y0 + h:.2f}'})
+    # Main frame and baseline axis
+    drawing.line((x0, y0), (x0, y0 + h), main_group)
+    drawing.line((x0, y0 + h), (x0 + w, y0 + h), main_group)
+    drawing.line((x0 + w, y0), (x0 + w, y0 + h), main_group)
+    drawing.line((x0, y0), (x0 + w, y0), main_group)
+    drawing.text((x0 + w * 0.38, y0 - 10.0), title, size=10, parent=main_group)
+    drawing.text((x0 + w * 0.40, y0 + h + 28.0), f'{nucleus} Chemical Shift (ppm)', size=9, parent=main_group)
+
+    # Main ppm axis ticks
+    for tick_ppm in np.linspace(x_max, x_min, 6):
+        tx = sx_main(float(tick_ppm))
+        drawing.line((tx, y0 + h), (tx, y0 + h + 5.0), main_group)
+        drawing.text((tx - 8.0, y0 + h + 15.0), f'{tick_ppm:.2f}', size=8, parent=main_group)
+
+    # Main spectrum trace
+    idx_main = _downsample_indices(y_arr, max_points=800)
+    pts_main = [(sx_main(float(x_arr[i])), sy_main(float(y_arr[i]))) for i in idx_main]
+    if len(pts_main) >= 2:
+        drawing.curve(pts_main, parent=main_group)
+
+    # Main peak ticks
+    for pk in norm_peaks:
+        p_ppm = pk['ppm']
+        if x_min <= p_ppm <= x_max:
+            px = sx_main(p_ppm)
+            py = sy_main(pk['intensity'])
+            drawing.line((px, max(y0 + 4.0, py - 8.0)), (px, max(y0 + 2.0, py - 2.0)), main_group)
+
+    # Secondary magnified inset box when inset_region is provided
+    if inset_region is not None:
+        if not isinstance(inset_region, (tuple, list)) or len(inset_region) != 2:
+            raise ValueError('inset_region must be a 2-element (ppm_low, ppm_high) tuple or list')
+        ppm_low = float(min(inset_region[0], inset_region[1]))
+        ppm_high = float(max(inset_region[0], inset_region[1]))
+        if ppm_high <= ppm_low:
+            raise ValueError('inset_region bounds must have ppm_low < ppm_high')
+
+        ix0 = x0 + 24.0
+        iy0 = y0 + 12.0
+        iw = 185.0
+        ih = 82.0
+
+        inset_group = drawing.add(
+            'group',
+            {
+                'BoundingBox': f'{ix0:.2f} {iy0:.2f} {ix0 + iw:.2f} {iy0 + ih:.2f}',
+            },
+        )
+        # Inset bounding box lines
+        drawing.line((ix0, iy0), (ix0 + iw, iy0), inset_group)
+        drawing.line((ix0 + iw, iy0), (ix0 + iw, iy0 + ih), inset_group)
+        drawing.line((ix0, iy0 + ih), (ix0 + iw, iy0 + ih), inset_group)
+        drawing.line((ix0, iy0), (ix0, iy0 + ih), inset_group)
+        drawing.text(
+            (ix0 + 6.0, iy0 + 10.0),
+            f'Inset zoom: {ppm_high:.2f}-{ppm_low:.2f} ppm',
+            size=7,
+            parent=inset_group,
+        )
+
+        # Extract or interpolate curve slice in [ppm_low, ppm_high]
+        mask = (x_arr >= ppm_low) & (x_arr <= ppm_high)
+        if int(np.sum(mask)) >= 2:
+            ix_arr = np.r_[ppm_low, x_arr[mask], ppm_high]
+            iy_arr = np.interp(ix_arr, x_arr, y_arr)
+        else:
+            ix_arr = np.linspace(ppm_low, ppm_high, 128, dtype=float)
+            iy_arr = np.interp(ix_arr, x_arr, y_arr)
+
+        iy_min = float(np.min(iy_arr))
+        iy_max = float(np.max(iy_arr))
+        iy_span = (iy_max - iy_min) if iy_max > iy_min else 1.0
+
+        def sx_inset(val: float) -> float:
+            return ix0 + 8.0 + (ppm_high - float(val)) / (ppm_high - ppm_low) * (iw - 16.0)
+
+        def sy_inset(val: float) -> float:
+            return iy0 + ih - 10.0 - ((float(val) - iy_min) / iy_span) * (ih - 28.0)
+
+        idx_inset = _downsample_indices(iy_arr, max_points=300)
+        pts_inset = [(sx_inset(float(ix_arr[i])), sy_inset(float(iy_arr[i]))) for i in idx_inset]
+        if len(pts_inset) >= 2:
+            drawing.curve(pts_inset, parent=inset_group)
+
+        # Peak ticks & ppm labels inside inset
+        inset_peaks = [pk for pk in norm_peaks if ppm_low <= pk['ppm'] <= ppm_high]
+        for pk in inset_peaks:
+            px = sx_inset(pk['ppm'])
+            p_int = float(np.interp(pk['ppm'], ix_arr, iy_arr))
+            py = sy_inset(p_int)
+            tick_top = max(iy0 + 12.0, py - 7.0)
+            tick_bot = max(iy0 + 14.0, py - 2.0)
+            drawing.line((px, tick_top), (px, tick_bot), inset_group)
+            drawing.text((px - 6.0, max(iy0 + 10.0, tick_top - 2.0)), f"{pk['ppm']:.2f}", size=6, parent=inset_group)
+
+        # Mini ppm axis ticks at bottom of inset box
+        for tick_ppm in (ppm_high, 0.5 * (ppm_high + ppm_low), ppm_low):
+            tx = sx_inset(tick_ppm)
+            drawing.line((tx, iy0 + ih), (tx, iy0 + ih + 3.5), inset_group)
+            drawing.text((tx - 7.0, iy0 + ih + 11.0), f'{tick_ppm:.2f}', size=7, parent=inset_group)
+
+    if output_path is not None:
+        drawing.save(output_path)
+
+    xml_body = ET.tostring(drawing.root, encoding='unicode')
+    return (
+        '<?xml version="1.0" encoding="UTF-8" ?>\n'
+        '<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >\n'
+        + xml_body
+    )
+
+
+def nmr_to_cdxml(
+    ppm: Any = None,
+    intensity: Any = None,
+    *,
+    peaks: Optional[Sequence[Any]] = None,
+    inset_region: Optional[Union[Tuple[float, float], list[float]]] = None,
+    title: str = '1H NMR Spectrum',
+    nucleus: str = '1H',
+    output_path: Optional[Union[str, Path]] = None,
+    x: Any = None,
+    y: Any = None,
+    spectrum: Any = None,
+) -> str:
+    """Convert NMR spectrum arrays, peak list, or file path into a CDXML string (with optional ``inset_region``)."""
+    return build_nmr_cdxml(
+        ppm,
+        intensity,
+        peaks=peaks,
+        inset_region=inset_region,
+        title=title,
+        nucleus=nucleus,
+        output_path=output_path,
+        x=x,
+        y=y,
+        spectrum=spectrum,
+    )
+
+
+def plot_nmr(
+    ppm: Any = None,
+    intensity: Any = None,
+    *,
+    peaks: Optional[Sequence[Any]] = None,
+    inset_region: Optional[Union[Tuple[float, float], list[float]]] = None,
+    title: str = '1H NMR Spectrum',
+    nucleus: str = '1H',
+    output_path: Optional[Union[str, Path]] = None,
+    output_dir: Optional[Union[str, Path]] = None,
+    x: Any = None,
+    y: Any = None,
+    spectrum: Any = None,
+) -> Union[str, dict[str, Any]]:
+    """Plot an NMR spectrum to CDXML (and optional ``output_dir`` bundle) with ``inset_region`` zoom support."""
+    target_cdxml = Path(output_path) if output_path is not None else (
+        Path(output_dir) / 'spectrum.cdxml' if output_dir is not None else None
+    )
+    if target_cdxml is not None:
+        target_cdxml.parent.mkdir(parents=True, exist_ok=True)
+
+    cdxml_str = build_nmr_cdxml(
+        ppm,
+        intensity,
+        peaks=peaks,
+        inset_region=inset_region,
+        title=title,
+        nucleus=nucleus,
+        output_path=target_cdxml,
+        x=x,
+        y=y,
+        spectrum=spectrum,
+    )
+    if output_dir is not None:
+        return {
+            'cdxml': cdxml_str,
+            'cdxml_path': str(target_cdxml),
+            'inset_region': [float(min(inset_region)), float(max(inset_region))] if inset_region is not None else None,
+        }
+    return cdxml_str

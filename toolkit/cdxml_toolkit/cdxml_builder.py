@@ -60,7 +60,7 @@ import json
 import math
 import sys
 from copy import deepcopy
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from xml.sax.saxutils import escape as xml_escape
 
 
@@ -80,11 +80,23 @@ from .constants import (
 )
 from .cdxml_utils import hydrogens_lead
 
-# Element numbers for heteroatoms we care about
+# Element numbers for all 118 IUPAC elements
 ELEMENT_NUMBERS: Dict[str, int] = {
-    "H":  1,  "B":  5,  "C":  6,  "N":  7,  "O":  8,
-    "F":  9,  "Si": 14, "P":  15, "S":  16, "Cl": 17,
-    "Se": 34, "Br": 35, "I":  53, "Cs": 55,
+    "H": 1, "He": 2, "Li": 3, "Be": 4, "B": 5, "C": 6, "N": 7, "O": 8, "F": 9, "Ne": 10,
+    "Na": 11, "Mg": 12, "Al": 13, "Si": 14, "P": 15, "S": 16, "Cl": 17, "Ar": 18,
+    "K": 19, "Ca": 20, "Sc": 21, "Ti": 22, "V": 23, "Cr": 24, "Mn": 25, "Fe": 26,
+    "Co": 27, "Ni": 28, "Cu": 29, "Zn": 30, "Ga": 31, "Ge": 32, "As": 33, "Se": 34,
+    "Br": 35, "Kr": 36, "Rb": 37, "Sr": 38, "Y": 39, "Zr": 40, "Nb": 41, "Mo": 42,
+    "Tc": 43, "Ru": 44, "Rh": 45, "Pd": 46, "Ag": 47, "Cd": 48, "In": 49, "Sn": 50,
+    "Sb": 51, "Te": 52, "I": 53, "Xe": 54, "Cs": 55, "Ba": 56, "La": 57, "Ce": 58,
+    "Pr": 59, "Nd": 60, "Pm": 61, "Sm": 62, "Eu": 63, "Gd": 64, "Tb": 65, "Dy": 66,
+    "Ho": 67, "Er": 68, "Tm": 69, "Yb": 70, "Lu": 71, "Hf": 72, "Ta": 73, "W": 74,
+    "Re": 75, "Os": 76, "Ir": 77, "Pt": 78, "Au": 79, "Hg": 80, "Tl": 81, "Pb": 82,
+    "Bi": 83, "Po": 84, "At": 85, "Rn": 86, "Fr": 87, "Ra": 88, "Ac": 89, "Th": 90,
+    "Pa": 91, "U": 92, "Np": 93, "Pu": 94, "Am": 95, "Cm": 96, "Bk": 97, "Cf": 98,
+    "Es": 99, "Fm": 100, "Md": 101, "No": 102, "Lr": 103, "Rf": 104, "Db": 105,
+    "Sg": 106, "Bh": 107, "Hs": 108, "Mt": 109, "Ds": 110, "Rg": 111, "Cn": 112,
+    "Nh": 113, "Fl": 114, "Mc": 115, "Lv": 116, "Ts": 117, "Og": 118,
 }
 try:
     from rdkit import Chem as _Chem
@@ -95,6 +107,8 @@ try:
             ELEMENT_NUMBERS[_sym] = _z
 except Exception:
     pass
+
+_ELEMENT_NUMBERS = ELEMENT_NUMBERS
 
 
 def element_number(symbol: str) -> int:
@@ -111,12 +125,22 @@ def element_number(symbol: str) -> int:
 # Two-character element symbols (need special handling in label alignment)
 WIDE_SYMBOLS = {"Br", "Cl", "Si", "Se", "Cs"}
 
-# Bond order → CDXML Order attribute (1 is default so we can omit it)
-BOND_ORDER_ATTR: Dict[int, Optional[str]] = {
-    1: None,   # single — omit Order attribute
+# Bond order -> CDXML Order attribute (1 is default so we can omit it)
+BOND_ORDER_ATTR: Dict[Any, Optional[str]] = {
+    1: None,   # single -- omit Order attribute
     2: "2",
     3: "3",
     4: "1.5",  # aromatic rendered as 1.5 in ChemDraw
+    9: "dative",
+    "1": None,
+    "2": "2",
+    "3": "3",
+    "1.5": "1.5",
+    "dative": "dative",
+    "DATIVE": "dative",
+    "DATIVER": "dative",
+    "DATIVEL": "dative",
+    "DATIVEONE": "dative",
 }
 
 # Stereo bond config → ChemDraw BS / Display attribute
@@ -399,8 +423,18 @@ def _build_fragment(
 
         is_carbon = (sym == "C")
 
-        # Charge
+        # Charge & Radical
         charge = a.get("charge", 0)
+        rad = a.get("radical")
+        rad_attr_val: Optional[str] = None
+        if isinstance(rad, str) and rad in ("Doublet", "Triplet", "Singlet", "Diradical"):
+            rad_attr_val = "Triplet" if rad == "Diradical" else rad
+        else:
+            n_rad = int(rad) if isinstance(rad, (int, float)) else int(a.get("num_radical_electrons", 0))
+            if n_rad == 1:
+                rad_attr_val = "Doublet"
+            elif n_rad >= 2:
+                rad_attr_val = "Triplet"
 
         if not is_carbon:
             el_num = element_number(sym)
@@ -410,11 +444,13 @@ def _build_fragment(
             attrs.append(f'NumHydrogens="{nh}"')
             attrs.append('NeedsClean="yes"')
             attrs.append('AS="N"')
-        elif charge and "num_hydrogens" in a:
+        elif (charge or rad_attr_val or a.get("isotope")) and "num_hydrogens" in a:
             attrs.append(f'NumHydrogens="{a["num_hydrogens"]}"')
 
         if charge:
             attrs.append(f'Charge="{charge}"')
+        if rad_attr_val:
+            attrs.append(f'Radical="{rad_attr_val}"')
         if a.get('isotope'):
             attrs.append(f'Isotope="{a["isotope"]}"')
         if a.get('enhanced_stereo_type'):
@@ -427,7 +463,7 @@ def _build_fragment(
             attrs.append(f'Stereo="{cfg}"')
 
         if is_carbon and not charge:
-            # Carbon: no Element, no label, no NumHydrogens
+            # Carbon: no Element, no label
             lines.append(f'<n {" ".join(attrs)}/>')
         else:
             # Heteroatom: needs <t> child label
@@ -436,7 +472,7 @@ def _build_fragment(
             ly = ay + 3.52
             bbox = _label_bbox(ax, ay, sym)
 
-            # Build label text including hydrogens: "N" → "NH", "O" → "OH",
+            # Build label text including hydrogens: "N" -> "NH", "O" -> "OH",
             # standalone binary hydrides: "H2O", "HCl", "H2S", "HF", "HBr", "HI"
             nh = a.get("num_hydrogens", 0)
             is_unbonded = not any(
@@ -476,6 +512,15 @@ def _build_fragment(
         order = b.get("order", 1)
         cfg = b.get("cfg", 0)
 
+        order_str_upper = str(order).upper()
+        if order_str_upper.endswith("DATIVEL"):
+            a1_xml, a2_xml = a2_xml, a1_xml
+            order_attr: Optional[str] = "dative"
+        elif b.get("dative") or "DATIVE" in order_str_upper:
+            order_attr = "dative"
+        else:
+            order_attr = BOND_ORDER_ATTR.get(order)
+
         attrs = [
             f'id="{bond_xml_id}"',
             f'Z="{z}"',
@@ -483,7 +528,6 @@ def _build_fragment(
             f'E="{a2_xml}"',
         ]
 
-        order_attr = BOND_ORDER_ATTR.get(order)
         if order_attr:
             attrs.append(f'Order="{order_attr}"')
 
@@ -493,7 +537,7 @@ def _build_fragment(
 
         if cfg and cfg in BOND_STEREO_ATTR:
             attrs.append(f'Display="{BOND_STEREO_ATTR[cfg]}"')
-        elif order == 1:
+        elif order == 1 and not order_attr:
             # Default single bond gets BS="N" (normal, no stereo)
             attrs.append('BS="N"')
 
@@ -630,12 +674,172 @@ def _header(bbox: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Public API — single molecule
+# Public API -- single molecule & RDKit Mol conversion
 # ---------------------------------------------------------------------------
 
+def mol_to_atom_bond_dicts(
+    mol_or_smiles: Any,
+    offset_index: int = 0,
+    normalize: bool = True,
+    center_x: float = 200.0,
+    center_y: float = 300.0,
+) -> Tuple[List[Dict], List[Dict]]:
+    """
+    Convert an RDKit Mol or SMILES string into (atoms, bonds) dicts preserving
+    dative/coordination bonds (Order="dative"), radicals (Radical="Doublet" / "Triplet"),
+    and axial chirality / tetrahedral stereochemistry.
+    """
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+    from .chemistry_semantics import _elemental_metal, require_supported, semantic_key
+
+    if isinstance(mol_or_smiles, str):
+        mol = Chem.MolFromSmiles(mol_or_smiles)
+    else:
+        mol = Chem.Mol(mol_or_smiles) if mol_or_smiles is not None else None
+    if mol is None:
+        raise ValueError("Invalid chemical structure.")
+
+    require_supported(mol, allow_radicals=True, allow_dative=True, allow_atropisomers=True)
+    source_cx = semantic_key(mol)
+
+    if mol.GetNumConformers() == 0:
+        AllChem.Compute2DCoords(mol)
+
+    mol_kek = Chem.RWMol(mol)
+    try:
+        Chem.Kekulize(mol_kek, clearAromaticFlags=True)
+        mol = mol_kek.GetMol()
+    except Exception:
+        pass
+
+    Chem.WedgeMolBonds(mol, mol.GetConformer())
+
+    enhanced = {}
+    group_names = {
+        Chem.StereoGroupType.STEREO_AND: "And",
+        Chem.StereoGroupType.STEREO_OR: "Or",
+        Chem.StereoGroupType.STEREO_ABSOLUTE: "Absolute",
+    }
+    for group_num, group in enumerate(mol.GetStereoGroups(), 1):
+        for atom in group.GetAtoms():
+            enhanced[atom.GetIdx()] = (group_names[group.GetGroupType()], group_num)
+
+    conf = mol.GetConformer()
+    atoms: List[Dict] = []
+    rdkit_to_local: Dict[int, int] = {}
+    for i, atom in enumerate(mol.GetAtoms()):
+        pos = conf.GetAtomPosition(i)
+        local_idx = i + 1 + offset_index
+        rdkit_to_local[i] = local_idx
+        sym = atom.GetSymbol()
+        a: Dict[str, Any] = {
+            "index": local_idx,
+            "symbol": sym,
+            "x": round(float(pos.x), 4),
+            "y": round(float(pos.y), 4),
+            "atomic_number": atom.GetAtomicNum(),
+        }
+        if atom.GetAtomicNum() == 0:
+            a["is_generic"] = True
+            a["generic_label"] = "R"
+            a["node_type"] = "GenericNickname"
+        charge = atom.GetFormalCharge()
+        if charge != 0:
+            a["charge"] = charge
+        isotope = atom.GetIsotope()
+        if isotope:
+            a["isotope"] = isotope
+        n_rad = atom.GetNumRadicalElectrons()
+        if n_rad > 0 and not _elemental_metal(atom):
+            a["num_radical_electrons"] = n_rad
+            a["radical"] = "Doublet" if n_rad == 1 else "Triplet"
+        nh = 0 if _elemental_metal(atom) else atom.GetTotalNumHs(includeNeighbors=False)
+        if sym != "C" or charge or isotope or a.get("radical"):
+            a["num_hydrogens"] = nh
+        if i in enhanced:
+            a["enhanced_stereo_type"], a["enhanced_stereo_group"] = enhanced[i]
+        if i == 0:
+            a["_source_cxsmiles"] = source_cx
+        atoms.append(a)
+
+    bonds: List[Dict] = []
+    order_map = {
+        Chem.BondType.SINGLE: 1,
+        Chem.BondType.DOUBLE: 2,
+        Chem.BondType.TRIPLE: 3,
+        Chem.BondType.AROMATIC: 2,
+    }
+    dative_right = {
+        Chem.BondType.DATIVE,
+        Chem.BondType.DATIVER,
+        Chem.BondType.DATIVEONE,
+    }
+    for bi, bond in enumerate(mol.GetBonds()):
+        bt = bond.GetBondType()
+        a1 = rdkit_to_local[bond.GetBeginAtomIdx()]
+        a2 = rdkit_to_local[bond.GetEndAtomIdx()]
+        if bt in dative_right:
+            order: Any = "dative"
+        elif bt == Chem.BondType.DATIVEL:
+            order = "dative"
+            a1, a2 = a2, a1
+        else:
+            order = order_map.get(bt, 1)
+
+        cfg = 0
+        bd = bond.GetBondDir()
+        if bd == Chem.BondDir.BEGINWEDGE:
+            cfg = 1
+        elif bd == Chem.BondDir.BEGINDASH:
+            cfg = 6
+        elif bd in (Chem.BondDir.UNKNOWN, Chem.BondDir.EITHERDOUBLE):
+            cfg = 4
+
+        bond_dict: Dict[str, Any] = {
+            "index": bi + 1 + offset_index,
+            "order": order,
+            "atom1": a1,
+            "atom2": a2,
+            "cfg": cfg,
+        }
+        bonds.append(bond_dict)
+
+    if normalize and atoms:
+        for a in atoms:
+            a["y"] = -a["y"]
+        xy = {a["index"]: (a["x"], a["y"]) for a in atoms}
+        lengths = [
+            math.hypot(xy[b["atom1"]][0] - xy[b["atom2"]][0], xy[b["atom1"]][1] - xy[b["atom2"]][1])
+            for b in bonds
+            if b["atom1"] in xy and b["atom2"] in xy
+            and math.hypot(xy[b["atom1"]][0] - xy[b["atom2"]][0], xy[b["atom1"]][1] - xy[b["atom2"]][1]) > 1e-6
+        ]
+        avg_bl = sum(lengths) / len(lengths) if lengths else 1.5
+        scale = float(ACS_BOND_LENGTH) / avg_bl if avg_bl > 1e-6 else float(ACS_BOND_LENGTH)
+        for a in atoms:
+            a["x"] *= scale
+            a["y"] *= scale
+        xs = [a["x"] for a in atoms]
+        ys = [a["y"] for a in atoms]
+        cx = (min(xs) + max(xs)) / 2.0
+        cy = (min(ys) + max(ys)) / 2.0
+        for a in atoms:
+            a["x"] = round(a["x"] - cx + center_x, 3)
+            a["y"] = round(a["y"] - cy + center_y, 3)
+
+    return atoms, bonds
+
+
+def mol_to_cdxml(mol_or_smiles: Any, start_id: int = 1000) -> str:
+    """Build a complete CDXML document directly from an RDKit Mol or SMILES string."""
+    atoms, bonds = mol_to_atom_bond_dicts(mol_or_smiles, normalize=True)
+    return build_molecule_cdxml(atoms, bonds, start_id=start_id)
+
+
 def build_molecule_cdxml(
-    atoms: List[Dict],
-    bonds: List[Dict],
+    atoms: Any,
+    bonds: Optional[List[Dict]] = None,
     start_id: int = 1000,
 ) -> str:
     """
@@ -643,14 +847,21 @@ def build_molecule_cdxml(
 
     Parameters
     ----------
-    atoms : list of atom dicts (coordinates already in CDXML pts)
-    bonds : list of bond dicts
+    atoms : list of atom dicts (coordinates already in CDXML pts), or an RDKit Mol / SMILES string
+    bonds : list of bond dicts (optional if *atoms* is an RDKit Mol, SMILES string, or dict)
     start_id : first XML element id to use
 
     Returns
     -------
     CDXML document as a string
     """
+    if bonds is None:
+        if isinstance(atoms, dict) and "atoms" in atoms:
+            bonds = atoms.get("bonds", [])
+            atoms = atoms["atoms"]
+        else:
+            atoms, bonds = mol_to_atom_bond_dicts(atoms, normalize=True)
+
     ids = _IDGen(start_id)
 
     atom_id_map: Dict[int, int] = {}
