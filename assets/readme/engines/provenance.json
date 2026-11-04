@@ -1,0 +1,98 @@
+{
+ "machine": "Windows 11, NVIDIA GeForce RTX 5090 Laptop GPU; engines in CHEMDRAW_ENGINE_HOME (CUDA builds of PyTorch where the engine has one); run on 2026-11-04",
+ "how": "Every case was run through the toolkit tools (cdx.py call TOOL --json ...). wall_s is the whole command including starting the worker (about 5 to 10 s); engine_s is the time the engine itself reports, which includes loading the model, because an engine process is started for every call.",
+ "scope": "Results are predictions. Each case is one run on the inputs named here, scored against a reviewed or recorded answer, with misses kept. They show how the engines behave, not how accurate they are.",
+ "ocsr": {
+  "images": "13a.png, 16.png and 17.png are crops of the paper-replica original (third-party artwork, not relicensed); imatinib.png is a ChemDraw render of imatinib (imatinib.cdxml).",
+  "reference": "The structures drawn in assets/readme/paper-replica/replica.cdxml, whose five structures were checked against the original; R (on 13a) and X (on 16 and 17) are scored as the wildcard *, while SiMe2Ph on 13a is scored as the full silyl group."
+ },
+ "decimer-local": "installed in its own Python 3.11 + TensorFlow 2.15.1 (Keras 2.15) CPU environment under CHEMDRAW_ENGINE_HOME with both Zenodo weight archives verified by SHA-256; scored on all four OCSR images (matches imatinib and 17, misses 16 and 13a).",
+ "pdf": {
+  "input": "pages.pdf: assets/readme/paper-replica/original.png on page 1 and assets/readme/synthesis-113-122/reference.png on page 2 (third-party artwork), each placed on a landscape A4 page",
+  "segmenter": "decimer-segmentation, structures read by molscribe and molvec",
+  "tool_s": 418.5,
+  "wall_s": 431.3
+ },
+ "retro_forward_conditions": {
+  "records": "toolkit/samples/KL-CC-001 and KL-CC-002 (a Buchwald amination and an alkylation recorded in a lab notebook, with amounts and yields); imatinib is the published amide disconnection"
+ },
+ "nmr": {
+  "caffeine": {
+   "entry": "bmse000206",
+   "url": "https://bmrb.io/ftp/pub/bmrb/metabolomics/entry_directories/bmse000206/",
+   "sample": "D2O, pH 7.4, 400 MHz",
+   "files_sha256": {
+    "bmse000206.str": "4543b57b03fd76d4c750982b4029fe5930a7c6e747d0b42dec39332920e1b5e1",
+    "nmr/set01/1H/pdata/1/1r": "e4a302b71dcd0fcc1c37d8c0b5ce7439bf104164a45190dc199c616d393fc439",
+    "nmr/set01/1H/pdata/1/procs": "e981fb8dbc658af97bea1f2dd82b95053c0057b46d898839a8f2a8ff7981bd4d",
+    "nmr/set01/13C/pdata/1/1r": "a59ef00e7e1aabd2831a1212a7ce4ca7fe2e332ab63023e4eeb8f99b8bb57a09",
+    "nmr/set01/13C/pdata/1/procs": "c635fd15c310725084886c9c0e12ea57e24378dc49c974bc7053032ac467c38f"
+   },
+   "processing": "Bruker processed spectra (pdata/1/1r) read with the scale in procs, trimmed to the shown window, thinned by taking every 6th to 16th point and written as ppm,intensity CSV scaled to 10000; the water signal of the caffeine 1H spectrum (4.3 to 5.3 ppm) is cut out. The CSV files here are those reduced copies.",
+   "published_csv_sha256": {
+    "1H": "8f2a1143829f5960133f58246b81a6bc38b91e857eb25f3bd60f44374299ec25",
+    "13C": "20946597830bb40aa6dd5f69534aae762b95311fb44fe67d291bb4dcb5b4c07b"
+   }
+  },
+  "nmrshiftdb2_20": {
+   "entry": "nmrshiftdb2 NMReDATA assigned export (20 molecules with paired 1H and 13C raw Bruker archives)",
+   "url": "https://nmrshiftdb.nmr.uni-koeln.de/",
+   "sample": "13 molecules in CDCl3, 7 molecules in DMSO-d6 (300 to 700 MHz 1H, 75 to 176 MHz 13C)",
+   "files_sha256": {
+    "nmrshiftdb2rawdata.nmredata.sd": "d38b64581ed3d8495a11855215358a33eebfebe4492be46c7144ede71d36f807",
+    "raw/60000003.zip": "b29305859337d8b03f6cf7c465d7d2504d0f93dc99004ce50a6d2d883829986a",
+    "raw/60000002.zip": "f8b2ae461a87d197b40c179d026532accaa14cbe0e9eab18e3abbae9672a20d6",
+    "raw/60000199.zip": "7fa7b91b26d56e97238545176b2c8d5ab2542cbf7dcbbf15bf25d73ae46becbd",
+    "raw/60000131.zip": "3c876d45fb9bc0790da154fdd3e0e6006a78e38dfc6f3abf051c78fe6533b92a",
+    "raw/60004003.zip": "9128f0db9d781caf58338f205f1a1d96ef680e7115ab6c3de101ee9ba0b41ccc",
+    "raw/60003998.zip": "8413140ca521f1513671cabb2e5553bc3fb77542fdfbb45fcc66a53ee0f3abf2",
+    "raw/20258319.zip": "874aeeafe93173e9428fca2d0de69d40d38d72bb84b6ca8e121b6b5299cefa33",
+    "raw/20258329.zip": "fa973aa434f9c5e23b6c6103dac559d929746fae5ba23a76602b9fbafe533941",
+    "raw/40254553.zip": "56ff02a7dcd1aa141257957eb6b64dded1d448c87ff829e4b1d7c6bbe80631de",
+    "raw/40254552.zip": "94f767f31ebb18ee66746cd6d5f2d34f820c4274e9337fdfb0cbb84ea926942c",
+    "raw/40256190.zip": "2c72edd4fd49035b361e68613ab51b4ed4304849479db8e9894d02ec1f035710",
+    "raw/40256189.zip": "2c4836b7f09fdfbef4fd28615055c1524dbc7ddc8a87307a97e1c7ca994254b3",
+    "raw/40253907.zip": "54d87acf0da4522515690a40db90139bbef662df874ea44c70e033f223203e1d",
+    "raw/40253906.zip": "df26eb0da9fc0b790b090cd4f0e8d2a42a61f4362643692cf2a6c5ea020cbef5",
+    "raw/60001110.zip": "8db20284eb36d58d0171f997a2cce39b34a26ffa590344dc3d796d31282cc458",
+    "raw/60001113.zip": "c6d792a8e7ffeba4c09324236fb0f2ba7eee57822e3dd2bec1079711f8fc4ce0",
+    "raw/40256149.zip": "34945bae535a9d8dbd82bfec27f5b780fb25ab7f0c2402bb49fb0479166fa8b9",
+    "raw/40256148.zip": "4958afca7dbeca3466673513a3d7915093f57a158a13d7a6f5a835014bac1052",
+    "raw/40254559.zip": "6bf8f2829d3e2d6f3fbce10bb76f482ec3b87b7e28fbf685d6ed8ca200d02132",
+    "raw/40254558.zip": "6800ad84257138182f79584355066d5dcbf74adc650017067825ed895f0e15fb",
+    "raw/40256208.zip": "801fc1accfde8da415f9f4a5ddca495afafdb9ae5fc7f0ca94e8703d1577b836",
+    "raw/40256207.zip": "ecf717e5b17e2ebea25ab3ce115c7831beca0213a7b6032a28eee6abed436a83",
+    "raw/60000023.zip": "412aecbce9d167af740d61370ebb26b817eb82887671a4d5b048491e6e300048",
+    "raw/60000006.zip": "936e7995fc1cff2bf9b767cb740457fee60d3c22c35a18ff8692535481d808f6",
+    "raw/60004162.zip": "87cd2733ac0a04f6e9e0fd5305db6d5ca418a7b57deb31cae540c160eb23b092",
+    "raw/60004161.zip": "92f69c818dd959db36f7e0e81ebcb6ac674b82d7c8725f3e29e9087f1ead3b2d",
+    "raw/60001508.zip": "01e68d9d1f8650855fe0879734e84d7719808bb495fd78f5b8f875ef1648d1fb",
+    "raw/60001507.zip": "617b435ae7dfe465be4723e04a042cb26e072cc958d39ddeade4b754fb08f39a",
+    "raw/40256222.zip": "13acf4c77d1bf77b9568dd5e9145fe8155c8e320ca44ebc987ba2708ac98fe52",
+    "raw/40256221.zip": "6699226e628932c0b4d6b7131ba742e7dadea9d3b8c832a9fe2fe223104bb8d0",
+    "raw/40254547.zip": "ab68fa980a1a8585e4ea4d9bd545e1f2cd98f425de305914cdd15d2ba971aff0",
+    "raw/40254546.zip": "cfad540dbf3d7df364ac74b3fe79fc1bc698bc5d310915a78c3fb7417afa3a3a",
+    "raw/40254725.zip": "e17adda840db29177b894627df3d3573be94aeef00c420c0a8539b21acdff17b",
+    "raw/40254724.zip": "d9b7401e966d29a905c7bf718857db314b812f562408153f0672b602c1215a4a",
+    "raw/60000110.zip": "45e835b78761a164be0257ff2a449f738b595a66e5ed7386faf10be470b5f47a",
+    "raw/60000109.zip": "6358b40ba67512e3239957bb0e6e996146b7ce4137c7332a6106cb812732973d",
+    "raw/20258330.zip": "866b7c591d1c3abe2a07e0326724390b0a82a62351d5eb62f05c535c0473bce5",
+    "raw/20258331.zip": "f30d0985bfaeff11bb69d84f75e561b51881fd6bbd3fc15b53e38478e7c442ee",
+    "raw/40256163.zip": "fe45aba8798aa85a3dbeaf5296fa3882e5d9248f4e0282c04d5738014370f10a",
+    "raw/40256166.zip": "a0707ff4951120a95e42e87453cad4896ec1c79eba75489a0000545a9c2daf25"
+   },
+   "scoring": "Assigned topological-group MAE over 215 non-exchangeable 1H (C-H) groups and 323 13C groups (exchangeable OH, NH and SH protons excluded on both sides; degenerate fast-exchange keto-enol tautomer symmetry applied on curcumin). Unassigned 1-to-1 Hungarian group matching is also recorded in benchmark20.json.",
+   "training_overlap": "All 20 entries originate from nmrshiftdb2, which is part of NMRNet++'s supervised 5-fold CV training corpus (~80% per fold), and 7 of the 20 also pass NMRNet++'s ShiftDB-Lit (<=1 chiral center) filter; MagNET was trained strictly on synthetic AIMNet2/GIAO DFT shieldings with zero experimental NMR spectra."
+  }
+ },
+ "lcms": {
+  "source": "PyParse v1.1.0 example dataset, Waters/Example1 (Zenodo, Apache-2.0; Mason et al., Digital Discovery 2023, doi 10.1039/D3DD00167A)",
+  "files_sha256": {
+   "example_rpt.rpt": "2a3a68a223c4affe9e86b014d06d441ba7216521c4585c76659f3de548f23a19",
+   "example_platemap.csv": "6e0fe3225f2dba7620c2274401c72ebf9e79070e5309b50cd70db91d293a517d",
+   "output/compoundtable.csv": "9f58fdce3fd634dbb69afc3a8cc1053565093f9c4b847c6bc05f58030128da81"
+  },
+  "parse_wall_s": 11.3,
+  "scope": "The 2.3 MB report is not copied here; download the dataset and run match_plate.py."
+ }
+}

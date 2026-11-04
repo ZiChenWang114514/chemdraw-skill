@@ -1,0 +1,676 @@
+{
+ "note": "KL-CC-001 and KL-CC-002 are two steps recorded in a lab notebook (toolkit/samples); imatinib is the literature amide disconnection",
+ "jobs": {
+  "KL-CC-001|aizynthfinder|single": {
+   "wall_s": 41.3,
+   "engine_s": 34.25,
+   "exact_rank": 2,
+   "same_disconnection_rank": 1,
+   "solved": null,
+   "note": null,
+   "routes": null,
+   "top": [
+    {
+     "rank": 1,
+     "reactants": [
+      "C1COCCN1",
+      "Clc1ncnc2sccc12"
+     ]
+    },
+    {
+     "rank": 2,
+     "reactants": [
+      "C1COCCN1",
+      "Brc1ncnc2sccc12"
+     ]
+    },
+    {
+     "rank": 3,
+     "reactants": [
+      "ClCCOCCCl",
+      "Nc1ncnc2sccc12"
+     ]
+    },
+    {
+     "rank": 4,
+     "reactants": [
+      "Clc1nc(N2CCOCC2)c2ccsc2n1"
+     ]
+    },
+    {
+     "rank": 5,
+     "reactants": [
+      "O=C(O)c1cc2c(N3CCOCC3)ncnc2s1"
+     ]
+    }
+   ]
+  },
+  "KL-CC-001|retrochimera|single": {
+   "wall_s": 118.1,
+   "engine_s": 111.35,
+   "exact_rank": null,
+   "same_disconnection_rank": 1,
+   "solved": null,
+   "note": null,
+   "routes": null,
+   "top": [
+    {
+     "rank": 1,
+     "reactants": [
+      "C1COCCN1",
+      "Clc1ncnc2sccc12"
+     ]
+    },
+    {
+     "rank": 2,
+     "reactants": [
+      "Clc1nc(N2CCOCC2)c2ccsc2n1"
+     ]
+    },
+    {
+     "rank": 3,
+     "reactants": [
+      "C1COCCN1",
+      "CCN(CC)CC",
+      "CCOC(=O)c1ccsc1N"
+     ]
+    },
+    {
+     "rank": 4,
+     "reactants": [
+      "O=Cc1cc2c(N3CCOCC3)ncnc2s1"
+     ]
+    },
+    {
+     "rank": 5,
+     "reactants": [
+      "C1COCCN1",
+      "O=c1nc[nH]c2sccc12"
+     ]
+    }
+   ]
+  },
+  "KL-CC-001|reactiont5-retro|single": {
+   "wall_s": 26.5,
+   "engine_s": 18.69,
+   "exact_rank": null,
+   "same_disconnection_rank": null,
+   "solved": null,
+   "note": null,
+   "routes": null,
+   "top": [
+    {
+     "rank": 1,
+     "reactants": [
+      "C1COCCN1",
+      "Clc1nc(Cl)c2ccsc2n1",
+      "c1ccc(P(c2ccccc2)c2ccccc2)cc1"
+     ]
+    },
+    {
+     "rank": 2,
+     "reactants": [
+      "C1COCCN1",
+      "CCN(CC)CC",
+      "Clc1nc(Cl)c2ccsc2n1",
+      "c1ccc(P(c2ccccc2)c2ccccc2)cc1"
+     ]
+    },
+    {
+     "rank": 3,
+     "reactants": [
+      "C1COCCN1",
+      "CCN(CC)CC",
+      "Clc1nc(Cl)c2ccsc2n1",
+      "c1ccc(P(CCCP(c2ccccc2)c2ccccc2)c2ccccc2)cc1"
+     ]
+    },
+    {
+     "rank": 4,
+     "reactants": [
+      "Clc1nc(N2CCOCC2)c2ccsc2n1",
+      "[O-2]",
+      "[O-2]",
+      "[O-2]",
+      "[O-2]",
+      "[Zn+2]",
+      "[Zn+2]",
+      "[Zn+2]"
+     ]
+    },
+    {
+     "rank": 5,
+     "reactants": [
+      "C1COCCN1",
+      "Clc1nc(Cl)c2ccsc2n1",
+      "c1ccc2ncncc2c1"
+     ]
+    }
+   ]
+  },
+  "KL-CC-001|synplanner|multi": {
+   "wall_s": 77.4,
+   "engine_s": 70.5,
+   "exact_rank": 4,
+   "same_disconnection_rank": 1,
+   "solved": true,
+   "note": null,
+   "routes": null,
+   "top": [
+    {
+     "rank": 1,
+     "steps": 1,
+     "reactions": [
+      "n1cnc2sccc2c1Cl.C1COCCN1>>C1COCCN1c2ncnc3sccc23"
+     ],
+     "all_in_stock": true
+    },
+    {
+     "rank": 2,
+     "steps": 1,
+     "reactions": [
+      "C1CN(CCO1)c2c3c(scc3)nc(n2)Cl>>C1COCCN1c2ncnc3sccc23"
+     ],
+     "all_in_stock": true
+    },
+    {
+     "rank": 3,
+     "steps": 1,
+     "reactions": [
+      "c1(c2c(ncn1)scc2)O.C1COCCN1>>C1COCCN1c2ncnc3sccc23"
+     ],
+     "all_in_stock": true
+    }
+   ]
+  },
+  "KL-CC-002|aizynthfinder|multi": {
+   "wall_s": 37.7,
+   "engine_s": 31.98,
+   "exact_rank": null,
+   "same_disconnection_rank": null,
+   "solved": true,
+   "note": null,
+   "routes": [
+    {
+     "rank": 1,
+     "steps": 2,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "4-bromothieno[2,3-d]pyrimidine",
+      "morpholine"
+     ]
+    },
+    {
+     "rank": 2,
+     "steps": 5,
+     "all_in_stock": false,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "morpholine"
+     ]
+    },
+    {
+     "rank": 3,
+     "steps": 5,
+     "all_in_stock": false,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "morpholine"
+     ]
+    },
+    {
+     "rank": 4,
+     "steps": 5,
+     "all_in_stock": false,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "morpholine"
+     ]
+    },
+    {
+     "rank": 5,
+     "steps": 6,
+     "all_in_stock": false,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "morpholine"
+     ]
+    }
+   ],
+   "top": [
+    {
+     "rank": 1,
+     "steps": 2,
+     "reactions": [
+      "C1COCCN1.Brc1ncnc2sc(Cc3ccc[nH]3)cc12>>c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1",
+      "O=Cc1ccc[nH]1.Brc1ncnc2sccc12>>Brc1ncnc2sc(Cc3ccc[nH]3)cc12"
+     ],
+     "all_in_stock": true
+    },
+    {
+     "rank": 2,
+     "steps": 5,
+     "reactions": [
+      "N#Cc1c(Cc2ccc[nH]2)sc2ncnc(N3CCOCC3)c12>>c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1",
+      "C1COCCN1.CSc1ncnc2sc(Cc3ccc[nH]3)c(C#N)c12>>N#Cc1c(Cc2ccc[nH]2)sc2ncnc(N3CCOCC3)c12",
+      "CS.N#Cc1c(Cc2ccc[nH]2)sc2ncnc(Cl)c12>>CSc1ncnc2sc(Cc3ccc[nH]3)c(C#N)c12",
+      "CSC(C)=O>>CS",
+      "O=P(Cl)(Cl)Cl.N#Cc1c(Cc2ccc[nH]2)sc2ncnc(O)c12>>N#Cc1c(Cc2ccc[nH]2)sc2ncnc(Cl)c12"
+     ],
+     "all_in_stock": false
+    },
+    {
+     "rank": 3,
+     "steps": 5,
+     "reactions": [
+      "C1COCCN1.Clc1ncnc2sc(Cc3ccc[nH]3)cc12>>c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1",
+      "O=P(Cl)(Cl)Cl.O=c1[nH]cnc2sc(Cc3ccc[nH]3)cc12>>Clc1ncnc2sc(Cc3ccc[nH]3)cc12",
+      "CC(C)(C)OC(=O)n1cccc1Cc1cc2c(=O)[nH]cnc2s1>>O=c1[nH]cnc2sc(Cc3ccc[nH]3)cc12",
+      "CC(C)(C)OC(=O)n1cc(Br)cc1Cc1cc2c(=O)[nH]cnc2s1>>CC(C)(C)OC(=O)n1cccc1Cc1cc2c(=O)[nH]cnc2s1",
+      "CC(C)(C)OC(=O)OC(=O)OC(C)(C)C.O=c1[nH]cnc2sc(Cc3cc(Br)c[nH]3)cc12>>CC(C)(C)OC(=O)n1cc(Br)cc1Cc1cc2c(=O)[nH]cnc2s1"
+     ],
+     "all_in_stock": false
+    }
+   ]
+  },
+  "KL-CC-002|synplanner|multi": {
+   "wall_s": 82.3,
+   "engine_s": 75.69,
+   "exact_rank": null,
+   "same_disconnection_rank": null,
+   "solved": true,
+   "note": null,
+   "routes": [
+    {
+     "rank": 1,
+     "steps": 2,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": []
+    },
+    {
+     "rank": 2,
+     "steps": 4,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "morpholine"
+     ]
+    },
+    {
+     "rank": 3,
+     "steps": 3,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": []
+    },
+    {
+     "rank": 4,
+     "steps": 4,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "morpholine"
+     ]
+    },
+    {
+     "rank": 5,
+     "steps": 4,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "morpholine"
+     ]
+    }
+   ],
+   "top": [
+    {
+     "rank": 1,
+     "steps": 2,
+     "reactions": [
+      "C1COCCN1c2c3c(sc(c3)C(c4[nH]ccc4)=O)ncn2>>C1COCCN1c2ncnc3sc(cc23)Cc4[nH]ccc4",
+      "c1cc[nH]c1.C1COCCN1c2c3c(ncn2)sc(C(O)=O)c3>>C1COCCN1c2c3c(sc(c3)C(c4[nH]ccc4)=O)ncn2"
+     ],
+     "all_in_stock": true
+    },
+    {
+     "rank": 2,
+     "steps": 4,
+     "reactions": [
+      "c1cc(ccc1)C(=O)n2cccc2Cc3sc4ncnc(c4c3)N5CCOCC5>>C1COCCN1c2ncnc3sc(cc23)Cc4[nH]ccc4",
+      "c1ccccc1C(=O)n2c(Cl)ccc2.C1COCCN1c2ncnc3sc(cc23)CBr>>c1cc(ccc1)C(=O)n2cccc2Cc3sc4ncnc(c4c3)N5CCOCC5",
+      "c1ccn(c1)C(=O)c2ccccc2.O=S(=O)(Cl)Cl>>c1ccccc1C(=O)n2c(Cl)ccc2",
+      "c12c(ncnc1Cl)sc(CBr)c2.C1COCCN1>>C1COCCN1c2ncnc3sc(cc23)CBr"
+     ],
+     "all_in_stock": true
+    },
+    {
+     "rank": 3,
+     "steps": 3,
+     "reactions": [
+      "c1cc(ccc1)C(=O)n2cccc2Cc3sc4ncnc(c4c3)N5CCOCC5>>C1COCCN1c2ncnc3sc(cc23)Cc4[nH]ccc4",
+      "c1ccccc1C(=O)n2c(C(c3cc4c(ncnc4s3)N5CCOCC5)=O)ccc2>>c1cc(ccc1)C(=O)n2cccc2Cc3sc4ncnc(c4c3)N5CCOCC5",
+      "c1ccn(c1)C(=O)c2ccccc2.C1COCCN1c2c3c(ncn2)sc(C(O)=O)c3>>c1ccccc1C(=O)n2c(C(c3cc4c(ncnc4s3)N5CCOCC5)=O)ccc2"
+     ],
+     "all_in_stock": true
+    }
+   ]
+  },
+  "KL-CC-002|retrochimera|multi": {
+   "wall_s": 159.9,
+   "engine_s": 154.67,
+   "exact_rank": null,
+   "same_disconnection_rank": null,
+   "solved": true,
+   "note": null,
+   "routes": [
+    {
+     "rank": 1,
+     "steps": 2,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": []
+    },
+    {
+     "rank": 2,
+     "steps": 3,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": []
+    },
+    {
+     "rank": 3,
+     "steps": 3,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": []
+    },
+    {
+     "rank": 4,
+     "steps": 3,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": []
+    },
+    {
+     "rank": 5,
+     "steps": 3,
+     "all_in_stock": true,
+     "final_step_matches_real": false,
+     "contains_real_KL-CC-001_step": false,
+     "real_starting_materials_present": [
+      "morpholine"
+     ]
+    }
+   ],
+   "top": [
+    {
+     "rank": 1,
+     "steps": 2,
+     "reactions": [
+      "OC(c1ccc[nH]1)c1cc2c(N3CCOCC3)ncnc2s1>>c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1",
+      "c1cc[nH]c1.O=Cc1cc2ncnc(N3CCOCC3)c2s1>>OC(c1ccc[nH]1)c1cc2c(N3CCOCC3)ncnc2s1"
+     ],
+     "all_in_stock": true
+    },
+    {
+     "rank": 2,
+     "steps": 3,
+     "reactions": [
+      "OC(c1ccc[nH]1)c1cc2c(N3CCOCC3)ncnc2s1>>c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1",
+      "O=Cc1cc2c(N3CCOCC3)ncnc2s1.c1cc[nH]c1>>OC(c1ccc[nH]1)c1cc2c(N3CCOCC3)ncnc2s1",
+      "O=C(O)c1cc2c(N3CCOCC3)ncnc2s1>>O=Cc1cc2c(N3CCOCC3)ncnc2s1"
+     ],
+     "all_in_stock": true
+    },
+    {
+     "rank": 3,
+     "steps": 3,
+     "reactions": [
+      "OC(c1ccc[nH]1)c1cc2c(N3CCOCC3)ncnc2s1>>c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1",
+      "O=Cc1cc2c(N3CCOCC3)ncnc2s1.c1cc[nH]c1>>OC(c1ccc[nH]1)c1cc2c(N3CCOCC3)ncnc2s1",
+      "O=Cc1cc2c(N3CCOCC3)nc(Cl)nc2s1>>O=Cc1cc2c(N3CCOCC3)ncnc2s1"
+     ],
+     "all_in_stock": true
+    }
+   ]
+  },
+  "KL-CC-002|reactiont5-retro|single": {
+   "wall_s": 24.8,
+   "engine_s": 16.21,
+   "exact_rank": null,
+   "same_disconnection_rank": null,
+   "solved": null,
+   "note": null,
+   "routes": null,
+   "top": [
+    {
+     "rank": 1,
+     "reactants": [
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "c1cc2c(N3CCOCC3)ncnc2s1"
+     ]
+    },
+    {
+     "rank": 2,
+     "reactants": [
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "Cc1ccccc1",
+      "c1nc(N2CCOCC2)c2cc(Cc3c[nH]c(P(c4ccccc4)c4ccccc4)c3)sc2n1"
+     ]
+    },
+    {
+     "rank": 3,
+     "reactants": [
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "c1nc(Cc2cc3c(N4CCOCC4)ncnc3s2)c[nH]1"
+     ]
+    },
+    {
+     "rank": 4,
+     "reactants": [
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "Cc1ccccc1",
+      "c1nc(Cc2cc3c(N4CCOCC4)ncnc3s2)c[nH]1"
+     ]
+    },
+    {
+     "rank": 5,
+     "reactants": [
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "COc1ccc(P2(=S)SP(=S)(c3ccc(OC)cc3)S2)cc1",
+      "Cc1ccc(S(=O)(=O)n2cc(Cc3cc4c(N5CCOCC5)ncnc4s3)cc2C)cc1"
+     ]
+    }
+   ]
+  },
+  "imatinib|aizynthfinder|single": {
+   "wall_s": 24.1,
+   "engine_s": 18.01,
+   "exact_rank": 2,
+   "same_disconnection_rank": 2,
+   "solved": null,
+   "note": null,
+   "routes": null,
+   "top": [
+    {
+     "rank": 1,
+     "reactants": [
+      "Cc1ccc(NC(=O)c2ccc(CCl)cc2)cc1Nc1nccc(-c2cccnc2)n1",
+      "CN1CCNCC1"
+     ]
+    },
+    {
+     "rank": 2,
+     "reactants": [
+      "CN1CCN(Cc2ccc(C(=O)O)cc2)CC1",
+      "Cc1ccc(N)cc1Nc1nccc(-c2cccnc2)n1"
+     ]
+    },
+    {
+     "rank": 3,
+     "reactants": [
+      "CN1CCN(Cc2ccc(C(=O)Cl)cc2)CC1",
+      "Cc1ccc(N)cc1Nc1nccc(-c2cccnc2)n1"
+     ]
+    },
+    {
+     "rank": 4,
+     "reactants": [
+      "Cc1ccc(NC(=O)c2ccc(CBr)cc2)cc1Nc1nccc(-c2cccnc2)n1",
+      "CN1CCNCC1"
+     ]
+    },
+    {
+     "rank": 5,
+     "reactants": [
+      "COC(=O)c1ccc(CN2CCN(C)CC2)cc1",
+      "Cc1ccc(N)cc1Nc1nccc(-c2cccnc2)n1"
+     ]
+    }
+   ]
+  },
+  "imatinib|retrochimera|single": {
+   "wall_s": 104.3,
+   "engine_s": 98.96,
+   "exact_rank": 1,
+   "same_disconnection_rank": 1,
+   "solved": null,
+   "note": null,
+   "routes": null,
+   "top": [
+    {
+     "rank": 1,
+     "reactants": [
+      "CN1CCN(Cc2ccc(C(=O)Cl)cc2)CC1",
+      "Cc1ccc(N)cc1Nc1nccc(-c2cccnc2)n1"
+     ]
+    },
+    {
+     "rank": 2,
+     "reactants": [
+      "CN1CCNCC1",
+      "Cc1ccc(NC(=O)c2ccc(CCl)cc2)cc1Nc1nccc(-c2cccnc2)n1"
+     ]
+    },
+    {
+     "rank": 3,
+     "reactants": [
+      "CN1CCN(Cc2ccc(C(=O)O)cc2)CC1",
+      "Cc1ccc(N)cc1Nc1nccc(-c2cccnc2)n1"
+     ]
+    },
+    {
+     "rank": 4,
+     "reactants": [
+      "CN1CCNCC1",
+      "Cc1ccc(N)cc1Nc1nccc(-c2cccnc2)n1",
+      "O=C(Cl)c1ccc(CCl)cc1"
+     ]
+    },
+    {
+     "rank": 5,
+     "reactants": [
+      "CN1CCN(Cc2ccc(C(=O)[O-])cc2)CC1",
+      "Cc1ccc(N)cc1Nc1nccc(-c2cccnc2)n1"
+     ]
+    }
+   ]
+  },
+  "imatinib|reactiont5-retro|single": {
+   "wall_s": 21.8,
+   "engine_s": 15.4,
+   "exact_rank": null,
+   "same_disconnection_rank": null,
+   "solved": null,
+   "note": null,
+   "routes": null,
+   "top": [
+    {
+     "rank": 1,
+     "reactants": [
+      "CCCP(=O)(O)O",
+      "CCN(C(C)C)C(C)C",
+      "CN1CCN(Cc2ccc(C(=O)O)cc2)CC1",
+      "F[P-](F)(F)(F)(F)F",
+      "Nc1ccc(Nc2nccc(-c3cccnc3)n2)c(Nc2nccc(-c3cccnc3)n2)c1",
+      "c1ccc2c(c1)nnn2O[P+](N1CCCC1)(N1CCCC1)N1CCCC1"
+     ]
+    },
+    {
+     "rank": 2,
+     "reactants": [
+      "CCCP(=O)(O)O",
+      "CCN(C(C)C)C(C)C",
+      "CN1CCN(Cc2ccc(C(=O)O)cc2)CC1",
+      "F[P-](F)(F)(F)(F)F",
+      "Nc1ccc([N+](=O)[O-])c(Nc2nccc(-c3cccnc3)n2)c1",
+      "c1ccc2c(c1)nnn2O[P+](N1CCCC1)(N1CCCC1)N1CCCC1"
+     ]
+    },
+    {
+     "rank": 3,
+     "reactants": [
+      "CCCP(=O)(O)O",
+      "CCN(C(C)C)C(C)C",
+      "CN1CCN(Cc2ccc(C(=O)O)cc2)CC1",
+      "F[P-](F)(F)(F)(F)F",
+      "Nc1ccc(Nc2ccccc2)c(Nc2nccc(-c3cccnc3)n2)c1",
+      "c1ccc2c(c1)nnn2O[P+](N1CCCC1)(N1CCCC1)N1CCCC1"
+     ]
+    },
+    {
+     "rank": 4,
+     "reactants": [
+      "CCCP(=O)(O)O",
+      "CCN(C(C)C)C(C)C",
+      "CN1CCN(Cc2ccc(C(=O)O)cc2)CC1",
+      "F[P-](F)(F)(F)(F)F",
+      "Nc1ccc(Nc2nccc(-c3cccnc3)n2)c(Nc2cccc(-c3cccnc3)c2)c1",
+      "c1ccc2c(c1)nnn2O[P+](N1CCCC1)(N1CCCC1)N1CCCC1"
+     ]
+    },
+    {
+     "rank": 5,
+     "reactants": [
+      "CCCP(=O)(O)O",
+      "CCN(C(C)C)C(C)C",
+      "CN1CCN(Cc2ccc(C(=O)O)cc2)CC1",
+      "F[P-](F)(F)(F)(F)F",
+      "Nc1ccc(Nc2nccc(-c3cccnc3)n2)c(Nc2nccc(-c3cccnc3)n2)c1",
+      "c1ccc2c(c1)nnn2O[P+](N1CCCC1)(N1CCCC1)N1CCCC1"
+     ]
+    }
+   ]
+  },
+  "imatinib|synplanner|multi": {
+   "wall_s": 50.6,
+   "engine_s": 44.08,
+   "exact_rank": null,
+   "same_disconnection_rank": null,
+   "solved": false,
+   "note": "the target is itself a purchasable building block: no search was run",
+   "routes": null,
+   "top": []
+  }
+ }
+}

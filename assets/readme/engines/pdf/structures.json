@@ -1,0 +1,788 @@
+{
+ "ok": true,
+ "task": "document_ocsr",
+ "provenance": "model_prediction",
+ "source": "pages.pdf",
+ "segmenter": "decimer-segmentation",
+ "pages": [
+  1,
+  2
+ ],
+ "segments": [
+  {
+   "index": 1,
+   "page": 1,
+   "path": "segments/seg-p1-s1.png",
+   "bbox": [
+    104,
+    72,
+    561,
+    336
+   ],
+   "comparison": {
+    "agreement": "split",
+    "groups": [
+     {
+      "inchikey": null,
+      "canonical": "*C(C#N)(CCC(=O)c1cc(C)cc(OC)c1O)C[Si](C)(C)c1ccccc1.CC",
+      "formula": "C24H32*NO3Si",
+      "engines": [
+       "molscribe"
+      ]
+     },
+     {
+      "inchikey": "KPNKHVYNCUAKGB-UHFFFAOYSA-N",
+      "canonical": "CC.COc1cc(C)cc(C(=O)CCC(P)(C#N)C[Si](C)(C)c2ccccc2)c1O",
+      "formula": "C24H34NO3PSi",
+      "engines": [
+       "molvec"
+      ]
+     }
+    ],
+    "no_result": [],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "the engines read different structures: check each against the image"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "*C(C#N)(CCC(=O)c1cc(C)cc(OC)c1O)C[Si](C)(C)c1ccccc1.CC"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "CC.COc1cc(C)cc(C(=O)CCC(P)(C#N)C[Si](C)(C)c2ccccc2)c1O"
+     ]
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "page": 1,
+   "path": "segments/seg-p1-s2.png",
+   "bbox": [
+    785,
+    58,
+    1135,
+    347
+   ],
+   "comparison": {
+    "agreement": "split",
+    "groups": [
+     {
+      "inchikey": "JIGSRULSTHQZEZ-SAQPSMIMSA-N",
+      "canonical": "CC.CC[C@@](C#N)(C=O)CCC1OC(C)(C)Oc2c(OC)cc(C)cc21",
+      "formula": "C21H31NO4",
+      "engines": [
+       "molvec"
+      ]
+     },
+     {
+      "inchikey": "SCCNAPUQFMAPJB-UHFFFAOYSA-N",
+      "canonical": "CC.COc1cc(C)cc2c1OC(C)(C)OC21CC2C1CC2(C#N)C=O",
+      "formula": "C21H27NO4",
+      "engines": [
+       "molscribe"
+      ]
+     }
+    ],
+    "no_result": [],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "the engines read different structures: check each against the image"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "CC.COc1cc(C)cc2c1OC(C)(C)OC21CC2C1CC2(C#N)C=O"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "CC.CC[C@@](C#N)(C=O)CCC1OC(C)(C)Oc2c(OC)cc(C)cc21"
+     ]
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "page": 1,
+   "path": "segments/seg-p1-s3.png",
+   "bbox": [
+    1300,
+    91,
+    1650,
+    340
+   ],
+   "comparison": {
+    "agreement": "split",
+    "groups": [
+     {
+      "inchikey": "HDLGBIJQCNFEQK-UHFFFAOYSA-N",
+      "canonical": "C=CC(C#N)CCC(O)c1cc(C)cc(OC)c1O.CI",
+      "formula": "C16H22INO3",
+      "engines": [
+       "molscribe"
+      ]
+     },
+     {
+      "inchikey": "MPJKQBOHZUSQGU-CDCITTPHSA-N",
+      "canonical": "C=CC(C#N)(CC)CC[C@H](O)c1cc(C)cc(OC)c1O.CCCO",
+      "formula": "C20H31NO4",
+      "engines": [
+       "molvec"
+      ]
+     }
+    ],
+    "no_result": [],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "the engines read different structures: check each against the image"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "C=CC(C#N)CCC(O)c1cc(C)cc(OC)c1O.CI"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "C=CC(C#N)(CC)CC[C@H](O)c1cc(C)cc(OC)c1O.CCCO"
+     ]
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "page": 1,
+   "path": "segments/seg-p1-s4.png",
+   "bbox": [
+    1904,
+    80,
+    2238,
+    318
+   ],
+   "comparison": {
+    "agreement": "single",
+    "groups": [
+     {
+      "inchikey": "OVFAHEYHCLMICE-UHFFFAOYSA-N",
+      "canonical": "CCC1(C#N)CCC(O)C23C=C(C)C(CC12)C(OC)(OC)C3=O",
+      "formula": "C18H25NO4",
+      "engines": [
+       "molvec"
+      ]
+     }
+    ],
+    "no_result": [
+     {
+      "engine": "molscribe",
+      "reason": "no valid structure"
+     }
+    ],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "no usable structure from: molscribe",
+     "fewer than two engines produced a structure: nothing to compare"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "*CC12(C#N)CCC(O)C345C=C(C)C(C(OC)(OC)C3=O)C14C25"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "CCC1(C#N)CCC(O)C23C=C(C)C(CC12)C(OC)(OC)C3=O"
+     ]
+    }
+   ]
+  },
+  {
+   "index": 5,
+   "page": 1,
+   "path": "segments/seg-p1-s5.png",
+   "bbox": [
+    545,
+    272,
+    738,
+    369
+   ],
+   "comparison": {
+    "agreement": "all",
+    "groups": [
+     {
+      "inchikey": "HEWZVZIVELJPQZ-UHFFFAOYSA-N",
+      "canonical": "COC(C)(C)OC",
+      "formula": "C5H12O2",
+      "engines": [
+       "molscribe",
+       "molvec"
+      ]
+     }
+    ],
+    "no_result": [],
+    "agreed_smiles": "COC(C)(C)OC",
+    "selected": null,
+    "needs_review": false,
+    "notes": [],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "COC(C)(C)OC"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "COC(C)(C)OC"
+     ]
+    }
+   ]
+  },
+  {
+   "index": 6,
+   "page": 2,
+   "path": "segments/seg-p2-s1.png",
+   "bbox": [
+    115,
+    63,
+    862,
+    441
+   ],
+   "comparison": {
+    "agreement": "single",
+    "groups": [],
+    "no_result": [
+     {
+      "engine": "molscribe",
+      "reason": "no valid structure"
+     },
+     {
+      "engine": "molvec",
+      "reason": "no valid structure"
+     }
+    ],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "no usable structure from: molscribe, molvec",
+     "fewer than two engines produced a structure: nothing to compare"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "*C1[CH]23C4=C5C([Si](C)(C)C(C)(C)C)[CH]416(CCCCCC=CC)C2([H])(CC1C247C8C9%10CC%11=C(C)[CH3]C=%11=CC9CC%102C18(OC)(OC)(O4C)O7C)C12(OC)C36([H])C3(OC)(C(OC)S(#B)[Si](C)(C)C(C)(C)C)C14(O)(C[Si](C)(C)C(C)(C)C)[CH]16C(#N)[CH]47(C#N)C5489COC(C)(C)(C4C1327O)O8C69.[K]"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      null
+     ]
+    }
+   ]
+  },
+  {
+   "index": 7,
+   "page": 2,
+   "path": "segments/seg-p2-s2.png",
+   "bbox": [
+    1175,
+    118,
+    1546,
+    373
+   ],
+   "comparison": {
+    "agreement": "single",
+    "groups": [],
+    "no_result": [
+     {
+      "engine": "molscribe",
+      "reason": "no valid structure"
+     },
+     {
+      "engine": "molvec",
+      "reason": "no valid structure"
+     }
+    ],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "no usable structure from: molscribe, molvec",
+     "fewer than two engines produced a structure: nothing to compare"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "N#CC12CCC34=CCCC3(C4)C1(CO)C2"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      null
+     ]
+    }
+   ]
+  },
+  {
+   "index": 8,
+   "page": 2,
+   "path": "segments/seg-p2-s3.png",
+   "bbox": [
+    1862,
+    122,
+    2199,
+    363
+   ],
+   "comparison": {
+    "agreement": "split",
+    "groups": [
+     {
+      "inchikey": "PECKGAVTVCACJD-UHFFFAOYSA-N",
+      "canonical": "N=C1OCC2=C1CCC1=CCCC2C1",
+      "formula": "C12H15NO",
+      "engines": [
+       "molscribe"
+      ]
+     },
+     {
+      "inchikey": "REPAPAWFFUDNFR-UHFFFAOYSA-N",
+      "canonical": "CC.CC.CC1=CCC2=C(CC1)C(=N)OC2",
+      "formula": "C14H25NO",
+      "engines": [
+       "molvec"
+      ]
+     }
+    ],
+    "no_result": [],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "the engines read different structures: check each against the image"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "N=C1OCC2=C1CCC1=CCCC2C1"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "CC.CC.CC1=CCC2=C(CC1)C(=N)OC2"
+     ]
+    }
+   ]
+  },
+  {
+   "index": 9,
+   "page": 2,
+   "path": "segments/seg-p2-s4.png",
+   "bbox": [
+    225,
+    519,
+    545,
+    720
+   ],
+   "comparison": {
+    "agreement": "single",
+    "groups": [
+     {
+      "inchikey": "LGZZJJLTBRNDMC-UHFFFAOYSA-N",
+      "canonical": "N=C1OC(=O)C2=C1CCC1=CCCC2C1",
+      "formula": "C12H13NO2",
+      "engines": [
+       "molscribe"
+      ]
+     }
+    ],
+    "no_result": [
+     {
+      "engine": "molvec",
+      "reason": "no valid structure"
+     }
+    ],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "no usable structure from: molvec",
+     "fewer than two engines produced a structure: nothing to compare"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "N=C1OC(=O)C2=C1CCC1=CCCC2C1"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      null
+     ]
+    }
+   ]
+  },
+  {
+   "index": 10,
+   "page": 2,
+   "path": "segments/seg-p2-s5.png",
+   "bbox": [
+    1302,
+    518,
+    1642,
+    720
+   ],
+   "comparison": {
+    "agreement": "split",
+    "groups": [
+     {
+      "inchikey": "AIOTYGORSDLYQS-QFKZPESTSA-N",
+      "canonical": "CCCC/C=C1/CCC2=C(C1)C(OO)OC2=N",
+      "formula": "C13H19NO3",
+      "engines": [
+       "molvec"
+      ]
+     },
+     {
+      "inchikey": "RJMAMWWNAWBBEY-UHFFFAOYSA-N",
+      "canonical": "N=C1OC(OO)C2=C1CCC1=CCCC2C1",
+      "formula": "C12H15NO3",
+      "engines": [
+       "molscribe"
+      ]
+     }
+    ],
+    "no_result": [],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "the engines read different structures: check each against the image"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "N=C1OC(OO)C2=C1CCC1=CCCC2C1"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "CCCC/C=C1/CCC2=C(C1)C(OO)OC2=N"
+     ]
+    }
+   ]
+  },
+  {
+   "index": 11,
+   "page": 2,
+   "path": "segments/seg-p2-s6.png",
+   "bbox": [
+    1867,
+    524,
+    2204,
+    714
+   ],
+   "comparison": {
+    "agreement": "all",
+    "groups": [
+     {
+      "inchikey": "UOFORTPKEFIYMS-UHFFFAOYSA-N",
+      "canonical": "CC.Nc1occ2c1CCC1=CCCC2C1",
+      "formula": "C14H21NO",
+      "engines": [
+       "molscribe",
+       "molvec"
+      ]
+     }
+    ],
+    "no_result": [],
+    "agreed_smiles": "CC.Nc1occ2c1CCC1=CCCC2C1",
+    "selected": null,
+    "needs_review": false,
+    "notes": [],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "CC.Nc1occ2c1CCC1=CCCC2C1"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "CC.Nc1occ2c1CCC1=CCCC2C1"
+     ]
+    }
+   ]
+  },
+  {
+   "index": 12,
+   "page": 2,
+   "path": "segments/seg-p2-s7.png",
+   "bbox": [
+    128,
+    833,
+    669,
+    1183
+   ],
+   "comparison": {
+    "agreement": "single",
+    "groups": [],
+    "no_result": [
+     {
+      "engine": "molscribe",
+      "reason": "no valid structure"
+     },
+     {
+      "engine": "molvec",
+      "reason": "no valid structure"
+     }
+    ],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "no usable structure from: molscribe, molvec",
+     "fewer than two engines produced a structure: nothing to compare"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "*C(OC)(OC)C(CC1([H])C2(*)C3=C45C6(=O)OC(=O)C78=C6C469C3(=CC126[H])C51(COC(C)(C)OC1)C71=C89C(=O)OC1=O)S(#B)[Si](C)(C)C(C)(C)C.[HH].[H]"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      null
+     ]
+    }
+   ]
+  },
+  {
+   "index": 13,
+   "page": 2,
+   "path": "segments/seg-p2-s8.png",
+   "bbox": [
+    920,
+    811,
+    1613,
+    1205
+   ],
+   "comparison": {
+    "agreement": "single",
+    "groups": [],
+    "no_result": [
+     {
+      "engine": "molscribe",
+      "reason": "no valid structure"
+     },
+     {
+      "engine": "molvec",
+      "reason": "no valid structure"
+     }
+    ],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "no usable structure from: molscribe, molvec",
+     "fewer than two engines produced a structure: nothing to compare"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "[H]C123(CC(O)C(=O)CCC=CC)C(CCCCCC=CC)C=C45C1678=C19%10%11=C6%12%13%14=C21C7(O)(C(=O)OC(=O)C(=O)C1C49%122(CC(=O)O)C(C(=O)O%10)C15%11%132CC(=O)O)C=%1412=C8(=CC3CCCCCC=CC)C1(CC(=O)O)CC(=O)O2"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      null
+     ]
+    }
+   ]
+  },
+  {
+   "index": 14,
+   "page": 2,
+   "path": "segments/seg-p2-s9.png",
+   "bbox": [
+    1562,
+    811,
+    2255,
+    1205
+   ],
+   "comparison": {
+    "agreement": "single",
+    "groups": [],
+    "no_result": [
+     {
+      "engine": "molscribe",
+      "reason": "no valid structure"
+     },
+     {
+      "engine": "molvec",
+      "reason": "no valid structure"
+     }
+    ],
+    "agreed_smiles": null,
+    "selected": null,
+    "needs_review": true,
+    "notes": [
+     "no usable structure from: molscribe, molvec",
+     "fewer than two engines produced a structure: nothing to compare"
+    ],
+    "rule": "candidates only: compare every structure with the image before using it"
+   },
+   "engines": [
+    {
+     "engine": "molscribe",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      "[H]C123C=C45COC6(=O)C4(CC(=O)O)CC64=O=C4(=O)OC(=O)C5(C1)OC(C(=O)CCC=CC)C2C3CCCCCC=CC"
+     ]
+    },
+    {
+     "engine": "molvec",
+     "ok": true,
+     "error": null,
+     "smiles": [
+      null
+     ]
+    }
+   ]
+  }
+ ],
+ "contact_sheet": "contact-sheet.png",
+ "needs_review": [
+  1,
+  2,
+  3,
+  4,
+  6,
+  7,
+  8,
+  9,
+  10,
+  12,
+  13,
+  14
+ ],
+ "elapsed_s": 418.5,
+ "warnings": [
+  "predicted structures: compare every segment with the sheet and the page; segmentation can miss, merge or split structures"
+ ],
+ "note": "page renders and per-segment crops were removed to keep the folder small; contact-sheet.png shows every crop"
+}

@@ -28,7 +28,7 @@
 <p align="center">
   <a href="README.md">English</a> · <b>简体中文</b>
   <br>
-  <a href="#快速开始">快速开始</a> · <a href="#作品展示">作品展示</a> · <a href="#支持的工作">支持的工作</a> · <a href="#反应计算器与化学报告">计算器</a> · <a href="#主打案例">案例</a> · <a href="#平台支持">平台</a> · <a href="#常见问题">常见问题</a> · <a href="docs/guide.zh-cn.md">指南</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/">官网</a>
+  <a href="#快速开始">快速开始</a> · <a href="#作品展示">作品展示</a> · <a href="#支持的工作">支持的工作</a> · <a href="#反应计算器与化学报告">计算器</a> · <a href="#主打案例">案例</a> · <a href="#预测与分析引擎">引擎</a> · <a href="#平台支持">平台</a> · <a href="#常见问题">常见问题</a> · <a href="docs/guide.zh-cn.md">指南</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/">官网</a>
 </p>
 
 <br>
@@ -87,6 +87,16 @@
     <td width="33%" align="center" valign="top">
       <a href="#nmr-demo"><img src="assets/readme/gallery/nmr.png" alt="可编辑的实验 NMR 谱图"></a>
       <br><b>谱图与科研绘图</b><br><sub>已处理的一维 NMR 与数值曲线</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="#预测与分析引擎"><img src="assets/readme/engines/retro/route-aizynthfinder.png" alt="在 ChemDraw 中绘制的两步预测路线"></a>
+      <br><b>预测的合成路线</b><br><sub>四个引擎对照一条已记录的路线，错的也照实展示</sub>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="#预测与分析引擎"><img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="咖啡因实测谱图与标出的预测位移"></a>
+      <br><b>预测与实测核磁对比</b><br><sub>MagNET 与 NMRNet++ 对照真实谱图</sub>
     </td>
   </tr>
 </table>
@@ -171,7 +181,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
-| **更多引擎与预测** | 可选引擎各自在独立环境中运行：MolScribe、MolNexTR、MolParser（权重仅限非商业用途）、MolVec 与 DECIMER（远程服务，或本机运行的 `decimer-local`）对同一张图并排比较；在 PDF 中找出结构并生成供目检的接触表；预测产物、前体与合成路线（AiZynthFinder、SynPlanner、配合 Syntheseus 的 RetroChimera（仅供研究使用）、ReactionT5）、反应条件候选（Reacon，作者未声明许可证）以及 1H/13C 化学位移（MagNET、NMRNet++）。有 NVIDIA 显卡时，引擎会使用显卡（设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭）。所有结果都标注为预测；引擎意见不一致时不会合并。详见[引擎说明](skill/chemdraw/references/engines.md)。 |
+| **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、从 PDF 中找结构、前体、路线、产物、反应条件和 1H/13C 位移，每个案例都对照已知答案运行。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
 | **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；试剂安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
@@ -464,6 +474,154 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 
 </details>
 
+## 预测与分析引擎
+
+十五个可选引擎负责读结构图、从 PDF 中找结构，以及预测前体、产物、反应条件和核磁位移。你同意之前不会安装任何东西；每个引擎各用一个独立环境；本地引擎运行时不上传内容（远程 DECIMER 是唯一会把图片发出去的引擎）；每个结果都标注为模型预测。多个引擎意见不一致时并排列出，不合并。
+
+下面的案例都在同一台带 RTX 5090 显卡的 Windows 笔记本上运行，各自对照已核对的结构、实验记录或实测谱图打分，出错的地方照实保留。它们说明引擎在这些输入上的表现，不代表一般情况下的准确率。输入、输出、打分和耗时都在 [`assets/readme/engines/`](assets/readme/engines/provenance.json)。耗时是引擎自己报告的时间，含模型加载，因为每次调用都会重新启动引擎进程。
+
+### 结构图与 PDF
+
+> **你可以说：**“用本地所有引擎读这个结构，告诉我它们哪里不一致。”·“把这个 PDF 里的结构都抽出来并读一遍。”
+
+从一张已发表的路线图里裁出三个结构（化合物 13a、16、17，其中 R 和 SiMe<sub>2</sub>Ph 以缩写绘出），再加一张 ChemDraw 画的伊马替尼，交给六个引擎。读出的连接关系与已核对的结构相同才算对，R 和 X 按通配符处理，立体化学不计分。
+
+<table>
+  <tr>
+    <td align="center" valign="bottom"><img src="assets/readme/engines/ocsr/imatinib.png" height="110" alt="ChemDraw 绘制的伊马替尼"><br><sub>伊马替尼</sub></td>
+    <td align="center" valign="bottom"><img src="assets/readme/engines/ocsr/13a.png" height="110" alt="从已发表路线图裁出的化合物 13a"><br><sub>13a</sub></td>
+    <td align="center" valign="bottom"><img src="assets/readme/engines/ocsr/16.png" height="110" alt="从已发表路线图裁出的化合物 16"><br><sub>16</sub></td>
+    <td align="center" valign="bottom"><img src="assets/readme/engines/ocsr/17.png" height="110" alt="从已发表路线图裁出的化合物 17"><br><sub>17</sub></td>
+  </tr>
+</table>
+
+| 图片 | MolScribe | MolNexTR | MolParser | MolVec | DECIMER（远程） | DECIMER（本地） |
+| --- | --- | --- | --- | --- | --- | --- |
+| 伊马替尼，清晰绘图 | 对 | 对 | 对 | 对 | 对 | 对 |
+| 13a，R 与 SiMe<sub>2</sub>Ph | 错（丢了硅基，多出碎片） | 对 | 对 | 错（把 R 读成 P） | 错（环上多出 Hg） | 错（环上多出 Hg，附带碎片） |
+| 16，X 缩写 | 错（丢了 X，多出一个 C） | 错（丢了 X） | SMILES 无效 | 错（CH<sub>2</sub>X 读成乙基） | 错（环上甲基读成 NHMe） | 错（环上甲基读成 NHMe） |
+| 17，桥环笼状结构 | SMILES 无效 | 对（带一个 <sup>14</sup>C 标记） | SMILES 无效 | 错 | 对 | 对 |
+| **答对** | 4 个中 1 个 | 4 个中 3 个 | 4 个中 2 个 | 4 个中 1 个 | 4 个中 2 个 | 4 个中 2 个 |
+| 每张图耗时 | 17 秒 | 19 秒 | 15 秒 | 3 秒 | 4 秒（网络） | 57 秒（CPU） |
+
+这里两个引擎读得一致是个有用的提示：13a 上 MolNexTR 和 MolParser 一致且正确，17 上 MolNexTR 和 DECIMER 一致且正确。16 上六个全错，也没有两个独立模型一致，这时就该自己对着图看。`decimer-local` 在独立的 Python 3.11 + TensorFlow 2.15 CPU 环境里运行同一套 DECIMER V2 权重，四张图的识别与远程服务完全一致（伊马替尼对、置信度 0.994，17 对、0.913，16 错、0.889，13a 错、0.846），每次调用因重新加载模型需 51 到 87 秒。
+
+<img src="assets/readme/engines/pdf/contact-sheet.png" width="320" align="right" alt="联系表：PDF 中切出的每个片段，旁边是 MolScribe 和 MolVec 读出的结构">
+
+同一张路线图和另一张已发表的路线图做成两页 PDF，先用 DECIMER Segmentation 切分，再用 MolScribe 和 MolVec 读每个片段。第 1 页切出 5 个片段，对应它的 5 个结构，只有 1 个（2,2-二甲氧基丙烷）两个引擎都读对；其余的丢了缩写基团，还有一个片段带进了邻近的文字。第 2 页切出 9 个片段，其中 5 个两个引擎都没读出结果。联系表把每个片段和各引擎读出的结构并排放在一起，这些错误就是靠它发现的；14 个片段共用了 418 秒。
+
+**安装：** `ocsr-standard`（MolScribe 与 MolVec，4.7 GB）、`ocsr-full`（再加 MolNexTR 和 MolParser，12.9 GB）、`pdf`（切分器、MolScribe、MolVec，6.8 GB）。MolParser 的权重仅限非商业用途，MolVec 需要 Java。[详情](skill/chemdraw/references/engines.md#reading-a-structure-image)
+
+### 路线、产物与反应条件
+
+> **你可以说：**“用本地逆合成引擎给这个目标分子找前体，并把路线画出来。”·“这个反应会得到什么，用什么条件？”
+
+用来核对的有三个已知答案：实验记录里的两步（[KL-CC-001 和 KL-CC-002](toolkit/samples/KL-CC-002/scheme.png)：一步钯催化胺化，一步丁基锂烷基化），以及伊马替尼已发表的酰胺断键。
+
+| 逆合成 | AiZynthFinder | RetroChimera | ReactionT5（逆合成） | SynPlanner |
+| --- | --- | --- | --- | --- |
+| KL-CC-001，记录：4-溴噻吩并[2,3-d]嘧啶 + 吗啉 | 记录的组合排第 2；第 1 是 4-氯类似物 | 第 1 是氯类似物，记录的组合不在前 5 | 未命中（给出 2,4-二氯化合物，还混进一种膦） | 记录的组合在第 4 条路线；第 1 条是氯类似物 |
+| 伊马替尼，酰胺 + 苯胺 | 第 2（酸）和第 3（酰氯） | 第 1（酰氯） | 未命中 | 没有检索：目标本身在它的砌块库里 |
+| KL-CC-002，记录的两步路线 | 未命中 | 未命中 | 未命中 | 未命中 |
+| 耗时 | 18 到 34 秒 | 99 到 155 秒 | 15 到 19 秒 | 44 到 76 秒 |
+
+KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的第一条路线用到了三个记录原料中的两个（溴代杂环和吗啉），但用醛而不是甲苯磺酸酯来构建那个 C–C 键；SynPlanner 和 RetroChimera 的第一条路线走的是别的断键。下面三条路线都按“预测”绘制，作图工具的配平检查在每条里都指出了缺失的副产物。
+
+<table>
+  <tr>
+    <td width="33%" align="center" valign="top"><img src="assets/readme/engines/retro/route-aizynthfinder.png" alt="AiZynthFinder 给出的 KL-CC-002 第一条路线"><br><sub>AiZynthFinder</sub></td>
+    <td width="33%" align="center" valign="top"><img src="assets/readme/engines/retro/route-synplanner.png" alt="SynPlanner 给出的 KL-CC-002 第一条路线"><br><sub>SynPlanner</sub></td>
+    <td width="33%" align="center" valign="top"><img src="assets/readme/engines/retro/route-retrochimera.png" alt="RetroChimera 给出的 KL-CC-002 第一条路线"><br><sub>RetroChimera</sub></td>
+  </tr>
+</table>
+
+**产物。** ReactionT5（正向）在三个反应上都把记录的产物排在第 1（11 到 16 秒）；第 2 到第 5 名里有脱氢吗啉，也有把 S 换成 O 的呋喃，所以只有排在最前面的答案值得看。**反应条件。** Reacon 三个全没命中：胺化给出叠氮化钠加 THF（没有匹配的模板，它自己会如实报告），烷基化给出氢化钠加 DMF（记录是 n-BuLi、THF），伊马替尼酰胺首位是二氯甲烷（经典的吡啶排第 3）。它只返回催化剂、溶剂和试剂组合，不给温度、时间和用量。耗时 16 到 27 秒。
+
+<img src="assets/readme/engines/forward/products.png" alt="两个记录步骤的作图：ReactionT5 排第 1 的预测产物，以及记录的条件和产率">
+
+**安装：** `retro`（AiZynthFinder，1.7 GB）、`products`（3.9 GB）、`conditions`（Reacon，1.9 GB）；SynPlanner 和 ReactionT5 逆合成按名称安装；`retro-chimera`（8.5 GB，运行需要约 14 GB 可用内存）。RetroChimera 仅供研究使用；Reacon 的作者没有声明许可证，所以只在你要求时才从他们的仓库下载。[详情](skill/chemdraw/references/engines.md#predictions)
+
+### 对照实测谱图的核磁位移
+
+> **你可以说：**“用两个核磁模型预测咖啡因的 1H 和 13C 位移，并和实测谱图对比。”
+
+下图把 BMRB 的咖啡因 D<sub>2</sub>O 处理后谱图（`bmse000206`）画成可编辑的 ChemDraw 曲线，每个预测位移画一条竖线，实测峰画成刻度。为了系统衡量误差，我们用 `nmrshiftdb2` 中同时具备原始 Bruker <sup>1</sup>H 和 <sup>13</sup>C 谱且已完成原子归属的 **20 个有机分子与天然产物**（13 个 CDCl<sub>3</sub>、7 个 DMSO-<i>d</i><sub>6</sub>；共 215 个非活泼 C–H <sup>1</sup>H 拓扑等价组和 323 个 <sup>13</sup>C 拓扑等价组；两侧均剔除活泼 OH、NH、SH 质子，姜黄素按快速互变的简并酮-烯醇对称性归并）跑完两个模型。下表为按分子平均的绝对误差（MAE，单位 ppm）。
+
+<img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="咖啡因的 1H 和 13C 谱图，标出 MagNET 与 NMRNet++ 的预测值">
+
+| 子集 | 分子数 | <sup>1</sup>H 组数 | MagNET <sup>1</sup>H | NMRNet++ <sup>1</sup>H | <sup>13</sup>C 组数 | MagNET <sup>13</sup>C | NMRNet++ <sup>13</sup>C |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **全部 20 个分子** | 20 | 215 | **0.21**（合并 0.22，最大 1.08） | **0.11**（合并 0.12，最大 0.84） | 323 | **2.89**（合并 3.08，最大 15.90） | **1.14**（合并 1.23，最大 10.37） |
+| CDCl<sub>3</sub> | 13 | 165 | 0.19 | 0.10 | 234 | 3.11 | 1.10 |
+| DMSO-<i>d</i><sub>6</sub> | 7 | 50 | 0.26 | 0.13 | 89 | 2.48 | 1.22 |
+| 符合 ShiftDB-Lit 筛选（`<=1` 个手性中心） | 7 | 55 | 0.21 | 0.10 | 92 | 2.71 | 0.68 |
+| 不在 ShiftDB-Lit 中（`>=2` 个手性中心或未收录） | 13 | 160 | 0.21 | 0.12 | 231 | 2.99 | 1.39 |
+
+<details>
+<summary><b>展开全部 20 个分子的逐分子平均绝对误差（ppm）</b></summary>
+<br>
+
+| # | 分子（`nmrshiftdb2` 编号） | 溶剂 | <sup>1</sup>H 组数 | MagNET <sup>1</sup>H | NMRNet++ <sup>1</sup>H | <sup>13</sup>C 组数 | MagNET <sup>13</sup>C | NMRNet++ <sup>13</sup>C |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 橘皮素 Sinensetin（`20237348`） | CDCl<sub>3</sub> | 10 | 0.14 | 0.02 | 20 | 4.15 | 0.23 |
+| 2 | 秋水仙碱 Colchicine（`60000009`）* | CDCl<sub>3</sub> | 12 | 0.29 | 0.12 | 22 | 4.99 | 0.42 |
+| 3 | 奎宁 Quinine（`60004827`） | CDCl<sub>3</sub> | 16 | 0.25 | 0.12 | 20 | 3.48 | 0.87 |
+| 4 | 迷迭香酸 Rosmarinic acid（`20252986`） | DMSO-<i>d</i><sub>6</sub> | 10 | 0.38 | 0.04 | 18 | 2.74 | 0.39 |
+| 5 | 姜黄素 Curcumin（`10027206`）* | DMSO-<i>d</i><sub>6</sub> | 7 | 0.30 | 0.10 | 11 | 3.05 | 0.86 |
+| 6 | 咖啡因 Caffeine（`10016316`）* | DMSO-<i>d</i><sub>6</sub> | 4 | 0.16 | 0.24 | 8 | 0.90 | 0.32 |
+| 7 | 士的宁 Strychnine（`40265284`） | CDCl<sub>3</sub> | 16 | 0.13 | 0.10 | 21 | 2.07 | 1.28 |
+| 8 | *N*-Boc-二氧杂环戊烯并吡喃异喹啉（`60001975`） | CDCl<sub>3</sub> | 9 | 0.16 | 0.08 | 16 | 2.48 | 1.11 |
+| 9 | 胡椒碱 Piperine（`10016311`）* | CDCl<sub>3</sub> | 11 | 0.12 | 0.03 | 15 | 3.42 | 0.23 |
+| 10 | 加兰他敏 Galanthamine（`20062583`） | CDCl<sub>3</sub> | 12 | 0.22 | 0.14 | 17 | 4.09 | 2.62 |
+| 11 | 苏木红素 Brazilein（`20192008`）* | DMSO-<i>d</i><sub>6</sub> | 7 | 0.17 | 0.11 | 16 | 1.82 | 1.94 |
+| 12 | 可卡因 Cocaine（`10016310`） | CDCl<sub>3</sub> | 12 | 0.18 | 0.20 | 15 | 2.60 | 0.89 |
+| 13 | 4-(2,2,2-三氟乙氧基)苯胺（`60004996`） | DMSO-<i>d</i><sub>6</sub> | 3 | 0.15 | 0.13 | 6 | 1.58 | 1.27 |
+| 14 | 野靛碱 Cytisine（`60000003`） | CDCl<sub>3</sub> | 9 | 0.11 | 0.10 | 11 | 2.21 | 1.40 |
+| 15 | 指甲花醌 Lawsone（`20143612`）* | DMSO-<i>d</i><sub>6</sub> | 5 | 0.27 | 0.08 | 10 | 2.85 | 0.81 |
+| 16 | 蓟苦素 Cnicin（`40265326`） | DMSO-<i>d</i><sub>6</sub> | 14 | 0.38 | 0.23 | 20 | 4.45 | 2.92 |
+| 17 | (−)-反式-Δ<sup>9</sup>-四氢大麻酚（`40265338`） | CDCl<sub>3</sub> | 14 | 0.20 | 0.10 | 20 | 3.27 | 0.63 |
+| 18 | 3-*O*-乙酰基-11-酮-β-乳香酸（`60000007`） | CDCl<sub>3</sub> | 23 | 0.27 | 0.16 | 32 | 2.91 | 2.36 |
+| 19 | 青蒿素 Artemisinin（`20253147`） | CDCl<sub>3</sub> | 12 | 0.19 | 0.13 | 15 | 2.82 | 2.09 |
+| 20 | 尼古丁 Nicotine（`10008712`）* | CDCl<sub>3</sub> | 9 | 0.17 | 0.04 | 10 | 1.96 | 0.20 |
+
+<sub>* 标星号的 7 个分子同时符合 NMRNet++ 的 ShiftDB-Lit（<code>&lt;=1</code> 个手性中心）筛选条件。若不做原子归属、改用一对一匈牙利就近配峰，同一批 20 个分子的误差会降到 MagNET 0.16 / 2.58 ppm、NMRNet++ 0.09 / 1.00 ppm，因为相近谱峰互换会掩盖归属错误。</sub>
+
+</details>
+
+**训练集重合说明。** 这 20 条记录全部来自 `nmrshiftdb2`，而 `nmrshiftdb2` 本身属于 NMRNet++ 五折交叉验证的监督训练语料（第 0 折训练集覆盖其中约 80%），其中 7 个分子还进入了它的 ShiftDB-Lit 子集（这 7 个分子的 <sup>13</sup>C MAE 仅 0.68 ppm，其余 13 个为 1.39 ppm）。相比之下，MagNET 完全在 AIMNet2/GIAO DFT 计算屏蔽常数上训练，训练过程中未见过任何实验核磁谱图，因此它的 0.21 ppm（<sup>1</sup>H）和 2.89 ppm（<sup>13</sup>C）是严格的库外实测表现，而 NMRNet++ 的 0.11 和 1.14 ppm 含有训练语料重合，应视为库内上限。GPU 上单分子耗时：MagNET 为 22 到 60 秒（平均 29 秒），NMRNet++ 为 24 到 62 秒（平均 33 秒）。预测值绝不写进实验表征句。
+
+**安装：** `nmr`（MagNET，5.4 GB）和 `nmr-pp`（NMRNet++，2.8 GB；权重为 CC BY 4.0，且不接受溶剂参数）。[20 个分子的实测对比 JSON](assets/readme/engines/nmr/benchmark20.json) · [咖啡因谱图与数据](assets/readme/engines/nmr/caffeine/)
+
+### LCMS 板
+
+> **你可以说：**“把这份 OpenLynx 报告和板图对一下，告诉我哪些孔里有预期的产物。”
+
+这一项不需要引擎。PyParse 示例数据集（Apache-2.0）里的 24 孔 Waters 报告和板图，解析用了 11 秒。24 个孔都找到了预期产物：21 个是 [M+H]<sup>+</sup>，两个 Boc 保护的哌嗪（B3、B5）是 [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> 碎片，B11 的羧酸是 [M−H]<sup>−</sup>。与 PyParse 自己的输出相比，23 个孔的保留时间和纯度相差不超过 0.01。例外是 B6，它是匹配规则的取舍：工具箱取带完整 [M+H]<sup>+</sup> 的峰（92.9%），PyParse 取碎片峰（7.1%）。规则见 [match_plate.py](assets/readme/engines/lcms/match_plate.py)。
+
+<img src="assets/readme/engines/lcms/panel/page-001.png" alt="板上四个孔的预期质量、检出离子、保留时间、纯度和 PyParse 数值">
+
+### 十五个引擎一览
+
+| 引擎 | 作用 | 磁盘 | 许可 | GPU |
+| --- | --- | --- | --- | --- |
+| `decimer-api` | 图片转结构，远程服务 | 无 | MIT | 否 |
+| `decimer-local` | 同一模型在本机运行 | 2.4 GB | MIT | 否（CPU） |
+| `molscribe` | 图片转结构 | 4.7 GB | MIT | 是 |
+| `molnextr` | 图片转结构 | 4.8 GB | Apache-2.0 | 是 |
+| `molparser` | 图片转结构，含 Markush | 3.4 GB | 权重仅限非商业 | 是 |
+| `molvec` | 图片转结构，基于规则 | 2 MB | Apache-2.0 | 否（Java） |
+| `decimer-segmentation` | 在页面上找结构 | 2.1 GB | MIT | 否 |
+| `aizynthfinder` | 逆合成、路线 | 1.7 GB | MIT | 否 |
+| `synplanner` | 逆合成、路线 | 4.8 GB | MIT | 是 |
+| `reactiont5-forward` | 产物 | 3.9 GB | MIT | 是 |
+| `reactiont5-retro` | 单步逆合成 | 3.9 GB | MIT | 是 |
+| `retrochimera` | 单步逆合成与路线 | 8.5 GB | 仅限研究 | 是 |
+| `magnet` | 1H 和 13C 位移 | 5.4 GB | MIT | 是 |
+| `nmrnet-pp` | 1H 和 13C 位移，第二个模型 | 2.8 GB | 代码 MIT，权重 CC BY 4.0 | 是 |
+| `reacon` | 催化剂、溶剂和试剂组合 | 1.9 GB | 作者未声明 | 是 |
+
+大小是 Windows 上装好后的实测值，含 CUDA 版 PyTorch，CPU 安装更小。`CHEMDRAW_ENGINE_HOME` 可把它们装到别的磁盘。`cdx.py engines --recommend 需求` 会在下载任何东西之前说明某项任务需要什么。许可和注册表细节见 [engines.md](skill/chemdraw/references/engines.md)。
+
 ## 复刻论文反应图
 
 先读整图，再沿一条路线执行：
@@ -596,6 +754,14 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <br>
 
 它只是提醒，来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示“未收录”，不会显示成安全。表中的数值按常见供应商的分类写成，各家会有出入，请以你实际使用的产品的 SDS 为准。
+
+</details>
+
+<details>
+<summary><b>预测引擎需要什么？结果能信到什么程度？</b></summary>
+<br>
+
+它们需要磁盘空间（每个引擎从 2 MB 到约 8.5 GB，见[上文](#十五个引擎一览)），安装时联网一次，大多数有 NVIDIA 显卡会更快但不是必需的；装好后可离线运行。RetroChimera 需要约 14 GB 空闲内存。每个答案都只当候选：上面的案例里，引擎找回了记录的产物和部分记录的前体，也漏掉了另一些；在较公平的一次测试里，预测位移与实测相差约 1H 0.2 ppm、13C 2 到 3 ppm；Reacon 给出的条件三个记录的都没命中。多个引擎一致只是个提示，不一致就说明该人工核对。许可：MolParser 的权重仅限非商业用途，RetroChimera 仅供研究，Reacon 的作者没有声明许可证。
 
 </details>
 

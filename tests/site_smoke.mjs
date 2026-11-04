@@ -219,9 +219,9 @@ async function main() {
   await type("zzzz");
   check("an empty search offers a way forward", await run(`!document.querySelector(".faq-empty").hidden && !!document.querySelector(".faq-empty a")`));
   await type("");
-  check("clearing the search restores the list", (await shownQuestions()) === 8 && (await count(".faq details[open]")) === 1 && (await count(".faq mark")) === 0);
+  check("clearing the search restores the list", (await shownQuestions()) === 9 && (await count(".faq details[open]")) === 1 && (await count(".faq mark")) === 0);
   await click("[data-faq-all]");
-  check("expand all opens every answer", (await count(".faq details[open]")) === 8);
+  check("expand all opens every answer", (await count(".faq details[open]")) === 9);
   await sleep(320);
   await click("[data-faq-all]");
   check("expand all closes them again", (await count(".faq details[open]")) === 0);
@@ -233,7 +233,7 @@ async function main() {
   check("a deep link opens its answer", await run(`document.querySelector("#faq-safety").open`));
   await send("Emulation.setScriptExecutionDisabled", { value: true });
   await open("");
-  check("without scripts the FAQ still reads", (await count(".faq details .lead")) === 8 && await run(`getComputedStyle(document.querySelector(".faq-tools")).display === "none"`));
+  check("without scripts the FAQ still reads", (await count(".faq details .lead")) === 9 && await run(`getComputedStyle(document.querySelector(".faq-tools")).display === "none"`));
   await send("Emulation.setScriptExecutionDisabled", { value: false });
 
   // The pointer: each tool shows its own cursor, and a preview is exactly what the click does
@@ -379,7 +379,7 @@ async function main() {
   check("daily solved at home", await until(`Chem.parseStore(localStorage.getItem("chemdraw-skill-lab")).daily.streak === 1`), await store());
   check("button shows the streak", await run(`/1/.test(document.querySelector("[data-challenge-open]").dataset.count)`));
   await open("");
-  check("home remembers the streak", /1/.test(await run(`document.querySelector("[data-daily]").textContent`)));
+  check("home remembers the streak", await until(`/1/.test(document.querySelector("[data-daily]")?.textContent)`));
 
   // Every level, played through the interface, reaches three stars
   await open("lab/");
