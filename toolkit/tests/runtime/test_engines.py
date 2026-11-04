@@ -21,7 +21,7 @@ def entry(engine, smiles, ok=True):
 
 def test_every_engine_is_complete_and_licensed():
     for name, spec in ENGINES.items():
-        assert spec['task'] in TASKS and spec['kind'] in {'remote', 'runtime', 'local', 'jar'}, name
+        assert spec['task'] in TASKS and spec['kind'] in {'remote', 'local', 'jar'}, name
         assert spec.get('license'), name
         assert 'GPL' not in spec['license'].replace('LGPL', ''), f'{name}: GPL engines are never bundled'
         if spec['kind'] == 'local':
@@ -268,6 +268,38 @@ def test_an_engine_uses_the_gpu_only_when_cuda_works_and_cpu_is_not_forced(monke
     monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE')
     cuda.is_available = lambda: False
     assert worker._device() == 'cpu'
+
+
+def test_used_device_keeps_cpu_only_engines_on_cpu_and_reports_device_in_predict_payload(monkeypatch):
+    import io
+    import sys
+    import types
+    from cdxml_toolkit.engines import worker
+
+    cuda = types.SimpleNamespace(is_available=lambda: True)
+    monkeypatch.setitem(sys.modules, 'torch', types.SimpleNamespace(cuda=cuda))
+    monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE', raising=False)
+    monkeypatch.setattr(worker.sys, 'platform', 'linux')
+
+    for cpu_only in ('decimer-local', 'decimer-segmentation', 'aizynthfinder'):
+        assert worker._used_device(cpu_only) == 'cpu'
+    pytorch_engines = set(worker.ENGINES) - {'decimer-local', 'decimer-segmentation', 'aizynthfinder'}
+    assert len(pytorch_engines) == 10
+    for gpu_engine in pytorch_engines:
+        assert worker._used_device(gpu_engine) == 'cuda'
+    monkeypatch.setenv('CHEMDRAW_ENGINE_DEVICE', 'cpu')
+    for gpu_engine in pytorch_engines:
+        assert worker._used_device(gpu_engine) == 'cpu'
+
+    monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE')
+    monkeypatch.setitem(worker.ENGINES, 'molscribe', lambda params, data_dir, spec: [{'smiles': 'CCO'}])
+    monkeypatch.setattr(worker.sys, 'stdin', io.StringIO(json.dumps({
+        'engine': 'molscribe', 'action': 'predict', 'params': {}, 'data_dir': '.', 'spec': {}})))
+    out = io.StringIO()
+    monkeypatch.setattr(worker.sys, 'stdout', out)
+    worker.main()
+    payload = json.loads(out.getvalue().strip().splitlines()[-1][len(env.MARKER):])
+    assert payload == {'ok': True, 'engine': 'molscribe', 'device': 'cuda', 'result': [{'smiles': 'CCO'}]}
 
 
 def test_a_download_shows_its_progress_while_a_prediction_keeps_its_output(monkeypatch, tmp_path):

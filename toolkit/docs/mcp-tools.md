@@ -10,10 +10,11 @@ Tools: `66`
 
 ### `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, typing.Any]`
 
-Analyze a time series of standard LCMS reports (MassLynx PDFs or OpenLynx .rpt exports).
+Analyze a time series of standard LCMS reports (PDF, .rpt, .daml, or report.txt).
 
-Every PDF is one timepoint; every sample inside an .rpt is one timepoint, so
-one multi-sample .rpt is enough.
+Every PDF, Shimadzu .daml, or Agilent report.txt is one timepoint; every
+sample inside an OpenLynx .rpt is one timepoint, so one multi-sample .rpt is
+enough.
 
 ### `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, typing.Any]`
 
@@ -765,11 +766,12 @@ Entry types and their required fields:
 
   {"type": "nmr", "content": "1H NMR (400 MHz, DMSO-d6): ..."}
 
-Workflow: First call parse_analysis_file on each PDF to see peaks/masses.
-Then build entries referencing those PDFs with approximate RT and ion as
-search keys.  This tool re-reads the PDF and fills in exact numbers.
-"file" may also be an OpenLynx .rpt; for a multi-sample .rpt add
-"sample" (sample number, well, SampleID or file name) to the entry.
+Workflow: First call parse_analysis_file on each LCMS file to see peaks/masses.
+Then build entries referencing those files with approximate RT and ion as
+search keys.  This tool re-reads the LCMS report and fills in exact numbers.
+"file" may be a Waters MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, or
+Agilent ChemStation report.txt; for a multi-sample .rpt add "sample"
+(sample number, well, SampleID or file name) to the entry.
 
 Args:
     entries_json: List of entry dicts, or a JSON string, or {"entries": [...]}.
@@ -840,7 +842,8 @@ Returns:
 
 Parse an LCMS or NMR analysis file to extract peaks and data.
 
-Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports and
+Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports, Shimadzu
+LabSolutions .daml files, Agilent ChemStation report.txt files, and
 MestReNova NMR PDFs. Returns structured peak data for LCMS species
 identification or NMR characterisation. A .rpt holds one or many samples:
 one sample returns the same dict as a PDF report, several return
@@ -850,7 +853,7 @@ This module is under active development. If unavailable, the tool returns
 a graceful error rather than crashing.
 
 Args:
-    pdf_path:    Path to an LCMS PDF or OpenLynx .rpt, or an NMR PDF.
+    pdf_path:    Path to an LCMS file (.pdf, .rpt, .daml, or report.txt) or NMR PDF.
     output_path: If given, write the parsed data as JSON to this file and
                  return {ok, output_path, size} instead of the full dict.
 

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Trimmed from GSK PyParse v1.1.0 example_dataset/Shimadzu/SOCS2A-478-RP3573-1.daml
+     (Zenodo DOI 10.5281/zenodo.10590646, Apache-2.0 license). -->
+<DAML version="30" timestamp="9/28/2023 6:24:46 PM">
+  <app_settings>
+    <app_name />
+    <component>
+      <type>0</type>
+      <name>ISSAMSchedulePsiPortHelper</name>
+      <ver>4.18.43738.0</ver>
+      <location>file:///C:/Program Files (x86)/Shimadzu ISS/NGOpenSolution Sample Logging/Controls/ISSAMSchedulePsiPortHelper.exe</location>
+    </component>
+    <component>
+      <type>2</type>
+      <name>ShimMSOUtilitiesLib</name>
+      <ver>4.18.43738.0</ver>
+      <location>file:///C:/Program%20Files%20(x86)/Shimadzu%20ISS/NGOpenSolution%20Sample%20Logging/Controls/ShimMSOUtilitiesLib.DLL</location>
+    </component>
+    <component>
+      <type>2</type>
+      <name>ShimAppManagerExtension</name>
+      <ver>4.18.43738.0</ver>
+      <location>file:///C:/Program%20Files%20(x86)/Shimadzu%20ISS/NGOpenSolution%20Sample%20Logging/Controls/ShimAppManagerExtension.DLL</location>
+    </component>
+  </app_settings>
+  <datafile_attribs>
+    <pdf>\\fs.lifesci.dundee.ac.uk\nmr-data\CeTPD\Shimadzu LCMS-2020\Reports\Tom\20230928\SOCS2A-478-RP3573-1.pdf</pdf>
+    <raw_datafile>\\fs.lifesci.dundee.ac.uk\nmr-data\CeTPD\Shimadzu LCMS-2020\Data\Tom\20230928\SOCS2A-478-RP3573-1.lcd</raw_datafile>
+    <raw_datafile_last_write>9/28/2023 6:24:26 PM</raw_datafile_last_write>
+    <no_sync_raw_data>False</no_sync_raw_data>
+    <samp_num>1</samp_num>
+    <data_samp_type>0</data_samp_type>
+    <soln_type>1</soln_type>
+    <ms_det>0</ms_det>
+    <ms_inst>0</ms_inst>
+    <soln_ver>5.01</soln_ver>
+    <profile_data>False</profile_data>
+    <creation_date>9/28/2023 7:21:27 PM</creation_date>
+    <mod_date>9/28/2023 7:24:26 PM</mod_date>
+    <creation_operator>System Administrator</creation_operator>
+    <mod_operator>System Administrator</mod_operator>
+    <sample_name>SOCS2A-478-RP3573-1</sample_name>
+    <sample_id>SOCS2A-478-RP3573-1</sample_id>
+    <sample_barcode />
+    <sample_type />
+    <rack_name />
+    <rack_barcode />
+    <rack_type />
+    <tray_name>3</tray_name>
+    <vial>13</vial>
+    <desc>SOCS2A-478-RP3573-1</desc>
+    <inj_vol>0</inj_vol>
+    <instrument>Shimadzu LC/MS</instrument>
+    <plate_format />
+    <job_code />
+    <task_code />
+    <lab_name />
+    <conditions />
+    <method_file_name>C:\LabSolutions\Data\Project1\5-95_acid_pos-neg_3min.lcm</method_file_name>
+    <ms_tune_file_name />
+    <ms_method />
+    <inlet_method />
+    <pre_run_method />
+    <post_run_method />
+    <switch_method />
+    <fraction_method />
+    <acqu_process />
+    <acqu_process_params />
+    <acqu_process_options />
+    <report_scheme />
+    <sample_report_enable>0</sample_report_enable>
+    <sample_report_format />
+    <analysis_time>0</analysis_time>
+    <fraction_system_number>0</fraction_system_number>
+    <fraction_system_name />
+    <collection_system />
+    <sample_info>
+      <position_on_plate>12</position_on_plate>
+      <plate_pos>2</plate_pos>
+      <sample_state>1</sample_state>
+    </sample_info>
+  </datafile_attribs>
+  <method>aWQ7MDtTdG9wVGltZTswO0FjcVN0YXJ0VGltZTswO0FjcVN0b3BUaW1lOzA7RGV0QUNoMTswO0RldEFDaDI7MDtEZXRCQ2gxOzA7RGV0QkNoMjswO0xDUHVtcEZsb3c7MDtJbmpWb2w7MDtJbnN0TmFtZTs7T3ZlblRlbXA7MA==</method>
+  <results>
+    <lc_chros>
+      <chro>
+        <id>12</id>
+        <data>VVYyNTQ7O21pbjttQVU7MDswOzE1MDAwMDsxMDA7MzAwMDAwOzA=</data>
+        <data_align>0</data_align>
+        <offset>0</offset>
+        <fraction_data_align>0</fraction_data_align>
+        <lc_type>7</lc_type>
+        <tracetype_pda>0</tracetype_pda>
+        <wavelength>254</wavelength>
+        <end_wavelength>254</end_wavelength>
+        <bandwidth>4</bandwidth>
+        <inst_name />
+        <ttfl_det_id>-1</ttfl_det_id>
+      </chro>
+    </lc_chros>
+    <spectra />
+    <pda_spectra />
+  </results>
+</DAML>

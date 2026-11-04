@@ -92,26 +92,28 @@
 
 ## `engines.env`
 
-- **function**, line 127: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
-- **function**, line 179: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
-- **function**, line 84: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
-- **function**, line 747: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
-- **class**, line 37: `EngineError` - An engine is missing, could not run, or returned something unusable.
-- **class**, line 41: `EngineMissing` - The engine is not installed. ``hint`` says what installing it would cost, for the user to decide.
-- **function**, line 73: `environment(name: str) -> Path` - No public docstring in the audited version.
-- **function**, line 49: `hint(name: str) -> dict` - What to tell the user when ``name`` is needed but absent: use, size, licence and the command.
-- **function**, line 62: `home() -> Path` - No public docstring in the audited version.
-- **function**, line 662: `install(name: str, *, dry_run: bool = False, log = None, allow_runtime_changes: bool = False) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
-- **function**, line 77: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
-- **function**, line 109: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
-- **function**, line 89: `java() -> str | None` - No public docstring in the audited version.
-- **function**, line 115: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
-- **function**, line 101: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
-- **function**, line 793: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a need in ``RECOMMEND`` or an engine task name), with what each costs. Reads only; nothing is downloaded.
-- **function**, line 816: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
-- **function**, line 236: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
-- **function**, line 246: `sha256_of(path) -> str` - No public docstring in the audited version.
-- **function**, line 780: `status(sizes: bool = False) -> dict` - Which engines are available and their disk use. Sizes come from the receipts; ``sizes=True`` measures again.
+- **function**, line 150: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
+- **function**, line 202: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
+- **function**, line 125: `configured_device(name: str) -> str` - The device ``name`` is configured to run on ('cuda', 'cpu', or 'remote').
+- **function**, line 85: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
+- **function**, line 573: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
+- **class**, line 38: `EngineError` - An engine is missing, could not run, or returned something unusable.
+- **class**, line 42: `EngineMissing` - The engine is not installed. ``hint`` says what installing it would cost, for the user to decide.
+- **function**, line 74: `environment(name: str) -> Path` - No public docstring in the audited version.
+- **function**, line 50: `hint(name: str) -> dict` - What to tell the user when ``name`` is needed but absent: use, size, licence and the command.
+- **function**, line 63: `home() -> Path` - No public docstring in the audited version.
+- **function**, line 500: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
+- **function**, line 78: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
+- **function**, line 103: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
+- **function**, line 90: `java() -> str | None` - No public docstring in the audited version.
+- **function**, line 138: `last_call_meta(name: str | None = None) -> dict` - Device metadata from the most recent ``call`` on this context, or configured defaults.
+- **function**, line 109: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
+- **function**, line 95: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
+- **function**, line 625: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a need in ``RECOMMEND`` or an engine task name), with what each costs. Reads only; nothing is downloaded.
+- **function**, line 648: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
+- **function**, line 268: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
+- **function**, line 278: `sha256_of(path) -> str` - No public docstring in the audited version.
+- **function**, line 606: `status(sizes: bool = False) -> dict` - Which engines are available and their disk use. Sizes come from the receipts; ``sizes=True`` measures again.
 
 ## `engines.envelope`
 
@@ -122,7 +124,7 @@
 
 ## `engines.nmr`
 
-- **function**, line 92: `predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict` - ``engine`` may name several, comma separated: each runs and the peaks are compared, never merged. An engine that fails is listed in ``failed_engines`` and the others still answer.
+- **function**, line 100: `predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict` - ``engine`` may name several, comma separated: each runs and the peaks are compared, never merged. An engine that fails is listed in ``failed_engines`` and the others still answer.
 - **function**, line 37: `simulate(peaks: list, nucleus: str, frequency_mhz: float, width_hz: float = 1.5, points: int = 16384) -> list` - Lorentzian singlets on a ppm axis (no coupling): a picture of where the lines fall, not a multiplet pattern.
 
 ## `engines.ocsr`
@@ -132,9 +134,9 @@
 
 ## `engines.reactions`
 
-- **function**, line 145: `conditions(reactants: str, products: str, engine: str | None = None, count: int = 5, timeout_seconds: int = 900) -> dict` - Rank catalyst, solvent and reagent combinations for a reaction the user already drew.
-- **function**, line 31: `products(reactants: str, reagents: str | None = None, engine: str | None = None, count: int = 5, timeout_seconds: int = 600) -> dict` - Predict the products of ``reactants`` (dot-separated SMILES), optionally with ``reagents``.
-- **function**, line 78: `retrosynthesis(product: str, engine: str | None = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict` - Suggest precursors (``steps='single'``) or whole routes (``'multi'``) for ``product``.
+- **function**, line 162: `conditions(reactants: str, products: str, engine: str | None = None, count: int = 5, timeout_seconds: int = 900) -> dict` - Rank catalyst, solvent and reagent combinations for a reaction the user already drew.
+- **function**, line 40: `products(reactants: str, reagents: str | None = None, engine: str | None = None, count: int = 5, timeout_seconds: int = 600) -> dict` - Predict the products of ``reactants`` (dot-separated SMILES), optionally with ``reagents``.
+- **function**, line 91: `retrosynthesis(product: str, engine: str | None = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict` - Suggest precursors (``steps='single'``) or whole routes (``'multi'``) for ``product``.
 
 ## `engines.registry`
 
@@ -143,16 +145,16 @@
 
 ## `engines.table`
 
-- **function**, line 37: `bundles_table() -> str` - No public docstring in the audited version.
-- **function**, line 48: `download_size(bundle: str) -> str` - What installing ``bundle`` takes on disk, from the registry's measured engine sizes: ``about 4.7 GB``.
-- **function**, line 29: `engines_table() -> str` - No public docstring in the audited version.
-- **function**, line 56: `render(text: str) -> str` - ``text`` with every marked table replaced by the one the registry gives, and every ``<!--size:BUNDLE-->`` span by that bundle's size; a missing marker is an error.
+- **function**, line 35: `bundles_table() -> str` - No public docstring in the audited version.
+- **function**, line 46: `download_size(bundle: str) -> str` - What installing ``bundle`` takes on disk, from the registry's measured engine sizes: ``about 4.7 GB``.
+- **function**, line 27: `engines_table() -> str` - No public docstring in the audited version.
+- **function**, line 54: `render(text: str) -> str` - ``text`` with every marked table replaced by the one the registry gives, and every ``<!--size:BUNDLE-->`` span by that bundle's size; a missing marker is an error.
 
 ## `engines.worker`
 
 - **function**, line 78: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
 - **function**, line 351: `remote_range(url, first, last)` - No public docstring in the audited version.
-- **function**, line 1026: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 1052: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
@@ -296,19 +298,19 @@
 
 ## `mcp_runtime.extended_tools`
 
-- **function**, line 1147: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, Any]` - Analyze a time series of standard LCMS reports (MassLynx PDFs or OpenLynx .rpt exports).
-- **function**, line 1230: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
+- **function**, line 1147: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, Any]` - Analyze a time series of standard LCMS reports (PDF, .rpt, .daml, or report.txt).
+- **function**, line 1231: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
 - **function**, line 818: `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, Any]` - Create PPTX or DOCX containing editable ChemDraw OLE objects.
 - **function**, line 470: `clean_scheme_layout(input_path: str, output_path: Optional[str] = None, approach: str = 'chemdraw_mimic', render_preview: bool = True) -> dict[str, Any]` - Clean an existing CDXML reaction layout without changing the source file.
 - **function**, line 1115: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
 - **function**, line 742: `fill_office_template(template_path: str, manifest_path: str, output_path: Optional[str] = None) -> dict[str, Any]` - Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
 - **function**, line 878: `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, Any]` - Inventory editable ChemDraw objects and extract numbered CDXML previews.
 - **function**, line 516: `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, Any]` - Merge parallel, sequential, or unrelated CDXML reaction schemes.
-- **function**, line 1264: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
+- **function**, line 1265: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
 - **function**, line 603: `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, Any]` - Run the audited deterministic polishing pipeline on a CDXML scheme.
 - **function**, line 635: `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, Any]` - Render one or more CDXML files through native ChemDraw (COM or macOS).
 - **function**, line 984: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
-- **function**, line 1372: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
+- **function**, line 1373: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
 
 ## `mcp_runtime.figure_draw`
 

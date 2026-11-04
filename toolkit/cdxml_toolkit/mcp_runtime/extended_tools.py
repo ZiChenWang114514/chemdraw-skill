@@ -1152,16 +1152,17 @@ def analyze_lcms_series(
     trend_threshold: float = 0.2,
     ignore_instrument: bool = False,
 ) -> dict[str, Any]:
-    """Analyze a time series of standard LCMS reports (MassLynx PDFs or OpenLynx .rpt exports).
+    """Analyze a time series of standard LCMS reports (PDF, .rpt, .daml, or report.txt).
 
-    Every PDF is one timepoint; every sample inside an .rpt is one timepoint, so
-    one multi-sample .rpt is enough.
+    Every PDF, Shimadzu .daml, or Agilent report.txt is one timepoint; every
+    sample inside an OpenLynx .rpt is one timepoint, so one multi-sample .rpt is
+    enough.
     """
     if not files:
         raise ValueError("analyze_lcms_series requires at least two files")
     if min(rt_tolerance, mz_tolerance, trend_threshold) <= 0:
         raise ValueError("LCMS tolerances and trend_threshold must be positive")
-    sources = [_source(path, suffixes=(".pdf", ".rpt")) for path in files]
+    sources = [_source(path, suffixes=(".pdf", ".rpt", ".daml", ".txt")) for path in files]
     if len(files) < 2:
         only = sources[0]
         from cdxml_toolkit.analysis.openlynx_rpt import count_rpt_samples

@@ -86,8 +86,8 @@ class LCMSReport:
     peaks: List[ChromPeak] = field(default_factory=list)
     file_modified: Optional[str] = None
     run_time: Optional[str] = None  # "HH:MM:SS" from PDF header
-    # Set for OpenLynx .rpt input (a PDF report leaves the defaults).
-    source_format: str = "masslynx_pdf"   # "masslynx_pdf" | "openlynx_rpt"
+    # Set for non-PDF inputs (a MassLynx PDF report leaves the defaults).
+    source_format: str = "masslynx_pdf"   # "masslynx_pdf" | "openlynx_rpt" | "shimadzu_daml" | "agilent_chemstation_txt"
     sample_id: str = ""
     well: str = ""
     sample_index: Optional[int] = None    # 1-based [SAMPLE] number in the .rpt
@@ -118,6 +118,12 @@ def _path_leaf(path: str) -> str:
     return path.replace(chr(92), '/').rsplit('/', 1)[-1]
 
 
+def _strip_method_ext(leaf: str) -> str:
+    """Strip trailing method annotations and known method extensions (.olp/.lcm/.m)."""
+    cleaned = re.sub(r'\s*\(.*$', '', leaf).strip()
+    return re.sub(r'\.(?:olp|lcm|m)$', '', cleaned, flags=re.IGNORECASE)
+
+
 def parse_method_short(method_path: str) -> str:
     """
     Extract a short method description from the full MassLynx method path.
@@ -128,7 +134,7 @@ def parse_method_short(method_path: str) -> str:
     e.g. '...21_CSH_C18_AmB_50to100_ACN_220_254nm_TAC_TIC_1p9min.olp'
     -> 'CSH C18, AmB, 50-100%, 1.9 min'
     """
-    basename = _path_leaf(method_path).replace('.olp', '')
+    basename = _strip_method_ext(_path_leaf(method_path))
     parts = basename.split('_')
 
     column = ""
@@ -171,8 +177,8 @@ def method_basename(method_path: str) -> str:
     Used for grouping files by exact method — files with the same method
     basename are comparable (same column, buffer, gradient, runtime).
     """
-    # MassLynx method paths are Windows paths, whatever OS the toolkit runs on.
-    return _path_leaf(method_path).replace('.olp', '').lower()
+    # Vendor method paths are often Windows paths, whatever OS the toolkit runs on.
+    return _strip_method_ext(_path_leaf(method_path)).lower()
 
 
 def parse_header(text: str) -> dict:
@@ -562,21 +568,28 @@ def _parse_spectrum_pages(pdf) -> Tuple[Dict[int, Tuple[float, list]],
 
 
 def is_waters_report(pdf_path: str) -> bool:
-    """Quick content-based check: is this a standard Waters MassLynx report?
+    """Quick content-based check: is this a supported standard LCMS report?
 
-    An OpenLynx ``.rpt`` export counts as a standard report too (checked by
-    content, no PDF reader needed).
+    Accepts Waters MassLynx PDF reports, OpenLynx ``.rpt`` exports, Shimadzu
+    LabSolutions ``.daml`` files, and Agilent ChemStation ``report.txt`` files
+    (text/XML formats are checked by content without opening ``pdfplumber``).
 
     Manually integrated chromatograms (e.g. LC-only or MS-only exports) lack
     the structured headers of a full UPLC-PDA-MS Open Access report. This
     function reads only the first page and checks for Waters report markers.
 
-    Returns True for standard reports, False for manually integrated exports
-    or other non-standard PDFs.
+    Returns True for standard reports, False for manually integrated exports,
+    unrelated text/XML files, or other non-standard PDFs.
     """
     if is_rpt_path(pdf_path):
         from cdxml_toolkit.analysis.openlynx_rpt import is_openlynx_rpt
         return is_openlynx_rpt(pdf_path)
+    if is_daml_path(pdf_path):
+        from cdxml_toolkit.analysis.shimadzu_daml import is_shimadzu_daml
+        return is_shimadzu_daml(pdf_path)
+    if is_agilent_txt_path(pdf_path):
+        from cdxml_toolkit.analysis.agilent_txt import is_agilent_report_txt
+        return is_agilent_report_txt(pdf_path)
     import pdfplumber
     try:
         with pdfplumber.open(pdf_path) as pdf:
@@ -600,20 +613,44 @@ def is_rpt_path(path: str) -> bool:
     return os.path.splitext(str(path))[1].lower() == ".rpt"
 
 
+def is_daml_path(path: str) -> bool:
+    """True when the file name has a Shimadzu ``.daml`` extension."""
+    return os.path.splitext(str(path))[1].lower() == ".daml"
+
+
+def is_agilent_txt_path(path: str) -> bool:
+    """True when the file name has a ``.txt`` extension (content checked later)."""
+    return os.path.splitext(str(path))[1].lower() == ".txt"
+
+
 def parse_reports(path: str) -> List[LCMSReport]:
     """Parse a standard LCMS report file into a list of sample reports.
 
-    A MassLynx PDF holds one sample, so the list has one entry.  An OpenLynx
-    ``.rpt`` export holds one entry per ``[SAMPLE]`` block.
+    A MassLynx PDF, Shimadzu ``.daml``, or Agilent ``report.txt`` holds one
+    sample, so the list has one entry.  An OpenLynx ``.rpt`` export holds one
+    entry per ``[SAMPLE]`` block.
     """
     if is_rpt_path(path):
         from cdxml_toolkit.analysis.openlynx_rpt import parse_rpt
         return parse_rpt(path)
+    if is_daml_path(path):
+        from cdxml_toolkit.analysis.shimadzu_daml import is_shimadzu_daml, parse_daml
+        if not is_shimadzu_daml(path):
+            raise ValueError(f"Not a Shimadzu LabSolutions .daml file: {path}")
+        return [parse_daml(path)]
+    if is_agilent_txt_path(path):
+        from cdxml_toolkit.analysis.agilent_txt import (
+            is_agilent_report_txt,
+            parse_agilent_txt,
+        )
+        if not is_agilent_report_txt(path):
+            raise ValueError(f"Not an Agilent ChemStation report.txt file: {path}")
+        return [parse_agilent_txt(path)]
     return [parse_report(path)]
 
 
 def parse_report(pdf_path: str, sample=None) -> LCMSReport:
-    """Parse one MassLynx report: a PDF, or one sample of an OpenLynx .rpt.
+    """Parse one LCMS report: MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, or Agilent report.txt.
 
     *sample* only matters for ``.rpt`` files with several samples: the 1-based
     sample number, well, SampleID or acquired file name.  Use
@@ -622,6 +659,19 @@ def parse_report(pdf_path: str, sample=None) -> LCMSReport:
     if is_rpt_path(pdf_path):
         from cdxml_toolkit.analysis.openlynx_rpt import parse_rpt, select_sample
         return select_sample(parse_rpt(pdf_path), sample)
+    if is_daml_path(pdf_path):
+        from cdxml_toolkit.analysis.shimadzu_daml import is_shimadzu_daml, parse_daml
+        if not is_shimadzu_daml(pdf_path):
+            raise ValueError(f"Not a Shimadzu LabSolutions .daml file: {pdf_path}")
+        return parse_daml(pdf_path)
+    if is_agilent_txt_path(pdf_path):
+        from cdxml_toolkit.analysis.agilent_txt import (
+            is_agilent_report_txt,
+            parse_agilent_txt,
+        )
+        if not is_agilent_report_txt(pdf_path):
+            raise ValueError(f"Not an Agilent ChemStation report.txt file: {pdf_path}")
+        return parse_agilent_txt(pdf_path)
     import pdfplumber
 
     with pdfplumber.open(pdf_path) as pdf:
@@ -710,6 +760,8 @@ def is_manual_integration(pdf_path: str) -> bool:
     Manual integration PDFs have "Diode Array" but lack the structured
     "Sample Name:" / "Date:" / "Time:" headers of a full Waters report.
     """
+    if os.path.splitext(str(pdf_path))[1].lower() in (".rpt", ".daml", ".txt"):
+        return False
     import pdfplumber
     try:
         with pdfplumber.open(pdf_path) as pdf:
@@ -1258,13 +1310,19 @@ def _report_sort_key(report: LCMSReport) -> str:
     if report.source_format == "openlynx_rpt":
         from cdxml_toolkit.analysis.openlynx_rpt import report_datetime
         return report_datetime(report) or report.date
+    if report.source_format == "shimadzu_daml":
+        from cdxml_toolkit.analysis.shimadzu_daml import report_datetime
+        return report_datetime(report) or report.date
+    if report.source_format == "agilent_chemstation_txt":
+        from cdxml_toolkit.analysis.agilent_txt import report_datetime
+        return report_datetime(report) or report.date
     return report.date
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="LCMS Report Analyzer")
     parser.add_argument('files', nargs='+',
-                        help='MassLynx PDF reports or OpenLynx .rpt exports')
+                        help='LCMS reports (MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, or Agilent report.txt)')
     parser.add_argument('--sm-mass', type=float, default=None,
                        help='Exact mass of starting material')
     parser.add_argument('--product-mass', type=float, default=None,

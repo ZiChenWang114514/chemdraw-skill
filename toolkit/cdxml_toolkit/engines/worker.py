@@ -510,16 +510,26 @@ def _fetch_bundle(data_dir, spec):
 
 # --- OCSR -----------------------------------------------------------------------------------------
 
+CPU_ONLY_ENGINES = ('decimer-local', 'decimer-segmentation', 'aizynthfinder')
+
+
 def _device():
     """'cuda' when this environment's torch can use an NVIDIA GPU, else 'cpu'; CHEMDRAW_ENGINE_DEVICE=cpu forces
     the CPU. Engines whose torch was installed without CUDA, and every Mac, stay on the CPU."""
-    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').lower() == 'cpu' or sys.platform == 'darwin':
+    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').strip().lower() == 'cpu' or sys.platform == 'darwin':
         return 'cpu'
     try:
         import torch
         return 'cuda' if torch.cuda.is_available() else 'cpu'
     except Exception:  # an engine without torch, or a broken CUDA install
         return 'cpu'
+
+
+def _used_device(engine: str) -> str:
+    """The device ``engine`` runs on in this worker ('cpu' or 'cuda')."""
+    if engine in CPU_ONLY_ENGINES:
+        return 'cpu'
+    return _device()
 
 
 class _OneThreadPool:
@@ -737,14 +747,22 @@ def _synplanner(params, data_dir, spec):
                                                            int(params.get('time_limit', 60)),
                                                            int(params.get('max_depth', 6))))
     results = os.path.join(work, 'results')
+    used_device = _device()
+    child_env = dict(os.environ, CUDA_VISIBLE_DEVICES='') if used_device == 'cpu' else None
     done = subprocess.run([
         _synplan_cli(), 'planning', '--config', config, '--targets', target,
         '--reaction_rules', os.path.join(data_dir, 'policy/supervised_gps/v1/reaction_rules.tsv'),
         '--building_blocks', os.path.join(data_dir, BLOCKS_SMILES),
         '--policy_network', os.path.join(data_dir, 'policy/supervised_gps/v1/v1/ranking_policy.ckpt'),
-        '--results_dir', results, '--export_routes'], capture_output=True, text=True)
+        '--results_dir', results, '--export_routes'], capture_output=True, text=True,
+        **({'env': child_env} if child_env is not None else {}))
     if done.returncode != 0:
-        raise RuntimeError('synplan planning failed: ' + (done.stderr or done.stdout)[-300:])
+        combined = (done.stderr or '') + '\n' + (done.stdout or '')
+        cuda_match = re.search(r'(?:CUDA error|no kernel image|CUDA out of memory)[^\r\n]*', combined, re.I)
+        tail = (done.stderr or done.stdout or '')[-300:]
+        if cuda_match and cuda_match.group(0) not in tail:
+            tail = f'{cuda_match.group(0)}\n{tail}'
+        raise RuntimeError('synplan planning failed: ' + tail)
     with open(os.path.join(results, 'tree_search_stats.csv'), encoding='utf-8') as handle:
         stats = next(csv.DictReader(handle))
     routes = []
@@ -933,10 +951,18 @@ def _nmrnet_pp(params, data_dir, spec):
             transaction.put(b'0', pickle.dumps(record))
         database.close()
         results = os.path.join(work, 'results-' + element)
-        command = _nmrnet_command(data_dir, data, results, element, _device())
-        done = subprocess.run(command, cwd=os.path.join(data_dir, 'code'), capture_output=True, text=True)
+        used_device = _device()
+        child_env = dict(os.environ, CUDA_VISIBLE_DEVICES='') if used_device == 'cpu' else None
+        command = _nmrnet_command(data_dir, data, results, element, used_device)
+        done = subprocess.run(command, cwd=os.path.join(data_dir, 'code'), capture_output=True, text=True,
+                              **({'env': child_env} if child_env is not None else {}))
         if done.returncode != 0:
-            raise RuntimeError('NMRNet++ inference failed: ' + (done.stderr or done.stdout)[-300:])
+            combined = (done.stderr or '') + '\n' + (done.stdout or '')
+            cuda_match = re.search(r'(?:CUDA error|no kernel image|CUDA out of memory)[^\r\n]*', combined, re.I)
+            tail = (done.stderr or done.stdout or '')[-300:]
+            if cuda_match and cuda_match.group(0) not in tail:
+                tail = f'{cuda_match.group(0)}\n{tail}'
+            raise RuntimeError('NMRNet++ inference failed: ' + tail)
         with open(os.path.join(results, 'cv_seed_42_fold_0_valid.out.pkl'), 'rb') as handle:
             output = pickle.load(handle)[0]
         host = lambda value: value.cpu() if hasattr(value, 'cpu') else value  # tensors come back on the GPU when it is used
@@ -1041,11 +1067,12 @@ def main():
         engine, action = request['engine'], request['action']
         if action == 'fetch':
             result = fetch(engine, request.get('params') or {}, request['data_dir'], request.get('spec') or {})
+            payload = {'ok': True, 'result': result}
         elif action == 'predict' and engine in ENGINES:
             result = ENGINES[engine](request.get('params') or {}, request['data_dir'], request.get('spec') or {})
+            payload = {'ok': True, 'engine': engine, 'device': _used_device(engine), 'result': result}
         else:
             raise ValueError(f'unknown engine action {engine!r} {action!r}')
-        payload = {'ok': True, 'result': result}
     except BaseException as exc:
         payload = {'ok': False, 'error': f'{type(exc).__name__}: {exc}'}
     answer.write('\n@@ENGINE-RESULT@@' + json.dumps(payload) + '\n')  # env.MARKER; engines may print around it

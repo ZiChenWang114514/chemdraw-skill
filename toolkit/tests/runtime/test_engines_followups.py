@@ -113,16 +113,51 @@ def _engine_with_receipt(home, name='molscribe'):
 def test_a_cuda_failure_is_retried_once_on_the_cpu(home, monkeypatch, message):
     _engine_with_receipt(home)
     devices = []
+    cuda_visible = []
 
     def run(command, **kwargs):
         devices.append(kwargs['env'].get('CHEMDRAW_ENGINE_DEVICE'))
+        cuda_visible.append(kwargs['env'].get('CUDA_VISIBLE_DEVICES'))
         ok = devices[-1] == 'cpu'
-        payload = {'ok': True, 'result': [1]} if ok else {'ok': False, 'error': message}
+        payload = {'ok': True, 'engine': 'molscribe', 'device': 'cpu', 'result': [1]} if ok else {'ok': False, 'error': message}
         return subprocess.CompletedProcess(command, 0, env.MARKER + json.dumps(payload), '')
 
+    monkeypatch.setenv('CUDA_VISIBLE_DEVICES', '0')
     monkeypatch.setattr(env, '_run', run)
     assert env.call('molscribe', 'predict', {}) == [1]
     assert devices == [None, 'cpu']
+    assert cuda_visible == ['0', '']
+    assert env.last_call_meta('molscribe') == {'device': 'cpu', 'device_fallback': True}
+
+
+def test_cpu_calls_hide_cuda_visible_devices_in_child_env(home, monkeypatch):
+    _engine_with_receipt(home)
+    (home / 'molscribe' / env.RECEIPT).write_text(json.dumps({'device': 'cuda'}))
+    seen = []
+
+    def run(command, **kwargs):
+        seen.append(dict(kwargs['env']))
+        dev = 'cpu' if kwargs['env'].get('CUDA_VISIBLE_DEVICES') == '' else 'cuda'
+        payload = {'ok': True, 'engine': 'molscribe', 'device': dev, 'result': {'ok': True}}
+        return subprocess.CompletedProcess(command, 0, env.MARKER + json.dumps(payload), '')
+
+    monkeypatch.setenv('CUDA_VISIBLE_DEVICES', '0')
+    monkeypatch.setattr(env, '_run', run)
+
+    env._call('molscribe', 'predict', {}, timeout=30, device='cpu')
+    assert seen[-1]['CHEMDRAW_ENGINE_DEVICE'] == 'cpu' and seen[-1]['CUDA_VISIBLE_DEVICES'] == ''
+    assert env.last_call_meta('molscribe') == {'device': 'cpu', 'device_fallback': False}
+
+    monkeypatch.setenv('CHEMDRAW_ENGINE_DEVICE', 'cpu')
+    env.call('molscribe', 'predict', {})
+    assert seen[-1]['CUDA_VISIBLE_DEVICES'] == ''
+    assert env.last_call_meta('molscribe') == {'device': 'cpu', 'device_fallback': False}
+
+    monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE')
+    env.call('molscribe', 'predict', {})
+    assert seen[-1]['CUDA_VISIBLE_DEVICES'] == '0'
+    assert env.last_call_meta('molscribe') == {'device': 'cuda', 'device_fallback': False}
+    assert env.last_call_meta('aizynthfinder') == {'device': 'cpu', 'device_fallback': False}
 
 
 def test_no_retry_when_the_device_was_chosen_or_the_error_is_something_else(home, monkeypatch):
@@ -325,193 +360,186 @@ def test_no_python_anywhere_says_what_to_install(tmp_path, monkeypatch):
         env._create('molscribe', tmp_path / 'molscribe', None)
 
 
-# --- the shared runtime is not changed under the user -----------------------------------------------
-
-# What `uv pip install --dry-run decimer tensorflow` printed on a runtime that had neither: every line is an
-# addition, none is a replacement. A guard that only looked at replaced packages let this install through.
-UV_PLAN_ONLY_ADDS = """\
-Using Python 3.12.14 environment at: C:\\Users\\someone\\AppData\\Local\\chemdraw-skill\\venv
-Resolved 50 packages in 846ms
-Would download 4 packages
-Would install 4 packages
- + decimer==2.6.0
- + keras==3.15.1
- + numpy==2.4.1
- + tensorflow==2.21.0
-"""
+def test_allow_runtime_changes_flag_is_gone_from_cli(capsys):
+    from cdxml_toolkit.engines import __main__ as cli
+    with pytest.raises(SystemExit) as stopped:
+        cli.main(['--allow-runtime-changes', 'molscribe'])
+    assert stopped.value.code == 2
+    assert 'unrecognized arguments: --allow-runtime-changes' in capsys.readouterr().err
 
 
-@pytest.fixture
-def runtime_engine(monkeypatch):
-    """A made-up engine that installs into the shared runtime, as ``kind: runtime`` engines do."""
-    import importlib.metadata
-    monkeypatch.setitem(ENGINES, 'runtime-demo', {
-        'title': 'Runtime demo', 'does': 'nothing', 'task': 'ocsr', 'kind': 'runtime', 'module': 'demo_module_x',
-        'license': 'MIT', 'extra': 'demo', 'size': '1 MB'})
-    monkeypatch.setattr(importlib.metadata, 'requires', lambda dist: ['demo-lib>=1; extra == "demo"'])
-    monkeypatch.setattr(importlib.metadata, 'version', lambda dist: '1.26.4')
-    return 'runtime-demo'
+# --- device & fallback metadata propagate through every engine wrapper ------------------------------
+
+def test_device_and_fallback_propagate_through_ocsr_and_document(home, tmp_path, monkeypatch):
+    from PIL import Image
+    from cdxml_toolkit.engines import document, ocsr
+    from cdxml_toolkit.mcp_runtime import decimer_api
+
+    img = tmp_path / 'mol.png'
+    Image.new('RGB', (40, 40), 'white').save(img)
+
+    # Mixed GPU + CPU jar, plus remote
+    def fake_call_mixed(name, action, params, timeout=0):
+        if name == 'decimer-segmentation':
+            seg = tmp_path / 'seg1.png'
+            Image.new('RGB', (40, 40), 'white').save(seg)
+            env._LAST_CALL_META.set({'engine': name, 'device': 'cpu', 'device_fallback': False})
+            return [{'source': params['images'][0], 'segments': [str(seg)], 'bboxes': [[0, 0, 40, 40]]}]
+        env._LAST_CALL_META.set({'engine': name, 'device': 'cuda', 'device_fallback': False})
+        return [{'smiles': 'CCO', 'score': 0.95}]
+
+    molvec_mol = (
+        '\n  Molvec\n\n  3  2  0  0  0  0  0  0  0  0999 V2000\n'
+        '    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n'
+        '    1.0000    0.5000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\n'
+        '    2.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0\n'
+        '  1  2  1  0  0  0  0\n  2  3  1  0  0  0  0\nM  END\n'
+    )
+    monkeypatch.setattr(env, 'call', fake_call_mixed)
+    monkeypatch.setattr(env, 'run_jar', lambda *a, **k: subprocess.CompletedProcess(a, 0, molvec_mol, ''))
+    monkeypatch.setattr(decimer_api, 'recognize_image',
+                        lambda *a, **k: {'structures': [{'smiles': 'CCO'}], 'warnings': []})
+
+    mixed = ocsr.recognize(str(img), 'molscribe,molvec')
+    assert mixed['device'] == 'mixed' and 'device_fallback' not in mixed
+    assert [e['device'] for e in mixed['engines']] == ['cuda', 'cpu']
+
+    remote = ocsr.recognize(str(img), 'decimer-api', confirm_upload=True)
+    assert remote['device'] == 'remote' and remote['engines'][0]['device'] == 'remote'
+
+    # Document extraction reports segmenter_device='cpu' and per-segment device
+    monkeypatch.setattr(env, 'available', lambda: {n: n in {'decimer-segmentation', 'molscribe', 'molvec'} for n in ENGINES})
+    extracted = document.extract(str(img), str(tmp_path / 'out_doc'), engines='molscribe', segmenter='decimer-segmentation')
+    assert extracted['segmenter'] == 'decimer-segmentation' and extracted['segmenter_device'] == 'cpu'
+    assert extracted['segments'][0]['device'] == 'cuda'
+    assert extracted['segments'][0]['engines'][0]['device'] == 'cuda'
+
+    # Fallback warning & flag in OCSR
+    def fake_call_fallback(name, action, params, timeout=0):
+        env._LAST_CALL_META.set({'engine': name, 'device': 'cpu', 'device_fallback': True})
+        return [{'smiles': 'CCO', 'score': 0.9}]
+
+    monkeypatch.setattr(env, 'call', fake_call_fallback)
+    fell_back = ocsr.recognize(str(img), 'molscribe')
+    assert fell_back['device'] == 'cpu' and fell_back['device_fallback'] is True
+    assert fell_back['engines'][0]['device'] == 'cpu' and fell_back['engines'][0]['device_fallback'] is True
+    assert any('molscribe: CUDA failed at runtime; fell back to CPU.' in w for w in fell_back['warnings'])
+    assert any('molscribe: CUDA failed at runtime; fell back to CPU.' in w for w in fell_back['engines'][0]['warnings'])
 
 
-class FakeRuntime:
-    """The packages of a runtime as a dict, with pip, uninstall and the dry run acting on it."""
+def test_device_and_fallback_propagate_through_reactions_and_synplanner(home, tmp_path, monkeypatch):
+    from cdxml_toolkit.engines import reactions, worker
+    from cdxml_toolkit.mcp_runtime import report_tools
 
-    def __init__(self, monkeypatch, installed, plan=None, fail=None):
-        self.installed = dict(installed)
-        self.initial = dict(installed)
-        self.plan = plan if plan is not None else []
-        self.fail = fail  # raised by the installing pip call after it has changed the runtime
-        self.calls = []
-        monkeypatch.setattr(env, '_installed_versions', lambda: dict(self.installed))
-        monkeypatch.setattr(env, '_dry_run_changes', lambda requirements: self.plan)
-        monkeypatch.setattr(env, '_pip', self.pip)
-        monkeypatch.setattr(env, '_uninstall', self.uninstall)
-        monkeypatch.setattr(env, '_site_packages', lambda: [])
+    real_call = env.call
 
-    def pip(self, python, requirements, log, find_links=None, no_build_isolation=False, index_url=None, no_deps=False):
-        self.calls.append(('pip', list(requirements), no_deps))
-        for requirement in requirements:
-            if '==' in requirement:
-                name, _, version = requirement.partition('==')
-                self.installed[name.lower()] = version
-        if not no_deps:  # the installing call: it drops the new packages in, moves one, then goes wrong
-            self.installed.update({'tensorflow': '2.21.0', 'keras': '3.15.1', 'protobuf': '5.0.0'})
-            if self.fail:
-                raise self.fail
+    def fake_call_with_meta(device, fallback, result):
+        def _call(name, action, params, timeout=0):
+            env._LAST_CALL_META.set({'engine': name, 'device': device, 'device_fallback': fallback})
+            return result
+        return _call
 
-    def uninstall(self, python, names, log):
-        self.calls.append(('uninstall', sorted(names)))
-        for name in names:
-            self.installed.pop(name, None)
+    # Products (normal GPU + fallback)
+    monkeypatch.setattr(env, 'call', fake_call_with_meta('cuda', False, [[{'smiles': 'CC(=O)OCC', 'score': -0.1}]]))
+    prod = reactions.products('CC(=O)O.CCO')
+    assert prod['device'] == 'cuda' and 'device_fallback' not in prod
 
+    monkeypatch.setattr(env, 'call', fake_call_with_meta('cpu', True, [[{'smiles': 'CC(=O)OCC', 'score': -0.1}]]))
+    prod_fb = reactions.products('CC(=O)O.CCO')
+    assert prod_fb['device'] == 'cpu' and prod_fb['device_fallback'] is True
+    assert any('reactiont5-forward: CUDA failed at runtime; fell back to CPU.' in w for w in prod_fb['warnings'])
 
-def test_the_uv_dry_run_listing_names_every_package_it_would_install_replace_or_remove():
-    text = ('Resolved 9 packages in 12ms\nWould download 2 packages\nWould uninstall 2 packages\nWould install 3 packages\n'
-            ' - keras==3.1.0\n - protobuf==5.29.0\n + keras==2.14.0\n + protobuf==4.25.3\n + decimer==2.6.0\n')
-    installs, removals = env._parse_uv_dry_run(text)
-    assert installs == {'keras': '2.14.0', 'protobuf': '4.25.3', 'decimer': '2.6.0'}
-    assert removals == {'keras': '3.1.0', 'protobuf': '5.29.0'}
-    assert env._parse_uv_dry_run(' + decimer==2.6.0\n') == ({'decimer': '2.6.0'}, {})
-    assert env._parse_uv_dry_run(' - gone==1.0\n') == ({}, {'gone': '1.0'})
-    assert env._parse_uv_dry_run(UV_PLAN_ONLY_ADDS)[0]['tensorflow'] == '2.21.0'
+    # Retrosynthesis: aizynthfinder (CPU)
+    monkeypatch.setattr(env, 'call', fake_call_with_meta('cpu', False, {
+        'steps': 'single', 'target': 'CC(=O)OCC',
+        'options': [{'reactants': [['CC(=O)O', 'CCO']], 'probability': 0.8, 'template': 't'}],
+    }))
+    retro_ai = reactions.retrosynthesis('CC(=O)OCC', engine='aizynthfinder', steps='single')
+    assert retro_ai['device'] == 'cpu' and 'device_fallback' not in retro_ai
 
+    # SynPlanner: CPU override sets CUDA_VISIBLE_DEVICES="", and CUDA failure retries once on CPU
+    monkeypatch.setattr(env, 'call', real_call)
+    _engine_with_receipt(home, 'synplanner')
+    (home / 'synplanner' / env.RECEIPT).write_text(json.dumps({'device': 'cuda'}))
+    synplan_envs = []
 
-def test_a_dry_run_that_only_adds_packages_is_reported_as_additions(monkeypatch):
-    """The failure on the real machine: TensorFlow and Keras 3 were all new, so nothing was 'changed'."""
-    monkeypatch.setattr(env, '_uv', lambda: 'uv')
-    monkeypatch.setattr(env, '_installed_versions', lambda: {'numpy': '2.4.1', 'rdkit': '2026.3.1'})
-    done = subprocess.CompletedProcess([], 0, stdout='', stderr=UV_PLAN_ONLY_ADDS)
-    monkeypatch.setattr(env.subprocess, 'run', lambda *a, **k: done)
-    changes = env._dry_run_changes(['decimer', 'tensorflow'])
-    assert ('tensorflow', None, '2.21.0') in changes and ('keras', None, '3.15.1') in changes
-    assert not any(name == 'numpy' for name, *_ in changes)  # numpy is already at that version: no change
+    def fake_worker_synplan_run(cmd, **kwargs):
+        synplan_envs.append(kwargs.get('env'))
+        res_dir = cmd[cmd.index('--results_dir') + 1]
+        os.makedirs(res_dir, exist_ok=True)
+        with open(os.path.join(res_dir, 'tree_search_stats.csv'), 'w', encoding='utf-8') as fh:
+            fh.write('solved,target_in_stock,num_routes,best_route_score\nTrue,False,1,0.75\n')
+        with open(os.path.join(res_dir, 'extracted_routes.json'), 'w', encoding='utf-8') as fh:
+            json.dump([[{'type': 'mol', 'smiles': 'CC(=O)OCC', 'in_stock': True, 'children': []}]], fh)
+        return subprocess.CompletedProcess(cmd, 0, '', '')
 
+    monkeypatch.setenv('CHEMDRAW_ENGINE_DEVICE', 'cpu')
+    monkeypatch.setattr(worker.subprocess, 'run', fake_worker_synplan_run)
+    syn_out = worker._synplanner({'smiles': 'CC(=O)OCC'}, str(tmp_path), {})
+    assert syn_out['solved'] is True and synplan_envs[-1]['CUDA_VISIBLE_DEVICES'] == ''
 
-def test_a_dry_run_reports_moved_added_and_removed_packages_against_the_installed_ones(monkeypatch):
-    monkeypatch.setattr(env, '_uv', lambda: 'uv')
-    monkeypatch.setattr(env, '_installed_versions', lambda: {'protobuf': '5.29.0', 'old-thing': '1.0', 'numpy': '1.26.4'})
-    text = 'Would install 2 packages\n - protobuf==5.29.0\n - old-thing==1.0\n + protobuf==4.25.3\n + decimer==2.6.0\n'
-    done = subprocess.CompletedProcess([], 0, stdout='', stderr=text)
-    monkeypatch.setattr(env.subprocess, 'run', lambda *a, **k: done)
-    assert sorted(env._dry_run_changes(['x'])) == [('decimer', None, '2.6.0'), ('old-thing', '1.0', None),
-                                                   ('protobuf', '5.29.0', '4.25.3')]
+    monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE')
+    attempts = []
 
+    def fake_env_run(command, **kwargs):
+        attempts.append((kwargs['env'].get('CHEMDRAW_ENGINE_DEVICE'), kwargs['env'].get('CUDA_VISIBLE_DEVICES')))
+        if len(attempts) == 1:
+            payload = {'ok': False, 'error': 'RuntimeError: synplan planning failed: CUDA out of memory'}
+        else:
+            payload = {'ok': True, 'engine': 'synplanner', 'device': 'cpu',
+                       'result': {'steps': 'multi', 'target': 'CC(=O)OCC', 'solved': True,
+                                  'top_score': 0.8, 'routes': []}}
+        return subprocess.CompletedProcess(command, 0, env.MARKER + json.dumps(payload), '')
 
-def test_a_dry_run_listing_that_cannot_be_read_stops_the_install(monkeypatch):
-    """If uv words its plan differently one day, the guard must fail closed rather than see 'no changes'."""
-    monkeypatch.setattr(env, '_uv', lambda: 'uv')
-    monkeypatch.setattr(env, '_installed_versions', lambda: {})
-    done = subprocess.CompletedProcess([], 0, stdout='', stderr='Would install 7 packages\n  tensorflow 2.21.0\n')
-    monkeypatch.setattr(env.subprocess, 'run', lambda *a, **k: done)
-    with pytest.raises(RuntimeError, match='could not be read'):
-        env._dry_run_changes(['tensorflow'])
+    monkeypatch.setattr(env, '_run', fake_env_run)
+    retro_syn = reactions.retrosynthesis('CC(=O)OCC', engine='synplanner', steps='multi')
+    assert attempts == [(None, None), ('cpu', '')]
+    assert retro_syn['device'] == 'cpu' and retro_syn['device_fallback'] is True
+    assert any('synplanner: CUDA failed at runtime; fell back to CPU.' in w for w in retro_syn['warnings'])
 
-
-def test_the_pip_dry_run_report_names_added_and_changed_packages(monkeypatch):
-    monkeypatch.setattr(env, '_installed_versions', lambda: {'protobuf': '5.29.0', 'numpy': '1.26.4'})
-    report = {'install': [{'metadata': {'name': 'protobuf', 'version': '4.25.3'}},
-                          {'metadata': {'name': 'numpy', 'version': '1.26.4'}},
-                          {'metadata': {'name': 'Tensorflow', 'version': '2.21.0'}}]}
-    assert sorted(env._parse_pip_report(report)) == [('protobuf', '5.29.0', '4.25.3'), ('tensorflow', None, '2.21.0')]
-
-
-def test_the_runtime_install_refuses_new_packages_unless_they_are_allowed(home, runtime_engine, monkeypatch):
-    runtime = FakeRuntime(monkeypatch, {'numpy': '1.26.4'},
-                          plan=[('tensorflow', None, '2.21.0'), ('keras', None, '3.15.1')])
-    report = env.install(runtime_engine)
-    assert report['ok'] is False and not runtime.calls
-    assert 'adds tensorflow 2.21.0, keras 3.15.1' in report['error'] and '--allow-runtime-changes' in report['error']
-    assert 'Nothing was installed' in report['error']
-    env.install(runtime_engine, allow_runtime_changes=True)
-    assert runtime.calls and runtime.calls[0][0] == 'pip'
+    # Conditions (GPU and fallback)
+    monkeypatch.setattr(report_tools, 'map_reaction_atoms',
+                        lambda rxn: {'status': 'complete', 'mapped_reaction': '[CH3:1][OH:2]>>[CH3:1][OH:2]', 'method': 'rxnmapper'})
+    monkeypatch.setattr(env, 'call', fake_call_with_meta('cpu', True, {
+        'template_level': 'r1', 'candidates': [{'catalyst': None, 'solvents': ['THF'], 'reagents': [], 'score': 0.5}],
+    }))
+    cond = reactions.conditions('CO', 'CO')
+    assert cond['device'] == 'cpu' and cond['device_fallback'] is True
+    assert any('reacon: CUDA failed at runtime; fell back to CPU.' in w for w in cond['warnings'])
 
 
-def test_the_runtime_install_refuses_moved_and_removed_packages_and_says_which(home, runtime_engine, monkeypatch):
-    FakeRuntime(monkeypatch, {}, plan=[('protobuf', '5.29.0', '4.25.3'), ('keras', '3.1', None)])
-    error = env.install(runtime_engine)['error']
-    assert 'changes protobuf 5.29.0 -> 4.25.3' in error and 'removes keras 3.1' in error
+def test_device_and_fallback_propagate_through_nmr_single_and_dual_engine(home, monkeypatch):
+    from cdxml_toolkit.engines import nmr
 
+    atoms = [
+        {'index': 0, 'element': 'C', 'shift': 58.0, 'class': 0, 'neighbors': [2]},
+        {'index': 1, 'element': 'C', 'shift': 18.0, 'class': 1, 'neighbors': [0]},
+        {'index': 2, 'element': 'O', 'shift': None, 'class': 2, 'neighbors': [0, 3]},
+        {'index': 3, 'element': 'H', 'shift': 2.5, 'class': 3, 'neighbors': [2]},
+    ]
 
-def test_a_plan_that_changes_nothing_installs_without_asking(home, runtime_engine, monkeypatch):
-    runtime = FakeRuntime(monkeypatch, {}, plan=[])
-    monkeypatch.setattr(env, 'available', lambda: {n: True for n in ENGINES})
-    assert env.install(runtime_engine)['ok'] is True and runtime.calls[0][0] == 'pip'
+    def fake_call(name, action, params, timeout=0):
+        if name == 'magnet':
+            env._LAST_CALL_META.set({'engine': name, 'device': 'cuda', 'device_fallback': False})
+        else:
+            env._LAST_CALL_META.set({'engine': name, 'device': 'cpu', 'device_fallback': True})
+        return {'atoms': atoms, 'geometry': 'RDKit'}
 
+    monkeypatch.setattr(env, 'call', fake_call)
+    single = nmr.predict('CCO', nucleus='13C', engine='magnet')
+    assert single['device'] == 'cuda' and 'device_fallback' not in single
 
-def test_a_failed_runtime_install_puts_the_runtime_back_as_it_was(home, runtime_engine, monkeypatch):
-    runtime = FakeRuntime(monkeypatch, {'protobuf': '4.25.3', 'numpy': '1.26.4'}, fail=_failure(1, 'no space left'))
-    report = env.install(runtime_engine, allow_runtime_changes=True)
-    assert report['ok'] is False and 'no space left' in report['error'] and 'put back' in report['error']
-    assert runtime.installed == runtime.initial  # tensorflow and keras are gone, protobuf is at its old version
-    assert ('uninstall', ['keras', 'tensorflow']) in runtime.calls
-    assert ('pip', ['protobuf==4.25.3'], True) in runtime.calls  # restored without pulling in dependencies again
+    single_fb = nmr.predict('CCO', nucleus='13C', engine='nmrnet-pp')
+    assert single_fb['device'] == 'cpu' and single_fb['device_fallback'] is True
+    assert any('nmrnet-pp: CUDA failed at runtime; fell back to CPU.' in w for w in single_fb['warnings'])
 
-
-def test_an_interrupted_runtime_install_is_rolled_back_and_the_interrupt_still_propagates(home, runtime_engine, monkeypatch):
-    runtime = FakeRuntime(monkeypatch, {'protobuf': '4.25.3'}, fail=KeyboardInterrupt())
-    with pytest.raises(KeyboardInterrupt) as caught:
-        env.install(runtime_engine, allow_runtime_changes=True)
-    assert runtime.installed == runtime.initial
-    assert getattr(caught.value, 'runtime_rollback', 'missing') is None
-
-    FakeRuntime(monkeypatch, {'protobuf': '4.25.3'}, fail=KeyboardInterrupt())
-    monkeypatch.setattr(env, '_uninstall', lambda *a: (_ for _ in ()).throw(_failure(2, 'locked')))
-    with pytest.raises(KeyboardInterrupt) as caught_failed:
-        env.install(runtime_engine, allow_runtime_changes=True)
-    assert 'locked' in str(getattr(caught_failed.value, 'runtime_rollback', ''))
-
-
-def test_a_rollback_that_fails_is_reported_next_to_the_original_error(home, runtime_engine, monkeypatch):
-    FakeRuntime(monkeypatch, {'protobuf': '4.25.3'}, fail=_failure(1, 'network down'))
-
-    def locked(*args):
-        raise _failure(2, 'locked')
-
-    monkeypatch.setattr(env, '_uninstall', locked)
-    error = env.install(runtime_engine, allow_runtime_changes=True)['error']
-    assert 'network down' in error and 'could not be put back' in error and 'doctor' in error
-
-
-def test_a_rollback_removes_the_empty_folders_a_killed_install_left_behind(tmp_path):
-    """Empty site-packages/backports/zstd made `import backports.zstd` succeed and broke urllib3."""
-    site = tmp_path / 'site-packages'
-    (site / 'backports').mkdir(parents=True)
-    (site / 'backports' / 'tarfile.py').write_text('x')
-    (site / 'pytest' / '__pycache__').mkdir(parents=True)  # empty before the install: not ours to remove
-    known = env._directories([site])
-    (site / 'backports' / 'zstd' / 'sub').mkdir(parents=True)
-    (site / 'newpkg' / 'data').mkdir(parents=True)
-    (site / 'filled').mkdir()
-    (site / 'filled' / 'file.py').write_text('x')
-    env._prune_new_empty_directories([site], known)
-    assert (site / 'backports').is_dir() and (site / 'pytest' / '__pycache__').is_dir()
-    assert not (site / 'backports' / 'zstd').exists() and not (site / 'newpkg').exists()
-    assert (site / 'filled' / 'file.py').is_file()
-
-
-def test_the_installed_packages_are_read_from_the_runtime_metadata():
-    versions = env._installed_versions()
-    assert 'pytest' in versions and all(name == name.lower() and '_' not in name for name in versions)
+    dual = nmr.predict('CCO', nucleus='13C', engine='magnet,nmrnet-pp')
+    assert dual['device'] == 'mixed' and dual['device_fallback'] is True
+    assert [(e['engine'], e['device'], e.get('device_fallback', False)) for e in dual['engines']] == [
+        ('magnet', 'cuda', False),
+        ('nmrnet-pp', 'cpu', True),
+    ]
+    assert any('nmrnet-pp: CUDA failed at runtime; fell back to CPU.' in w for w in dual['warnings'])
 
 
 # --- RetroChimera stops early when the model cannot fit ---------------------------------------------

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-parse_analysis_file.py — Unified LCMS / NMR PDF parser.
+parse_analysis_file.py — Unified LCMS / NMR analysis file parser.
 
 Detects whether a file is an LCMS report (Waters MassLynx PDF, standard or
-manual integration; or an OpenLynx ``.rpt`` export) or an NMR PDF, then
+manual integration; OpenLynx ``.rpt`` export; Shimadzu LabSolutions ``.daml``
+file; or Agilent ChemStation ``report.txt`` file) or an NMR PDF, then
 delegates to the appropriate parser and returns a normalised dict.
 
 Python API:
@@ -32,17 +33,19 @@ def _dataclass_to_dict(obj: Any) -> Any:
 
 
 def parse_analysis_file(pdf_path: str) -> Dict[str, Any]:
-    """Detect and parse an LCMS report (PDF or OpenLynx .rpt) or an NMR PDF.
+    """Detect and parse an LCMS report (PDF, .rpt, .daml, or report.txt) or an NMR PDF.
 
     Detection order:
-      0. OpenLynx ``.rpt`` export         → ``parse_reports()``
-      1. Waters MassLynx standard report  → ``parse_report()``
-      2. Waters MassLynx manual integration → ``parse_manual_report()``
-      3. NMR PDF (MestReNova)             → ``extract_nmr_data()``
-      4. None of the above               → error dict
+      0a. OpenLynx ``.rpt`` export           → ``parse_reports()``
+      0b. Shimadzu LabSolutions ``.daml``    → ``parse_report()``
+      0c. Agilent ChemStation ``report.txt`` → ``parse_report()``
+      1.  Waters MassLynx standard report    → ``parse_report()``
+      2.  Waters MassLynx manual integration → ``parse_manual_report()``
+      3.  NMR PDF (MestReNova)               → ``extract_nmr_data()``
+      4.  None of the above                  → error dict
 
     Args:
-        pdf_path: Absolute or relative path to the PDF or .rpt file.
+        pdf_path: Absolute or relative path to the PDF, .rpt, .daml, or .txt file.
 
     Returns:
         Dict with keys:
@@ -53,7 +56,7 @@ def parse_analysis_file(pdf_path: str) -> Dict[str, Any]:
                 lcms (.rpt, one sample):  LCMSReport as dict
                 lcms (.rpt, several):     {"source_format": "openlynx_rpt",
                                   "sample_count": N, "samples": [LCMSReport dict, ...]}
-                lcms (standard):  LCMSReport as dict
+                lcms (.daml / .txt / standard PDF): LCMSReport as dict
                 lcms (manual):    ManualLCMSReport as dict, plus
                                   "variant": "manual_integration"
                 nmr:              {"nmr_strings": ["1H NMR ..."]}
@@ -65,13 +68,15 @@ def parse_analysis_file(pdf_path: str) -> Dict[str, Any]:
         parse_reports,
         is_manual_integration,
         parse_manual_report,
+        is_rpt_path,
+        is_daml_path,
+        is_agilent_txt_path,
     )
     from cdxml_toolkit.analysis.deterministic.procedure_writer import extract_nmr_data
 
     base_result: Dict[str, Any] = {"file_path": pdf_path}
 
-    # --- Attempt 0: OpenLynx .rpt export (text, one or many samples) ---
-    from cdxml_toolkit.analysis.lcms_analyzer import is_rpt_path
+    # --- Attempt 0a: OpenLynx .rpt export (text, one or many samples) ---
     if is_rpt_path(pdf_path):
         try:
             from cdxml_toolkit.analysis.openlynx_rpt import is_openlynx_rpt
@@ -99,6 +104,58 @@ def parse_analysis_file(pdf_path: str) -> Dict[str, Any]:
                 "samples": [_dataclass_to_dict(r) for r in reports],
             }
         return {**base_result, "ok": True, "file_type": "lcms", "data": data}
+
+    # --- Attempt 0b: Shimadzu LabSolutions .daml export ---
+    if is_daml_path(pdf_path):
+        try:
+            from cdxml_toolkit.analysis.shimadzu_daml import is_shimadzu_daml
+            if not is_shimadzu_daml(pdf_path):
+                return {
+                    **base_result,
+                    "ok": False,
+                    "error": "Not a Shimadzu LabSolutions .daml file (missing <DAML> root element).",
+                }
+            report = parse_report(pdf_path)
+        except Exception as exc:
+            return {
+                **base_result,
+                "ok": False,
+                "file_type": "lcms",
+                "error": f"Shimadzu .daml detected but parsing failed: {exc}",
+                "traceback": traceback.format_exc(),
+            }
+        return {
+            **base_result,
+            "ok": True,
+            "file_type": "lcms",
+            "data": _dataclass_to_dict(report),
+        }
+
+    # --- Attempt 0c: Agilent ChemStation report.txt ---
+    if is_agilent_txt_path(pdf_path):
+        try:
+            from cdxml_toolkit.analysis.agilent_txt import is_agilent_report_txt
+            if not is_agilent_report_txt(pdf_path):
+                return {
+                    **base_result,
+                    "ok": False,
+                    "error": "Not an Agilent ChemStation report.txt file.",
+                }
+            report = parse_report(pdf_path)
+        except Exception as exc:
+            return {
+                **base_result,
+                "ok": False,
+                "file_type": "lcms",
+                "error": f"Agilent report.txt detected but parsing failed: {exc}",
+                "traceback": traceback.format_exc(),
+            }
+        return {
+            **base_result,
+            "ok": True,
+            "file_type": "lcms",
+            "data": _dataclass_to_dict(report),
+        }
 
     # --- Attempt 1: standard Waters report ---
     try:

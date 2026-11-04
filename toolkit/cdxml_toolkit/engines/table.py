@@ -17,8 +17,6 @@ def _where(spec: dict) -> str:
     kind = spec['kind']
     if kind == 'remote':
         return 'remote (default)'
-    if kind == 'runtime':
-        return f'runtime (extra `{spec["extra"]}`)'
     if kind == 'jar':
         return 'Java jar'
     low, high = spec['python']
