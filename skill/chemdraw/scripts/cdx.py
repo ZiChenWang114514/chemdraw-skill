@@ -787,7 +787,7 @@ def cmd_install_mappers(ns):
 
 def cmd_engines(ns):
     """Which optional engines are installed and how much disk each uses; `--recommend NEED` says what to install."""
-    flags = ['--recommend', ns.recommend] if ns.recommend else ['--status']
+    flags = ['--recommend', ns.recommend] if ns.recommend else ['--status', *(['--sizes'] if ns.sizes else [])]
     return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', *flags], env=_chemscript_env())
 
 
@@ -801,7 +801,22 @@ def cmd_install_engines(ns):
     return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', *ns.rest], env=_chemscript_env())
 
 
+def _local_ocsr_engines():
+    """The installed local OCSR engines, from the runtime's engine listing."""
+    for layer in _layers(_worker('list_engines', {})):
+        if isinstance(layer.get('engines'), dict):
+            return [name for name, engine in layer['engines'].items()
+                    if engine.get('task') == 'ocsr' and engine.get('kind') != 'remote' and engine.get('available')]
+    return []
+
+
 def cmd_ocsr(ns):
+    if ns.engines is None and ns.no_upload:  # the default engine is the remote one, which --no-upload forbids
+        installed = _local_ocsr_engines()
+        raise SystemExit('no local engine selected, use --engines ' + (','.join(installed[:2]) or 'molscribe,...') +
+                         ' (installed: ' + (', '.join(installed) or 'none; install one with `cdx.py install-engines '
+                                                                   'molscribe`') + ')')
+    ns.engines = ns.engines or 'decimer-api'
     kwargs = {'image_path': str(Path(ns.image).resolve()), 'engines': ns.engines, 'hand_drawn': ns.hand_drawn,
               'confirm_upload': not (ns.preflight or ns.no_upload), 'timeout_seconds': ns.timeout}
     if ns.out:
@@ -896,7 +911,7 @@ def main(argv=None):
                                     'cdx.py ocsr image.png --engines molscribe,molnextr,molvec|all (predictions, '
                                     'never picked silently; decimer-api uploads, --no-upload keeps it local)')
     s.add_argument('image')
-    s.add_argument('--engines', default='decimer-api')
+    s.add_argument('--engines', help='default decimer-api (with --no-upload there is no default: name local engines)')
     s.add_argument('--hand-drawn', action='store_true')
     s.add_argument('--preflight', action='store_true', help='no upload; the remote engine only reports what it would send')
     s.add_argument('--no-upload', action='store_true', help='never use a remote engine')
@@ -916,6 +931,8 @@ def main(argv=None):
                                        '--recommend NEED (a task such as ocsr, pdf or retrosynthesis; an unknown one '
                                        'lists them) suggests what to install (downloads nothing)')
     s.add_argument('--recommend', metavar='NEED')
+    s.add_argument('--sizes', action='store_true', help='measure every engine folder again (slow; otherwise the size '
+                                                        'recorded when the engine was installed is shown)')
     s.set_defaults(fn=cmd_engines)
     s = sub.add_parser('remove-engines', help='delete installed engines: cdx.py remove-engines molnextr [--yes] (dry run '
                                               'without --yes)')

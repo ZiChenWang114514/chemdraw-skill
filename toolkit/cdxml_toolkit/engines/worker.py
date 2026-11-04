@@ -451,7 +451,12 @@ def _fetch_archive_members(data_dir, source):
                if not (os.path.exists(os.path.join(data_dir, m['path'])) and _sha256(os.path.join(data_dir, m['path'])) == m['sha256'])]
     if pending:
         _download(source['url'], partial)
-        with zipfile.ZipFile(partial) as bundle:
+        try:
+            bundle = zipfile.ZipFile(partial)
+        except zipfile.BadZipFile:  # a resumed download would append to this for ever
+            os.remove(partial)
+            raise RuntimeError('the downloaded archive is not a valid zip file; it was deleted, run the install again') from None
+        with bundle:
             for want in pending:
                 target = os.path.join(data_dir, want['path'])
                 os.makedirs(os.path.dirname(target), exist_ok=True)
@@ -462,6 +467,8 @@ def _fetch_archive_members(data_dir, source):
                         out.write(block)
                 if digest.hexdigest() != want['sha256']:
                     os.remove(target + '.tmp')
+                    bundle.close()
+                    os.remove(partial)  # the archive is what is wrong: start it again next time
                     raise RuntimeError(f'{want["path"]} does not match the pinned sha256 (got {digest.hexdigest()}); nothing was kept')
                 os.replace(target + '.tmp', target)
         os.remove(partial)
@@ -772,6 +779,15 @@ def _vm_stat_gb(text):
 RULE_MODEL_GB, RULE_PROCESS_GB = 14, 4  # measured on Windows: 13.8 GB peak with one process; three ran out at 21.8 GB
 
 
+def _check_model_memory():
+    """RetroChimera's model alone takes RULE_MODEL_GB: when the system is known to have less free, stop with advice
+    instead of letting it run out of memory half way. Setting CHEMDRAW_ENGINE_PROCESSES means "try anyway"."""
+    free = _available_gb()
+    if not os.environ.get('CHEMDRAW_ENGINE_PROCESSES') and free is not None and free < RULE_MODEL_GB:
+        raise RuntimeError(f'RetroChimera needs about {RULE_MODEL_GB} GB free memory, only {free:.1f} GB: close programs, '
+                           'or set CHEMDRAW_ENGINE_PROCESSES=1 to try anyway')
+
+
 def _rule_processes():
     if os.environ.get('CHEMDRAW_ENGINE_PROCESSES', '').isdigit():
         return max(1, int(os.environ['CHEMDRAW_ENGINE_PROCESSES']))
@@ -795,6 +811,7 @@ def _retrochimera(params, data_dir, spec):
         if inventory.is_purchasable(Molecule(smiles)):
             return {'steps': 'multi', 'target': smiles, 'solved': True, 'target_in_stock': True, 'top_score': None,
                     'routes': []}
+    _check_model_memory()  # a target that can be bought needed no model, so only now
     from retrochimera import RetroChimeraModel
     model = RetroChimeraModel(model_dir=data_dir, device=_device(), template_localization={'num_processes': _rule_processes()})
     if single:

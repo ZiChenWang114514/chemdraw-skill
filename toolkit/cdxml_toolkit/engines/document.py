@@ -61,7 +61,8 @@ def _segment_opencv(pages, out_dir: Path) -> list:
 def _segment(pages, out_dir: Path, segmenter: str, warnings: list) -> tuple:
     use_deep = segmenter in ('auto', 'decimer-segmentation') and env.available()['decimer-segmentation']
     if segmenter == 'decimer-segmentation' and not use_deep:
-        raise ValueError('decimer-segmentation is not installed: run `cdx.py install-engines decimer-segmentation`')
+        raise ValueError(f'decimer-segmentation is not installed (looked in {env.home()}): '
+                         'run `cdx.py install-engines decimer-segmentation`')
     if use_deep:
         answers = env.call('decimer-segmentation', 'predict', {
             'images': [p for _, p in pages], 'out_dir': str(out_dir / 'segments'), 'stem': 'seg'})

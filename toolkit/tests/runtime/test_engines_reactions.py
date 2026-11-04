@@ -199,12 +199,13 @@ def test_conditions_maps_the_reaction_then_ranks_what_the_engine_returns(monkeyp
     assert any('candidates, not a recommended procedure' in w for w in answer['warnings'])
 
 
-def test_conditions_warns_when_no_template_matched_and_reports_a_missing_engine(monkeypatch):
+def test_conditions_warns_when_no_template_matched_and_reports_a_missing_engine(monkeypatch, tmp_path):
     monkeypatch.setattr(env, 'call', lambda *a, **k: {'template_level': 'none', 'candidates': [
         {'catalyst': 'none', 'solvents': [], 'reagents': [], 'score': 0.01}]})
     answer = predict_conditions('CC(=O)OC(C)=O.OC(=O)c1ccccc1O', ASPIRIN)
     assert any('no template' in w for w in answer['warnings'])
     monkeypatch.undo()
+    monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(tmp_path))  # an empty home, whatever is installed on this machine
     missing = predict_conditions('CC(=O)OC(C)=O.OC(=O)c1ccccc1O', ASPIRIN)
     assert missing['ok'] is False and 'install-engines reacon' in missing['error']
     assert missing['install_hint']['license'].startswith('not declared')

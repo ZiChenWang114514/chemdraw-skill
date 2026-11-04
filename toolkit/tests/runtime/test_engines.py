@@ -218,7 +218,7 @@ def test_the_worker_receives_what_it_needs_to_verify_downloads(monkeypatch, tmp_
     python.parent.mkdir(parents=True)
     python.write_text('')
     (tmp_path / 'synplanner' / env.RECEIPT).write_text('{}')
-    monkeypatch.setattr(env.subprocess, 'run', run)
+    monkeypatch.setattr(env, '_run', run)
     env.call('synplanner', 'predict', {'smiles': 'CCO'})
     assert captured['request']['spec']['sha256'] and captured['request']['data_dir'].replace(chr(92), '/').endswith('synplanner/data')
     assert captured['env']['PYSTOW_HOME'] == captured['request']['data_dir']  # model caches stay inside the engine
@@ -288,11 +288,11 @@ def test_a_download_shows_its_progress_while_a_prediction_keeps_its_output(monke
         seen[json.loads(kwargs['input'])['action']] = kwargs
         return Done()
 
-    monkeypatch.setattr(env.subprocess, 'run', run)
+    monkeypatch.setattr(env, '_run', run)
     env.call('synplanner', 'fetch', {})
     env.call('synplanner', 'predict', {})
-    assert seen['fetch']['stdout'] == subprocess.PIPE and seen['fetch'].get('stderr') is None
-    assert seen['predict'].get('capture_output') or seen['predict'].get('stderr') == subprocess.PIPE
+    assert seen['fetch']['capture'] is False  # stderr stays on the terminal
+    assert seen['predict']['capture'] is True
 
 
 def test_progress_lines_are_few_and_end_at_the_total(capsys, monkeypatch):
@@ -317,7 +317,7 @@ def test_chatty_engines_cannot_break_the_result(monkeypatch, tmp_path):
         stdout = 'chiral_center_ids (from symbols): []\n' + env.MARKER + json.dumps({'ok': True, 'result': [1]}) + '\nbye\n'
         stderr = ''
 
-    monkeypatch.setattr(env.subprocess, 'run', lambda *a, **k: Done())
+    monkeypatch.setattr(env, '_run', lambda *a, **k: Done())
     assert env.call('molnextr', 'predict', {}) == [1]
     Done.stdout = 'only noise\n'
     with pytest.raises(env.EngineError, match='failed to start: only noise'):

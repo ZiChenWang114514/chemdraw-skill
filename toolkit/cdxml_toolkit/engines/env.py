@@ -7,11 +7,15 @@ as a jar. ``CHEMDRAW_ENGINE_HOME`` moves the whole tree (the tests point it at a
 
 from __future__ import annotations
 
+import collections
+import contextlib
 import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -26,6 +30,8 @@ VENV_TIMEOUT = 600
 FETCH_TIMEOUT = 6 * 3600  # large model files on a slow link; every download resumes, so a retry loses nothing
 RECEIPT = '.engine.json'
 MARKER = '@@ENGINE-RESULT@@'  # worker.py prefixes its one JSON line with this
+DEVICE_ERRORS = re.compile(r'CUDA error|no kernel image|CUDA out of memory', re.I)  # the GPU, not the input, failed
+ERROR_LINES = 15  # how much of a failing install step's stderr the error shows
 
 
 class EngineError(RuntimeError):
@@ -46,7 +52,7 @@ def hint(name: str) -> dict:
     guide = GUIDE.get(name, {})
     return {'engine': name, 'title': spec['title'], 'use_when': guide.get('use_when'),
             'size_mb': guide.get('disk_mb'), 'license': spec.get('license'), 'needs': guide.get('needs', []),
-            'command': f'cdx.py install-engines {name}', 'asks_the_network': True}
+            'command': f'cdx.py install-engines {name}', 'home': str(home()), 'asks_the_network': True}
 
 
 def _offline() -> bool:
@@ -137,27 +143,82 @@ def available() -> dict:
     return out
 
 
+def _kill_tree(process: subprocess.Popen) -> None:
+    """Stop ``process`` and everything it started (an engine's own workers keep running after the parent dies)."""
+    try:
+        if os.name == 'nt':
+            subprocess.run(['taskkill', '/F', '/T', '/PID', str(process.pid)], capture_output=True, timeout=30)
+        else:
+            os.killpg(process.pid, signal.SIGKILL)  # the process leads its own group (start_new_session)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    try:
+        process.kill()
+    except OSError:
+        pass
+
+
+def _run(command, *, timeout, input=None, env=None, capture=True) -> subprocess.CompletedProcess:
+    """``subprocess.run`` that ends the whole process tree on a timeout or an interrupt. stdout is always captured;
+    stderr too unless ``capture`` is false (then it stays on the terminal, to show a download's progress)."""
+    options = {'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == 'nt' else {'start_new_session': True}
+    process = subprocess.Popen(command, stdin=subprocess.PIPE if input is not None else None, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE if capture else None, text=True, encoding='utf-8',
+                               errors='replace', env=env, **options)
+    try:
+        out, err = process.communicate(input, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        _kill_tree(process)
+        process.communicate()
+        raise
+    except BaseException:  # KeyboardInterrupt included
+        _kill_tree(process)
+        raise
+    return subprocess.CompletedProcess(command, process.returncode, out, err)
+
+
+def _missing(name: str, detail: str = '') -> EngineMissing:
+    return EngineMissing(name, f'{ENGINES[name]["title"]} is not installed{detail} (looked in {home()}): '
+                               f'run `cdx.py install-engines {name}`')
+
+
 def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict:
     """Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
 
-    ``fetch`` is part of installing, so it runs before the engine counts as installed.
+    ``fetch`` is part of installing, so it runs before the engine counts as installed, under the engine's lock.
+    When the GPU fails (a CUDA error, no kernels for it, out of memory) and the device was not chosen with
+    ``CHEMDRAW_ENGINE_DEVICE``, the call is repeated once on the CPU.
     """
+    if action == 'fetch':
+        with _lock(name):
+            return _call(name, action, params, timeout)
+    try:
+        return _call(name, action, params, timeout)
+    except EngineError as exc:
+        if os.environ.get('CHEMDRAW_ENGINE_DEVICE') or not DEVICE_ERRORS.search(str(exc)):
+            raise
+        print(f'{ENGINES[name]["title"]}: the GPU failed ({str(exc)[:160]}); trying once on the CPU', file=sys.stderr)
+        return _call(name, action, params, timeout, device='cpu')
+
+
+def _call(name: str, action: str, params: dict, timeout: int, device: str | None = None) -> dict:
     python = interpreter(environment(name)) if action == 'fetch' else python_for(name)
     title = ENGINES[name]['title']
     if python is None:
-        raise EngineMissing(name, f'{title} is not installed: run `cdx.py install-engines {name}`')
+        raise _missing(name)
     request = {'engine': name, 'action': action, 'params': params,
                'data_dir': str(data_dir(name)), 'spec': {k: ENGINES[name].get(k) for k in ('weights', 'data', 'family', 'download', 'downloads', 'zip_members',
                                                                            'archive_members', 'stock', 'sha256')}}
     env = dict(os.environ, TOKENIZERS_PARALLELISM='false', PYTHONIOENCODING='utf-8', PYTHONUNBUFFERED='1')
+    if device:
+        env['CHEMDRAW_ENGINE_DEVICE'] = device
     if ENGINES[name]['kind'] == 'local':  # libraries that cache models with pystow keep them inside the engine
         env['PYSTOW_HOME'] = str(data_dir(name))
     env.update(HF_HUB_OFFLINE='0' if action == 'fetch' else '1', TRANSFORMERS_OFFLINE='0' if action == 'fetch' else '1')
     # A download shows its progress lines on the terminal; a prediction's output stays captured.
-    streams = {'stdout': subprocess.PIPE} if action == 'fetch' else {'capture_output': True}
     try:
-        done = subprocess.run([str(python), '-W', 'ignore', str(WORKER)], input=json.dumps(request), **streams,
-                              text=True, encoding='utf-8', errors='replace', timeout=timeout, env=env)
+        done = _run([str(python), '-W', 'ignore', str(WORKER)], input=json.dumps(request), capture=action != 'fetch',
+                    timeout=timeout, env=env)
     except subprocess.TimeoutExpired as exc:
         raise EngineError(f'{title} did not finish within {timeout} s') from exc
     except OSError as exc:
@@ -181,11 +242,9 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
 def run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess:
     jar = jar_path(name)
     if jar is None or not java():
-        raise EngineMissing(name, f'{ENGINES[name]["title"]} is not installed (it needs Java and its jar): '
-                                  f'run `cdx.py install-engines {name}`')
+        raise _missing(name, ' (it needs Java and its jar)')
     try:
-        return subprocess.run([java(), '-Djava.awt.headless=true', '-cp', str(jar), *args], capture_output=True,
-                              text=True, encoding='utf-8', errors='replace', timeout=timeout)
+        return _run([java(), '-Djava.awt.headless=true', '-cp', str(jar), *args], timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         raise EngineError(f'{ENGINES[name]["title"]} did not finish within {timeout} s') from exc
 
@@ -202,6 +261,69 @@ def _uv() -> str | None:
     return shutil.which('uv')
 
 
+_HELD: set[str] = set()  # engines this process holds the lock of: install calls fetch, which asks again
+
+
+def _acquire(name: str):
+    """Take the lock of engine ``name`` (a file under ``home()/.locks``), or say that another install holds it."""
+    folder = home() / '.locks'
+    folder.mkdir(parents=True, exist_ok=True)
+    handle = open(folder / name, 'a+b')
+    try:
+        if os.name == 'nt':
+            import msvcrt
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        raise EngineError(f'another install of {name} is running (lock {folder / name}); wait for it to finish') from None
+    return handle
+
+
+def _release(handle) -> None:
+    try:
+        if os.name == 'nt':
+            import msvcrt
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle, fcntl.LOCK_UN)
+    except OSError:
+        pass
+    handle.close()
+
+
+@contextlib.contextmanager
+def _lock(name: str):
+    """One install, removal or download of an engine at a time; a second one fails at once instead of corrupting it."""
+    if name in _HELD:
+        yield
+        return
+    handle = _acquire(name)
+    _HELD.add(name)
+    try:
+        yield
+    finally:
+        _HELD.discard(name)
+        _release(handle)
+
+
+def _python_for_version(minor: int) -> list[str] | None:
+    """The command that starts Python 3.``minor``: ``python3.N`` on the PATH, or on Windows the ``py -3.N`` launcher."""
+    found = shutil.which(f'python3.{minor}')
+    if found:
+        return [found]
+    launcher = shutil.which('py') if os.name == 'nt' else None
+    if launcher and subprocess.run([launcher, f'-3.{minor}', '-c', 'import sys'], capture_output=True,
+                                   timeout=60).returncode == 0:
+        return [launcher, f'-3.{minor}']
+    return None
+
+
 def _create(name: str, env: Path, log) -> Path:
     low, high = ENGINES[name]['python']
     env.parent.mkdir(parents=True, exist_ok=True)
@@ -210,13 +332,31 @@ def _create(name: str, env: Path, log) -> Path:
                        timeout=VENV_TIMEOUT)
     else:
         for minor in range(high, low - 1, -1):
-            base = shutil.which(f'python3.{minor}')
+            base = _python_for_version(minor)
             if base:
-                subprocess.run([base, '-m', 'venv', str(env)], check=True, stdout=log, timeout=VENV_TIMEOUT)
+                subprocess.run([*base, '-m', 'venv', str(env)], check=True, stdout=log, timeout=VENV_TIMEOUT)
                 break
         else:
             raise RuntimeError(f'no Python 3.{low} to 3.{high} found: install one or `pip install uv`')
     return interpreter(env)
+
+
+def _step(command, log, environment) -> None:
+    """Run one install step. Its stderr is shown as it comes and its last lines are kept: a failure raises
+    ``CalledProcessError`` carrying them, so the error can say what pip or uv said."""
+    process = subprocess.Popen(command, stdout=log, stderr=subprocess.PIPE, text=True, encoding='utf-8',
+                               errors='replace', env=environment)
+    tail = collections.deque(maxlen=ERROR_LINES)
+    try:
+        for line in process.stderr:
+            sys.stderr.write(line)
+            tail.append(line.rstrip('\r\n'))
+        process.wait()
+    except BaseException:
+        process.kill()
+        raise
+    if process.returncode:
+        raise subprocess.CalledProcessError(process.returncode, command, stderr='\n'.join(tail))
 
 
 def _pip(python, requirements, log, find_links=None, no_build_isolation=False, index_url=None):
@@ -230,11 +370,10 @@ def _pip(python, requirements, log, find_links=None, no_build_isolation=False, i
                    **os.environ}
     if _uv():
         strategy = ['--index-strategy', 'unsafe-best-match'] if index_url else []
-        subprocess.run([_uv(), 'pip', 'install', '--python', str(python), *links, *strategy, *requirements],
-                       check=True, stdout=log, env=environment)
+        _step([_uv(), 'pip', 'install', '--python', str(python), *links, *strategy, *requirements], log, environment)
     else:
-        subprocess.run([str(python), '-m', 'pip', 'install', '--default-timeout', '120', '--retries', '8',
-                        *links, *requirements], check=True, stdout=log, env=environment)
+        _step([str(python), '-m', 'pip', 'install', '--default-timeout', '120', '--retries', '8',
+               *links, *requirements], log, environment)
 
 
 def _nvidia_gpu() -> str | None:
@@ -258,24 +397,56 @@ def _has_package(python, package: str) -> bool:
     return subprocess.run([str(python), '-c', code], capture_output=True, timeout=120).returncode == 0
 
 
+def _torch_probe(python) -> tuple[str, bool] | None:
+    """(torch version, ``torch.cuda.is_available()``) as the engine's own interpreter sees them, or None."""
+    try:
+        done = subprocess.run([str(python), '-c', 'import torch;print(torch.__version__);print(torch.cuda.is_available())'],
+                              capture_output=True, text=True, timeout=300)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    words = done.stdout.split()
+    return (words[-2], words[-1] == 'True') if done.returncode == 0 and len(words) >= 2 else None
+
+
+def _cpu_stack(spec: dict, python, log) -> None:
+    """The pinned requirements the engine runs on without CUDA (also what is put back after a failed CUDA swap)."""
+    _pip(python, spec['requirements'], log, spec.get('find_links'))
+    if spec.get('extra_requirements'):
+        _pip(python, spec['extra_requirements'], log, spec.get('find_links'))
+
+
 def _cuda_torch(name: str, python, log) -> dict:
-    """Swap the engine's torch for the CUDA build when it can use one and an NVIDIA GPU is here."""
-    gpu = _nvidia_gpu() if ENGINES[name].get('gpu') else None
+    """Swap the engine's torch for the CUDA build when it can use one and an NVIDIA GPU is here.
+
+    A swap that fails half way (torch replaced, its compiled extensions not) puts the CPU stack back; if that fails
+    too the error goes up and the install fails. The ``device`` is what torch reports afterwards, not what was hoped.
+    """
+    spec = ENGINES[name]
+    gpu = _nvidia_gpu() if spec.get('gpu') else None
     if not gpu:
         return {'device': 'cpu'}
-    build = ENGINES[name].get('cuda') or CUDA_TORCH
+    build = spec.get('cuda') or CUDA_TORCH
     tag = build['tag']
-    requirements = [f'torch=={build["torch"]}+{tag}']
+    target = f'{build["torch"]}+{tag}'
+    requirements = [f'torch=={target}']
     if build.get('torchvision') and _has_package(python, 'torchvision'):
         requirements.append(f'torchvision=={build["torchvision"]}+{tag}')
     try:
-        _pip(python, requirements, log, index_url=build['index'])
+        probe = _torch_probe(python)
+        if not (probe and probe[0] == target):  # a re-install keeps the CUDA build it already has
+            _pip(python, requirements, log, index_url=build['index'])
         if build.get('requirements'):  # compiled torch extensions built for this torch
             _pip(python, build['requirements'], log, build.get('find_links'))
-    except subprocess.CalledProcessError as exc:  # the CPU build stays and still works
+    except subprocess.CalledProcessError as exc:  # back to the CPU stack, which works
+        _cpu_stack(spec, python, log)
         return {'device': 'cpu', 'gpu': gpu, 'gpu_error': f'the CUDA build of torch did not install (status '
                                                           f'{exc.returncode}); the engine runs on the CPU'}
-    return {'device': 'cuda', 'gpu': gpu, 'torch': requirements[0].split('==', 1)[1]}
+    probe = _torch_probe(python)
+    if probe and probe[1]:
+        return {'device': 'cuda', 'gpu': gpu, 'torch': target}
+    return {'device': 'cpu', 'gpu': gpu, 'torch': target,
+            'gpu_error': 'the CUDA build of torch is installed but torch.cuda.is_available() is False '
+                         '(driver or GPU); the engine runs on the CPU'}
 
 
 def _fetch_jar(name: str):
@@ -315,14 +486,66 @@ def _extra_requirements(extra: str) -> list[str]:
     return out
 
 
+def _parse_uv_dry_run(text: str) -> list[tuple]:
+    """(name, installed version, new version or None when removed) for packages ``uv pip install --dry-run`` would
+    replace or remove: its listing marks them ``- name==old``, and ``+ name==new`` when something takes their place."""
+    removed = dict(re.findall(r'^\s*-\s+(\S+?)==(\S+)\s*$', text, re.M))
+    added = dict(re.findall(r'^\s*\+\s+(\S+?)==(\S+)\s*$', text, re.M))
+    return [(name, old, added.get(name)) for name, old in sorted(removed.items())]
+
+
+def _parse_pip_report(report: dict) -> list[tuple]:
+    """The same list from ``pip install --dry-run --report``: packages it would install at another version."""
+    import importlib.metadata
+    changes = []
+    for item in report.get('install', []):
+        name, new = item['metadata']['name'], item['metadata']['version']
+        try:
+            old = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            continue
+        if old != new:
+            changes.append((name, old, new))
+    return changes
+
+
+def _dry_run_changes(requirements: list[str]) -> list[tuple]:
+    """Packages already installed in this runtime that installing ``requirements`` would change, found without
+    installing anything."""
+    if _uv():
+        done = subprocess.run([_uv(), 'pip', 'install', '--dry-run', '--python', sys.executable, *requirements],
+                              capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=VENV_TIMEOUT)
+        if done.returncode != 0:
+            raise RuntimeError('the requirements cannot be resolved against this runtime: ' + (done.stderr or '').strip()[-300:])
+        return _parse_uv_dry_run(done.stderr + done.stdout)
+    report = Path(sys.prefix) / '.engine-dry-run.json'
+    try:
+        done = subprocess.run([sys.executable, '-m', 'pip', 'install', '--dry-run', '--quiet', '--report', str(report),
+                               *requirements], capture_output=True, text=True, encoding='utf-8', errors='replace',
+                              timeout=VENV_TIMEOUT)
+        if done.returncode != 0:
+            raise RuntimeError('the requirements cannot be resolved against this runtime: ' + (done.stderr or '').strip()[-300:])
+        return _parse_pip_report(json.loads(report.read_text(encoding='utf-8')))
+    finally:
+        report.unlink(missing_ok=True)
+
+
 def _install_into_runtime(name: str, log) -> dict:
-    """Add an engine that runs inside the toolkit runtime: the toolkit extra it needs, then its weights."""
+    """Add an engine that runs inside the toolkit runtime: the toolkit extra it needs, then its weights.
+
+    The runtime is shared with every other tool, so nothing is installed that would move a package already in it.
+    """
     import importlib.metadata
     requirements = _extra_requirements(ENGINES[name]['extra'])
     try:  # TensorFlow must not move the numpy that RDKit and the rest of the runtime were installed against
         requirements.append(f'numpy=={importlib.metadata.version("numpy")}')
     except importlib.metadata.PackageNotFoundError:
         pass
+    changes = _dry_run_changes(requirements)
+    if changes:
+        listing = ', '.join(f'{pkg} {old} -> {new or "removed"}' for pkg, old, new in changes)
+        raise RuntimeError(f'installing {ENGINES[name]["title"]} into the shared runtime would change packages that are '
+                           f'already installed ({listing}); nothing was installed')
     _pip(sys.executable, requirements, log)
     target = os.environ.get('DECIMER_MODEL_DIR') or str(Path.home() / '.data' / 'DECIMER-V2')
     subprocess.run([sys.executable, '-m', 'cdxml_toolkit.mcp_runtime.install_decimer_models', '--target', target],
@@ -331,7 +554,12 @@ def _install_into_runtime(name: str, log) -> dict:
 
 
 def install(name: str, *, dry_run: bool = False, log=None) -> dict:
-    """Create the environment (or fetch the jar), install the pinned requirements and the weights."""
+    """Create the environment (or fetch the jar), install the pinned requirements and the weights.
+
+    The old receipt is withdrawn before the first step and written again only when every step has finished, so an
+    install that is interrupted (even by Ctrl-C) leaves an engine that does not count as installed. One install of
+    an engine runs at a time.
+    """
     spec = ENGINES[name]
     env = environment(name)
     report = {'engine': name, 'environment': str(env), 'license': spec.get('license'), 'size': spec.get('size'),
@@ -352,44 +580,53 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
         return report
     log = log or sys.stderr
     try:
-        if spec['kind'] == 'runtime':
-            report.update(_install_into_runtime(name, log))
-            report.update(ok=available()[name])
-            if not report['ok']:
-                report['error'] = 'installed, but the module or its weights are still not found'
-            return report
-        if spec['kind'] == 'jar':
-            if not java():
-                raise RuntimeError('Java was not found on PATH')
-            _fetch_jar(name)
-            env.mkdir(parents=True, exist_ok=True)
-            (env / RECEIPT).write_text(json.dumps({'engine': name, 'sha256': spec['jar']['sha256']}), encoding='utf-8')
-            report.update(ok=True)
-            return report
-        # Without pyvenv.cfg the launcher falls back to the base Python, so the folder is made a venv again
-        python = (interpreter(env) if (env / 'pyvenv.cfg').is_file() else None) or _create(name, env, log)
-        _pip(python, spec['requirements'], log, spec.get('find_links'))
-        if spec.get('extra_requirements'):
-            _pip(python, spec['extra_requirements'], log, spec.get('find_links'))
-        if spec.get('late_requirements'):  # built against what is already installed
-            _pip(python, spec['late_requirements'], log, spec.get('find_links'), no_build_isolation=True)
-        device = _cuda_torch(name, python, log)
-        _drop_receipt(env)  # the receipt says the weights are complete: it is written after the download only
-        fetched = call(name, 'fetch', {}, timeout=FETCH_TIMEOUT) if (spec.get('weights') or spec.get('data')) else {}
-        (env / RECEIPT).write_text(json.dumps({'engine': name, 'requirements': spec['requirements'], **fetched,
-                                               'device': device['device']}), encoding='utf-8')
-        report.update(ok=True, python=str(python), fetched=fetched, **device)
+        with _lock(name):
+            _drop_receipt(env)
+            report.update(_install_steps(name, spec, env, log))
     except subprocess.CalledProcessError as exc:
-        _drop_receipt(env)
-        report.update(ok=False, error=f'installation failed: a step exited with status {exc.returncode} (see the '
-                                      'messages above); run the same command again, finished downloads are cached')
+        tail = '\n'.join(exc.stderr.strip().splitlines()[-ERROR_LINES:]) if isinstance(exc.stderr, str) else ''
+        report.update(ok=False, error=f'installation failed: a step exited with status {exc.returncode}'
+                                      + (f':\n{tail}\n' if tail else ' (see the messages above); ')
+                                      + 'check the network or proxy, then run the same command again, finished '
+                                        'downloads are cached')
     except subprocess.TimeoutExpired as exc:
-        _drop_receipt(env)
         report.update(ok=False, error=f'installation failed: a step timed out after {exc.timeout} s; run it again')
     except (OSError, RuntimeError, EngineError) as exc:
-        _drop_receipt(env)
         report.update(ok=False, error=f'installation failed: {exc}')
     return report
+
+
+def _install_steps(name: str, spec: dict, env: Path, log) -> dict:
+    """What ``install`` adds to its report; raises when a step fails."""
+    report = {}
+    if spec['kind'] == 'runtime':
+        report.update(_install_into_runtime(name, log))
+        report.update(ok=available()[name])
+        if not report['ok']:
+            report['error'] = 'installed, but the module or its weights are still not found'
+        return report
+    if spec['kind'] == 'jar':
+        if not java():
+            raise RuntimeError('Java was not found on PATH')
+        _fetch_jar(name)
+        env.mkdir(parents=True, exist_ok=True)
+        _write_receipt(name, {'engine': name, 'sha256': spec['jar']['sha256']})
+        return {'ok': True}
+    # Without pyvenv.cfg the launcher falls back to the base Python, so the folder is made a venv again
+    python = (interpreter(env) if (env / 'pyvenv.cfg').is_file() else None) or _create(name, env, log)
+    _cpu_stack(spec, python, log)
+    if spec.get('late_requirements'):  # built against what is already installed
+        _pip(python, spec['late_requirements'], log, spec.get('find_links'), no_build_isolation=True)
+    device = _cuda_torch(name, python, log)
+    fetched = call(name, 'fetch', {}, timeout=FETCH_TIMEOUT) if (spec.get('weights') or spec.get('data')) else {}
+    _write_receipt(name, {'engine': name, 'requirements': spec['requirements'], **fetched, 'device': device['device']})
+    return {'ok': True, 'python': str(python), 'fetched': fetched, **device}
+
+
+def _write_receipt(name: str, data: dict) -> None:
+    """The receipt says the install finished; it also keeps the folder's size so that listing engines need not walk it."""
+    (environment(name) / RECEIPT).write_text(json.dumps({**data, 'disk_mb': round(disk_usage(name) / 1e6, 1)}),
+                                             encoding='utf-8')
 
 
 def _drop_receipt(env: Path):
@@ -414,16 +651,35 @@ def disk_usage(name: str) -> int:
     return total
 
 
-def status() -> dict:
+def _used_mb(name: str, sizes: bool) -> float:
+    """The engine's disk use in MB: the size its receipt recorded, or (an install from before sizes were recorded,
+    or ``sizes=True``) a walk of the folder, whose result is then written into the receipt."""
+    if not environment(name).is_dir():
+        return 0.0
+    recorded = (receipt(name) or {}).get('disk_mb')
+    if isinstance(recorded, (int, float)) and not sizes:
+        return recorded
+    measured = round(disk_usage(name) / 1e6, 1)
+    stored = receipt(name)
+    if stored is not None:
+        try:
+            (environment(name) / RECEIPT).write_text(json.dumps({**stored, 'disk_mb': measured}), encoding='utf-8')
+        except OSError:
+            pass
+    return measured
+
+
+def status(sizes: bool = False) -> dict:
+    """Which engines are available and their disk use. Sizes come from the receipts; ``sizes=True`` measures again."""
     found = available()
     engines, total = {}, 0
     for name, spec in ENGINES.items():
-        used = disk_usage(name) if spec['kind'] in ('local', 'jar') else 0
+        used = _used_mb(name, sizes) if spec['kind'] in ('local', 'jar') else 0
         total += used
         engines[name] = {'title': spec['title'], 'task': spec['task'], 'kind': spec['kind'], 'available': found[name],
-                         'license': spec.get('license'), 'size': spec.get('size'), 'disk_used_mb': round(used / 1e6, 1),
+                         'license': spec.get('license'), 'size': spec.get('size'), 'disk_used_mb': round(used, 1),
                          'use_when': GUIDE.get(name, {}).get('use_when')}
-    return {'home': str(home()), 'disk_used_mb': round(total / 1e6, 1), 'engines': engines}
+    return {'home': str(home()), 'disk_used_mb': round(total, 1), 'engines': engines}
 
 
 def recommend(task: str) -> dict:
@@ -464,5 +720,9 @@ def remove(name: str, *, dry_run: bool = True) -> dict:
                                                  'install-engines (nothing was deleted)'}
     if dry_run:
         return {**report, 'ok': True, 'removed': False, 'dry_run': True}
-    shutil.rmtree(root)
+    try:
+        with _lock(name):
+            shutil.rmtree(root)
+    except EngineError as exc:  # an install of this engine is running
+        return {**report, 'ok': False, 'error': str(exc)}
     return {**report, 'ok': True, 'removed': True}

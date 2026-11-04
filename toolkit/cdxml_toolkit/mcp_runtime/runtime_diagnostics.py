@@ -163,7 +163,7 @@ def _engine_capabilities() -> dict[str, dict[str, Any]]:
     return {
         f"engine_{name.replace('-', '_')}": _status(
             found[name],
-            **({} if found[name] else {"detail": f"not installed: cdx.py install-engines {name}"}),
+            **({} if found[name] else {"detail": f"not installed (looked in {engine_env.home()}): cdx.py install-engines {name}"}),
         )
         for name, spec in ENGINES.items()
         if spec["kind"] in ("local", "jar")

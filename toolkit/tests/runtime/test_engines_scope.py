@@ -89,6 +89,7 @@ def runtime_extra(monkeypatch):
     monkeypatch.setattr(importlib.metadata, 'requires', lambda dist: requires)
     monkeypatch.setattr(importlib.metadata, 'version', lambda dist: '1.26.4')
     monkeypatch.setattr(env, '_pip', lambda python, reqs, log, *a, **k: calls['pip'].append((str(python), list(reqs))))
+    monkeypatch.setattr(env, '_dry_run_changes', lambda requirements: calls.setdefault('dry', []).append(requirements) or [])
     monkeypatch.setattr(subprocess, 'run', lambda cmd, **k: calls['run'].append(cmd))
     return calls
 
@@ -101,6 +102,7 @@ def test_the_runtime_engine_installs_the_decimer_extra_named_in_the_toolkit_meta
     (python, reqs), = runtime_extra['pip']
     assert python == sys.executable
     assert reqs == ['tensorflow>=2.16', 'decimer>=2.6', 'pywin32>=306; sys_platform == "win32"', 'numpy==1.26.4']
+    assert runtime_extra['dry'] == [reqs]  # checked against the runtime before anything was installed
     weights, = runtime_extra['run']
     assert weights[1:3] == ['-m', 'cdxml_toolkit.mcp_runtime.install_decimer_models']
 
@@ -533,6 +535,7 @@ def _gpu_install(home, monkeypatch, gpu, name='molparser', has_vision=True):
     monkeypatch.setattr(env, '_pip', lambda python, reqs, log, *a, **k: calls.append((list(reqs), k.get('index_url'))))
     monkeypatch.setattr(env, '_nvidia_gpu', lambda: gpu)
     monkeypatch.setattr(env, '_has_package', lambda python, package: has_vision)
+    monkeypatch.setattr(env, '_torch_probe', lambda python: ('2.5.0', True))  # a CPU torch before the swap; CUDA works after it
     monkeypatch.setattr(env, 'call', lambda *a, **k: {})
     return env.install(name), calls
 
@@ -581,7 +584,7 @@ def test_engine_downloads_are_cached_under_the_engine_home(home, monkeypatch):
     monkeypatch.delenv('UV_CACHE_DIR', raising=False)
     monkeypatch.delenv('PIP_CACHE_DIR', raising=False)
     monkeypatch.setattr(env, '_uv', lambda: 'uv')
-    monkeypatch.setattr(subprocess, 'run', lambda cmd, **k: seen.update(k['env']))
+    monkeypatch.setattr(env, '_step', lambda cmd, log, environment: seen.update(environment))
     env._pip('python', ['x'], None)
     assert seen['UV_CACHE_DIR'] == str(home / '.cache' / 'uv') and seen['PIP_CACHE_DIR'] == str(home / '.cache' / 'pip')
     monkeypatch.setenv('UV_CACHE_DIR', 'elsewhere')
@@ -613,7 +616,7 @@ def test_an_install_stopped_during_its_download_does_not_count_as_installed(home
         started.append(command[0])
         raise KeyboardInterrupt  # the terminal closed, the machine slept: no handler gets to clean up
 
-    monkeypatch.setattr(env.subprocess, 'run', run)
+    monkeypatch.setattr(env, '_run', run)
     with pytest.raises(KeyboardInterrupt):
         env.install('magnet')
     assert started == [str(home / 'magnet' / 'bin' / 'python3')]  # the download ran in the engine's own interpreter
@@ -633,7 +636,7 @@ def test_installing_again_withdraws_the_old_receipt_until_the_download_ends(home
         seen.append(env.available()['magnet'])
         return Done()
 
-    monkeypatch.setattr(env.subprocess, 'run', run)
+    monkeypatch.setattr(env, '_run', run)
     assert env.install('magnet')['ok'] is True
     assert seen == [False] and env.available()['magnet'] is True
 
