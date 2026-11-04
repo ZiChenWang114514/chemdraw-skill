@@ -14,7 +14,12 @@ def semantic_key(mol):
     copy = Chem.RemoveHs(copy)
     # Canonicalize groups, including the equivalent explicit/implicit ABS case.
     copy = Chem.CanonicalizeStereoGroups(copy)
-    return Chem.MolToCXSmiles(copy, Chem.SmilesWriteParams(), Chem.CXSmilesFields.CX_ENHANCEDSTEREO)
+    flags = (
+        Chem.CXSmilesFields.CX_ENHANCEDSTEREO
+        | Chem.CXSmilesFields.CX_COORDINATE_BONDS
+        | Chem.CXSmilesFields.CX_BOND_ATROPISOMER
+    )
+    return Chem.MolToCXSmiles(copy, Chem.SmilesWriteParams(), flags)
 
 
 # Elements that are not metals; any other element alone and uncharged is the element itself.
@@ -28,15 +33,35 @@ def _elemental_metal(atom):
             and atom.GetAtomicNum() not in _NONMETALS)
 
 
-def require_supported(mol):
+def require_supported(
+    mol,
+    *,
+    allow_radicals: bool = False,
+    allow_dative: bool = True,
+    allow_atropisomers: bool = True,
+):
+    if mol is None:
+        raise ValueError("Invalid chemical structure.")
     allowed = {Chem.ChiralType.CHI_UNSPECIFIED, Chem.ChiralType.CHI_TETRAHEDRAL_CW,
                Chem.ChiralType.CHI_TETRAHEDRAL_CCW}
     if any(a.GetChiralTag() not in allowed for a in mol.GetAtoms()):
         raise ValueError('unsupported_stereochemistry: non-tetrahedral center needs a native template')
-    if any(a.GetNumRadicalElectrons() and not _elemental_metal(a) for a in mol.GetAtoms()):
+    if not allow_radicals and any(a.GetNumRadicalElectrons() and not _elemental_metal(a) for a in mol.GetAtoms()):
         raise ValueError('unsupported_radical: use a verified native template; radical export is not yet validated')
-    if any(b.GetStereo() in (Chem.BondStereo.STEREOATROPCW, Chem.BondStereo.STEREOATROPCCW)
-           for b in mol.GetBonds()):
+    if not allow_dative and any(
+        b.GetBondType() in (
+            Chem.BondType.DATIVE,
+            Chem.BondType.DATIVEL,
+            Chem.BondType.DATIVER,
+            Chem.BondType.DATIVEONE,
+        )
+        for b in mol.GetBonds()
+    ):
+        raise ValueError('unsupported_coordination_bond: dative bond needs coordination support')
+    if not allow_atropisomers and any(
+        b.GetStereo() in (Chem.BondStereo.STEREOATROPCW, Chem.BondStereo.STEREOATROPCCW)
+        for b in mol.GetBonds()
+    ):
         raise ValueError('unsupported_stereochemistry: atropisomer needs a native template')
 
 
@@ -69,7 +94,16 @@ def read_fragments(value):
             atom = mol.GetAtomWithIdx(0)
             atom.SetNumExplicitHs(int(nodes[0].get('NumHydrogens')))
             atom.SetNoImplicit(True)
+            rad_attr = nodes[0].get('Radical', '')
+            if rad_attr == 'Doublet':
+                atom.SetNumRadicalElectrons(1)
+            elif rad_attr in ('Triplet', 'Diradical'):
+                atom.SetNumRadicalElectrons(2)
             Chem.SanitizeMol(mol)
+            if rad_attr == 'Doublet':
+                mol.GetAtomWithIdx(0).SetNumRadicalElectrons(1)
+            elif rad_attr in ('Triplet', 'Diradical'):
+                mol.GetAtomWithIdx(0).SetNumRadicalElectrons(2)
             parsed = [mol.GetMol()]
         results.extend((fragment.get('id'), mol) for mol in parsed)
     if not results:
@@ -81,11 +115,11 @@ def read_molecules(value):
     return [mol for _, mol in read_fragments(value)]
 
 
-def validate_fragment(smiles, xml):
-    source = Chem.MolFromSmiles(smiles)
+def validate_fragment(smiles, xml, *, allow_radicals: bool = True):
+    source = Chem.MolFromSmiles(smiles) if isinstance(smiles, str) else Chem.Mol(smiles)
     if source is None:
         raise ValueError('invalid_source_smiles')
-    require_supported(source)
+    require_supported(source, allow_radicals=allow_radicals)
     actual = read_molecules('<CDXML><page id="90000000">' + xml + '</page></CDXML>')
     combined = actual[0]
     for mol in actual[1:]:

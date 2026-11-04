@@ -32,7 +32,7 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 
 如果想先试 ChemDraw 自带的反应计算器，而不是画图，可以运行 `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"`。
 
-可选的识别和预测引擎（更多 OCSR 引擎、逆合成、产物、反应条件和核磁预测）不随安装一起下载。先用 `cdx.py engines --recommend 需求` 看看该装哪个、要占多大空间，同意后再运行 `cdx.py install-engines --bundle 名称`。每个引擎占用从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存）。`decimer-local` 在本机运行 DECIMER 模型，直接装进工具包运行环境。有 NVIDIA 显卡时引擎会使用显卡，设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭。许可限制：MolParser 的权重仅限非商业用途，RetroChimera 仅供研究，Reacon 没有许可证。想装到其他磁盘，就在安装前设置 `CHEMDRAW_ENGINE_HOME`，并且之后一直保留这个设置（见[引擎说明](../skill/chemdraw/references/engines.md)）。
+可选的识别和预测引擎（更多 OCSR 引擎、逆合成、产物、反应条件和核磁预测）不随安装一起下载。先用 `cdx.py engines --recommend 需求` 看看该装哪个、要占多大空间，同意后再运行 `cdx.py install-engines --bundle 名称`。每个引擎占用从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存）。`decimer-local` 在本机运行 DECIMER 模型，直接装进工具包运行环境。有 NVIDIA 显卡时引擎会使用显卡并报告 `execution.device`，设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭；自适应复杂度分类器（`--accel auto|on|off`、`--task-hint`）让简单单次调用保持无状态，并在复杂或批量任务（如多图批处理 `recognize_batch`）中自动预热常驻工作守护进程。许可限制：MolParser 的权重仅限非商业用途，RetroChimera 仅供研究，Reacon 没有许可证。想装到其他磁盘，就在安装前设置 `CHEMDRAW_ENGINE_HOME`，并且之后一直保留这个设置（见[引擎说明](../skill/chemdraw/references/engines.md)）。
 
 其他 agent 的安装位置、手动构建运行时和诊断方法见[首次安装](guide.zh-cn.md#首次安装)；[agent 集成](../skill/chemdraw/references/agent-integration.md)解释了目录布局和每一条命令。
 
@@ -44,7 +44,7 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 使用 ChemDraw Skill 解析阿司匹林并生成可编辑的 CDXML。如果有原生 ChemDraw，请渲染并查看 PNG。报告结构回读结果和输出路径。
 ```
 
-结构已知、图还不存在时，把需求说成一句话，agent 会写出简短的说明文件，再用 `cdx.py draw` 一次画出并检查反应、多步路线、底物拓展图或带弯箭头的机理，见[绘制新反应图](../skill/chemdraw/references/scheme-drawing.md)。条件只取自你给的内容。
+结构已知、图还不存在时，把需求说成一句话，agent 会写出简短的说明文件，再用 `cdx.py draw` 一次画出并检查单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或带弯箭头的机理，见[绘制新反应图](../skill/chemdraw/references/scheme-drawing.md)。条件只取自你给的内容。科研与实验记录工作流还支持原生读取一维 NMR（Bruker `1r`/`fid`、JCAMP-DX、JEOL、Varian 与 CSV/FT）以及解析 LCMS（Waters PDF、OpenLynx `.rpt`、Waters `.raw`、Shimadzu `.daml`、Agilent `report.txt` 与 `mzML`/`mzXML`）。
 
 考试或讲义图（含 C10H21 之类的缩写、化合物代号、中文批注）走 [ACS 1996 绘图器](../skill/chemdraw/references/acs1996-drawings.md)。论文图片走[重建指南](../skill/chemdraw/references/image-visual-review.md)：通读整图、裁剪、用 DECIMER API 识别、对齐方向、并排比对、修正化学、组装条件与版面、原生渲染。
 

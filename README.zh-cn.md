@@ -177,19 +177,19 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | 领域 | 能做什么 |
 | --- | --- |
 | **结构与反应** | 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档。 |
-| **按需求新画图** | 由简短的说明画出反应、多步路线、底物拓展图或机理，并在同一条命令里检查化学与版面。[详见下文](#one-command-figures)。 |
+| **按需求新画图** | 由简短的说明画出单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或机理（支持配位键与自由基），并在同一条命令里检查化学与版面。[详见下文](#one-command-figures)。 |
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
-| **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、从 PDF 中找结构、前体、路线、产物、反应条件和 1H/13C 位移，每个案例都对照已知答案运行。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
+| **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、PDF/图片批量识别（`recognize_batch`）、前体、路线、产物、反应条件和 1H/13C 位移，每个案例都对照已知答案运行并报告实际运行设备（`execution.device`）。自适应复杂度分类器（`--accel auto\|on\|off`、`--task-hint`）让简单单次调用保持无状态子进程，而在复杂、批量或连续突发任务中自动预热常驻工作守护进程（将重复 GPU 调用从约 21 秒降至 0.8 秒）。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
-| **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；试剂安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
+| **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；基于扩展的 116 条 GHS 试剂安全表与 SMARTS 官能团结构警示的安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
-| **谱图与科研绘图** | 对已处理的一维 NMR 数据寻峰并做指定区间积分；把数值数据输出为可编辑曲线。 |
+| **谱图与科研绘图** | 通过 `nmrglue` 原生读取一维 NMR（Bruker `1r` 与原始 `fid`、JCAMP-DX `.jdx`/`.dx`、JEOL `.jdf`、Varian/Agilent `.fid`）及 CSV/FT 数据，支持寻峰、指定区间积分、氘代残留溶剂自动标注、多重峰裂分（*J* 耦合）、局部放大插图（`inset_region`）以及多系列可编辑曲线。 |
 | **专利 Markush 通式** | 从专利图片和权利要求文本提取通式：R 基、可变环、多中心键与重复次数，保存为 CXSMILES、V3000 molfile 和沿用原图版式的可编辑绘图。 |
 | **反应机理** | 根据你列出的电子转移绘制弯箭头，或按明确的原子坐标复刻机理，包括电荷和抗衡离子。 |
 | **Office 文档** | 在桌面版 Word 和 PowerPoint 文档中嵌入可编辑的 ChemDraw 对象，可在 Windows 或 macOS 上用 ChemDraw 生成。 |
-| **实验记录** | 发现文件，并处理选定的 LCMS（Waters PDF、OpenLynx .rpt、Shimadzu .daml、Agilent ChemStation report.txt）、SciFinder RDF 和实验记录工作流。 |
+| **实验记录** | 发现文件，并处理选定的 LCMS（Waters PDF、OpenLynx `.rpt`、含 `_HEADER.TXT` 元数据与色谱图的 Waters `.raw`、Shimadzu `.daml`、Agilent ChemStation `report.txt` 以及开放格式 `mzML` / `mzXML`），支持 Cl/Br `M+2` 同位素包络校验与跨时间点内标（`IS`）归一化，以及 SciFinder RDF 和实验记录工作流。 |
 | **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作，并模拟核心 SDK 类）。 |
 | **ChemDraw 接口覆盖** | 为 ChemDraw 22.2 的 ChemScript SDK、COM 对象、CDXML 元素和菜单命令建立目录，每一条标明是有专用工具、有已核对的配方，还是仅有文档；并提供操作 CDXML 元素、调用 COM 以及获取 ChemDraw 自身分子性质的工具。[详见](docs/guide.zh-cn.md#chemdraw-接口覆盖)。 |
 | **远程工作站访问** | 可选地通过 Streamable HTTP 对外提供 Windows 原生主机服务，带健康检查与 Prometheus 端点。 |
@@ -240,7 +240,7 @@ python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 
 | 图的类型 | 说明里要列出的内容 | 得到什么 |
 | --- | --- | --- |
-| **反应或路线** | 物种、步骤、条件、收率 | 单步反应、线性路线、两条支线汇合的收敛路线，或一个原料生成多个产物的发散路线。长路线自动换行；可用 `reversible`（平衡）和 `resonance`（共振）箭头。 |
+| **反应或路线** | 物种、步骤、条件、收率 | 单步反应、线性路线、两条支线汇合的收敛路线、一个原料生成多个产物的发散路线，或催化循环（`catalytic-cycle`）。长路线自动换行；支持 `reversible`（平衡）和 `resonance`（共振）箭头、配位键与自由基。 |
 | **底物拓展** | 带编号、分组的化合物和你测得的数值 | 按需要排成多页可编辑版面，每个编号和数值都紧跟自己的结构。你没给的数值显示为短横线，绝不写成 0。 |
 | **反应机理** | 物种、步骤和每一次电子转移 | 根据已绘制的坐标放置弯箭头，区分全箭头和半箭头，并绕开原子和标签。 |
 
@@ -297,7 +297,7 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
 </p>
 
-不用 ChemDraw 计算用量时，`si_materials_tables` 可为最多 100 个反应写出原料表，含浓度、原子经济性和过程质量强度（PMI；E 因子等于 PMI 减 1）。加上 `reagent_safety` 后，它会从内置的约五十种物质的表中给出常见溶剂和试剂的 GHS 图标、H 说明、沸点和闪点。表里没有的物质显示为“未收录”，而不是安全。这张表只是提醒，以供应商的 SDS 为准。
+不用 ChemDraw 计算用量时，`si_materials_tables` 可为最多 100 个反应写出原料表，含浓度、原子经济性和过程质量强度（PMI；E 因子等于 PMI 减 1）。加上 `reagent_safety` 后，它会从内置的 116 种常见溶剂与试剂表以及 SMARTS 官能团结构警示（叠氮、过氧化物、有机锂、酰氯、金属氢化物等）中给出常见溶剂和试剂的 GHS 图标、H 说明、沸点和闪点。表里没有的物质显示为“未收录”，而不是安全。这张表只是提醒，以供应商的 SDS 为准。
 
 ### 表征文字
 
@@ -478,7 +478,7 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 
 十五个可选引擎负责读结构图、从 PDF 中找结构，以及预测前体、产物、反应条件和核磁位移。你同意之前不会安装任何东西；每个引擎各用一个独立环境；本地引擎运行时不上传内容（远程 DECIMER 是唯一会把图片发出去的引擎）；每个结果都标注为模型预测。多个引擎意见不一致时并排列出，不合并。
 
-下面的案例都在同一台带 RTX 5090 显卡的 Windows 笔记本上运行，各自对照已核对的结构、实验记录或实测谱图打分，出错的地方照实保留。它们说明引擎在这些输入上的表现，不代表一般情况下的准确率。输入、输出、打分和耗时都在 [`assets/readme/engines/`](assets/readme/engines/provenance.json)。耗时是引擎自己报告的时间，含模型加载，因为每次调用都会重新启动引擎进程。
+下面的案例都在同一台带 RTX 5090 显卡的 Windows 笔记本上运行，各自对照已核对的结构、实验记录或实测谱图打分，出错的地方照实保留。它们说明引擎在这些输入上的表现，不代表一般情况下的准确率。输入、输出、打分和耗时都在 [`assets/readme/engines/`](assets/readme/engines/provenance.json)。下表中的冷启动单次耗时包含模型加载时间；自适应加速分类器（`--accel auto|on|off`、`--task-hint`）会让简单单次调用保持无状态（`oneshot`，零常驻显存），并在复杂、批量、多步或连续突发任务中自动预热常驻工作守护进程（将热态 GPU 推理从约 21 秒降至 **0.8 秒**，并为 PDF 提供单次批处理 OCSR `recognize_batch`），且每次引擎回复都会记录实际运行的 `execution.device`（`cuda:0` 或 `cpu`）。
 
 ### 结构图与 PDF
 
@@ -545,7 +545,7 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 
 > **你可以说：**“用两个核磁模型预测咖啡因的 1H 和 13C 位移，并和实测谱图对比。”
 
-下图把 BMRB 的咖啡因 D<sub>2</sub>O 处理后谱图（`bmse000206`）画成可编辑的 ChemDraw 曲线，每个预测位移画一条竖线，实测峰画成刻度。为了系统衡量误差，我们用 `nmrshiftdb2` 中同时具备原始 Bruker <sup>1</sup>H 和 <sup>13</sup>C 谱且已完成原子归属的 **20 个有机分子与天然产物**（13 个 CDCl<sub>3</sub>、7 个 DMSO-<i>d</i><sub>6</sub>；共 215 个非活泼 C–H <sup>1</sup>H 拓扑等价组和 323 个 <sup>13</sup>C 拓扑等价组；两侧均剔除活泼 OH、NH、SH 质子，姜黄素按快速互变的简并酮-烯醇对称性归并）跑完两个模型。下表为按分子平均的绝对误差（MAE，单位 ppm）。
+下图把 BMRB 的咖啡因 D<sub>2</sub>O 处理后谱图（`bmse000206`）画成可编辑的 ChemDraw 曲线，每个预测位移画一条竖线，实测峰画成刻度。`MagNET` 对玻尔兹曼加权三维构象系综（298.15 K）取位移平均并提供 Karplus <sup>3</sup><i>J</i><sub>HH</sub> 耦合常数估算，`nmr.compare_shifts` 则提供一对一匈牙利候选峰匹配（`model_assisted_candidate_assignment`）与离群值警告。为了系统衡量误差，我们用 `nmrshiftdb2` 中同时具备原始 Bruker <sup>1</sup>H 和 <sup>13</sup>C 谱且已完成原子归属的 **20 个有机分子与天然产物**（13 个 CDCl<sub>3</sub>、7 个 DMSO-<i>d</i><sub>6</sub>；共 215 个非活泼 C–H <sup>1</sup>H 拓扑等价组和 323 个 <sup>13</sup>C 拓扑等价组；两侧均剔除活泼 OH、NH、SH 质子，姜黄素按快速互变的简并酮-烯醇对称性归并）跑完两个模型。下表为按分子平均的绝对误差（MAE，单位 ppm）。
 
 <img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="咖啡因的 1H 和 13C 谱图，标出 MagNET 与 NMRNet++ 的预测值">
 
@@ -596,7 +596,7 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 
 > **你可以说：**“把这份 OpenLynx 报告和板图对一下，告诉我哪些孔里有预期的产物。”
 
-这一项不需要引擎。PyParse 示例数据集（Apache-2.0）里的 24 孔 Waters 报告和板图，解析用了 11 秒。24 个孔都找到了预期产物：21 个是 [M+H]<sup>+</sup>，两个 Boc 保护的哌嗪（B3、B5）是 [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> 碎片，B11 的羧酸是 [M−H]<sup>−</sup>。与 PyParse 自己的输出相比，23 个孔的保留时间和纯度相差不超过 0.01。例外是 B6，它是匹配规则的取舍：工具箱取带完整 [M+H]<sup>+</sup> 的峰（92.9%），PyParse 取碎片峰（7.1%）。规则见 [match_plate.py](assets/readme/engines/lcms/match_plate.py)。
+这一项不需要引擎。PyParse 示例数据集（Apache-2.0）里的 24 孔 Waters 报告和板图，解析用了 11 秒。24 个孔都找到了预期产物：21 个是 [M+H]<sup>+</sup>，两个 Boc 保护的哌嗪（B3、B5）是 [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> 碎片，B11 的羧酸是 [M−H]<sup>−</sup>。与 PyParse 自己的输出相比，23 个孔的保留时间和纯度相差不超过 0.01。例外是 B6，它是匹配规则的取舍：工具箱取带完整 [M+H]<sup>+</sup> 的峰（92.9%），PyParse 取碎片峰（7.1%）。规则见 [match_plate.py](assets/readme/engines/lcms/match_plate.py)。除孔板报告外，LCMS 工具还支持解析 OpenLynx `.rpt`、Waters PDF 与 `.raw` 目录、Shimadzu `.daml`、Agilent `report.txt` 以及开放格式 `mzML`/`mzXML`，并提供 Cl/Br `M+2` 同位素包络校验与跨时间点内标（`IS`）比值追踪。
 
 <img src="assets/readme/engines/lcms/panel/page-001.png" alt="板上四个孔的预期质量、检出离子、保留时间、纯度和 PyParse 数值">
 
@@ -753,7 +753,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <summary><b>安全信息可以信到什么程度？</b></summary>
 <br>
 
-它只是提醒，来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示“未收录”，不会显示成安全。表中的数值按常见供应商的分类写成，各家会有出入，请以你实际使用的产品的 SDS 为准。
+它只是提醒，来自内置的 116 种常见溶剂与试剂表以及 SMARTS 官能团结构警示：GHS 图标、H 说明、沸点和闪点。表里没有的物质显示“未收录”，不会显示成安全。表中的数值按常见供应商的分类写成，各家会有出入，请以你实际使用的产品的 SDS 为准。
 
 </details>
 

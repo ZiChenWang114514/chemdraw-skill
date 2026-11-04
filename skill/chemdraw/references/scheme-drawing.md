@@ -32,7 +32,13 @@ Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --rend
 ```
 
 - `species` lists every structure with an `id` and either `smiles` (used as given) or `name` (curated reagent table, then PubChem unless `CHEMDRAW_OFFLINE=1`). A name that cannot be resolved stops the run and nothing is written; give a SMILES instead. Do not guess a SMILES to get past this.
-- `steps` take `substrates`, `products`, `above` / `below` (text lines), `yield` and `arrow` (`solid`, `dashed`, `failed`, `reversible` for an equilibrium, `resonance` for a double-headed arrow). A product of one step may be the substrate of the next; list the steps in any order and the tool works out the route. Two arms that meet in one step are drawn as stacked rows, the merge row repeating the intermediates it joins; one substrate with several products is drawn once on the left, each product on its own row with a horizontal arrow, the arrows joined by a vertical line so every product reads as made from that substrate. Steps that are none of these (a species made twice, a cycle, unrelated reactions) are refused. Put in `above` / `below` only what the user gave: a step without conditions is drawn without them and the report says so.
+  - **Coordination/dative bonds (`Order="dative"`):** transition-metal complexes, borane-amine adducts, and Lewis acid-base pairs support native dative bonds (`Order="dative"` in CDXML) via RDKit dative SMILES (`->`, for example `[NH3]->[BH3]`) or explicit `dative_bonds: [[donor_atom_idx, acceptor_atom_idx], ...]` on a species record.
+  - **Radicals:** open-shell radical species in SMILES (for example `[CH2]c1ccccc1`, `[O]C(C)(C)C`, or carbenes) preserve their radical state (`Radical="Doublet"`, `"Singlet"`, or `"Triplet"` on the CDXML `<n>` node) and pair with visible radical dot symbols and 1-electron fishhook arrows (`electrons: 1`).
+- `steps` take `substrates`, `products`, `above` / `below` (text lines), `yield` and `arrow` (`solid`, `dashed`, `failed`, `reversible` for an equilibrium, `resonance` for a double-headed arrow). A product of one step may be the substrate of the next; list the steps in any order and the tool works out the route:
+  - **Convergent branch-merge arrows (`layout: "convergent"`):** two synthesis arms that meet in one step can either be drawn with true Y-junction / T-junction convergent branch-merge arrows (upper and lower branch sequences merging into a vertical connector that feeds the shared coupling arrow) or as stacked rows with the merge row repeating the joined intermediates.
+  - **Divergent routes (`layout: "divergent"`):** one substrate with several products is drawn once on the left, each product on its own row with a horizontal arrow, the arrows joined by a vertical line so every product reads as made from that substrate.
+  - **Catalytic cycles (`layout: "catalytic-cycle"`):** when `"layout": "catalytic-cycle"` is set (or when the steps form a closed catalytic loop), intermediates are arranged around a circle of radius `cycle_radius` (default `120.0` pt) with curved arrows along the circumference and entering reactants / departing products placed on radial in/out arrows around each step.
+  - Put in `above` / `below` only what the user gave: a step without conditions is drawn without them and the report says so.
 - `max_width` is the row budget in points (default 504). A longer route wraps onto more rows.
 
 Read the report before you answer:
@@ -41,7 +47,7 @@ Read the report before you answer:
 | --- | --- |
 | `species[].source` | `user` for a SMILES you were given, otherwise the table that resolved the name |
 | `steps[].balanced`, `missing` | atom and charge balance of each step; a missing by-product (for example acetic acid) is named, not drawn |
-| `layout` | `linear`, `sequential`, `convergent` or `divergent`: how the steps were arranged |
+| `layout` | `linear`, `sequential`, `convergent`, `divergent` or `catalytic-cycle`: how the steps were arranged |
 | `lint` | overlaps, text under 6 pt, drawing wider than `max_width`; `lint.relayout` appears when a failed check triggered the one automatic re-layout, with what changed and the original problems |
 | `readback` | the saved file's structures compared with the brief (`matched` or `mismatch`) |
 | `native` | `rendered` with `png_path`, or `not_run` with the reason; `not_run` means unrendered draft |
@@ -118,7 +124,7 @@ Compact text, one scheme in a few lines:
 - `(85%)` after the last product is the yield, printed under the arrow.
 - `above:` and `below:` take quoted text lines or bare structure IDs (drawn as structures). For several steps use `step 1:`, `step 2:` blocks, or `-->|a|` with an `@conditions` block of lettered conditions.
 - `run: "2.15 g" -> "1.60 g, 72% yield"` adds a mass-in to mass-out arrow.
-- Directives start with `@`: `@layout sequential|divergent|convergent|stacked-rows`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
+- Directives start with `@`: `@layout sequential|divergent|convergent|stacked-rows|catalytic-cycle`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
 
 A route stays on one row unless told otherwise. Set `@max_row_width 504` (points, the width of a two-column journal page) and the renderer picks the largest number of steps per row that fits; an explicit `@steps_per_row` always wins. In YAML the keys are `max_row_width` and `steps_per_row`.
 

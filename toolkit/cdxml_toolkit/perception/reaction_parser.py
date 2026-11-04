@@ -867,6 +867,12 @@ def _extract_from_cdxml(cdxml_path: str,
     return species, warnings, cdxml_conditions
 
 
+def _get_shared_chemscript_bridge():
+    """Return the process-level shared ChemScriptBridge singleton."""
+    from ..rdkit_utils import _get_shared_chemscript_bridge as _get_bridge
+    return _get_bridge()
+
+
 def _try_chemscript_smiles(frag_elem: ET.Element,
                            cdxml_path: str) -> Optional[str]:
     """Try to extract SMILES from a fragment via ChemScript.
@@ -875,7 +881,6 @@ def _try_chemscript_smiles(frag_elem: ET.Element,
     and calls ChemScript to export SMILES.
     """
     try:
-        from ..chemdraw.chemscript_bridge import ChemScriptBridge
         from ..constants import CDXML_MINIMAL_HEADER, CDXML_FOOTER
     except ImportError:
         return None
@@ -892,7 +897,7 @@ def _try_chemscript_smiles(frag_elem: ET.Element,
             f.write(cdxml_str)
             tmp_path = f.name
         try:
-            cs = ChemScriptBridge()
+            cs = _get_shared_chemscript_bridge()
             smi = cs.write_data(tmp_path, "smiles")
             return smi.strip() if smi else None
         finally:
@@ -929,8 +934,7 @@ def _extract_from_rxn(rxn_path: str) -> Tuple[List[SpeciesDescriptor], List[str]
 
     # Tier 1: ChemScript
     try:
-        from ..chemdraw.chemscript_bridge import ChemScriptBridge
-        cs = ChemScriptBridge()
+        cs = _get_shared_chemscript_bridge()
         result = cs.load_reaction(rxn_path)
         if result and result.get("ok"):
             sp_idx = 0

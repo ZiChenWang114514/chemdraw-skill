@@ -223,6 +223,8 @@ def _smiles_to_fragment_data(
 
     AllChem.Compute2DCoords(mol)
 
+    source_mol = Chem.Mol(mol)
+
     # Kekulize for explicit single/double bonds.
     # Use a copy because clearAromaticFlags=True corrupts the mol on failure.
     mol_kek = Chem.RWMol(mol)
@@ -230,13 +232,12 @@ def _smiles_to_fragment_data(
         Chem.Kekulize(mol_kek, clearAromaticFlags=True)
         mol = mol_kek
     except Exception:
-        # Kekulization failed — use original mol with aromatic bonds.
-        # _rdkit_mol_to_atom_bond_dicts handles AROMATIC → order 2 fallback.
+        # Kekulization failed -- use original mol with aromatic bonds.
+        # _rdkit_mol_to_atom_bond_dicts handles AROMATIC -> order 2 fallback.
         pass
 
     # Extract atom/bond dicts
-    from ..image.structure_from_image import _rdkit_mol_to_atom_bond_dicts
-    atoms, bonds = _rdkit_mol_to_atom_bond_dicts(mol)
+    atoms, bonds = _extract_mol_atom_bond_dicts(mol, source_mol=source_mol)
 
     # Normalize to CDXML coordinate space (scale + flip y + center)
     from ..image.structure_from_image import normalize_for_cdxml
@@ -244,6 +245,48 @@ def _smiles_to_fragment_data(
     _separate_components(atoms, bonds)
 
     _cache_put(cache_key, atoms, bonds)
+    return atoms, bonds
+
+
+def _extract_mol_atom_bond_dicts(mol: Any, source_mol: Optional[Any] = None) -> Tuple[List[Dict], List[Dict]]:
+    """Extract atom/bond dicts from *mol*, preserving dative bonds, radicals, and pre-Kekulize semantic_key."""
+    from rdkit import Chem
+    from ..chemistry_semantics import _elemental_metal, semantic_key
+    from ..image.structure_from_image import _rdkit_mol_to_atom_bond_dicts
+
+    source_cx = semantic_key(source_mol if source_mol is not None else mol)
+    try:
+        atoms, bonds = _rdkit_mol_to_atom_bond_dicts(mol)
+    except ValueError as exc:
+        if "unsupported_radical" in str(exc):
+            from ..cdxml_builder import mol_to_atom_bond_dicts
+            atoms, bonds = mol_to_atom_bond_dicts(mol, normalize=False)
+        else:
+            raise
+
+    if atoms:
+        atoms[0]["_source_cxsmiles"] = source_cx
+    for i, atom in enumerate(mol.GetAtoms()):
+        if i < len(atoms):
+            n_rad = atom.GetNumRadicalElectrons()
+            if n_rad > 0 and not _elemental_metal(atom):
+                atoms[i]["num_radical_electrons"] = n_rad
+                atoms[i]["radical"] = "Doublet" if n_rad == 1 else "Triplet"
+                atoms[i]["num_hydrogens"] = atom.GetTotalNumHs(includeNeighbors=False)
+
+    dative_right = {
+        Chem.BondType.DATIVE,
+        Chem.BondType.DATIVER,
+        Chem.BondType.DATIVEONE,
+    }
+    for bi, bond in enumerate(mol.GetBonds()):
+        if bi < len(bonds):
+            bt = bond.GetBondType()
+            if bt in dative_right:
+                bonds[bi]["order"] = "dative"
+            elif bt == Chem.BondType.DATIVEL:
+                bonds[bi]["order"] = "dative"
+                bonds[bi]["atom1"], bonds[bi]["atom2"] = bonds[bi]["atom2"], bonds[bi]["atom1"]
     return atoms, bonds
 
 
@@ -373,6 +416,8 @@ def _align_mol_to_reference(
         # Alignment failed — fall back to standard coords
         AllChem.Compute2DCoords(target_mol)
 
+    source_mol = Chem.Mol(target_mol)
+
     # Kekulize for explicit bonds
     mol_kek = Chem.RWMol(target_mol)
     try:
@@ -382,8 +427,7 @@ def _align_mol_to_reference(
         pass
 
     # Extract atom/bond dicts
-    from ..image.structure_from_image import _rdkit_mol_to_atom_bond_dicts
-    atoms, bonds = _rdkit_mol_to_atom_bond_dicts(target_mol)
+    atoms, bonds = _extract_mol_atom_bond_dicts(target_mol, source_mol=source_mol)
 
     # Normalize to CDXML coordinate space
     from ..image.structure_from_image import normalize_for_cdxml
@@ -462,6 +506,16 @@ def _build_fragment(
         nh = a.get("num_hydrogens")
         charge = a.get("charge", 0)
         isotope = a.get("isotope")
+        rad = a.get("radical")
+        rad_attr_val: Optional[str] = None
+        if isinstance(rad, str) and rad in ("Doublet", "Triplet", "Singlet", "Diradical"):
+            rad_attr_val = "Triplet" if rad == "Diradical" else rad
+        else:
+            n_rad = int(rad) if isinstance(rad, (int, float)) else int(a.get("num_radical_electrons", 0))
+            if n_rad == 1:
+                rad_attr_val = "Doublet"
+            elif n_rad >= 2:
+                rad_attr_val = "Triplet"
 
         attrs = [
             f'id="{atom_xml_id}"',
@@ -486,6 +540,11 @@ def _build_fragment(
             attrs.append('NeedsClean="yes"')
             if charge:
                 attrs.append(f'Charge="{charge}"')
+        elif rad_attr_val and nh is not None:
+            attrs.append(f'NumHydrogens="{nh}"')
+
+        if rad_attr_val:
+            attrs.append(f'Radical="{rad_attr_val}"')
 
         if a.get('enhanced_stereo_type'):
             attrs.append(f'EnhancedStereoType="{a["enhanced_stereo_type"]}"')
@@ -546,6 +605,9 @@ def _build_fragment(
         a1 = atom_id_map.get(b["atom1"], 0)
         a2 = atom_id_map.get(b["atom2"], 0)
         order = b.get("order", 1)
+        order_str_upper = str(order).upper()
+        if order_str_upper.endswith("DATIVEL"):
+            a1, a2 = a2, a1
 
         attrs = [
             f'id="{bid}"',
@@ -553,10 +615,12 @@ def _build_fragment(
             f'B="{a1}"',
             f'E="{a2}"',
         ]
-        if order == 2:
+        if order == 2 or order == "2":
             attrs.append('Order="2"')
-        elif order == 3:
+        elif order == 3 or order == "3":
             attrs.append('Order="3"')
+        elif b.get("dative") or order in ("dative", 9) or "DATIVE" in order_str_upper:
+            attrs.append('Order="dative"')
 
         cfg = b.get("cfg", 0)
         if cfg in BOND_STEREO_ATTR:
@@ -2540,6 +2604,324 @@ def _identify_product_mol(
         )
 
 
+def _layout_convergent(
+    scheme: SchemeDescriptor,
+    ids: _IDGen,
+    source_data: Optional[Dict[str, Dict]] = None,
+    reference_mol: Optional[Any] = None,
+) -> Tuple[str, float]:
+    """Layout a convergent multi-branch route as stacked arm rows merging into the final row."""
+    rows = SchemeDescriptor(
+        structures=scheme.structures,
+        layout="stacked-rows",
+        wrap=scheme.wrap,
+        max_row_width=scheme.max_row_width,
+        gap_scale=scheme.gap_scale,
+        run_arrows=scheme.run_arrows,
+        sections=[SectionDescriptor(steps=steps) for steps in convergent_sections(scheme.steps)],
+    )
+    return _layout_stacked_rows(
+        rows,
+        ids,
+        source_data=source_data,
+        reference_mol=reference_mol,
+        section_gap=LAYOUT_ROW_GAP,
+    )
+
+
+def _boxes_overlap(a: Tuple[float, float, float, float], b: Tuple[float, float, float, float]) -> bool:
+    return min(a[2], b[2]) > max(a[0], b[0]) and min(a[3], b[3]) > max(a[1], b[1])
+
+
+def _ray_box_exit_t(
+    px: float,
+    py: float,
+    dx: float,
+    dy: float,
+    box: Tuple[float, float, float, float],
+    pad: float,
+) -> float:
+    """Return smallest positive t in (0, 1) where P(t) = (px + t*dx, py + t*dy) exits padded *box*."""
+    bx0, by0, bx1, by1 = box[0] - pad, box[1] - pad, box[2] + pad, box[3] + pad
+    tx = ((bx1 - px) / dx if dx > 0 else (bx0 - px) / dx) if abs(dx) > 1e-6 else float("inf")
+    ty = ((by1 - py) / dy if dy > 0 else (by0 - py) / dy) if abs(dy) > 1e-6 else float("inf")
+    t = min(tx, ty)
+    if not math.isfinite(t):
+        return 0.25
+    return max(0.08, min(0.45, t))
+
+
+def _text_box_at(lines: List[str], x: float, y: float) -> Tuple[float, float, float, float]:
+    max_chars = max((len(ln) for ln in lines), default=1)
+    w = max_chars * _CHAR_WIDTH
+    top = y - _CAP_HEIGHT
+    bottom = y + max(0, len(lines) - 1) * _LINE_ADVANCE + _DESCENT
+    return (x - w / 2.0, top, x + w / 2.0, bottom)
+
+
+def _place_radial_text(
+    lines: List[str],
+    mx: float,
+    my: float,
+    dir_x: float,
+    dir_y: float,
+    placed_boxes: List[Tuple[float, float, float, float]],
+    max_dist: Optional[float] = None,
+) -> Optional[Tuple[float, float, Tuple[float, float, float, float]]]:
+    """Find the closest radial offset along (dir_x, dir_y) from (mx, my) with zero box overlap."""
+    limit = max_dist if max_dist is not None else 220.0
+    d = 12.0
+    while d <= limit:
+        cx_t = mx + dir_x * d
+        cy_t = my + dir_y * d
+        # Shift baseline y so visual vertical center of text block sits at cy_t
+        block_h = max(0, len(lines) - 1) * _LINE_ADVANCE + _CAP_HEIGHT + _DESCENT
+        baseline_y = cy_t - block_h / 2.0 + _CAP_HEIGHT
+        tbox = _text_box_at(lines, cx_t, baseline_y)
+        if not any(_boxes_overlap(tbox, ob) for ob in placed_boxes):
+            return cx_t, baseline_y, tbox
+        d += 2.0
+    return None
+
+
+def _layout_catalytic_cycle(
+    scheme: SchemeDescriptor,
+    ids: _IDGen,
+    source_data: Optional[Dict[str, Dict]] = None,
+    reference_mol: Optional[Any] = None,
+) -> Tuple[str, float]:
+    """
+    Layout a closed catalytic cycle around a circle centered at (280.0, 240.0)
+    with radius R = max(90.0, n_steps * 32.0), chord reaction arrows between
+    consecutive intermediates, and radial condition labels outside/inside each arrow.
+    """
+    from .route_graph import cycle_order
+
+    if not scheme.steps:
+        return "", 240.0
+
+    try:
+        order = cycle_order(scheme.steps)
+        steps = [scheme.steps[i] for i in order]
+    except Exception:
+        steps = list(scheme.steps)
+
+    n_steps = len(steps)
+    cx, cy = 280.0, 240.0
+    gap_scale = max(float(getattr(scheme, "gap_scale", 1.0) or 1.0), 0.5)
+    radius = max(90.0, n_steps * 32.0) * gap_scale
+
+    # Prepare one intermediate fragment per step around the ring
+    inter_frags: List[_ResolvedFragment] = []
+    for k, step in enumerate(steps):
+        sub_id = step.substrates[0] if step.substrates else None
+        if not sub_id or sub_id not in scheme.structures:
+            raise ValueError(f"Catalytic cycle step {k + 1} has no valid substrate structure.")
+        frag = _resolve_structure(
+            scheme.structures[sub_id],
+            center_x=cx,
+            center_y=cy,
+            source_data=source_data,
+            reference_mol=reference_mol,
+        )
+        if frag is None:
+            raise ValueError(f"Could not prepare structure '{sub_id}' in catalytic cycle.")
+        inter_frags.append(frag)
+
+    pad = 8.0 * gap_scale
+    min_arrow_len = 28.0
+
+    # Ensure radius is large enough that structures do not overlap and chord arrows fit cleanly
+    for _ in range(12):
+        angles = [-math.pi / 2.0 + 2.0 * math.pi * k / n_steps for k in range(n_steps)]
+        centers = [(cx + radius * math.cos(a), cy + radius * math.sin(a)) for a in angles]
+        boxes: List[Tuple[float, float, float, float]] = []
+        for (ix, iy), frag in zip(centers, inter_frags):
+            hw = _bbox_width(frag.bbox) / 2.0
+            hh = _bbox_height(frag.bbox) / 2.0
+            lbl_extra = (14.0 + _DESCENT) if frag.ref.label else 0.0
+            boxes.append((ix - hw, iy - hh, ix + hw, iy + hh + lbl_extra))
+
+        any_struct_overlap = any(
+            _boxes_overlap(
+                (boxes[i][0] - pad, boxes[i][1] - pad, boxes[i][2] + pad, boxes[i][3] + pad),
+                (boxes[j][0] - pad, boxes[j][1] - pad, boxes[j][2] + pad, boxes[j][3] + pad),
+            )
+            for i in range(n_steps)
+            for j in range(i + 1, n_steps)
+        )
+        arrows_ok = True
+        for k in range(n_steps):
+            nk = (k + 1) % n_steps
+            x0, y0 = centers[k]
+            x1, y1 = centers[nk]
+            dx, dy = x1 - x0, y1 - y0
+            chord = math.hypot(dx, dy)
+            t0 = _ray_box_exit_t(x0, y0, dx, dy, boxes[k], pad)
+            t1 = 1.0 - _ray_box_exit_t(x1, y1, -dx, -dy, boxes[nk], pad)
+            if chord * (t1 - t0) < min_arrow_len:
+                arrows_ok = False
+                break
+        if not any_struct_overlap and arrows_ok:
+            break
+        radius += 8.0
+
+    xml_parts: List[str] = []
+    placed_boxes: List[Tuple[float, float, float, float]] = []
+    frag_ids: List[int] = []
+    final_boxes: List[Tuple[float, float, float, float]] = []
+    angles = [-math.pi / 2.0 + 2.0 * math.pi * k / n_steps for k in range(n_steps)]
+    centers = [(cx + radius * math.cos(a), cy + radius * math.sin(a)) for a in angles]
+    lowest_y = cy + radius
+
+    # 1. Place intermediate structures around the ring
+    for k, ((ix, iy), frag) in enumerate(zip(centers, inter_frags)):
+        _shift_atoms(frag.atoms, ix - frag.cx, iy - frag.cy)
+        frag.bbox = _fragment_bbox(frag.atoms)
+        frag.cx, frag.cy = _bbox_center(frag.bbox)
+        frag_xml, _, fid = _build_fragment(frag.atoms, frag.bonds, ids)
+        xml_parts.append(frag_xml)
+        frag_ids.append(fid)
+
+        box_y2 = frag.bbox[3]
+        if frag.ref.label:
+            lbl_y = frag.bbox[3] + 14.0
+            lbl_xml, _ = _build_label_element(frag.ref.label, frag.cx, lbl_y, ids)
+            xml_parts.append(lbl_xml)
+            box_y2 = lbl_y + _DESCENT
+
+        fbox = (frag.bbox[0] - 2.0, frag.bbox[1] - 2.0, frag.bbox[2] + 2.0, box_y2 + 2.0)
+        final_boxes.append(fbox)
+        placed_boxes.append(fbox)
+        lowest_y = max(lowest_y, box_y2)
+
+    # 2. Place chord reaction arrows between consecutive intermediates
+    arrow_records: List[Tuple[float, float, float, float, int]] = []
+    for k, step in enumerate(steps):
+        nk = (k + 1) % n_steps
+        x0, y0 = centers[k]
+        x1, y1 = centers[nk]
+        dx, dy = x1 - x0, y1 - y0
+        t0 = _ray_box_exit_t(x0, y0, dx, dy, final_boxes[k], pad)
+        t1 = 1.0 - _ray_box_exit_t(x1, y1, -dx, -dy, final_boxes[nk], pad)
+        if t1 <= t0 + 0.14:
+            mid_t = (t0 + t1) / 2.0
+            t0 = max(0.12, mid_t - 0.08)
+            t1 = min(0.88, mid_t + 0.08)
+        tx = x0 + dx * t0
+        ty = y0 + dy * t0
+        hx = x0 + dx * t1
+        hy = y0 + dy * t1
+        arrow_xml, arrow_id = _build_arrow(
+            tx,
+            ty,
+            hx,
+            hy,
+            ids,
+            dashed=(step.arrow_style == "dashed"),
+            nogo=(step.arrow_style == "failed"),
+            kind=_arrow_kind(step.arrow_style),
+        )
+        xml_parts.append(arrow_xml)
+        arrow_records.append((tx, ty, hx, hy, arrow_id))
+        abox = (min(tx, hx) - 1.5, min(ty, hy) - 3.0, max(tx, hx) + 1.5, max(ty, hy) + 3.0)
+        placed_boxes.append(abox)
+        lowest_y = max(lowest_y, abox[3])
+
+    # 3. Place above / below condition labels radially outside / inside each arrow
+    step_metadata: List[Dict[str, Any]] = []
+    for k, step in enumerate(steps):
+        nk = (k + 1) % n_steps
+        tx, ty, hx, hy, arrow_id = arrow_records[k]
+        mx, my = (tx + hx) / 2.0, (ty + hy) / 2.0
+        rx, ry = mx - cx, my - cy
+        r_norm = math.hypot(rx, ry)
+        if r_norm > 1e-6:
+            rx, ry = rx / r_norm, ry / r_norm
+        else:
+            dx, dy = hx - tx, hy - ty
+            c_len = math.hypot(dx, dy) or 1.0
+            rx, ry = dy / c_len, -dx / c_len
+
+        above_lines: List[str] = []
+        if step.above_arrow and step.above_arrow.text:
+            for raw in step.above_arrow.text:
+                above_lines.append(normalize_condition_text(raw))
+
+        below_lines: List[str] = []
+        if step.below_arrow and step.below_arrow.text:
+            for raw in step.below_arrow.text:
+                below_lines.append(normalize_condition_text(raw))
+        if step.yield_:
+            y_str = f"({step.yield_})" if not step.yield_.startswith("(") else step.yield_
+            below_lines.append(y_str)
+
+        above_ids: List[int] = []
+        below_ids: List[int] = []
+
+        if above_lines:
+            placed = _place_radial_text(above_lines, mx, my, rx, ry, placed_boxes)
+            if placed is not None:
+                px_t, py_t, tbox = placed
+                placed_boxes.append((tbox[0] - 2.0, tbox[1] - 2.0, tbox[2] + 2.0, tbox[3] + 2.0))
+                txt_xml, txt_id = _build_text_element(
+                    above_lines, px_t, py_t, ids, use_formatting=True
+                )
+                xml_parts.append(txt_xml)
+                above_ids.append(txt_id)
+                lowest_y = max(lowest_y, tbox[3])
+
+        if below_lines:
+            # Try radially inside first; fall back to radially outside if interior is tight
+            placed = _place_radial_text(
+                below_lines, mx, my, -rx, -ry, placed_boxes, max_dist=radius * 0.58
+            )
+            if placed is None:
+                placed = _place_radial_text(below_lines, mx, my, rx, ry, placed_boxes)
+            if placed is not None:
+                px_t, py_t, tbox = placed
+                placed_boxes.append((tbox[0] - 2.0, tbox[1] - 2.0, tbox[2] + 2.0, tbox[3] + 2.0))
+                txt_xml, txt_id = _build_text_element(
+                    below_lines, px_t, py_t, ids, use_formatting=True
+                )
+                xml_parts.append(txt_xml)
+                below_ids.append(txt_id)
+                lowest_y = max(lowest_y, tbox[3])
+
+        step_metadata.append({
+            "reactant_ids": [frag_ids[k]],
+            "product_ids": [frag_ids[nk]],
+            "arrow_id": arrow_id,
+            "above_ids": above_ids,
+            "below_ids": below_ids,
+        })
+
+    # 4. Build <scheme> with <step> elements
+    scheme_id = ids.next()
+    scheme_parts = [f'<scheme id="{scheme_id}">']
+    for meta in step_metadata:
+        step_id = ids.next()
+        attrs = [
+            f'id="{step_id}"',
+            f'ReactionStepReactants="{" ".join(str(x) for x in meta["reactant_ids"])}"',
+            f'ReactionStepProducts="{" ".join(str(x) for x in meta["product_ids"])}"',
+            f'ReactionStepArrows="{meta["arrow_id"]}"',
+        ]
+        if meta["above_ids"]:
+            attrs.append(
+                f'ReactionStepObjectsAboveArrow="{" ".join(str(x) for x in meta["above_ids"])}"'
+            )
+        if meta["below_ids"]:
+            attrs.append(
+                f'ReactionStepObjectsBelowArrow="{" ".join(str(x) for x in meta["below_ids"])}"'
+            )
+        scheme_parts.append(f'<step {" ".join(attrs)}/>')
+    scheme_parts.append("</scheme>")
+    xml_parts.append("\n".join(scheme_parts))
+
+    return "\n".join(xml_parts), lowest_y
+
+
 def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str:
     """
     Render a SchemeDescriptor to a CDXML document string.
@@ -2585,19 +2967,15 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
         inner_xml, lowest_y = _layout_stacked_rows(scheme, ids, source_data=source_data,
                                                     reference_mol=ref_mol)
     elif scheme.layout == "convergent":
-        # Arms become rows; the merge row draws the intermediates it joins again.
-        rows = SchemeDescriptor(
-            structures=scheme.structures, layout="stacked-rows", wrap=scheme.wrap,
-            max_row_width=scheme.max_row_width, gap_scale=scheme.gap_scale,
-            run_arrows=scheme.run_arrows,
-            sections=[SectionDescriptor(steps=steps) for steps in convergent_sections(scheme.steps)],
-        )
-        inner_xml, lowest_y = _layout_stacked_rows(rows, ids, source_data=source_data,
-                                                    reference_mol=ref_mol, section_gap=LAYOUT_ROW_GAP)
+        inner_xml, lowest_y = _layout_convergent(scheme, ids, source_data=source_data,
+                                                  reference_mol=ref_mol)
+    elif scheme.layout in ("catalytic-cycle", "cycle"):
+        inner_xml, lowest_y = _layout_catalytic_cycle(scheme, ids, source_data=source_data,
+                                                       reference_mol=ref_mol)
     else:
         raise NotImplementedError(
             f"Layout '{scheme.layout}' is not yet implemented. "
-            f"Supported: linear, sequential, divergent, stacked-rows, convergent"
+            f"Supported: linear, sequential, divergent, stacked-rows, convergent, catalytic-cycle"
         )
 
     # Condition key block below the scheme

@@ -10,18 +10,106 @@ import re
 
 from rdkit import Chem
 
-DASH = '–'
-DELTA = 'δ'
-DEGREE_C = '°C'
-ALPHA = 'α'
+DASH = '\u2013'
+DELTA = '\u03b4'
+DEGREE_C = '\u00b0C'
+ALPHA = '\u03b1'
 
 # residual solvent signals (ppm): 13C of the deuterated solvent, as in the usual impurity tables
 CARBON_SOLVENT = {'cdcl3': (77.16,), 'dmsod6': (39.52,), 'cd3od': (49.00,), 'acetoned6': (29.84, 206.26),
-                  'c6d6': (128.06,), 'cd2cl2': (53.84,), 'cd3cn': (1.32, 118.26)}
+                  'c6d6': (128.06,), 'cd2cl2': (53.84,), 'cd3cn': (1.32, 118.26), 'thfd8': (25.31, 67.21)}
+SOLVENT_PEAKS_13C: dict[str, list[dict[str, object]]] = {
+    'CDCl3': [{'ppm': 77.16, 'shift': 77.16, 'label': 'CDCl3', 'species': 'CDCl3', 'kind': 'solvent', 'multiplicity': 't'}],
+    'DMSO-d6': [{'ppm': 39.52, 'shift': 39.52, 'label': 'DMSO-d6', 'species': 'DMSO-d6', 'kind': 'solvent', 'multiplicity': 'septet'}],
+    'CD3OD': [{'ppm': 49.00, 'shift': 49.00, 'label': 'CD3OD', 'species': 'CD3OD', 'kind': 'solvent', 'multiplicity': 'septet'}],
+    'Acetone-d6': [
+        {'ppm': 29.84, 'shift': 29.84, 'label': 'Acetone-d6 (CH3)', 'species': 'Acetone-d6', 'kind': 'solvent', 'multiplicity': 'septet'},
+        {'ppm': 206.26, 'shift': 206.26, 'label': 'Acetone-d6 (C=O)', 'species': 'Acetone-d6', 'kind': 'solvent', 'multiplicity': 'm'},
+    ],
+    'CD3CN': [
+        {'ppm': 1.32, 'shift': 1.32, 'label': 'CD3CN (CD3)', 'species': 'CD3CN', 'kind': 'solvent', 'multiplicity': 'septet'},
+        {'ppm': 118.26, 'shift': 118.26, 'label': 'CD3CN (CN)', 'species': 'CD3CN', 'kind': 'solvent', 'multiplicity': 's'},
+    ],
+    'C6D6': [{'ppm': 128.06, 'shift': 128.06, 'label': 'C6D6', 'species': 'C6D6', 'kind': 'solvent', 'multiplicity': 't'}],
+    'THF-d8': [
+        {'ppm': 25.31, 'shift': 25.31, 'label': 'THF-d8 (beta)', 'species': 'THF-d8', 'kind': 'solvent', 'multiplicity': 'quintet'},
+        {'ppm': 67.21, 'shift': 67.21, 'label': 'THF-d8 (alpha)', 'species': 'THF-d8', 'kind': 'solvent', 'multiplicity': 'quintet'},
+    ],
+    'CD2Cl2': [{'ppm': 53.84, 'shift': 53.84, 'label': 'CD2Cl2', 'species': 'CD2Cl2', 'kind': 'solvent', 'multiplicity': 'quintet'}],
+}
+SOLVENT_PEAKS_1H: dict[str, list[dict[str, object]]] = {
+    'CDCl3': [
+        {'ppm': 7.26, 'shift': 7.26, 'label': 'CHCl3', 'species': 'CHCl3', 'kind': 'residual_solvent', 'multiplicity': 's', 'solvent': 'CDCl3'},
+        {'ppm': 1.56, 'shift': 1.56, 'label': 'HDO', 'species': 'HDO', 'kind': 'water', 'multiplicity': 's', 'solvent': 'CDCl3'},
+    ],
+    'DMSO-d6': [
+        {'ppm': 2.50, 'shift': 2.50, 'label': 'DMSO-d5', 'species': 'DMSO-d5', 'kind': 'residual_solvent', 'multiplicity': 'quintet', 'solvent': 'DMSO-d6'},
+        {'ppm': 3.33, 'shift': 3.33, 'label': 'HDO', 'species': 'HDO', 'kind': 'water', 'multiplicity': 's', 'solvent': 'DMSO-d6'},
+    ],
+    'CD3OD': [
+        {'ppm': 3.31, 'shift': 3.31, 'label': 'CHD2OD', 'species': 'CHD2OD', 'kind': 'residual_solvent', 'multiplicity': 'quintet', 'solvent': 'CD3OD'},
+        {'ppm': 4.87, 'shift': 4.87, 'label': 'HDO', 'species': 'HDO', 'kind': 'water', 'multiplicity': 's', 'solvent': 'CD3OD'},
+    ],
+    'D2O': [
+        {'ppm': 4.79, 'shift': 4.79, 'label': 'HDO', 'species': 'HDO', 'kind': 'residual_solvent', 'multiplicity': 's', 'solvent': 'D2O'},
+    ],
+    'Acetone-d6': [
+        {'ppm': 2.05, 'shift': 2.05, 'label': 'acetone-d5', 'species': 'acetone-d5', 'kind': 'residual_solvent', 'multiplicity': 'quintet', 'solvent': 'Acetone-d6'},
+        {'ppm': 2.84, 'shift': 2.84, 'label': 'HDO', 'species': 'HDO', 'kind': 'water', 'multiplicity': 's', 'solvent': 'Acetone-d6'},
+    ],
+    'CD3CN': [
+        {'ppm': 1.94, 'shift': 1.94, 'label': 'CHD2CN', 'species': 'CHD2CN', 'kind': 'residual_solvent', 'multiplicity': 'quintet', 'solvent': 'CD3CN'},
+        {'ppm': 2.13, 'shift': 2.13, 'label': 'HDO', 'species': 'HDO', 'kind': 'water', 'multiplicity': 's', 'solvent': 'CD3CN'},
+    ],
+    'C6D6': [
+        {'ppm': 7.16, 'shift': 7.16, 'label': 'C6HD5', 'species': 'C6HD5', 'kind': 'residual_solvent', 'multiplicity': 's', 'solvent': 'C6D6'},
+        {'ppm': 0.40, 'shift': 0.40, 'label': 'HDO', 'species': 'HDO', 'kind': 'water', 'multiplicity': 's', 'solvent': 'C6D6'},
+    ],
+    'THF-d8': [
+        {'ppm': 3.58, 'shift': 3.58, 'label': 'THF-d7 (alpha)', 'species': 'THF-d7', 'kind': 'residual_solvent', 'multiplicity': 'm', 'solvent': 'THF-d8'},
+        {'ppm': 1.72, 'shift': 1.72, 'label': 'THF-d7 (beta)', 'species': 'THF-d7', 'kind': 'residual_solvent', 'multiplicity': 'm', 'solvent': 'THF-d8'},
+    ],
+    'CD2Cl2': [
+        {'ppm': 5.32, 'shift': 5.32, 'label': 'CHDCl2', 'species': 'CHDCl2', 'kind': 'residual_solvent', 'multiplicity': 't', 'solvent': 'CD2Cl2'},
+        {'ppm': 1.52, 'shift': 1.52, 'label': 'HDO', 'species': 'HDO', 'kind': 'water', 'multiplicity': 's', 'solvent': 'CD2Cl2'},
+    ],
+}
+_SOLVENT_1H_ALIASES: dict[str, str] = {
+    'cdcl3': 'CDCl3',
+    'chloroform': 'CDCl3',
+    'chloroformd': 'CDCl3',
+    'trichloromethane': 'CDCl3',
+    'dmsod6': 'DMSO-d6',
+    'd6dmso': 'DMSO-d6',
+    'dmso': 'DMSO-d6',
+    'cd3od': 'CD3OD',
+    'meod': 'CD3OD',
+    'methanold4': 'CD3OD',
+    'd4methanol': 'CD3OD',
+    'd2o': 'D2O',
+    'water': 'D2O',
+    'heavywater': 'D2O',
+    'acetoned6': 'Acetone-d6',
+    'd6acetone': 'Acetone-d6',
+    'acetone': 'Acetone-d6',
+    'cd3cn': 'CD3CN',
+    'mecnd3': 'CD3CN',
+    'acetonitriled3': 'CD3CN',
+    'acetonitrile': 'CD3CN',
+    'c6d6': 'C6D6',
+    'benzened6': 'C6D6',
+    'benzene': 'C6D6',
+    'thfd8': 'THF-d8',
+    'd8thf': 'THF-d8',
+    'thf': 'THF-d8',
+    'cd2cl2': 'CD2Cl2',
+    'dcmd2': 'CD2Cl2',
+    'dichloromethaned2': 'CD2Cl2',
+}
 SOLVENT_TOLERANCE = 0.15
 
 _NUMBER = r'\d+(?:\.\d+)?'
-_PEAK = re.compile(rf'^(?P<a>[-+]?{_NUMBER})(?:\s*[{DASH}—-]\s*(?P<b>{_NUMBER}))?\s*(?:\((?P<body>.*)\))?$')
+_PEAK = re.compile(rf'^(?P<a>[-+]?{_NUMBER})(?:\s*[{DASH}\u2014-]\s*(?P<b>{_NUMBER}))?\s*(?:\((?P<body>.*)\))?$')
 _COUPLING = re.compile(rf'J\s*=\s*(?P<j>{_NUMBER}(?:\s*,\s*{_NUMBER})*)\s*Hz')
 _PROTONS = re.compile(r'(\d+)\s*H')
 _WORDS = re.compile(r'[A-Za-z][A-Za-z ]*')
@@ -153,6 +241,76 @@ def distinct_carbons(mol) -> int:
 
 def _solvent_key(name) -> str:
     return re.sub(r'[\s_\-]', '', str(name or '')).lower()
+
+
+def _resolve_solvent_1h(solvent: str) -> str | None:
+    if not solvent:
+        return None
+    if solvent in SOLVENT_PEAKS_1H:
+        return solvent
+    key = _solvent_key(solvent)
+    return _SOLVENT_1H_ALIASES.get(key)
+
+
+def is_solvent_peak_1h(ppm: float, solvent: str, tolerance: float = 0.05) -> dict | None:
+    """Return the matched 1H residual solvent peak dict if ``ppm`` is within ``tolerance``, else ``None``."""
+    canonical = _resolve_solvent_1h(solvent)
+    if canonical is None:
+        return None
+    val = float(ppm)
+    tol = float(tolerance)
+    best_entry: dict[str, object] | None = None
+    best_delta = tol + 1.0
+    for entry in SOLVENT_PEAKS_1H.get(canonical, ()):
+        ref_ppm = float(entry['ppm'])  # type: ignore[arg-type]
+        delta = abs(val - ref_ppm)
+        if delta <= tol and delta < best_delta:
+            best_delta = delta
+            best_entry = entry
+    if best_entry is None:
+        return None
+    matched = dict(best_entry)
+    matched['observed_ppm'] = val
+    matched['delta_ppm'] = round(best_delta, 4)
+    return matched
+
+
+def filter_solvent_peaks_1h(peaks: list, solvent: str, tolerance: float = 0.05) -> list:
+    """Filter out 1H residual solvent and HDO peaks from ``peaks`` (numbers, dicts, or peak objects)."""
+    if not peaks:
+        return []
+    canonical = _resolve_solvent_1h(solvent)
+    if canonical is None:
+        return list(peaks)
+
+    filtered = []
+    for item in peaks:
+        ppm_val: float | None = None
+        if isinstance(item, (int, float)):
+            ppm_val = float(item)
+        elif isinstance(item, dict):
+            raw = item.get('ppm')
+            if raw is None:
+                raw = item.get('shift')
+            if raw is None:
+                raw = item.get('center')
+            if raw is not None:
+                try:
+                    ppm_val = float(raw)
+                except (TypeError, ValueError):
+                    ppm_val = None
+        else:
+            raw = getattr(item, 'ppm', getattr(item, 'shift', None))
+            if raw is not None:
+                try:
+                    ppm_val = float(raw)
+                except (TypeError, ValueError):
+                    ppm_val = None
+
+        if ppm_val is not None and is_solvent_peak_1h(ppm_val, canonical, tolerance=tolerance) is not None:
+            continue
+        filtered.append(item)
+    return filtered
 
 
 def _text(value) -> str:

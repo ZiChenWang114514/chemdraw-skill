@@ -23,10 +23,19 @@ This produces TLC, substitution-mechanism and simulated kinetic-plot examples. T
 
 ## NMR: inspect data before analysis
 
-1. Identify the input type, nucleus, units and processing state. Supported inputs are real 1D NMRPipe `.ft`, `.ft1`, `.ft2` and CSV with `ppm,intensity`. Raw FID processing, phase correction, 2D correlations and atom assignment are not implemented by this command.
+1. Identify the input type, nucleus, units and processing state. Native 1D NMR loading via `nmrglue` supports:
+   - **NMRPipe** processed `.ft`, `.ft1`, `.ft2` files and two-column `ppm,intensity` CSVs;
+   - **Bruker** TopSpin processed `pdata/1/1r` directories (`1r` + `procs`/`acqus`) and raw Bruker `fid`/`ser` directories (automatically zero-filled, apodized, Fourier-transformed, and zero-order phased);
+   - **JCAMP-DX** `.jdx` and `.dx` spectra (`##XYDATA`, `##PEAK TABLE`, or `##NTUPLES`, automatically converting Hz axes to ppm using `.OBSERVEFREQUENCY`);
+   - **JEOL Delta** `.jdf` files (processed frequency-domain or time-domain FID);
+   - **Varian / Agilent VNMRJ** `.fid` directories (`fid` + `procpar`).
 2. Select integration intervals from the actual spectrum. Optional baseline windows must be signal-free and within its ppm range. Do not reuse the bundled intervals for a different sample.
 3. Use `baseline_windows`, integer `baseline_degree` from 0 to 3, positive `prominence`, `integration_regions`, and optional zero-based `normalization_region` plus `normalization_value`. Normalization needs a known reference; do not manufacture proton counts.
-4. Run the command and inspect the plotted spectrum for a distorted baseline, missing peaks or inappropriate integration limits. Report assignments as unperformed unless separately supported by evidence.
+4. Configure optional peak analysis and plotting fields in `nmr.json`:
+   - **Deuterated residual solvent peak flagging (`1H` and `13C`):** set `solvent` (for example `"CDCl3"`, `"DMSO-d6"`, `"CD3OD"`, `"D2O"`, `"CD2Cl2"`, `"acetone-d6"`, `"CD3CN"`, `"THF-d8"`, `"C6D6"`, `"toluene-d8"`) to flag residual solvent and dissolved H2O/HDO peaks in both `1H` and `13C` peak tables (`is_solvent: true`, `solvent_assignment`) and exclude them from compound peak counts.
+   - **Multiplet splitting ($J$-coupling extraction):** when `spectrometer_frequency_mhz` is supplied (or read automatically from vendor metadata), adjacent sub-peaks are grouped into multiplets (`s`, `d`, `t`, `q`, `dd`, `dt`, `td`, `m`) with `center_ppm` and extracted `j_couplings_hz` in Hz.
+   - **NMR zoom insets (`inset_region`):** pass `inset_region: [high_ppm, low_ppm]` (for example `[7.8, 7.1]`) to render an expanded zoom inset box above the main spectrum in the SVG, PNG, and editable CDXML outputs.
+5. Run the command and inspect the plotted spectrum for a distorted baseline, missing peaks or inappropriate integration limits. Report assignments as unperformed unless separately supported by evidence (or use `compare_predicted: true` with `smiles` for `model_assisted_candidate_assignment`; see [engines.md](engines.md)).
 
 ```console
 cdx.py py -m cdxml_toolkit.scientific nmr --spec nmr.json --output nmr-results
@@ -40,7 +49,7 @@ The [NMR JSON example](../assets/scientific/nmr.json) uses integration ranges fr
 cdx.py py -m cdxml_toolkit.scientific plot --spec plot.json --output plot-results
 ```
 
-The JSON requires `input`, `x_column`, `y_column`, `x_label` and `y_label`; `title` and `reverse_x` are optional. Input paths are relative to the JSON. Label units and distinguish simulated from experimental data. Native CDXML and SVG/PNG share axis limits and ticks. The CDXML display may use a peak-preserving envelope, while the exported CSV keeps all samples. Do not analyze reduced display coordinates as if they were the original data.
+The JSON requires `x_label` and `y_label` plus either a single-series `input`, `x_column`, `y_column` or a multi-series `series` list (`[{"label": "Cat. A", "input": "a.csv", "x_column": "time_s", "y_column": "conv", "color": "#1b4f72", "style": "both"}, ...]`) for multi-series plot overlays (`style` may be `"line"`, `"scatter"`, or `"both"` with legend and distinct palette colors across SVG, PNG, and editable CDXML). `title` and `reverse_x` are optional. Input paths are relative to the JSON. Label units and distinguish simulated from experimental data. Native CDXML and SVG/PNG share axis limits and ticks. The CDXML display may use a peak-preserving envelope, while the exported CSV keeps all samples. Do not analyze reduced display coordinates as if they were the original data.
 
 ## Mechanisms
 

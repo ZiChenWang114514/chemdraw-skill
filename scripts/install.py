@@ -68,9 +68,16 @@ AGENT_ALIASES = {
     'windsurf': ('.codeium/windsurf/skills', '.windsurf/skills'),
 }
 ALL_AGENTS = {**AGENTS, **AGENT_ALIASES}
+EXTRA_AGENT_DIRS = {
+    'codex': ('.codex',),
+    'kimi': ('.kimi',),
+    'windsurf': ('.windsurf', '.Windsurf'),
+    'pi': ('.pi',),
+    'opencode': ('.config/opencode', '.opencode'),
+}
 # Never copied into an installation; runtime.local.json is written per installation.
 IGNORED = ('__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', '*.pyc', '*.pyo',
-           'manifest.json', 'runtime.local.json')
+           'manifest.json', 'runtime.local.json', 'tests')
 # Extras that drive a local ChemDraw (COM/.NET on Windows, AppleScript on macOS).
 CHEMDRAW_EXTRAS = ('office', 'chemscript')
 ALL_EXTRAS = ('publication', 'scientific', 'office', 'analysis', 'image', 'chemscript')
@@ -116,8 +123,8 @@ def log(message):
 
 
 def fingerprint(root):
-    hashes = check_installation.file_hashes(root)
-    hashes.pop('runtime.local.json', None)
+    hashes = {k: v for k, v in check_installation.file_hashes(root).items()
+              if k != 'runtime.local.json' and not k.startswith('tests/')}
     return hashlib.sha256(json.dumps(hashes, sort_keys=True).encode('utf-8')).hexdigest()
 
 
@@ -153,13 +160,35 @@ def install_opsin(folder, *, url=OPSIN_URL, sha256=OPSIN_SHA256, opener=urllib.r
     return jar
 
 
+def detect_agents(base, scope=0):
+    """Detect existing agent parent folders under `base`, falling back to ['claude', 'agents']."""
+    base = Path(base)
+    found = []
+    for agent, folders in ALL_AGENTS.items():
+        candidates = [base / Path(folders[scope]).parent]
+        candidates.extend(base / rel for rel in EXTRA_AGENT_DIRS.get(agent, ()))
+        if any(p.is_dir() for p in candidates):
+            found.append(agent)
+    return found or ['claude', 'agents']
+
+
+def resolve_agents(agents, base, scope=0):
+    out = []
+    for agent in agents:
+        expanded = detect_agents(base, scope) if agent == 'auto' else [agent]
+        for item in expanded:
+            if item not in out:
+                out.append(item)
+    return out
+
+
 def destinations(ns):
     if ns.destination:
         return [Path(d).expanduser().resolve() for d in ns.destination]
     base = Path(ns.project).expanduser().resolve() if ns.project else Path.home()
     scope = 1 if ns.project else 0
     seen, out = set(), []
-    for agent in ns.agent:
+    for agent in resolve_agents(ns.agent, base, scope):
         target = (base / ALL_AGENTS[agent][scope] / SKILL_NAME).resolve()
         if target not in seen:
             seen.add(target)
@@ -318,8 +347,8 @@ def parse(argv):
                                 formatter_class=argparse.RawDescriptionHelpFormatter,
                                 epilog='Agents: ' + ', '.join(f'{k} (~/{u}, <project>/{q})'
                                                              for k, (u, q) in ALL_AGENTS.items()))
-    p.add_argument('--agent', nargs='+', choices=sorted(ALL_AGENTS), default=['claude'],
-                   help='agent Skill folder(s) to install into (default: claude)')
+    p.add_argument('--agent', nargs='+', choices=sorted([*ALL_AGENTS, 'auto']), default=['claude'],
+                   help='agent Skill folder(s) to install into, or auto to detect existing agent folders (default: claude)')
     p.add_argument('--project', help='install into this project instead of the home folder')
     p.add_argument('--destination', nargs='+', help='explicit Skill folder(s); overrides --agent/--project')
     p.add_argument('--runtime', action='store_true', help='create or reuse the shared toolkit venv')

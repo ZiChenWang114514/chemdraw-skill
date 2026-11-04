@@ -906,6 +906,119 @@ def _retrochimera(params, data_dir, spec):
             'routes': routes}
 
 
+def _compute_karplus_couplings(mol, selected=None, weights=None, ranks=None):
+    """Compute vicinal H-C-C-H dihedral angles and Karplus 3J_HH couplings for 1H atoms.
+
+    Uses 3J_HH = 7.76 * cos^2(phi) - 1.10 * cos(phi) + 1.40 Hz across the lowest-energy
+    or Boltzmann-weighted 3D conformers for coupled non-equivalent hydrogens.
+    Returns (couplings_by_atom, multiplicity_by_atom).
+    """
+    import math
+    import numpy as np
+    from rdkit import Chem
+    from rdkit.Chem import rdMolTransforms
+
+    if ranks is None:
+        ranks = list(Chem.CanonicalRankAtoms(mol, breakTies=False))
+    if not selected:
+        if mol.GetNumConformers() > 0:
+            selected = [(mol.GetConformer().GetId(), 0.0)]
+            weights = np.array([1.0], dtype=float)
+        else:
+            return {}, {}
+    if weights is None or len(weights) != len(selected):
+        weights = np.ones(len(selected), dtype=float) / max(1, len(selected))
+
+    # Collect raw pairwise Karplus 3J_HH across vicinal H1-C1-C2-H2 paths
+    raw_pair_j = {}
+    for bond in mol.GetBonds():
+        a1 = bond.GetBeginAtom()
+        a2 = bond.GetEndAtom()
+        if a1.GetAtomicNum() == 1 or a2.GetAtomicNum() == 1:
+            continue
+        c1_idx = a1.GetIdx()
+        c2_idx = a2.GetIdx()
+        h1_atoms = [n.GetIdx() for n in a1.GetNeighbors() if n.GetAtomicNum() == 1]
+        h2_atoms = [n.GetIdx() for n in a2.GetNeighbors() if n.GetAtomicNum() == 1]
+        if not h1_atoms or not h2_atoms:
+            continue
+        for h1_idx in h1_atoms:
+            for h2_idx in h2_atoms:
+                if ranks[h1_idx] == ranks[h2_idx]:
+                    continue
+                j_weighted = 0.0
+                for (cid, _), w in zip(selected, weights):
+                    conf = mol.GetConformer(cid)
+                    phi = rdMolTransforms.GetDihedralRad(conf, h1_idx, c1_idx, c2_idx, h2_idx)
+                    cos_phi = math.cos(phi)
+                    j_conf = 7.76 * (cos_phi ** 2) - 1.10 * cos_phi + 1.40
+                    j_weighted += float(w) * j_conf
+                raw_pair_j[(h1_idx, h2_idx)] = j_weighted
+                raw_pair_j[(h2_idx, h1_idx)] = j_weighted
+
+    # Average 3J_HH across topologically equivalent partner hydrogens (fast rotation in solution)
+    couplings_by_atom = {}
+    multiplicity_by_atom = {}
+    for atom in mol.GetAtoms():
+        if atom.GetAtomicNum() != 1:
+            continue
+        h_idx = atom.GetIdx()
+        partner_entries = [
+            (p_idx, j_val)
+            for (src_idx, p_idx), j_val in raw_pair_j.items()
+            if src_idx == h_idx
+        ]
+        if not partner_entries:
+            couplings_by_atom[h_idx] = []
+            multiplicity_by_atom[h_idx] = 's'
+            continue
+
+        # Group partners by canonical symmetry class to average equivalent rotamers
+        by_class = {}
+        for p_idx, j_val in partner_entries:
+            p_rank = ranks[p_idx]
+            by_class.setdefault(p_rank, []).append((p_idx, j_val))
+
+        j_list = []
+        active_groups = []
+        for p_rank, group in sorted(by_class.items(), key=lambda kv: min(x[0] for x in kv[1])):
+            mean_j = sum(x[1] for x in group) / len(group)
+            rounded_j = round(float(mean_j), 1)
+            for p_idx, _ in sorted(group, key=lambda x: x[0]):
+                j_list.append({
+                    'partner_atom_index': int(p_idx),
+                    'j_hz': rounded_j,
+                    'bonds': 3,
+                })
+            if rounded_j >= 1.0:
+                active_groups.append((len(group), rounded_j))
+
+        couplings_by_atom[h_idx] = j_list
+
+        # Determine multiplicity_hint ('s', 'd', 't', 'q', 'dd', 'm')
+        if not active_groups:
+            mult_hint = 's'
+        elif len(active_groups) == 1:
+            n_equiv = active_groups[0][0]
+            mult_hint = {1: 'd', 2: 't', 3: 'q'}.get(n_equiv, 'm')
+        elif len(active_groups) == 2 and active_groups[0][0] == 1 and active_groups[1][0] == 1:
+            if abs(active_groups[0][1] - active_groups[1][1]) < 0.8:
+                mult_hint = 't'
+            else:
+                mult_hint = 'dd'
+        else:
+            # Check if all active groups have nearly identical J (within 0.8 Hz)
+            j_vals = [g[1] for g in active_groups]
+            if max(j_vals) - min(j_vals) < 0.8:
+                total_n = sum(g[0] for g in active_groups)
+                mult_hint = {1: 'd', 2: 't', 3: 'q'}.get(total_n, 'm')
+            else:
+                mult_hint = 'm'
+        multiplicity_by_atom[h_idx] = mult_hint
+
+    return couplings_by_atom, multiplicity_by_atom
+
+
 def _magnet(params, data_dir, spec):
     """1H and 13C shifts from an RDKit ETKDGv3/MMFF94 conformer ensemble (Boltzmann-averaged) with MagNET-Zero and MagNET-PCM."""
     import numpy as np
@@ -955,19 +1068,58 @@ def _magnet(params, data_dir, spec):
         arr = np.asarray(batch, dtype=float)
         shifts = np.sum(arr * weights[:, None], axis=0) if arr.ndim == 2 else arr
     ranks = list(Chem.CanonicalRankAtoms(mol, breakTies=False))
-    return {'atoms': [{'index': a.GetIdx(), 'element': a.GetSymbol(), 'shift': None if shifts[a.GetIdx()] != shifts[a.GetIdx()]
-                       else float(shifts[a.GetIdx()]), 'class': ranks[a.GetIdx()],
-                       'neighbors': [n.GetIdx() for n in a.GetNeighbors()]} for a in mol.GetAtoms()],
+    couplings_by_atom, mult_by_atom = _compute_karplus_couplings(mol, selected=selected, weights=weights, ranks=ranks)
+    atoms_out = []
+    for a in mol.GetAtoms():
+        idx = a.GetIdx()
+        sym = a.GetSymbol()
+        entry = {
+            'index': idx,
+            'element': sym,
+            'shift': None if shifts[idx] != shifts[idx] else float(shifts[idx]),
+            'class': ranks[idx],
+            'neighbors': [n.GetIdx() for n in a.GetNeighbors()],
+        }
+        if sym == 'H':
+            entry['j_couplings'] = couplings_by_atom.get(idx, [])
+            entry['multiplicity_hint'] = mult_by_atom.get(idx, 's')
+        atoms_out.append(entry)
+    return {'atoms': atoms_out,
             'conformer_energy_kcal': float(e_min),
             'conformer_count': len(selected),
             'geometry': f'RDKit ETKDGv3 + MMFF94 Boltzmann average ({len(selected)} conformers, T=298.15 K)'}
 
 
-def _nmrnet_command(data_dir, data, results, element, device='cpu'):
+def _discover_nmrnet_fold_checkpoints(folder, data_dir):
+    """Discover available NMRNet++ fold checkpoints (fold_0..fold_4) in folder or data_dir."""
+    checkpoints = []
+    for k in range(5):
+        candidates = [
+            os.path.join(folder, f'cv_seed_42_fold_{k}', 'checkpoint_last.pt'),
+            os.path.join(folder, f'fold_{k}.pth'),
+            os.path.join(folder, f'fold_{k}.pt'),
+            os.path.join(data_dir, f'fold_{k}.pth'),
+            os.path.join(data_dir, 'weight', f'fold_{k}.pth'),
+            os.path.join(data_dir, 'weights', f'fold_{k}.pth'),
+        ]
+        for cand in candidates:
+            if os.path.isfile(cand):
+                checkpoints.append((k, cand.replace('\\', '/')))
+                break
+    if not checkpoints:
+        default_ckpt = os.path.join(folder, 'cv_seed_42_fold_0', 'checkpoint_last.pt').replace('\\', '/')
+        checkpoints.append((0, default_ckpt))
+    return checkpoints
+
+
+def _nmrnet_command(data_dir, data, results, element, device='cpu', checkpoint=None):
     """The authors' inference command. infer.py names its output after ``--path`` split on "/", so that path is
     written with forward slashes (Windows accepts them). ``--cpu`` is passed unless the GPU is used."""
     folder = os.path.join(data_dir, element)
-    checkpoint = os.path.join(folder, 'cv_seed_42_fold_0', 'checkpoint_last.pt').replace('\\', '/')
+    if checkpoint is None:
+        checkpoint = os.path.join(folder, 'cv_seed_42_fold_0', 'checkpoint_last.pt').replace('\\', '/')
+    else:
+        checkpoint = str(checkpoint).replace('\\', '/')
     return [sys.executable, 'uninmr/infer.py', '--user-dir', 'uninmr', data, '--valid-subset', 'valid',
             '--results-path', results, '--saved-dir', folder, '--num-workers', '0', '--ddp-backend=c10d',
             '--batch-size', '4', '--task', 'uninmr', '--loss', 'atom_regloss_mae', '--arch', 'unimol_large',
@@ -978,9 +1130,12 @@ def _nmrnet_command(data_dir, data, results, element, device='cpu'):
 
 
 def _nmrnet_pp(params, data_dir, spec):
-    """1H and 13C shifts with NMRNet++ (fold 0 of the authors' five cross-validation models), run by their own infer.py."""
+    """1H and 13C shifts with NMRNet++ (single fold_0 or multi-fold ensemble with shift_std), run by their own infer.py."""
     import pickle
-    import lmdb
+    try:
+        import lmdb
+    except ImportError:
+        lmdb = None
     import numpy as np
     from rdkit import Chem
     from rdkit.Chem import AllChem
@@ -995,47 +1150,95 @@ def _nmrnet_pp(params, data_dir, spec):
     coordinates = mol.GetConformer().GetPositions().astype(np.float32)
     work = _scratch('nmrnetpp-')
     shifts = {}
+    shift_stds = {}
+    multi_fold_used = False
+    ensemble_flag = params.get('ensemble')
+
     for nucleus in params.get('nuclei') or ['1H', '13C']:
         element = {'1H': 'H', '13C': 'C'}[nucleus]
         data = os.path.join(work, 'data-' + element)
-        os.makedirs(data)
+        os.makedirs(data, exist_ok=True)
         record = {'smiles': params['smiles'], 'atoms': atoms, 'coordinates': coordinates,
                   'atoms_target_mask': np.array([1 if a == element else 0 for a in atoms], dtype=np.int32),
                   'atoms_target': np.zeros(len(atoms), dtype=np.float32), 'nmr_frequency': 400, 'nmr_solvent': 'CDCl3'}
-        database = lmdb.open(os.path.join(data, 'valid.lmdb'), subdir=False, readonly=False, lock=False,
-                             readahead=False, meminit=False, map_size=int(1e9))
-        with database.begin(write=True) as transaction:
-            transaction.put(b'0', pickle.dumps(record))
-        database.close()
-        results = os.path.join(work, 'results-' + element)
+        if lmdb is not None:
+            database = lmdb.open(os.path.join(data, 'valid.lmdb'), subdir=False, readonly=False, lock=False,
+                                 readahead=False, meminit=False, map_size=int(1e9))
+            with database.begin(write=True) as transaction:
+                transaction.put(b'0', pickle.dumps(record))
+            database.close()
+        else:
+            with open(os.path.join(data, 'valid.lmdb'), 'wb') as handle:
+                pickle.dump(record, handle)
+
+        folder = os.path.join(data_dir, element)
+        discovered_folds = _discover_nmrnet_fold_checkpoints(folder, data_dir)
+        if ensemble_flag is False:
+            folds_to_run = discovered_folds[:1]
+        elif len(discovered_folds) > 1 or ensemble_flag is True:
+            folds_to_run = discovered_folds
+        else:
+            folds_to_run = discovered_folds[:1]
+
         used_device = _device()
         child_env = dict(os.environ, CUDA_VISIBLE_DEVICES='') if used_device == 'cpu' else None
-        command = _nmrnet_command(data_dir, data, results, element, used_device)
-        done = subprocess.run(command, cwd=os.path.join(data_dir, 'code'), capture_output=True, text=True,
-                              **({'env': child_env} if child_env is not None else {}))
-        if done.returncode != 0:
-            combined = (done.stderr or '') + '\n' + (done.stdout or '')
-            cuda_match = re.search(r'(?:CUDA error|no kernel image|CUDA out of memory)[^\r\n]*', combined, re.I)
-            tail = (done.stderr or done.stdout or '')[-300:]
-            if cuda_match and cuda_match.group(0) not in tail:
-                tail = f'{cuda_match.group(0)}\n{tail}'
-            raise RuntimeError('NMRNet++ inference failed: ' + tail)
-        with open(os.path.join(results, 'cv_seed_42_fold_0_valid.out.pkl'), 'rb') as handle:
-            output = pickle.load(handle)[0]
-        host = lambda value: value.cpu() if hasattr(value, 'cpu') else value  # tensors come back on the GPU when it is used
-        selected = host(output['select_atom']).view(-1).numpy()[1:len(atoms) + 1]  # drop the start token
-        indices = [i for i, flag in enumerate(selected) if flag == 1]
-        values = np.asarray(host(output['predict'])).reshape(-1)
-        if len(indices) != len(values):
-            raise RuntimeError('NMRNet++ returned a different number of shifts than selected atoms')
-        shifts.update({i: float(v) for i, v in zip(indices, values)})
+        per_fold_shifts = defaultdict_list = {}
+
+        for fold_idx, ckpt_path in folds_to_run:
+            results = os.path.join(work, f'results-{element}-fold-{fold_idx}')
+            command = _nmrnet_command(data_dir, data, results, element, used_device, checkpoint=ckpt_path)
+            done = subprocess.run(command, cwd=os.path.join(data_dir, 'code'), capture_output=True, text=True,
+                                  **({'env': child_env} if child_env is not None else {}))
+            if done.returncode != 0:
+                combined = (done.stderr or '') + '\n' + (done.stdout or '')
+                cuda_match = re.search(r'(?:CUDA error|no kernel image|CUDA out of memory)[^\r\n]*', combined, re.I)
+                tail = (done.stderr or done.stdout or '')[-300:]
+                if cuda_match and cuda_match.group(0) not in tail:
+                    tail = f'{cuda_match.group(0)}\n{tail}'
+                raise RuntimeError('NMRNet++ inference failed: ' + tail)
+
+            # Locate output pickle in results directory
+            expected_pkl = os.path.join(results, f'cv_seed_42_fold_{fold_idx}_valid.out.pkl')
+            if not os.path.isfile(expected_pkl) and os.path.isdir(results):
+                pkl_files = [os.path.join(results, fn) for fn in os.listdir(results) if fn.endswith('.pkl')]
+                if pkl_files:
+                    expected_pkl = pkl_files[0]
+            with open(expected_pkl, 'rb') as handle:
+                output = pickle.load(handle)[0]
+            host = lambda value: value.cpu() if hasattr(value, 'cpu') else value
+            sel_raw = host(output['select_atom'])
+            sel_arr = sel_raw.view(-1).numpy() if hasattr(sel_raw, 'numpy') else np.asarray(sel_raw).reshape(-1)
+            selected = sel_arr[1:len(atoms) + 1]
+            indices = [i for i, flag in enumerate(selected) if flag == 1]
+            values = np.asarray(host(output['predict'])).reshape(-1)
+            if len(indices) != len(values):
+                raise RuntimeError('NMRNet++ returned a different number of shifts than selected atoms')
+            for i, v in zip(indices, values):
+                per_fold_shifts.setdefault(i, []).append(float(v))
+
+        if len(folds_to_run) > 1:
+            multi_fold_used = True
+            for i, vals in per_fold_shifts.items():
+                shifts[i] = float(np.mean(vals))
+                shift_stds[i] = round(float(np.std(vals)), 3)
+        else:
+            for i, vals in per_fold_shifts.items():
+                shifts[i] = float(vals[0])
+                shift_stds[i] = None
+
     ranks = list(Chem.CanonicalRankAtoms(mol, breakTies=False))
+    warnings = (
+        ['NMRNet++ multi-fold ensemble evaluated; its models take no solvent, so the solvent argument does not change its answer']
+        if multi_fold_used
+        else ['NMRNet++ is a single cross-validation model (fold 0), not the published five-model average; '
+              'its models take no solvent, so the solvent argument does not change its answer']
+    )
     return {'atoms': [{'index': a.GetIdx(), 'element': a.GetSymbol(), 'shift': shifts.get(a.GetIdx()),
+                       'shift_std': shift_stds.get(a.GetIdx(), None),
                        'class': ranks[a.GetIdx()], 'neighbors': [n.GetIdx() for n in a.GetNeighbors()]}
                       for a in mol.GetAtoms()],
             'geometry': 'RDKit ETKDG (seed 42) + MMFF94, one conformer, as in the authors\' data preparation',
-            'warnings': ['NMRNet++ is a single cross-validation model (fold 0), not the published five-model average; '
-                         'its models take no solvent, so the solvent argument does not change its answer']}
+            'warnings': warnings}
 
 
 def _reacon(params, data_dir, spec):

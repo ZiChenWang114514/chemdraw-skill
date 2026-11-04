@@ -177,19 +177,19 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | Area | What you get |
 | --- | --- |
 | **Structures and reactions** | Resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert and render CDXML or CDX documents. |
-| **New figures from a request** | A reaction, a multi-step route, a substrate-scope panel or a mechanism, drawn from a short brief with the chemistry and layout checked in the same command. [Details below](#one-command-figures). |
+| **New figures from a request** | A reaction, a linear, convergent, divergent or catalytic-cycle (`catalytic-cycle`) route, a substrate-scope panel or a mechanism, drawn from a short brief (including coordination/dative bonds and radicals) with the chemistry and layout checked in the same command. [Details below](#one-command-figures). |
 | **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec, with abbreviation nodes, rich text, Chinese notes, arrows and boxed compound codes. |
 | **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
 | **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
-| **Engines and predictions** | Fifteen optional engines, installed only when you agree: six OCSR readers compared on one image, structures found in a PDF, precursors, routes, products, reaction conditions and 1H/13C shifts, each case run against a known answer. Every result is a labelled prediction. [Cases and install sizes](#prediction-and-analysis-engines). |
+| **Engines and predictions** | Fifteen optional engines, installed only when you agree: six OCSR readers compared on one image, batch PDF/image recognition (`recognize_batch`), precursors, routes, products, reaction conditions and 1H/13C shifts, each case run against a known answer with GPU/CPU device reporting (`execution.device`). An adaptive complexity classifier (`--accel auto\|on\|off`, `--task-hint`) keeps simple one-off calls stateless while warming a resident worker daemon for complex, batch or burst tasks (cutting repeated GPU calls from ~21 s to 0.8 s). Every result is a labelled prediction. [Cases and install sizes](#prediction-and-analysis-engines). |
 | **Molecule comparison** | RDKit fingerprint similarity everywhere; exact-identity checks through ChemScript on Windows or ChemDraw for macOS. |
-| **Calculators and reports** | ChemDraw's own stoichiometry grid for amounts and yield, read back as data; SI materials tables with process mass intensity; HRMS lines and whole characterization paragraphs; reagent safety reminders; overall yield of a route; atom mapping; property sheets, reaction balance and structure export. [Details below](#reaction-calculator-and-chemistry-reports). |
+| **Calculators and reports** | ChemDraw's own stoichiometry grid for amounts and yield, read back as data; SI materials tables with process mass intensity; HRMS lines and whole characterization paragraphs; reagent safety reminders from an expanded 116-entry GHS table and SMARTS functional-group alerts; overall yield of a route; atom mapping; property sheets, reaction balance and structure export. [Details below](#reaction-calculator-and-chemistry-reports). |
 | **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly. |
-| **Spectra and scientific plots** | Peak picking and selected-region integration of processed 1D NMR data; numerical data as editable curves. |
+| **Spectra and scientific plots** | Native 1D NMR loading via `nmrglue` (Bruker `1r` and raw `fid`, JCAMP-DX `.jdx`/`.dx`, JEOL `.jdf`, Varian/Agilent `.fid`) alongside CSV/FT, with peak picking, selected-region integration, automatic deuterated residual solvent flagging, multiplet splitting (*J*-couplings), zoom insets (`inset_region`) and multi-series editable curves. |
 | **Patent Markush structures** | Generic structures from a patent image and claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing that follows the source layout. |
 | **Reaction mechanisms** | Curved arrows drawn from a list of electron moves, or reconstructed with explicit atom coordinates, charges and counterions. |
 | **Office documents** | Editable ChemDraw objects in desktop Word and PowerPoint documents, built with ChemDraw on Windows or macOS. |
-| **Experimental records** | File discovery and selected LCMS (Waters PDF, OpenLynx .rpt, Shimadzu .daml, Agilent ChemStation report.txt), SciFinder RDF and lab-book workflows. |
+| **Experimental records** | File discovery and selected LCMS (Waters PDF, OpenLynx `.rpt`, Waters `.raw` with `_HEADER.TXT` metadata and chromatograms, Shimadzu `.daml`, Agilent ChemStation `report.txt`, and open `mzML` / `mzXML`) with Cl/Br `M+2` isotope-envelope verification and internal-standard (`IS`) normalization across timepoints, plus SciFinder RDF and lab-book workflows. |
 | **ChemScript SDK** | Inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows (macOS answers the ChemScript operations and an emulation of the core SDK classes with ChemDraw, OPSIN and RDKit). |
 | **ChemDraw interface coverage** | A catalog of the ChemScript SDK, ChemDraw COM objects, CDXML elements and menu commands in ChemDraw 22.2, each entry marked as having a dedicated tool, a checked recipe, or documentation only; plus tools for CDXML elements, COM calls and ChemDraw's own molecular properties. [Details](docs/guide.md#chemdraw-interface-coverage). |
 | **Remote workstation access** | Optionally expose a Windows native host through Streamable HTTP with health and Prometheus endpoints. |
@@ -238,7 +238,7 @@ The same command draws three kinds of figure:
 
 | Figure | What the brief lists | What you get |
 | --- | --- | --- |
-| **Reaction or route** | Species, steps, conditions, yields | One reaction, a linear route, a convergent route whose arms merge, or one starting material with several products. Long routes wrap onto rows; `reversible` and `resonance` arrows are available. |
+| **Reaction or route** | Species, steps, conditions, yields | One reaction, a linear route, a convergent route whose arms merge, one starting material with several products, or a catalytic cycle (`catalytic-cycle`). Long routes wrap onto rows; `reversible` and `resonance` arrows, coordination/dative bonds and radicals are supported. |
 | **Substrate scope** | Compounds with labels, groups and the values you measured | A panel packed onto as many editable pages as needed, each label and value kept next to its structure. A value you did not give shows a dash, never zero. |
 | **Mechanism** | Species, steps and each electron move | Curved arrows placed from the drawn coordinates, with full or half heads, routed around atoms and labels. |
 
@@ -295,7 +295,7 @@ After you have typed the amounts and saved, `cdx.py calc --read reaction-stoichi
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
 </p>
 
-For amounts without ChemDraw, `si_materials_tables` writes materials tables for up to 100 reactions with concentration, atom economy and process mass intensity (PMI; E-factor is PMI minus 1). With `reagent_safety` it adds GHS pictograms, H-statements, boiling and flash point for common solvents and reagents from a built-in table of about fifty entries. A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
+For amounts without ChemDraw, `si_materials_tables` writes materials tables for up to 100 reactions with concentration, atom economy and process mass intensity (PMI; E-factor is PMI minus 1). With `reagent_safety` it adds GHS pictograms, H-statements, boiling and flash point for common solvents and reagents from a built-in table of 116 common solvents and bench reagents plus SMARTS structural alerts (azides, peroxides, organolithiums, acyl chlorides, hydrides). A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
 
 ### Characterization text
 
@@ -476,7 +476,7 @@ A generic structure from a patent figure plus claim text: R groups and linkers, 
 
 Fifteen optional engines read structure images, find structures in a PDF, and predict precursors, products, reaction conditions and NMR shifts. Nothing is installed until you agree, each engine lives in its own environment, a local engine uploads nothing while it runs (the remote DECIMER service is the one engine that sends an image out), and every answer is labelled a model prediction. Disagreeing engines are shown side by side, never merged.
 
-The cases below were run on one Windows laptop with an RTX 5090 GPU. Each is scored against a reviewed structure, a recorded experiment or a measured spectrum, and the misses are kept. They show how the engines behave on these inputs, not how accurate they are in general. Inputs, outputs, scoring and timings are in [`assets/readme/engines/`](assets/readme/engines/provenance.json). Times are what the engine reports, including loading its model, because an engine process starts for every call.
+The cases below were run on one Windows laptop with an RTX 5090 GPU. Each is scored against a reviewed structure, a recorded experiment or a measured spectrum, and the misses are kept. They show how the engines behave on these inputs, not how accurate they are in general. Inputs, outputs, scoring and timings are in [`assets/readme/engines/`](assets/readme/engines/provenance.json). Cold one-shot times below include model loading, while the adaptive acceleration classifier (`--accel auto|on|off`, `--task-hint`) keeps simple one-off calls stateless (`oneshot`, zero resident VRAM) and automatically warms a resident worker daemon on complex, batch, multi-step or burst tasks (reducing warm GPU inference from ~21 s to **0.8 s**, with single-pass batch OCSR `recognize_batch` for PDFs), and every engine reply records its actual `execution.device` (`cuda:0` or `cpu`).
 
 ### Structure images and PDFs
 
@@ -543,7 +543,7 @@ For KL-CC-002 no engine proposed the recorded last step. AiZynthFinder's top rou
 
 > **You say:** "Predict the 1H and 13C shifts of caffeine with both NMR models and compare them with the measured spectrum."
 
-The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bmse000206`) as an editable ChemDraw curve with each predicted shift drawn as a line and the measured peaks as ticks. To measure accuracy systematically, both engines were run on **20 assigned organic molecules and natural products** from `nmrshiftdb2` with paired raw <sup>1</sup>H and <sup>13</sup>C Bruker spectra (13 in CDCl<sub>3</sub>, 7 in DMSO-<i>d</i><sub>6</sub>; 215 non-exchangeable C–H <sup>1</sup>H topological groups and 323 <sup>13</sup>C topological groups; exchangeable OH, NH and SH protons excluded on both sides, and degenerate keto–enol tautomer symmetry applied on curcumin). Values below are per-molecule macro mean absolute errors in ppm.
+The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bmse000206`) as an editable ChemDraw curve with each predicted shift drawn as a line and the measured peaks as ticks. `MagNET` averages shifts across a Boltzmann-weighted 3D conformer ensemble (298.15 K) with Karplus <sup>3</sup><i>J</i><sub>HH</sub> coupling estimation, and `nmr.compare_shifts` provides Hungarian 1-to-1 candidate peak matching (`model_assisted_candidate_assignment`) with outlier warnings. To measure accuracy systematically, both engines were run on **20 assigned organic molecules and natural products** from `nmrshiftdb2` with paired raw <sup>1</sup>H and <sup>13</sup>C Bruker spectra (13 in CDCl<sub>3</sub>, 7 in DMSO-<i>d</i><sub>6</sub>; 215 non-exchangeable C–H <sup>1</sup>H topological groups and 323 <sup>13</sup>C topological groups; exchangeable OH, NH and SH protons excluded on both sides, and degenerate keto–enol tautomer symmetry applied on curcumin). Values below are per-molecule macro mean absolute errors in ppm.
 
 <img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="Caffeine 1H and 13C spectra with MagNET and NMRNet++ predictions marked">
 
@@ -594,7 +594,7 @@ The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bms
 
 > **You say:** "Check this OpenLynx report against the plate map and tell me which wells contain the expected product."
 
-No engine is needed. The 24-well Waters report and plate map from the PyParse example dataset (Apache-2.0) were parsed in 11 s. The expected product was found in 24 of 24 wells: 21 as [M+H]<sup>+</sup>, two Boc-protected piperazines (B3, B5) as the [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> fragment, and the carboxylic acid in B11 as [M−H]<sup>−</sup>. Against PyParse's own output the retention time and purity agree to 0.01 in 23 wells. The exception, B6, is a matching choice: the toolkit takes the peak carrying the intact [M+H]<sup>+</sup> (92.9%), PyParse the peak of the fragment (7.1%). [match_plate.py](assets/readme/engines/lcms/match_plate.py) shows the rule.
+No engine is needed. The 24-well Waters report and plate map from the PyParse example dataset (Apache-2.0) were parsed in 11 s. The expected product was found in 24 of 24 wells: 21 as [M+H]<sup>+</sup>, two Boc-protected piperazines (B3, B5) as the [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> fragment, and the carboxylic acid in B11 as [M−H]<sup>−</sup>. Against PyParse's own output the retention time and purity agree to 0.01 in 23 wells. The exception, B6, is a matching choice: the toolkit takes the peak carrying the intact [M+H]<sup>+</sup> (92.9%), PyParse the peak of the fragment (7.1%). [match_plate.py](assets/readme/engines/lcms/match_plate.py) shows the rule. Beyond plate reports, the LCMS tools parse OpenLynx `.rpt`, Waters PDF and `.raw` directories, Shimadzu `.daml`, Agilent `report.txt` and open `mzML`/`mzXML`, with Cl/Br `M+2` isotope-envelope verification and internal-standard (`IS`) ratio tracking across timepoints.
 
 <img src="assets/readme/engines/lcms/panel/page-001.png" alt="Four wells of the plate with their expected mass, found ion, retention time, purity and PyParse values">
 
@@ -753,7 +753,7 @@ Yes, with ChemDraw's own calculator. `cdx.py calc` runs Structure > Analyze Stoi
 <summary><b>How far can I trust the safety information?</b></summary>
 <br>
 
-It is a reminder from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", never as safe. The values were written from typical supplier classifications and differ between suppliers, so check the SDS of the product you actually use.
+It is a reminder from a built-in table of 116 common solvents and bench reagents plus SMARTS structural alerts: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", never as safe. The values were written from typical supplier classifications and differ between suppliers, so check the SDS of the product you actually use.
 
 </details>
 

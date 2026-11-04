@@ -249,6 +249,25 @@ class RuntimeDiagnosticsTests(unittest.TestCase):
             any("ChemDraw unavailable" in warning for warning in result["warnings"])
         )
 
+    def test_passive_chemscript_and_office_capabilities_are_reported_without_probing(self):
+        with mock.patch.object(
+            runtime_diagnostics, "_has_windows_chemscript_dlls", return_value=True
+        ), mock.patch.object(
+            runtime_diagnostics,
+            "_has_windows_office_com",
+            return_value={"word": True, "powerpoint": True, "chemdraw": True},
+        ):
+            result = runtime_diagnostics.diagnose_runtime()
+
+        passive = result["outputs"]["passive_capabilities"]
+        self.assertEqual(passive["chemscript_dll"], "available")
+        self.assertEqual(passive["office_com"], "available")
+        caps = result["outputs"]["capabilities"]
+        self.assertEqual(caps["chemscript"]["status"], "unverified")
+        self.assertEqual(caps["chemscript"]["passive_status"], "available")
+        self.assertEqual(caps["office"]["status"], "unverified")
+        self.assertEqual(caps["office"]["passive_status"], "available")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -232,6 +232,28 @@ def _macos_automation_capability() -> dict[str, Any]:
     )
 
 
+def _has_windows_office_com() -> dict[str, bool]:
+    """Passively inspect HKCR for registered Word, PowerPoint, and ChemDraw COM ProgIDs."""
+    try:
+        import winreg
+    except ImportError:
+        return {"word": False, "powerpoint": False, "chemdraw": False}
+
+    def _progid_registered(progid: str) -> bool:
+        try:
+            with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, rf"{progid}\CLSID") as key:
+                clsid = winreg.QueryValueEx(key, "")[0]
+            return bool(clsid)
+        except (OSError, TypeError, ValueError):
+            return False
+
+    return {
+        "word": _progid_registered("Word.Application"),
+        "powerpoint": _progid_registered("PowerPoint.Application"),
+        "chemdraw": _progid_registered("ChemDraw.Application"),
+    }
+
+
 def _office_capability() -> dict[str, Any]:
     from ..chemdraw import mac_automation
 
@@ -244,6 +266,7 @@ def _office_capability() -> dict[str, Any]:
     if not is_mac and sys.platform.startswith("linux"):
         return {
             "status": "missing",
+            "passive_status": "missing",
             "dependencies": dependencies,
             "detail": "Native ChemDraw OLE/Office automation requires Windows or macOS",
         }
@@ -251,7 +274,7 @@ def _office_capability() -> dict[str, Any]:
         # Word and PowerPoint for macOS are automated through AppleScript instead.
         dependencies["win32com"] = _module_available("win32com.client")
     ready = all(dependencies.values())
-    capability = {
+    capability: dict[str, Any] = {
         "status": "unverified" if ready else "missing",
         "dependencies": dependencies,
         "detail": (
@@ -264,10 +287,17 @@ def _office_capability() -> dict[str, Any]:
         # Embedding needs only ChemDraw; Word and PowerPoint are needed for PDF previews.
         from cdxml_toolkit.office import mac_office
 
-        capability["pdf_export"] = {
+        pdf_export = {
             label: (str(path) if (path := mac_office.application_path(suffix)) else None)
             for label, suffix in (("word", ".docx"), ("powerpoint", ".pptx"))
         }
+        capability["pdf_export"] = pdf_export
+        capability["passive_status"] = "available" if ready else "missing"
+    else:
+        com_registered = _has_windows_office_com()
+        capability["com_registered"] = com_registered
+        passive_ok = ready and any(com_registered.values())
+        capability["passive_status"] = "available" if passive_ok else "missing"
     return capability
 
 
@@ -300,27 +330,42 @@ def _has_windows_chemscript_dlls() -> bool:
 
 def _chemscript_capability(chemdraw_cap: dict[str, Any] | None = None) -> dict[str, Any]:
     if not _module_available("cdxml_toolkit.chemdraw.chemscript_bridge"):
-        return {"status": "missing", "detail": "ChemScript bridge module is unavailable"}
+        return {
+            "status": "missing",
+            "passive_status": "missing",
+            "dll_available": False,
+            "detail": "ChemScript bridge module is unavailable",
+        }
     from ..chemdraw import mac_automation
 
     is_mac = mac_automation.is_macos()
     if not is_mac and sys.platform.startswith("linux"):
         return {
             "status": "missing",
+            "passive_status": "missing",
+            "dll_available": False,
             "detail": "ChemScript requires Windows (ChemScript .NET DLLs) or macOS (ChemDraw automation)",
         }
-    if not is_mac and (chemdraw_cap or {}).get("status") == "missing" and not _has_windows_chemscript_dlls():
+    dll_available = True if is_mac else _has_windows_chemscript_dlls()
+    if not is_mac and (chemdraw_cap or {}).get("status") == "missing" and not dll_available:
         return {
             "status": "missing",
+            "passive_status": "missing",
+            "dll_available": False,
             "detail": "ChemDraw is not installed and no ChemScript DLLs were found",
         }
     if is_mac and (chemdraw_cap or {}).get("status") == "missing":
         return {
             "status": "missing",
+            "passive_status": "missing",
+            "dll_available": False,
             "detail": "ChemDraw for macOS was not found",
         }
+    passive_ok = dll_available or (chemdraw_cap or {}).get("status") == "available"
     return {
         "status": "unverified",
+        "passive_status": "available" if passive_ok else "missing",
+        "dll_available": dll_available,
         "detail": "Enable run_chemscript_probe (--chemscript) to validate ChemScript bridge",
     }
 
@@ -688,6 +733,22 @@ def diagnose_runtime(
             )
         requested.append("office_probe")
 
+    passive_capabilities = {
+        "chemscript_dll": (
+            "available"
+            if capabilities["chemscript"].get("status") == "available"
+            or capabilities["chemscript"].get("passive_status") == "available"
+            or capabilities["chemscript"].get("dll_available")
+            else "missing"
+        ),
+        "office_com": (
+            "available"
+            if capabilities["office"].get("status") == "available"
+            or capabilities["office"].get("passive_status") == "available"
+            else "missing"
+        ),
+    }
+
     required = ["python", "cdxml_toolkit", "mcp_sdk", "tool_registry", *requested]
     ok = all(capabilities[name]["status"] == "available" for name in required)
     warnings = []
@@ -701,7 +762,10 @@ def diagnose_runtime(
             )
     return {
         "ok": ok,
-        "outputs": {"capabilities": capabilities},
+        "outputs": {
+            "capabilities": capabilities,
+            "passive_capabilities": passive_capabilities,
+        },
         "warnings": warnings,
         "metadata": {
             "read_only": not (

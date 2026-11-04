@@ -1,4 +1,5 @@
 """Complete-file validation, with optional isolated native save-cycle checks."""
+import atexit
 from collections import Counter
 from copy import deepcopy
 import hashlib
@@ -11,6 +12,32 @@ from rdkit.Chem import rdMolDescriptors
 from ..chemistry_semantics import read_molecules, semantic_key
 from ..chemistry_diff import structural_diff
 from . import artifact_safety
+from .native_renderer import NativeRenderSession
+
+_shared_render_session = None
+
+
+def _close_shared_render_session() -> None:
+    """Close the process-level shared NativeRenderSession on exit."""
+    global _shared_render_session
+    sess = _shared_render_session
+    _shared_render_session = None
+    if sess is not None:
+        try:
+            sess.close()
+        except Exception:
+            pass
+
+
+atexit.register(_close_shared_render_session)
+
+
+def _get_shared_render_session() -> NativeRenderSession:
+    """Return a cached process-level NativeRenderSession singleton."""
+    global _shared_render_session
+    if _shared_render_session is None:
+        _shared_render_session = NativeRenderSession()
+    return _shared_render_session
 
 
 def inspect_document(path):
@@ -76,7 +103,7 @@ def _worker(name,kwargs):
 
 
 def validate_figure(input_path: str, output_dir: str, native: bool = False,
-                    cross_reader: bool = False) -> dict:
+                    cross_reader: bool = False, session=None, render_png: bool = False) -> dict:
     """Write a diagnostic directory without changing the source. CLI-only operation.
 
     native performs CDXML -> CDX -> CDXML through registered isolated workers.
@@ -89,6 +116,7 @@ def validate_figure(input_path: str, output_dir: str, native: bool = False,
     initial=inspect_document(source)
     report=dict(source=str(source),basic=initial,source_identity='not_evaluated',
                 native={'status':'not_run'},cross_reader={'status':'not_run'},visual_review='not_run')
+    sess = session if session is not None else (_get_shared_render_session() if (native or render_png) else None)
     with artifact_safety.staging_directory(target) as stage:
         if native:
             cdx=stage/'native.cdx';saved=stage/'native.cdxml'
@@ -114,12 +142,39 @@ def validate_figure(input_path: str, output_dir: str, native: bool = False,
                 report['native']={'status':'failed','error':failed.get('error',{}),
                                   'validation':'not_completed'}
                 if cross_reader: report['cross_reader']={'status':'not_run','reason':'native_save_failed'}
+        if render_png and sess is not None:
+            try:
+                png_out = stage / 'native.png'
+                render_res = sess.render(str(source), str(png_out))
+                report['visual_review'] = 'completed' if render_res.get('ok') else 'failed'
+            except Exception:
+                report['visual_review'] = 'failed'
         report['source_unchanged']=hashlib.sha256(source.read_bytes()).hexdigest()==initial['sha256']
         if not report['source_unchanged']: raise ValueError('Source changed during validation')
         (stage/'report.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
         artifact_safety.publish_directory(stage,target)
     return artifact_safety.with_artifacts({'ok':True,'output_dir':str(target),
         'report':str(target/'report.json'),'validation_status':report['native']['status']},[target/'report.json'])
+
+
+def validate_figures(input_paths, output_dir: str, native: bool = False,
+                     cross_reader: bool = False, session=None, render_png: bool = False) -> dict:
+    """Validate multiple CDXML figures in a batch reusing a shared NativeRenderSession."""
+    sess = session if session is not None else _get_shared_render_session()
+    base_dir = Path(output_dir)
+    results = []
+    for idx, p in enumerate(input_paths):
+        sub_out = str(base_dir / f'figure-{idx:03d}')
+        res = validate_figure(
+            str(p),
+            sub_out,
+            native=native,
+            cross_reader=cross_reader,
+            session=sess,
+            render_png=render_png,
+        )
+        results.append(res)
+    return {'ok': all(r.get('ok') for r in results), 'count': len(results), 'results': results}
 
 
 def _cross_reader(saved,stage):
