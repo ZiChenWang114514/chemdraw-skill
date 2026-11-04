@@ -120,13 +120,61 @@ def _select_ion(peak: ChromPeak, override: Optional[dict] = None) -> str:
     return "UV only"
 
 
+ALL_DETECTORS = ("TAC", "220nm", "254nm")
+
+
+def _normalize_detector(detector: str) -> Optional[str]:
+    """Normalize a detector identifier to 'TAC', '220nm', or '254nm'."""
+    key = str(detector).strip().lower().replace(" ", "")
+    if key in ("tac", "total"):
+        return "TAC"
+    if key in ("220", "220nm", "uv220", "uv220nm"):
+        return "220nm"
+    if key in ("254", "254nm", "uv254", "uv254nm"):
+        return "254nm"
+    return None
+
+
+def _parse_purity_detectors(det_spec) -> List[str]:
+    """Resolve an optional detector specification into canonical detector names."""
+    if det_spec is None:
+        return list(ALL_DETECTORS)
+    if isinstance(det_spec, str):
+        stripped = det_spec.strip()
+        if not stripped or stripped.lower() == "all":
+            return list(ALL_DETECTORS)
+        tokens = [t.strip() for t in stripped.split(",") if t.strip()]
+    elif isinstance(det_spec, (list, tuple)):
+        if not det_spec:
+            return list(ALL_DETECTORS)
+        tokens = [t.strip() for item in det_spec for t in str(item).split(",") if t.strip()]
+    else:
+        tokens = [str(det_spec).strip()]
+    resolved: List[str] = []
+    for tok in tokens:
+        if tok.lower() == "all":
+            for ch in ALL_DETECTORS:
+                if ch not in resolved:
+                    resolved.append(ch)
+            continue
+        norm = _normalize_detector(tok)
+        if norm is None:
+            raise ValueError(
+                f"Unknown detector '{tok}'; expected TAC/total, 220nm/220, or 254nm/254"
+            )
+        if norm not in resolved:
+            resolved.append(norm)
+    return resolved or list(ALL_DETECTORS)
+
+
 def _select_area(peak: ChromPeak, detector: str) -> Optional[float]:
     """Read area% for the given detector."""
-    if detector.upper() == "TAC":
+    norm = _normalize_detector(detector)
+    if norm == "TAC":
         return peak.area_pct
-    elif detector == "220nm":
+    elif norm == "220nm":
         return peak.area_pct_220nm
-    elif detector == "254nm":
+    elif norm == "254nm":
         return peak.area_pct_254nm
     return None
 
@@ -212,10 +260,19 @@ def _process_text(entry: dict) -> str:
 
 def _process_nmr(entry: dict) -> str:
     """NMR data entry — render verbatim, one per line."""
-    data = entry.get("data", [])
-    if isinstance(data, str):
-        data = [data]
-    return "\n".join(data)
+    raw = entry.get("data") if "data" in entry and entry.get("data") is not None else entry.get("content")
+    if isinstance(raw, str):
+        candidates = [raw]
+    elif isinstance(raw, (list, tuple)):
+        candidates = list(raw)
+    elif raw is None:
+        candidates = []
+    else:
+        raise ValueError("nmr entry requires non-empty 'content' or 'data'")
+    items = [str(item).strip() for item in candidates if item is not None and str(item).strip()]
+    if not items:
+        raise ValueError("nmr entry requires non-empty 'content' or 'data'")
+    return "\n".join(items)
 
 
 def _process_lcms_species(entry: dict) -> str:
@@ -243,13 +300,13 @@ def _process_lcms_species(entry: dict) -> str:
 
         # Purity (optional)
         if pcfg.get("purity"):
+            det_spec = pcfg.get("detector") if "detector" in pcfg else entry.get("detector")
+            channels = _parse_purity_detectors(det_spec)
             purity_parts = []
-            if peak.area_pct is not None:
-                purity_parts.append(f"TAC {peak.area_pct:.1f}%")
-            if peak.area_pct_220nm is not None:
-                purity_parts.append(f"220nm {peak.area_pct_220nm:.1f}%")
-            if peak.area_pct_254nm is not None:
-                purity_parts.append(f"254nm {peak.area_pct_254nm:.1f}%")
+            for ch in channels:
+                val = _select_area(peak, ch)
+                if val is not None:
+                    purity_parts.append(f"{ch} {val:.1f}%")
             if purity_parts:
                 segments.append("purity " + ", ".join(purity_parts))
 

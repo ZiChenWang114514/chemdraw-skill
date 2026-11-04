@@ -25,7 +25,7 @@ class Drawing:
         self.root = ET.Element('CDXML', {'BondLength':'14.4', 'LineWidth':'0.6', 'BoldWidth':'2',
             'LabelFont':'3', 'CaptionFont':'3', 'LabelSize':'10', 'CaptionSize':'10',
             'PrintMargins':'0 0 0 0', 'BoundingBox':f'0 0 {width} {height}'})
-        ET.SubElement(ET.SubElement(self.root,'fonttable'),'font',{'id':'3','charset':'iso-8859-1','name':'Arial'})
+        ET.SubElement(ET.SubElement(self.root,'fonttable'),'font',{'id':'3','charset':'utf-8','name':'Arial'})
         colors=ET.SubElement(self.root,'colortable')
         ET.SubElement(colors,'color',{'r':'1','g':'1','b':'1'})
         ET.SubElement(colors,'color',{'r':'0','g':'0','b':'0'})

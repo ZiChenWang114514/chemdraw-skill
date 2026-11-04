@@ -76,13 +76,9 @@ class ReagentDB:
         self._by_name: Dict[str, dict] = {}
         self._by_smiles: Dict[str, dict] = {}
 
-        # Try to import RDKit for SMILES canonicalization
-        self._rdkit_Chem = None
-        try:
-            from rdkit import Chem
-            self._rdkit_Chem = Chem
-        except ImportError:
-            pass
+        # Lazily import RDKit only when runtime SMILES canonicalization is needed
+        self._rdkit_Chem = sys.modules.get("rdkit.Chem")
+        self._rdkit_checked = self._rdkit_Chem is not None
 
         self._index_entries(raw, self._by_name, self._by_smiles)
 
@@ -99,6 +95,16 @@ class ReagentDB:
             except Exception as exc:
                 print(f"[reagent_db] Warning: could not load tier-2 "
                       f"database: {exc}", file=sys.stderr)
+
+    def _get_rdkit_chem(self):
+        if not self._rdkit_checked:
+            self._rdkit_checked = True
+            try:
+                from rdkit import Chem
+                self._rdkit_Chem = Chem
+            except ImportError:
+                self._rdkit_Chem = None
+        return self._rdkit_Chem
 
     def _index_entries(self, raw: Dict[str, dict],
                        by_name: Dict[str, dict],
@@ -121,14 +127,33 @@ class ReagentDB:
                 )
                 for smi in smiles_list:
                     by_smiles[smi] = entry
-                    if self._rdkit_Chem is not None:
+                canon_val = entry.get("canonical_smiles")
+                if canon_val is not None:
+                    canon_list: List[str] = (
+                        canon_val if isinstance(canon_val, list)
+                        else [canon_val]
+                    )
+                    for canon in canon_list:
+                        by_smiles[canon] = entry
+                else:
+                    chem = self._get_rdkit_chem()
+                    if chem is not None:
                         try:
-                            mol = self._rdkit_Chem.MolFromSmiles(smi)
-                            if mol:
-                                canon = self._rdkit_Chem.MolToSmiles(mol)
-                                by_smiles[canon] = entry
+                            from rdkit import rdBase
+                            block = rdBase.BlockLogs()
                         except Exception:
-                            pass
+                            block = None
+                        try:
+                            for smi in smiles_list:
+                                try:
+                                    mol = chem.MolFromSmiles(smi)
+                                    if mol:
+                                        canon = chem.MolToSmiles(mol)
+                                        by_smiles[canon] = entry
+                                except Exception:
+                                    pass
+                        finally:
+                            del block
 
     # ----- name-based lookups -----
 
@@ -206,11 +231,12 @@ class ReagentDB:
         entry = by_smiles.get(smiles)
         if entry:
             return entry
-        if self._rdkit_Chem is not None:
+        chem = self._get_rdkit_chem()
+        if chem is not None:
             try:
-                mol = self._rdkit_Chem.MolFromSmiles(smiles)
+                mol = chem.MolFromSmiles(smiles)
                 if mol:
-                    canon = self._rdkit_Chem.MolToSmiles(mol)
+                    canon = chem.MolToSmiles(mol)
                     entry = by_smiles.get(canon)
                     if entry:
                         return entry

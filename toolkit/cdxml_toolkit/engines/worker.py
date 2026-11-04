@@ -511,6 +511,7 @@ def _fetch_bundle(data_dir, spec):
 # --- OCSR -----------------------------------------------------------------------------------------
 
 CPU_ONLY_ENGINES = ('decimer-local', 'decimer-segmentation', 'aizynthfinder')
+_MODEL_CACHE: dict = {}
 
 
 def _device():
@@ -552,7 +553,12 @@ def _molscribe(params, data_dir, spec):
     import torch
     from molscribe import MolScribe, chemistry
     _serial_pools(chemistry)
-    model = MolScribe(os.path.join(data_dir, 'swin_base_char_aux_1m.pth'), device=torch.device(_device()))
+    dev = _device()
+    key = ('molscribe', id(MolScribe), data_dir, dev)
+    model = _MODEL_CACHE.get(key)
+    if model is None:
+        model = MolScribe(os.path.join(data_dir, 'swin_base_char_aux_1m.pth'), device=torch.device(dev))
+        _MODEL_CACHE[key] = model
     out = []
     for path in params['images']:
         try:
@@ -570,7 +576,12 @@ def _molnextr(params, data_dir, spec):
     from MolNexTR import chemical
     from MolNexTR.model import molnextr
     _serial_pools(chemical)
-    model = molnextr(os.path.join(data_dir, 'molnextr_best.pth'), torch.device(_device()))
+    dev = _device()
+    key = ('molnextr', id(molnextr), data_dir, dev)
+    model = _MODEL_CACHE.get(key)
+    if model is None:
+        model = molnextr(os.path.join(data_dir, 'molnextr_best.pth'), torch.device(dev))
+        _MODEL_CACHE[key] = model
     out = []
     for path in params['images']:
         try:
@@ -583,7 +594,12 @@ def _molnextr(params, data_dir, spec):
 
 def _molparser(params, data_dir, spec):
     from molparser import MolParser
-    model = MolParser(molparser_model_path=data_dir, device=_device())
+    dev = _device()
+    key = ('molparser', id(MolParser), data_dir, dev)
+    model = _MODEL_CACHE.get(key)
+    if model is None:
+        model = MolParser(molparser_model_path=data_dir, device=dev)
+        _MODEL_CACHE[key] = model
     out = []
     for path in params['images']:
         try:
@@ -660,9 +676,15 @@ def _segment(params, data_dir, spec):
 def _reactiont5(params, data_dir, spec):
     import torch
     from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-    tokenizer = AutoTokenizer.from_pretrained(data_dir)
     device = _device()
-    model = AutoModelForSeq2SeqLM.from_pretrained(data_dir).eval().to(device)
+    key = ('reactiont5', id(AutoModelForSeq2SeqLM), data_dir, device)
+    cached = _MODEL_CACHE.get(key)
+    if cached is None:
+        tokenizer = AutoTokenizer.from_pretrained(data_dir)
+        model = AutoModelForSeq2SeqLM.from_pretrained(data_dir).eval().to(device)
+        _MODEL_CACHE[key] = (tokenizer, model)
+    else:
+        tokenizer, model = cached
     count = max(1, int(params.get('count', 5)))
     out = []
     for text in params['inputs']:
@@ -710,10 +732,15 @@ def _disconnections(ranked, count):
 
 def _aizynthfinder(params, data_dir, spec):
     from aizynthfinder.aizynthfinder import AiZynthFinder
-    finder = AiZynthFinder(configfile=os.path.join(data_dir, 'config.yml'))
-    finder.stock.select(params.get('stock', 'zinc'))
-    finder.expansion_policy.select('uspto')
-    finder.filter_policy.select('uspto')
+    stock_name = params.get('stock', 'zinc')
+    key = ('aizynthfinder', id(AiZynthFinder), data_dir, stock_name)
+    finder = _MODEL_CACHE.get(key)
+    if finder is None:
+        finder = AiZynthFinder(configfile=os.path.join(data_dir, 'config.yml'))
+        finder.stock.select(stock_name)
+        finder.expansion_policy.select('uspto')
+        finder.filter_policy.select('uspto')
+        _MODEL_CACHE[key] = finder
     smiles = params['smiles']
     if params.get('steps') == 'single':
         from aizynthfinder.chem import TreeMolecule
@@ -880,7 +907,7 @@ def _retrochimera(params, data_dir, spec):
 
 
 def _magnet(params, data_dir, spec):
-    """1H and 13C shifts from an RDKit conformer (MMFF) with MagNET-Zero and MagNET-PCM."""
+    """1H and 13C shifts from an RDKit ETKDGv3/MMFF94 conformer ensemble (Boltzmann-averaged) with MagNET-Zero and MagNET-PCM."""
     import numpy as np
     from rdkit import Chem
     from rdkit.Chem import AllChem
@@ -890,20 +917,50 @@ def _magnet(params, data_dir, spec):
     bad = sorted({a.GetSymbol() for a in mol.GetAtoms()} - allowed)
     if bad:
         raise ValueError('MagNET supports H, C, N, O, F, Cl and S only; found ' + ', '.join(bad))
-    ids = AllChem.EmbedMultipleConfs(mol, numConfs=int(params.get('conformers', 10)), randomSeed=7)
-    if not len(ids):
+    num_confs = int(params.get('conformers', 20))
+    etkdg = AllChem.ETKDGv3()
+    etkdg.pruneRmsThresh = 0.5
+    etkdg.randomSeed = 0xf00d
+    ids = list(AllChem.EmbedMultipleConfs(mol, numConfs=num_confs, params=etkdg))
+    if not ids:
+        etkdg.useRandomCoords = True
+        ids = list(AllChem.EmbedMultipleConfs(mol, numConfs=num_confs, params=etkdg))
+    if not ids:
         raise ValueError('no 3D conformer could be generated for this structure')
     energies = AllChem.MMFFOptimizeMoleculeConfs(mol, maxIters=2000)
-    best = min(range(len(energies)), key=lambda i: energies[i][1] if energies[i][1] == energies[i][1] else 1e9)
-    xyz = mol.GetConformer(ids[best]).GetPositions()
+    converged = [(ids[i], float(e)) for i, (flag, e) in enumerate(energies) if flag == 0 and e == e and np.isfinite(e)]
+    if not converged:
+        converged = [(ids[i], float(e)) for i, (_, e) in enumerate(energies) if e == e and np.isfinite(e)]
+    if not converged:
+        converged = [(cid, 0.0) for cid in ids]
+    converged.sort(key=lambda item: item[1])
+    e_min = converged[0][1]
+    selected = [(cid, e) for cid, e in converged if (e - e_min) <= 3.0][:8]
+    rt = 0.59248  # kcal/mol at T = 298.15 K
+    weights = np.array([np.exp(-(e - e_min) / rt) for _, e in selected], dtype=float)
+    weights /= weights.sum()
     numbers = np.array([a.GetAtomicNum() for a in mol.GetAtoms()])
-    shifts = predict_shifts(numbers, xyz, solvent=params.get('solvent', 'chloroform'),
-                            n_passes=int(params.get('passes', 2)), checkpoints_dir=data_dir, device=_device())
+    xyz_list = [mol.GetConformer(cid).GetPositions() for cid, _ in selected]
+    solvent = params.get('solvent', 'chloroform')
+    n_passes = int(params.get('passes', 2))
+    dev = _device()
+    if len(xyz_list) == 1:
+        shifts = np.asarray(
+            predict_shifts(numbers, xyz_list[0], solvent=solvent, n_passes=n_passes, checkpoints_dir=data_dir, device=dev),
+            dtype=float,
+        )
+    else:
+        batch = predict_shifts([numbers] * len(xyz_list), xyz_list, solvent=solvent, n_passes=n_passes,
+                               checkpoints_dir=data_dir, device=dev)
+        arr = np.asarray(batch, dtype=float)
+        shifts = np.sum(arr * weights[:, None], axis=0) if arr.ndim == 2 else arr
     ranks = list(Chem.CanonicalRankAtoms(mol, breakTies=False))
     return {'atoms': [{'index': a.GetIdx(), 'element': a.GetSymbol(), 'shift': None if shifts[a.GetIdx()] != shifts[a.GetIdx()]
                        else float(shifts[a.GetIdx()]), 'class': ranks[a.GetIdx()],
                        'neighbors': [n.GetIdx() for n in a.GetNeighbors()]} for a in mol.GetAtoms()],
-            'conformer_energy_kcal': float(energies[best][1]), 'geometry': 'RDKit ETKDG + MMFF94 (lowest of the conformers)'}
+            'conformer_energy_kcal': float(e_min),
+            'conformer_count': len(selected),
+            'geometry': f'RDKit ETKDGv3 + MMFF94 Boltzmann average ({len(selected)} conformers, T=298.15 K)'}
 
 
 def _nmrnet_command(data_dir, data, results, element, device='cpu'):
@@ -1059,7 +1116,97 @@ ENGINES = {'molscribe': _molscribe, 'molnextr': _molnextr, 'molparser': _molpars
            'retrochimera': _retrochimera, 'nmrnet-pp': _nmrnet_pp, 'reacon': _reacon}
 
 
+def _serve_daemon(argv):
+    """Run an idle-timeout loopback JSON-RPC server in this engine's interpreter (`--daemon`)."""
+    import argparse
+    import socket
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--daemon', action='store_true')
+    parser.add_argument('--state-file', required=True)
+    parser.add_argument('--idle-seconds', type=int, default=180)
+    parser.add_argument('--engine-name', required=True)
+    ns = parser.parse_args(argv)
+    token = os.environ.get('CHEMDRAW_DAEMON_TOKEN', '')
+    if not token:
+        raise RuntimeError('CHEMDRAW_DAEMON_TOKEN is required for --daemon')
+
+    sys.stdout = sys.stderr
+    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv.bind(('127.0.0.1', 0))
+    srv.listen(8)
+    port = srv.getsockname()[1]
+    srv.settimeout(float(max(5, ns.idle_seconds)))
+
+    state_path = Path(ns.state_file)
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    now = round(time.time(), 3)
+    state_path.write_text(
+        json.dumps({
+            'engine': ns.engine_name,
+            'device': _used_device(ns.engine_name),
+            'pid': os.getpid(),
+            'port': port,
+            'token': token,
+            'started_at': now,
+            'last_used_at': now,
+        }),
+        encoding='utf-8',
+    )
+
+    try:
+        while True:
+            try:
+                conn, _ = srv.accept()
+            except socket.timeout:
+                break
+            with conn:
+                try:
+                    line = conn.makefile('r', encoding='utf-8', errors='replace').readline()
+                    if not line:
+                        continue
+                    msg = json.loads(line)
+                except Exception as exc:
+                    conn.sendall((json.dumps({'ok': False, 'error': f'bad request: {exc}'}) + '\n').encode('utf-8'))
+                    continue
+                if msg.get('token') != token:
+                    conn.sendall((json.dumps({'ok': False, 'error': 'unauthorized'}) + '\n').encode('utf-8'))
+                    continue
+                cmd = msg.get('cmd')
+                if cmd == 'ping':
+                    conn.sendall((json.dumps({'ok': True, 'pid': os.getpid()}) + '\n').encode('utf-8'))
+                elif cmd == 'shutdown':
+                    conn.sendall((json.dumps({'ok': True}) + '\n').encode('utf-8'))
+                    break
+                elif cmd == 'run':
+                    try:
+                        request = msg['request']
+                        engine, action = request['engine'], request['action']
+                        if action == 'predict' and engine in ENGINES:
+                            result = ENGINES[engine](
+                                request.get('params') or {},
+                                request['data_dir'],
+                                request.get('spec') or {},
+                            )
+                            payload = {'ok': True, 'engine': engine, 'device': _used_device(engine), 'result': result}
+                        else:
+                            raise ValueError(f'unknown daemon engine action {engine!r} {action!r}')
+                    except BaseException as exc:
+                        payload = {'ok': False, 'error': f'{type(exc).__name__}: {exc}'}
+                    conn.sendall((json.dumps(payload) + '\n').encode('utf-8'))
+    finally:
+        try:
+            state_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        srv.close()
+
+
 def main():
+    if sys.argv[1:2] == ['--daemon']:
+        _serve_daemon(sys.argv[1:])
+        return
     answer = sys.stdout
     sys.stdout = sys.stderr  # the engines print progress lines; stdout stays pure JSON
     try:

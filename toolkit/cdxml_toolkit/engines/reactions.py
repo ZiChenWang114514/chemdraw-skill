@@ -31,6 +31,9 @@ def _reaction_smiles(reactants, product):
 def _device_extra(name: str, warnings: list) -> dict:
     meta = env.last_call_meta(name)
     extra = {'device': meta['device']}
+    accel_meta = env.last_accel_meta(name)
+    if accel_meta:
+        extra['accel'] = accel_meta
     if meta.get('device_fallback'):
         extra['device_fallback'] = True
         warnings.append(f'{name}: CUDA failed at runtime; fell back to CPU.')
@@ -53,7 +56,16 @@ def products(reactants: str, reagents: str | None = None, engine: str | None = N
     warnings = ['model predictions: unvalidated by experiment; the real product may be absent']
     device_extra = _device_extra(name, warnings)
     structures = [envelope.describe(a['smiles'], a['score'], rank=i) for i, a in enumerate(answers, 1)]
-    return envelope.result('products', name, ENGINES[name], structures, reactants=clean, reagents=reagent.strip() or None,
+    reagent_clean = reagent.strip() or None
+    for s in structures:
+        if s.get('valid'):
+            deficit = _element_deficit(clean, s['smiles'], reagent_clean)
+            if deficit:
+                s['unbalanced_elements'] = deficit
+    if any(s.get('unbalanced_elements') for s in structures):
+        warnings.append('some predicted products contain heavy-atom elements absent from or exceeding the reactants and '
+                        'reagents (see `unbalanced_elements`): a missing reagent or a hallucinated atom')
+    return envelope.result('products', name, ENGINES[name], structures, reactants=clean, reagents=reagent_clean,
                            **device_extra,
                            score_meaning='mean log-probability of the generated sequence (closer to 0 is likelier)',
                            reactions=[_reaction_smiles([clean], s['smiles']) for s in structures if s['valid']],
@@ -80,12 +92,34 @@ def _leaves(node, out):
             _leaves(reactant, out)
 
 
-def _short_of_atoms(reaction: str) -> bool:
-    """True when the reactants hold fewer heavy atoms than the product: no reaction can make it from them."""
+def _element_counts(smiles_text: str | None):
+    from collections import Counter
     from rdkit import Chem
+    counts: Counter = Counter()
+    if not smiles_text or not smiles_text.strip():
+        return counts
+    for part in smiles_text.strip().split('.'):
+        if not part:
+            continue
+        mol = Chem.MolFromSmiles(part)
+        if mol is not None:
+            for atom in mol.GetAtoms():
+                if atom.GetAtomicNum() > 1:
+                    counts[atom.GetSymbol()] += 1
+    return counts
+
+
+def _element_deficit(left: str, right: str, reagents: str | None = None) -> dict[str, int]:
+    """Element-wise heavy-atom deficit: elements in ``right`` whose count exceeds ``left`` (+ ``reagents``)."""
+    available = _element_counts(left) + _element_counts(reagents)
+    needed = _element_counts(right)
+    return {el: count - available[el] for el, count in needed.items() if count > available[el]}
+
+
+def _short_of_atoms(reaction: str, reagents: str | None = None) -> bool:
+    """True when the reactants lack any heavy-atom element needed to form the product."""
     left, right = reaction.split('>>')
-    count = lambda text: sum(m.GetNumHeavyAtoms() for m in (Chem.MolFromSmiles(x) for x in text.split('.')) if m is not None)
-    return count(left) < count(right)
+    return bool(_element_deficit(left, right, reagents))
 
 
 def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single', count: int = 5,
@@ -126,7 +160,7 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
                     routes.append({'rank': i, 'steps': len(flat), 'reactions': flat,
                                    'starting_materials': [{'smiles': s, 'in_stock': stock} for s, stock in leaves],
                                    'all_in_stock': all(stock for _, stock in leaves), 'tree': route,
-                                   'unbalanced_steps': [r for r in flat if _short_of_atoms(r)]})
+                                   'unbalanced_steps': [r for r in flat if _element_deficit(*r.split('>>'))]})
                 body = {'steps': 'multi', 'solved': raw['solved'], 'top_score': raw['top_score'], 'routes': routes}
                 if raw.get('target_in_stock'):
                     body['target_in_stock'] = True
@@ -144,7 +178,7 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
                                'the obvious precursor (for aspirin it did not propose acetic anhydride); prefer '
                                'aizynthfinder and treat these sets as hints')
     if any(route.get('unbalanced_steps') for route in out.get('routes', [])):
-        out['warnings'].append('some route steps list fewer heavy atoms in the reactants than in the product (see '
+        out['warnings'].append('some route steps lack heavy-atom elements in the reactants that appear in the product (see '
                                '`unbalanced_steps`): a missing partner or a hallucinated step; do not follow those routes')
     if name == 'retrochimera':
         out['warnings'].append('RetroChimera is released for research and experiments: an expert must check every '
@@ -156,6 +190,12 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
     for option in out.get('options', []):
         option['reaction'] = _reaction_smiles(option['reactants'], target)
         option['reactants_checked'] = [envelope.describe(r) for r in option['reactants']]
+        deficit = _element_deficit('.'.join(option['reactants']), target)
+        if deficit:
+            option['unbalanced_elements'] = deficit
+    if any(option.get('unbalanced_elements') for option in out.get('options', [])):
+        out['warnings'].append('some precursor sets lack heavy-atom elements present in the target product (see '
+                               '`unbalanced_elements`): a missing co-reactant or a hallucinated disconnection')
     return out
 
 
@@ -170,11 +210,23 @@ def conditions(reactants: str, products: str, engine: str | None = None, count: 
     left = _canonical(reactants, 'reactants')
     right = _canonical(products, 'products')
     from ..mcp_runtime.report_tools import map_reaction_atoms
-    mapping = map_reaction_atoms(f'{left}>>{right}')
-    if mapping.get('status') != 'complete':
+    try:
+        mapping = map_reaction_atoms(f'{left}>>{right}', {'resolve_ambiguity': True})
+    except TypeError:
+        mapping = map_reaction_atoms(f'{left}>>{right}')
+    status = mapping.get('status')
+    mapped = mapping.get('mapped_reaction') or ''
+    cov = mapping.get('product_coverage') or []
+    total_prod = sum(c.get('atoms', 0) for c in cov)
+    mapped_prod = sum(c.get('mapped', 0) for c in cov)
+    usable_partial = (
+        status in ('incomplete', 'ambiguous')
+        and ':' in mapped
+        and (total_prod == 0 or mapped_prod * 2 >= total_prod)
+    )
+    if status != 'complete' and not usable_partial:
         raise ValueError('the reaction could not be mapped atom to atom without ambiguity: draw it with the '
                          'reactants that supply every product atom, or map it first with map_reaction_atoms')
-    mapped = mapping['mapped_reaction']
     started = time.time()
     env._LAST_CALL_META.set(None)
     try:
@@ -184,6 +236,11 @@ def conditions(reactants: str, products: str, engine: str | None = None, count: 
     warnings = ['model predictions learned from patent reactions: candidates, not a recommended '
                 'procedure; they carry no temperature, time, amounts or yield',
                 'the atom mapping is a prediction too: a wrong map changes the answer']
+    if status in ('incomplete', 'ambiguous'):
+        warnings.append(f'atom mapping status is {status!r}: unmapped or symmetry-equivalent atoms remain in '
+                        '`mapped_reaction`; verify the atom map before trusting the ranked conditions')
+    elif mapping.get('resolved_ambiguity'):
+        warnings.append('symmetry ambiguity in atom mapping was resolved automatically; check `mapped_reaction`')
     device_extra = _device_extra(name, warnings)
     options = [{'rank': i, **candidate} for i, candidate in enumerate(raw['candidates'][:count], 1)]
     out = envelope.result('conditions', name, ENGINES[name], [], reactants=left, products=right,

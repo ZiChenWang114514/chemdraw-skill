@@ -50,6 +50,14 @@ ADDUCTS = {
     "[M-H]-":       ("ES-", -1.008),
     "[M+Na]+":      ("ES+", 22.990),
     "[M+formate]-": ("ES-", 44.998),
+    "[M+NH4]+":     ("ES+", 18.034),
+    "[M+MeCN+H]+":  ("ES+", 42.034),
+    "[M+TFA-H]-":   ("ES-", 112.985),
+    "[M+2H]2+":     ("ES+",  1.008),
+    "[2M+H]+":      ("ES+",  1.008),
+    "[2M+Na]+":     ("ES+", 22.990),
+    "[M+2+H]+":     ("ES+",  3.005),
+    "[M+2-H]-":     ("ES-",  0.989),
 }
 
 # Adduct reporting priority: prefer [M+H]+/[M-H]- (proton transfer)
@@ -59,6 +67,14 @@ ADDUCT_PRIORITY = {
     "[M-H]-":       0,
     "[M+Na]+":      1,
     "[M+formate]-": 1,
+    "[M+2+H]+":     1,
+    "[M+2-H]-":     1,
+    "[M+NH4]+":     2,
+    "[M+MeCN+H]+":  2,
+    "[M+TFA-H]-":   2,
+    "[M+2H]2+":     2,
+    "[2M+H]+":      3,
+    "[2M+Na]+":     3,
 }
 
 # ESI mode preference for breaking ties: ESI+ preferred over ESI-
@@ -123,13 +139,59 @@ def compute_masses(smiles: str) -> Optional[Tuple[float, float]]:
 _compute_masses = compute_masses
 
 
-def build_adducts(exact_mass: float) -> Dict[str, float]:
+def has_heavy_halogens(smiles: str) -> Tuple[int, int]:
+    """Return (n_br, n_cl) in the largest fragment of ``smiles``."""
+    if not smiles:
+        return (0, 0)
+    if _HAS_RDKIT:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is not None:
+            frags = Chem.GetMolFrags(mol, asMols=True)
+            target = max(frags, key=lambda m: m.GetNumHeavyAtoms()) if len(frags) > 1 else mol
+            n_br = sum(1 for a in target.GetAtoms() if a.GetAtomicNum() == 35)
+            n_cl = sum(1 for a in target.GetAtoms() if a.GetAtomicNum() == 17)
+            return (n_br, n_cl)
+    main_frag = max(smiles.split("."), key=len)
+    return (main_frag.count("Br"), main_frag.count("Cl"))
+
+
+def needs_m_plus_2(smiles: str) -> bool:
+    """True when the species contains >= 1 Br or >= 2 Cl (strong M+2 isotopologue peak)."""
+    n_br, n_cl = has_heavy_halogens(smiles)
+    return n_br >= 1 or n_cl >= 2
+
+
+def build_adducts(
+    exact_mass: float,
+    smiles: str = "",
+    include_isotopologues: Optional[bool] = None,
+) -> Dict[str, float]:
     """Build expected adduct m/z dict from neutral exact mass."""
-    return {name: exact_mass + offset for name, (_, offset) in ADDUCTS.items()}
+    adducts: Dict[str, float] = {
+        "[M+H]+":       exact_mass + 1.008,
+        "[M-H]-":       exact_mass - 1.008,
+        "[M+Na]+":      exact_mass + 22.990,
+        "[M+formate]-": exact_mass + 44.998,
+        "[M+NH4]+":     exact_mass + 18.034,
+        "[M+MeCN+H]+":  exact_mass + 42.034,
+        "[M+TFA-H]-":   exact_mass + 112.985,
+    }
+    if exact_mass >= 300.0:
+        adducts["[M+2H]2+"] = (exact_mass + 2.0 * 1.008) / 2.0
+    adducts["[2M+H]+"] = 2.0 * exact_mass + 1.008
+    adducts["[2M+Na]+"] = 2.0 * exact_mass + 22.990
+
+    use_iso = include_isotopologues if include_isotopologues is not None else needs_m_plus_2(smiles)
+    if use_iso:
+        adducts["[M+2+H]+"] = exact_mass + 1.997 + 1.008
+        adducts["[M+2-H]-"] = exact_mass + 1.997 - 1.008
+    return adducts
 
 
-# Backward-compatible alias
+# Backward-compatible aliases
 _build_adducts = build_adducts
+_compute_adducts = build_adducts
+compute_adducts = build_adducts
 
 
 # ---------------------------------------------------------------------------
@@ -368,7 +430,7 @@ def _extract_from_structure(source, exp) -> List[ExpectedSpecies]:
             exact_mass=neutral_mass, smiles=smiles,
             source_file=source,
         )
-        sp.adducts = _build_adducts(neutral_mass)
+        sp.adducts = _build_adducts(neutral_mass, smiles=smiles)
         species.append(sp)
 
     # Process products
@@ -392,7 +454,7 @@ def _extract_from_structure(source, exp) -> List[ExpectedSpecies]:
             exact_mass=neutral_mass, smiles=smiles,
             source_file=source,
         )
-        sp.adducts = _build_adducts(neutral_mass)
+        sp.adducts = _build_adducts(neutral_mass, smiles=smiles)
         species.append(sp)
 
     return species
@@ -470,7 +532,7 @@ def _extract_from_rxn_rdkit(rxn_path: str, exp) -> List[ExpectedSpecies]:
             exact_mass=neutral_mass, smiles=smiles,
             source_file=rxn_path,
         )
-        sp.adducts = _build_adducts(neutral_mass)
+        sp.adducts = _build_adducts(neutral_mass, smiles=smiles)
         species.append(sp)
 
     # Process products
@@ -504,7 +566,7 @@ def _extract_from_rxn_rdkit(rxn_path: str, exp) -> List[ExpectedSpecies]:
             exact_mass=neutral_mass, smiles=smiles,
             source_file=rxn_path,
         )
-        sp.adducts = _build_adducts(neutral_mass)
+        sp.adducts = _build_adducts(neutral_mass, smiles=smiles)
         species.append(sp)
 
     if species:

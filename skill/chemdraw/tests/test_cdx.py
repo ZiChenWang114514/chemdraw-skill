@@ -742,3 +742,126 @@ def test_engines_passes_sizes_on_to_the_listing():
     with mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
         cdx.main(['engines', '--sizes'])
     assert call.call_args.args[0][-2:] == ['--status', '--sizes']
+
+
+def test_draw_accepts_utf8_bom_in_file_and_stdin(tmp_path, monkeypatch):
+    import io
+    brief = {'species': [{'id': 'A', 'smiles': 'CCO'}], 'steps': []}
+    path = tmp_path / 'bom_brief.json'
+    path.write_bytes(b'\xef\xbb\xbf' + json.dumps(brief).encode('utf-8'))
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['draw', str(path)]) == 0
+    assert worker.call_args.args[1]['brief'] == brief
+
+    monkeypatch.setattr(sys, 'stdin', io.StringIO('\ufeff' + json.dumps(brief)))
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['draw', '-']) == 0
+    assert worker.call_args.args[1]['brief'] == brief
+
+
+def test_load_args_reads_stdin_when_dash_is_given(monkeypatch):
+    import io
+    monkeypatch.setattr(sys, 'stdin', io.StringIO('\ufeff{"smiles": "CCO"}'))
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+        assert cdx.main(['call', 'modify_molecule', '--args', '-']) == 0
+    assert worker.call_args.args == ('modify_molecule', {'smiles': 'CCO'})
+
+
+def test_ocsr_writes_envelope_to_out_file(tmp_path, capsys):
+    image = tmp_path / 'crop.png'
+    image.write_bytes(b'png')
+    out_file = tmp_path / 'res.json'
+    envelope = {'ok': True, 'result': {'ok': True, 'engines': {'molscribe': {'smiles': 'CCO'}}}}
+    with mock.patch.object(cdx, '_worker', return_value=envelope) as worker:
+        assert cdx.main(['ocsr', str(image), '--engines', 'molscribe,molvec', '--out', str(out_file)]) == 0
+    assert 'output_path' not in worker.call_args.args[1]
+    assert out_file.is_file()
+    assert json.loads(out_file.read_text(encoding='utf-8')) == envelope
+    summary = json.loads(capsys.readouterr().out)
+    assert summary['ok'] is True and Path(summary['evidence']) == out_file.resolve()
+
+
+def test_predict_supports_args_file_stdin_and_out(tmp_path, monkeypatch, capsys):
+    import io
+    args_file = tmp_path / 'pred_args.json'
+    args_file.write_bytes(b'\xef\xbb\xbf{"reactants": "CCO.CC(=O)O", "top_k": 3}')
+    out_file = tmp_path / 'pred_out.json'
+    envelope = {'ok': True, 'result': {'ok': True, 'predictions': ['CCOC(C)=O']}}
+    with mock.patch.object(cdx, '_worker', return_value=envelope) as worker:
+        assert cdx.main(['predict', 'products', '--args', str(args_file), '--out', str(out_file)]) == 0
+    assert worker.call_args.args == ('predict_products', {'reactants': 'CCO.CC(=O)O', 'top_k': 3})
+    assert json.loads(out_file.read_text(encoding='utf-8')) == envelope
+    summary = json.loads(capsys.readouterr().out)
+    assert summary['ok'] is True and Path(summary['evidence']) == out_file.resolve()
+
+    monkeypatch.setattr(sys, 'stdin', io.StringIO('\ufeff{"smiles": "CCOC(C)=O", "nucleus": "1H"}'))
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+        assert cdx.main(['predict', 'nmr', '--args', '-']) == 0
+    assert worker.call_args.args == ('predict_nmr', {'smiles': 'CCOC(C)=O', 'nucleus': '1H'})
+
+
+def test_sig_accepts_multiple_tools_and_suggests_matches_when_not_found(capsys):
+    assert cdx.main(['sig', 'render_cdxml_files', 'draw_figure']) == 0
+    out = capsys.readouterr().out
+    assert '### `render_cdxml_files(' in out and '### `draw_figure(' in out
+    # Direct Namespace call with a string remains backward-compatible.
+    assert cdx.cmd_sig(argparse.Namespace(tool='render_cdxml_files')) == 0
+    assert capsys.readouterr().out.startswith('### `render_cdxml_files(')
+
+    msg = _message(capsys, 'sig', 'embed_cdxml_office')
+    assert 'Did you mean:' in msg and 'embed_cdxml_in_office' in msg
+    msg_sub = _message(capsys, 'sig', 'stoichiometry')
+    assert 'Did you mean:' in msg_sub
+
+
+def test_tools_filters_by_case_insensitive_substring(capsys):
+    assert cdx.main(['tools', 'OFFICE', '--detail', 'summary']) == 0
+    summary = capsys.readouterr().out.strip()
+    assert 'embed_cdxml_in_office' in summary and 'draw_figure' not in summary
+
+    assert cdx.main(['tools', 'office']) == 0
+    full = capsys.readouterr().out
+    assert 'embed_cdxml_in_office' in full and 'draw_figure' not in full
+
+
+def test_doctor_returns_nonzero_when_requested_probe_fails_without_breaking_default_doctor(monkeypatch, capsys):
+    monkeypatch.setattr(cdx, 'expected_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, '_signatures_current', lambda: True)
+    monkeypatch.setattr(cdx, 'catalog_stale', lambda: [])
+    unverified_caps = {
+        'chemdraw': {'status': 'missing'},
+        'office': {'status': 'unverified'},
+        'chemscript': {'status': 'unverified'},
+    }
+    # Default `cdx.py doctor` stays 0 even when optional desktop capabilities are missing/unverified.
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'outputs': {'capabilities': unverified_caps}}}):
+        assert cdx.main(['doctor']) == 0
+    capsys.readouterr()
+
+    # Explicit probe fails when inner['ok'] is False or the requested capability is not available.
+    for flag in ('--native', '--office', '--chemscript'):
+        with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'outputs': {'capabilities': unverified_caps}}}):
+            assert cdx.main(['doctor', flag]) == 1
+        capsys.readouterr()
+
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': False, 'outputs': {'capabilities': {'chemdraw': {'status': 'available'}}}}}):
+        assert cdx.main(['doctor', '--native']) == 1
+    capsys.readouterr()
+
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'outputs': {'capabilities': {'chemdraw': {'status': 'available'}, 'office': {'status': 'unverified'}}}}}):
+        assert cdx.main(['doctor', '--native']) == 0
+    capsys.readouterr()
+
+
+def test_accel_and_task_hint_flags_and_engines_stop_daemons(monkeypatch):
+    monkeypatch.delenv('CHEMDRAW_ACCEL', raising=False)
+    monkeypatch.delenv('CHEMDRAW_TASK_HINT', raising=False)
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}):
+        assert cdx.main(['predict', 'nmr', 'CCO', '--accel', 'simple', '--task-hint', '\u7b80\u5355\u4efb\u52a1']) == 0
+    assert os.environ.get('CHEMDRAW_ACCEL') == 'simple'
+    assert os.environ.get('CHEMDRAW_TASK_HINT') == '\u7b80\u5355\u4efb\u52a1'
+
+    with mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
+        assert cdx.main(['engines', '--stop-daemons']) == 0
+    assert call.call_args.args[0][-1:] == ['--stop-daemons']

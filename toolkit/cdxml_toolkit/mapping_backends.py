@@ -96,6 +96,8 @@ def run(name: str, reactions: list, timeout: int = RUN_TIMEOUT) -> list:
     if python is None:
         raise BackendError(f'{BACKENDS[name]["title"]} is not installed: run `cdx.py install-mappers {name}`')
     env = dict(os.environ, TOKENIZERS_PARALLELISM='false', HF_HUB_OFFLINE='1', PYTHONIOENCODING='utf-8')
+    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').strip().lower() == 'cpu':
+        env['CUDA_VISIBLE_DEVICES'] = ''
     try:
         done = subprocess.run([str(python), '-W', 'ignore', str(WORKER)], input=json.dumps(
             {'method': name, 'reactions': list(reactions)}), capture_output=True, text=True, encoding='utf-8',

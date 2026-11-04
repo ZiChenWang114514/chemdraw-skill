@@ -58,10 +58,10 @@
 
 ## `image.reaction_from_image`
 
-- **function**, line 775: `build_reaction_scheme(structures: List[Dict], reactant_indices: List[int], product_indices: List[int], conditions_above: List[str], conditions_below: List[str], verbose: bool = False, expanded_above: Optional['ExpandedItems'] = None, expanded_below: Optional['ExpandedItems'] = None) -> str` - Assemble a CDXML reaction scheme from extracted structures + descriptor.
-- **function**, line 1171: `build_reaction_scheme_chemscript(structures: List[Dict], cs_fragments: Dict[int, Tuple[str, float, float, float, float]], reactant_indices: List[int], product_indices: List[int], conditions_above: List[str], conditions_below: List[str], verbose: bool = False, expanded_above: Optional['ExpandedItems'] = None, expanded_below: Optional['ExpandedItems'] = None) -> str` - Assemble a CDXML reaction scheme using ChemScript-cleaned fragment XML.
-- **function**, line 1391: `reaction_from_image(image_path: str, descriptor: Dict, page: int = 0, segment: bool = True, hand_drawn: bool = False, verbose: bool = False, merge_gap: Optional[int] = None, cleanup: bool = False, expand: bool = False) -> str` - Full pipeline: image + reaction descriptor → CDXML reaction scheme.
-- **function**, line 1511: `reaction_from_image_to_json(image_path: str, descriptor: Dict, output_path: Optional[str] = None, page: int = 0, segment: bool = True, hand_drawn: bool = False, verbose: bool = False, merge_gap: Optional[int] = None, use_network: bool = True) -> 'ReactionDescriptor'` - Full pipeline: image + reaction descriptor → ReactionDescriptor JSON.
+- **function**, line 792: `build_reaction_scheme(structures: List[Dict], reactant_indices: List[int], product_indices: List[int], conditions_above: List[str], conditions_below: List[str], verbose: bool = False, expanded_above: Optional['ExpandedItems'] = None, expanded_below: Optional['ExpandedItems'] = None) -> str` - Assemble a CDXML reaction scheme from extracted structures + descriptor.
+- **function**, line 1190: `build_reaction_scheme_chemscript(structures: List[Dict], cs_fragments: Dict[int, Tuple[str, float, float, float, float]], reactant_indices: List[int], product_indices: List[int], conditions_above: List[str], conditions_below: List[str], verbose: bool = False, expanded_above: Optional['ExpandedItems'] = None, expanded_below: Optional['ExpandedItems'] = None) -> str` - Assemble a CDXML reaction scheme using ChemScript-cleaned fragment XML.
+- **function**, line 1410: `reaction_from_image(image_path: str, descriptor: Dict, page: int = 0, segment: bool = True, hand_drawn: bool = False, verbose: bool = False, merge_gap: Optional[int] = None, cleanup: bool = False, expand: bool = False) -> str` - Full pipeline: image + reaction descriptor → CDXML reaction scheme.
+- **function**, line 1530: `reaction_from_image_to_json(image_path: str, descriptor: Dict, output_path: Optional[str] = None, page: int = 0, segment: bool = True, hand_drawn: bool = False, verbose: bool = False, merge_gap: Optional[int] = None, use_network: bool = True) -> 'ReactionDescriptor'` - Full pipeline: image + reaction descriptor → ReactionDescriptor JSON.
 - **function**, line 89: `resolve_abbreviation(text: str) -> str` - Look up text in the reagent database.
 
 ## `image.structure_from_image`
@@ -71,7 +71,7 @@
 - **function**, line 289: `load_image(path: str, page: int = 0) -> 'np.ndarray'` - Load an image from a PNG/JPG file or from a specific page of a PDF.
 - **function**, line 724: `normalize_for_cdxml(atoms: List[Dict], bonds: List[Dict], center_x: float = 200.0, center_y: float = 300.0) -> Tuple[List[Dict], List[Dict]]` - Scale + flip-y + centre coordinates for CDXML output (ACS 1996, 14.40 pt bonds). RDKit coords are Angstroms, y-up. CDXML is points, y-down.
 - **function**, line 1434: `results_to_cdxml(results: List[Dict]) -> str` - Convert extracted structures to a CDXML document (multiple molecules on one page).
-- **function**, line 1546: `results_to_cdxml_chemscript(results: List[Dict], verbose: bool = False) -> str` - Convert extracted structures to CDXML using ChemScript for cleanup.
+- **function**, line 1550: `results_to_cdxml_chemscript(results: List[Dict], verbose: bool = False) -> str` - Convert extracted structures to CDXML using ChemScript for cleanup.
 - **function**, line 423: `segment_structures(bgr: 'np.ndarray', merge_gap: Optional[int] = None) -> List[Tuple['np.ndarray', Tuple[int, int, int, int]]]` - Detect chemical structure regions in a BGR image.
 - **function**, line 651: `smiles_to_coords(smiles: str, offset_index: int = 0) -> Optional[Dict]` - Convert a SMILES string to 2D atom/bond data using RDKit.
 

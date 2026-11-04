@@ -15,7 +15,10 @@ PubChem API docs:
 """
 
 import argparse
+import copy
 import json
+import os
+from pathlib import Path
 import sys
 import time
 import urllib.request
@@ -36,6 +39,65 @@ PROPERTIES = "IUPACName,MolecularWeight,MolecularFormula,CanonicalSMILES,Isomeri
 # Rate limiting: PubChem asks for max 5 requests/second
 REQUEST_DELAY = 0.25  # seconds between requests
 
+# In-memory + optional persistent JSON cache for resolved CAS numbers
+_CACHE: Dict[str, Dict[str, Any]] = {}
+_ORIG_URLOPEN = urllib.request.urlopen
+_CACHE_URLOPEN = urllib.request.urlopen
+_DISK_CACHE_LOADED = False
+_CACHE_FILE: Optional[str] = None
+
+
+def _default_cache_path() -> Path:
+    if _CACHE_FILE:
+        return Path(_CACHE_FILE)
+    explicit = os.environ.get("CHEMDRAW_CAS_CACHE_FILE")
+    if explicit:
+        return Path(explicit).expanduser()
+    if os.name == "nt":
+        base = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
+    else:
+        base = os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
+    return Path(base) / "chemdraw-skill" / "cache" / "pubchem_cas_cache.json"
+
+
+def _use_persistent_cache() -> bool:
+    if _CACHE_FILE is not None or os.environ.get("CHEMDRAW_CAS_CACHE_FILE"):
+        return True
+    return urllib.request.urlopen is _ORIG_URLOPEN
+
+
+def _sync_cache_context() -> None:
+    global _CACHE_URLOPEN, _DISK_CACHE_LOADED
+    if urllib.request.urlopen is not _CACHE_URLOPEN:
+        _CACHE.clear()
+        _CACHE_URLOPEN = urllib.request.urlopen
+        _DISK_CACHE_LOADED = False
+    if not _DISK_CACHE_LOADED and _use_persistent_cache():
+        _DISK_CACHE_LOADED = True
+        path = _default_cache_path()
+        if path.is_file():
+            try:
+                raw = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(raw, dict):
+                    for key, val in raw.items():
+                        if isinstance(val, dict) and key not in _CACHE:
+                            _CACHE[key] = val
+            except (OSError, ValueError):
+                pass
+
+
+def _save_persistent_cache() -> None:
+    if not _use_persistent_cache():
+        return
+    path = _default_cache_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(_CACHE, indent=2, ensure_ascii=False), encoding="utf-8")
+        os.replace(tmp, path)
+    except OSError:
+        pass
+
 
 # ---------------------------------------------------------------------------
 # Core resolution function (importable by other tools)
@@ -53,10 +115,32 @@ def resolve_cas(cas: str, include_coords: bool = False) -> Optional[Dict[str, An
         Dict with keys: cas, name, mw, formula, smiles, isomeric_smiles,
         and optionally coords_2d. Returns None if the lookup fails.
     """
-    if not cas or not _validate_cas(cas):
+    if not cas:
+        return None
+    cas = cas.strip()
+    if not _validate_cas(cas):
+        return None
+    if not network_allowed():
+        print(f"  CAS {cas}: {offline_reason('PubChem lookup')}", file=sys.stderr)
         return None
 
+    _sync_cache_context()
+    cached = _CACHE.get(cas)
+    if cached is not None:
+        if include_coords and "coords_2d" not in cached and cached.get("cid"):
+            _rate_limit()
+            coords = _fetch_2d_coords(cached["cid"])
+            if coords:
+                cached = dict(cached, coords_2d=coords)
+                _CACHE[cas] = cached
+                _save_persistent_cache()
+        out = copy.deepcopy(cached)
+        if not include_coords:
+            out.pop("coords_2d", None)
+        return out
+
     # Step 1: Get compound properties
+    _rate_limit()
     props = _fetch_properties(cas)
     if props is None:
         return None
@@ -84,10 +168,13 @@ def resolve_cas(cas: str, include_coords: bool = False) -> Optional[Dict[str, An
 
     # Step 2: Optionally get 2D coordinates
     if include_coords and result.get("cid"):
+        _rate_limit()
         coords = _fetch_2d_coords(result["cid"])
         if coords:
             result["coords_2d"] = coords
 
+    _CACHE[cas] = copy.deepcopy(result)
+    _save_persistent_cache()
     return result
 
 

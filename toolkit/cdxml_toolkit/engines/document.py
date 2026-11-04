@@ -121,9 +121,10 @@ def extract(path: str, out_dir: str, pages=None, engines: str = 'molscribe,molve
     if len(segments) > SEGMENT_LIMIT:
         warnings.append(f'{len(segments)} segments found; only the first {SEGMENT_LIMIT} were read')
         segments = segments[:SEGMENT_LIMIT]
+    answers = ocsr.recognize_batch([s['path'] for s in segments], engines,
+                                   hand_drawn=hand_drawn, confirm_upload=confirm_upload)
     rows = []
-    for index, segment in enumerate(segments, 1):
-        answer = ocsr.recognize(segment['path'], engines, hand_drawn=hand_drawn, confirm_upload=confirm_upload)
+    for index, (segment, answer) in enumerate(zip(segments, answers), 1):
         for e in answer['engines']:
             if e.get('device_fallback'):
                 msg = f'{e["engine"]}: CUDA failed at runtime; fell back to CPU.'

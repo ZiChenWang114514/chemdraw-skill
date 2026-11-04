@@ -235,12 +235,19 @@ def _macos_automation_capability() -> dict[str, Any]:
 def _office_capability() -> dict[str, Any]:
     from ..chemdraw import mac_automation
 
+    is_mac = mac_automation.is_macos()
     dependencies = {
         "python-pptx": _module_available("pptx"),
         "python-docx": _module_available("docx"),
         "olefile": _module_available("olefile"),
     }
-    if not mac_automation.is_macos():
+    if not is_mac and sys.platform.startswith("linux"):
+        return {
+            "status": "missing",
+            "dependencies": dependencies,
+            "detail": "Native ChemDraw OLE/Office automation requires Windows or macOS",
+        }
+    if not is_mac:
         # Word and PowerPoint for macOS are automated through AppleScript instead.
         dependencies["win32com"] = _module_available("win32com.client")
     ready = all(dependencies.values())
@@ -253,7 +260,7 @@ def _office_capability() -> dict[str, Any]:
             else "One or more Office/OLE dependencies are missing"
         ),
     }
-    if mac_automation.is_macos():
+    if is_mac:
         # Embedding needs only ChemDraw; Word and PowerPoint are needed for PDF previews.
         from cdxml_toolkit.office import mac_office
 
@@ -262,6 +269,60 @@ def _office_capability() -> dict[str, Any]:
             for label, suffix in (("word", ".docx"), ("powerpoint", ".pptx"))
         }
     return capability
+
+
+def _has_windows_chemscript_dlls() -> bool:
+    try:
+        from ..chemdraw import chemscript_bridge
+
+        candidates = []
+        env_dir = os.environ.get("CHEMSCRIPT_DLL_DIR")
+        if env_dir:
+            candidates.append(env_dir)
+        cfg_path = Path.home() / ".chemscript_config.json"
+        if cfg_path.is_file():
+            try:
+                cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+                if cfg.get("dll_dir"):
+                    candidates.append(cfg["dll_dir"])
+            except (OSError, ValueError):
+                pass
+        root = chemscript_bridge._find_chemdraw_root()
+        if root:
+            candidates.append(root)
+        for folder in candidates:
+            if folder and os.path.isdir(folder) and chemscript_bridge._find_chemscript_dlls(folder):
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _chemscript_capability(chemdraw_cap: dict[str, Any] | None = None) -> dict[str, Any]:
+    if not _module_available("cdxml_toolkit.chemdraw.chemscript_bridge"):
+        return {"status": "missing", "detail": "ChemScript bridge module is unavailable"}
+    from ..chemdraw import mac_automation
+
+    is_mac = mac_automation.is_macos()
+    if not is_mac and sys.platform.startswith("linux"):
+        return {
+            "status": "missing",
+            "detail": "ChemScript requires Windows (ChemScript .NET DLLs) or macOS (ChemDraw automation)",
+        }
+    if not is_mac and (chemdraw_cap or {}).get("status") == "missing" and not _has_windows_chemscript_dlls():
+        return {
+            "status": "missing",
+            "detail": "ChemDraw is not installed and no ChemScript DLLs were found",
+        }
+    if is_mac and (chemdraw_cap or {}).get("status") == "missing":
+        return {
+            "status": "missing",
+            "detail": "ChemDraw for macOS was not found",
+        }
+    return {
+        "status": "unverified",
+        "detail": "Enable run_chemscript_probe (--chemscript) to validate ChemScript bridge",
+    }
 
 
 def _native_probe() -> dict[str, Any]:
@@ -566,14 +627,7 @@ def diagnose_runtime(
     capabilities["chemdraw"], capabilities["chemdraw_com"] = (
         _chemdraw_capabilities()
     )
-    capabilities["chemscript"] = {
-        "status": (
-            "unverified"
-            if _module_available("cdxml_toolkit.chemdraw.chemscript_bridge")
-            else "missing"
-        ),
-        "detail": "Enable run_native_probe to validate ChemDraw automation",
-    }
+    capabilities["chemscript"] = _chemscript_capability(capabilities["chemdraw"])
     capabilities["java"], capabilities["opsin"] = _java_opsin_capabilities()
     capabilities.update(_mapper_capabilities())
     capabilities.update(_engine_capabilities())

@@ -42,14 +42,26 @@ def simulate(peaks: list, nucleus: str, frequency_mhz: float, width_hz: float = 
     step = (high - low) / (points - 1)
     half = width_hz / (frequency_mhz * (1.0 if nucleus == '1H' else 0.2515)) / 2  # half width in ppm
     half = max(half, 2 * step)  # narrower lines fall between grid points and lose height at random
-    axis = [low + i * step for i in range(points)]
-    out = []
-    for x in axis:
-        total = 0.0
-        for peak in peaks:
-            total += peak['count'] * half * half / ((x - peak['shift_ppm']) ** 2 + half * half)
-        out.append((x, total))
-    return out[::-1]  # NMR convention: high ppm first
+    try:
+        import numpy as np
+        axis = low + np.arange(points, dtype=float) * step
+        if peaks:
+            s_arr = np.array([float(p['shift_ppm']) for p in peaks], dtype=float)[:, None]
+            c_arr = np.array([float(p['count']) for p in peaks], dtype=float)[:, None]
+            h2 = half * half
+            totals = np.sum(c_arr * h2 / ((axis[None, :] - s_arr) ** 2 + h2), axis=0)
+        else:
+            totals = np.zeros(points, dtype=float)
+        return list(zip(axis[::-1].tolist(), totals[::-1].tolist()))
+    except ImportError:
+        axis = [low + i * step for i in range(points)]
+        out = []
+        for x in axis:
+            total = 0.0
+            for peak in peaks:
+                total += peak['count'] * half * half / ((x - peak['shift_ppm']) ** 2 + half * half)
+            out.append((x, total))
+        return out[::-1]  # NMR convention: high ppm first
 
 
 def _compare(by_engine: dict, nuclei: list) -> dict:
@@ -93,7 +105,9 @@ def _run_one(engine: str, smiles: str, solvent: str, nuclei: list, timeout: int)
     env._LAST_CALL_META.set(None)
     raw = env.call(engine, 'predict', {'smiles': smiles, 'solvent': solvent, 'nuclei': nuclei}, timeout=timeout)
     meta = env.last_call_meta(engine)
+    accel_meta = env.last_accel_meta(engine)
     return {'engine': engine, 'raw': raw, 'device': meta['device'],
+            **({'accel': accel_meta} if accel_meta else {}),
             **({'device_fallback': True} if meta.get('device_fallback') else {})}
 
 
@@ -173,14 +187,18 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
         one = runs[0]
         return envelope.result('nmr', first, ENGINES[first], [], peaks=by_engine[first],
                                geometry=raws[first].get('geometry'), device=one['device'],
+                               **({'accel': one['accel']} if one.get('accel') else {}),
                                **({'device_fallback': True} if one.get('device_fallback') else {}), **common)
     devs = list(dict.fromkeys(r['device'] for r in runs if r.get('device')))
     any_fallback = any(r.get('device_fallback') for r in runs)
+    accels = [r['accel'] for r in runs if isinstance(r.get('accel'), dict)]
     out = envelope.result('nmr', ','.join(names), {'kind': 'local', 'license': 'see each engine'}, [],
                           device=devs[0] if len(devs) == 1 else 'mixed',
+                          **({'accel': accels[0]} if accels else {}),
                           **({'device_fallback': True} if any_fallback else {}),
                           engines=[{'engine': r['engine'], 'license': ENGINES[r['engine']].get('license'),
                                     'device': r['device'],
+                                    **({'accel': r['accel']} if r.get('accel') else {}),
                                     **({'device_fallback': True} if r.get('device_fallback') else {}),
                                     'peaks': by_engine[r['engine']],
                                     'geometry': raws[r['engine']].get('geometry')} for r in runs],

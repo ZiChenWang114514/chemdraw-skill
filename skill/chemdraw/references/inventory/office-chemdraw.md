@@ -167,21 +167,21 @@
 
 ## `office.ole_embedder`
 
-- **function**, line 91: `batch_convert(cdxml_paths)` - Open ChemDraw once and convert all CDXML files to CDX + EMF.
-- **function**, line 704: `build_docx(items, output_path)` - Create a DOCX with editable ChemDraw OLE objects, one per paragraph.
-- **function**, line 350: `build_ole_compound_file(cdx_data)` - Build a CFB file matching the known-good layout from Office COM.
-- **function**, line 495: `build_pptx(items, output_path)` - Create a PPTX with one editable ChemDraw OLE object per slide.
-- **function**, line 304: `content_size_emu(item, margin_pt = 0.0, scale = 1.02)` - OLE display size for one batch_convert() result.
-- **function**, line 216: `get_cdxml_content_size(cdxml_path, margin_pt = 0.0, scale = 1.02)` - Compute OLE display dimensions from CDXML content BoundingBox.
+- **function**, line 92: `batch_convert(cdxml_paths)` - Open ChemDraw once and convert all CDXML files to CDX + EMF.
+- **function**, line 746: `build_docx(items, output_path)` - Create a DOCX with editable ChemDraw OLE objects, one per paragraph.
+- **function**, line 349: `build_ole_compound_file(cdx_data)` - Build a CFB file matching the known-good layout from Office COM.
+- **function**, line 541: `build_pptx(items, output_path)` - Create a PPTX with one editable ChemDraw OLE object per slide.
+- **function**, line 303: `content_size_emu(item, margin_pt = 0.0, scale = 1.02)` - OLE display size for one batch_convert() result.
+- **function**, line 215: `get_cdxml_content_size(cdxml_path, margin_pt = 0.0, scale = 1.02)` - Compute OLE display dimensions from CDXML content BoundingBox.
 
 ## `office.ole_extractor`
 
-- **function**, line 93: `extract_cdx_from_ole(ole_data: bytes) -> Optional[bytes]` - Extract raw CDX bytes from an OLE compound document.
-- **function**, line 262: `extract_from_office(input_path: str, output_dir: Optional[str] = None, output_format: str = 'cdxml', convert_method: str = 'auto') -> List[ExtractedObject]` - Extract all ChemDraw objects from an Office file.
-- **class**, line 51: `ExtractedObject` - A single extracted ChemDraw object.
-- **function**, line 60: `find_ole_entries(zip_path: str) -> List[str]` - List OLE embedding paths inside a PPTX/DOCX/XLSX ZIP.
-- **function**, line 77: `is_chemdraw_ole(ole: olefile.OleFileIO) -> bool` - Check if an OLE container holds a ChemDraw object.
-- **function**, line 304: `print_summary(results: List[ExtractedObject], input_path: str) -> None` - Print extraction summary to stdout.
+- **function**, line 94: `extract_cdx_from_ole(ole_data: bytes) -> Optional[bytes]` - Extract raw CDX bytes from an OLE compound document.
+- **function**, line 326: `extract_from_office(input_path: str, output_dir: Optional[str] = None, output_format: str = 'cdxml', convert_method: str = 'auto') -> List[ExtractedObject]` - Extract all ChemDraw objects from an Office file.
+- **class**, line 52: `ExtractedObject` - A single extracted ChemDraw object.
+- **function**, line 61: `find_ole_entries(zip_path: str) -> List[str]` - List OLE embedding paths inside a PPTX/DOCX/XLSX ZIP.
+- **function**, line 78: `is_chemdraw_ole(ole: olefile.OleFileIO) -> bool` - Check if an OLE container holds a ChemDraw object.
+- **function**, line 368: `print_summary(results: List[ExtractedObject], input_path: str) -> None` - Print extraction summary to stdout.
 
 ## `office.safe_xml`
 

@@ -625,9 +625,9 @@ def main(argv=None) -> int:
 
     # Pass 1: text replacement via python-pptx/python-docx
     ext = ".pptx" if is_pptx else ".docx"
-    tmp = tempfile.mktemp(suffix=ext)
 
-    try:
+    with tempfile.TemporaryDirectory(prefix="cdx-tpl-") as tmp_dir:
+        tmp = os.path.join(tmp_dir, f"pass1{ext}")
         if not args.json:
             print("[1/2] Replacing text placeholders...")
 
@@ -697,10 +697,6 @@ def main(argv=None) -> int:
                 print(f"  Warnings:")
                 for w in warnings:
                     print(f"    - {w}")
-
-    finally:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
 
     return 0
 

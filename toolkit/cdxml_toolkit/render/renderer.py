@@ -179,6 +179,23 @@ class ResolvedStep:
 # SMILES → atom/bond dicts (using structure_from_image + normalize)
 # ---------------------------------------------------------------------------
 
+_DEPICTION_CACHE_MAX = 512
+_depiction_cache: Dict[Tuple[Any, ...], Tuple[List[Dict], List[Dict]]] = {}
+
+
+def _cache_get(key: Tuple[Any, ...]) -> Optional[Tuple[List[Dict], List[Dict]]]:
+    cached = _depiction_cache.get(key)
+    if cached is None:
+        return None
+    return deepcopy(cached[0]), deepcopy(cached[1])
+
+
+def _cache_put(key: Tuple[Any, ...], atoms: List[Dict], bonds: List[Dict]) -> None:
+    if len(_depiction_cache) >= _DEPICTION_CACHE_MAX:
+        _depiction_cache.clear()
+    _depiction_cache[key] = (deepcopy(atoms), deepcopy(bonds))
+
+
 def _smiles_to_fragment_data(
     smiles: str,
     center_x: float = 200.0,
@@ -189,6 +206,11 @@ def _smiles_to_fragment_data(
 
     Returns (atoms, bonds) or None on failure.
     """
+    cache_key = ("smiles", smiles, round(center_x, 4), round(center_y, 4))
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
         from rdkit import Chem
         from rdkit.Chem import AllChem
@@ -221,6 +243,7 @@ def _smiles_to_fragment_data(
     atoms, bonds = normalize_for_cdxml(atoms, bonds, center_x, center_y)
     _separate_components(atoms, bonds)
 
+    _cache_put(cache_key, atoms, bonds)
     return atoms, bonds
 
 
@@ -292,6 +315,21 @@ def _align_mol_to_reference(
     if target_mol is None or ref_mol is None:
         return None
 
+    cache_key: Optional[Tuple[Any, ...]] = None
+    try:
+        cache_key = (
+            "align",
+            Chem.MolToCXSmiles(target_mol),
+            Chem.MolToCXSmiles(ref_mol),
+            round(center_x, 4),
+            round(center_y, 4),
+        )
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            return cached
+    except Exception:
+        cache_key = None
+
     # Find MCS between target and reference
     try:
         mcs_result = rdFMCS.FindMCS(
@@ -350,6 +388,9 @@ def _align_mol_to_reference(
     # Normalize to CDXML coordinate space
     from ..image.structure_from_image import normalize_for_cdxml
     atoms, bonds = normalize_for_cdxml(atoms, bonds, center_x, center_y)
+
+    if cache_key is not None:
+        _cache_put(cache_key, atoms, bonds)
 
     return atoms, bonds
 
@@ -1135,6 +1176,7 @@ def _layout_linear(
     ids: _IDGen,
     source_data: Optional[Dict[str, Dict]] = None,
     reference_mol: Optional[Any] = None,
+    arrow_y: float = 300.0,
 ) -> Tuple[str, float]:
     """
     Layout a single-step scheme: substrates → products.
@@ -1142,7 +1184,7 @@ def _layout_linear(
     Returns (inner_xml, lowest_y).
     """
     xml, lowest_y, _, _ = _layout_steps_row(scheme, scheme.steps, ids, start_x=100.0,
-                                            arrow_y=300.0, source_data=source_data,
+                                            arrow_y=arrow_y, source_data=source_data,
                                             reference_mol=reference_mol)
     return xml, lowest_y
 
@@ -1729,7 +1771,8 @@ def _layout_divergent_stacked(
             steps=[step],
             layout="linear",
         )
-        row_xml, row_lowest = _layout_linear(sub_scheme, ids, source_data=source_data,
+        row_xml, row_lowest = _layout_linear(sub_scheme, ids, arrow_y=arrow_y,
+                                             source_data=source_data,
                                              reference_mol=reference_mol)
         xml_parts.append(row_xml)
         lowest_y = row_lowest
@@ -1999,69 +2042,69 @@ def _layout_steps_row(
         }
 
         # -- Substrates --
-        # Skip if: (a) pre-placed by vertical arrow (serpentine), or
+        # Skip first substrate if: (a) pre-placed by vertical arrow (serpentine), or
         # (b) shared intermediate from the previous step's product.
-        skip_substrate = False
+        start_sub_idx = 0
         if step_idx == 0 and skip_first_substrate_id is not None:
-            skip_substrate = True
+            start_sub_idx = len(rs.substrates)
             step_meta["reactant_ids"].append(skip_first_substrate_id)
             if skip_first_substrate_cursor_x is not None:
                 cursor_x = skip_first_substrate_cursor_x
         elif step_idx > 0:
             prev_products = resolved_steps[step_idx - 1].descriptor.products
             curr_substrates = rs.descriptor.substrates
-            if (len(curr_substrates) == 1 and len(prev_products) >= 1
+            if (len(curr_substrates) >= 1 and len(prev_products) >= 1
                     and curr_substrates[0] == prev_products[-1]):
-                skip_substrate = True
+                start_sub_idx = 1
                 # Use the previous step's product fragment ID
                 prev_meta = step_metadata[step_idx - 1]
                 if prev_meta["product_ids"]:
                     step_meta["reactant_ids"].append(prev_meta["product_ids"][-1])
 
-        if not skip_substrate:
-            for i, sub in enumerate(rs.substrates):
-                if i:
-                    plus_x = cursor_x + inter_gap / 2 if is_rtl else cursor_x - inter_gap / 2
-                    plus_xml, _ = _build_text_element(['+'], plus_x, arrow_y + 3.5, ids)
-                    xml_parts.append(plus_xml)
-                bbox = sub.bbox
-                w = _bbox_width(bbox)
-                # Shift to position
-                if is_rtl:
-                    cx_target = cursor_x - w / 2.0
-                else:
-                    cx_target = cursor_x + w / 2.0
-                cy_target = arrow_y
-                dx = cx_target - sub.cx
-                dy = cy_target - sub.cy
-                _shift_atoms(sub.atoms, dx, dy)
-                sub.bbox = _fragment_bbox(sub.atoms)
-                sub.cx, sub.cy = _bbox_center(sub.bbox)
+        for i in range(start_sub_idx, len(rs.substrates)):
+            sub = rs.substrates[i]
+            if i:
+                plus_x = cursor_x + inter_gap / 2 if is_rtl else cursor_x - inter_gap / 2
+                plus_xml, _ = _build_text_element(['+'], plus_x, arrow_y + 3.5, ids)
+                xml_parts.append(plus_xml)
+            bbox = sub.bbox
+            w = _bbox_width(bbox)
+            # Shift to position
+            if is_rtl:
+                cx_target = cursor_x - w / 2.0
+            else:
+                cx_target = cursor_x + w / 2.0
+            cy_target = arrow_y
+            dx = cx_target - sub.cx
+            dy = cy_target - sub.cy
+            _shift_atoms(sub.atoms, dx, dy)
+            sub.bbox = _fragment_bbox(sub.atoms)
+            sub.cx, sub.cy = _bbox_center(sub.bbox)
 
-                frag_xml, _, frag_id = _build_fragment(sub.atoms, sub.bonds, ids)
-                sub.xml = frag_xml
-                sub.frag_id = frag_id
-                xml_parts.append(frag_xml)
-                step_meta["reactant_ids"].append(frag_id)
-                all_frag_ids.append(frag_id)
+            frag_xml, _, frag_id = _build_fragment(sub.atoms, sub.bonds, ids)
+            sub.xml = frag_xml
+            sub.frag_id = frag_id
+            xml_parts.append(frag_xml)
+            step_meta["reactant_ids"].append(frag_id)
+            all_frag_ids.append(frag_id)
 
-                # Track first substrate center
-                if step_idx == 0 and i == 0:
-                    _first_substrate_cx = sub.cx
+            # Track first substrate center
+            if step_idx == 0 and i == 0:
+                _first_substrate_cx = sub.cx
 
-                # Compound label below structure
-                if sub.ref.label:
-                    label_x = sub.cx
-                    label_y = sub.bbox[3] + 14.0  # below structure
-                    lbl_xml, lbl_id = _build_label_element(
-                        sub.ref.label, label_x, label_y, ids,
-                    )
-                    xml_parts.append(lbl_xml)
+            # Compound label below structure
+            if sub.ref.label:
+                label_x = sub.cx
+                label_y = sub.bbox[3] + 14.0  # below structure
+                lbl_xml, lbl_id = _build_label_element(
+                    sub.ref.label, label_x, label_y, ids,
+                )
+                xml_parts.append(lbl_xml)
 
-                if is_rtl:
-                    cursor_x = sub.bbox[0] - inter_gap
-                else:
-                    cursor_x = sub.bbox[2] + inter_gap
+            if is_rtl:
+                cursor_x = sub.bbox[0] - inter_gap
+            else:
+                cursor_x = sub.bbox[2] + inter_gap
 
         # -- Arrow --
         if is_rtl:

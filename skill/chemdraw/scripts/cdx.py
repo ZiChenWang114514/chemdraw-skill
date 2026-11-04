@@ -12,6 +12,7 @@ envelope are preserved.
 from __future__ import annotations
 
 import argparse
+import difflib
 import glob
 import json
 import os
@@ -265,9 +266,11 @@ def _emit(tool, result, out_path=None):
 def _load_args(ns):
     if ns.json and ns.args:
         raise SystemExit('Use either --json or --args, not both')
-    # Either flag takes inline JSON or a JSON file; agents mix them up and the intent is never unclear.
-    given = (ns.args or ns.json or '{}').strip()
-    if given.startswith(('{', '[')):
+    # Either flag takes inline JSON, '-' for stdin, or a JSON file; agents mix them up and the intent is never unclear.
+    given = (ns.args or ns.json or '{}').lstrip('\ufeff').strip()
+    if given == '-':
+        text = sys.stdin.read().lstrip('\ufeff')
+    elif given.startswith(('{', '[')):
         text = given
     elif Path(given).is_file():
         text = Path(given).read_text(encoding='utf-8-sig')
@@ -287,28 +290,52 @@ def _load_args(ns):
 def cmd_tools(ns):
     from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
     reg = build_registry()
+    query = getattr(ns, 'query', None)
+    if query:
+        needle = query.lower()
+        names = [name for name in sorted(reg) if needle in name.lower()]
+    else:
+        names = sorted(reg)
     if ns.detail == 'summary':
-        print(f'{len(reg)} tools: ' + ', '.join(sorted(reg)))
+        print(f'{len(names)} tools: ' + ', '.join(names))
         return 0
-    for name in sorted(reg):
+    for name in names:
         spec = reg[name]
         native = ' [native lock]' if getattr(spec, 'resource_class', None) else ''
         timeout = f'{spec.timeout_seconds}s' if spec.timeout_seconds else 'default'
         print(f'{name:42s} timeout={timeout}{native}')
-    print(f'-- {len(reg)} tools; `cdx.py sig <tool>` prints a signature')
+    print(f'-- {len(names)} tools; `cdx.py sig <tool>` prints a signature')
     return 0
 
 
 def cmd_sig(ns):
     text = SIGNATURES.read_text(encoding='utf-8')
-    m = re.search(rf'^### `{re.escape(ns.tool)}\(.*?(?=^### |^## |\Z)', text, re.S | re.M)
-    if not m:
-        raise SystemExit(f'No signature for {ns.tool!r}; run `cdx.py tools`.')
-    print(m.group(0).rstrip())
+    tools = [ns.tool] if isinstance(ns.tool, str) else list(ns.tool)
+    all_tools = re.findall(r'^### `([^\(`]+)\(', text, re.M)
+    blocks = []
+    for name in tools:
+        m = re.search(rf'^### `{re.escape(name)}\(.*?(?=^### |^## |\Z)', text, re.S | re.M)
+        if not m:
+            needle = name.lower()
+            sub_hits = [t for t in all_tools if needle in t.lower() or t.lower() in needle]
+            close_hits = difflib.get_close_matches(name, all_tools, n=5, cutoff=0.5)
+            suggestions = list(dict.fromkeys([*sub_hits, *close_hits]))[:6]
+            hint = f' Did you mean: {", ".join(suggestions)}?' if suggestions else ''
+            raise SystemExit(f'No signature for {name!r};{hint} Run `cdx.py tools`.')
+        blocks.append(m.group(0).rstrip())
+    print('\n\n'.join(blocks))
     return 0
 
 
+def _apply_accel_flags(ns):
+    if getattr(ns, 'accel', None):
+        os.environ['CHEMDRAW_ACCEL'] = ns.accel
+    if getattr(ns, 'task_hint', None):
+        os.environ['CHEMDRAW_TASK_HINT'] = ns.task_hint
+
+
 def cmd_call(ns):
+    _apply_accel_flags(ns)
     return _emit(ns.tool, _worker(ns.tool, _load_args(ns)), ns.out)
 
 
@@ -402,7 +429,7 @@ def cmd_build(ns):
 
 def cmd_draw(ns):
     """Brief (JSON file or '-' for stdin) -> checked CDXML through the draw_figure tool."""
-    text = sys.stdin.read() if ns.brief == '-' else Path(ns.brief).read_text(encoding='utf-8')
+    text = sys.stdin.read().lstrip('\ufeff') if ns.brief == '-' else Path(ns.brief).read_text(encoding='utf-8-sig')
     try:
         brief = json.loads(text)
     except ValueError as exc:
@@ -616,6 +643,35 @@ def cmd_regen_catalog(ns):
     return 0
 
 
+def _probe_healthy(ns, layers, inner, caps):
+    if not (ns.native or ns.office or ns.chemscript):
+        return True
+    if any(x.get('ok') is False for x in layers):
+        return False
+    probes = (inner.get('outputs') or {}).get('probes') or {}
+    checks = []
+    if ns.native:
+        checks.append(('native', ('native_probe', 'native_render', 'chemdraw')))
+    if ns.office:
+        checks.append(('office', ('office_probe', 'office')))
+    if ns.chemscript:
+        checks.append(('chemscript', ('chemscript_probe', 'chemscript')))
+    for probe_key, cap_keys in checks:
+        p = probes.get(probe_key)
+        if isinstance(p, dict) and (p.get('ok') is False or p.get('status') in ('failed', 'unavailable', 'missing', 'error')):
+            return False
+        present = [caps[k] for k in cap_keys if k in caps]
+        for item in present:
+            status = item.get('status') if isinstance(item, dict) else item
+            if status not in ('available', 'ok', True):
+                return False
+            if isinstance(item, dict):
+                sub = item.get('probe')
+                if item.get('ok') is False or (isinstance(sub, dict) and sub.get('ok') is False):
+                    return False
+    return True
+
+
 def cmd_doctor(ns):
     import importlib.metadata as md
     import importlib.util
@@ -652,7 +708,8 @@ def cmd_doctor(ns):
     print(json.dumps(report, ensure_ascii=False, indent=2))
     healthy = report['signatures_current'] and report['catalog_current'] \
         and not isinstance(report['installation'], dict) \
-        and report['runtime_matches_skill'] is not False
+        and report['runtime_matches_skill'] is not False \
+        and _probe_healthy(ns, layers, inner, caps)
     return 0 if healthy else 1
 
 
@@ -787,7 +844,12 @@ def cmd_install_mappers(ns):
 
 def cmd_engines(ns):
     """Which optional engines are installed and how much disk each uses; `--recommend NEED` says what to install."""
-    flags = ['--recommend', ns.recommend] if ns.recommend else ['--status', *(['--sizes'] if ns.sizes else [])]
+    if getattr(ns, 'stop_daemons', False):
+        flags = ['--stop-daemons']
+    elif ns.recommend:
+        flags = ['--recommend', ns.recommend]
+    else:
+        flags = ['--status', *(['--sizes'] if ns.sizes else [])]
     return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', *flags], env=_chemscript_env())
 
 
@@ -811,6 +873,7 @@ def _local_ocsr_engines():
 
 
 def cmd_ocsr(ns):
+    _apply_accel_flags(ns)
     if ns.engines is None and ns.no_upload:  # the default engine is the remote one, which --no-upload forbids
         installed = _local_ocsr_engines()
         raise SystemExit('no local engine selected, use --engines ' + (','.join(installed[:2]) or 'molscribe,...') +
@@ -819,9 +882,7 @@ def cmd_ocsr(ns):
     ns.engines = ns.engines or 'decimer-api'
     kwargs = {'image_path': str(Path(ns.image).resolve()), 'engines': ns.engines, 'hand_drawn': ns.hand_drawn,
               'confirm_upload': not (ns.preflight or ns.no_upload), 'timeout_seconds': ns.timeout}
-    if ns.out:
-        kwargs['output_path'] = str(Path(ns.out).resolve())
-    return _emit('recognize_structure', _worker('recognize_structure', kwargs))
+    return _emit('recognize_structure', _worker('recognize_structure', kwargs), ns.out)
 
 
 PREDICT = {  # task: (tool, the argument SMILES fills, a working example)
@@ -834,6 +895,7 @@ PREDICT = {  # task: (tool, the argument SMILES fills, a working example)
 
 
 def cmd_predict(ns):
+    _apply_accel_flags(ns)
     tool, field, example = PREDICT[ns.task]
     if ns.products and ns.task != 'conditions':
         raise SystemExit('--products belongs to `cdx.py predict conditions`')
@@ -846,7 +908,7 @@ def cmd_predict(ns):
         kwargs['engine'] = ns.engine
     if not kwargs.get(field) or (ns.task == 'conditions' and not kwargs.get('products')):
         raise SystemExit(f'Say which molecules to predict for, for example: {example}')
-    return _emit(tool, _worker(tool, kwargs))
+    return _emit(tool, _worker(tool, kwargs), getattr(ns, 'out', None))
 
 
 def main(argv=None):
@@ -867,16 +929,20 @@ def main(argv=None):
     p = argparse.ArgumentParser(prog='cdx.py', description=__doc__.split('\n')[0])
     sub = p.add_subparsers(dest='cmd', required=True)
     s = sub.add_parser('tools', help='list registered tools')
+    s.add_argument('query', nargs='?', default=None, help='case-insensitive substring filter')
     s.add_argument('--detail', choices=['full', 'summary'], default='full')
     s.set_defaults(fn=cmd_tools)
-    s = sub.add_parser('sig', help='print one tool signature')
-    s.add_argument('tool')
+    s = sub.add_parser('sig', help='print one or more tool signatures')
+    s.add_argument('tool', nargs='+')
     s.set_defaults(fn=cmd_sig)
     s = sub.add_parser('call', help='run any tool through the isolated worker')
     s.add_argument('tool')
     s.add_argument('--json', help='keyword arguments as a JSON object string')
-    s.add_argument('--args', help='keyword arguments in a JSON file')
+    s.add_argument('--args', help='keyword arguments in a JSON file (or - for stdin)')
     s.add_argument('--out', help='new evidence file for the full result')
+    s.add_argument('--accel', choices=['auto', 'on', 'off', 'simple', 'complex'],
+                   help='task-complexity acceleration mode (default: auto classifier)')
+    s.add_argument('--task-hint', metavar='TEXT', help='complexity hint for the internal classifier')
     s.set_defaults(fn=cmd_call)
     s = sub.add_parser('render', help='native 300 dpi PNG next to each CDXML (replaces only its own earlier render)')
     s.add_argument('files', nargs='+')
@@ -916,23 +982,32 @@ def main(argv=None):
     s.add_argument('--preflight', action='store_true', help='no upload; the remote engine only reports what it would send')
     s.add_argument('--no-upload', action='store_true', help='never use a remote engine')
     s.add_argument('--timeout', type=int, default=600)
-    s.add_argument('--out', help='new JSON file for the raw DECIMER response')
+    s.add_argument('--out', help='new evidence file for the full result')
+    s.add_argument('--accel', choices=['auto', 'on', 'off', 'simple', 'complex'],
+                   help='task-complexity acceleration mode (default: auto classifier)')
+    s.add_argument('--task-hint', metavar='TEXT', help='complexity hint for the internal classifier')
     s.set_defaults(fn=cmd_ocsr)
     s = sub.add_parser('predict', help='model predictions: cdx.py predict products "A.B" | retro "TARGET" | nmr "SMILES" | '
                                        'conditions "A.B" --products "P" '
-                                       '[--engine NAME] [--json ARGS]; always labelled as predictions')
+                                       '[--engine NAME] [--json ARGS | --args FILE] [--out FILE]; always labelled as predictions')
     s.add_argument('task', choices=list(PREDICT))
     s.add_argument('smiles', nargs='?')
     s.add_argument('--products', help='with conditions: the product SMILES')
     s.add_argument('--engine')
     s.add_argument('--json', help='further tool arguments as a JSON object or file (steps, count, nucleus, solvent, ...)')
-    s.set_defaults(fn=cmd_predict, args=None)
+    s.add_argument('--args', help='further tool arguments in a JSON file (or - for stdin)')
+    s.add_argument('--out', help='new evidence file for the full result')
+    s.add_argument('--accel', choices=['auto', 'on', 'off', 'simple', 'complex'],
+                   help='task-complexity acceleration mode (default: auto classifier)')
+    s.add_argument('--task-hint', metavar='TEXT', help='complexity hint for the internal classifier')
+    s.set_defaults(fn=cmd_predict)
     s = sub.add_parser('engines', help='list the optional engines, what each is for and its disk use; '
                                        '--recommend NEED (a task such as ocsr, pdf or retrosynthesis; an unknown one '
                                        'lists them) suggests what to install (downloads nothing)')
     s.add_argument('--recommend', metavar='NEED')
     s.add_argument('--sizes', action='store_true', help='measure every engine folder again (slow; otherwise the size '
                                                         'recorded when the engine was installed is shown)')
+    s.add_argument('--stop-daemons', action='store_true', help='stop any warm resident engine workers immediately')
     s.set_defaults(fn=cmd_engines)
     s = sub.add_parser('remove-engines', help='delete installed engines: cdx.py remove-engines molnextr [--yes] (dry run '
                                               'without --yes)')

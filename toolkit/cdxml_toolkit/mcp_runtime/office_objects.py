@@ -376,6 +376,10 @@ def _render_cdxml_preview(source: str, destination: str) -> None:
     )
 
 
+_DEFAULT_CONVERT_CDX_TO_CDXML = _convert_cdx_to_cdxml
+_DEFAULT_RENDER_CDXML_PREVIEW = _render_cdxml_preview
+
+
 def _validate_cdxml_text(value: str, label: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise RuntimeError(f"CDX conversion returned empty CDXML for {label}")
@@ -386,6 +390,38 @@ def _validate_cdxml_text(value: str, label: str) -> str:
     if _local_name(root.tag) != "CDXML":
         raise RuntimeError(f"CDX conversion returned a non-CDXML root for {label}")
     return value
+
+
+def _batch_convert_cdx_records(records: list[dict[str, Any]]) -> list[str]:
+    from cdxml_toolkit.chemdraw.cdx_converter import batch_convert_files
+
+    with com_apartment(), native_io.ascii_workspace(prefix="cdx-batch-") as workspace:
+        input_paths: list[str] = []
+        for idx, record in enumerate(records):
+            cdx_file = workspace / f"object_{idx:03d}.cdx"
+            cdx_file.write_bytes(record["_cdx_data"])
+            input_paths.append(str(cdx_file))
+        batch_results = batch_convert_files(input_paths, method="auto")
+        outputs: list[str] = []
+        for record, inp_path in zip(records, input_paths):
+            entry = batch_results.get(inp_path) or {}
+            if entry.get("error") or not entry.get("output"):
+                raise RuntimeError(
+                    f"CDX conversion failed for {record['object_id']}: "
+                    f"{entry.get('error') or 'no output'}"
+                )
+            out_path = Path(entry["output"])
+            if not out_path.is_file():
+                raise RuntimeError(
+                    f"CDX conversion produced no file for {record['object_id']}"
+                )
+            outputs.append(
+                _validate_cdxml_text(
+                    out_path.read_text(encoding="utf-8", errors="replace"),
+                    record["object_id"],
+                )
+            )
+        return outputs
 
 
 def write_inspection(
@@ -404,30 +440,67 @@ def write_inspection(
     object_dir.mkdir(parents=True, exist_ok=True)
     if render_previews:
         preview_dir.mkdir(parents=True, exist_ok=True)
+
+    if len(records) > 1 and _convert_cdx_to_cdxml is _DEFAULT_CONVERT_CDX_TO_CDXML:
+        cdxml_texts = _batch_convert_cdx_records(records)
+    else:
+        cdxml_texts = [
+            _validate_cdxml_text(
+                _convert_cdx_to_cdxml(record["_cdx_data"]), record["object_id"]
+            )
+            for record in records
+        ]
+
+    use_batch_preview = (
+        render_previews
+        and len(records) > 1
+        and _render_cdxml_preview is _DEFAULT_RENDER_CDXML_PREVIEW
+    )
     public_records = []
-    for record in records:
+    preview_jobs: list[tuple[Path, Path, dict[str, Any], str]] = []
+    for record, cdxml_text in zip(records, cdxml_texts):
         ordinal = record["ordinal"]
         stem = f"object_{ordinal:03d}"
         cdxml_relative = Path("objects") / f"{stem}.cdxml"
         cdxml_path = destination / cdxml_relative
-        cdxml_text = _validate_cdxml_text(
-            _convert_cdx_to_cdxml(record["_cdx_data"]), record["object_id"]
-        )
         cdxml_path.write_text(cdxml_text, encoding="utf-8")
         public = {key: value for key, value in record.items() if not key.startswith("_")}
         public["cdxml"] = cdxml_relative.as_posix()
         if render_previews:
             preview_relative = Path("previews") / f"{stem}.png"
             preview_path = destination / preview_relative
-            _render_cdxml_preview(str(cdxml_path), str(preview_path))
-            if not preview_path.is_file() or preview_path.stat().st_size == 0:
-                raise RuntimeError(f"ChemDraw preview was not created: {preview_path}")
-            from PIL import Image
+            if use_batch_preview:
+                preview_jobs.append((cdxml_path, preview_path, public, preview_relative.as_posix()))
+            else:
+                _render_cdxml_preview(str(cdxml_path), str(preview_path))
+                if not preview_path.is_file() or preview_path.stat().st_size == 0:
+                    raise RuntimeError(f"ChemDraw preview was not created: {preview_path}")
+                from PIL import Image
 
-            with Image.open(preview_path) as image:
-                image.verify()
-            public["preview_png"] = preview_relative.as_posix()
+                with Image.open(preview_path) as image:
+                    image.verify()
+                public["preview_png"] = preview_relative.as_posix()
         public_records.append(public)
+
+    if preview_jobs:
+        from PIL import Image
+
+        with native_renderer.NativeRenderSession() as session:
+            for cdxml_path, preview_path, public, preview_rel_posix in preview_jobs:
+                native_io.bridge_file(
+                    str(cdxml_path),
+                    str(preview_path),
+                    lambda native_src, native_dst: session.render(
+                        native_src, native_dst, dpi=300
+                    ),
+                    output_kind="png",
+                )
+                if not preview_path.is_file() or preview_path.stat().st_size == 0:
+                    raise RuntimeError(f"ChemDraw preview was not created: {preview_path}")
+                with Image.open(preview_path) as image:
+                    image.verify()
+                public["preview_png"] = preview_rel_posix
+
     manifest = {
         "schema_version": 1,
         "kind": "chemdraw-office-inspection",

@@ -17,9 +17,12 @@ python scripts/install.py --destination <any skills folder>/chemdraw --apply
 | --- | --- | --- | --- |
 | `claude` | `~/.claude/skills/` | `.claude/skills/` | Claude Code; also read by GitHub Copilot and OpenCode |
 | `agents` | `~/.agents/skills/` | `.agents/skills/` | The shared folder of the Agent Skills convention: Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and others |
+| `codex` | `~/.agents/skills/` | `.agents/skills/` | Alias for `agents` (Codex CLI and app) |
 | `gemini` | `~/.gemini/skills/` | `.gemini/skills/` | Gemini CLI |
+| `antigravity` | `~/.gemini/antigravity/skills/` | `.agent/skills/` | Antigravity |
 | `copilot` | `~/.copilot/skills/` | `.github/skills/` | GitHub Copilot (VS Code and CLI) |
 | `cursor` | `~/.cursor/skills/` | `.cursor/skills/` | Cursor |
+| `windsurf` | `~/.codeium/windsurf/skills/` | `.windsurf/skills/` | Windsurf |
 | `opencode` | `~/.config/opencode/skills/` | `.opencode/skills/` | OpenCode |
 | `kimi` | `~/.kimi-code/skills/` | `.kimi-code/skills/` | Kimi CLI; also reads `~/.agents/skills/` |
 | `pi` | `~/.pi/agent/skills/` | `.pi/skills/` | pi; also reads `~/.agents/skills/`; runs shell commands without asking |
@@ -79,16 +82,16 @@ Command-line registration, for example `claude mcp add --scope user cdxml-toolki
 ## Command reference
 
 ```text
-cdx.py tools [--detail summary]           list tools, timeouts and native-lock use
-cdx.py sig TOOL                           print one generated signature
-cdx.py call TOOL --json '{...}' | --args FILE [--out NEW.json]
+cdx.py tools [QUERY] [--detail summary]   list tools, timeouts and native-lock use
+cdx.py sig TOOL...                        print one or more generated signatures
+cdx.py call TOOL --json '{...}' | --args FILE [--out NEW.json] [--accel auto|on|off|simple|complex] [--task-hint TEXT]
 cdx.py render A.cdxml [B.cdxml ...] [--out-dir DIR] [--replace]
 cdx.py build SPEC.json NEW.cdxml [--render]
 cdx.py draw BRIEF.json [OUTPUT] [--render] [--out NEW.json]   checked scheme, scope panel or mechanism from a brief
 cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--timeout S] [--out NEW.json]
-cdx.py ocsr IMAGE [--engines a,b|all] [--hand-drawn] [--preflight] [--no-upload] [--timeout S] [--out NEW.json]   several OCSR engines, compared
-cdx.py predict products|retro|nmr|conditions SMILES [--products P] [--engine NAME] [--json ARGS]   model predictions (see engines.md)
-cdx.py engines [--recommend NEED]         which optional engines are installed, their disk use; what to install for a need
+cdx.py ocsr IMAGE [--engines a,b|all] [--hand-drawn] [--preflight] [--no-upload] [--timeout S] [--out NEW.json] [--accel MODE] [--task-hint TEXT]   several OCSR engines, compared
+cdx.py predict products|retro|nmr|conditions SMILES [--products P] [--engine NAME] [--json ARGS] [--args FILE] [--out FILE] [--accel MODE] [--task-hint TEXT]   model predictions (see engines.md)
+cdx.py engines [--sizes] [--recommend NEED] [--stop-daemons]   which optional engines are installed, their disk use; what to install for a need
 cdx.py install-engines NAME... [--bundle B] [--task T] [--dry-run] [--status]   optional engines, each in its own environment
 cdx.py remove-engines NAME... [--yes]     delete installed engines (dry run without --yes)
 cdx.py markush init|next|submit|status WORKDIR [TASK ANSWER.json] [--image IMG --text CLAIM --crop X0 Y0 X1 Y1 --reuse OLD]
