@@ -160,12 +160,10 @@ async function main() {
   const fills = () => run(`[...document.querySelectorAll(".progress a i i")].map((i) => new DOMMatrix(getComputedStyle(i).transform).a)`);
   check("nothing read at the top", (await fills()).every((f) => f < 0.05), await fills());
   await run(`scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" })`);
-  await sleep(120);
-  check("everything read at the bottom", (await fills()).every((f) => f > 0.99), await fills());
-  check("the last chapter is lit in the header", await run(`document.querySelector('.nav a[href="#faq"]').getAttribute("aria-current") === "true"`));
+  check("everything read at the bottom", await until(`(() => { scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }); return [...document.querySelectorAll(".progress a i i")].every((i) => new DOMMatrix(getComputedStyle(i).transform).a > 0.99); })()`, 2500), await fills());
+  check("the last chapter is lit in the header", await until(`document.querySelector('.nav a[href="#faq"]').getAttribute("aria-current") === "true"`, 2500));
   await run(`scrollTo({ top: 0, behavior: "instant" })`);
-  await sleep(120);
-  check("no chapter is lit at the top", (await count(`.nav [aria-current]`)) === 0);
+  check("no chapter is lit at the top", await until(`document.querySelectorAll(".nav [aria-current]").length === 0`, 2500));
   const segment = await run(`(() => { const r = document.querySelector(".progress a[href='#start']").getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
   await move(segment);
   await sleep(200);
