@@ -28,7 +28,7 @@
 <p align="center">
   <b>English</b> · <a href="README.zh-cn.md">&#31616;&#20307;&#20013;&#25991;</a>
   <br>
-  <a href="#quick-start">Quick start</a> · <a href="#gallery">Gallery</a> · <a href="#what-it-handles">What it handles</a> · <a href="#reaction-calculator-and-chemistry-reports">Calculator</a> · <a href="#featured-demos">Demos</a> · <a href="#platform-support">Platforms</a> · <a href="#common-questions">FAQ</a> · <a href="docs/guide.md">Guide</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/en/">Website</a>
+  <a href="#quick-start">Quick start</a> · <a href="#gallery">Gallery</a> · <a href="#what-it-handles">What it handles</a> · <a href="#reaction-calculator-and-chemistry-reports">Calculator</a> · <a href="#featured-demos">Demos</a> · <a href="#prediction-and-analysis-engines">Engines</a> · <a href="#platform-support">Platforms</a> · <a href="#common-questions">FAQ</a> · <a href="docs/guide.md">Guide</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/en/">Website</a>
 </p>
 
 <br>
@@ -87,6 +87,16 @@ Every card is a native ChemDraw render of an editable file in this repository. C
     <td width="33%" align="center" valign="top">
       <a href="#nmr-demo"><img src="assets/readme/gallery/nmr.png" alt="Editable experimental NMR spectrum"></a>
       <br><b>Spectra and plots</b><br><sub>Processed 1D NMR and numerical data as curves</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="#prediction-and-analysis-engines"><img src="assets/readme/engines/retro/route-aizynthfinder.png" alt="A predicted two-step route drawn in ChemDraw"></a>
+      <br><b>Predicted routes</b><br><sub>Four engines, one recorded route, misses shown</sub>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="#prediction-and-analysis-engines"><img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="Measured caffeine spectra with predicted shifts marked"></a>
+      <br><b>Predicted against measured NMR</b><br><sub>MagNET and NMRNet++ on a real spectrum</sub>
     </td>
   </tr>
 </table>
@@ -171,7 +181,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec, with abbreviation nodes, rich text, Chinese notes, arrows and boxed compound codes. |
 | **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
 | **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
-| **More engines and predictions** | Optional engines in their own environments: MolScribe, MolNexTR, MolParser (weights for non-commercial use only), MolVec and DECIMER (remote, or `decimer-local` on this computer) compared on the same image, structures found in a PDF with a contact sheet for review, and predicted products, precursors and routes (AiZynthFinder, SynPlanner, RetroChimera with Syntheseus for research use, ReactionT5), reaction-condition candidates (Reacon, whose authors state no licence) and 1H/13C shifts (MagNET, NMRNet++). The engines use an NVIDIA GPU when one is present (`CHEMDRAW_ENGINE_DEVICE=cpu` turns that off). Every result is a labelled prediction; disagreeing engines are never merged. See [engines](skill/chemdraw/references/engines.md). |
+| **Engines and predictions** | Fifteen optional engines, installed only when you agree: five OCSR readers compared on one image, structures found in a PDF, precursors, routes, products, reaction conditions and 1H/13C shifts, each case run against a known answer. Every result is a labelled prediction. [Cases and install sizes](#prediction-and-analysis-engines). |
 | **Molecule comparison** | RDKit fingerprint similarity everywhere; exact-identity checks through ChemScript on Windows or ChemDraw for macOS. |
 | **Calculators and reports** | ChemDraw's own stoichiometry grid for amounts and yield, read back as data; SI materials tables with process mass intensity; HRMS lines and whole characterization paragraphs; reagent safety reminders; overall yield of a route; atom mapping; property sheets, reaction balance and structure export. [Details below](#reaction-calculator-and-chemistry-reports). |
 | **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation and editable assembly. |
@@ -462,6 +472,123 @@ A generic structure from a patent figure plus claim text: R groups and linkers, 
 
 </details>
 
+## Prediction and analysis engines
+
+Fifteen optional engines read structure images, find structures in a PDF, and predict precursors, products, reaction conditions and NMR shifts. Nothing is installed until you agree, each engine lives in its own environment, a local engine uploads nothing while it runs (the remote DECIMER service is the one engine that sends an image out), and every answer is labelled a model prediction. Disagreeing engines are shown side by side, never merged.
+
+The cases below were run on one Windows laptop with an RTX 5090 GPU. Each is scored against a reviewed structure, a recorded experiment or a measured spectrum, and the misses are kept. They show how the engines behave on these inputs, not how accurate they are in general. Inputs, outputs, scoring and timings are in [`assets/readme/engines/`](assets/readme/engines/provenance.json). Times are what the engine reports, including loading its model, because an engine process starts for every call.
+
+### Structure images and PDFs
+
+> **You say:** "Read this structure with every local engine and show me where they disagree." · "Pull every structure out of this PDF and read them."
+
+Three crops from a published scheme (compounds 13a, 16 and 17, with R and SiMe<sub>2</sub>Ph drawn as abbreviations) and a clean ChemDraw drawing of imatinib went through five engines. A reading counts as right when its connectivity equals the reviewed structure, with R and X read as a wildcard; stereochemistry is not scored.
+
+<table>
+  <tr>
+    <td align="center" valign="bottom"><img src="assets/readme/engines/ocsr/imatinib.png" height="110" alt="Imatinib drawn in ChemDraw"><br><sub>imatinib</sub></td>
+    <td align="center" valign="bottom"><img src="assets/readme/engines/ocsr/13a.png" height="110" alt="Compound 13a cut from a published scheme"><br><sub>13a</sub></td>
+    <td align="center" valign="bottom"><img src="assets/readme/engines/ocsr/16.png" height="110" alt="Compound 16 cut from a published scheme"><br><sub>16</sub></td>
+    <td align="center" valign="bottom"><img src="assets/readme/engines/ocsr/17.png" height="110" alt="Compound 17 cut from a published scheme"><br><sub>17</sub></td>
+  </tr>
+</table>
+
+| Image | MolScribe | MolNexTR | MolParser | MolVec | DECIMER (remote) |
+| --- | --- | --- | --- | --- | --- |
+| imatinib, clean drawing | right | right | right | right | right |
+| 13a, R and SiMe<sub>2</sub>Ph | wrong (silyl group lost, stray fragment) | right | right | wrong (P for R) | wrong (Hg on the ring) |
+| 16, X abbreviation | wrong (X lost, stray C) | wrong (X lost) | invalid SMILES | wrong (ethyl for CH<sub>2</sub>X) | wrong (NHMe in place of the ring methyl) |
+| 17, bridged cage | invalid SMILES | right (carries a <sup>14</sup>C label) | invalid SMILES | wrong | right |
+| **Right** | 1 of 4 | 3 of 4 | 2 of 4 | 1 of 4 | 2 of 4 |
+| Time per image | 17 s | 19 s | 15 s | 3 s | 4 s (network) |
+
+Two engines agreeing was a useful hint here: on 13a MolNexTR and MolParser agree and are right, on 17 MolNexTR and DECIMER agree and are right. On 16 all five fail and no two agree, which is the signal to read the drawing yourself. `decimer-local` installed but did not run: its TensorFlow 2.21 and Keras 3 stack stops on `keras.callbacks.experimental`, so no case is scored for it and the remote DECIMER stays the default.
+
+<img src="assets/readme/engines/pdf/contact-sheet.png" width="320" align="right" alt="Contact sheet: each segment cut from the PDF beside what MolScribe and MolVec read">
+
+A two-page PDF of the same scheme and a second published scheme went through DECIMER Segmentation, then MolScribe and MolVec for each crop. Page 1 gave 5 crops for its 5 structures, and only 1 of them (2,2-dimethoxypropane) was read by both engines; the others lose their abbreviated groups, and one crop includes a neighbour's text. Page 2 gave 9 crops, five of them with no reading from either engine. The sheet puts each crop beside what each engine read, which is how these misses are caught; the run took 418 s for 14 crops.
+
+**Install:** `ocsr-standard` (MolScribe and MolVec, 4.7 GB), `ocsr-full` (adds MolNexTR and MolParser, 12.9 GB), `pdf` (segmenter, MolScribe, MolVec, 6.8 GB). MolParser's weights are non-commercial only. MolVec needs Java. [Details](skill/chemdraw/references/engines.md#reading-a-structure-image)
+
+### Routes, products and conditions
+
+> **You say:** "Find precursors for this target with the local retrosynthesis engines and draw the routes." · "What does this reaction give, and under what conditions?"
+
+Two steps from a lab notebook ([KL-CC-001 and KL-CC-002](toolkit/samples/KL-CC-002/scheme.png): a Pd-catalysed amination, then a butyllithium alkylation) and the published amide disconnection of imatinib have a known answer to check against.
+
+| Retrosynthesis | AiZynthFinder | RetroChimera | ReactionT5 (retro) | SynPlanner |
+| --- | --- | --- | --- | --- |
+| KL-CC-001, recorded: 4-bromothieno[2,3-d]pyrimidine + morpholine | recorded pair at rank 2; rank 1 is the 4-chloro analogue | chloro analogue at rank 1, recorded pair not in the top 5 | miss (2,4-dichloro compound with a phosphine mixed in) | recorded pair in route 4; route 1 is the chloro analogue |
+| imatinib, amide + aniline | rank 2 (acid) and 3 (acid chloride) | rank 1 (acid chloride) | miss | no search: the target is in its building-block list |
+| KL-CC-002, recorded 2-step route | miss | miss | miss | miss |
+| Time | 18 to 34 s | 99 to 155 s | 15 to 19 s | 44 to 76 s |
+
+For KL-CC-002 no engine proposed the recorded last step. AiZynthFinder's top route starts from two of the three recorded building blocks (the bromo heterocycle and morpholine) but closes the C–C bond from an aldehyde instead of a tosylate; SynPlanner's and RetroChimera's top routes go through different disconnections. All three route schemes below are drawn as predicted, and the figure tool's balance check flags missing by-products in each.
+
+<table>
+  <tr>
+    <td width="33%" align="center" valign="top"><img src="assets/readme/engines/retro/route-aizynthfinder.png" alt="AiZynthFinder top route for KL-CC-002"><br><sub>AiZynthFinder</sub></td>
+    <td width="33%" align="center" valign="top"><img src="assets/readme/engines/retro/route-synplanner.png" alt="SynPlanner top route for KL-CC-002"><br><sub>SynPlanner</sub></td>
+    <td width="33%" align="center" valign="top"><img src="assets/readme/engines/retro/route-retrochimera.png" alt="RetroChimera top route for KL-CC-002"><br><sub>RetroChimera</sub></td>
+  </tr>
+</table>
+
+**Products.** ReactionT5 (forward) returned the recorded product at rank 1 for all three reactions (11 to 16 s); ranks 2 to 5 include a dehydromorpholine and a furan with O in place of S, which is why only the top answers are worth reading. **Conditions.** Reacon missed all three: it proposed sodium azide in THF for the amination (no template matched, which it reports), sodium hydride in DMF for the alkylation (recorded: n-BuLi, THF), and dichloromethane first for the imatinib amide (pyridine, the classic medium, came third). It returns catalyst, solvent and reagent sets only, never temperature, time or amounts. Times are 16 to 27 s.
+
+<img src="assets/readme/engines/forward/products.png" alt="The two recorded steps drawn with the products ReactionT5 predicted at rank 1 and the recorded conditions and yields">
+
+**Install:** `retro` (AiZynthFinder, 1.7 GB), `products` (3.9 GB), `conditions` (Reacon, 1.9 GB); SynPlanner and ReactionT5 retro by name; `retro-chimera` (8.5 GB, needs about 14 GB of free memory). RetroChimera is for research use only and Reacon's authors state no licence, so it is downloaded from their repository only when you ask. [Details](skill/chemdraw/references/engines.md#predictions)
+
+### NMR shifts against a measured spectrum
+
+> **You say:** "Predict the 1H and 13C shifts of caffeine with both NMR models and compare them with the measured spectrum."
+
+Real processed spectra of caffeine (D<sub>2</sub>O), coumarin and carvone (CDCl<sub>3</sub>) came from the BMRB metabolomics collection. The chart shows the spectrum as an editable curve with each prediction as a line and the measured peaks as ticks, built with the toolkit's drawing helpers. Each predicted group is paired with its nearest unused measured peak (a one-to-one best match, no assignment); the table gives the mean absolute error in ppm.
+
+<img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="Caffeine 1H and 13C spectra with MagNET and NMRNet++ predictions marked">
+
+| Molecule | Nucleus | MagNET | NMRNet++ | Peaks matched |
+| --- | --- | --- | --- | --- |
+| caffeine | 1H | 0.18 | 0.20 | 4 of 4 |
+| caffeine | 13C | 1.9 | 2.9 | 8 of 8 |
+| coumarin | 1H | 0.22 | 0.01 | 6 of 6 |
+| carvone | 1H | 0.18 | 0.04 | 7 of 8 |
+| carvone | 13C | 3.5 (worst 10.6) | 0.19 | 10 of 10 |
+
+Coumarin's 13C spectrum shows only 6 of its 9 carbons above the noise, so it is not scored. NMRNet++ is almost exact on coumarin and carvone, which suggests those common molecules are in its training data; treat that as a ceiling and caffeine as the fairer test, where the mean errors are about 0.2 ppm for 1H and 2 to 3 ppm for 13C. Runs take 57 to 106 s for both engines and both nuclei. The measured peak lists are BMRB's for 1H and the toolkit's peak picking for 13C. Predicted values never go into an experimental characterization line.
+
+**Install:** `nmr` (MagNET, 5.4 GB) and `nmr-pp` (NMRNet++, 2.8 GB; its weights are CC BY 4.0, and it takes no solvent). [Charts and data for all three molecules](assets/readme/engines/nmr/)
+
+### LCMS plates
+
+> **You say:** "Check this OpenLynx report against the plate map and tell me which wells contain the expected product."
+
+No engine is needed. The 24-well Waters report and plate map from the PyParse example dataset (Apache-2.0) were parsed in 11 s. The expected product was found in 24 of 24 wells: 21 as [M+H]<sup>+</sup>, two Boc-protected piperazines (B3, B5) as the [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> fragment, and the carboxylic acid in B11 as [M−H]<sup>−</sup>. Against PyParse's own output the retention time and purity agree to 0.01 in 23 wells. The exception, B6, is a matching choice: the toolkit takes the peak carrying the intact [M+H]<sup>+</sup> (92.9%), PyParse the peak of the fragment (7.1%). [match_plate.py](assets/readme/engines/lcms/match_plate.py) shows the rule.
+
+<img src="assets/readme/engines/lcms/panel/page-001.png" alt="Four wells of the plate with their expected mass, found ion, retention time, purity and PyParse values">
+
+### The fifteen engines
+
+| Engine | Does | Disk | Licence | GPU |
+| --- | --- | --- | --- | --- |
+| `decimer-api` | image to structure, remote service | none | MIT | no |
+| `decimer-local` | the same model on this computer | 2.3 GB | MIT | no (did not run here) |
+| `molscribe` | image to structure | 4.7 GB | MIT | yes |
+| `molnextr` | image to structure | 4.8 GB | Apache-2.0 | yes |
+| `molparser` | image to structure, Markush | 3.4 GB | weights non-commercial | yes |
+| `molvec` | image to structure, rule-based | 2 MB | Apache-2.0 | no (Java) |
+| `decimer-segmentation` | find structures on a page | 2.1 GB | MIT | no |
+| `aizynthfinder` | retrosynthesis, routes | 1.7 GB | MIT | no |
+| `synplanner` | retrosynthesis, routes | 4.8 GB | MIT | yes |
+| `reactiont5-forward` | products | 3.9 GB | MIT | yes |
+| `reactiont5-retro` | single-step retrosynthesis | 3.9 GB | MIT | yes |
+| `retrochimera` | single-step retrosynthesis and routes | 8.5 GB | research use only | yes |
+| `magnet` | 1H and 13C shifts | 5.4 GB | MIT | yes |
+| `nmrnet-pp` | 1H and 13C shifts, second model | 2.8 GB | code MIT, weights CC BY 4.0 | yes |
+| `reacon` | catalyst, solvent and reagent sets | 1.9 GB | none stated by the authors | yes |
+
+Sizes are finished installs on Windows with the CUDA build of PyTorch; a CPU install is smaller. `CHEMDRAW_ENGINE_HOME` moves them to another disk. `cdx.py engines --recommend NEED` says what a task needs before anything is downloaded. The licence and registry details are in [engines.md](skill/chemdraw/references/engines.md).
+
 ## Reproduce a paper figure
 
 Start with the whole figure, then follow one route:
@@ -596,6 +723,14 @@ Yes, with ChemDraw's own calculator. `cdx.py calc` runs Structure > Analyze Stoi
 <br>
 
 It is a reminder from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", never as safe. The values were written from typical supplier classifications and differ between suppliers, so check the SDS of the product you actually use.
+
+</details>
+
+<details>
+<summary><b>What do the prediction engines need, and how far can I trust them?</b></summary>
+<br>
+
+They need disk space (from 2 MB to about 8.5 GB per engine, [listed above](#the-fifteen-engines)), a network once to install, and for most of them an NVIDIA GPU is optional but makes them faster; they run offline afterwards. RetroChimera needs about 14 GB of free memory. Treat every answer as a candidate. In the cases above the engines recovered a recorded product and some recorded precursors, missed others, and agreed with measured NMR shifts to about 0.2 ppm for 1H and 2 to 3 ppm for 13C on one fair test. Reacon's conditions missed all three recorded ones. When engines agree it is a hint, and when they do not it is the signal to check by hand. Licences: MolParser's weights are non-commercial, RetroChimera is for research only, Reacon's authors state no licence.
 
 </details>
 

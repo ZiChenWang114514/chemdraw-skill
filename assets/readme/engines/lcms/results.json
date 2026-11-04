@@ -1,0 +1,416 @@
+{
+ "source": "PyParse v1.1.0 example dataset, Waters/Example1 (Zenodo; Apache-2.0)",
+ "plate": "24 wells, A1-B12",
+ "compared": "toolkit parse_analysis_file + match_plate.py vs PyParse output/compoundtable.csv (time, best_purity)",
+ "agree_within_0.01": "23/24",
+ "wells": [
+  {
+   "well": "A1",
+   "smiles": "ClC1=CC=C2C=CC(Br)=CC2=N1",
+   "expected_MH": 241.94,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 1.23,
+   "area_pct": 100.0,
+   "ion": 243.94,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.23,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A2",
+   "smiles": "COC1=NC2=CC=C(Br)C=C2C=C1",
+   "expected_MH": 237.99,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 1.2958,
+   "area_pct": 98.93,
+   "ion": 240.05,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.3,
+    "best_purity_pct": 98.93
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A3",
+   "smiles": "CCC1=CC=C2C=C(C=NC2=C1)C(O)=O",
+   "expected_MH": 202.09,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 0.5863,
+   "area_pct": 100.0,
+   "ion": 202.13,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 0.59,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A4",
+   "smiles": "CC1=CC(C)=C2C=CC(=CC2=N1)C(O)=O",
+   "expected_MH": 202.09,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 0.5483,
+   "area_pct": 98.21,
+   "ion": 202.16,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 0.55,
+    "best_purity_pct": 98.21
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A5",
+   "smiles": "BrC1=CC=C2C=CC=C(Br)C2=N1",
+   "expected_MH": 285.89,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 1.2246,
+   "area_pct": 97.78,
+   "ion": 287.84,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.22,
+    "best_purity_pct": 97.78
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A6",
+   "smiles": "BrC1=CC=C2N=C(C=CC2=C1)C#N",
+   "expected_MH": 232.97,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 1.1142,
+   "area_pct": 100.0,
+   "ion": 232.93,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.11,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A7",
+   "smiles": "ClC1=CC=NC2=CC=C(Br)C=C12",
+   "expected_MH": 241.94,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 1.2284,
+   "area_pct": 100.0,
+   "ion": 243.97,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.23,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A8",
+   "smiles": "N1C=C(C=N1)C1=NC2=CC=CC=C2C=C1",
+   "expected_MH": 196.09,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 0.8229,
+   "area_pct": 100.0,
+   "ion": 196.14,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 0.82,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A9",
+   "smiles": "OC1=CC(OCC2=CC=CC=C2)=C2C=CC=CC2=N1",
+   "expected_MH": 252.1,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 1.0309,
+   "area_pct": 95.08,
+   "ion": 252.16,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.03,
+    "best_purity_pct": 95.08
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A10",
+   "smiles": "CN1CCN(CC1)C1=CC=NC2=CC=C(N)C=C12",
+   "expected_MH": 243.16,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 0.6729,
+   "area_pct": 98.76,
+   "ion": 243.23,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 0.67,
+    "best_purity_pct": 98.76
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A11",
+   "smiles": "FC(F)(F)C1=CC=C2C=CC=C(Br)C2=N1",
+   "expected_MH": 275.96,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 1.2642,
+   "area_pct": 100.0,
+   "ion": 277.95,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.26,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "A12",
+   "smiles": "IC1=CC2=C(C=C1)N=CC=C2",
+   "expected_MH": 255.96,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 1.0684,
+   "area_pct": 100.0,
+   "ion": 255.98,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.07,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B1",
+   "smiles": "CC(C)(C)OC(=O)N1CCN(CC1)C1=CC=C(Br)C=N1",
+   "expected_MH": 342.08,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 1.3217,
+   "area_pct": 96.22,
+   "ion": 344.07,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.32,
+    "best_purity_pct": 96.22
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B2",
+   "smiles": "CC(C)(C)OC(=O)N1CCN(CC1)C1=CC=NC2=C1C=CN2",
+   "expected_MH": 303.18,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 1.0396,
+   "area_pct": 98.92,
+   "ion": 303.19,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.04,
+    "best_purity_pct": 98.92
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B3",
+   "smiles": "CC(C)(C)OC(=O)N1CCN(CC1)C1=NC=C(Br)C=N1",
+   "expected_MH": 343.08,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 1.3221,
+   "area_pct": 100.0,
+   "ion": 289.01,
+   "mode": "ES+",
+   "assigned_as": "[M+H-C4H8]+",
+   "pyparse": {
+    "time_min": 1.32,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B4",
+   "smiles": "BrC1=CC2=CC=CC=C2N=C1",
+   "expected_MH": 207.98,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 1.0654,
+   "area_pct": 100.0,
+   "ion": 208.0,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.07,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B5",
+   "smiles": "CC(C)(C)OC(=O)N1CCN(CC1C(O)=O)C(=O)OCC1C2=CC=CC=C2C2=CC=CC=C12",
+   "expected_MH": 453.2,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 0.9017,
+   "area_pct": 98.59,
+   "ion": 397.23,
+   "mode": "ES+",
+   "assigned_as": "[M+H-C4H8]+",
+   "pyparse": {
+    "time_min": 0.9,
+    "best_purity_pct": 98.59
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B6",
+   "smiles": "CC(C)(C)OC(=O)N1CCN(CC1)C1=CC=NC(Cl)=N1",
+   "expected_MH": 299.13,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 1.0684,
+   "area_pct": 92.87,
+   "ion": 299.12,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.28,
+    "best_purity_pct": 7.13
+   },
+   "agrees_with_pyparse": false
+  },
+  {
+   "well": "B7",
+   "smiles": "CC1=CC(=NC=C1Br)N1CCNCC1",
+   "expected_MH": 256.04,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 0.99,
+   "area_pct": 100.0,
+   "ion": 258.08,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 0.99,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B8",
+   "smiles": "BrC1=CC=C(Br)C2=C1C=CC=N2",
+   "expected_MH": 285.89,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 1.1763,
+   "area_pct": 95.95,
+   "ion": 287.86,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.18,
+    "best_purity_pct": 95.95
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B9",
+   "smiles": "BrC1=CC=CN=C1N1CCOCC1",
+   "expected_MH": 243.01,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 0.9542,
+   "area_pct": 100.0,
+   "ion": 245.05,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 0.95,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B10",
+   "smiles": "O=C(NC1=CC2=C(C=C1)N=CC=C2)NC1=CC2=C(C=C1)N=CC=C2",
+   "expected_MH": 315.12,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 0.8667,
+   "area_pct": 100.0,
+   "ion": 315.14,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 0.87,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B11",
+   "smiles": "OC(=O)C1=CC(=CN=C1Cl)C(F)(F)F",
+   "expected_MH": 225.99,
+   "peaks_in_sample": 1,
+   "found": true,
+   "rt_min": 0.4296,
+   "area_pct": 100.0,
+   "ion": 224.1,
+   "mode": "ES-",
+   "assigned_as": "[M-H]-",
+   "pyparse": {
+    "time_min": 0.43,
+    "best_purity_pct": 100.0
+   },
+   "agrees_with_pyparse": true
+  },
+  {
+   "well": "B12",
+   "smiles": "CN1CCN(CC1)C1=NC=C(Br)C=C1",
+   "expected_MH": 256.04,
+   "peaks_in_sample": 2,
+   "found": true,
+   "rt_min": 1.015,
+   "area_pct": 98.33,
+   "ion": 258.09,
+   "mode": "ES+",
+   "assigned_as": "[M+H]+",
+   "pyparse": {
+    "time_min": 1.01,
+    "best_purity_pct": 98.33
+   },
+   "agrees_with_pyparse": true
+  }
+ ]
+}

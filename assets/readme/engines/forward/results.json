@@ -1,0 +1,295 @@
+{
+ "KL-CC-001": {
+  "reactants": "Brc1ncnc2sccc12.C1COCCN1",
+  "reagents_given": "C1COCCO1.O=C([O-])[O-].[Cs+].[Cs+]",
+  "recorded_product": "c1nc(N2CCOCC2)c2ccsc2n1",
+  "product_rank_of_recorded": 1,
+  "forward_s": 15.84,
+  "forward_wall_s": 23.3,
+  "products": [
+   {
+    "rank": 1,
+    "smiles": "c1nc(N2CCOCC2)c2ccsc2n1",
+    "score": 0.0,
+    "valid": true,
+    "is_recorded_product": true
+   },
+   {
+    "rank": 2,
+    "smiles": "C1=CN(c2ncnc3sccc23)CCO1",
+    "score": -0.816,
+    "valid": true,
+    "is_recorded_product": false
+   },
+   {
+    "rank": 3,
+    "smiles": "C1CN(c2ncnc3sccc23)CCO1",
+    "score": -0.94,
+    "valid": true,
+    "is_recorded_product": true
+   },
+   {
+    "rank": 4,
+    "smiles": "c1nc(N2CCOCC2)c2ccoc2n1",
+    "score": -0.949,
+    "valid": true,
+    "is_recorded_product": false
+   },
+   {
+    "rank": 5,
+    "smiles": "c1nc(N2CCOCC2)c2csc2n1",
+    "score": -1.027,
+    "valid": false,
+    "is_recorded_product": false
+   }
+  ],
+  "reacon": {
+   "template_level": "none",
+   "wall_s": 56.8,
+   "engine_s": 27.4,
+   "options": [
+    {
+     "rank": 1,
+     "catalyst": null,
+     "solvents": [
+      "C1CCOC1"
+     ],
+     "reagents": [
+      "[N]N=[N-].[Na+]"
+     ],
+     "score": 0.5963337645678379
+    },
+    {
+     "rank": 2,
+     "catalyst": null,
+     "solvents": [
+      "C1CCOC1"
+     ],
+     "reagents": [
+      "[N]N=[N-].[Na+]",
+      "Cl.N"
+     ],
+     "score": 0.3710780244733858
+    },
+    {
+     "rank": 3,
+     "catalyst": null,
+     "solvents": [],
+     "reagents": [
+      "[N]N=[N-].[Na+]"
+     ],
+     "score": 0.014486869511799672
+    },
+    {
+     "rank": 4,
+     "catalyst": null,
+     "solvents": [],
+     "reagents": [
+      "[N]N=[N-].[Na+]",
+      "Cl.N"
+     ],
+     "score": 0.009014681439576289
+    },
+    {
+     "rank": 5,
+     "catalyst": null,
+     "solvents": [
+      "C1CCOC1"
+     ],
+     "reagents": [
+      "[N]N=[N-].[Na+]",
+      "CCN(CC)CC.Cl"
+     ],
+     "score": 0.003731600823521433
+    }
+   ]
+  },
+  "recorded_conditions": "Pd2(dba)3, rac-BINAP, Cs2CO3, dioxane, 105 C, 24 h"
+ },
+ "KL-CC-002": {
+  "reactants": "Cc1ccc(S(=O)(=O)OCc2ccc[nH]2)cc1.c1nc(N2CCOCC2)c2ccsc2n1",
+  "reagents_given": "[Li][CH2]CCC",
+  "recorded_product": "c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1",
+  "product_rank_of_recorded": 1,
+  "forward_s": 14.4,
+  "forward_wall_s": 20.0,
+  "products": [
+   {
+    "rank": 1,
+    "smiles": "c1c[nH]c(Cc2cc3c(N4CCOCC4)ncnc3s2)c1",
+    "score": -0.018,
+    "valid": true,
+    "is_recorded_product": true
+   },
+   {
+    "rank": 2,
+    "smiles": "c1c[nH]c(CN2CCOCC2)c1",
+    "score": -0.046,
+    "valid": true,
+    "is_recorded_product": false
+   },
+   {
+    "rank": 3,
+    "smiles": "c1c[nH]c(Cc2ccsc2Nc2ncnc(N3CCOCC3)c2)c1",
+    "score": -0.139,
+    "valid": true,
+    "is_recorded_product": false
+   },
+   {
+    "rank": 4,
+    "smiles": "c1c[nH]c(CN2CCN(c3ncnc4sccc34)CC2)c1",
+    "score": -0.147,
+    "valid": true,
+    "is_recorded_product": false
+   },
+   {
+    "rank": 5,
+    "smiles": "c1c[nH]c(Cc2csc3ncnc(N4CCOCC4)c23)c1",
+    "score": -0.165,
+    "valid": true,
+    "is_recorded_product": false
+   }
+  ],
+  "reacon": {
+   "template_level": "r0",
+   "wall_s": 34.4,
+   "engine_s": 17.22,
+   "options": [
+    {
+     "rank": 1,
+     "catalyst": null,
+     "solvents": [
+      "CN(C)C=O"
+     ],
+     "reagents": [
+      "[H-].[Na+]"
+     ],
+     "score": 7.380803102269966e-09
+    },
+    {
+     "rank": 2,
+     "catalyst": null,
+     "solvents": [
+      "C1CCOC1"
+     ],
+     "reagents": [
+      "CCOC(C)=O",
+      "[H-].[Na+]"
+     ],
+     "score": 9.779593083846238e-10
+    },
+    {
+     "rank": 3,
+     "catalyst": null,
+     "solvents": [
+      "CCOC(C)=O",
+      "CN(C)C=O"
+     ],
+     "reagents": [
+      "[H-].[Na+]"
+     ],
+     "score": 2.0273104563874887e-12
+    }
+   ]
+  },
+  "recorded_conditions": "n-BuLi, THF, -78 C"
+ },
+ "imatinib": {
+  "reactants": "CN1CCN(Cc2ccc(C(=O)Cl)cc2)CC1.Cc1ccc(N)cc1Nc1nccc(-c2cccnc2)n1",
+  "reagents_given": "c1ccncc1",
+  "recorded_product": "Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1nccc(-c2cccnc2)n1",
+  "product_rank_of_recorded": 1,
+  "forward_s": 10.85,
+  "forward_wall_s": 16.1,
+  "products": [
+   {
+    "rank": 1,
+    "smiles": "Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1nccc(-c2cccnc2)n1",
+    "score": 0.0,
+    "valid": true,
+    "is_recorded_product": true
+   },
+   {
+    "rank": 2,
+    "smiles": "Cc1ccc(NC(=O)c2ccc(CN(C)C)cc2)cc1Nc1nccc(-c2cccnc2)n1",
+    "score": -0.514,
+    "valid": true,
+    "is_recorded_product": false
+   },
+   {
+    "rank": 3,
+    "smiles": "Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1cc(-c2cccnc2)ccn1",
+    "score": -0.525,
+    "valid": true,
+    "is_recorded_product": false
+   },
+   {
+    "rank": 4,
+    "smiles": "Cc1ccc(NC(=O)c2ccc(CN3(C)CCNCC3)cc2)cc1Nc1nccc(-c2cccnc2)n1",
+    "score": -0.547,
+    "valid": false,
+    "is_recorded_product": false
+   },
+   {
+    "rank": 5,
+    "smiles": "Cc1ccc(NC(=O)c2ccc(CN2CCN(C)CC2)cc1Nc1nccc(-c2cccnc2)n1",
+    "score": -0.605,
+    "valid": false,
+    "is_recorded_product": false
+   }
+  ],
+  "reacon": {
+   "template_level": "none",
+   "wall_s": 33.8,
+   "engine_s": 16.3,
+   "options": [
+    {
+     "rank": 1,
+     "catalyst": null,
+     "solvents": [
+      "ClCCl"
+     ],
+     "reagents": [],
+     "score": 0.20119457693054102
+    },
+    {
+     "rank": 2,
+     "catalyst": null,
+     "solvents": [],
+     "reagents": [],
+     "score": 0.1729784624163071
+    },
+    {
+     "rank": 3,
+     "catalyst": null,
+     "solvents": [
+      "c1ccncc1"
+     ],
+     "reagents": [],
+     "score": 0.12462373989896265
+    },
+    {
+     "rank": 4,
+     "catalyst": null,
+     "solvents": [
+      "ClCCl"
+     ],
+     "reagents": [
+      "CCN(CC)CC"
+     ],
+     "score": 0.08096963762467652
+    },
+    {
+     "rank": 5,
+     "catalyst": null,
+     "solvents": [],
+     "reagents": [
+      "CCN(CC)CC"
+     ],
+     "score": 0.069614219391
+    }
+   ]
+  },
+  "recorded_conditions": "acid chloride route; pyridine is the classic medium (literature)"
+ }
+}

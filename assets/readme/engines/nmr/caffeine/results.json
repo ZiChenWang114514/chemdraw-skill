@@ -1,0 +1,295 @@
+{
+ "solvent": "water",
+ "wall_s": 105.6,
+ "bmrb_entry": "bmse000206",
+ "experimental_1H_bmrb_peak_list": [
+  7.875,
+  3.878,
+  3.397,
+  3.229
+ ],
+ "experimental_13C_toolkit_peaks": [
+  158.37,
+  154.84,
+  150.69,
+  146.18,
+  109.99,
+  36.16,
+  32.51,
+  30.61
+ ],
+ "bmrb_13C_peak_list": [
+  158.368,
+  154.844,
+  146.174,
+  130.693,
+  109.993,
+  36.166,
+  32.517,
+  30.609
+ ],
+ "toolkit_analysis_sha256": {
+  "1H": "8f2a1143829f5960133f58246b81a6bc38b91e857eb25f3bd60f44374299ec25",
+  "13C": "20946597830bb40aa6dd5f69534aae762b95311fb44fe67d291bb4dcb5b4c07b"
+ },
+ "engines": {
+  "magnet": {
+   "predicted": {
+    "1H": [
+     [
+      7.77,
+      1
+     ],
+     [
+      3.98,
+      3
+     ],
+     [
+      3.68,
+      3
+     ],
+     [
+      3.47,
+      3
+     ]
+    ],
+    "13C": [
+     [
+      157.8,
+      1
+     ],
+     [
+      155.68,
+      1
+     ],
+     [
+      149.82,
+      1
+     ],
+     [
+      145.18,
+      1
+     ],
+     [
+      107.72,
+      1
+     ],
+     [
+      33.86,
+      1
+     ],
+     [
+      28.65,
+      1
+     ],
+     [
+      27.01,
+      1
+     ]
+    ]
+   },
+   "1H": {
+    "matched": 4,
+    "n_pred": 4,
+    "n_exp": 4,
+    "mae": 0.183,
+    "max_err": 0.283,
+    "pairs": [
+     [
+      7.77,
+      7.88
+     ],
+     [
+      3.98,
+      3.88
+     ],
+     [
+      3.68,
+      3.4
+     ],
+     [
+      3.47,
+      3.23
+     ]
+    ],
+    "unmatched_pred": [],
+    "unmatched_exp": []
+   },
+   "13C": {
+    "matched": 8,
+    "n_pred": 8,
+    "n_exp": 8,
+    "mae": 1.915,
+    "max_err": 5.503,
+    "pairs": [
+     [
+      157.8,
+      158.37
+     ],
+     [
+      155.68,
+      154.84
+     ],
+     [
+      149.82,
+      150.69
+     ],
+     [
+      145.18,
+      146.18
+     ],
+     [
+      107.72,
+      109.99
+     ],
+     [
+      33.86,
+      36.16
+     ],
+     [
+      27.01,
+      32.51
+     ],
+     [
+      28.65,
+      30.61
+     ]
+    ],
+    "unmatched_pred": [],
+    "unmatched_exp": []
+   }
+  },
+  "nmrnet-pp": {
+   "predicted": {
+    "1H": [
+     [
+      7.53,
+      1
+     ],
+     [
+      3.99,
+      3
+     ],
+     [
+      3.56,
+      3
+     ],
+     [
+      3.4,
+      3
+     ]
+    ],
+    "13C": [
+     [
+      155.22,
+      1
+     ],
+     [
+      151.76,
+      1
+     ],
+     [
+      148.82,
+      1
+     ],
+     [
+      141.7,
+      1
+     ],
+     [
+      107.33,
+      1
+     ],
+     [
+      33.64,
+      1
+     ],
+     [
+      29.86,
+      1
+     ],
+     [
+      27.87,
+      1
+     ]
+    ]
+   },
+   "1H": {
+    "matched": 4,
+    "n_pred": 4,
+    "n_exp": 4,
+    "mae": 0.198,
+    "max_err": 0.345,
+    "pairs": [
+     [
+      7.53,
+      7.88
+     ],
+     [
+      3.99,
+      3.88
+     ],
+     [
+      3.56,
+      3.4
+     ],
+     [
+      3.4,
+      3.23
+     ]
+    ],
+    "unmatched_pred": [],
+    "unmatched_exp": []
+   },
+   "13C": {
+    "matched": 8,
+    "n_pred": 8,
+    "n_exp": 8,
+    "mae": 2.896,
+    "max_err": 4.643,
+    "pairs": [
+     [
+      155.22,
+      158.37
+     ],
+     [
+      151.76,
+      154.84
+     ],
+     [
+      148.82,
+      150.69
+     ],
+     [
+      141.7,
+      146.18
+     ],
+     [
+      107.33,
+      109.99
+     ],
+     [
+      33.64,
+      36.16
+     ],
+     [
+      27.87,
+      32.51
+     ],
+     [
+      29.86,
+      30.61
+     ]
+    ],
+    "unmatched_pred": [],
+    "unmatched_exp": []
+   }
+  }
+ },
+ "warnings": [
+  "predicted shifts, not measured data: do not report them as experimental values",
+  "NMRNet++ is a single cross-validation model (fold 0), not the published five-model average; its models take no solvent, so the solvent argument does not change its answer",
+  "the geometry is an RDKit/MMFF conformer; MagNET-Zero was trained on AIMNet2 geometries, so errors can be larger than the published ones",
+  "simulated spectra draw singlets only (no coupling or multiplets)"
+ ]
+}

@@ -44,6 +44,7 @@
       "programmingLanguage": "Python",
       "license": "https://opensource.org/licenses/MIT",
       "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope",
+      "featureList": ["绘制可编辑的 ChemDraw 结构式和反应图", "复刻论文反应图与专利 Markush 通式", "由 CSV 或 Excel 生成 SAR 与底物拓展图", "反应计算器、表征文字和路线收率", "结构图识别：五个引擎并排比对，并可从 PDF 中抽取结构", "前体、路线、产物和反应条件预测，均标注为预测", "核磁位移预测与 OpenLynx LCMS 板核对"],
       "inLanguage": ["zh-CN", "en"],
       "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
     },
@@ -74,6 +75,8 @@
           "acceptedAnswer": { "@type": "Answer", "text": "它只是提醒，请以你实际使用的产品的 SDS 为准。 内容来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。 表里没有的物质显示“未收录”，不会显示成安全。" } },
         { "@type": "Question", "name": "能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "可以，输出可编辑 CDXML 和 ChemDraw 原生预览。 论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核。见重建指南。 图片不能上传，或者想多一份识别结果时，可选的本地引擎也会读一遍。各引擎的结果只做比对，不会合并。" } },
+        { "@type": "Question", "name": "预测引擎需要什么？结果能信到什么程度？",
+          "acceptedAnswer": { "@type": "Answer", "text": "需要磁盘空间和一次联网安装；结果只当候选，要自己核对。 每个引擎 2 MB 到约 8.5 GB，经你同意才安装，之后离线运行。 案例里引擎找回了记录的产物和部分前体，也漏掉另一些。 预测位移与实测相差约 0.2 ppm（1H）和 2 到 3 ppm（13C）。 许可：MolParser 权重仅限非商业，RetroChimera 仅供研究，Reacon 无许可证。 各案例的输入、输出和耗时见README。" } },
         { "@type": "Question", "name": "没有安装 ChemDraw 能用吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "部分能用：可以生成和检查 CDXML，原生功能需要 ChemDraw。 不需要 ChemDraw：跨平台的 cdxml-toolkit 运行时在 Windows、macOS、Linux 上生成和检查 CDXML。 需要 Windows 或 macOS 上已授权的桌面版 ChemDraw：原生渲染、ChemScript 检查和 Office 嵌入。" } }
       ]
@@ -352,9 +355,9 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap caps-layout">
     <div class="head">
       <h2>能做什么</h2>
-      <p>十五类工作：绘图，以及随之而来的计算。</p>
+      <p>十八类工作：绘图，以及随之而来的计算。</p>
       <p class="try-note">每一类都附了一句可以直接对 Agent 说的话。原生渲染和 Office 嵌入需要桌面版 ChemDraw，见<a href="#start">运行前提</a>。</p>
-      <div class="filters" role="group" aria-label="按类别筛选" hidden><button type="button" data-filter="all" aria-pressed="true">全部<span>15</span></button><button type="button" data-filter="draw" aria-pressed="false">绘图<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">读图复刻<span>2</span></button><button type="button" data-filter="data" aria-pressed="false">数据与文档<span>4</span></button><button type="button" data-filter="calc" aria-pressed="false">计算<span>4</span></button></div>
+      <div class="filters" role="group" aria-label="按类别筛选" hidden><button type="button" data-filter="all" aria-pressed="true">全部<span>18</span></button><button type="button" data-filter="draw" aria-pressed="false">绘图<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">读图复刻<span>3</span></button><button type="button" data-filter="data" aria-pressed="false">数据与文档<span>5</span></button><button type="button" data-filter="calc" aria-pressed="false">计算<span>5</span></button></div>
     </div>
     <dl class="caps">
       <div data-kind="draw"><dt>结构与反应</dt><dd>解析名称和标识符；绘制、编辑、清理、合并、拆分、转换和渲染 CDXML / CDX。<details class="try"><summary>试着这样说</summary><p class="ask">把这个 CDX 文件转成 CDXML，清理结构后用 ChemDraw 渲染成 PNG。</p></details></dd></div>
@@ -372,7 +375,9 @@ Bonds:   13</code></pre></details></div>
       <div data-kind="draw"><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点和 Rf 计算；ChemDraw 装置模板组装。<details class="try"><summary>试着这样说</summary><p class="ask">画一块 TLC 板：三条泳道依次是原料、共点和反应液，斑点 Rf 分别是 0.62 和 0.35。</p></details></dd></div>
       <div data-kind="data"><dt>谱图与实验记录</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线；处理 LCMS（Waters PDF 与 OpenLynx .rpt）、SciFinder RDF 和实验记录。<details class="try"><summary>试着这样说</summary><p class="ask">对这份 <sup>1</sup>H NMR 数据寻峰，积分 6.8–7.4 ppm 区间，输出可编辑的 ChemDraw 谱图。</p></details></dd></div>
       <div data-kind="data"><dt>Word 与 PPT</dt><dd>在 Word、PowerPoint 文档中嵌入可编辑的 ChemDraw 对象（Windows 或 macOS 上生成）。<details class="try"><summary>试着这样说</summary><p class="ask">把 route.cdxml 作为可编辑的 ChemDraw 对象放进一页 PowerPoint 幻灯片。</p></details></dd></div>
-      <div data-kind="calc"><dt>可选引擎与预测</dt><dd>经你同意才安装，每个引擎各用一个独立环境：用更多识别引擎比对同一张图，从 PDF 中找出结构，预测产物、前体和路线、反应条件以及核磁位移。每个结果都标注为预测，也不会上传任何内容。许可限制：MolParser 的权重仅限非商业用途，RetroChimera 仅供研究，Reacon 没有许可证。<details class="try"><summary>试着这样说</summary><p class="ask">用本地逆合成引擎给对乙酰氨基酚找一步前体，并先告诉我需要安装什么。</p></details></dd></div>
+      <div data-kind="read"><dt>结构图识别与 PDF 抽取</dt><dd>可选引擎，经你同意才安装：用 MolScribe、MolNexTR、MolParser、MolVec 和 DECIMER 读同一张结构图并并排比对，再把 PDF 里的结构逐个切出来读，附联系表供核对。对已发表的图，读对的比例有高有低，两个引擎一致只是个提示。<details class="try"><summary>试着这样说</summary><p class="ask">用本地所有引擎读这张结构图，告诉我它们哪里不一致，再把这份 PDF 里的结构都抽出来。</p></details></dd></div>
+      <div data-kind="calc"><dt>反应与路线预测</dt><dd>AiZynthFinder、SynPlanner、RetroChimera 和 ReactionT5 给出前体和多步路线，ReactionT5 预测产物，Reacon 给出催化剂和溶剂组合。拿实验记录对照时，产物排第一，前体和条件有对有错。结果都标注为预测，也不上传任何内容。<details class="try"><summary>试着这样说</summary><p class="ask">用本地逆合成引擎给这个目标分子找前体和两条路线，画成 ChemDraw 路线图，并标明是预测。</p></details></dd></div>
+      <div data-kind="data"><dt>核磁预测与 LCMS 板</dt><dd>MagNET 与 NMRNet++ 预测 1H 和 13C 位移，并与实测谱图对照；整块 OpenLynx 板的报告对照板图，找出各孔的预期产物。预测值只作对照，不写进实验表征。<details class="try"><summary>试着这样说</summary><p class="ask">预测咖啡因的 1H 和 13C 位移并和这份实测谱图对比，再检查这份 OpenLynx 报告里每个孔有没有预期产物。</p></details></dd></div>
     </dl>
   </div>
 </section>
@@ -507,6 +512,19 @@ cd chemdraw-skill
           <p class="lead">可以，输出可编辑 CDXML 和 ChemDraw 原生预览。</p>
           <p>论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">重建指南</a>。</p>
           <p>图片不能上传，或者想多一份识别结果时，可选的本地引擎也会读一遍。各引擎的结果只做比对，不会合并。</p>
+        </div>
+      </details>
+      <details id="faq-engines">
+        <summary>预测引擎需要什么？结果能信到什么程度？</summary>
+        <div class="answer">
+          <p class="lead">需要磁盘空间和一次联网安装；结果只当候选，要自己核对。</p>
+          <ul>
+            <li>每个引擎 2 MB 到约 8.5 GB，经你同意才安装，之后离线运行。</li>
+            <li>案例里引擎找回了记录的产物和部分前体，也漏掉另一些。</li>
+            <li>预测位移与实测相差约 0.2 ppm（1H）和 2 到 3 ppm（13C）。</li>
+            <li>许可：MolParser 权重仅限非商业，RetroChimera 仅供研究，Reacon 无许可证。</li>
+          </ul>
+          <p>各案例的输入、输出和耗时见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/README.zh-cn.md#预测与分析引擎">README</a>。</p>
         </div>
       </details>
       <details id="faq-no-chemdraw">

@@ -1,0 +1,82 @@
+{
+ "machine": "Windows 11, NVIDIA GeForce RTX 5090 Laptop GPU; engines in D:\\chemdraw-engines (CUDA builds of PyTorch where the engine has one); run on 2026-11-04",
+ "how": "Every case was run through the toolkit tools (cdx.py call TOOL --json ...). wall_s is the whole command including starting the worker (about 5 to 10 s); engine_s is the time the engine itself reports, which includes loading the model, because an engine process is started for every call.",
+ "scope": "Results are predictions. Each case is one run on the inputs named here, scored against a reviewed or recorded answer, with misses kept. They show how the engines behave, not how accurate they are.",
+ "ocsr": {
+  "images": "13a.png, 16.png and 17.png are crops of the paper-replica original (third-party artwork, not relicensed); imatinib.png is a ChemDraw render of imatinib (imatinib.cdxml).",
+  "reference": "The structures drawn in assets/readme/paper-replica/replica.cdxml, whose five structures were checked against the original; R and X (SiMe2Ph) are scored as the wildcard *."
+ },
+ "decimer-local": "installed with cdx.py install-engines decimer-local, which added TensorFlow 2.21 and Keras 3.15 to the runtime and downloaded the weights; the engine then failed on every image with AttributeError: module 'keras.callbacks' has no attribute 'experimental'. The packages and weights were removed again; no case was scored.",
+ "pdf": {
+  "input": "pages.pdf: assets/readme/paper-replica/original.png on page 1 and assets/readme/synthesis-113-122/reference.png on page 2 (third-party artwork), each placed on a landscape A4 page",
+  "segmenter": "decimer-segmentation, structures read by molscribe and molvec",
+  "tool_s": 418.5,
+  "wall_s": 431.3
+ },
+ "retro_forward_conditions": {
+  "records": "toolkit/samples/KL-CC-001 and KL-CC-002 (a Buchwald amination and an alkylation recorded in a lab notebook, with amounts and yields); imatinib is the published amide disconnection"
+ },
+ "nmr": {
+  "caffeine": {
+   "entry": "bmse000206",
+   "url": "https://bmrb.io/ftp/pub/bmrb/metabolomics/entry_directories/bmse000206/",
+   "sample": "D2O, pH 7.4, 400 MHz",
+   "files_sha256": {
+    "bmse000206.str": "4543b57b03fd76d4c750982b4029fe5930a7c6e747d0b42dec39332920e1b5e1",
+    "nmr/set01/1H/pdata/1/1r": "e4a302b71dcd0fcc1c37d8c0b5ce7439bf104164a45190dc199c616d393fc439",
+    "nmr/set01/1H/pdata/1/procs": "e981fb8dbc658af97bea1f2dd82b95053c0057b46d898839a8f2a8ff7981bd4d",
+    "nmr/set01/13C/pdata/1/1r": "a59ef00e7e1aabd2831a1212a7ce4ca7fe2e332ab63023e4eeb8f99b8bb57a09",
+    "nmr/set01/13C/pdata/1/procs": "c635fd15c310725084886c9c0e12ea57e24378dc49c974bc7053032ac467c38f"
+   },
+   "processing": "Bruker processed spectra (pdata/1/1r) read with the scale in procs, trimmed to the shown window, thinned by taking every 6th to 16th point and written as ppm,intensity CSV scaled to 10000; the water signal of the caffeine 1H spectrum (4.3 to 5.3 ppm) is cut out. The CSV files here are those reduced copies.",
+   "published_csv_sha256": {
+    "1H": "8f2a1143829f5960133f58246b81a6bc38b91e857eb25f3bd60f44374299ec25",
+    "13C": "20946597830bb40aa6dd5f69534aae762b95311fb44fe67d291bb4dcb5b4c07b"
+   }
+  },
+  "coumarin": {
+   "entry": "bmse000077",
+   "url": "https://bmrb.io/ftp/pub/bmrb/metabolomics/entry_directories/bmse000077/",
+   "sample": "CDCl3",
+   "files_sha256": {
+    "bmse000077.str": "63c5398b03d0aef4cf9ea3f6c3a451520ab14fef470b20cc762b5d99513d2a61",
+    "nmr/set01/1H/pdata/1/1r": "6169c61b40370c7359aba47afa762b8a04b7650c8b0d00b66185bb5a7acf52f9",
+    "nmr/set01/1H/pdata/1/procs": "4f95e2b703f5c52bd9209565de63109fdc4967ef735a5026a193827b055b4966",
+    "nmr/set01/13C/pdata/1/1r": "9dc48773f86b0e0021ec29c81feae812335099f838408d2b5fc784d4836e0ad1",
+    "nmr/set01/13C/pdata/1/procs": "d6e5ccff8b8d837507b69e0cdc3d9064165fd19d014dbc0fcc6f5669ba198a8e"
+   },
+   "processing": "Bruker processed spectra (pdata/1/1r) read with the scale in procs, trimmed to the shown window, thinned by taking every 6th to 16th point and written as ppm,intensity CSV scaled to 10000; the water signal of the caffeine 1H spectrum (4.3 to 5.3 ppm) is cut out. The CSV files here are those reduced copies.",
+   "published_csv_sha256": {
+    "1H": "351756b0dc4aad0e4affa27981a758611df312293ddcef7cb3152f72c5ec42e7",
+    "13C": "822be0d2d73e5dad15797bbb034e6feedeb1b2cbfcd67e5914ec13c88ba0b1e8"
+   }
+  },
+  "carvone": {
+   "entry": "bmse000500",
+   "url": "https://bmrb.io/ftp/pub/bmrb/metabolomics/entry_directories/bmse000500/",
+   "sample": "CDCl3, 500 MHz",
+   "files_sha256": {
+    "bmse000500.str": "8825ee35e7f76c22695e767bb0cd3e51a5636d80939896d88824d128ee5f6f91",
+    "nmr/set01/1H/pdata/1/1r": "8e4d07c7e25cd592de5710c8168560730748d21149ec58ba966f894c1e2c9122",
+    "nmr/set01/1H/pdata/1/procs": "58d5ffeae27eee79040ed40dea28eaa44add2a0b03685236e94f3e262abd462e",
+    "nmr/set01/13C/pdata/1/1r": "f40b6e331ff62225449603d8cbd01eece48eee2cf28564f91d93e5f88dd1fccc",
+    "nmr/set01/13C/pdata/1/procs": "d3ccab6c0373991ef9a748ae3a09aa4bc851ab063431e10b38e94b17085f9edf"
+   },
+   "processing": "Bruker processed spectra (pdata/1/1r) read with the scale in procs, trimmed to the shown window, thinned by taking every 6th to 16th point and written as ppm,intensity CSV scaled to 10000; the water signal of the caffeine 1H spectrum (4.3 to 5.3 ppm) is cut out. The CSV files here are those reduced copies.",
+   "published_csv_sha256": {
+    "1H": "585aeb1ad11fbac9c28a58b2ebac4c293de42867c08ac2071115dcbadec09e95",
+    "13C": "9bc23d3bf0ffac9539b007b24a0bf393e56cbfd34a73fd0b19ec406cb6ac38a1"
+   }
+  }
+ },
+ "lcms": {
+  "source": "PyParse v1.1.0 example dataset, Waters/Example1 (Zenodo, Apache-2.0; Mason et al., Digital Discovery 2023, doi 10.1039/D3DD00167A)",
+  "files_sha256": {
+   "example_rpt.rpt": "2a3a68a223c4affe9e86b014d06d441ba7216521c4585c76659f3de548f23a19",
+   "example_platemap.csv": "6e0fe3225f2dba7620c2274401c72ebf9e79070e5309b50cd70db91d293a517d",
+   "output/compoundtable.csv": "9f58fdce3fd634dbb69afc3a8cc1053565093f9c4b847c6bc05f58030128da81"
+  },
+  "parse_wall_s": 11.3,
+  "scope": "The 2.3 MB report is not copied here; download the dataset and run match_plate.py."
+ }
+}

@@ -1,0 +1,252 @@
+{
+ "solvent": "chloroform",
+ "wall_s": 57.0,
+ "bmrb_entry": "bmse000077",
+ "experimental_1H_bmrb_peak_list": [
+  7.719,
+  7.54,
+  7.496,
+  7.339,
+  7.288,
+  6.432
+ ],
+ "experimental_13C_toolkit_peaks": [
+  127.86,
+  124.45,
+  116.91
+ ],
+ "bmrb_13C_peak_list": [
+  146.114,
+  134.514,
+  130.545,
+  127.109,
+  119.583,
+  119.386
+ ],
+ "toolkit_analysis_sha256": {
+  "1H": "351756b0dc4aad0e4affa27981a758611df312293ddcef7cb3152f72c5ec42e7",
+  "13C": "822be0d2d73e5dad15797bbb034e6feedeb1b2cbfcd67e5914ec13c88ba0b1e8"
+ },
+ "engines": {
+  "magnet": {
+   "predicted": {
+    "1H": [
+     [
+      7.85,
+      1
+     ],
+     [
+      7.76,
+      1
+     ],
+     [
+      7.71,
+      1
+     ],
+     [
+      7.6,
+      1
+     ],
+     [
+      7.6,
+      1
+     ],
+     [
+      6.6,
+      1
+     ]
+    ],
+    "13C": [
+     [
+      165.47,
+      1
+     ],
+     [
+      156.87,
+      1
+     ],
+     [
+      144.13,
+      1
+     ],
+     [
+      134.87,
+      1
+     ],
+     [
+      131.91,
+      1
+     ],
+     [
+      129.12,
+      1
+     ],
+     [
+      123.46,
+      1
+     ],
+     [
+      120.66,
+      1
+     ],
+     [
+      119.54,
+      1
+     ]
+    ]
+   },
+   "1H": {
+    "matched": 6,
+    "n_pred": 6,
+    "n_exp": 6,
+    "mae": 0.218,
+    "max_err": 0.312,
+    "pairs": [
+     [
+      7.85,
+      7.72
+     ],
+     [
+      7.76,
+      7.54
+     ],
+     [
+      7.71,
+      7.5
+     ],
+     [
+      7.6,
+      7.34
+     ],
+     [
+      7.6,
+      7.29
+     ],
+     [
+      6.6,
+      6.43
+     ]
+    ],
+    "unmatched_pred": [],
+    "unmatched_exp": []
+   },
+   "13C": {
+    "scored": false,
+    "reason": "only 6 of 9 carbons rise above the noise in this spectrum"
+   }
+  },
+  "nmrnet-pp": {
+   "predicted": {
+    "1H": [
+     [
+      7.71,
+      1
+     ],
+     [
+      7.53,
+      1
+     ],
+     [
+      7.49,
+      1
+     ],
+     [
+      7.31,
+      1
+     ],
+     [
+      7.28,
+      1
+     ],
+     [
+      6.42,
+      1
+     ]
+    ],
+    "13C": [
+     [
+      160.68,
+      1
+     ],
+     [
+      154.12,
+      1
+     ],
+     [
+      143.47,
+      1
+     ],
+     [
+      131.94,
+      1
+     ],
+     [
+      127.88,
+      1
+     ],
+     [
+      124.35,
+      1
+     ],
+     [
+      118.86,
+      1
+     ],
+     [
+      116.8,
+      1
+     ],
+     [
+      116.73,
+      1
+     ]
+    ]
+   },
+   "1H": {
+    "matched": 6,
+    "n_pred": 6,
+    "n_exp": 6,
+    "mae": 0.012,
+    "max_err": 0.029,
+    "pairs": [
+     [
+      7.71,
+      7.72
+     ],
+     [
+      7.53,
+      7.54
+     ],
+     [
+      7.49,
+      7.5
+     ],
+     [
+      7.31,
+      7.34
+     ],
+     [
+      7.28,
+      7.29
+     ],
+     [
+      6.42,
+      6.43
+     ]
+    ],
+    "unmatched_pred": [],
+    "unmatched_exp": []
+   },
+   "13C": {
+    "scored": false,
+    "reason": "only 6 of 9 carbons rise above the noise in this spectrum"
+   }
+  }
+ },
+ "warnings": [
+  "predicted shifts, not measured data: do not report them as experimental values",
+  "NMRNet++ is a single cross-validation model (fold 0), not the published five-model average; its models take no solvent, so the solvent argument does not change its answer",
+  "the geometry is an RDKit/MMFF conformer; MagNET-Zero was trained on AIMNet2 geometries, so errors can be larger than the published ones",
+  "simulated spectra draw singlets only (no coupling or multiplets)"
+ ]
+}

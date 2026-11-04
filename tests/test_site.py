@@ -745,7 +745,7 @@ class InteractionMarkupTests(unittest.TestCase):
             with self.subTest(page=language):
                 caps = re.search(r'<dl class="caps">(.*?)</dl>', html, re.S).group(1)
                 items = re.findall(r'<div data-kind="(\w+)">(.*?)</div>\n', caps, re.S)
-                self.assertEqual(len(items), 16)
+                self.assertEqual(len(items), 18)
                 for _kind, body in items:
                     self.assertIn('<details class="try">', body)
                     ask = re.search(r'<p class="ask">(.*?)</p>', body).group(1)
@@ -1011,8 +1011,8 @@ class FaqTests(unittest.TestCase):
     def test_both_languages_ask_the_same_questions(self) -> None:
         ids = [[entry[0] for entry in faq_entries(language)] for language in PAGES]
         self.assertEqual(ids[0], ids[1])
-        self.assertEqual(len(ids[0]), 8)
-        self.assertEqual(len(set(ids[0])), 8)
+        self.assertEqual(len(ids[0]), 9)
+        self.assertEqual(len(set(ids[0])), 9)
         self.assertTrue(all(i.startswith("faq-") for i in ids[0]))
 
     def test_structured_data_quotes_the_page_word_for_word(self) -> None:
