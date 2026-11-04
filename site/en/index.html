@@ -42,7 +42,7 @@
       "programmingLanguage": "Python",
       "license": "https://opensource.org/licenses/MIT",
       "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope",
-      "featureList": ["Draw editable ChemDraw structures and reaction schemes", "Rebuild paper reaction schemes and patent Markush structures", "SAR and substrate-scope figures from CSV or Excel", "Reaction calculator, characterization text and route yield", "Structure recognition with five engines side by side, and structures extracted from a PDF", "Precursor, route, product and reaction-condition prediction, always labelled as predicted", "NMR shift prediction and OpenLynx LCMS plate checking"],
+      "featureList": ["Draw editable ChemDraw structures and reaction schemes", "Rebuild paper reaction schemes and patent Markush structures", "SAR and substrate-scope figures from CSV or Excel", "Reaction calculator, characterization text and route yield", "Structure recognition with six engines side by side, and structures extracted from a PDF", "Precursor, route, product and reaction-condition prediction, always labelled as predicted", "NMR shift prediction and OpenLynx LCMS plate checking"],
       "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
     },
     {
@@ -73,7 +73,7 @@
         { "@type": "Question", "name": "Can it turn a structure image from a paper into an editable ChemDraw file?",
           "acceptedAnswer": { "@type": "Answer", "text": "Yes, as editable CDXML with a native ChemDraw preview. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review. See the reconstruction guide. When an image may not be uploaded, or a second reading is wanted, optional local engines read it as well. Their answers are compared, never merged." } },
         { "@type": "Question", "name": "What do the prediction engines need, and how far can I trust them?",
-          "acceptedAnswer": { "@type": "Answer", "text": "They need disk space and one download; treat every answer as a candidate. Each engine takes 2 MB to about 8.5 GB, installs only when you agree, then runs offline. In the cases run, recorded products and some precursors were recovered and others missed. Predicted NMR shifts were within about 0.2 ppm (1H) and 2 to 3 ppm (13C) on a fair test. Licences: MolParser's weights are non-commercial, RetroChimera is research only, Reacon has none. Inputs, outputs and timings for each case are in the README." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "They need disk space and one download; treat every answer as a candidate. Each engine takes 2 MB to about 8.5 GB, installs only when you agree, then runs offline. In the cases run, recorded products and some precursors were recovered and others missed. Across 20 assigned spectra, DFT-trained MagNET averaged 0.21 ppm (1H) and 2.89 ppm (13C) error; NMRNet++ averaged 0.11 and 1.14 ppm on a corpus overlapping its training data. Licences: MolParser's weights are non-commercial, RetroChimera is research only, Reacon has none. Inputs, outputs and timings for each case are in the README." } },
         { "@type": "Question", "name": "Does it work without ChemDraw installed?",
           "acceptedAnswer": { "@type": "Answer", "text": "Partly: it can create and check CDXML, but the native features need ChemDraw. Without ChemDraw: the portable cdxml-toolkit runtime creates and checks CDXML on Windows, macOS and Linux. With licensed desktop ChemDraw on Windows or macOS: native rendering, ChemScript checks and Office embedding." } }
       ]
@@ -518,7 +518,7 @@ cd chemdraw-skill
           <ul>
             <li>Each engine takes 2 MB to about 8.5 GB, installs only when you agree, then runs offline.</li>
             <li>In the cases run, recorded products and some precursors were recovered and others missed.</li>
-            <li>Predicted NMR shifts were within about 0.2 ppm (1H) and 2 to 3 ppm (13C) on a fair test.</li>
+            <li>Across 20 assigned spectra, DFT-trained MagNET averaged 0.21 ppm (1H) and 2.89 ppm (13C) error; NMRNet++ averaged 0.11 and 1.14 ppm on a corpus overlapping its training data.</li>
             <li>Licences: MolParser's weights are non-commercial, RetroChimera is research only, Reacon has none.</li>
           </ul>
           <p>Inputs, outputs and timings for each case are in the <a href="https://github.com/ZiChenWang114514/chemdraw-skill#prediction-and-analysis-engines">README</a>.</p>

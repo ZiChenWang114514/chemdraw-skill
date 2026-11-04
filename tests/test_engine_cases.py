@@ -13,8 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "assets" / "readme" / "engines"
 READMES = {"en": ROOT / "README.md", "zh": ROOT / "README.zh-cn.md"}
-SECTION = {"en": "## Prediction and analysis engines", "zh": "## 预测与分析引擎"}
-NEXT_SECTION = {"en": "## Reproduce a paper figure", "zh": "## 复刻论文反应图"}
+SECTION = {"en": "## Prediction and analysis engines", "zh": "## \u9884\u6d4b\u4e0e\u5206\u6790\u5f15\u64ce"}
+NEXT_SECTION = {"en": "## Reproduce a paper figure", "zh": "## \u590d\u523b\u8bba\u6587\u53cd\u5e94\u56fe"}
 CASE_LIMIT = 1_000_000  # bytes per case folder (one folder per molecule for the NMR cases)
 
 
@@ -37,17 +37,17 @@ class EngineCaseAssetTests(unittest.TestCase):
         self.assertEqual(shown["en"], shown["zh"])
 
     def test_each_case_folder_stays_small(self) -> None:
-        folders = [CASES / "ocsr", CASES / "pdf", CASES / "retro", CASES / "forward", CASES / "lcms",
+        folders = [CASES / "ocsr", CASES / "pdf", CASES / "retro", CASES / "forward", CASES / "lcms", CASES / "nmr",
                    *sorted(p for p in (CASES / "nmr").iterdir() if p.is_dir())]
         for folder in folders:
-            with self.subTest(folder=folder.name):
+            with self.subTest(folder=folder.relative_to(CASES).as_posix()):
                 size = sum(p.stat().st_size for p in folder.rglob("*") if p.is_file())
                 self.assertLessEqual(size, CASE_LIMIT)
 
     def test_results_are_json_without_personal_paths(self) -> None:
         pattern = re.compile(r"[A-Za-z]:[\\/]+Users[\\/]+(?!<|you|user|USERNAME|example)")
         files = sorted(CASES.rglob("*.json"))
-        self.assertGreaterEqual(len(files), 8)
+        self.assertGreaterEqual(len(files), 7)
         for path in files:
             with self.subTest(path=path.relative_to(CASES).as_posix()):
                 text = path.read_text(encoding="utf-8")
@@ -58,8 +58,12 @@ class EngineCaseAssetTests(unittest.TestCase):
         provenance = json.loads((CASES / "provenance.json").read_text(encoding="utf-8"))
         for molecule, record in provenance["nmr"].items():
             with self.subTest(molecule=molecule):
-                self.assertTrue(record["url"].startswith("https://bmrb.io/"))
+                self.assertTrue(record["url"].startswith(("https://bmrb.io/", "https://nmrshiftdb.nmr.uni-koeln.de/")))
                 self.assertTrue(all(re.fullmatch(r"[0-9a-f]{64}", h) for h in record["files_sha256"].values()))
+        bench = json.loads((CASES / "nmr" / "benchmark20.json").read_text(encoding="utf-8"))
+        self.assertEqual(bench["benchmark_info"]["n_molecules"], 20)
+        self.assertEqual(len(bench["molecules"]), 20)
+        self.assertIn("training_overlap_summary", bench["summary"])
         self.assertEqual(len(provenance["lcms"]["files_sha256"]), 3)
 
     def test_misses_are_kept_in_the_results(self) -> None:
@@ -94,7 +98,7 @@ class EngineTableTests(unittest.TestCase):
                     megabytes = self.disk_mb([name])
                     shown = "none" if megabytes == 0 else f"{megabytes} MB" if megabytes < 100 else f"{megabytes / 1000:.1f} GB"
                     if megabytes == 0:
-                        shown = "none" if language == "en" else "无"
+                        shown = "none" if language == "en" else "\u65e0"
                     self.assertIn(f"| {shown} |", row.group(0))
 
 
