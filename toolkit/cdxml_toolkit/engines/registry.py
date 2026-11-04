@@ -18,37 +18,37 @@ CUDA_TORCH = {'index': 'https://download.pytorch.org/whl/cu130', 'tag': 'cu130',
 
 ENGINES = {
     'decimer-api': {
-        'title': 'DECIMER (remote)', 'task': 'ocsr', 'kind': 'remote', 'license': 'MIT (service by the Steinbeck Lab)',
+        'title': 'DECIMER (remote)', 'does': 'OCSR', 'task': 'ocsr', 'kind': 'remote', 'license': 'MIT (service by the Steinbeck Lab)',
         'note': 'The default image-recognition engine; uploads the image after preflight (see decimer-api.md).',
     },
     'decimer-local': {
-        'title': 'DECIMER (local)', 'task': 'ocsr', 'kind': 'runtime', 'module': 'DECIMER', 'license': 'MIT',
+        'title': 'DECIMER (local)', 'does': 'OCSR, the DECIMER model on this computer', 'task': 'ocsr', 'kind': 'runtime', 'module': 'DECIMER', 'license': 'MIT',
         'extra': 'decimer', 'size': '1.5 GB of packages in the runtime (TensorFlow), 0.7 GB weights',
         'note': 'Runs in the runtime itself: installing adds the toolkit extra "decimer" (TensorFlow) to the runtime '
                 'and the DECIMER weights to DECIMER_MODEL_DIR (default ~/.data/DECIMER-V2).',
     },
     'molscribe': {
-        'title': 'MolScribe', 'task': 'ocsr', 'kind': 'local', 'license': 'MIT', 'python': (10, 10),
+        'title': 'MolScribe', 'does': 'OCSR', 'task': 'ocsr', 'kind': 'local', 'license': 'MIT', 'python': (10, 10),
         'module': 'molscribe',
         'requirements': ['molscribe==1.1.1', 'numpy<2', 'huggingface_hub'],
         'weights': {'repo': 'yujieq/MolScribe', 'type': 'model', 'files': ['swin_base_char_aux_1m.pth'],
                     'sha256': {'swin_base_char_aux_1m.pth':
                                '6f0df56fa32b5ffc21f8c7f311ef333da522f590bf5622e966c6bcb1f2d9ea1d'}},
-        'size': '0.8 GB environment, 1.1 GB weights',
+        'size': '1.4 GB environment, 1.1 GB weights',
     },
     'molnextr': {
-        'title': 'MolNexTR', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0', 'python': (10, 10),
+        'title': 'MolNexTR', 'does': 'OCSR', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0', 'python': (10, 10),
         'module': 'MolNexTR',
         'requirements': [f'MolNexTR @ git+https://github.com/CYF2000127/MolNexTR@{MOLNEXTR_COMMIT}',
                          'numpy<2', 'huggingface_hub'],
         'weights': {'repo': 'CYF200127/MolNexTR', 'type': 'dataset', 'files': ['molnextr_best.pth'],
                     'sha256': {'molnextr_best.pth':
                                '5990bc19aaafa5cf44e9d04e06fb8e2b5aea50c66e1e925f662bdff7d2a6422c'}},
-        'size': '1.5 GB environment, 1.1 GB weights',
+        'size': '3.6 GB environment with the CUDA build of PyTorch (about 1.5 GB with the CPU build), 1.1 GB weights',
         'note': 'Installed from a pinned commit; weights are loaded with torch weights_only.',
     },
     'molparser': {
-        'title': 'MolParser', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0 (code); CC BY-NC-SA 4.0 (weights)',
+        'title': 'MolParser', 'does': 'OCSR (also Markush)', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0 (code); CC BY-NC-SA 4.0 (weights), non-commercial only', 'restricted': True,
         'python': (10, 12), 'module': 'molparser',
         'requirements': [f'molparser @ https://github.com/dptech-corp/MolParser/archive/{MOLPARSER_COMMIT}.tar.gz#sha256=a2985311661811a4ed57762a5636fee8ede3018e78e23b46fbc0cba4122a0c2e',
                          'torch', 'transformers', 'timm', 'safetensors', 'huggingface_hub', 'opencv-python-headless',
@@ -79,14 +79,14 @@ ENGINES = {
                                'model.safetensors':
                                '2204a871f7975780ead6eee8ac354de11f859c4eccc8863c3462e6f9eb110f02',
                     }},
-        'size': '1.5 GB environment, 20 MB weights',
+        'size': '3.4 GB environment with the CUDA build of PyTorch (about 1.5 GB with the CPU build), 20 MB weights',
         'note': 'Reads Markush and extended structures; only the base SMILES is used. The weights are licensed '
                 'for non-commercial use only (CC BY-NC-SA 4.0). The model repository ships Python files that '
                 'transformers runs on load; they are pinned by hash. The YOLO detector (ultralytics, AGPL) is '
                 'not installed.',
     },
     'molvec': {
-        'title': 'MolVec', 'task': 'ocsr', 'kind': 'jar', 'license': 'Apache-2.0',
+        'title': 'MolVec', 'does': 'OCSR', 'task': 'ocsr', 'kind': 'jar', 'license': 'Apache-2.0',
         'jar': {'url': 'https://repo1.maven.org/maven2/gov/nih/ncats/molvec/0.9.8/'
                        'molvec-0.9.8-jar-with-dependencies.jar',
                 'name': 'molvec-0.9.8.jar',
@@ -94,16 +94,16 @@ ENGINES = {
         'size': '1.3 MB (needs Java)',
     },
     'decimer-segmentation': {
-        'title': 'DECIMER Segmentation', 'task': 'segmentation', 'kind': 'local', 'license': 'MIT',
+        'title': 'DECIMER Segmentation', 'does': 'find structures on a page', 'task': 'segmentation', 'kind': 'local', 'license': 'MIT',
         'python': (10, 11), 'module': 'decimer_segmentation',
         'requirements': ['decimer-segmentation==1.6.0', 'numpy<2'],
         'data': 'decimer-segmentation-model',
         'download': {'url': 'https://zenodo.org/record/10663579/files/mask_rcnn_molecule.h5?download=1',
                      'path': 'DECIMER-Segmentation_model/mask_rcnn_molecule.h5', 'sha256': '329120facb69e88add819a3216db0fbfef57e9a37d6b6db0f6149819a11d46a5'},
-        'size': 'TensorFlow 2.14 environment (1.6 GB) and a 0.3 GB model',
+        'size': '1.8 GB environment, 0.3 GB model',
     },
     'aizynthfinder': {
-        'title': 'AiZynthFinder', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
+        'title': 'AiZynthFinder', 'does': 'retrosynthesis, single and multi-step', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
         'python': (10, 12), 'module': 'aizynthfinder',
         'requirements': ['aizynthfinder==4.4.1', 'pyarrow<20'],
         'data': 'aizynthfinder-public-data',
@@ -115,10 +115,10 @@ ENGINES = {
             'uspto_filter_model.onnx': 'ad29aa32bdfcbe37065045546493806cf04899c55386c438905d83fb14bb6320',
             'zinc_stock.hdf5': '99d39a6f807c3e815487500bafc2b4a9dc66a31af189e3b1776874fb0d4a188d',
         },
-        'size': '1.0 GB environment, 0.8 GB public data (USPTO policies, ZINC stock)',
+        'size': '0.9 GB environment, 0.8 GB public data (USPTO policies, ZINC stock)',
     },
     'synplanner': {
-        'title': 'SynPlanner', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT', 'python': (10, 12),
+        'title': 'SynPlanner', 'does': 'retrosynthesis, multi-step routes', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT', 'python': (10, 12),
         'module': 'synplan',
         'requirements': ['SynPlanner[cpu]==1.7.0'],
         'data': 'synplanner-preset',
@@ -133,28 +133,28 @@ ENGINES = {
                 'dbace1da49c1d400f43f667f6e6691a869472835461218d958803c001c0ea34c',
             'building_blocks/mcule-molport-2026-08/building_blocks.json.gz':
                 '0fea071b828e70baa8012216d91e929f896951329509ce8af6c93c136b57eb81'},
-        'size': '1.4 GB environment, 0.6 GB preset (MCULE/Molport building blocks, USPTO rules)',
+        'size': '3.8 GB environment with the CUDA build of PyTorch (about 1.4 GB with the CPU build), 0.9 GB building blocks and rules',
         'note': 'Plans whole routes only (steps="multi"). Its checkpoints are PyTorch files from the project, '
                 'checked against pinned hashes before use.',
     },
     'reactiont5-forward': {
-        'title': 'ReactionT5v2 (products)', 'gpu': True, 'task': 'products', 'kind': 'local', 'license': 'MIT',
+        'title': 'ReactionT5v2 (products)', 'does': 'products', 'gpu': True, 'task': 'products', 'kind': 'local', 'license': 'MIT',
         'python': (10, 12), 'module': 'transformers', 'family': 'reactiont5',
         'requirements': ['torch', 'transformers==4.40.2', 'tokenizers==0.19.1', 'sentencepiece', 'numpy<2'],
         'weights': {'repo': 'sagawa/ReactionT5v2-forward', 'type': 'model', 'snapshot': True,
                     'revision': '933114058cb2604dc1bf536dbebdfcefbe83d4fc'},
-        'size': 'PyTorch environment, about 0.3 GB weights',
+        'size': '3.1 GB environment with the CUDA build of PyTorch (about 1.3 GB with the CPU build), 0.8 GB weights',
     },
     'reactiont5-retro': {
-        'title': 'ReactionT5v2 (retrosynthesis)', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
+        'title': 'ReactionT5v2 (retrosynthesis)', 'does': 'retrosynthesis, single step', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
         'python': (10, 12), 'module': 'transformers', 'family': 'reactiont5',
         'requirements': ['torch', 'transformers==4.40.2', 'tokenizers==0.19.1', 'sentencepiece', 'numpy<2'],
         'weights': {'repo': 'sagawa/ReactionT5v2-retrosynthesis', 'type': 'model', 'snapshot': True,
                     'revision': '4ba688b3ed597b137a78610b1a1dff42784eb60c'},
-        'size': 'PyTorch environment, about 0.3 GB weights',
+        'size': '3.1 GB environment with the CUDA build of PyTorch (about 1.3 GB with the CPU build), 0.8 GB weights',
     },
     'magnet': {
-        'title': 'MagNET', 'task': 'nmr', 'kind': 'local', 'license': 'MIT', 'python': (12, 12),
+        'title': 'MagNET', 'does': '1H and 13C shifts', 'task': 'nmr', 'kind': 'local', 'license': 'MIT', 'python': (12, 12),
         'module': 'magnet',
         'requirements': ['torch==2.5.0', 'magnet-nmr==0.2.1', 'rdkit', 'huggingface_hub'],
         'find_links': 'https://data.pyg.org/whl/torch-2.5.0+cpu.html',
@@ -162,10 +162,10 @@ ENGINES = {
         'weights': {'repo': 'ekwan16/MagNET', 'type': 'model', 'snapshot': True, 'include': 'model_checkpoints/*',
                     'revision': 'fe222d1894afb2d954fe8d2e67e70731a006c8d2'},
         'elements': ['H', 'C', 'N', 'O', 'F', 'Cl', 'S'],
-        'size': 'PyTorch environment',
+        'size': '1.5 GB environment, 0.6 GB weights',
     },
     'retrochimera': {
-        'title': 'RetroChimera + Syntheseus', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
+        'title': 'RetroChimera + Syntheseus', 'does': 'retrosynthesis, single step and routes (Microsoft Research, with Syntheseus)', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
         'python': (10, 10), 'module': 'retrochimera',
         'requirements': ['torch==2.2.2', 'torch_geometric==2.5.2', 'pytorch-lightning==2.2.2', 'torchmetrics<0.11', 'h5py',
                          'scipy<1.12', 'rdkit', 'numpy<2', 'pebble~=5.2.0', 'loky', 'omegaconf', 'more_itertools', 'tqdm',
@@ -186,14 +186,15 @@ ENGINES = {
                          'building_blocks/mcule-molport-2026-08/building_blocks.json.gz',
                   'path': 'building_blocks/building_blocks.json.gz',
                   'sha256': '0fea071b828e70baa8012216d91e929f896951329509ce8af6c93c136b57eb81'},
-        'size': '0.7 GB environment, 4.7 GB model (Pistachio ensemble), 0.5 GB building blocks; the model is a 4.2 GB '
-                'download and building the stock list takes about 15 minutes',
+        'size': '1.6 GB environment, 4.7 GB model (Pistachio ensemble), 0.5 GB building blocks; the model is a 4.2 GB '
+                'download and building the stock list takes 15 to 70 minutes, depending on the CPU, once; running it '
+                'needs about 12 GB of free memory',
         'note': "Microsoft Research's RetroChimera (Nature 2026) with the Syntheseus search. Single step (steps=\"single\") "
                 'or whole routes (steps="multi"). The authors state it is for research and experiments: an expert must '
                 'check every route, and lower-ranked reactions are more likely to be hallucinated.',
     },
     'nmrnet-pp': {
-        'title': 'NMRNet++', 'task': 'nmr', 'kind': 'local', 'license': 'MIT', 'python': (11, 11), 'module': 'unicore',
+        'title': 'NMRNet++', 'does': '1H and 13C shifts (a second model)', 'task': 'nmr', 'kind': 'local', 'license': 'MIT (code); CC BY 4.0 (weights)', 'python': (11, 11), 'module': 'unicore',
         'requirements': ['torch==2.5.1', 'numpy', 'setuptools<81', 'wheel', 'rdkit', 'lmdb', 'pandas', 'scikit-learn',
                          'scipy', 'joblib', 'tqdm', 'ml_collections', 'tensorboardX'],
         'late_requirements': ['https://github.com/dptech-corp/Uni-Core/archive/ace6fae1c8479a9751f2bb1e1d6e4047427bc134.tar.gz'
@@ -218,14 +219,14 @@ ENGINES = {
              'members': [{'match': ['weight/dict.txt'], 'path': 'weight/dict.txt',
                           'sha256': 'f4fafdbc445449c8f8ef613fee36c8ee7610e3c7c2766666635edc8d962ba134'}]}],
         'elements': ['H', 'C', 'N', 'O', 'S', 'Cl', 'F', 'Br', 'I', 'Si', 'P', 'B'],
-        'size': '0.8 GB environment, about 1.2 GB checkpoints',
+        'size': '1.6 GB environment, 1.1 GB checkpoints',
         'note': 'ICML 2026; one of its five cross-validation checkpoints per nucleus (fold 0) is used, so it is a single '
                 'model, not the published ensemble. The authors include DP Technology staff; no company affiliation '
                 'is claimed here.',
     },
     'reacon': {
-        'title': 'Reacon', 'task': 'conditions', 'kind': 'local',
-        'license': 'not declared by the authors (no LICENSE file in their repository)',
+        'title': 'Reacon', 'does': 'reaction conditions', 'task': 'conditions', 'kind': 'local',
+        'license': 'not declared by the authors (no LICENSE file in their repository)', 'restricted': True,
         'python': (10, 10), 'module': 'torch',
         'requirements': ['torch==2.5.1', 'chemprop==1.6.1', 'torch-geometric==2.3.0', 'pandas==1.5.3', 'numpy<2', 'setuptools<81', 'rdkit'],
         'data': 'reacon',
@@ -245,7 +246,7 @@ ENGINES = {
                 {'name': 'USPTO_condition/data/condition_library/condition_library_r0_1.json.gz',
                  'path': 'condition_library/condition_library_r0_1.json.gz',
                  'sha256': 'c86a86f3aa57d3a785049917561a51d1895bb5fcb79d1b341b3f38a85e81f014'}]},
-        'size': '1.0 GB environment, 0.14 GB repository with trained models, 0.12 GB condition libraries (a 2 GB '
+        'size': '1.6 GB environment, 0.14 GB repository with trained models, 0.12 GB condition libraries (a 2 GB '
                 'download from the authors, deleted after the libraries are taken out)',
         'note': "Chem. Sci. 2025. The authors' repository states no licence, so the code and models are not "
                 'redistributed here: they are downloaded from the authors at a pinned commit, on request.',
@@ -260,40 +261,41 @@ def by_task(task: str) -> list:
 
 
 # --- when an engine is worth installing -----------------------------------------------------------------
-# ``disk_mb`` is the measured folder size of a finished install on macOS arm64 (rounded up). Nothing here
+# ``disk_mb`` is the measured folder size of a finished install on Windows x64, with the CUDA build of
+# PyTorch where the engine uses a GPU (rounded up; CPU-only installs are smaller). Nothing here
 # downloads anything: it is what the Skill reads to recommend an engine, with its size, before the user agrees.
 
 GUIDE = {
     'decimer-local': {'disk_mb': 2300, 'use_when': 'the DECIMER reading is wanted but the image may not be uploaded',
                       'skip_when': 'uploading is allowed: the DECIMER API runs the same model'},
-    'molscribe': {'disk_mb': 2000, 'use_when': 'a second opinion on a structure image, good on clean and mid-quality drawings',
+    'molscribe': {'disk_mb': 2500, 'use_when': 'a second opinion on a structure image, good on clean and mid-quality drawings',
                   'skip_when': 'the default DECIMER read is already confirmed against the image'},
-    'molnextr': {'disk_mb': 2400, 'use_when': 'hard drawings with wedges and ring stereochemistry, as an extra vote',
+    'molnextr': {'disk_mb': 4800, 'use_when': 'hard drawings with wedges and ring stereochemistry, as an extra vote',
                  'skip_when': 'two other engines already agree and the image checks out'},
-    'molparser': {'disk_mb': 1100, 'use_when': 'Markush or extended structures, and as a third vote',
+    'molparser': {'disk_mb': 3400, 'use_when': 'Markush or extended structures, and as a third vote',
                   'skip_when': 'the work is commercial (its weights are non-commercial) or the structure is plain'},
     'molvec': {'disk_mb': 2, 'use_when': 'a rule-based second opinion that errs differently from the neural models; tiny',
                'skip_when': 'photographs, hand drawings or scans (it needs clean line art)', 'needs': ['java']},
-    'decimer-segmentation': {'disk_mb': 2000, 'use_when': 'many structures on PDF pages that must be cut out and read',
+    'decimer-segmentation': {'disk_mb': 2100, 'use_when': 'many structures on PDF pages that must be cut out and read',
                              'skip_when': 'one structure in one image (the OpenCV segmenter is enough for clean pages)'},
-    'aizynthfinder': {'disk_mb': 1800, 'use_when': 'multi-step routes to purchasable starting materials',
+    'aizynthfinder': {'disk_mb': 1700, 'use_when': 'multi-step routes to purchasable starting materials',
                       'skip_when': 'a single quick guess at precursors is enough'},
-    'synplanner': {'disk_mb': 2500, 'use_when': 'a second route planner with its own building-block list',
+    'synplanner': {'disk_mb': 4800, 'use_when': 'a second route planner with its own building-block list',
                    'skip_when': 'AiZynthFinder already gave a usable route'},
-    'reactiont5-forward': {'disk_mb': 1600, 'use_when': 'ranked candidate products for given reactants',
+    'reactiont5-forward': {'disk_mb': 3900, 'use_when': 'ranked candidate products for given reactants',
                            'skip_when': 'the product is known or only needs an atom-balance check'},
-    'reactiont5-retro': {'disk_mb': 1600, 'use_when': 'quick single-step precursor ideas',
+    'reactiont5-retro': {'disk_mb': 3900, 'use_when': 'quick single-step precursor ideas',
                          'skip_when': 'AiZynthFinder is installed (it is more reliable)'},
-    'retrochimera': {'disk_mb': 5900, 'use_when': 'the strongest single-step precursor suggestions available here, '
+    'retrochimera': {'disk_mb': 6600, 'use_when': 'the strongest single-step precursor suggestions available here, '
                                                   'and routes searched with them',
                      'skip_when': 'a quick idea is enough (AiZynthFinder is much smaller), or the work needs a commercial '
                                   'licence check first: the authors state research use only'},
-    'nmrnet-pp': {'disk_mb': 1900, 'use_when': 'a second opinion on predicted 1H and 13C shifts, including Br, I, Si, P and B',
+    'nmrnet-pp': {'disk_mb': 2800, 'use_when': 'a second opinion on predicted 1H and 13C shifts, including Br, I, Si, P and B',
                   'skip_when': 'measured spectra are available (those are plotted without a model)'},
-    'reacon': {'disk_mb': 1100, 'use_when': 'candidate catalysts, solvents and reagents for a reaction already drawn',
+    'reacon': {'disk_mb': 1900, 'use_when': 'candidate catalysts, solvents and reagents for a reaction already drawn',
                'skip_when': 'the conditions are in the source, or the reaction type is new (it learned from patents); '
                             "its authors' repository declares no licence"},
-    'magnet': {'disk_mb': 1300, 'use_when': 'predicted 1H and 13C shifts of one molecule',
+    'magnet': {'disk_mb': 2200, 'use_when': 'predicted 1H and 13C shifts of one molecule',
                'skip_when': 'measured spectra are available (those are plotted without a model)'},
 }
 

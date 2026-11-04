@@ -745,7 +745,7 @@ class InteractionMarkupTests(unittest.TestCase):
             with self.subTest(page=language):
                 caps = re.search(r'<dl class="caps">(.*?)</dl>', html, re.S).group(1)
                 items = re.findall(r'<div data-kind="(\w+)">(.*?)</div>\n', caps, re.S)
-                self.assertEqual(len(items), 15)
+                self.assertEqual(len(items), 16)
                 for _kind, body in items:
                     self.assertIn('<details class="try">', body)
                     ask = re.search(r'<p class="ask">(.*?)</p>', body).group(1)

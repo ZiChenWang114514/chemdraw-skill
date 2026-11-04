@@ -81,6 +81,7 @@ python skill/chemdraw/scripts/cdx.py call render_scheme --json '{"yaml_text": "l
 python skill/chemdraw/scripts/cdx.py calc /tmp/amide.cdxml --output /tmp/amide_grid.cdxml --no-open   # shows a ChemDraw window briefly
 python skill/chemdraw/scripts/cdx.py call render_cdxml_files --json '{"input_paths": ["/tmp/amide_grid.cdxml"], "output_dir": "/tmp/render"}'
 python skill/chemdraw/scripts/cdx.py install-mappers --status
+python skill/chemdraw/scripts/cdx.py py skill/chemdraw/scripts/smoke_all_tools.py --output-dir /tmp/smoke   # every tool once
 ```
 
 Open `/tmp/render/amide_amounts.png` and check that the amounts sit below the

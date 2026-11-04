@@ -26,6 +26,12 @@ class ToolCountTests(unittest.TestCase):
         live = {name: len(tool_registry.build_registry(name)) for name in table}
         self.assertEqual({k: int(v) for k, v in table.items()}, live)
 
+    def test_engines_tables_match_the_registry(self):
+        from cdxml_toolkit.engines import table
+
+        text = (REFERENCES / "engines.md").read_text(encoding="utf-8")
+        self.assertEqual(text, table.render(text), "run `cdx.py regen-signatures` to rewrite the engines tables")
+
     def test_prose_tool_counts_are_real_profile_sizes(self):
         from cdxml_toolkit.mcp_runtime import tool_registry
 

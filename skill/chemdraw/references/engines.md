@@ -12,26 +12,29 @@ cdx.py predict retro "CC(=O)Oc1ccccc1C(=O)O" --json '{"steps": "multi"}'
 cdx.py predict conditions "CCO.CC(=O)O" --products "CCOC(C)=O"
 ```
 
-Each engine installs into its own folder under `~/.local/share/chemdraw-skill/engines` (`%LOCALAPPDATA%\chemdraw-skill\engines` on Windows; `CHEMDRAW_ENGINE_HOME` moves it), with its own Python, so PyTorch 1.x, TensorFlow 2.14 and the numpy 1.x/2.x stacks never meet. The runtime itself never imports an engine. Weights are downloaded at install time, checked against a pinned sha256 and recorded in a receipt; nothing is stored in the repository. Installation needs a network; running an engine does not (`HF_HUB_OFFLINE` is set for every run) and never uploads anything.
+Each engine installs into its own folder under `~/.local/share/chemdraw-skill/engines` (`%LOCALAPPDATA%\chemdraw-skill\engines` on Windows; `CHEMDRAW_ENGINE_HOME` moves it, for example to a larger disk, and must stay set afterwards or the engines are not found), with its own Python, so PyTorch 1.x, TensorFlow 2.14 and the numpy 1.x/2.x stacks never meet. The runtime itself never imports an engine. Weights are downloaded at install time, checked against a pinned sha256 and recorded in a receipt; nothing is stored in the repository. Installation needs a network; running an engine does not (`HF_HUB_OFFLINE` is set for every run) and never uploads anything.
 
 ## Engines
 
-| Engine | Task | Where it runs | Licence of code / weights | Size |
+<!-- engines-table:start -->
+| Engine | Task | Where it runs | Licence | Size |
 | --- | --- | --- | --- | --- |
-| `decimer-api` | OCSR | remote (default) | MIT; service by the Steinbeck Lab | none |
-| `decimer-local` | OCSR | runtime (extra `decimer`) | MIT | existing |
-| `molscribe` | OCSR | own env, Python 3.10 | MIT / MIT | 0.8 GB + 1.1 GB |
-| `molnextr` | OCSR | own env, Python 3.10 | Apache-2.0 / Apache-2.0 | 1.5 GB + 1.1 GB |
-| `molparser` | OCSR (also Markush) | own env, Python 3.10 to 3.12 | Apache-2.0 / **CC BY-NC-SA 4.0, non-commercial only** | 1.5 GB + 20 MB |
-| `molvec` | OCSR | Java jar | Apache-2.0 | 1.3 MB |
-| `decimer-segmentation` | find structures on a page | own env, Python 3.10 or 3.11 | MIT | TensorFlow 2.14 env |
-| `aizynthfinder` | retrosynthesis, single and multi-step | own env, Python 3.12 | MIT | 1.0 GB + 0.8 GB data |
-| `reactiont5-forward` | products | own env, Python 3.12 | MIT / MIT | 0.8 GB + weights |
-| `reactiont5-retro` | retrosynthesis, single step | own env, Python 3.12 | MIT / MIT | same environment |
-| `magnet` | 1H and 13C shifts | own env, Python 3.12 | MIT / MIT | PyTorch env |
-| `nmrnet-pp` | 1H and 13C shifts (a second model) | own env, Python 3.11 | MIT / CC BY 4.0 | 0.8 GB + 1.1 GB |
-| `retrochimera` | retrosynthesis, single step and routes (Microsoft Research, with Syntheseus) | own env, Python 3.10 | MIT / MIT | 0.7 GB + 4.7 GB + 0.5 GB stock (about 6 GB installed) |
-| `reacon` | reaction conditions | own env, Python 3.10 | **no licence stated by the authors** | 0.8 GB + 0.25 GB |
+| `decimer-api` | OCSR | remote (default) | MIT (service by the Steinbeck Lab) | none |
+| `decimer-local` | OCSR, the DECIMER model on this computer | runtime (extra `decimer`) | MIT | 1.5 GB of packages in the runtime (TensorFlow), 0.7 GB weights |
+| `molscribe` | OCSR | own env, Python 3.10 | MIT | 1.4 GB environment, 1.1 GB weights |
+| `molnextr` | OCSR | own env, Python 3.10; NVIDIA GPU when present | Apache-2.0 | 3.6 GB environment with the CUDA build of PyTorch (about 1.5 GB with the CPU build), 1.1 GB weights |
+| `molparser` | OCSR (also Markush) | own env, Python 3.10 to 3.12; NVIDIA GPU when present | **Apache-2.0 (code); CC BY-NC-SA 4.0 (weights), non-commercial only** | 3.4 GB environment with the CUDA build of PyTorch (about 1.5 GB with the CPU build), 20 MB weights |
+| `molvec` | OCSR | Java jar | Apache-2.0 | 1.3 MB (needs Java) |
+| `decimer-segmentation` | find structures on a page | own env, Python 3.10 or 3.11 | MIT | 1.8 GB environment, 0.3 GB model |
+| `aizynthfinder` | retrosynthesis, single and multi-step | own env, Python 3.10 to 3.12 | MIT | 0.9 GB environment, 0.8 GB public data (USPTO policies, ZINC stock) |
+| `synplanner` | retrosynthesis, multi-step routes | own env, Python 3.10 to 3.12; NVIDIA GPU when present | MIT | 3.8 GB environment with the CUDA build of PyTorch (about 1.4 GB with the CPU build), 0.9 GB building blocks and rules |
+| `reactiont5-forward` | products | own env, Python 3.10 to 3.12; NVIDIA GPU when present | MIT | 3.1 GB environment with the CUDA build of PyTorch (about 1.3 GB with the CPU build), 0.8 GB weights |
+| `reactiont5-retro` | retrosynthesis, single step | own env, Python 3.10 to 3.12; NVIDIA GPU when present | MIT | 3.1 GB environment with the CUDA build of PyTorch (about 1.3 GB with the CPU build), 0.8 GB weights |
+| `magnet` | 1H and 13C shifts | own env, Python 3.12 | MIT | 1.5 GB environment, 0.6 GB weights |
+| `retrochimera` | retrosynthesis, single step and routes (Microsoft Research, with Syntheseus) | own env, Python 3.10 | MIT | 1.6 GB environment, 4.7 GB model (Pistachio ensemble), 0.5 GB building blocks; the model is a 4.2 GB download and building the stock list takes 15 to 70 minutes, depending on the CPU, once; running it needs about 12 GB of free memory |
+| `nmrnet-pp` | 1H and 13C shifts (a second model) | own env, Python 3.11 | MIT (code); CC BY 4.0 (weights) | 1.6 GB environment, 1.1 GB checkpoints |
+| `reacon` | reaction conditions | own env, Python 3.10 | **not declared by the authors (no LICENSE file in their repository)** | 1.6 GB environment, 0.14 GB repository with trained models, 0.12 GB condition libraries (a 2 GB download from the authors, deleted after the libraries are taken out) |
+<!-- engines-table:end -->
 
 MolParser's weights may not be used commercially; check this before using it in paid or company work. RetroChimera's authors release it for research and experiments only. Reacon's authors state no licence at all, so it is never bundled: it is downloaded from their repository at a pinned commit, only when the user asks for it. Licences are those stated by each project; the weights of an engine are covered by their own terms, shown in `cdx.py install-engines --dry-run`. The full notices are in `toolkit/NOTICE.md`.
 
@@ -50,7 +53,7 @@ Nothing here is installed or downloaded until the user agrees. The default path 
 | precursors or routes | `retro` | about 1.8 GB |
 | predicted 1H/13C shifts | `nmr` | about 1.3 GB |
 | a second NMR model to compare, or Br, I, Si, P, B in the molecule | `nmr-pp` | about 1.9 GB |
-| the strongest single-step precursors, or routes searched with them (research use) | `retro-chimera` | about 6 GB (4.2 GB download; about 20 minutes of set-up after it) |
+| the strongest single-step precursors, or routes searched with them (research use) | `retro-chimera` | about 6 GB (4.2 GB download, then 15 to 70 minutes, depending on the CPU, to build the stock list once); needs about 12 GB of free memory to run |
 | catalyst, solvent and reagent candidates for a drawn reaction | `conditions` (code without a stated licence) | about 1.1 GB, 2 GB download |
 
 Sizes are measured folder sizes of finished installs. A tool that needs a missing engine answers `ok: false` with an `install_hint` (engine, use, size, licence, command): relay it instead of searching the documentation, and install only after the user says yes.
@@ -61,20 +64,29 @@ Sizes are measured folder sizes of finished installs. A tool that needs a missin
 
 ## Bundles
 
+<!-- bundles-table:start -->
 | Bundle | Engines | For |
 | --- | --- | --- |
-| `ocsr-lite` | `molvec` | a tiny rule-based second opinion |
-| `ocsr-standard` | `molscribe`, `molvec` | an ordinary comparison |
-| `ocsr-full` | `molscribe`, `molnextr`, `molparser`, `molvec` | hard drawings and Markush structures |
-| `pdf` | `decimer-segmentation`, `molscribe`, `molvec` | structures from PDF pages |
-| `products` | `reactiont5-forward` | candidate products |
+| `ocsr-lite` | `molvec` | a tiny rule-based second opinion (needs Java) |
+| `ocsr-standard` | `molscribe`, `molvec` | two engines that err differently, enough for a comparison |
+| `ocsr-full` | `molscribe`, `molnextr`, `molparser`, `molvec` | every local OCSR engine, for hard drawings and Markush structures |
+| `decimer-local` | `decimer-local` | the DECIMER model on this computer, for images that may not be uploaded (TensorFlow) |
+| `pdf` | `decimer-segmentation`, `molscribe`, `molvec` | cut the structures out of PDF pages and read them with two engines |
+| `products` | `reactiont5-forward` | candidate products of a reaction |
 | `retro` | `aizynthfinder` | single and multi-step retrosynthesis |
-| `nmr` | `magnet` | predicted shifts |
+| `nmr` | `magnet` | predicted 1H and 13C shifts |
 | `nmr-pp` | `nmrnet-pp` | a second NMR model to compare with MagNET |
-| `retro-chimera` | `retrochimera` | RetroChimera suggestions and Syntheseus route search (research use) |
+| `retro-chimera` | `retrochimera` | RetroChimera single-step suggestions and Syntheseus route search (research use) |
 | `conditions` | `reacon` | candidate reaction conditions (unlicensed code) |
+<!-- bundles-table:end -->
 
 `SynPlanner`, `ReactionT5` retrosynthesis and the individual OCSR engines are installed by name.
+
+## GPU, memory and disk
+
+- **GPU.** Engines marked "NVIDIA GPU when present" get a CUDA build of PyTorch when `nvidia-smi` finds a GPU at install time, and then run on it; the install report and `.engine.json` say `device: cuda`. The other engines are pinned to a PyTorch too old for current GPUs, or to TensorFlow, which has no GPU support on native Windows, and run on the CPU. `CHEMDRAW_ENGINE_DEVICE=cpu` keeps every engine on the CPU, at install and at run time. Macs always use the CPU.
+- **Memory.** Engines run one at a time. RetroChimera is the largest: its model needs about 12 GB of free memory on the CPU, and it starts one extra rule process for every further 3 GB free, up to 4 (`CHEMDRAW_ENGINE_PROCESSES` sets the number). Close other large programs before a RetroChimera run on a machine with less than 16 GB free.
+- **Disk.** Package downloads are cached under `CHEMDRAW_ENGINE_HOME/.cache`, on the same disk as the engines, unless `UV_CACHE_DIR` or `PIP_CACHE_DIR` is set. `decimer-local` is the exception: it installs into the toolkit runtime itself, wherever that venv lives.
 
 ## Removing an engine
 

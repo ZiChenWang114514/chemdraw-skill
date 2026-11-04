@@ -39,7 +39,7 @@ Run portable validation for every change:
 python .\scripts\validate_distribution.py
 ```
 
-Run the full Skill suite in the toolkit runtime (`cdx.py py` selects it; `scripts/install.py --runtime-only --apply` builds it and records it for this checkout in the ignored `skill/chemdraw/runtime.local.json`, otherwise set `CHEMDRAW_MCP_PYTHON`):
+Run the full Skill suite in the toolkit runtime (`cdx.py py` selects it; `scripts/install.py --runtime-only --apply` builds it and, when `cdx.py` would otherwise pick another runtime, records it for this checkout in the ignored `skill/chemdraw/runtime.local.json`; a set `CHEMDRAW_MCP_PYTHON` overrides both):
 
 ```powershell
 python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q

@@ -73,7 +73,7 @@
         { "@type": "Question", "name": "安全信息可以信到什么程度？",
           "acceptedAnswer": { "@type": "Answer", "text": "它只是提醒，请以你实际使用的产品的 SDS 为准。 内容来自内置的约五十种常用溶剂和试剂表：GHS 图标、H 说明、沸点和闪点。 表里没有的物质显示“未收录”，不会显示成安全。" } },
         { "@type": "Question", "name": "能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以，输出可编辑 CDXML 和 ChemDraw 原生预览。 论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核。见重建指南。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "可以，输出可编辑 CDXML 和 ChemDraw 原生预览。 论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核。见重建指南。 图片不能上传，或者想多一份识别结果时，可选的本地引擎也会读一遍。各引擎的结果只做比对，不会合并。" } },
         { "@type": "Question", "name": "没有安装 ChemDraw 能用吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "部分能用：可以生成和检查 CDXML，原生功能需要 ChemDraw。 不需要 ChemDraw：跨平台的 cdxml-toolkit 运行时在 Windows、macOS、Linux 上生成和检查 CDXML。 需要 Windows 或 macOS 上已授权的桌面版 ChemDraw：原生渲染、ChemScript 检查和 Office 嵌入。" } }
       ]
@@ -372,6 +372,7 @@ Bonds:   13</code></pre></details></div>
       <div data-kind="draw"><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点和 Rf 计算；ChemDraw 装置模板组装。<details class="try"><summary>试着这样说</summary><p class="ask">画一块 TLC 板：三条泳道依次是原料、共点和反应液，斑点 Rf 分别是 0.62 和 0.35。</p></details></dd></div>
       <div data-kind="data"><dt>谱图与实验记录</dt><dd>一维 NMR 寻峰与区间积分，数值数据输出为可编辑曲线；处理 LCMS、SciFinder RDF 和实验记录。<details class="try"><summary>试着这样说</summary><p class="ask">对这份 <sup>1</sup>H NMR 数据寻峰，积分 6.8–7.4 ppm 区间，输出可编辑的 ChemDraw 谱图。</p></details></dd></div>
       <div data-kind="data"><dt>Word 与 PPT</dt><dd>在 Word、PowerPoint 文档中嵌入可编辑的 ChemDraw 对象（Windows 或 macOS 上生成）。<details class="try"><summary>试着这样说</summary><p class="ask">把 route.cdxml 作为可编辑的 ChemDraw 对象放进一页 PowerPoint 幻灯片。</p></details></dd></div>
+      <div data-kind="calc"><dt>可选引擎与预测</dt><dd>经你同意才安装，每个引擎各用一个独立环境：用更多识别引擎比对同一张图，从 PDF 中找出结构，预测产物、前体和路线、反应条件以及核磁位移。每个结果都标注为预测，也不会上传任何内容。<details class="try"><summary>试着这样说</summary><p class="ask">用本地逆合成引擎给对乙酰氨基酚找一步前体，并先告诉我需要安装什么。</p></details></dd></div>
     </dl>
   </div>
 </section>
@@ -505,6 +506,7 @@ cd chemdraw-skill
         <div class="answer">
           <p class="lead">可以，输出可编辑 CDXML 和 ChemDraw 原生预览。</p>
           <p>论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核。见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/image-visual-review.md">重建指南</a>。</p>
+          <p>图片不能上传，或者想多一份识别结果时，可选的本地引擎也会读一遍。各引擎的结果只做比对，不会合并。</p>
         </div>
       </details>
       <details id="faq-no-chemdraw">
