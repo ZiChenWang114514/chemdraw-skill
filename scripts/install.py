@@ -55,16 +55,19 @@ SKILL_NAME = 'chemdraw'
 AGENTS = {
     'claude': ('.claude/skills', '.claude/skills'),
     'agents': ('.agents/skills', '.agents/skills'),
-    'codex': ('.agents/skills', '.agents/skills'),
     'gemini': ('.gemini/skills', '.gemini/skills'),
-    'antigravity': ('.gemini/antigravity/skills', '.agent/skills'),
     'copilot': ('.copilot/skills', '.github/skills'),
     'cursor': ('.cursor/skills', '.cursor/skills'),
-    'windsurf': ('.codeium/windsurf/skills', '.windsurf/skills'),
     'opencode': ('.config/opencode/skills', '.opencode/skills'),
     'kimi': ('.kimi-code/skills', '.kimi-code/skills'),
     'pi': ('.pi/agent/skills', '.pi/skills'),
 }
+AGENT_ALIASES = {
+    'codex': ('.agents/skills', '.agents/skills'),
+    'antigravity': ('.gemini/antigravity/skills', '.agent/skills'),
+    'windsurf': ('.codeium/windsurf/skills', '.windsurf/skills'),
+}
+ALL_AGENTS = {**AGENTS, **AGENT_ALIASES}
 # Never copied into an installation; runtime.local.json is written per installation.
 IGNORED = ('__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', '*.pyc', '*.pyo',
            'manifest.json', 'runtime.local.json')
@@ -157,7 +160,7 @@ def destinations(ns):
     scope = 1 if ns.project else 0
     seen, out = set(), []
     for agent in ns.agent:
-        target = (base / AGENTS[agent][scope] / SKILL_NAME).resolve()
+        target = (base / ALL_AGENTS[agent][scope] / SKILL_NAME).resolve()
         if target not in seen:
             seen.add(target)
             out.append(target)
@@ -314,8 +317,8 @@ def parse(argv):
     p = argparse.ArgumentParser(description=__doc__.split('\n\n')[0],
                                 formatter_class=argparse.RawDescriptionHelpFormatter,
                                 epilog='Agents: ' + ', '.join(f'{k} (~/{u}, <project>/{q})'
-                                                             for k, (u, q) in AGENTS.items()))
-    p.add_argument('--agent', nargs='+', choices=sorted(AGENTS), default=['claude'],
+                                                             for k, (u, q) in ALL_AGENTS.items()))
+    p.add_argument('--agent', nargs='+', choices=sorted(ALL_AGENTS), default=['claude'],
                    help='agent Skill folder(s) to install into (default: claude)')
     p.add_argument('--project', help='install into this project instead of the home folder')
     p.add_argument('--destination', nargs='+', help='explicit Skill folder(s); overrides --agent/--project')

@@ -858,9 +858,9 @@ def test_accel_and_task_hint_flags_and_engines_stop_daemons(monkeypatch):
     monkeypatch.delenv('CHEMDRAW_ACCEL', raising=False)
     monkeypatch.delenv('CHEMDRAW_TASK_HINT', raising=False)
     with mock.patch.object(cdx, '_worker', return_value={'ok': True}):
-        assert cdx.main(['predict', 'nmr', 'CCO', '--accel', 'simple', '--task-hint', '简单任务']) == 0
+        assert cdx.main(['predict', 'nmr', 'CCO', '--accel', 'simple', '--task-hint', '\u7b80\u5355\u4efb\u52a1']) == 0
     assert os.environ.get('CHEMDRAW_ACCEL') == 'simple'
-    assert os.environ.get('CHEMDRAW_TASK_HINT') == '简单任务'
+    assert os.environ.get('CHEMDRAW_TASK_HINT') == '\u7b80\u5355\u4efb\u52a1'
 
     with mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
         assert cdx.main(['engines', '--stop-daemons']) == 0

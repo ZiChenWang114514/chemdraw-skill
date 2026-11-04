@@ -337,13 +337,13 @@ def test_scientific_plot_300_dpi_utf8_and_multi_series(tmp_path):
 
     out_dir = tmp_path / "multi_utf8_plot"
     spec = {
-        "title": "1H NMR 叠加谱图 (δ ppm)",
-        "xlabel": "化学位移 δ (ppm)",
-        "ylabel": "强度 (a.u.)",
+        "title": "1H NMR \u53e0\u52a0\u8c31\u56fe (δ ppm)",
+        "xlabel": "\u5316\u5b66\u4f4d\u79fb δ (ppm)",
+        "ylabel": "\u5f3a\u5ea6 (a.u.)",
         "reverse_x": True,
         "series": [
-            {"x": x, "y": y1, "label": "样品 A (δ)", "color": "#185f72", "style": "-"},
-            {"x": x, "y": y2, "label": "样品 B (对照)", "color": "#d95f02", "style": "--"},
+            {"x": x, "y": y1, "label": "\u6837\u54c1 A (δ)", "color": "#185f72", "style": "-"},
+            {"x": x, "y": y2, "label": "\u6837\u54c1 B (\u5bf9\u7167)", "color": "#d95f02", "style": "--"},
         ],
     }
 
@@ -372,8 +372,8 @@ def test_scientific_plot_300_dpi_utf8_and_multi_series(tmp_path):
 
     all_text = " ".join((s.text or "") for s in root.iter("s"))
     assert "δ (ppm)" in all_text
-    assert "样品 A" in all_text
-    assert "样品 B" in all_text
+    assert "\u6837\u54c1 A" in all_text
+    assert "\u6837\u54c1 B" in all_text
 
     curves = root.findall("./page/curve")
     assert len(curves) >= 2

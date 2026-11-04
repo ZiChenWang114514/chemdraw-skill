@@ -32,8 +32,8 @@ def test_single_cold_call_classified_as_simple_oneshot(tmp_path: Path, monkeypat
 @pytest.mark.parametrize(
     'hint',
     [
-        '这是一个简单任务，只测这一个分子',
-        '只看一张结构图，不用提速',
+        '\u8fd9\u662f\u4e00\u4e2a\u7b80\u5355\u4efb\u52a1，\u53ea\u6d4b\u8fd9\u4e00\u4e2a\u5206\u5b50',
+        '\u53ea\u770b\u4e00\u5f20\u7ed3\u6784\u56fe，\u4e0d\u7528\u63d0\u901f',
         'Just one quick check on aspirin',
         'simple task, single molecule only',
         'one-off NMR check',
@@ -63,8 +63,8 @@ def test_explicit_user_simple_intent_overrides_batch_and_burst(tmp_path: Path, m
 @pytest.mark.parametrize(
     'hint',
     [
-        '批量提取整篇文献PDF里的所有分子并对比多个引擎',
-        '96孔板高通量筛选结果核对',
+        '\u6279\u91cf\u63d0\u53d6\u6574\u7bc7\u6587\u732ePDF\u91cc\u7684\u6240\u6709\u5206\u5b50\u5e76\u5bf9\u6bd4\u591a\u4e2a\u5f15\u64ce',
+        '96\u5b54\u677f\u9ad8\u901a\u91cf\u7b5b\u9009\u7ed3\u679c\u6838\u5bf9',
         'Run a multi-step substrate scope batch evaluation',
         'whole paper extraction benchmark',
     ],
@@ -291,7 +291,7 @@ def test_env_call_records_accel_meta_and_cli_stop_daemons(tmp_path: Path, monkey
         ),
     )
 
-    monkeypatch.setenv('CHEMDRAW_TASK_HINT', '这是一个简单任务')
+    monkeypatch.setenv('CHEMDRAW_TASK_HINT', '\u8fd9\u662f\u4e00\u4e2a\u7b80\u5355\u4efb\u52a1')
     env.call('molscribe', 'predict', {'images': ['a.png', 'b.png', 'c.png']})
     assert env.last_call_meta('molscribe') == {'device': 'cuda', 'device_fallback': False}
     meta_simple = env.last_accel_meta('molscribe')
@@ -300,7 +300,7 @@ def test_env_call_records_accel_meta_and_cli_stop_daemons(tmp_path: Path, monkey
     assert meta_simple['reason'] == 'user_indicated_simple_task'
     assert meta_simple['mode'] == 'oneshot'
 
-    monkeypatch.setenv('CHEMDRAW_TASK_HINT', '批量识别整篇PDF')
+    monkeypatch.setenv('CHEMDRAW_TASK_HINT', '\u6279\u91cf\u8bc6\u522b\u6574\u7bc7PDF')
     env.call('molscribe', 'predict', {'images': ['a.png', 'b.png', 'c.png']})
     meta_complex = env.last_accel_meta('molscribe')
     assert meta_complex is not None

@@ -1,7 +1,7 @@
 """Adaptive task-complexity classifier and idle-timeout resident worker pool for prediction engines.
 
 Design goals:
-- Simple one-off tasks (or explicit user hints such as "简单任务" / "只跑一个" / "simple" /
+- Simple one-off tasks (or explicit user hints such as "simple" /
   ``CHEMDRAW_ACCEL=off|simple``) run as clean one-shot subprocesses and leave zero background
   processes or resident GPU allocations behind.
 - Complex tasks (batch inputs, multi-step route searches, iterative multi-call sessions within a
@@ -48,7 +48,7 @@ _COMPLEX_MODES = frozenset({'1', 'on', 'true', 'yes', 'complex', 'force', 'accel
 # Bilingual intent patterns for explicit user instructions.
 _SIMPLE_HINT_RE = re.compile(
     r'(?:'
-    r'简单任务|简单测|只跑一个|只看一张|只测一个|仅这一个|单次|单个分子|不用提速|不提速|不要常驻|轻量模式'
+    r'\u7b80\u5355\u4efb\u52a1|\u7b80\u5355\u6d4b|\u53ea\u8dd1\u4e00\u4e2a|\u53ea\u770b\u4e00\u5f20|\u53ea\u6d4b\u4e00\u4e2a|\u4ec5\u8fd9\u4e00\u4e2a|\u5355\u6b21|\u5355\u4e2a\u5206\u5b50|\u4e0d\u7528\u63d0\u901f|\u4e0d\u63d0\u901f|\u4e0d\u8981\u5e38\u9a7b|\u8f7b\u91cf\u6a21\u5f0f'
     r'|\bsimple\s+task\b|\bone[- ]off\b|\bsingle\s+(?:check|molecule|image|run|call)\b'
     r'|\bjust\s+one\b|\bonly\s+one\b|\bquick\s+check\b|\bno\s+accel(?:eration)?\b'
     r')',
@@ -57,7 +57,7 @@ _SIMPLE_HINT_RE = re.compile(
 
 _COMPLEX_HINT_RE = re.compile(
     r'(?:'
-    r'复杂任务|批量|整篇|全套|多步|底物拓展|构效|孔板|96\s*孔|对比多个|多分子|路线规划|高通量|加速模式'
+    r'\u590d\u6742\u4efb\u52a1|\u6279\u91cf|\u6574\u7bc7|\u5168\u5957|\u591a\u6b65|\u5e95\u7269\u62d3\u5c55|\u6784\u6548|\u5b54\u677f|96\s*\u5b54|\u5bf9\u6bd4\u591a\u4e2a|\u591a\u5206\u5b50|\u8def\u7ebf\u89c4\u5212|\u9ad8\u901a\u91cf|\u52a0\u901f\u6a21\u5f0f'
     r'|\bbatch\b|\bcomplex\s+task\b|\bmulti[- ]step\b|\bwhole\s+(?:paper|pdf|document)\b'
     r'|\bbenchmark\b|\blibrary\b|\bplate\b|\bsubstrate\s+scope\b|\bseries\b'
     r')',
