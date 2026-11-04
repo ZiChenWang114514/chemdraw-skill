@@ -6,7 +6,8 @@ Collates peaks across multiple LCMS files from the same reaction to:
 2. Merge mass spectrum ions into recurring vs one-off lists
 3. Track area% trends over time (increasing / decreasing / stable)
 
-Input: MassLynx PDF files (parsed internally via lcms_analyzer.parse_report).
+Input: MassLynx PDF files or OpenLynx .rpt exports (parsed internally via
+lcms_analyzer.parse_reports).  Every [SAMPLE] of an .rpt is one timepoint.
 Output: Text report (default) or structured JSON (--json).
 
 Usage:
@@ -34,8 +35,8 @@ from cdxml_toolkit.constants import (
     LCMS_MIN_SUMMARY_AREA,
 )
 from ..lcms_analyzer import (
-    parse_report, LCMSReport, ChromPeak, MassSpectrum, format_basic_report,
-    is_waters_report, method_basename,
+    parse_report, parse_reports, LCMSReport, ChromPeak, MassSpectrum,
+    format_basic_report, is_waters_report, is_rpt_path, method_basename,
 )
 from .lcms_file_categorizer import categorize_lcms_file, _AMBIGUOUS_SORT_KEYS
 
@@ -112,12 +113,24 @@ class AnalysisResult:
 # Note: File categorization code has been extracted to lcms_file_categorizer.py
 # ---------------------------------------------------------------------------
 
-def extract_run_datetime(pdf_path: str) -> Optional[str]:
+def extract_run_datetime(pdf_path: str,
+                         report: Optional[LCMSReport] = None) -> Optional[str]:
     """
     Extract the acquisition date+time from a MassLynx PDF.
     Looks for 'Date:DD-Mon-YYYY' and 'Time:HH:MM:SS' in the header.
     Returns ISO-format string 'YYYY-MM-DD HH:MM:SS' or None.
+
+    For an OpenLynx .rpt export pass the parsed *report* (one sample of the
+    file); its Date / Time fields are used.  Without it the first sample of
+    the .rpt is read.
     """
+    if is_rpt_path(pdf_path):
+        from ..openlynx_rpt import report_datetime
+        try:
+            return report_datetime(report or parse_reports(pdf_path)[0])
+        except Exception:
+            return None
+
     from ..lcms_analyzer import extract_all_text
 
     try:
@@ -684,8 +697,9 @@ def detect_outlier_files_conservative(
 # ---------------------------------------------------------------------------
 
 def _file_label(fe: FileEntry) -> str:
-    """Short display name for a file (strip .pdf, strip common prefix)."""
-    return os.path.splitext(fe.filename)[0]
+    """Short display name for a file (strip .pdf / .rpt)."""
+    stem, ext = os.path.splitext(fe.filename)
+    return stem if ext.lower() in (".pdf", ".rpt") else fe.filename
 
 
 def format_text_report(result: AnalysisResult,
@@ -1226,7 +1240,7 @@ def main(argv=None) -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument('files', nargs='+',
-                        help='MassLynx PDF report files')
+                        help='MassLynx PDF reports or OpenLynx .rpt exports')
     parser.add_argument('--rt-tolerance', type=float, default=LCMS_RT_TOLERANCE,
                         help='RT matching tolerance in minutes (default: %(default)s)')
     parser.add_argument('--mz-tolerance', type=float, default=LCMS_MZ_TOLERANCE,
@@ -1272,21 +1286,29 @@ def main(argv=None) -> int:
     valid_files = []
     for path in args.files:
         if not is_waters_report(path):
-            print(f"  Skipping non-standard PDF: {os.path.basename(path)}",
+            print(f"  Skipping non-standard report: {os.path.basename(path)}",
                   file=sys.stderr)
         else:
             valid_files.append(path)
 
-    # Parse all reports
+    # Parse all reports.  A PDF is one sample; an OpenLynx .rpt export holds
+    # one sample per [SAMPLE] block and each becomes its own timepoint.
     file_entries: List[FileEntry] = []
     for path in valid_files:
-        filename = os.path.basename(path)
-        category, sort_key = categorize_lcms_file(filename)
-        ambiguous = sort_key in _AMBIGUOUS_SORT_KEYS
+        file_basename = os.path.basename(path)
         try:
-            report = parse_report(path)
+            reports = parse_reports(path)
+        except Exception as e:
+            print(f"  Warning: Could not parse {file_basename}: {e}",
+                  file=sys.stderr)
+            continue
+        for report in reports:
+            multi = is_rpt_path(path) and len(reports) > 1
+            filename = report.sample_name if multi else file_basename
+            category, sort_key = categorize_lcms_file(filename)
+            ambiguous = sort_key in _AMBIGUOUS_SORT_KEYS
             # Always try to extract run datetime (shown in output)
-            run_dt = extract_run_datetime(path)
+            run_dt = extract_run_datetime(path, report)
             fe = FileEntry(
                 path=os.path.abspath(path),
                 filename=filename,
@@ -1302,9 +1324,6 @@ def main(argv=None) -> int:
             amb_info = " [ambiguous]" if fe.ambiguous_time else ""
             print(f"  Parsed: {filename} ({len(report.peaks)} peaks, "
                   f"{category}, sort={sort_key}{dt_info}{amb_info})",
-                  file=sys.stderr)
-        except Exception as e:
-            print(f"  Warning: Could not parse {filename}: {e}",
                   file=sys.stderr)
 
     if not file_entries:

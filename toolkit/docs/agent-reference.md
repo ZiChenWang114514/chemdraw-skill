@@ -172,7 +172,7 @@ parse_scheme(cdxml_path="scheme.cdxml")
 
 ### parse_analysis_file
 
-Parse LCMS (Waters/manual) or NMR (MestReNova) PDFs.
+Parse LCMS (Waters PDF, manual integration, or OpenLynx `.rpt`) or NMR (MestReNova) files. A multi-sample `.rpt` returns `{source_format, sample_count, samples}`.
 
 ```
 parse_analysis_file(pdf_path="lcms_report.pdf")
@@ -180,7 +180,7 @@ parse_analysis_file(pdf_path="lcms_report.pdf")
 
 ### format_lab_entry
 
-Format structured entries into lab book text. Re-reads LCMS PDFs for exact peak numbers.
+Format structured entries into lab book text. Re-reads LCMS PDFs (or `.rpt`, with `"sample"` for a batch export) for exact peak numbers.
 
 ```
 format_lab_entry(entries_json=[

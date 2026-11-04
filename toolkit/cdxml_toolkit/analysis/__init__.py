@@ -19,10 +19,10 @@ Optional dependency: ``pdfplumber`` (install via
 
 # Agent-driven tools (top-level in analysis/)
 from .lcms_analyzer import (
-    parse_report, parse_manual_report, format_table, format_manual_table,
+    parse_report, parse_reports, parse_manual_report, format_table, format_manual_table,
     LCMSReport, ChromPeak, MassSpectrum,
     ManualLCMSReport, ManualLCMSSample, ManualPeak,
-    is_waters_report, is_manual_integration,
+    is_waters_report, is_manual_integration, is_rpt_path,
 )
 from .format_procedure_entry import process_entries
 

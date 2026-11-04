@@ -10,7 +10,10 @@ Tools: `66`
 
 ### `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, typing.Any]`
 
-Analyze a chronological series of standard LCMS PDF reports.
+Analyze a time series of standard LCMS reports (MassLynx PDFs or OpenLynx .rpt exports).
+
+Every PDF is one timepoint; every sample inside an .rpt is one timepoint, so
+one multi-sample .rpt is enough.
 
 ### `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, typing.Any]`
 
@@ -765,6 +768,8 @@ Entry types and their required fields:
 Workflow: First call parse_analysis_file on each PDF to see peaks/masses.
 Then build entries referencing those PDFs with approximate RT and ion as
 search keys.  This tool re-reads the PDF and fills in exact numbers.
+"file" may also be an OpenLynx .rpt; for a multi-sample .rpt add
+"sample" (sample number, well, SampleID or file name) to the entry.
 
 Args:
     entries_json: List of entry dicts, or a JSON string, or {"entries": [...]}.
@@ -833,16 +838,19 @@ Returns:
 
 ### `parse_analysis_file(pdf_path: str, output_path: Optional[str] = None) -> dict`
 
-Parse an LCMS or NMR analysis PDF to extract peaks and data.
+Parse an LCMS or NMR analysis file to extract peaks and data.
 
-Supports Waters LCMS reports and MestReNova NMR PDFs. Returns structured
-peak data for LCMS species identification or NMR characterisation.
+Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports and
+MestReNova NMR PDFs. Returns structured peak data for LCMS species
+identification or NMR characterisation. A .rpt holds one or many samples:
+one sample returns the same dict as a PDF report, several return
+{source_format, sample_count, samples: [report, ...]}.
 
 This module is under active development. If unavailable, the tool returns
 a graceful error rather than crashing.
 
 Args:
-    pdf_path:    Path to an LCMS or NMR PDF report.
+    pdf_path:    Path to an LCMS PDF or OpenLynx .rpt, or an NMR PDF.
     output_path: If given, write the parsed data as JSON to this file and
                  return {ok, output_path, size} instead of the full dict.
 

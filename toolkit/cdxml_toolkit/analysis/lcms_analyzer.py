@@ -52,7 +52,10 @@ from cdxml_toolkit.constants import (
 class MassSpectrum:
     """ESI+ or ESI- spectrum for a single chromatographic peak."""
     mode: str  # "ES+" or "ES-"
-    top_ions: List[float] = field(default_factory=list)  # Up to 2 m/z values, tallest first
+    # Up to 2 m/z values, tallest first (up to 5 for OpenLynx .rpt input)
+    top_ions: List[float] = field(default_factory=list)
+    # % of the base peak for each ion in top_ions (filled for OpenLynx .rpt input only)
+    intensities: List[float] = field(default_factory=list)
 
 @dataclass
 class ChromPeak:
@@ -83,6 +86,13 @@ class LCMSReport:
     peaks: List[ChromPeak] = field(default_factory=list)
     file_modified: Optional[str] = None
     run_time: Optional[str] = None  # "HH:MM:SS" from PDF header
+    # Set for OpenLynx .rpt input (a PDF report leaves the defaults).
+    source_format: str = "masslynx_pdf"   # "masslynx_pdf" | "openlynx_rpt"
+    sample_id: str = ""
+    well: str = ""
+    sample_index: Optional[int] = None    # 1-based [SAMPLE] number in the .rpt
+    detector: str = "TAC"                 # trace behind area / area_pct
+    column_name: str = ""
 
 # ---------------------------------------------------------------------------
 # PDF text extraction
@@ -103,6 +113,11 @@ def extract_all_text(pdf_path: str) -> str:
 # Parsing logic
 # ---------------------------------------------------------------------------
 
+def _path_leaf(path: str) -> str:
+    """Last component of a Windows or POSIX path (MassLynx stores Windows paths)."""
+    return path.replace(chr(92), '/').rsplit('/', 1)[-1]
+
+
 def parse_method_short(method_path: str) -> str:
     """
     Extract a short method description from the full MassLynx method path.
@@ -113,7 +128,7 @@ def parse_method_short(method_path: str) -> str:
     e.g. '...21_CSH_C18_AmB_50to100_ACN_220_254nm_TAC_TIC_1p9min.olp'
     -> 'CSH C18, AmB, 50-100%, 1.9 min'
     """
-    basename = os.path.basename(method_path).replace('.olp', '')
+    basename = _path_leaf(method_path).replace('.olp', '')
     parts = basename.split('_')
 
     column = ""
@@ -156,7 +171,8 @@ def method_basename(method_path: str) -> str:
     Used for grouping files by exact method — files with the same method
     basename are comparable (same column, buffer, gradient, runtime).
     """
-    return os.path.basename(method_path).replace('.olp', '').lower()
+    # MassLynx method paths are Windows paths, whatever OS the toolkit runs on.
+    return _path_leaf(method_path).replace('.olp', '').lower()
 
 
 def parse_header(text: str) -> dict:
@@ -546,7 +562,10 @@ def _parse_spectrum_pages(pdf) -> Tuple[Dict[int, Tuple[float, list]],
 
 
 def is_waters_report(pdf_path: str) -> bool:
-    """Quick content-based check: is this PDF a standard Waters MassLynx report?
+    """Quick content-based check: is this a standard Waters MassLynx report?
+
+    An OpenLynx ``.rpt`` export counts as a standard report too (checked by
+    content, no PDF reader needed).
 
     Manually integrated chromatograms (e.g. LC-only or MS-only exports) lack
     the structured headers of a full UPLC-PDA-MS Open Access report. This
@@ -555,6 +574,9 @@ def is_waters_report(pdf_path: str) -> bool:
     Returns True for standard reports, False for manually integrated exports
     or other non-standard PDFs.
     """
+    if is_rpt_path(pdf_path):
+        from cdxml_toolkit.analysis.openlynx_rpt import is_openlynx_rpt
+        return is_openlynx_rpt(pdf_path)
     import pdfplumber
     try:
         with pdfplumber.open(pdf_path) as pdf:
@@ -573,8 +595,33 @@ def is_waters_report(pdf_path: str) -> bool:
         return False
 
 
-def parse_report(pdf_path: str) -> LCMSReport:
-    """Parse a complete MassLynx PDF report."""
+def is_rpt_path(path: str) -> bool:
+    """True when the file name says OpenLynx RPT (content is checked later)."""
+    return os.path.splitext(str(path))[1].lower() == ".rpt"
+
+
+def parse_reports(path: str) -> List[LCMSReport]:
+    """Parse a standard LCMS report file into a list of sample reports.
+
+    A MassLynx PDF holds one sample, so the list has one entry.  An OpenLynx
+    ``.rpt`` export holds one entry per ``[SAMPLE]`` block.
+    """
+    if is_rpt_path(path):
+        from cdxml_toolkit.analysis.openlynx_rpt import parse_rpt
+        return parse_rpt(path)
+    return [parse_report(path)]
+
+
+def parse_report(pdf_path: str, sample=None) -> LCMSReport:
+    """Parse one MassLynx report: a PDF, or one sample of an OpenLynx .rpt.
+
+    *sample* only matters for ``.rpt`` files with several samples: the 1-based
+    sample number, well, SampleID or acquired file name.  Use
+    :func:`parse_reports` to get every sample.
+    """
+    if is_rpt_path(pdf_path):
+        from cdxml_toolkit.analysis.openlynx_rpt import parse_rpt, select_sample
+        return select_sample(parse_rpt(pdf_path), sample)
     import pdfplumber
 
     with pdfplumber.open(pdf_path) as pdf:
@@ -1098,6 +1145,8 @@ def format_basic_report(report: LCMSReport) -> str:
                  + (f" {report.run_time}" if report.run_time else ""))
     lines.append(f"Instrument: {report.instrument}")
     lines.append(f"Method:     {report.method_short}")
+    if report.detector != "TAC":
+        lines.append(f"Area basis: {report.detector} (no DAD total-absorbance trace)")
     lines.append("")
     lines.append("-" * 60)
     lines.append("PEAK TABLE")
@@ -1161,6 +1210,9 @@ def format_table(report: LCMSReport) -> str:
     if report.run_time:
         date_str += f" {report.run_time}"
     lines.append(f"**Date:** {date_str}")
+    if report.detector != "TAC":
+        lines.append(f"**Area basis:** {report.detector} (no DAD total-absorbance trace); "
+                     "the TAC% column holds these areas")
     lines.append("")
 
     if not report.peaks:
@@ -1202,9 +1254,17 @@ def format_table(report: LCMSReport) -> str:
 # Main
 # ---------------------------------------------------------------------------
 
+def _report_sort_key(report: LCMSReport) -> str:
+    if report.source_format == "openlynx_rpt":
+        from cdxml_toolkit.analysis.openlynx_rpt import report_datetime
+        return report_datetime(report) or report.date
+    return report.date
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="LCMS Report Analyzer")
-    parser.add_argument('files', nargs='+', help='MassLynx PDF report files')
+    parser.add_argument('files', nargs='+',
+                        help='MassLynx PDF reports or OpenLynx .rpt exports')
     parser.add_argument('--sm-mass', type=float, default=None,
                        help='Exact mass of starting material')
     parser.add_argument('--product-mass', type=float, default=None,
@@ -1224,7 +1284,9 @@ def main(argv=None) -> int:
     manual_reports = []   # manual integration exports
     for f in sorted(args.files):
         try:
-            if is_manual_integration(f):
+            if is_rpt_path(f):
+                reports.extend(parse_reports(f))
+            elif is_manual_integration(f):
                 manual_reports.append(parse_manual_report(f))
             else:
                 reports.append(parse_report(f))
@@ -1236,7 +1298,7 @@ def main(argv=None) -> int:
         return 1
 
     # Sort by date/time
-    reports.sort(key=lambda r: r.date)
+    reports.sort(key=_report_sort_key)
 
     # Table format: pure data for LLM consumption, ignores SM/product masses
     if args.format == 'table':
