@@ -451,7 +451,12 @@ def _fetch_archive_members(data_dir, source):
                if not (os.path.exists(os.path.join(data_dir, m['path'])) and _sha256(os.path.join(data_dir, m['path'])) == m['sha256'])]
     if pending:
         _download(source['url'], partial)
-        with zipfile.ZipFile(partial) as bundle:
+        try:
+            bundle = zipfile.ZipFile(partial)
+        except zipfile.BadZipFile:  # a resumed download would append to this for ever
+            os.remove(partial)
+            raise RuntimeError('the downloaded archive is not a valid zip file; it was deleted, run the install again') from None
+        with bundle:
             for want in pending:
                 target = os.path.join(data_dir, want['path'])
                 os.makedirs(os.path.dirname(target), exist_ok=True)
@@ -462,6 +467,8 @@ def _fetch_archive_members(data_dir, source):
                         out.write(block)
                 if digest.hexdigest() != want['sha256']:
                     os.remove(target + '.tmp')
+                    bundle.close()
+                    os.remove(partial)  # the archive is what is wrong: start it again next time
                     raise RuntimeError(f'{want["path"]} does not match the pinned sha256 (got {digest.hexdigest()}); nothing was kept')
                 os.replace(target + '.tmp', target)
         os.remove(partial)
@@ -749,15 +756,36 @@ def _available_gb():
                                                                      'total_virtual', 'avail_virtual', 'extended')]
             status = Status(length=ctypes.sizeof(Status))
             return status.avail / 1e9 if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)) else None
+        if sys.platform == 'darwin':
+            return _vm_stat_gb(subprocess.run(['vm_stat'], capture_output=True, text=True, timeout=10).stdout)
         with open('/proc/meminfo', encoding='ascii') as handle:
             return next(int(line.split()[1]) / 1e6 for line in handle if line.startswith('MemAvailable:'))
     except Exception:
         return None
 
 
+def _vm_stat_gb(text):
+    """Free, inactive, speculative and purgeable pages from macOS ``vm_stat``, in GB: what the system can hand out
+    without swapping (macOS has no /proc/meminfo)."""
+    size = re.search(r'page size of (\d+) bytes', text)
+    pages = {key.strip().lower(): int(value) for key, value in re.findall(r'^Pages ([^:]+):\s+(\d+)\.', text, re.M)}
+    if not size or 'free' not in pages:
+        return None
+    return sum(pages.get(key, 0) for key in ('free', 'inactive', 'speculative', 'purgeable')) * int(size[1]) / 1e9
+
+
 # RetroChimera starts one rule process per CPU by default; under spawn (Windows, macOS) each one holds its own
 # rulebase, so the count follows the free memory: the model takes RULE_MODEL_GB, each process RULE_PROCESS_GB.
-RULE_MODEL_GB, RULE_PROCESS_GB = 12, 3  # measured: 12 GB peak with one process (Windows, CPU)
+RULE_MODEL_GB, RULE_PROCESS_GB = 14, 4  # measured on Windows: 13.8 GB peak with one process; three ran out at 21.8 GB
+
+
+def _check_model_memory():
+    """RetroChimera's model alone takes RULE_MODEL_GB: when the system is known to have less free, stop with advice
+    instead of letting it run out of memory half way. Setting CHEMDRAW_ENGINE_PROCESSES means "try anyway"."""
+    free = _available_gb()
+    if not os.environ.get('CHEMDRAW_ENGINE_PROCESSES') and free is not None and free < RULE_MODEL_GB:
+        raise RuntimeError(f'RetroChimera needs about {RULE_MODEL_GB} GB free memory, only {free:.1f} GB: close programs, '
+                           'or set CHEMDRAW_ENGINE_PROCESSES=1 to try anyway')
 
 
 def _rule_processes():
@@ -765,8 +793,8 @@ def _rule_processes():
         return max(1, int(os.environ['CHEMDRAW_ENGINE_PROCESSES']))
     ceiling = min(os.cpu_count() or 1, 4)
     free = _available_gb()
-    if free is None:
-        return ceiling
+    if free is None:  # unknown memory: one process, the measured safe case; CHEMDRAW_ENGINE_PROCESSES raises it
+        return 1
     return max(1, min(ceiling, int((free - RULE_MODEL_GB) // RULE_PROCESS_GB)))
 
 
@@ -783,8 +811,9 @@ def _retrochimera(params, data_dir, spec):
         if inventory.is_purchasable(Molecule(smiles)):
             return {'steps': 'multi', 'target': smiles, 'solved': True, 'target_in_stock': True, 'top_score': None,
                     'routes': []}
+    _check_model_memory()  # a target that can be bought needed no model, so only now
     from retrochimera import RetroChimeraModel
-    model = RetroChimeraModel(model_dir=data_dir, device='cpu', template_localization={'num_processes': _rule_processes()})
+    model = RetroChimeraModel(model_dir=data_dir, device=_device(), template_localization={'num_processes': _rule_processes()})
     if single:
         reactions = model([Molecule(smiles)], num_results=count)[0]
         return {'steps': 'single', 'target': smiles, 'options': [{
@@ -825,7 +854,7 @@ def _magnet(params, data_dir, spec):
     xyz = mol.GetConformer(ids[best]).GetPositions()
     numbers = np.array([a.GetAtomicNum() for a in mol.GetAtoms()])
     shifts = predict_shifts(numbers, xyz, solvent=params.get('solvent', 'chloroform'),
-                            n_passes=int(params.get('passes', 2)), checkpoints_dir=data_dir, device='cpu')
+                            n_passes=int(params.get('passes', 2)), checkpoints_dir=data_dir, device=_device())
     ranks = list(Chem.CanonicalRankAtoms(mol, breakTies=False))
     return {'atoms': [{'index': a.GetIdx(), 'element': a.GetSymbol(), 'shift': None if shifts[a.GetIdx()] != shifts[a.GetIdx()]
                        else float(shifts[a.GetIdx()]), 'class': ranks[a.GetIdx()],
@@ -833,16 +862,16 @@ def _magnet(params, data_dir, spec):
             'conformer_energy_kcal': float(energies[best][1]), 'geometry': 'RDKit ETKDG + MMFF94 (lowest of the conformers)'}
 
 
-def _nmrnet_command(data_dir, data, results, element):
+def _nmrnet_command(data_dir, data, results, element, device='cpu'):
     """The authors' inference command. infer.py names its output after ``--path`` split on "/", so that path is
-    written with forward slashes (Windows accepts them)."""
+    written with forward slashes (Windows accepts them). ``--cpu`` is passed unless the GPU is used."""
     folder = os.path.join(data_dir, element)
     checkpoint = os.path.join(folder, 'cv_seed_42_fold_0', 'checkpoint_last.pt').replace('\\', '/')
     return [sys.executable, 'uninmr/infer.py', '--user-dir', 'uninmr', data, '--valid-subset', 'valid',
             '--results-path', results, '--saved-dir', folder, '--num-workers', '0', '--ddp-backend=c10d',
             '--batch-size', '4', '--task', 'uninmr', '--loss', 'atom_regloss_mae', '--arch', 'unimol_large',
             '--dict-name', os.path.join(data_dir, 'weight', 'dict.txt'),
-            '--path', checkpoint, '--cpu', '--log-interval', '50',
+            '--path', checkpoint, *(['--cpu'] if device == 'cpu' else []), '--log-interval', '50',
             '--log-format', 'simple', '--required-batch-size-multiple', '1', '--selected-atom', element,
             '--gaussian-kernel', '--atom-descriptor', '0', '--split-mode', 'infer']
 
@@ -878,15 +907,16 @@ def _nmrnet_pp(params, data_dir, spec):
             transaction.put(b'0', pickle.dumps(record))
         database.close()
         results = os.path.join(work, 'results-' + element)
-        command = _nmrnet_command(data_dir, data, results, element)
+        command = _nmrnet_command(data_dir, data, results, element, _device())
         done = subprocess.run(command, cwd=os.path.join(data_dir, 'code'), capture_output=True, text=True)
         if done.returncode != 0:
             raise RuntimeError('NMRNet++ inference failed: ' + (done.stderr or done.stdout)[-300:])
         with open(os.path.join(results, 'cv_seed_42_fold_0_valid.out.pkl'), 'rb') as handle:
             output = pickle.load(handle)[0]
-        selected = output['select_atom'].view(-1).numpy()[1:len(atoms) + 1]  # drop the start token
+        host = lambda value: value.cpu() if hasattr(value, 'cpu') else value  # tensors come back on the GPU when it is used
+        selected = host(output['select_atom']).view(-1).numpy()[1:len(atoms) + 1]  # drop the start token
         indices = [i for i, flag in enumerate(selected) if flag == 1]
-        values = np.asarray(output['predict']).reshape(-1)
+        values = np.asarray(host(output['predict'])).reshape(-1)
         if len(indices) != len(values):
             raise RuntimeError('NMRNet++ returned a different number of shifts than selected atoms')
         shifts.update({i: float(v) for i, v in zip(indices, values)})
@@ -910,6 +940,10 @@ def _reacon(params, data_dir, spec):
     os.chdir(tempfile_dir)
     import prediction
     import template_extractor
+    import argparse
+    import torch
+    if hasattr(torch.serialization, 'add_safe_globals'):  # torch >= 2.6 loads weights only; chemprop stores its args
+        torch.serialization.add_safe_globals([argparse.Namespace])
     from chemprop.args import PredictArgs
     from chemprop.train.make_predictions import make_predictions
     from GetMpnnData.get_data import remove_reagent
@@ -932,7 +966,8 @@ def _reacon(params, data_dir, spec):
     scores = []
     for target in ('cat', 'solv0', 'solv1', 'reag0', 'reag1', 'reag2'):
         arguments = PredictArgs().parse_args(['--test_path', dummy, '--checkpoint_dir', os.path.join(code, 'models', 'MPNN_' + target),
-                                              '--preds_path', os.path.join(tempfile_dir, 'p.csv'), '--num_workers', '0'])
+                                              '--preds_path', os.path.join(tempfile_dir, 'p.csv'), '--num_workers', '0',
+                                              *(['--no_cuda'] if _device() == 'cpu' else [])])
         scores.append(list(make_predictions(arguments, [[model_input]])[0][0]))
     prediction.condition_key = prediction.get_condition_labels(os.path.join(code, 'data', 'labels'))
     libraries = os.path.join(data_dir, 'condition_library')

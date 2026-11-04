@@ -105,7 +105,8 @@ def _p(ctx, name):
 
 
 # Each case: tool, what it needs from the machine, and its arguments (a dict, or a function of the context).
-# needs: chemdraw (native ChemDraw automation), chemscript (ChemDraw's ChemScript SDK), network,
+# needs: chemdraw (native ChemDraw automation), chemscript (ChemDraw's ChemScript SDK), office (Word and
+# PowerPoint with ChemDraw objects), network,
 # lcms (a report PDF from --lcms-pdf), engine:NAME (an installed optional engine), ocsr (any local OCSR engine).
 CASES = [
     {'tool': 'get_toolkit_capabilities', 'args': {'detail': 'summary'}},
@@ -183,17 +184,17 @@ CASES = [
         'layout_path': str(ASSETS / 'markush' / 'indole-macrocycle.layout.json'), 'render': c.has('chemdraw')}},
     {'tool': 'markush_detect', 'args': lambda c: {'image_path': str(ASSETS / 'acs1996' / 'example.png'),
                                                   'output_dir': _p(c, 'markush-detect')}},
-    {'tool': 'embed_cdxml_in_office', 'needs': ['chemdraw'],
+    {'tool': 'embed_cdxml_in_office', 'needs': ['chemdraw', 'office'],
      'args': lambda c: {'cdxml_path': _p(c, 'aspirin.cdxml'), 'office_path': _p(c, 'one.pptx')}},
-    {'tool': 'batch_embed_cdxml_in_office', 'needs': ['chemdraw'],
+    {'tool': 'batch_embed_cdxml_in_office', 'needs': ['chemdraw', 'office'],
      'args': lambda c: {'cdxml_paths': [_p(c, 'aspirin.cdxml'), _p(c, 'figure.cdxml')],
                         'output_path': _p(c, 'batch.docx')}},
-    {'tool': 'inspect_chemdraw_objects_in_office', 'needs': ['chemdraw'],
+    {'tool': 'inspect_chemdraw_objects_in_office', 'needs': ['chemdraw', 'office'],
      'args': lambda c: {'input_path': _p(c, 'one.pptx'), 'output_dir': _p(c, 'inspect')}},
-    {'tool': 'extract_cdxml_from_office', 'needs': ['chemdraw'],
+    {'tool': 'extract_cdxml_from_office', 'needs': ['chemdraw', 'office'],
      'args': lambda c: {'file_path': _p(c, 'batch.docx'), 'output_dir': _p(c, 'extracted')}},
-    {'tool': 'replace_chemdraw_objects_in_office', 'needs': ['chemdraw'], 'args': _replacement},
-    {'tool': 'fill_office_template', 'needs': ['chemdraw'], 'args': _template},
+    {'tool': 'replace_chemdraw_objects_in_office', 'needs': ['chemdraw', 'office'], 'args': _replacement},
+    {'tool': 'fill_office_template', 'needs': ['chemdraw', 'office'], 'args': _template},
     {'tool': 'stoichiometry_grid', 'needs': ['chemdraw'],
      'args': lambda c: {'source': ESTER, 'mode': 'analyze', 'output_path': _p(c, 'stoichiometry.cdxml')}},
     {'tool': 'stoichiometry_grid', 'needs': ['chemdraw'],
@@ -263,12 +264,12 @@ class Context:
 
 
 def machine():
-    """What this computer offers: ChemDraw automation and ChemScript (present with desktop ChemDraw on Windows)."""
+    """What this computer offers: ChemDraw automation, ChemScript (present with desktop ChemDraw on Windows) and Office."""
     from cdxml_toolkit.mcp_runtime.extended_tools import diagnose_runtime
     capabilities = diagnose_runtime().get('outputs', {}).get('capabilities', {})
     status = {name: (value or {}).get('status') for name, value in capabilities.items()}
     native = status.get('chemdraw_com') == 'available' or (sys.platform == 'darwin' and status.get('chemdraw') == 'available')
-    return {'chemdraw': native, 'chemscript': native}
+    return {'chemdraw': native, 'chemscript': native, 'office': native and status.get('office') != 'missing'}
 
 
 def run(ctx, cases, only=None):
@@ -313,7 +314,15 @@ def main(argv=None):
     parser.add_argument('--lcms-pdf', nargs='+', default=[], help='LCMS report PDFs for the analysis tools')
     parser.add_argument('--only', help='comma-separated tool names to run')
     parser.add_argument('--skip-engine', default='', help='comma-separated engines whose cases are skipped')
+    parser.add_argument('--without', default='',
+                        help='comma-separated machine needs to treat as absent (chemdraw, chemscript, office), for '
+                             'example --without office on a Mac whose Office cannot export, or --without chemdraw to '
+                             'leave a running ChemDraw alone')
     ns = parser.parse_args(argv)
+    without = {need.strip() for need in ns.without.split(',') if need.strip()}
+    unknown = without - {'chemdraw', 'chemscript', 'office'}
+    if unknown:
+        parser.error(f'--without takes chemdraw, chemscript or office, not {", ".join(sorted(unknown))}')
     out = Path(ns.output_dir).resolve()
     if out.exists():
         parser.error(f'{out} exists; give a new folder')
@@ -323,7 +332,9 @@ def main(argv=None):
     from cdxml_toolkit.engines.env import available
     skipped = {name.strip() for name in ns.skip_engine.split(',') if name.strip()}
     engines = {name: ok and name not in skipped for name, ok in available().items()}
-    ctx = Context(out, ns.network, [str(Path(p).resolve()) for p in ns.lcms_pdf], machine(), engines)
+    found = machine()
+    ctx = Context(out, ns.network, [str(Path(p).resolve()) for p in ns.lcms_pdf],
+                  {need: ok and need not in without for need, ok in found.items()}, engines)
     rows = run(ctx, CASES, set(ns.only.split(',')) if ns.only else None)
     counts = {status: sum(r['status'] == status for r in rows) for status in ('pass', 'fail', 'skipped')}
     report = {'counts': counts, 'network': ns.network, 'machine': ctx.machine,

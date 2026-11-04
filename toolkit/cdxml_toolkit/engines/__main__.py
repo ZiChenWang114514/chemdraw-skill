@@ -35,6 +35,8 @@ def main(argv=None) -> int:
     parser.add_argument('--remove', action='store_true', help='delete the named engines (a dry run unless --yes)')
     parser.add_argument('--yes', action='store_true', help='with --remove: really delete')
     parser.add_argument('--status', action='store_true', help='print which engines are available; install nothing')
+    parser.add_argument('--sizes', action='store_true', help='with --status: measure every engine folder again '
+                                                             '(slow; otherwise the size recorded at install is shown)')
     ns = parser.parse_args(argv)
 
     def refuse(message: str) -> None:
@@ -48,7 +50,7 @@ def main(argv=None) -> int:
     if ns.task and ns.task not in tasks:
         refuse(f'unknown task {ns.task!r} (choose from {", ".join(tasks)})')
     if ns.status:
-        print(json.dumps(env.status(), indent=2))
+        print(json.dumps(env.status(sizes=ns.sizes), indent=2))
         return 0
     if ns.recommend:
         try:

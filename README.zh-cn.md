@@ -99,7 +99,7 @@
 - **ChemDraw。** 原生渲染、第 3 步中的 PNG、CDX 转换以及 Word/PowerPoint 对象都需要 Windows 或 macOS 上已激活的桌面版 ChemDraw。没有 ChemDraw 时，Skill 仍可构建、编辑、检查和识别结构，也能使用各类计算器（[具体差异](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)）。
 - **Python。** 构建运行时需要 64 位 Python 3.10–3.13；安装脚本本身在 3.9+ 上即可运行。
 - **磁盘空间。** 默认运行时是一个约 760 MB 的虚拟环境。`--extras` 后不跟名称时只安装核心部分，`--extras publication office` 则只额外安装这两组依赖。
-- **可选工具。** 默认不安装 OPSIN 名称转结构，需要时加 `--opsin`。OPSIN 依赖 Java：Windows 上首次使用时自动下载，macOS 和 Linux 需自行安装。`image` 依赖组中的文字识别需要 Tesseract 程序。
+- **可选工具。** 默认不安装 OPSIN 名称转结构，需要时加 `--opsin`。OPSIN 依赖 Java：Windows 上首次使用时自动下载，macOS 和 Linux 需自行安装。`image` 依赖组中的文字识别需要 Tesseract 程序。加 `--mapping` 会装上机器学习原子映射后端（RXNMapper、LocalMapper），各自在独立环境中。
 
 **1. 安装。** 安装脚本需要 Python 3.9+，它会自动查找 64 位 Python 3.10–3.13 作为工具包运行时（通过 `py` 启动器、`uv` 管理的解释器或 PATH 上的 `python3.x`）。
 
@@ -115,6 +115,8 @@ python scripts/install.py --agent claude agents --runtime --apply  # 安装
 ```bash
 python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 ```
+
+想把每个工具都调用一遍、看看哪些在本机可用，运行 `cdx.py py $HOME/.claude/skills/chemdraw/scripts/smoke_all_tools.py --output-dir 新目录`（默认离线，加 `--network` 才联网）。
 
 **3. 提问**，直接用自然语言告诉 Agent：
 
@@ -169,7 +171,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
-| **更多引擎与预测** | 可选引擎各自在独立环境中运行：MolScribe、MolNexTR、MolParser（权重仅限非商业用途）、MolVec 与 DECIMER 对同一张图并排比较；在 PDF 中找出结构并生成供目检的接触表；预测产物、前体与合成路线（AiZynthFinder、SynPlanner、配合 Syntheseus 的 RetroChimera（仅供研究使用）、ReactionT5）、反应条件候选（Reacon，作者未声明许可证）以及 1H/13C 化学位移（MagNET、NMRNet++）。所有结果都标注为预测；引擎意见不一致时不会合并。详见[引擎说明](skill/chemdraw/references/engines.md)。 |
+| **更多引擎与预测** | 可选引擎各自在独立环境中运行：MolScribe、MolNexTR、MolParser（权重仅限非商业用途）、MolVec 与 DECIMER（远程服务，或本机运行的 `decimer-local`）对同一张图并排比较；在 PDF 中找出结构并生成供目检的接触表；预测产物、前体与合成路线（AiZynthFinder、SynPlanner、配合 Syntheseus 的 RetroChimera（仅供研究使用）、ReactionT5）、反应条件候选（Reacon，作者未声明许可证）以及 1H/13C 化学位移（MagNET、NMRNet++）。有 NVIDIA 显卡时，引擎会使用显卡（设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭）。所有结果都标注为预测；引擎意见不一致时不会合并。详见[引擎说明](skill/chemdraw/references/engines.md)。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
 | **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；试剂安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
@@ -532,7 +534,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 | 分子比较或 ChemScript SDK 调用 | 可移植相似度比较使用 RDKit；精确检查和原始 SDK 程序需 Windows 主机上的兼容 ChemScript DLL（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作） |
 | 可编辑的 Word 或 PowerPoint 对象 | 用桌面版 ChemDraw 生成；PDF 预览需桌面版 Word 和/或 PowerPoint（macOS 上需已激活） |
 | 本地光学结构识别 | DECIMER 模型权重及其运行时依赖 |
-| 更多 OCSR 引擎、逆合成、产物、反应条件与核磁预测 | `cdx.py engines --recommend 需求` 后经你同意再 `cdx.py install-engines --bundle 名称`：每个引擎一个独立环境，连同模型文件从 2 MB 到数 GB 不等，可用 `remove-engines` 删除；想装到其他磁盘，就在安装前设置 `CHEMDRAW_ENGINE_HOME`，并且之后一直保留这个设置（见[引擎说明](skill/chemdraw/references/engines.md)） |
+| 更多 OCSR 引擎、逆合成、产物、反应条件与核磁预测 | `cdx.py engines --recommend 需求` 后经你同意再 `cdx.py install-engines --bundle 名称`：每个引擎一个独立环境，连同模型文件从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存），可用 `remove-engines` 删除；想装到其他磁盘，就在安装前设置 `CHEMDRAW_ENGINE_HOME`，并且之后一直保留这个设置；许可限制：MolParser 的权重仅限非商业用途，RetroChimera 仅供研究，Reacon 没有许可证（见[引擎说明](skill/chemdraw/references/engines.md)） |
 | 远程访问 ChemDraw 工作站 | Windows 主机、经过身份验证的 HTTP 配置以及加密网络通道 |
 
 项目不附带 ChemDraw、Microsoft Office、ChemScript 和 DECIMER 模型权重。安装选项、手动创建运行时和诊断方法见[安装指南](docs/guide.zh-cn.md#首次安装)。

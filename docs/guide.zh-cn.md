@@ -54,7 +54,7 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 ## 可选的预测引擎
 
-`cdx.py engines` 列出可用的引擎：用多个模型读取结构图片、在 PDF 中找出结构，以及预测产物、前体、合成路线、反应条件和 1H/13C 化学位移。`cdx.py engines --recommend ocsr` 会说明某个需求值得安装什么、各需要多大空间，不会下载任何东西。`cdx.py install-engines --bundle ocsr-standard`（也可写引擎名或 `--task ocsr`，先加 `--dry-run` 查看体积）会在你同意后把每个引擎装进各自的独立环境，`cdx.py remove-engines NAME --yes` 可再把它删掉；模型文件只下载一次并按固定哈希校验，之后每次运行都不联网。结果都标注为模型预测。对同一张图意见不一致的引擎会并排显示，不会被合并。RetroChimera 仅限研究用途；Reacon 的作者未声明许可，因此只在你要求时才从其仓库下载。详情、限制以及评估后未纳入的引擎见[引擎说明](../skill/chemdraw/references/engines.md)。
+`cdx.py engines` 列出可用的引擎：用多个模型读取结构图片、在 PDF 中找出结构，以及预测产物、前体、合成路线、反应条件和 1H/13C 化学位移。`cdx.py engines --recommend ocsr` 会说明某个需求值得安装什么、各需要多大空间，不会下载任何东西。`cdx.py install-engines --bundle ocsr-standard`（也可写引擎名或 `--task ocsr`，先加 `--dry-run` 查看体积）会在你同意后把每个引擎装进各自的独立环境，`cdx.py remove-engines NAME --yes` 可再把它删掉；模型文件只下载一次并按固定哈希校验，之后每次运行都不联网。每个引擎占用从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存）；Windows 上的体积包含 CUDA 版 PyTorch，只用 CPU 时会小一些。`decimer-local` 在本机运行 DECIMER 模型，直接装进工具包运行环境。有 NVIDIA 显卡时引擎会使用显卡，设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭。`CHEMDRAW_ENGINE_HOME` 用来把引擎装到其他磁盘，之后要一直保留这个设置。结果都标注为模型预测。对同一张图意见不一致的引擎会并排显示，不会被合并。MolParser 的权重不得用于商业用途，RetroChimera 仅限研究用途，Reacon 的作者未声明许可，因此只在你要求时才从其仓库下载。详情、限制以及评估后未纳入的引擎见[引擎说明](../skill/chemdraw/references/engines.md)。
 
 ## ChemDraw 接口覆盖
 

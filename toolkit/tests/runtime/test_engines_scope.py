@@ -11,6 +11,7 @@ from cdxml_toolkit.engines.registry import BUNDLES, ENGINES, GUIDE, RECOMMEND, d
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(tmp_path))
+    monkeypatch.setattr(env, '_nvidia_gpu', lambda: None)  # the tests that want a GPU say so
     return tmp_path
 
 
@@ -88,6 +89,7 @@ def runtime_extra(monkeypatch):
     monkeypatch.setattr(importlib.metadata, 'requires', lambda dist: requires)
     monkeypatch.setattr(importlib.metadata, 'version', lambda dist: '1.26.4')
     monkeypatch.setattr(env, '_pip', lambda python, reqs, log, *a, **k: calls['pip'].append((str(python), list(reqs))))
+    monkeypatch.setattr(env, '_dry_run_changes', lambda requirements: calls.setdefault('dry', []).append(requirements) or [])
     monkeypatch.setattr(subprocess, 'run', lambda cmd, **k: calls['run'].append(cmd))
     return calls
 
@@ -100,6 +102,7 @@ def test_the_runtime_engine_installs_the_decimer_extra_named_in_the_toolkit_meta
     (python, reqs), = runtime_extra['pip']
     assert python == sys.executable
     assert reqs == ['tensorflow>=2.16', 'decimer>=2.6', 'pywin32>=306; sys_platform == "win32"', 'numpy==1.26.4']
+    assert runtime_extra['dry'] == [reqs]  # checked against the runtime before anything was installed
     weights, = runtime_extra['run']
     assert weights[1:3] == ['-m', 'cdxml_toolkit.mcp_runtime.install_decimer_models']
 
@@ -532,6 +535,7 @@ def _gpu_install(home, monkeypatch, gpu, name='molparser', has_vision=True):
     monkeypatch.setattr(env, '_pip', lambda python, reqs, log, *a, **k: calls.append((list(reqs), k.get('index_url'))))
     monkeypatch.setattr(env, '_nvidia_gpu', lambda: gpu)
     monkeypatch.setattr(env, '_has_package', lambda python, package: has_vision)
+    monkeypatch.setattr(env, '_torch_probe', lambda python: ('2.5.0', True))  # a CPU torch before the swap; CUDA works after it
     monkeypatch.setattr(env, 'call', lambda *a, **k: {})
     return env.install(name), calls
 
@@ -548,11 +552,30 @@ def test_an_nvidia_gpu_gets_a_cuda_build_of_torch_for_an_engine_that_can_use_it(
     assert receipt['device'] == 'cuda'
 
 
-def test_no_gpu_or_an_engine_pinned_to_an_old_torch_keeps_the_cpu_build(home, monkeypatch):
+def test_no_gpu_or_an_engine_without_torch_keeps_the_cpu_build(home, monkeypatch):
     report, calls = _gpu_install(home, monkeypatch, None)
     assert all(index is None for _, index in calls) and report['device'] == 'cpu'
-    report, calls = _gpu_install(home, monkeypatch, 'RTX', name='retrochimera')
+    report, calls = _gpu_install(home, monkeypatch, 'RTX', name='decimer-segmentation')  # TensorFlow, CPU on Windows
     assert all(index is None for _, index in calls) and report['device'] == 'cpu'
+
+
+def test_every_torch_engine_can_take_the_cuda_build():
+    # torch 1.13 to 2.5 has no kernels for current GPUs (an RTX 50xx is sm_120), so every torch engine is moved
+    # to a CUDA build that has them; their outputs on the GPU matched the CPU builds when this was set
+    torch_engines = {name for name, spec in ENGINES.items()
+                     if any(r.split('=')[0].split('<')[0].strip() == 'torch' or r.startswith('torch==')
+                            for r in spec.get('requirements', [])) or name in ('molscribe', 'molnextr')}
+    assert torch_engines and all(ENGINES[name].get('gpu') for name in torch_engines), torch_engines
+
+
+def test_an_engine_with_compiled_torch_extensions_gets_a_matching_cuda_build(home, monkeypatch):
+    # torch_scatter / torch_cluster wheels exist only for some torch builds, so MagNET takes its own build
+    cuda = ENGINES['magnet']['cuda']
+    report, calls = _gpu_install(home, monkeypatch, 'RTX', name='magnet', has_vision=False)
+    torch_call = next(c for c in calls if c[1] == cuda['index'])
+    assert torch_call[0] == [f'torch=={cuda["torch"]}+{cuda["tag"]}']
+    assert calls[-1][0] == cuda['requirements'] and all(cuda['tag'] in r for r in cuda['requirements'])
+    assert report['device'] == 'cuda' and report['torch'] == f'{cuda["torch"]}+{cuda["tag"]}'
 
 
 def test_engine_downloads_are_cached_under_the_engine_home(home, monkeypatch):
@@ -561,7 +584,7 @@ def test_engine_downloads_are_cached_under_the_engine_home(home, monkeypatch):
     monkeypatch.delenv('UV_CACHE_DIR', raising=False)
     monkeypatch.delenv('PIP_CACHE_DIR', raising=False)
     monkeypatch.setattr(env, '_uv', lambda: 'uv')
-    monkeypatch.setattr(subprocess, 'run', lambda cmd, **k: seen.update(k['env']))
+    monkeypatch.setattr(env, '_step', lambda cmd, log, environment: seen.update(environment))
     env._pip('python', ['x'], None)
     assert seen['UV_CACHE_DIR'] == str(home / '.cache' / 'uv') and seen['PIP_CACHE_DIR'] == str(home / '.cache' / 'pip')
     monkeypatch.setenv('UV_CACHE_DIR', 'elsewhere')
@@ -593,7 +616,7 @@ def test_an_install_stopped_during_its_download_does_not_count_as_installed(home
         started.append(command[0])
         raise KeyboardInterrupt  # the terminal closed, the machine slept: no handler gets to clean up
 
-    monkeypatch.setattr(env.subprocess, 'run', run)
+    monkeypatch.setattr(env, '_run', run)
     with pytest.raises(KeyboardInterrupt):
         env.install('magnet')
     assert started == [str(home / 'magnet' / 'bin' / 'python3')]  # the download ran in the engine's own interpreter
@@ -613,7 +636,7 @@ def test_installing_again_withdraws_the_old_receipt_until_the_download_ends(home
         seen.append(env.available()['magnet'])
         return Done()
 
-    monkeypatch.setattr(env.subprocess, 'run', run)
+    monkeypatch.setattr(env, '_run', run)
     assert env.install('magnet')['ok'] is True
     assert seen == [False] and env.available()['magnet'] is True
 
@@ -652,3 +675,17 @@ def test_the_engines_tables_come_from_the_registry_and_need_their_markers():
         row = next(line for line in text.splitlines() if line.startswith(f'| `{name}` |'))
         assert (f'**{spec["license"]}**' in row) == bool(spec.get('restricted'))
     assert all(f'| `{name}` |' in text for name in BUNDLES)
+
+
+def test_a_size_marker_in_the_offer_table_shows_the_registry_sum_of_its_bundle():
+    from cdxml_toolkit.engines import table
+    blocks = '\n'.join(table.MARKERS['engines'] + table.MARKERS['bundles'])
+    stale = '<!--size:ocsr-standard-->about 2 GB<!--/size--> and <!--size:ocsr-lite-->1 GB<!--/size--> and <!--size:retro-chimera-->x<!--/size-->'
+    text = table.render(stale + '\n' + blocks)
+    first = text.splitlines()[0]
+    assert f'about {disk_mb(BUNDLES["ocsr-standard"]["engines"]) / 1000:.1f} GB' in first
+    assert f'{disk_mb(BUNDLES["ocsr-lite"]["engines"])} MB' in first  # under a gigabyte it stays in megabytes
+    assert f'about {disk_mb(BUNDLES["retro-chimera"]["engines"]) / 1000:.1f} GB' in first
+    assert text == table.render(text)
+    with pytest.raises(ValueError, match='no-such-bundle'):
+        table.render('<!--size:no-such-bundle-->x<!--/size-->\n' + blocks)

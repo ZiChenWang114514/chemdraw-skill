@@ -168,6 +168,19 @@ class RuntimeDiagnosticsTests(unittest.TestCase):
         self.assertIn("install-mappers", capabilities["localmapper"]["detail"])
         self.assertFalse([w for w in result["warnings"] if "mapper" in w])
 
+    def test_missing_optional_engines_are_listed_without_warnings(self):
+        # a fresh install has none of the engines; doctor used to print one warning per engine (13)
+        from cdxml_toolkit.engines import env as engine_env
+        from cdxml_toolkit.engines.registry import ENGINES
+
+        with mock.patch.object(engine_env, "available", return_value={name: False for name in ENGINES}):
+            result = runtime_diagnostics.diagnose_runtime()
+
+        capabilities = result["outputs"]["capabilities"]
+        self.assertEqual(capabilities["engine_molscribe"]["status"], "missing")
+        self.assertIn("install-engines", capabilities["engine_molscribe"]["detail"])
+        self.assertFalse([w for w in result["warnings"] if w.startswith("engine_")])
+
     def test_requested_probes_are_reported_in_capability_matrix(self):
         chemscript = {
             "status": "available",

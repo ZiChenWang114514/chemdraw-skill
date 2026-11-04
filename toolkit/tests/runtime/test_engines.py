@@ -218,7 +218,7 @@ def test_the_worker_receives_what_it_needs_to_verify_downloads(monkeypatch, tmp_
     python.parent.mkdir(parents=True)
     python.write_text('')
     (tmp_path / 'synplanner' / env.RECEIPT).write_text('{}')
-    monkeypatch.setattr(env.subprocess, 'run', run)
+    monkeypatch.setattr(env, '_run', run)
     env.call('synplanner', 'predict', {'smiles': 'CCO'})
     assert captured['request']['spec']['sha256'] and captured['request']['data_dir'].replace(chr(92), '/').endswith('synplanner/data')
     assert captured['env']['PYSTOW_HOME'] == captured['request']['data_dir']  # model caches stay inside the engine
@@ -232,6 +232,8 @@ def test_the_nmrnet_checkpoint_path_names_its_fold_after_a_split_on_slashes():
     command = worker._nmrnet_command('D:\\engines\\nmrnet-pp\\data', 'D:\\w\\data-H', 'D:\\w\\results-H', 'H')
     path = command[command.index('--path') + 1]
     assert path.split('/')[-2] == 'cv_seed_42_fold_0' and path.endswith('/checkpoint_last.pt')
+    assert '--cpu' in command  # the CPU unless the GPU is asked for
+    assert '--cpu' not in worker._nmrnet_command('d', 'data', 'results', 'H', 'cuda')
 
 
 def test_engine_post_processing_pools_stay_in_one_process():
@@ -257,6 +259,9 @@ def test_an_engine_uses_the_gpu_only_when_cuda_works_and_cpu_is_not_forced(monke
     cuda = types.SimpleNamespace(is_available=lambda: True)
     monkeypatch.setitem(sys.modules, 'torch', types.SimpleNamespace(cuda=cuda))
     monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE', raising=False)
+    monkeypatch.setattr(worker.sys, 'platform', 'darwin')
+    assert worker._device() == 'cpu'  # a Mac stays on the CPU even when torch claims CUDA
+    monkeypatch.setattr(worker.sys, 'platform', 'linux')  # the rest holds on Windows and Linux, whatever runs the test
     assert worker._device() == 'cuda'
     monkeypatch.setenv('CHEMDRAW_ENGINE_DEVICE', 'cpu')
     assert worker._device() == 'cpu'
@@ -283,11 +288,11 @@ def test_a_download_shows_its_progress_while_a_prediction_keeps_its_output(monke
         seen[json.loads(kwargs['input'])['action']] = kwargs
         return Done()
 
-    monkeypatch.setattr(env.subprocess, 'run', run)
+    monkeypatch.setattr(env, '_run', run)
     env.call('synplanner', 'fetch', {})
     env.call('synplanner', 'predict', {})
-    assert seen['fetch']['stdout'] == subprocess.PIPE and seen['fetch'].get('stderr') is None
-    assert seen['predict'].get('capture_output') or seen['predict'].get('stderr') == subprocess.PIPE
+    assert seen['fetch']['capture'] is False  # stderr stays on the terminal
+    assert seen['predict']['capture'] is True
 
 
 def test_progress_lines_are_few_and_end_at_the_total(capsys, monkeypatch):
@@ -312,7 +317,7 @@ def test_chatty_engines_cannot_break_the_result(monkeypatch, tmp_path):
         stdout = 'chiral_center_ids (from symbols): []\n' + env.MARKER + json.dumps({'ok': True, 'result': [1]}) + '\nbye\n'
         stderr = ''
 
-    monkeypatch.setattr(env.subprocess, 'run', lambda *a, **k: Done())
+    monkeypatch.setattr(env, '_run', lambda *a, **k: Done())
     assert env.call('molnextr', 'predict', {}) == [1]
     Done.stdout = 'only noise\n'
     with pytest.raises(env.EngineError, match='failed to start: only noise'):

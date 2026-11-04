@@ -163,7 +163,7 @@ def _engine_capabilities() -> dict[str, dict[str, Any]]:
     return {
         f"engine_{name.replace('-', '_')}": _status(
             found[name],
-            **({} if found[name] else {"detail": f"not installed: cdx.py install-engines {name}"}),
+            **({} if found[name] else {"detail": f"not installed (looked in {engine_env.home()}): cdx.py install-engines {name}"}),
         )
         for name, spec in ENGINES.items()
         if spec["kind"] in ("local", "jar")
@@ -623,8 +623,11 @@ def diagnose_runtime(
     required = ["python", "cdxml_toolkit", "mcp_sdk", "tool_registry", *requested]
     ok = all(capabilities[name]["status"] == "available" for name in required)
     warnings = []
+    optional = {"java", "opsin", "rxnmapper", "localmapper"}
     for name, capability in capabilities.items():
-        if capability["status"] == "missing" and name not in {"java", "opsin", "rxnmapper", "localmapper"}:
+        # Optional components (atom mappers, prediction engines) are listed in the matrix, not warned about:
+        # a fresh install has none of the engines and nothing is wrong with it.
+        if capability["status"] == "missing" and name not in optional and not name.startswith("engine_"):
             warnings.append(
                 f"{name}: {capability.get('detail') or 'capability is unavailable'}"
             )

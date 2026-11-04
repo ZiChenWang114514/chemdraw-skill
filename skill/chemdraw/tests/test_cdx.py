@@ -702,3 +702,43 @@ def test_draw_failure_sets_the_exit_code(tmp_path, capsys):
     failed = {'ok': True, 'result': {'ok': False, 'errors': ['steps: give at least one step']}}
     with mock.patch.object(cdx, '_worker', return_value=failed):
         assert cdx.main(['draw', str(path)]) == 1
+
+
+def _engine_listing(*installed):
+    names = ['decimer-api', 'molscribe', 'molnextr', 'molvec', 'magnet']
+    return {'ok': True, 'engines': {n: {'task': 'nmr' if n == 'magnet' else 'ocsr', 'kind': 'remote' if n == 'decimer-api' else 'local',
+                                        'available': n == 'decimer-api' or n in installed} for n in names}}
+
+
+def test_ocsr_without_upload_and_without_engines_names_the_local_choices(capsys):
+    with mock.patch.object(cdx, '_worker', return_value=_engine_listing('molscribe', 'magnet')) as worker:
+        with pytest.raises(SystemExit) as stopped:
+            cdx.main(['ocsr', 'x.png', '--no-upload'])
+    message = str(stopped.value)
+    assert 'no local engine selected, use --engines molscribe' in message and '(installed: molscribe)' in message
+    assert 'magnet' not in message and 'upload' not in message  # not the nmr engine, not the upload refusal
+    assert [call.args[0] for call in worker.call_args_list] == ['list_engines']
+
+
+def test_ocsr_without_upload_and_nothing_installed_says_how_to_install(capsys):
+    with mock.patch.object(cdx, '_worker', return_value=_engine_listing()):
+        with pytest.raises(SystemExit) as stopped:
+            cdx.main(['ocsr', 'x.png', '--no-upload'])
+    assert 'installed: none' in str(stopped.value) and 'install-engines molscribe' in str(stopped.value)
+
+
+def test_ocsr_keeps_decimer_api_as_the_default_and_obeys_a_named_engine(tmp_path):
+    image = tmp_path / 'x.png'
+    image.write_bytes(b'x')
+    for argv, engines, confirm in ((['ocsr', str(image)], 'decimer-api', True),
+                                   (['ocsr', str(image), '--no-upload', '--engines', 'molscribe'], 'molscribe', False)):
+        with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+            cdx.main(argv)
+        assert worker.call_args.args[:1] == ('recognize_structure',)
+        assert worker.call_args.args[1]['engines'] == engines and worker.call_args.args[1]['confirm_upload'] is confirm
+
+
+def test_engines_passes_sizes_on_to_the_listing():
+    with mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
+        cdx.main(['engines', '--sizes'])
+    assert call.call_args.args[0][-2:] == ['--status', '--sizes']

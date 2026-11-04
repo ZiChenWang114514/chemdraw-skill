@@ -137,11 +137,13 @@ def test_retrochimera_starts_a_bounded_number_of_rule_processes(monkeypatch, tmp
                          'syntheseus.interface.molecule': molecule,
                          'retrochimera': types.SimpleNamespace(RetroChimeraModel=Model)}.items():
         monkeypatch.setitem(sys.modules, name, module)
-    monkeypatch.setattr(worker, '_available_gb', lambda: 18.0)
+    monkeypatch.setattr(worker, '_available_gb', lambda: 22.0)
     monkeypatch.setattr(worker.os, 'cpu_count', lambda: 24)
     monkeypatch.delenv('CHEMDRAW_ENGINE_PROCESSES', raising=False)
     worker._retrochimera({'smiles': ASPIRIN, 'steps': 'single'}, str(tmp_path), {})
-    assert seen['template_localization'] == {'num_processes': 2}  # (18 - 12) // 3, never one per CPU
+    assert seen['template_localization'] == {'num_processes': 2}  # (22 - 14) // 4, never one per CPU
+    monkeypatch.setattr(worker, '_available_gb', lambda: 21.8)
+    assert worker._rule_processes() == 1  # three processes ran out of memory with 21.8 GB free
     monkeypatch.setattr(worker, '_available_gb', lambda: 6.0)
     assert worker._rule_processes() == 1  # short of memory: one process, never zero
     monkeypatch.setattr(worker, '_available_gb', lambda: 64.0)
@@ -149,6 +151,24 @@ def test_retrochimera_starts_a_bounded_number_of_rule_processes(monkeypatch, tmp
     monkeypatch.setenv('CHEMDRAW_ENGINE_PROCESSES', '1')
     assert worker._rule_processes() == 1
     assert worker._available_gb is not None
+    monkeypatch.delenv('CHEMDRAW_ENGINE_PROCESSES')
+    monkeypatch.setattr(worker, '_available_gb', lambda: None)
+    assert worker._rule_processes() == 1  # memory unknown: the one process measured safe, not one per CPU
+
+
+def test_free_memory_is_read_from_vm_stat_on_a_mac():
+    # macOS has no /proc/meminfo; without this a 16 GB Mac started four 3 GB rule processes beside a 12 GB model
+    from cdxml_toolkit.engines import worker
+    sample = ('Mach Virtual Memory Statistics: (page size of 16384 bytes)\n'
+              'Pages free:                                   100000.\n'
+              'Pages active:                                 800000.\n'
+              'Pages inactive:                               500000.\n'
+              'Pages speculative:                              2000.\n'
+              'Pages throttled:                                   0.\n'
+              'Pages wired down:                             200000.\n'
+              'Pages purgeable:                               10000.\n')
+    assert abs(worker._vm_stat_gb(sample) - 612000 * 16384 / 1e9) < 1e-9
+    assert worker._vm_stat_gb('vm_stat: not available') is None
 
 
 def test_retrochimera_multi_step_route_is_searched_and_flattened(monkeypatch):
@@ -179,12 +199,13 @@ def test_conditions_maps_the_reaction_then_ranks_what_the_engine_returns(monkeyp
     assert any('candidates, not a recommended procedure' in w for w in answer['warnings'])
 
 
-def test_conditions_warns_when_no_template_matched_and_reports_a_missing_engine(monkeypatch):
+def test_conditions_warns_when_no_template_matched_and_reports_a_missing_engine(monkeypatch, tmp_path):
     monkeypatch.setattr(env, 'call', lambda *a, **k: {'template_level': 'none', 'candidates': [
         {'catalyst': 'none', 'solvents': [], 'reagents': [], 'score': 0.01}]})
     answer = predict_conditions('CC(=O)OC(C)=O.OC(=O)c1ccccc1O', ASPIRIN)
     assert any('no template' in w for w in answer['warnings'])
     monkeypatch.undo()
+    monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(tmp_path))  # an empty home, whatever is installed on this machine
     missing = predict_conditions('CC(=O)OC(C)=O.OC(=O)c1ccccc1O', ASPIRIN)
     assert missing['ok'] is False and 'install-engines reacon' in missing['error']
     assert missing['install_hint']['license'].startswith('not declared')
