@@ -142,12 +142,16 @@ _report_cache: Dict[str, LCMSReport] = {}
 _manual_cache: Dict[str, ManualLCMSReport] = {}
 
 
-def _get_report(path: str) -> LCMSReport:
-    """Parse and cache a standard Waters LCMS report."""
-    abs_path = os.path.abspath(path)
-    if abs_path not in _report_cache:
-        _report_cache[abs_path] = parse_report(path)
-    return _report_cache[abs_path]
+def _get_report(path: str, sample=None) -> LCMSReport:
+    """Parse and cache a standard Waters LCMS report.
+
+    *sample* picks one sample of a multi-sample OpenLynx .rpt (sample number,
+    well, SampleID or file name); PDFs have a single sample and ignore it.
+    """
+    key = os.path.abspath(path) + (f"#{sample}" if sample is not None else "")
+    if key not in _report_cache:
+        _report_cache[key] = parse_report(path, sample=sample)
+    return _report_cache[key]
 
 
 def _get_manual_report(path: str) -> ManualLCMSReport:
@@ -217,7 +221,7 @@ def _process_lcms_species(entry: dict) -> str:
 
     Output: "{label} ({instrument}, {method}): Name1 RT = ...; Name2 RT = ..."
     """
-    report = _get_report(entry["file"])
+    report = _get_report(entry["file"], entry.get("sample"))
     peaks_cfg = entry.get("peaks", [])
 
     parts = []
@@ -259,7 +263,7 @@ def _process_lcms_areas(entry: dict) -> str:
     Output: "{label} ({instrument}, {method}, {detector}): Name1 x%, Name2 y%"
     Optionally with conversion for the SM peak.
     """
-    report = _get_report(entry["file"])
+    report = _get_report(entry["file"], entry.get("sample"))
     detector = entry.get("detector", "TAC")
     peaks_cfg = entry.get("peaks", [])
     show_conversion = entry.get("show_conversion", False)

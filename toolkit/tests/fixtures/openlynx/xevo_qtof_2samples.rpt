@@ -1,0 +1,460 @@
+[SAMPLE]
+{
+Sample	1
+Well	1:A,5
+FileName	20251202-500-on-0
+SampleID
+SampleDescription
+Date	02-Dec-2025
+Time	15:05:17
+JobCode	20251202-proteosome
+TaskCode
+UserName
+LabName
+Instrument	XEVO-G2XSQTOF#YEA701
+Conditions
+Submitter
+SampleType	0
+Plate	01TL,YX,LN,1:16,2:24,3: 45.0,4: 45.0,5:  0.0,6:  0.0,7:O,8:O,9:1280.0,10:860.0,11:123.0,12:120.0,13:121.0,14: 90.0
+QCBatchName
+QCFileName
+QCDate
+QCTime
+QCStatus
+QCReason1
+QCReason2
+Method	Z:\Tyler.PRO\ACQUDB\Proteasome_70to85_25000to35000.olp
+Process	OpenLynx
+MSTune	protein_2020-DEC-09
+MSMethod	60sec_384_MS
+InletMethod	60sec_384_LC
+PreRunMethod
+PostRunMethod
+SwitchMethod
+FractionMethod
+AcquisitionProcess
+AcquisitionProcessParameters
+AcquisitionProcessOptions
+InjectionVolume	6.0000
+ReportScheme	C:\MassLynx\Untitled.ors
+SampleReportEnable	0
+SampleReportFormat
+AnalysisTime	0.0000
+ColumnName	 ACQUITY UPLC® Protein BEH C4  Column
+Spare1
+Spare2
+Spare3
+Spare4
+Spare5
+[COMPOUND]
+{
+;Mono Mass		Formula
+}
+[FRACTIONRESULTS]
+{
+}
+[FRACTION]
+{
+}
+[FUNCTION]
+{
+Function	1
+IonMode	ES+ 
+Type	TOF MS 
+Description	(500:5000) 
+[SPECTRUM]
+{
+ProcDesc	MaxEnt 1 [Ev-547485,It15] (Gs,0.750,750:2500,1.00,L33,R33); Subtract (15,5.00 ,0.010); Combine (81:93-(12:25+1:-1))
+State	Diversity fail
+Peak ID	1
+Peak Ref	1
+Time	0.7975
+TIC	140750992
+BPI	11036179
+BPM	25247.0000
+Continuum	TRUE
+Saved	TRUE
+[MS]
+{
+;Mass	% BPI
+25107.00	2.431
+25108.00	2.653
+25109.00	2.479
+25110.00	2.014
+25216.00	2.075
+25217.00	2.339
+25218.00	2.423
+25219.00	2.247
+25242.00	4.590
+25243.00	12.240
+25244.00	30.764
+25245.00	63.074
+25246.00	94.512
+25247.00	100.000
+25248.00	75.719
+25249.00	42.673
+25250.00	18.852
+25251.00	6.906
+25252.00	2.254
+25264.00	2.351
+25265.00	5.007
+25266.00	8.886
+25267.00	12.472
+25268.00	13.867
+25269.00	12.642
+25270.00	9.980
+25271.00	7.237
+25272.00	5.056
+25273.00	3.519
+25274.00	2.501
+25285.00	2.271
+25286.00	3.116
+25287.00	3.973
+25288.00	4.655
+25289.00	5.030
+25290.00	5.073
+25291.00	4.835
+25292.00	4.397
+25293.00	3.844
+25294.00	3.256
+25295.00	2.701
+25296.00	2.224
+25940.00	4.549
+25941.00	13.850
+25942.00	27.917
+25943.00	35.245
+25944.00	27.901
+25945.00	14.209
+25946.00	4.988
+25967.00	2.533
+25968.00	2.847
+25969.00	2.684
+25970.00	2.153
+}
+}
+[CHROMATOGRAM]
+{
+TraceNumber	1
+Description	TOF MS ES+ :TIC
+ProcDesc
+MaxIntensity	55695624.00
+[TRACE]
+{
+0.70315	0.460
+0.71173	0.468
+0.72032	0.482
+0.72888	0.528
+0.73747	0.594
+0.74603	0.870
+}
+[PEAK]
+{
+Peak ID	1
+Peak Ref	1
+Time	0.7975
+Peak	0.7546	0.8490
+Intensity	919477.00	13117989.00
+Height	49231756.00
+AreaAbs	2068941.3750
+Area %BP	100.00
+Area %Total	100.00
+Width	0.09
+}
+}
+}
+[FUNCTION]
+{
+Function	3
+IonMode
+Type	DAD 
+Description	(280:280) 
+[CHROMATOGRAM]
+{
+}
+}
+[ACCEPTANCE CRITERIA]
+{
+Threshold Mode (MS+)	Relative
+Threshold (MS+)	20.00
+Confirmation Threshold (MS+)	0.00
+ 	 
+Threshold Mode (MS-)	Relative
+Threshold (MS-)	20.00
+Confirmation Threshold (MS-)	0.00
+ 	 
+ 	 
+Accurate Mass Primary Threshold	False
+Accurate Mass Primary Threshold Value (PPM)	5.00
+Accurate Mass Secondary Threshold	False
+Accurate Mass Secondary Threshold Value (PPM)	10.00
+ 	 
+ 	 
+Enable Chromatogram Test	False
+Chromatogram Test Primary Threshold (%)	0
+Chromatogram Test Use Secondary Threshold	False
+Chromatogram Test Secondary Threshold (%)	0
+ 	 
+ 	 
+Use iFit (norm) Value as Confirmation Test	False
+iFit Test Primary Threshold
+iFit Test Use Secondary Threshold	False
+iFit Test Secondary Threshold
+ 	 
+ 	 
+Chromatogram Internal Standard Enabled	False
+IS Function	1
+IS Adducted Mass	0.00
+IS Mass Window	0.00
+IS Intensity Threshold	0.00
+}
+[INLET PARAMETERS]
+{
+-- instrument log removed from this fixture --
+}
+}
+[SAMPLE]
+{
+Sample	2
+Well	1:A,7
+FileName	20251202-500-56-100-on
+SampleID
+SampleDescription
+Date	02-Dec-2025
+Time	15:08:00
+JobCode	20251202-proteosome
+TaskCode
+UserName
+LabName
+Instrument	XEVO-G2XSQTOF#YEA701
+Conditions
+Submitter
+SampleType	0
+Plate	01TL,YX,LN,1:16,2:24,3: 45.0,4: 45.0,5:  0.0,6:  0.0,7:O,8:O,9:1280.0,10:860.0,11:123.0,12:120.0,13:121.0,14: 90.0
+QCBatchName
+QCFileName
+QCDate
+QCTime
+QCStatus
+QCReason1
+QCReason2
+Method	Z:\Tyler.PRO\ACQUDB\Proteasome_70to85_25000to35000.olp
+Process	OpenLynx
+MSTune	protein_2020-DEC-09
+MSMethod	60sec_384_MS
+InletMethod	60sec_384_LC
+PreRunMethod
+PostRunMethod
+SwitchMethod
+FractionMethod
+AcquisitionProcess
+AcquisitionProcessParameters
+AcquisitionProcessOptions
+InjectionVolume	6.0000
+ReportScheme	C:\MassLynx\Untitled.ors
+SampleReportEnable	0
+SampleReportFormat
+AnalysisTime	0.0000
+ColumnName	 ACQUITY UPLC® Protein BEH C4  Column
+Spare1
+Spare2
+Spare3
+Spare4
+Spare5
+[COMPOUND]
+{
+;Mono Mass		Formula
+}
+[FRACTIONRESULTS]
+{
+}
+[FRACTION]
+{
+}
+[FUNCTION]
+{
+Function	1
+IonMode	ES+ 
+Type	TOF MS 
+Description	(500:5000) 
+[SPECTRUM]
+{
+ProcDesc	MaxEnt 1 [Ev-545781,It15] (Gs,0.750,750:2500,1.00,L33,R33); Subtract (15,5.00 ,0.010); Combine (82:94-(13:26+1:-1))
+State	Diversity fail
+Peak ID	1
+Peak Ref	1
+Time	0.8061
+TIC	117283368
+BPI	7452494
+BPM	25246.0000
+Continuum	TRUE
+Saved	TRUE
+[MS]
+{
+;Mass	% BPI
+25106.00	2.085
+25107.00	2.078
+25217.00	2.307
+25218.00	2.943
+25219.00	3.381
+25220.00	3.164
+25221.00	2.233
+25242.00	5.427
+25243.00	14.999
+25244.00	36.902
+25245.00	71.302
+25246.00	100.000
+25247.00	99.382
+25248.00	70.485
+25249.00	36.508
+25250.00	14.298
+25251.00	4.476
+25265.00	3.545
+25266.00	6.405
+25267.00	9.327
+25268.00	11.078
+25269.00	11.099
+25270.00	9.696
+25271.00	7.579
+25272.00	5.425
+25273.00	3.662
+25274.00	2.420
+25286.00	2.371
+25287.00	2.796
+25288.00	3.048
+25289.00	3.200
+25290.00	3.355
+25291.00	3.544
+25292.00	3.692
+25293.00	3.672
+25294.00	3.398
+25295.00	2.886
+25296.00	2.250
+25319.00	2.343
+25320.00	3.568
+25321.00	4.964
+25322.00	6.144
+25323.00	6.668
+25324.00	6.333
+25325.00	5.309
+25326.00	3.992
+25327.00	2.747
+25766.00	2.737
+25767.00	5.074
+25768.00	7.424
+25769.00	8.851
+25770.00	9.167
+25771.00	8.558
+25772.00	7.484
+25773.00	6.958
+25774.00	6.734
+25775.00	5.534
+25776.00	3.540
+25791.00	2.066
+25792.00	2.034
+25939.00	2.772
+25940.00	10.371
+25941.00	29.413
+25942.00	53.154
+25943.00	58.704
+25944.00	39.503
+25945.00	16.433
+25946.00	4.533
+25965.00	2.171
+25966.00	2.993
+25967.00	3.466
+25968.00	3.497
+25969.00	3.168
+25970.00	2.633
+25971.00	2.058
+26288.00	2.015
+26289.00	3.005
+26290.00	3.911
+26291.00	4.456
+26292.00	4.501
+26293.00	4.114
+26294.00	3.481
+26295.00	2.763
+26296.00	2.053
+26471.00	2.121
+}
+}
+[CHROMATOGRAM]
+{
+TraceNumber	1
+Description	TOF MS ES+ :TIC
+ProcDesc
+MaxIntensity	47552956.00
+[TRACE]
+{
+0.70315	0.502
+0.71173	0.503
+0.72030	0.510
+0.72888	0.505
+0.73745	0.576
+0.74603	0.772
+}
+[PEAK]
+{
+Peak ID	1
+Peak Ref	1
+Time	0.8061
+Peak	0.7546	0.8490
+Intensity	620521.00	11457553.00
+Height	41021848.00
+AreaAbs	1853958.1250
+Area %BP	100.00
+Area %Total	100.00
+Width	0.09
+}
+}
+}
+[FUNCTION]
+{
+Function	3
+IonMode
+Type	DAD 
+Description	(280:280) 
+[CHROMATOGRAM]
+{
+}
+}
+[ACCEPTANCE CRITERIA]
+{
+Threshold Mode (MS+)	Relative
+Threshold (MS+)	20.00
+Confirmation Threshold (MS+)	0.00
+ 	 
+Threshold Mode (MS-)	Relative
+Threshold (MS-)	20.00
+Confirmation Threshold (MS-)	0.00
+ 	 
+ 	 
+Accurate Mass Primary Threshold	False
+Accurate Mass Primary Threshold Value (PPM)	5.00
+Accurate Mass Secondary Threshold	False
+Accurate Mass Secondary Threshold Value (PPM)	10.00
+ 	 
+ 	 
+Enable Chromatogram Test	False
+Chromatogram Test Primary Threshold (%)	0
+Chromatogram Test Use Secondary Threshold	False
+Chromatogram Test Secondary Threshold (%)	0
+ 	 
+ 	 
+Use iFit (norm) Value as Confirmation Test	False
+iFit Test Primary Threshold
+iFit Test Use Secondary Threshold	False
+iFit Test Secondary Threshold
+ 	 
+ 	 
+Chromatogram Internal Standard Enabled	False
+IS Function	1
+IS Adducted Mass	0.00
+IS Mass Window	0.00
+IS Intensity Threshold	0.00
+}
+[INLET PARAMETERS]
+{
+-- instrument log removed from this fixture --
+}
+}

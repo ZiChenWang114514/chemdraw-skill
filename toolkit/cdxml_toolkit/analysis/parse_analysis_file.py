@@ -2,9 +2,9 @@
 """
 parse_analysis_file.py — Unified LCMS / NMR PDF parser.
 
-Detects whether a PDF is an LCMS report (Waters MassLynx standard or manual
-integration) or an NMR report, then delegates to the appropriate parser and
-returns a normalised dict.
+Detects whether a file is an LCMS report (Waters MassLynx PDF, standard or
+manual integration; or an OpenLynx ``.rpt`` export) or an NMR PDF, then
+delegates to the appropriate parser and returns a normalised dict.
 
 Python API:
     from cdxml_toolkit.analysis.parse_analysis_file import parse_analysis_file
@@ -32,16 +32,17 @@ def _dataclass_to_dict(obj: Any) -> Any:
 
 
 def parse_analysis_file(pdf_path: str) -> Dict[str, Any]:
-    """Detect and parse an LCMS or NMR PDF report.
+    """Detect and parse an LCMS report (PDF or OpenLynx .rpt) or an NMR PDF.
 
     Detection order:
+      0. OpenLynx ``.rpt`` export         → ``parse_reports()``
       1. Waters MassLynx standard report  → ``parse_report()``
       2. Waters MassLynx manual integration → ``parse_manual_report()``
       3. NMR PDF (MestReNova)             → ``extract_nmr_data()``
       4. None of the above               → error dict
 
     Args:
-        pdf_path: Absolute or relative path to the PDF file.
+        pdf_path: Absolute or relative path to the PDF or .rpt file.
 
     Returns:
         Dict with keys:
@@ -49,6 +50,9 @@ def parse_analysis_file(pdf_path: str) -> Dict[str, Any]:
             file_type ("lcms" | "nmr") — only present when ok=True
             file_path (str)
             data (dict) — parsed content; structure depends on file_type:
+                lcms (.rpt, one sample):  LCMSReport as dict
+                lcms (.rpt, several):     {"source_format": "openlynx_rpt",
+                                  "sample_count": N, "samples": [LCMSReport dict, ...]}
                 lcms (standard):  LCMSReport as dict
                 lcms (manual):    ManualLCMSReport as dict, plus
                                   "variant": "manual_integration"
@@ -58,12 +62,43 @@ def parse_analysis_file(pdf_path: str) -> Dict[str, Any]:
     from cdxml_toolkit.analysis.lcms_analyzer import (
         is_waters_report,
         parse_report,
+        parse_reports,
         is_manual_integration,
         parse_manual_report,
     )
     from cdxml_toolkit.analysis.deterministic.procedure_writer import extract_nmr_data
 
     base_result: Dict[str, Any] = {"file_path": pdf_path}
+
+    # --- Attempt 0: OpenLynx .rpt export (text, one or many samples) ---
+    from cdxml_toolkit.analysis.lcms_analyzer import is_rpt_path
+    if is_rpt_path(pdf_path):
+        try:
+            from cdxml_toolkit.analysis.openlynx_rpt import is_openlynx_rpt
+            if not is_openlynx_rpt(pdf_path):
+                return {
+                    **base_result,
+                    "ok": False,
+                    "error": "Not an OpenLynx .rpt export (no [SAMPLE] block at the start).",
+                }
+            reports = parse_reports(pdf_path)
+        except Exception as exc:
+            return {
+                **base_result,
+                "ok": False,
+                "file_type": "lcms",
+                "error": f"OpenLynx .rpt detected but parsing failed: {exc}",
+                "traceback": traceback.format_exc(),
+            }
+        if len(reports) == 1:
+            data: Any = _dataclass_to_dict(reports[0])
+        else:
+            data = {
+                "source_format": "openlynx_rpt",
+                "sample_count": len(reports),
+                "samples": [_dataclass_to_dict(r) for r in reports],
+            }
+        return {**base_result, "ok": True, "file_type": "lcms", "data": data}
 
     # --- Attempt 1: standard Waters report ---
     try:

@@ -14,7 +14,7 @@ Users do not install this folder by hand. `python scripts/install.py --runtime -
 | Laboratory figures | Native TLC objects and Rf measurement; editable apparatus assembled from installed ChemDraw templates. |
 | Scientific data | Peak picking and selected-region integration for processed 1D NMR; editable numerical plots. No automatic atom assignment or complete FID pipeline. |
 | Office workflows | Extract, inspect, replace and batch-embed editable ChemDraw OLE objects in PowerPoint and Word, and fill templates. |
-| Experiment workflows | Parse ELN exports, SciFinder RDF, LCMS or NMR reports and assemble structured lab-book material. |
+| Experiment workflows | Parse ELN exports, SciFinder RDF, LCMS (Waters PDF, OpenLynx .rpt) or NMR reports and assemble structured lab-book material. |
 | Agent service | Run through stdio locally or authenticated Streamable HTTP for a trusted remote computer. |
 
 ## How the runtime works

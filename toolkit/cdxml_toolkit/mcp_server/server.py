@@ -978,16 +978,19 @@ def parse_analysis_file(
     pdf_path: str,
     output_path: Optional[str] = None,
 ) -> dict:
-    """Parse an LCMS or NMR analysis PDF to extract peaks and data.
+    """Parse an LCMS or NMR analysis file to extract peaks and data.
 
-    Supports Waters LCMS reports and MestReNova NMR PDFs. Returns structured
-    peak data for LCMS species identification or NMR characterisation.
+    Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports and
+    MestReNova NMR PDFs. Returns structured peak data for LCMS species
+    identification or NMR characterisation. A .rpt holds one or many samples:
+    one sample returns the same dict as a PDF report, several return
+    {source_format, sample_count, samples: [report, ...]}.
 
     This module is under active development. If unavailable, the tool returns
     a graceful error rather than crashing.
 
     Args:
-        pdf_path:    Path to an LCMS or NMR PDF report.
+        pdf_path:    Path to an LCMS PDF or OpenLynx .rpt, or an NMR PDF.
         output_path: If given, write the parsed data as JSON to this file and
                      return {ok, output_path, size} instead of the full dict.
 
@@ -1031,7 +1034,7 @@ def parse_analysis_file(
             "ok": False,
             "error": (
                 f"Parse failed: {e}. "
-                "Ensure the PDF is a Waters LCMS report or MestReNova NMR export; "
+                "Ensure the file is a Waters LCMS PDF/.rpt or MestReNova NMR export; "
                 "scanned PDFs without embedded text are not supported."
             ),
             "pdf_path": str(p),
@@ -1099,6 +1102,8 @@ def format_lab_entry(
     Workflow: First call parse_analysis_file on each PDF to see peaks/masses.
     Then build entries referencing those PDFs with approximate RT and ion as
     search keys.  This tool re-reads the PDF and fills in exact numbers.
+    "file" may also be an OpenLynx .rpt; for a multi-sample .rpt add
+    "sample" (sample number, well, SampleID or file name) to the entry.
 
     Args:
         entries_json: List of entry dicts, or a JSON string, or {"entries": [...]}.

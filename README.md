@@ -179,7 +179,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **Patent Markush structures** | Generic structures from a patent image and claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing that follows the source layout. |
 | **Reaction mechanisms** | Curved arrows drawn from a list of electron moves, or reconstructed with explicit atom coordinates, charges and counterions. |
 | **Office documents** | Editable ChemDraw objects in desktop Word and PowerPoint documents, built with ChemDraw on Windows or macOS. |
-| **Experimental records** | File discovery and selected LCMS, SciFinder RDF and lab-book workflows. |
+| **Experimental records** | File discovery and selected LCMS (Waters PDF, OpenLynx .rpt), SciFinder RDF and lab-book workflows. |
 | **ChemScript SDK** | Inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows (macOS answers the ChemScript operations and an emulation of the core SDK classes with ChemDraw, OPSIN and RDKit). |
 | **ChemDraw interface coverage** | A catalog of the ChemScript SDK, ChemDraw COM objects, CDXML elements and menu commands in ChemDraw 22.2, each entry marked as having a dedicated tool, a checked recipe, or documentation only; plus tools for CDXML elements, COM calls and ChemDraw's own molecular properties. [Details](docs/guide.md#chemdraw-interface-coverage). |
 | **Remote workstation access** | Optionally expose a Windows native host through Streamable HTTP with health and Prometheus endpoints. |

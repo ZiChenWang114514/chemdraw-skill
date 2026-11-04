@@ -23,7 +23,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Tuple
 
-from ..lcms_analyzer import extract_all_text, is_waters_report
+from ..lcms_analyzer import extract_all_text, is_rpt_path, is_waters_report
 from .lcms_file_categorizer import (
     categorize_lcms_file, categorize_lcms_files_batch,
 )
@@ -209,7 +209,7 @@ def discover_experiment_files(
     lcms_candidates = []  # (path, filename) — collect all first, then batch
 
     for d in lcms_dirs:
-        for f in _find_files_matching(d, experiment_name, ('.pdf',)):
+        for f in _find_files_matching(d, experiment_name, ('.pdf', '.rpt')):
             fname = os.path.basename(f).lower()
             if fname in seen_lcms:
                 continue
@@ -219,6 +219,17 @@ def discover_experiment_files(
             # integrated chromatograms) that aren't Waters MassLynx reports
             if not is_waters_report(f):
                 continue
+            if is_rpt_path(f):
+                # The tracking pipeline takes one sample per file; a batch
+                # export goes through parse_analysis_file / analyze_lcms_series.
+                from ..openlynx_rpt import count_rpt_samples
+                n_samples = count_rpt_samples(f)
+                if n_samples != 1:
+                    result.warnings.append(
+                        f"Skipped {os.path.basename(f)}: OpenLynx .rpt with "
+                        f"{n_samples} samples (the experiment workflow needs one "
+                        "sample per file)")
+                    continue
             seen_lcms.add(fname)
             lcms_candidates.append((f, os.path.basename(f)))
 
