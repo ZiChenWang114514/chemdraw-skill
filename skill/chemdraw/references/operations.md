@@ -39,7 +39,7 @@ Optional dependency groups (`pip` extras) and what fails without them:
 | `publication` | openpyxl | XLSX tables in data-driven figures |
 | `scientific` | numpy, scipy, matplotlib, nmrglue | NMR, plots, `assets/scientific` examples |
 | `office` | python-docx, python-pptx, olefile (+ pywin32 on Windows) | Office extraction, embedding, replacement |
-| `analysis` | pdfplumber, pymupdf | LCMS PDF/.rpt and NMR PDF reports |
+| `analysis` | pdfplumber, pymupdf | LCMS PDF/.rpt/.daml/Agilent `report.txt` and NMR PDF reports |
 | `image` | opencv-python, pytesseract | image segmentation helpers |
 | `chemscript` | pythonnet (Windows); py2opsin (macOS) | ChemScript bridge |
 | `decimer` | tensorflow, decimer | local OCSR only |

@@ -28,6 +28,15 @@ def _reaction_smiles(reactants, product):
     return f'{".".join(reactants)}>>{product}'
 
 
+def _device_extra(name: str, warnings: list) -> dict:
+    meta = env.last_call_meta(name)
+    extra = {'device': meta['device']}
+    if meta.get('device_fallback'):
+        extra['device_fallback'] = True
+        warnings.append(f'{name}: CUDA failed at runtime; fell back to CPU.')
+    return extra
+
+
 def products(reactants: str, reagents: str | None = None, engine: str | None = None, count: int = 5,
              timeout_seconds: int = 600) -> dict:
     """Predict the products of ``reactants`` (dot-separated SMILES), optionally with ``reagents``."""
@@ -35,17 +44,21 @@ def products(reactants: str, reagents: str | None = None, engine: str | None = N
     clean = _canonical(reactants, 'reactants')
     reagent = _canonical(reagents, 'reagents') if reagents else ' '
     started = time.time()
+    env._LAST_CALL_META.set(None)
     try:
         answers = env.call(name, 'predict', {'inputs': [f'REACTANT:{clean}REAGENT:{reagent}'], 'count': count},
                            timeout=timeout_seconds)[0]
     except env.EngineError as exc:
         return envelope.failure('products', name, ENGINES[name], exc)
+    warnings = ['model predictions: unvalidated by experiment; the real product may be absent']
+    device_extra = _device_extra(name, warnings)
     structures = [envelope.describe(a['smiles'], a['score'], rank=i) for i, a in enumerate(answers, 1)]
     return envelope.result('products', name, ENGINES[name], structures, reactants=clean, reagents=reagent.strip() or None,
+                           **device_extra,
                            score_meaning='mean log-probability of the generated sequence (closer to 0 is likelier)',
                            reactions=[_reaction_smiles([clean], s['smiles']) for s in structures if s['valid']],
                            elapsed_s=round(time.time() - started, 2),
-                           warnings=['model predictions: unvalidated by experiment; the real product may be absent'])
+                           warnings=warnings)
 
 
 def _flatten(node, steps):
@@ -87,6 +100,7 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
         raise ValueError('reactiont5-retro predicts one step; use aizynthfinder for multi-step routes')
     target = _canonical(product, 'product')
     started = time.time()
+    env._LAST_CALL_META.set(None)
     try:
         if name == 'reactiont5-retro':
             answers = env.call(name, 'predict', {'inputs': [f'PRODUCT:{target}'], 'count': count}, timeout=timeout_seconds)[0]
@@ -119,9 +133,12 @@ def retrosynthesis(product: str, engine: str | None = None, steps: str = 'single
                     body['note'] = 'the target is itself a purchasable building block: no search was run'
     except env.EngineError as exc:
         return envelope.failure('retrosynthesis', name, ENGINES[name], exc)
-    out = envelope.result('retrosynthesis', name, ENGINES[name], [], target=target, elapsed_s=round(time.time() - started, 2),
-                          warnings=['model predictions: precursors are suggestions from learned reaction templates; '
-                                    'check chemistry, selectivity and availability before use'], **body)
+    warnings = ['model predictions: precursors are suggestions from learned reaction templates; '
+                'check chemistry, selectivity and availability before use']
+    device_extra = _device_extra(name, warnings)
+    out = envelope.result('retrosynthesis', name, ENGINES[name], [], target=target, **device_extra,
+                          elapsed_s=round(time.time() - started, 2),
+                          warnings=warnings, **body)
     if name == 'reactiont5-retro':
         out['warnings'].append('reactiont5-retro lists reagents and solvents together with the reactants and can miss '
                                'the obvious precursor (for aspirin it did not propose acetic anhydride); prefer '
@@ -159,19 +176,23 @@ def conditions(reactants: str, products: str, engine: str | None = None, count: 
                          'reactants that supply every product atom, or map it first with map_reaction_atoms')
     mapped = mapping['mapped_reaction']
     started = time.time()
+    env._LAST_CALL_META.set(None)
     try:
         raw = env.call(name, 'predict', {'mapped_reaction': mapped, 'count': count}, timeout=timeout_seconds)
     except env.EngineError as exc:
         return envelope.failure('conditions', name, ENGINES[name], exc)
+    warnings = ['model predictions learned from patent reactions: candidates, not a recommended '
+                'procedure; they carry no temperature, time, amounts or yield',
+                'the atom mapping is a prediction too: a wrong map changes the answer']
+    device_extra = _device_extra(name, warnings)
     options = [{'rank': i, **candidate} for i, candidate in enumerate(raw['candidates'][:count], 1)]
     out = envelope.result('conditions', name, ENGINES[name], [], reactants=left, products=right,
+                          **device_extra,
                           mapped_reaction=mapped, mapping_method=mapping.get('method'),
                           template_level=raw.get('template_level'), options=options,
                           score_meaning='product of the component probabilities from six learned classifiers',
                           elapsed_s=round(time.time() - started, 2),
-                          warnings=['model predictions learned from patent reactions: candidates, not a recommended '
-                                    'procedure; they carry no temperature, time, amounts or yield',
-                                    'the atom mapping is a prediction too: a wrong map changes the answer'])
+                          warnings=warnings)
     if raw.get('template_level') in (None, 'none'):
         out['warnings'].append('no template in the condition library matched this reaction: the options combine the '
                                'top three answers of each classifier and are less reliable')

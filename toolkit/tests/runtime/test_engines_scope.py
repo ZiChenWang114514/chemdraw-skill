@@ -76,54 +76,6 @@ def test_every_engine_task_name_is_accepted_as_a_need(home):
     assert env.recommend('segmentation')['need'] == 'pdf'
 
 
-# --- an engine that runs in the toolkit runtime itself -----------------------------------------
-# No registered engine uses this kind now (DECIMER has an environment of its own); the mechanism stays, guarded,
-# for an engine that is only a few small packages. The tests register a made-up one.
-
-@pytest.fixture
-def runtime_extra(monkeypatch):
-    """The toolkit metadata as an installed runtime reports it, and a recorder for pip."""
-    import importlib.metadata
-    calls = {'pip': []}
-    requires = ['rdkit>=2023.9', 'demo-lib>=1; extra == "demo"', 'other-lib>=2; extra == "demo"',
-                'pywin32>=306; sys_platform == "win32" and extra == "demo"', 'demo-lib>=1; extra == "all"']
-    monkeypatch.setitem(ENGINES, 'runtime-demo', {
-        'title': 'Runtime demo', 'does': 'nothing', 'task': 'ocsr', 'kind': 'runtime', 'module': 'demo_module_x',
-        'license': 'MIT', 'extra': 'demo', 'size': '1 MB'})
-    monkeypatch.setattr(importlib.metadata, 'requires', lambda dist: requires)
-    monkeypatch.setattr(importlib.metadata, 'version', lambda dist: '1.26.4')
-    monkeypatch.setattr(env, '_pip', lambda python, reqs, log, *a, **k: calls['pip'].append((str(python), list(reqs))))
-    monkeypatch.setattr(env, '_installed_versions', lambda: {})
-    monkeypatch.setattr(env, '_site_packages', lambda: [])
-    monkeypatch.setattr(env, '_dry_run_changes', lambda requirements: calls.setdefault('dry', []).append(requirements) or [])
-    return calls
-
-
-def test_the_runtime_engine_installs_the_toolkit_extra_named_in_the_toolkit_metadata(home, runtime_extra, monkeypatch):
-    import sys
-    monkeypatch.setattr(env, 'available', lambda: {n: True for n in ENGINES})
-    report = env.install('runtime-demo')
-    assert report['ok'] and report['python'] == sys.executable
-    (python, reqs), = runtime_extra['pip']
-    assert python == sys.executable
-    assert reqs == ['demo-lib>=1', 'other-lib>=2', 'pywin32>=306; sys_platform == "win32"', 'numpy==1.26.4']
-    assert runtime_extra['dry'] == [reqs]  # checked against the runtime before anything was installed
-
-
-def test_the_runtime_engine_counts_as_installed_when_its_module_imports(home, runtime_extra):
-    assert env.python_for('runtime-demo') is None  # demo_module_x does not exist
-    ENGINES['runtime-demo']['module'] = 'json'
-    assert env.python_for('runtime-demo') is not None
-
-
-def test_the_runtime_engine_dry_run_and_offline_install_nothing(home, runtime_extra, monkeypatch):
-    dry = env.install('runtime-demo', dry_run=True)
-    assert 'demo-lib>=1' in dry['requirements'] and not runtime_extra['pip']
-    monkeypatch.setenv('CHEMDRAW_OFFLINE', '1')
-    offline = env.install('runtime-demo')
-    assert offline['ok'] is False and 'CHEMDRAW_OFFLINE' in offline['error'] and not runtime_extra['pip']
-
-
 # --- a missing engine explains itself ------------------------------------------------------------
 
 def test_a_missing_engine_carries_what_the_user_needs_to_decide(home):
@@ -160,6 +112,41 @@ def test_status_shows_each_engines_disk_use(home):
     out = env.status()
     assert out['engines']['magnet']['disk_used_mb'] == 2.0 and out['disk_used_mb'] == 2.0
     assert out['engines']['molscribe']['disk_used_mb'] == 0 and out['engines']['molscribe']['use_when']
+
+
+def test_status_reports_configured_device_per_engine(home, monkeypatch):
+    for name, dev in (('molscribe', 'cuda'), ('decimer-local', 'cpu'), ('aizynthfinder', 'cpu')):
+        folder = home / name
+        (folder / 'bin').mkdir(parents=True)
+        (folder / 'bin' / 'python3').write_text('')
+        (folder / env.RECEIPT).write_text(json.dumps({'device': dev}))
+    (home / 'molvec').mkdir()
+    (home / 'molvec' / ENGINES['molvec']['jar']['name']).write_bytes(b'jar')
+    (home / 'molvec' / env.RECEIPT).write_text('{}')
+    monkeypatch.setattr(env, 'java', lambda: 'java')
+    monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE', raising=False)
+
+    engines = env.status()['engines']
+    assert engines['decimer-api']['device'] == 'remote'
+    assert engines['molscribe']['device'] == 'cuda'
+    assert engines['decimer-local']['device'] == 'cpu'
+    assert engines['aizynthfinder']['device'] == 'cpu'
+    assert engines['molvec']['device'] == 'cpu'
+    assert engines['magnet']['device'] is None  # not installed
+
+    monkeypatch.setenv('CHEMDRAW_ENGINE_DEVICE', 'cpu')
+    assert env.status()['engines']['molscribe']['device'] == 'cpu'
+
+    # Legacy receipts written before 'device' was recorded infer CUDA from an installed +cu torch wheel
+    monkeypatch.delenv('CHEMDRAW_ENGINE_DEVICE')
+    monkeypatch.setattr(env.sys, 'platform', 'win32')
+    legacy = home / 'magnet'
+    (legacy / 'bin').mkdir(parents=True)
+    (legacy / 'bin' / 'python3').write_text('')
+    (legacy / env.RECEIPT).write_text(json.dumps({'disk_mb': 10.0}))
+    assert env.status()['engines']['magnet']['device'] == 'cpu'
+    (legacy / 'Lib' / 'site-packages' / 'torch-2.10.0+cu128.dist-info').mkdir(parents=True)
+    assert env.status()['engines']['magnet']['device'] == 'cuda'
 
 
 # --- removal -------------------------------------------------------------------------------------

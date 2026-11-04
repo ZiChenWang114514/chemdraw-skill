@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import collections
 import contextlib
+import contextvars
 import hashlib
-import importlib.util
 import json
 import os
 import re
@@ -32,6 +32,7 @@ RECEIPT = '.engine.json'
 MARKER = '@@ENGINE-RESULT@@'  # worker.py prefixes its one JSON line with this
 DEVICE_ERRORS = re.compile(r'CUDA error|no kernel image|CUDA out of memory', re.I)  # the GPU, not the input, failed
 ERROR_LINES = 15  # how much of a failing install step's stderr the error shows
+_LAST_CALL_META: contextvars.ContextVar[dict | None] = contextvars.ContextVar('_LAST_CALL_META', default=None)
 
 
 class EngineError(RuntimeError):
@@ -91,13 +92,6 @@ def java() -> str | None:
     return get_java(download=False)
 
 
-def _find_spec(module: str) -> bool:
-    try:
-        return importlib.util.find_spec(module) is not None
-    except (ImportError, ValueError):
-        return False
-
-
 def receipt(name: str) -> dict | None:
     path = environment(name) / RECEIPT
     try:
@@ -114,14 +108,43 @@ def jar_path(name: str) -> Path | None:
 
 def python_for(name: str) -> Path | None:
     """The interpreter that runs engine ``name``, or None when it is not installed."""
-    spec = ENGINES[name]
-    kind = spec['kind']
-    if kind == 'runtime':
-        return Path(sys.executable) if _find_spec(spec['module']) else None
-    if kind != 'local':
+    if ENGINES[name]['kind'] != 'local':
         return None
     own = interpreter(environment(name))
     return own if own and receipt(name) is not None else None
+
+
+def _has_cuda_torch_dist(env_dir: Path) -> bool:
+    """True when ``env_dir`` has a ``+cu...`` wheel of torch installed (for legacy receipts without ``device``)."""
+    if sys.platform == 'darwin':
+        return False
+    candidates = [env_dir / 'Lib' / 'site-packages', *env_dir.glob('lib/python*/site-packages')]
+    return any('+cu' in dist.name for site in candidates if site.is_dir() for dist in site.glob('torch-*.dist-info'))
+
+
+def configured_device(name: str) -> str:
+    """The device ``name`` is configured to run on ('cuda', 'cpu', or 'remote')."""
+    spec = ENGINES[name]
+    if spec['kind'] == 'remote':
+        return 'remote'
+    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').strip().lower() == 'cpu' or spec['kind'] == 'jar' or not spec.get('gpu'):
+        return 'cpu'
+    recorded = (receipt(name) or {}).get('device')
+    if recorded in ('cuda', 'cpu'):
+        return recorded
+    return 'cuda' if _has_cuda_torch_dist(environment(name)) else 'cpu'
+
+
+def last_call_meta(name: str | None = None) -> dict:
+    """Device metadata from the most recent ``call`` on this context, or configured defaults."""
+    meta = _LAST_CALL_META.get()
+    if isinstance(meta, dict) and (name is None or meta.get('engine') == name):
+        return {'device': meta['device'], 'device_fallback': bool(meta.get('device_fallback'))}
+    return {'device': configured_device(name) if name else 'cpu', 'device_fallback': False}
+
+
+def _cuda_failure(error) -> bool:
+    return bool(DEVICE_ERRORS.search(str(error)))
 
 
 def available() -> dict:
@@ -183,19 +206,23 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
     When the GPU fails (a CUDA error, no kernels for it, out of memory) and the device was not chosen with
     ``CHEMDRAW_ENGINE_DEVICE``, the call is repeated once on the CPU.
     """
+    _LAST_CALL_META.set(None)
     if action == 'fetch':
         with _lock(name):
             return _call(name, action, params, timeout)
     try:
         return _call(name, action, params, timeout)
-    except EngineError as exc:
-        if os.environ.get('CHEMDRAW_ENGINE_DEVICE') or not DEVICE_ERRORS.search(str(exc)):
+    except RuntimeError as exc:
+        if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').strip() or not _cuda_failure(exc):
             raise
         print(f'{ENGINES[name]["title"]}: the GPU failed ({str(exc)[:160]}); trying once on the CPU', file=sys.stderr)
-        return _call(name, action, params, timeout, device='cpu')
+        result = _call(name, action, params, timeout, device='cpu')
+        _LAST_CALL_META.set({'engine': name, 'device': 'cpu', 'device_fallback': True})
+        return result
 
 
 def _call(name: str, action: str, params: dict, timeout: int, device: str | None = None) -> dict:
+    _LAST_CALL_META.set(None)
     python = interpreter(environment(name)) if action == 'fetch' else python_for(name)
     title = ENGINES[name]['title']
     if python is None:
@@ -206,6 +233,8 @@ def _call(name: str, action: str, params: dict, timeout: int, device: str | None
     env = dict(os.environ, TOKENIZERS_PARALLELISM='false', PYTHONIOENCODING='utf-8', PYTHONUNBUFFERED='1')
     if device:
         env['CHEMDRAW_ENGINE_DEVICE'] = device
+    if device == 'cpu' or os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').strip().lower() == 'cpu':
+        env['CUDA_VISIBLE_DEVICES'] = ''
     if ENGINES[name]['kind'] == 'local':  # libraries that cache models with pystow keep them inside the engine
         env['PYSTOW_HOME'] = str(data_dir(name))
     env.update(HF_HUB_OFFLINE='0' if action == 'fetch' else '1', TRANSFORMERS_OFFLINE='0' if action == 'fetch' else '1')
@@ -230,6 +259,9 @@ def _call(name: str, action: str, params: dict, timeout: int, device: str | None
         raise EngineError(f'{title} failed to start: {tail[0][:300] if tail else "see the messages above"}')
     if not payload.get('ok'):
         raise EngineError(f'{title}: {payload.get("error")}')
+    _LAST_CALL_META.set({'engine': name,
+                         'device': payload.get('device') or (device if device else configured_device(name)),
+                         'device_fallback': False})
     return payload['result']
 
 
@@ -373,7 +405,7 @@ def _pip(python, requirements, log, find_links=None, no_build_isolation=False, i
 
 def _nvidia_gpu() -> str | None:
     """The name of an NVIDIA GPU that a CUDA build of torch can use, or None (also when CPU use is forced)."""
-    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').lower() == 'cpu' or sys.platform == 'darwin':
+    if os.environ.get('CHEMDRAW_ENGINE_DEVICE', '').strip().lower() == 'cpu' or sys.platform == 'darwin':
         return None
     smi = shutil.which('nvidia-smi')
     if not smi:
@@ -465,207 +497,12 @@ def _fetch_jar(name: str):
     return target
 
 
-def _extra_requirements(extra: str) -> list[str]:
-    """The requirements of toolkit extra ``extra`` as this runtime's installed metadata records them, so the list
-    lives only in pyproject.toml. The ``extra == ...`` clause is removed; any other marker is kept."""
-    import importlib.metadata
-    import re
-    clause = rf'extra\s*==\s*["\']{re.escape(extra)}["\']'
-    out = []
-    for requirement in importlib.metadata.requires('cdxml-toolkit-community') or []:
-        name, _, marker = requirement.partition(';')
-        if not re.search(clause, marker):
-            continue
-        marker = re.sub(rf'\s*\band\s+{clause}|{clause}\s+and\b\s*|{clause}', '', marker).strip()
-        out.append(f'{name.strip()}; {marker}' if marker else name.strip())
-    return out
-
-
-def _norm(name: str) -> str:
-    """A package name as pip compares it: lower case, runs of ``-``, ``_`` and ``.`` as one ``-``."""
-    return re.sub(r'[-_.]+', '-', name).lower()
-
-
-def _installed_versions() -> dict:
-    """{normalised name: version} of every package installed in the runtime this process runs in."""
-    import importlib
-    import importlib.metadata
-    importlib.invalidate_caches()  # a package installed a moment ago must show
-    found = {}
-    for dist in importlib.metadata.distributions():
-        try:
-            name = dist.metadata['Name']
-        except Exception:  # a half-written dist-info
-            continue
-        if name:
-            found.setdefault(_norm(name), dist.version)
-    return found
-
-
-def _parse_uv_dry_run(text: str) -> tuple[dict, dict]:
-    """(installs, removals) as ``{name: version}``: the ``+ name==version`` and ``- name==version`` lines of what
-    ``uv pip install --dry-run`` prints. A replaced package is in both."""
-    installs = {_norm(n): v for n, v in re.findall(r'^\s*\+\s+(\S+?)==(\S+)\s*$', text, re.M)}
-    removals = {_norm(n): v for n, v in re.findall(r'^\s*-\s+(\S+?)==(\S+)\s*$', text, re.M)}
-    return installs, removals
-
-
-def _plan_changes(before: dict, installs: dict, removals: dict) -> list[tuple]:
-    """(name, installed version or None, new version or None) for every package the plan adds (installed is None),
-    moves to another version, or removes (new is None), compared with what ``before`` says is installed."""
-    changes = []
-    for name, new in installs.items():
-        old = before.get(name)
-        if old != new:
-            changes.append((name, old, new))
-    changes += [(name, old, None) for name, old in removals.items() if name not in installs and name in before]
-    return sorted(changes)
-
-
-def _parse_pip_report(report: dict) -> list[tuple]:
-    """The same list from ``pip install --dry-run --report``."""
-    installs = {_norm(item['metadata']['name']): item['metadata']['version'] for item in report.get('install', [])}
-    return _plan_changes(_installed_versions(), installs, {})
-
-
-def _dry_run_changes(requirements: list[str]) -> list[tuple]:
-    """What installing ``requirements`` into this runtime would add, move or remove, found without installing anything.
-
-    A plan that cannot be read is an error, never 'no changes': the answer decides whether the shared runtime is touched.
-    """
-    if _uv():
-        done = subprocess.run([_uv(), 'pip', 'install', '--dry-run', '--python', sys.executable, *requirements],
-                              capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=VENV_TIMEOUT)
-        if done.returncode != 0:
-            raise RuntimeError('the requirements cannot be resolved against this runtime: ' + (done.stderr or '').strip()[-300:])
-        text = done.stderr + done.stdout
-        installs, removals = _parse_uv_dry_run(text)
-        announced = re.search(r'^Would install (\d+) package', text, re.M)
-        if len(installs) != (int(announced[1]) if announced else 0):
-            raise RuntimeError(f'the installer\'s plan could not be read (it announces {announced[1] if announced else "none"} '
-                               f'packages, {len(installs)} were listed); nothing was installed')
-        return _plan_changes(_installed_versions(), installs, removals)
-    report = Path(sys.prefix) / '.engine-dry-run.json'
-    try:
-        done = subprocess.run([sys.executable, '-m', 'pip', 'install', '--dry-run', '--quiet', '--report', str(report),
-                               *requirements], capture_output=True, text=True, encoding='utf-8', errors='replace',
-                              timeout=VENV_TIMEOUT)
-        if done.returncode != 0:
-            raise RuntimeError('the requirements cannot be resolved against this runtime: ' + (done.stderr or '').strip()[-300:])
-        return _parse_pip_report(json.loads(report.read_text(encoding='utf-8')))
-    finally:
-        report.unlink(missing_ok=True)
-
-
-def _site_packages() -> list[Path]:
-    import sysconfig
-    paths = sysconfig.get_paths()
-    return [Path(p) for p in dict.fromkeys(paths[key] for key in ('purelib', 'platlib'))]
-
-
-def _directories(roots) -> set:
-    return {dirpath for root in roots for dirpath, _dirs, _files in os.walk(root)}
-
-
-def _prune_new_empty_directories(roots, known) -> None:
-    """Remove folders under ``roots`` that did not exist before (``known``) and hold no file. An install killed half way
-    leaves such folders, and an empty ``backports/zstd`` imports as a package and breaks what looks for the real one."""
-    for root in roots:
-        for dirpath, _dirs, _files in os.walk(root, topdown=False):
-            if dirpath not in known and dirpath != str(root):
-                try:
-                    os.rmdir(dirpath)  # fails, harmlessly, on a folder that holds anything
-                except OSError:
-                    pass
-
-
-def _uninstall(python, names, log) -> None:
-    environment = dict(os.environ)
-    if _uv():
-        _step([_uv(), 'pip', 'uninstall', '--python', str(python), *names], log, environment)
-    else:
-        _step([str(python), '-m', 'pip', 'uninstall', '-y', *names], log, environment)
-
-
-def _restore_runtime(before: dict, known: set, log) -> str | None:
-    """Put the runtime back to ``before``: remove the packages that were not there, reinstall the versions that moved.
-    None when it worked, else what went wrong."""
-    print('putting the runtime back as it was ...', file=sys.stderr)
-    try:
-        after = _installed_versions()
-        added = sorted(set(after) - set(before))
-        moved = sorted(name for name, version in before.items() if after.get(name) != version)
-        if added:
-            _uninstall(sys.executable, added, log)
-        if moved:
-            _pip(sys.executable, [f'{name}=={before[name]}' for name in moved], log, no_deps=True)
-        _prune_new_empty_directories(_site_packages(), known)
-    except Exception as exc:  # reported next to the error that made the rollback necessary
-        return str(exc.stderr).strip().splitlines()[-1] if getattr(exc, 'stderr', None) else str(exc)
-    return None
-
-
-def _rollback_note(exc: BaseException) -> str:
-    outcome = getattr(exc, 'runtime_rollback', 'none')
-    if outcome == 'none':
-        return ''
-    if outcome is None:
-        return ' The runtime was put back as it was.'
-    return (f' The runtime could not be put back ({outcome}): run `cdx.py doctor`, and rebuild the runtime with '
-            f'`python scripts/install.py --runtime-only --apply` if it reports a problem.')
-
-
-def _brief(items: list, limit: int = 12) -> str:
-    return ', '.join(items[:limit]) + (f' and {len(items) - limit} more' if len(items) > limit else '')
-
-
-def _describe(changes: list[tuple]) -> str:
-    added = [f'{name} {new}' for name, old, new in changes if old is None]
-    moved = [f'{name} {old} -> {new}' for name, old, new in changes if old is not None and new is not None]
-    removed = [f'{name} {old}' for name, old, new in changes if new is None]
-    return '; '.join(part for part in (f'adds {_brief(added)}' if added else '', f'changes {_brief(moved)}' if moved else '',
-                                       f'removes {_brief(removed)}' if removed else '') if part)
-
-
-def _install_into_runtime(name: str, log, allow_changes: bool = False) -> dict:
-    """Add an engine that runs inside the toolkit runtime: the toolkit extra it needs.
-
-    The runtime is shared with every other tool, so the install is planned first (a dry run) and refused when it would
-    add, move or remove any package, unless ``allow_changes``. An install that fails or is interrupted is rolled back to
-    the packages recorded before it started. The engine must be usable once its packages are in: nothing is fetched here.
-    """
-    import importlib.metadata
-    requirements = _extra_requirements(ENGINES[name]['extra'])
-    try:  # the pinned numpy of the runtime must not move: RDKit and the rest were installed against it
-        requirements.append(f'numpy=={importlib.metadata.version("numpy")}')
-    except importlib.metadata.PackageNotFoundError:
-        pass
-    changes = _dry_run_changes(requirements)
-    if changes and not allow_changes:
-        raise RuntimeError(f'installing {ENGINES[name]["title"]} into the shared runtime would change it: {_describe(changes)}. '
-                           'Nothing was installed. The runtime is used by every other tool, so run the command again with '
-                           '--allow-runtime-changes if that is what you want (a failed or interrupted install is rolled '
-                           'back), or choose an engine that has an environment of its own')
-    before, known = _installed_versions(), _directories(_site_packages())
-    try:
-        _pip(sys.executable, requirements, log)
-    except BaseException as exc:  # KeyboardInterrupt included: a half-installed TensorFlow breaks the other tools
-        problem = _restore_runtime(before, known, log)
-        try:
-            exc.runtime_rollback = problem
-        except AttributeError:
-            pass
-        raise
-    return {'python': sys.executable, 'requirements': requirements}
-
-
-def install(name: str, *, dry_run: bool = False, log=None, allow_runtime_changes: bool = False) -> dict:
+def install(name: str, *, dry_run: bool = False, log=None) -> dict:
     """Create the environment (or fetch the jar), install the pinned requirements and the weights.
 
     The old receipt is withdrawn before the first step and written again only when every step has finished, so an
     install that is interrupted (even by Ctrl-C) leaves an engine that does not count as installed. One install of
-    an engine runs at a time. An engine that installs into the shared runtime is refused when that would add, move or
-    remove packages, unless ``allow_runtime_changes``.
+    an engine runs at a time.
     """
     spec = ENGINES[name]
     env = environment(name)
@@ -674,45 +511,34 @@ def install(name: str, *, dry_run: bool = False, log=None, allow_runtime_changes
     if spec['kind'] == 'remote':
         report.update(ok=available()[name], note=spec.get('note') or 'nothing to install here')
         return report
-    if spec['kind'] == 'runtime':
-        report.update(environment=sys.executable, requirements=_extra_requirements(spec['extra']))
     report['disk_mb'] = GUIDE.get(name, {}).get('disk_mb')
     if not dry_run and _offline():
         report.update(ok=False, error='CHEMDRAW_OFFLINE is set: installing downloads packages and weights, so nothing '
                                       'was installed')
         return report
     if dry_run:
-        report['python_needed'] = (f'3.{spec["python"][0]} to 3.{spec["python"][1]}' if 'python' in spec
-                                   else 'this runtime' if spec['kind'] == 'runtime' else 'Java')
+        report['python_needed'] = f'3.{spec["python"][0]} to 3.{spec["python"][1]}' if 'python' in spec else 'Java'
         return report
     log = log or sys.stderr
     try:
         with _lock(name):
             _drop_receipt(env)
-            report.update(_install_steps(name, spec, env, log, allow_runtime_changes))
+            report.update(_install_steps(name, spec, env, log))
     except subprocess.CalledProcessError as exc:
         tail = '\n'.join(exc.stderr.strip().splitlines()[-ERROR_LINES:]) if isinstance(exc.stderr, str) else ''
         report.update(ok=False, error=f'installation failed: a step exited with status {exc.returncode}'
                                       + (f':\n{tail}\n' if tail else ' (see the messages above); ')
                                       + 'check the network or proxy, then run the same command again, finished '
-                                        'downloads are cached.' + _rollback_note(exc))
+                                        'downloads are cached.')
     except subprocess.TimeoutExpired as exc:
-        report.update(ok=False, error=f'installation failed: a step timed out after {exc.timeout} s; run it again'
-                                      + _rollback_note(exc))
+        report.update(ok=False, error=f'installation failed: a step timed out after {exc.timeout} s; run it again')
     except (OSError, RuntimeError, EngineError) as exc:
-        report.update(ok=False, error=f'installation failed: {exc}' + _rollback_note(exc))
+        report.update(ok=False, error=f'installation failed: {exc}')
     return report
 
 
-def _install_steps(name: str, spec: dict, env: Path, log, allow_runtime_changes: bool = False) -> dict:
+def _install_steps(name: str, spec: dict, env: Path, log) -> dict:
     """What ``install`` adds to its report; raises when a step fails."""
-    report = {}
-    if spec['kind'] == 'runtime':
-        report.update(_install_into_runtime(name, log, allow_runtime_changes))
-        report.update(ok=available()[name])
-        if not report['ok']:
-            report['error'] = 'installed, but the module is still not found'
-        return report
     if spec['kind'] == 'jar':
         if not java():
             raise RuntimeError('Java was not found on PATH')
@@ -784,9 +610,15 @@ def status(sizes: bool = False) -> dict:
     for name, spec in ENGINES.items():
         used = _used_mb(name, sizes) if spec['kind'] in ('local', 'jar') else 0
         total += used
+        if spec['kind'] == 'remote':
+            device = 'remote'
+        elif not found[name]:
+            device = None
+        else:
+            device = configured_device(name)
         engines[name] = {'title': spec['title'], 'task': spec['task'], 'kind': spec['kind'], 'available': found[name],
-                         'license': spec.get('license'), 'size': spec.get('size'), 'disk_used_mb': round(used, 1),
-                         'use_when': GUIDE.get(name, {}).get('use_when')}
+                         'device': device, 'license': spec.get('license'), 'size': spec.get('size'),
+                         'disk_used_mb': round(used, 1), 'use_when': GUIDE.get(name, {}).get('use_when')}
     return {'home': str(home()), 'disk_used_mb': round(total, 1), 'engines': engines}
 
 

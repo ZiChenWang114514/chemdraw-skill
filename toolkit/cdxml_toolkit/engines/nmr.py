@@ -89,6 +89,14 @@ def _targets(output_path: str | None, nuclei: list) -> dict:
     return targets
 
 
+def _run_one(engine: str, smiles: str, solvent: str, nuclei: list, timeout: int) -> dict:
+    env._LAST_CALL_META.set(None)
+    raw = env.call(engine, 'predict', {'smiles': smiles, 'solvent': solvent, 'nuclei': nuclei}, timeout=timeout)
+    meta = env.last_call_meta(engine)
+    return {'engine': engine, 'raw': raw, 'device': meta['device'],
+            **({'device_fallback': True} if meta.get('device_fallback') else {})}
+
+
 def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0,
             engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict:
     """``engine`` may name several, comma separated: each runs and the peaks are compared, never merged.
@@ -123,15 +131,15 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
     nuclei = ['1H', '13C'] if nucleus == 'both' else [nucleus]
     targets = _targets(output_path, nuclei)
     started = time.time()
-    raws, failed = {}, []
+    runs, failed = [], []
     for name in names:
         try:
-            raws[name] = env.call(name, 'predict', {'smiles': canonical, 'solvent': key, 'nuclei': nuclei},
-                                  timeout=timeout_seconds)
+            runs.append(_run_one(name, canonical, key, nuclei, timeout_seconds))
         except env.EngineError as exc:
             failed.append(envelope.failure('nmr', name, ENGINES[name], exc))
-    if not raws:
+    if not runs:
         return {**failed[0], 'failed_engines': failed} if len(failed) > 1 else failed[0]
+    raws = {r['engine']: r['raw'] for r in runs}
     names = list(raws)
     by_engine = {name: {n: _peaks(raw['atoms'], n) for n in nuclei} for name, raw in raws.items()}
     spectra = {}
@@ -143,6 +151,9 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
             handle.writelines(f'{x:.5f},{y:.6f}\n' for x, y in rows)
         spectra[n] = str(target)
     warnings = ['predicted shifts, not measured data: do not report them as experimental values']
+    for r in runs:
+        if r.get('device_fallback'):
+            warnings.append(f'{r["engine"]}: CUDA failed at runtime; fell back to CPU.')
     if failed:
         warnings.append('did not run, so there is nothing to compare with: ' + ', '.join(f['engine'] for f in failed)
                         + ' (see `failed_engines`)')
@@ -158,12 +169,21 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
     common = dict(smiles=canonical, solvent=key, frequency_mhz=float(frequency_mhz), simulated_spectra=spectra,
                   elapsed_s=round(time.time() - started, 2), predicted=True, warnings=warnings,
                   **({'failed_engines': failed} if failed else {}))
-    if len(names) == 1:
-        return envelope.result('nmr', first, ENGINES[first], [], peaks=by_engine[first], geometry=raws[first].get('geometry'),
-                               **common)
+    if len(runs) == 1:
+        one = runs[0]
+        return envelope.result('nmr', first, ENGINES[first], [], peaks=by_engine[first],
+                               geometry=raws[first].get('geometry'), device=one['device'],
+                               **({'device_fallback': True} if one.get('device_fallback') else {}), **common)
+    devs = list(dict.fromkeys(r['device'] for r in runs if r.get('device')))
+    any_fallback = any(r.get('device_fallback') for r in runs)
     out = envelope.result('nmr', ','.join(names), {'kind': 'local', 'license': 'see each engine'}, [],
-                          engines=[{'engine': name, 'license': ENGINES[name].get('license'), 'peaks': by_engine[name],
-                                    'geometry': raws[name].get('geometry')} for name in names],
+                          device=devs[0] if len(devs) == 1 else 'mixed',
+                          **({'device_fallback': True} if any_fallback else {}),
+                          engines=[{'engine': r['engine'], 'license': ENGINES[r['engine']].get('license'),
+                                    'device': r['device'],
+                                    **({'device_fallback': True} if r.get('device_fallback') else {}),
+                                    'peaks': by_engine[r['engine']],
+                                    'geometry': raws[r['engine']].get('geometry')} for r in runs],
                           peaks=by_engine[first], comparison=_compare(by_engine, nuclei), **common)
     out['note'] = f'`peaks` repeats the first engine ({first}); see `engines` and `comparison` for all of them'
     return out

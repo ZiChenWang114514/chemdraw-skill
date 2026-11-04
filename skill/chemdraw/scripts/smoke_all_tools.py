@@ -311,7 +311,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--output-dir', required=True, help='a new folder for the outputs and report.json')
     parser.add_argument('--network', action='store_true', help='allow network lookups and the DECIMER upload')
-    parser.add_argument('--lcms-pdf', nargs='+', default=[], help='LCMS report PDFs or OpenLynx .rpt files for the analysis tools')
+    parser.add_argument('--lcms-pdf', nargs='+', default=[], help='LCMS report files (Waters PDF, OpenLynx .rpt, Shimadzu .daml, Agilent report.txt) for the analysis tools')
     parser.add_argument('--only', help='comma-separated tool names to run')
     parser.add_argument('--skip-engine', default='', help='comma-separated engines whose cases are skipped')
     parser.add_argument('--without', default='',

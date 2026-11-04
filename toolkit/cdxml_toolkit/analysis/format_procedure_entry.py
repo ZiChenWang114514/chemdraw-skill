@@ -4,7 +4,9 @@ Format Procedure Entry — Agent-driven lab book entry formatter.
 
 Takes a JSON list of entries from an LLM agent and produces a complete lab
 book entry.  All numbers (RT, m/z, area%, purity, conversion%) come from
-re-parsing the LCMS PDFs via parse_report().  The LLM only provides:
+re-parsing the LCMS reports (Waters MassLynx PDF, OpenLynx ``.rpt``, Shimadzu
+LabSolutions ``.daml``, or Agilent ChemStation ``report.txt``) via
+``parse_report()``.  The LLM only provides:
   - Peak identification: (name, approximate RT, ion) as search keys
   - Labels, detector choice, free-form text
   - Peak assignments (compound_related flags for conversion)
@@ -143,10 +145,10 @@ _manual_cache: Dict[str, ManualLCMSReport] = {}
 
 
 def _get_report(path: str, sample=None) -> LCMSReport:
-    """Parse and cache a standard Waters LCMS report.
+    """Parse and cache a standard LCMS report (PDF, .rpt, .daml, or report.txt).
 
     *sample* picks one sample of a multi-sample OpenLynx .rpt (sample number,
-    well, SampleID or file name); PDFs have a single sample and ignore it.
+    well, SampleID or file name); single-sample reports ignore it.
     """
     key = os.path.abspath(path) + (f"#{sample}" if sample is not None else "")
     if key not in _report_cache:

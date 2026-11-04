@@ -124,15 +124,25 @@ def extract(path: str, out_dir: str, pages=None, engines: str = 'molscribe,molve
     rows = []
     for index, segment in enumerate(segments, 1):
         answer = ocsr.recognize(segment['path'], engines, hand_drawn=hand_drawn, confirm_upload=confirm_upload)
-        rows.append({'index': index, **segment, 'comparison': answer['comparison'],
+        for e in answer['engines']:
+            if e.get('device_fallback'):
+                msg = f'{e["engine"]}: CUDA failed at runtime; fell back to CPU.'
+                if msg not in warnings:
+                    warnings.append(msg)
+        rows.append({'index': index, **segment,
+                     **({'device': answer['device']} if answer.get('device') else {}),
+                     **({'device_fallback': True} if answer.get('device_fallback') else {}),
+                     'comparison': answer['comparison'],
                      'engines': [{'engine': e['engine'], 'ok': e['ok'], 'error': e.get('error'),
+                                  **({'device': e['device']} if e.get('device') else {}),
+                                  **({'device_fallback': True} if e.get('device_fallback') else {}),
                                   'smiles': [s['smiles'] for s in e['structures']]} for e in answer['engines']]})
     sheet = target / 'contact-sheet.png'
     if rows:
         _sheet(rows, sheet)
     review = [r['index'] for r in rows if r['comparison']['needs_review']]
     report = {'ok': True, 'task': 'document_ocsr', 'provenance': envelope.PROVENANCE, 'source': str(source),
-              'segmenter': method, 'pages': [n for n, _ in page_files], 'segments': rows,
+              'segmenter': method, 'segmenter_device': 'cpu', 'pages': [n for n, _ in page_files], 'segments': rows,
               'contact_sheet': str(sheet) if rows else None, 'needs_review': review,
               'elapsed_s': round(time.time() - started, 1),
               'warnings': warnings + ['predicted structures: compare every segment with the sheet and the page; '

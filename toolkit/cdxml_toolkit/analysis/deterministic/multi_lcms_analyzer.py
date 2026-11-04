@@ -6,7 +6,8 @@ Collates peaks across multiple LCMS files from the same reaction to:
 2. Merge mass spectrum ions into recurring vs one-off lists
 3. Track area% trends over time (increasing / decreasing / stable)
 
-Input: MassLynx PDF files or OpenLynx .rpt exports (parsed internally via
+Input: Waters MassLynx PDFs, OpenLynx .rpt exports, Shimadzu LabSolutions .daml
+files, or Agilent ChemStation report.txt files (parsed internally via
 lcms_analyzer.parse_reports).  Every [SAMPLE] of an .rpt is one timepoint.
 Output: Text report (default) or structured JSON (--json).
 
@@ -36,7 +37,8 @@ from cdxml_toolkit.constants import (
 )
 from ..lcms_analyzer import (
     parse_report, parse_reports, LCMSReport, ChromPeak, MassSpectrum,
-    format_basic_report, is_waters_report, is_rpt_path, method_basename,
+    format_basic_report, is_waters_report,
+    is_rpt_path, is_daml_path, is_agilent_txt_path, method_basename,
 )
 from .lcms_file_categorizer import categorize_lcms_file, _AMBIGUOUS_SORT_KEYS
 
@@ -116,18 +118,30 @@ class AnalysisResult:
 def extract_run_datetime(pdf_path: str,
                          report: Optional[LCMSReport] = None) -> Optional[str]:
     """
-    Extract the acquisition date+time from a MassLynx PDF.
-    Looks for 'Date:DD-Mon-YYYY' and 'Time:HH:MM:SS' in the header.
+    Extract the acquisition date+time from a supported LCMS report.
     Returns ISO-format string 'YYYY-MM-DD HH:MM:SS' or None.
 
-    For an OpenLynx .rpt export pass the parsed *report* (one sample of the
-    file); its Date / Time fields are used.  Without it the first sample of
-    the .rpt is read.
+    Supports Waters MassLynx PDFs, OpenLynx ``.rpt`` exports, Shimadzu
+    ``.daml`` files, and Agilent ChemStation ``report.txt`` files.
     """
     if is_rpt_path(pdf_path):
         from ..openlynx_rpt import report_datetime
         try:
             return report_datetime(report or parse_reports(pdf_path)[0])
+        except Exception:
+            return None
+
+    if is_daml_path(pdf_path):
+        from ..shimadzu_daml import report_datetime
+        try:
+            return report_datetime(report or parse_report(pdf_path))
+        except Exception:
+            return None
+
+    if is_agilent_txt_path(pdf_path):
+        from ..agilent_txt import report_datetime
+        try:
+            return report_datetime(report or parse_report(pdf_path))
         except Exception:
             return None
 
@@ -697,9 +711,9 @@ def detect_outlier_files_conservative(
 # ---------------------------------------------------------------------------
 
 def _file_label(fe: FileEntry) -> str:
-    """Short display name for a file (strip .pdf / .rpt)."""
+    """Short display name for a file (strip .pdf / .rpt / .daml / .txt / .d)."""
     stem, ext = os.path.splitext(fe.filename)
-    return stem if ext.lower() in (".pdf", ".rpt") else fe.filename
+    return stem if ext.lower() in (".pdf", ".rpt", ".daml", ".txt", ".d") else fe.filename
 
 
 def format_text_report(result: AnalysisResult,
@@ -1240,7 +1254,7 @@ def main(argv=None) -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument('files', nargs='+',
-                        help='MassLynx PDF reports or OpenLynx .rpt exports')
+                        help='LCMS reports (MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, or Agilent report.txt)')
     parser.add_argument('--rt-tolerance', type=float, default=LCMS_RT_TOLERANCE,
                         help='RT matching tolerance in minutes (default: %(default)s)')
     parser.add_argument('--mz-tolerance', type=float, default=LCMS_MZ_TOLERANCE,
@@ -1304,7 +1318,13 @@ def main(argv=None) -> int:
             continue
         for report in reports:
             multi = is_rpt_path(path) and len(reports) > 1
-            filename = report.sample_name if multi else file_basename
+            if multi:
+                filename = report.sample_name
+            elif is_agilent_txt_path(path) and file_basename.lower() == "report.txt":
+                parent_dir = os.path.basename(os.path.dirname(os.path.abspath(path)))
+                filename = parent_dir if parent_dir.lower().endswith(".d") else file_basename
+            else:
+                filename = file_basename
             category, sort_key = categorize_lcms_file(filename)
             ambiguous = sort_key in _AMBIGUOUS_SORT_KEYS
             # Always try to extract run datetime (shown in output)

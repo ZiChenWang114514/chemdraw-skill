@@ -980,7 +980,8 @@ def parse_analysis_file(
 ) -> dict:
     """Parse an LCMS or NMR analysis file to extract peaks and data.
 
-    Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports and
+    Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports, Shimadzu
+    LabSolutions .daml files, Agilent ChemStation report.txt files, and
     MestReNova NMR PDFs. Returns structured peak data for LCMS species
     identification or NMR characterisation. A .rpt holds one or many samples:
     one sample returns the same dict as a PDF report, several return
@@ -990,7 +991,7 @@ def parse_analysis_file(
     a graceful error rather than crashing.
 
     Args:
-        pdf_path:    Path to an LCMS PDF or OpenLynx .rpt, or an NMR PDF.
+        pdf_path:    Path to an LCMS file (.pdf, .rpt, .daml, or report.txt) or NMR PDF.
         output_path: If given, write the parsed data as JSON to this file and
                      return {ok, output_path, size} instead of the full dict.
 
@@ -1003,9 +1004,11 @@ def parse_analysis_file(
     if not pdf_path or not pdf_path.strip():
         return (
             "Usage: parse_analysis_file(pdf_path='report.pdf')\n"
-            "Supports: Waters LCMS reports, MestReNova NMR PDFs.\n"
+            "Supports: Waters LCMS PDFs, OpenLynx .rpt, Shimadzu .daml, Agilent report.txt, MestReNova NMR PDFs.\n"
             "Examples:\n"
             "  parse_analysis_file(pdf_path='lcms/t0.pdf')\n"
+            "  parse_analysis_file(pdf_path='lcms/run1.daml')\n"
+            "  parse_analysis_file(pdf_path='lcms/sample.D/report.txt')\n"
             "  parse_analysis_file(pdf_path='nmr/product_1H.pdf')\n"
             "  parse_analysis_file(pdf_path='lcms/t0.pdf', output_path='t0_parsed.json')  # save to file\n"
             "Returns: retention times, peak areas, masses (LCMS) or shifts/multiplicities (NMR)."
@@ -1022,7 +1025,7 @@ def parse_analysis_file(
             ),
         }
 
-    p = _validate_file(pdf_path, "PDF file")
+    p = _validate_file(pdf_path, "Analysis file")
     try:
         result = _parse(str(p))
         if not isinstance(result, dict):
@@ -1034,8 +1037,8 @@ def parse_analysis_file(
             "ok": False,
             "error": (
                 f"Parse failed: {e}. "
-                "Ensure the file is a Waters LCMS PDF/.rpt or MestReNova NMR export; "
-                "scanned PDFs without embedded text are not supported."
+                "Ensure the file is a Waters LCMS PDF/.rpt, Shimadzu .daml, Agilent report.txt, "
+                "or MestReNova NMR export; scanned PDFs without embedded text are not supported."
             ),
             "pdf_path": str(p),
         }
@@ -1099,11 +1102,12 @@ def format_lab_entry(
 
       {"type": "nmr", "content": "1H NMR (400 MHz, DMSO-d6): ..."}
 
-    Workflow: First call parse_analysis_file on each PDF to see peaks/masses.
-    Then build entries referencing those PDFs with approximate RT and ion as
-    search keys.  This tool re-reads the PDF and fills in exact numbers.
-    "file" may also be an OpenLynx .rpt; for a multi-sample .rpt add
-    "sample" (sample number, well, SampleID or file name) to the entry.
+    Workflow: First call parse_analysis_file on each LCMS file to see peaks/masses.
+    Then build entries referencing those files with approximate RT and ion as
+    search keys.  This tool re-reads the LCMS report and fills in exact numbers.
+    "file" may be a Waters MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, or
+    Agilent ChemStation report.txt; for a multi-sample .rpt add "sample"
+    (sample number, well, SampleID or file name) to the entry.
 
     Args:
         entries_json: List of entry dicts, or a JSON string, or {"entries": [...]}.
@@ -1166,8 +1170,8 @@ def format_lab_entry(
             "error": (
                 f"Entry formatting failed: {e}. "
                 "Check that each entry has a valid 'type' field (text, lcms-species, lcms-areas, "
-                "lcms-manual, nmr) and that PDF paths in 'file' fields exist. "
-                "Call parse_analysis_file on each PDF first to identify peak RTs."
+                "lcms-manual, nmr) and that report paths in 'file' fields exist (.pdf, .rpt, .daml, or report.txt). "
+                "Call parse_analysis_file on each report first to identify peak RTs."
             ),
         }
 

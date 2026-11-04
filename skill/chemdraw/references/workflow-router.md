@@ -86,8 +86,8 @@ Details and argument examples: [chemistry reports](chemistry-reports.md).
 ## Analyze Experiments
 
 1. Use `discover_experiment_files` before composing a multi-file workflow.
-2. Parse individual LCMS/NMR files with `parse_analysis_file` (LCMS: Waters PDF or OpenLynx `.rpt`).
-3. Use `analyze_lcms_series` only for at least two supported standard LCMS PDFs, or one multi-sample OpenLynx `.rpt` (each sample is a timepoint).
+2. Parse individual LCMS/NMR files with `parse_analysis_file` (LCMS: Waters PDF, OpenLynx `.rpt`, Shimadzu `.daml`, or Agilent ChemStation `report.txt`).
+3. Use `analyze_lcms_series` only for at least two supported standard LCMS reports (PDF, `.daml`, or Agilent `report.txt`), or one multi-sample OpenLynx `.rpt` (each sample is a timepoint).
 4. Parse ELN/reaction files with `parse_reaction`; parse SciFinder exports with `parse_scifinder_rdf`. CAS enrichment requires explicit PubChem confirmation and counts a resolution only when a valid field was actually added; inspect `metadata.cas_resolutions` for per-CAS outcomes.
 5. Build a lab entry with `format_lab_entry` or a complete experiment entry with `assemble_lab_book`.
 

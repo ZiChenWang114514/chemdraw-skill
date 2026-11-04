@@ -1,6 +1,7 @@
 """Analysis — LCMS parsing, species identification, and lab book generation.
 
-Parses Waters MassLynx LCMS PDF reports (standard and manually integrated),
+Parses LCMS reports (Waters MassLynx PDFs, OpenLynx ``.rpt`` exports, Shimadzu
+LabSolutions ``.daml`` files, and Agilent ChemStation ``report.txt`` files),
 matches peaks across files, identifies compounds by expected mass, and
 assembles lab book entries.  Two workflows:
 
@@ -22,7 +23,8 @@ from .lcms_analyzer import (
     parse_report, parse_reports, parse_manual_report, format_table, format_manual_table,
     LCMSReport, ChromPeak, MassSpectrum,
     ManualLCMSReport, ManualLCMSSample, ManualPeak,
-    is_waters_report, is_manual_integration, is_rpt_path,
+    is_waters_report, is_manual_integration,
+    is_rpt_path, is_daml_path, is_agilent_txt_path,
 )
 from .format_procedure_entry import process_entries
 

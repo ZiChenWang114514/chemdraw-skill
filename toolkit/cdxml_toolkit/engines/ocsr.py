@@ -21,13 +21,13 @@ def resolve(engines) -> list:
 
 
 def _local(name: str, image: str, hand_drawn: bool, timeout: int) -> list:
-    spec = ENGINES[name]
     if name == 'molvec':
         done = env.run_jar(name, ['gov.nih.ncats.molvec.Main', '-f', image], timeout=timeout)
         molfile = done.stdout  # the first line of a mol file is a blank title: keep it
         if done.returncode != 0 or 'V2000' not in molfile and 'V3000' not in molfile:
             return []
         return [envelope.describe(envelope.molfile_to_smiles(molfile))]
+    env._LAST_CALL_META.set(None)
     answers = env.call(name, 'predict', {'images': [image], 'hand_drawn': hand_drawn}, timeout=timeout)
     first = answers[0]
     if 'error' in first:
@@ -47,7 +47,7 @@ def _remote(image: str, hand_drawn: bool, timeout: int, output_path, confirm_upl
         return envelope.failure('ocsr', 'decimer-api', spec, refused.get('error', str(exc)),
                                 **({'preflight': refused['preflight']} if 'preflight' in refused else {}))
     structures = [envelope.describe(s.get('smiles')) for s in answer.get('structures', [])]
-    return envelope.result('ocsr', 'decimer-api', spec, structures, sha256=answer.get('sha256'),
+    return envelope.result('ocsr', 'decimer-api', spec, structures, device='remote', sha256=answer.get('sha256'),
                            api_origin=answer.get('api_origin'), network_used=True,
                            upstream_warnings=answer.get('warnings', []),
                            **({'output_path': answer['output_path']} if answer.get('output_path') else {}))
@@ -76,13 +76,28 @@ def recognize(image_path: str, engines='decimer-api', hand_drawn: bool = False, 
             entry = _remote(image, hand_drawn, timeout_seconds, output_path, confirm_upload, approved_sha256, approved_origin)
         else:
             try:
-                entry = envelope.result('ocsr', name, spec, _local(name, image, hand_drawn, timeout_seconds))
+                structures = _local(name, image, hand_drawn, timeout_seconds)
+                meta = {'device': 'cpu', 'device_fallback': False} if name == 'molvec' else env.last_call_meta(name)
+                extra = {'device': meta['device']}
+                if meta.get('device_fallback'):
+                    extra['device_fallback'] = True
+                    extra['warnings'] = [f'{name}: CUDA failed at runtime; fell back to CPU.']
+                entry = envelope.result('ocsr', name, spec, structures, **extra)
             except (env.EngineError, ValueError, OSError) as exc:
                 entry = envelope.failure('ocsr', name, spec, exc)
         entry['elapsed_s'] = round(time.time() - started, 2)
         entries.append(entry)
     warnings = ['predicted structures: compare each with the image before use']
+    for entry in entries:
+        if entry.get('device_fallback'):
+            warnings.append(f'{entry["engine"]}: CUDA failed at runtime; fell back to CPU.')
     if output_path and 'decimer-api' not in names:
         warnings.append('output_path holds the raw decimer-api response; that engine did not run, so nothing was written')
+    devs = list(dict.fromkeys(e['device'] for e in entries if e.get('ok') and e.get('device')))
+    top_extra = {}
+    if devs:
+        top_extra['device'] = devs[0] if len(devs) == 1 else 'mixed'
+    if any(e.get('device_fallback') for e in entries):
+        top_extra['device_fallback'] = True
     return {'ok': any(e['ok'] for e in entries), 'task': 'ocsr', 'provenance': envelope.PROVENANCE, 'image': image,
-            'engines': entries, 'comparison': consensus.compare(entries), 'warnings': warnings}
+            **top_extra, 'engines': entries, 'comparison': consensus.compare(entries), 'warnings': warnings}

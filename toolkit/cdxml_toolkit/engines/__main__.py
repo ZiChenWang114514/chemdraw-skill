@@ -29,8 +29,6 @@ def main(argv=None) -> int:
     parser.add_argument('--task', help=f'install every local engine of one task: {", ".join(tasks)}')
     parser.add_argument('--bundle', help=f'install a ready-made set: {", ".join(BUNDLES)}')
     parser.add_argument('--dry-run', action='store_true', help='print what would be installed')
-    parser.add_argument('--allow-runtime-changes', action='store_true', help='let an engine that installs into the shared '
-                        'toolkit runtime add, move or remove packages there (refused otherwise; a failed install is rolled back)')
     parser.add_argument('--recommend', metavar='NEED', help=f'what to install for a need '
                                                            f'({", ".join([*RECOMMEND, *RECOMMEND_ALIASES])}), '
                                                            'with sizes; downloads nothing')
@@ -75,7 +73,7 @@ def main(argv=None) -> int:
         print(json.dumps({'home': str(env.home()), 'removed_mb': sum(r['disk_mb'] for r in reports if r.get('removed')),
                           'reports': reports, 'note': None if ns.yes else 'dry run: add --yes to delete'}, indent=2))
         return 0 if all(r.get('ok') for r in reports) else 1
-    reports = [env.install(name, dry_run=ns.dry_run, allow_runtime_changes=ns.allow_runtime_changes) for name in dict.fromkeys(names)]
+    reports = [env.install(name, dry_run=ns.dry_run) for name in dict.fromkeys(names)]
     total = sum(r.get('disk_mb') or 0 for r in reports)
     print(json.dumps({'home': str(env.home()), 'download_mb_estimate': total, 'reports': reports}, indent=2))
     return 0 if ns.dry_run or all(r.get('ok') for r in reports) else 1
