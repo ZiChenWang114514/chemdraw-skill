@@ -143,9 +143,44 @@ def _load_decimer(hand_drawn: bool = False):
             import tensorflow as tf
             import pystow
         except ImportError as exc:
+            try:
+                from ..engines import env as _engine_env
+
+                if _engine_env.available().get("decimer-local"):
+                    def _engine_predict(image_input, confidence=False, hand_drawn=hand_drawn):
+                        if isinstance(image_input, str):
+                            rows = _engine_env.call(
+                                "decimer-local",
+                                "predict",
+                                {"images": [image_input], "hand_drawn": bool(hand_drawn)},
+                            )
+                        else:
+                            if not HAS_CV2:
+                                raise RuntimeError("opencv-python is required to write image crops")
+                            with tempfile.TemporaryDirectory(prefix="cdxml-decimer-") as tmp_dir:
+                                crop_path = os.path.join(tmp_dir, "crop.png")
+                                cv2.imwrite(crop_path, image_input)
+                                rows = _engine_env.call(
+                                    "decimer-local",
+                                    "predict",
+                                    {"images": [crop_path], "hand_drawn": bool(hand_drawn)},
+                                )
+                        item = rows[0] if rows else {}
+                        if item.get("error"):
+                            raise RuntimeError(item["error"])
+                        smi = item.get("smiles") or ""
+                        if confidence:
+                            score = item.get("score")
+                            return smi, ([("", float(score))] if score is not None else [])
+                        return smi
+
+                    _engine_predict._uses_engine = True  # type: ignore[attr-defined]
+                    return _engine_predict
+            except Exception:
+                pass
             raise ImportError(
-                "DECIMER is not installed. Run:\n"
-                "  pip install cdxml-toolkit-community[decimer]\n"
+                "DECIMER is not installed. Install the isolated local engine:\n"
+                "  cdx.py install-engines decimer-local\n"
                 f"Original error: {exc}"
             ) from exc
 
@@ -838,6 +873,21 @@ def _extract_structures_raw(
     # 4. Process each region
     results: List[Dict] = []
     atom_offset = 0
+    batched_rows: Optional[List[Dict]] = None
+    if getattr(predict_fn, "_uses_engine", False) and regions and HAS_CV2:
+        from ..engines import env as _engine_env
+
+        with tempfile.TemporaryDirectory(prefix="cdxml-decimer-batch-") as tmp_dir:
+            crop_paths = []
+            for idx, (crop, _bbox) in enumerate(regions):
+                crop_path = os.path.join(tmp_dir, f"crop_{idx:03d}.png")
+                cv2.imwrite(crop_path, crop)
+                crop_paths.append(crop_path)
+            batched_rows = _engine_env.call(
+                "decimer-local",
+                "predict",
+                {"images": crop_paths, "hand_drawn": bool(hand_drawn)},
+            )
 
     for i, (crop, bbox) in enumerate(regions):
         log(f"Processing region {i+1}/{len(regions)} — bbox {bbox}")
@@ -845,31 +895,41 @@ def _extract_structures_raw(
         # Try to call DECIMER with confidence=True to get per-token scores.
         # Falls back to confidence=False if the version doesn't support it.
         raw_confidence = None
-        try:
-            result = predict_fn(crop, confidence=True, hand_drawn=hand_drawn)
-            if isinstance(result, tuple):
-                smiles, raw_confidence = result[0], result[1]
+        if batched_rows is not None and i < len(batched_rows):
+            row_item = batched_rows[i] or {}
+            if row_item.get("error"):
+                log(f"  DECIMER failed: {row_item['error']}")
+                smiles = ""
             else:
-                smiles = result
-        except TypeError:
-            # Older DECIMER versions don't accept numpy; fall back to temp file
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tf:
-                tmp_path = tf.name
+                smiles = row_item.get("smiles") or ""
+                if row_item.get("score") is not None:
+                    raw_confidence = [("", float(row_item["score"]))]
+        else:
             try:
-                cv2.imwrite(tmp_path, crop)
+                result = predict_fn(crop, confidence=True, hand_drawn=hand_drawn)
+                if isinstance(result, tuple):
+                    smiles, raw_confidence = result[0], result[1]
+                else:
+                    smiles = result
+            except TypeError:
+                # Older DECIMER versions don't accept numpy; fall back to temp file
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tf:
+                    tmp_path = tf.name
                 try:
-                    result = predict_fn(tmp_path, confidence=True)
-                    if isinstance(result, tuple):
-                        smiles, raw_confidence = result[0], result[1]
-                    else:
-                        smiles = result
-                except TypeError:
-                    smiles = predict_fn(tmp_path)
-            finally:
-                os.unlink(tmp_path)
-        except Exception as exc:
-            log(f"  DECIMER failed: {exc}")
-            smiles = ""
+                    cv2.imwrite(tmp_path, crop)
+                    try:
+                        result = predict_fn(tmp_path, confidence=True)
+                        if isinstance(result, tuple):
+                            smiles, raw_confidence = result[0], result[1]
+                        else:
+                            smiles = result
+                    except TypeError:
+                        smiles = predict_fn(tmp_path)
+                finally:
+                    os.unlink(tmp_path)
+            except Exception as exc:
+                log(f"  DECIMER failed: {exc}")
+                smiles = ""
 
         smiles = smiles.strip() if smiles else ""
 

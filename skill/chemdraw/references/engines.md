@@ -21,7 +21,7 @@ Each engine installs into its own folder under `~/.local/share/chemdraw-skill/en
 | Engine | Task | Where it runs | Licence | Size |
 | --- | --- | --- | --- | --- |
 | `decimer-api` | OCSR | remote (default) | MIT (service by the Steinbeck Lab) | none |
-| `decimer-local` | OCSR, the DECIMER model on this computer | runtime (extra `decimer`) | MIT | 1.5 GB of packages in the runtime (TensorFlow), 0.7 GB weights |
+| `decimer-local` | OCSR, the DECIMER model on this computer | own env, Python 3.10 or 3.11 | MIT | 1.7 GB environment (TensorFlow), 0.7 GB weights |
 | `molscribe` | OCSR | own env, Python 3.10; NVIDIA GPU when present | MIT | 3.6 GB environment with the CUDA build of PyTorch (about 1.4 GB with the CPU build), 1.1 GB weights |
 | `molnextr` | OCSR | own env, Python 3.10; NVIDIA GPU when present | Apache-2.0 | 3.6 GB environment with the CUDA build of PyTorch (about 1.5 GB with the CPU build), 1.1 GB weights |
 | `molparser` | OCSR (also Markush) | own env, Python 3.10 to 3.12; NVIDIA GPU when present | **Apache-2.0 (code); CC BY-NC-SA 4.0 (weights), non-commercial only** | 3.4 GB environment with the CUDA build of PyTorch (about 1.5 GB with the CPU build), 20 MB weights |
@@ -85,9 +85,9 @@ Sizes are measured folder sizes of finished installs on Windows, which carry the
 
 ## GPU, memory and disk
 
-- **GPU.** Every PyTorch engine uses an NVIDIA GPU: when `nvidia-smi` finds one at install time, the engine gets a CUDA build of PyTorch and runs on it, and the install report and `.engine.json` say `device: cuda`. Engines that were pinned to an older PyTorch (1.13 to 2.5) have that pin replaced by a CUDA build, because those builds contain no kernels for RTX 50-series GPUs (compute capability 12.0); the predictions matched the CPU builds on the checks made. The ten PyTorch engines are `molscribe`, `molnextr`, `molparser`, `synplanner`, `reactiont5-forward`, `reactiont5-retro`, `magnet`, `retrochimera`, `nmrnet-pp` and `reacon`. Only `decimer-segmentation` (TensorFlow 2.15, which has no GPU support on native Windows), `decimer-local` (TensorFlow, installed into the runtime) and the Java and ONNX engines stay on the CPU. If the GPU fails while an engine runs (a CUDA error, no kernels for it, out of memory), the call is repeated once on the CPU unless `CHEMDRAW_ENGINE_DEVICE` was set. `CHEMDRAW_ENGINE_DEVICE=cpu` keeps every engine on the CPU, at install and at run time. Macs always use the CPU.
+- **GPU.** Every PyTorch engine uses an NVIDIA GPU: when `nvidia-smi` finds one at install time, the engine gets a CUDA build of PyTorch and runs on it, and the install report and `.engine.json` say `device: cuda`. Engines that were pinned to an older PyTorch (1.13 to 2.5) have that pin replaced by a CUDA build, because those builds contain no kernels for RTX 50-series GPUs (compute capability 12.0); the predictions matched the CPU builds on the checks made. The ten PyTorch engines are `molscribe`, `molnextr`, `molparser`, `synplanner`, `reactiont5-forward`, `reactiont5-retro`, `magnet`, `retrochimera`, `nmrnet-pp` and `reacon`. Only `decimer-segmentation` and `decimer-local` (both TensorFlow 2.15, which has no GPU support on native Windows) and the Java and ONNX engines stay on the CPU. If the GPU fails while an engine runs (a CUDA error, no kernels for it, out of memory), the call is repeated once on the CPU unless `CHEMDRAW_ENGINE_DEVICE` was set. `CHEMDRAW_ENGINE_DEVICE=cpu` keeps every engine on the CPU, at install and at run time. Macs always use the CPU.
 - **Memory.** Engines run one at a time. RetroChimera is the largest: it still needs about 14 GB of free memory on a GPU machine, because loading the model and localizing templates run on the CPU. It starts one extra rule process for every further 4 GB free, up to 4 (`CHEMDRAW_ENGINE_PROCESSES` sets the number). Close other large programs before a RetroChimera run on a machine with less than 16 GB free.
-- **Disk.** Package downloads are cached under `CHEMDRAW_ENGINE_HOME/.cache`, on the same disk as the engines, unless `UV_CACHE_DIR` or `PIP_CACHE_DIR` is set. `decimer-local` is the exception: it installs into the toolkit runtime itself, wherever that venv lives.
+- **Disk.** Package downloads are cached under `CHEMDRAW_ENGINE_HOME/.cache`, on the same disk as the engines, unless `UV_CACHE_DIR` or `PIP_CACHE_DIR` is set.
 
 ## Removing an engine
 
@@ -107,6 +107,8 @@ The `comparison` block groups the engines by the structure they read (full InChI
 When engines disagree, show the user the groups, look at the image, and decide per atom or bond; do not take the majority. Use [image visual review](image-visual-review.md) for the rest of the reconstruction.
 
 Real-paper accuracy is low for every open model. A 2026 benchmark of 5,029 structures from recent papers reports about 41% exact match for the best graph models (a self-reported figure on a third-party listing); clean computer-drawn images are much easier. Hand-drawn structures need `hand_drawn` with a DECIMER engine.
+
+`decimer-local` is the DECIMER model on this computer, for images that may not be uploaded. It reads the same weights as the remote service, so it gives the same answer; it runs on the CPU in its own TensorFlow 2.15 environment, and every call loads the model first (30 to 70 s on a laptop), so use it for single images, not batches.
 
 Measured here with `scripts/ocsr_benchmark.py` on 10 clean RDKit drawings (full InChIKey match, Apple-silicon CPU): MolScribe 10/10 at about 7 s per image, MolNexTR 10/10 at about 11 s, MolParser 10/10 at about 11 s, MolVec 10/10 at about 2 s. This is an upper bound for clean computer drawings, not an accuracy figure for papers.
 
