@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 
-from .registry import BUNDLES, ENGINES
+from .registry import BUNDLES, ENGINES, disk_mb
 
 MARKERS = {'engines': ('<!-- engines-table:start -->', '<!-- engines-table:end -->'),
            'bundles': ('<!-- bundles-table:start -->', '<!-- bundles-table:end -->')}
@@ -42,8 +42,21 @@ def bundles_table() -> str:
     return '\n'.join(rows)
 
 
+SIZE_MARKER = re.compile(r'<!--size:([\w-]+)-->.*?<!--/size-->')
+
+
+def download_size(bundle: str) -> str:
+    """What installing ``bundle`` takes on disk, from the registry's measured engine sizes: ``about 4.7 GB``."""
+    if bundle not in BUNDLES:
+        raise ValueError(f'the engines reference names the size of {bundle!r}, which is not a bundle')
+    megabytes = disk_mb(BUNDLES[bundle]['engines'])
+    return f'{megabytes} MB' if megabytes < 1000 else f'about {megabytes / 1000:.1f} GB'
+
+
 def render(text: str) -> str:
-    """``text`` with every marked table replaced by the one the registry gives; a missing marker is an error."""
+    """``text`` with every marked table replaced by the one the registry gives, and every ``<!--size:BUNDLE-->`` span
+    by that bundle's size; a missing marker is an error."""
+    text = SIZE_MARKER.sub(lambda m: f'<!--size:{m[1]}-->{download_size(m[1])}<!--/size-->', text)
     for key, body in (('engines', engines_table()), ('bundles', bundles_table())):
         start, end = MARKERS[key]
         pattern = re.compile(re.escape(start) + r'.*?' + re.escape(end), re.S)

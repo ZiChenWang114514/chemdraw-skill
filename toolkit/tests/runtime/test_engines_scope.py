@@ -675,3 +675,17 @@ def test_the_engines_tables_come_from_the_registry_and_need_their_markers():
         row = next(line for line in text.splitlines() if line.startswith(f'| `{name}` |'))
         assert (f'**{spec["license"]}**' in row) == bool(spec.get('restricted'))
     assert all(f'| `{name}` |' in text for name in BUNDLES)
+
+
+def test_a_size_marker_in_the_offer_table_shows_the_registry_sum_of_its_bundle():
+    from cdxml_toolkit.engines import table
+    blocks = '\n'.join(table.MARKERS['engines'] + table.MARKERS['bundles'])
+    stale = '<!--size:ocsr-standard-->about 2 GB<!--/size--> and <!--size:ocsr-lite-->1 GB<!--/size--> and <!--size:retro-chimera-->x<!--/size-->'
+    text = table.render(stale + '\n' + blocks)
+    first = text.splitlines()[0]
+    assert f'about {disk_mb(BUNDLES["ocsr-standard"]["engines"]) / 1000:.1f} GB' in first
+    assert f'{disk_mb(BUNDLES["ocsr-lite"]["engines"])} MB' in first  # under a gigabyte it stays in megabytes
+    assert f'about {disk_mb(BUNDLES["retro-chimera"]["engines"]) / 1000:.1f} GB' in first
+    assert text == table.render(text)
+    with pytest.raises(ValueError, match='no-such-bundle'):
+        table.render('<!--size:no-such-bundle-->x<!--/size-->\n' + blocks)
