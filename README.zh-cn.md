@@ -788,7 +788,7 @@ macOS 适配器通过 ChemDraw for macOS 的 AppleScript 字典驱动 ChemDraw�
 | 从这里开始 | 深入了解 |
 | --- | --- |
 | [安装与首次使用](docs/zh-cn.md) | [自动生成的工具签名](skill/chemdraw/references/mcp-signatures.md) |
-| [安装、故障处理与运行维护](docs/guide.zh-cn.md) | [经过审计的内置工具包公共清单](skill/chemdraw/references/toolkit-public-inventory.md) |
+| [安装、故障处理与运行维护](docs/guide.zh-cn.md) · [英文运维指南](docs/guide.md) | [经过审计的内置工具包公共清单](skill/chemdraw/references/toolkit-public-inventory.md) |
 | [Agent 接入与 `cdx.py` 命令参考](skill/chemdraw/references/agent-integration.md) | [工具包开发者参考](toolkit/docs/agent-reference.md) · [生成的 MCP 工具参考](toolkit/docs/mcp-tools.md) |
 | [面向任务的工作流目录](skill/chemdraw/references/workflow-router.md) | [远程 HTTP 配置](skill/chemdraw/references/operations.md#remote-http-only-when-asked) |
 | [贡献指南](.github/contributing.md) · [安全策略](.github/SECURITY.md) | [仓库贡献者说明](AGENTS.md) |

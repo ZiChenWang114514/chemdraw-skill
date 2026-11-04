@@ -36,7 +36,8 @@
     C: { v: 4, mass: 12.011, exact: 12, w: 13.7 },
     N: { v: 3, mass: 14.007, exact: 14.003074, w: 13.7 },
     O: { v: 2, mass: 15.999, exact: 15.9949146, w: 14.8 },
-    S: { v: 2, mass: 32.06, exact: 31.9720707, w: 12.7 },
+    S: { v: 2, vv: [2, 4, 6], mass: 32.06, exact: 31.9720707, w: 12.7 },
+    P: { v: 3, vv: [3, 5], mass: 30.974, exact: 30.973762, w: 12.7 },
     F: { v: 1, mass: 18.998, exact: 18.9984032, w: 11.6 },
     Cl: { v: 1, mass: 35.45, exact: 34.9688527, w: 17.9 },
     Br: { v: 1, mass: 79.904, exact: 78.9183376, w: 19.3 },
@@ -61,8 +62,9 @@
   function analyse(g) {
     const used = g.atoms.map(() => 0);
     g.bonds.forEach((b) => { used[b.a] += b.o; used[b.b] += b.o; });
-    const hyd = g.atoms.map((a, i) => Math.max(0, EL[a.s].v - used[i]));
-    const over = g.atoms.map((a, i) => used[i] > EL[a.s].v);
+    const val = (s, u) => (EL[s].vv || [EL[s].v]).find((v) => v >= u) ?? (EL[s].vv ? EL[s].vv.at(-1) : EL[s].v);
+    const hyd = g.atoms.map((a, i) => Math.max(0, val(a.s, used[i]) - used[i]));
+    const over = g.atoms.map((a, i) => used[i] > val(a.s, used[i]));
     const count = {};
     let mass = 0, exact = 0;
     g.atoms.forEach((a, i) => {
@@ -146,7 +148,7 @@
   // An ACS Document 1996 CDXML file of the drawing, written the way cdxml_builder writes one:
   // 14.4 pt bonds, Arial 10 pt bold labels, heteroatoms with their hydrogens, and NeedsClean so
   // ChemDraw lays the labels out itself when it opens the file.
-  const NUMBER = { C: 6, N: 7, O: 8, S: 16, F: 9, Cl: 17, Br: 35 };
+  const NUMBER = { C: 6, N: 7, O: 8, P: 15, S: 16, F: 9, Cl: 17, Br: 35 };
   function toCdxml(g) {
     const info = analyse(g);
     const scale = 14.4 / bondLength(g);

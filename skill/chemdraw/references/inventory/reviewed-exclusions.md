@@ -82,9 +82,23 @@
 - **function**, line 105: `validate_document_preserved(source, output)` - No public docstring in the audited version.
 - **function**, line 84: `validate_fragment(smiles, xml)` - No public docstring in the audited version.
 
+## `engines.accel`
+
+- **class**, line 69: `AccelDecision` - Result of evaluating whether an engine invocation warrants acceleration.
+- **property**, line 79: `AccelDecision.primary_reason` - No public docstring in the audited version.
+- **method**, line 82: `AccelDecision.to_dict(execution_mode: str = 'oneshot') -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 316: `active_daemons(engine_home: Path) -> list[dict[str, Any]]` - Return metadata of currently live resident daemons (pruning stale state files).
+- **function**, line 346: `call_via_daemon(*, engine: str, python: Path, worker_script: Path, request: dict[str, Any], env_vars: dict[str, str], engine_home: Path, device_key: str, timeout: int) -> tuple[dict[str, Any], str] | None` - Execute ``request`` on a warm resident worker, spawning one if needed.
+- **function**, line 159: `classify_task(engine: str, action: str = 'predict', params: dict[str, Any] | None = None, *, mode: str | None = None, task_hint: str | None = None, engine_home: Path | None = None, now: float | None = None) -> AccelDecision` - Classify an engine invocation as ``simple`` (stateless one-shot) or ``complex`` (accelerated).
+- **function**, line 238: `idle_timeout_seconds() -> int` - No public docstring in the audited version.
+- **function**, line 107: `recent_call_count(engine_home: Path | None, *, window_seconds: float = BURST_WINDOW_SECONDS, now: float | None = None) -> int` - Count recent engine calls within ``window_seconds`` (stores timestamps and engine names only).
+- **function**, line 126: `record_call(engine_home: Path | None, engine: str, *, now: float | None = None) -> None` - Append a lightweight timestamp entry (never molecular content) to the burst ring buffer.
+- **function**, line 303: `stop_all_daemons(engine_home: Path) -> list[str]` - Shut down all warm resident engine daemons under ``engine_home`` and return their names.
+- **function**, line 285: `stop_daemon_file(state_file: Path) -> bool` - No public docstring in the audited version.
+
 ## `engines.consensus`
 
-- **function**, line 21: `compare(entries: list) -> dict` - Group the engines by the structure they read.
+- **function**, line 163: `compare(entries: list, expected_formula: str | None = None) -> dict` - Group the engines by the structure they read.
 
 ## `engines.document`
 
@@ -92,28 +106,29 @@
 
 ## `engines.env`
 
-- **function**, line 150: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
-- **function**, line 202: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
-- **function**, line 125: `configured_device(name: str) -> str` - The device ``name`` is configured to run on ('cuda', 'cpu', or 'remote').
-- **function**, line 85: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
-- **function**, line 573: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
-- **class**, line 38: `EngineError` - An engine is missing, could not run, or returned something unusable.
-- **class**, line 42: `EngineMissing` - The engine is not installed. ``hint`` says what installing it would cost, for the user to decide.
-- **function**, line 74: `environment(name: str) -> Path` - No public docstring in the audited version.
-- **function**, line 50: `hint(name: str) -> dict` - What to tell the user when ``name`` is needed but absent: use, size, licence and the command.
-- **function**, line 63: `home() -> Path` - No public docstring in the audited version.
-- **function**, line 500: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
-- **function**, line 78: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
-- **function**, line 103: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
-- **function**, line 90: `java() -> str | None` - No public docstring in the audited version.
-- **function**, line 138: `last_call_meta(name: str | None = None) -> dict` - Device metadata from the most recent ``call`` on this context, or configured defaults.
-- **function**, line 109: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
-- **function**, line 95: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
-- **function**, line 625: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a need in ``RECOMMEND`` or an engine task name), with what each costs. Reads only; nothing is downloaded.
-- **function**, line 648: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
-- **function**, line 268: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
-- **function**, line 278: `sha256_of(path) -> str` - No public docstring in the audited version.
-- **function**, line 606: `status(sizes: bool = False) -> dict` - Which engines are available and their disk use. Sizes come from the receipts; ``sizes=True`` measures again.
+- **function**, line 159: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
+- **function**, line 214: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
+- **function**, line 126: `configured_device(name: str) -> str` - The device ``name`` is configured to run on ('cuda', 'cpu', or 'remote').
+- **function**, line 86: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
+- **function**, line 624: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
+- **class**, line 39: `EngineError` - An engine is missing, could not run, or returned something unusable.
+- **class**, line 43: `EngineMissing` - The engine is not installed. ``hint`` says what installing it would cost, for the user to decide.
+- **function**, line 75: `environment(name: str) -> Path` - No public docstring in the audited version.
+- **function**, line 51: `hint(name: str) -> dict` - What to tell the user when ``name`` is needed but absent: use, size, licence and the command.
+- **function**, line 64: `home() -> Path` - No public docstring in the audited version.
+- **function**, line 551: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
+- **function**, line 79: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
+- **function**, line 104: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
+- **function**, line 91: `java() -> str | None` - No public docstring in the audited version.
+- **function**, line 147: `last_accel_meta(name: str | None = None) -> dict | None` - Task-complexity classification and daemon execution metadata from the most recent ``call``.
+- **function**, line 139: `last_call_meta(name: str | None = None) -> dict` - Device metadata from the most recent ``call`` on this context, or configured defaults.
+- **function**, line 110: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
+- **function**, line 96: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
+- **function**, line 677: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a need in ``RECOMMEND`` or an engine task name), with what each costs. Reads only; nothing is downloaded.
+- **function**, line 700: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
+- **function**, line 319: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
+- **function**, line 329: `sha256_of(path) -> str` - No public docstring in the audited version.
+- **function**, line 657: `status(sizes: bool = False) -> dict` - Which engines are available and their disk use. Sizes come from the receipts; ``sizes=True`` measures again.
 
 ## `engines.envelope`
 
@@ -124,19 +139,20 @@
 
 ## `engines.nmr`
 
-- **function**, line 100: `predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict` - ``engine`` may name several, comma separated: each runs and the peaks are compared, never merged. An engine that fails is listed in ``failed_engines`` and the others still answer.
+- **function**, line 114: `predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: str | None = None, output_path: str | None = None, timeout_seconds: int = 900) -> dict` - ``engine`` may name several, comma separated: each runs and the peaks are compared, never merged. An engine that fails is listed in ``failed_engines`` and the others still answer.
 - **function**, line 37: `simulate(peaks: list, nucleus: str, frequency_mhz: float, width_hz: float = 1.5, points: int = 16384) -> list` - Lorentzian singlets on a ppm axis (no coupling): a picture of where the lines fall, not a multiplet pattern.
 
 ## `engines.ocsr`
 
-- **function**, line 56: `recognize(image_path: str, engines = 'decimer-api', hand_drawn: bool = False, output_path: str | None = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: str | None = None, approved_origin: str | None = None) -> dict` - Run the chosen engines on one image. ``all`` means every installed local engine, plus the remote DECIMER only when ``confirm_upload`` is true. One engine failing never stops the others. ``output_path`` is a new JSON file for the raw response of the remote DECIMER; the local engines have none.
+- **function**, line 88: `recognize(image_path: str, engines = 'decimer-api', hand_drawn: bool = False, output_path: str | None = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: str | None = None, approved_origin: str | None = None, expected_formula: str | None = None) -> dict` - Run the chosen engines on one image. ``all`` means every installed local engine, plus the remote DECIMER only when ``confirm_upload`` is true. One engine failing never stops the others. ``output_path`` is a new JSON file for the raw response of the remote DECIMER; the local engines have none.
+- **function**, line 123: `recognize_batch(image_paths: list[str], engines: str = 'molscribe,molvec', *, hand_drawn: bool = False, timeout_seconds: int = 600, confirm_upload: bool = False, approved_origin: str | None = None, expected_formula: str | None = None) -> list[dict]` - Run the chosen engines on a batch of images, calling each worker-backed engine once for the whole batch.
 - **function**, line 12: `resolve(engines) -> list` - Engine names from ``"decimer-api"``, ``"molscribe,molvec"``, a list, or ``"all"`` (see ``recognize``).
 
 ## `engines.reactions`
 
-- **function**, line 162: `conditions(reactants: str, products: str, engine: str | None = None, count: int = 5, timeout_seconds: int = 900) -> dict` - Rank catalyst, solvent and reagent combinations for a reaction the user already drew.
-- **function**, line 40: `products(reactants: str, reagents: str | None = None, engine: str | None = None, count: int = 5, timeout_seconds: int = 600) -> dict` - Predict the products of ``reactants`` (dot-separated SMILES), optionally with ``reagents``.
-- **function**, line 91: `retrosynthesis(product: str, engine: str | None = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict` - Suggest precursors (``steps='single'``) or whole routes (``'multi'``) for ``product``.
+- **function**, line 202: `conditions(reactants: str, products: str, engine: str | None = None, count: int = 5, timeout_seconds: int = 900) -> dict` - Rank catalyst, solvent and reagent combinations for a reaction the user already drew.
+- **function**, line 43: `products(reactants: str, reagents: str | None = None, engine: str | None = None, count: int = 5, timeout_seconds: int = 600) -> dict` - Predict the products of ``reactants`` (dot-separated SMILES), optionally with ``reagents``.
+- **function**, line 125: `retrosynthesis(product: str, engine: str | None = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict` - Suggest precursors (``steps='single'``) or whole routes (``'multi'``) for ``product``.
 
 ## `engines.registry`
 
@@ -154,20 +170,20 @@
 
 - **function**, line 78: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
 - **function**, line 351: `remote_range(url, first, last)` - No public docstring in the audited version.
-- **function**, line 1052: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 1109: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
 - **function**, line 85: `available() -> dict` - No public docstring in the audited version.
 - **class**, line 89: `BackendError` - A backend could not run or returned something unusable.
 - **function**, line 62: `environment(name: str) -> Path` - No public docstring in the audited version.
-- **function**, line 128: `find_base(name: str) -> str | None` - A Python that can host backend ``name``: this one, else python3.N on PATH, else the Windows launcher.
+- **function**, line 130: `find_base(name: str) -> str | None` - A Python that can host backend ``name``: this one, else python3.N on PATH, else the Windows launcher.
 - **function**, line 50: `home() -> Path` - Folder that holds one environment per backend (CHEMDRAW_MAPPER_HOME overrides it).
-- **function**, line 181: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create ``environment(name)``, install its pinned requirements and check it with a real mapping.
+- **function**, line 183: `install(name: str, *, dry_run: bool = False, log = None) -> dict` - Create ``environment(name)``, install its pinned requirements and check it with a real mapping.
 - **function**, line 66: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
 - **function**, line 73: `python_for(name: str) -> Path | None` - Interpreter that can run backend ``name``: its own environment, else this one if it imports.
 - **function**, line 93: `run(name: str, reactions: list, timeout: int = RUN_TIMEOUT) -> list` - Map reaction SMILES with backend ``name``; one dict per reaction (mapped_rxn plus a score).
-- **function**, line 219: `status() -> dict` - No public docstring in the audited version.
+- **function**, line 221: `status() -> dict` - No public docstring in the audited version.
 
 ## `mcp_runtime`
 
@@ -414,15 +430,15 @@
 ## `mcp_runtime.office_objects`
 
 - **function**, line 26: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
-- **function**, line 514: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
-- **function**, line 443: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 637: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 550: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
-- **function**, line 591: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
+- **function**, line 587: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
+- **function**, line 516: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 710: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 623: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+- **function**, line 664: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
 - **function**, line 267: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
 - **function**, line 51: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
-- **function**, line 690: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 391: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 763: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 427: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.official_overrides`
 
@@ -474,7 +490,7 @@
 
 ## `mcp_runtime.runtime_diagnostics`
 
-- **function**, line 551: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
+- **function**, line 612: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
 
 ## `mcp_runtime.runtime_discovery`
 
@@ -585,11 +601,13 @@
 
 ## `reaction_calculator.hazards`
 
-- **function**, line 133: `entries() -> list[dict]` - No public docstring in the audited version.
-- **function**, line 153: `for_rows(rows: list[dict]) -> list[dict]` - A safety item per reactant, reagent, catalyst and solvent row: the entry, or ``listed: False``.
-- **function**, line 168: `lines(items: list[dict]) -> list[str]` - Text lines for a table footer: the heading, one line per listed species, the species not listed.
-- **function**, line 122: `lookup(smiles: str) -> dict | None` - The entry for a structure (stereo and drawing coordinates ignored), or None when it is not listed.
-- **function**, line 137: `summary(entry: dict) -> str` - One line: signal word, pictograms, statements, boiling and flash point, note.
+- **function**, line 346: `assess(smiles: str) -> dict` - Inspect ``smiles`` against the table and structural class alerts.
+- **function**, line 334: `class_alerts(smiles: str) -> list[dict]` - Return SMARTS structural hazard class alerts matched by ``smiles``.
+- **function**, line 355: `entries() -> list[dict]` - No public docstring in the audited version.
+- **function**, line 375: `for_rows(rows: list[dict]) -> list[dict]` - A safety item per reactant, reagent, catalyst and solvent row: the entry, or ``listed: False``.
+- **function**, line 395: `lines(items: list[dict]) -> list[str]` - Text lines for a table footer: the heading, one line per listed species, the species not listed.
+- **function**, line 300: `lookup(smiles: str) -> dict | None` - The entry for a structure (stereo and drawing coordinates ignored), or None when it is not listed.
+- **function**, line 359: `summary(entry: dict) -> str` - One line: signal word, pictograms, statements, boiling and flash point, note.
 
 ## `reaction_calculator.library`
 

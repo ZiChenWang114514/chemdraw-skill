@@ -42,6 +42,7 @@ from cdxml_toolkit.constants import MASS_TOLERANCE
 from .mass_resolver import (
     ExpectedSpecies,
     ADDUCTS, ADDUCT_PRIORITY, MODE_PREFERENCE,
+    has_heavy_halogens, needs_m_plus_2,
 )
 
 # Role-based priority: SM/DP preferred over reactants, which beat byproducts.
@@ -65,6 +66,7 @@ class IdentifiedCompound:
     species: ExpectedSpecies
     adduct: str          # e.g. "[M+H]+"
     matched_mz: float    # observed m/z that matched
+    isotope_verified: Optional[str] = None
 
 @dataclass
 class TrackingAnalysis:
@@ -81,6 +83,7 @@ class IdentifiedPeak:
     species: ExpectedSpecies
     adduct: str
     matched_mz: float
+    isotope_verified: Optional[str] = None
 
 @dataclass
 class PurifiedAnalysis:
@@ -127,18 +130,29 @@ def match_ions_to_species(
 
     for obs_mode, obs_mz, obs_rank in ions:
         for species in expected:
-            for adduct_name, expected_mz in species.adducts.items():
+            adduct_items = dict(species.adducts)
+            if needs_m_plus_2(species.smiles):
+                if "[M+2+H]+" not in adduct_items:
+                    base_pos = adduct_items.get("[M+H]+", species.exact_mass + 1.008)
+                    adduct_items["[M+2+H]+"] = base_pos + 1.997
+                if "[M+2-H]-" not in adduct_items:
+                    base_neg = adduct_items.get("[M-H]-", species.exact_mass - 1.008)
+                    adduct_items["[M+2-H]-"] = base_neg + 1.997
+
+            for adduct_name, expected_mz in adduct_items.items():
+                if adduct_name not in ADDUCTS:
+                    continue
                 adduct_mode = ADDUCTS[adduct_name][0]
                 if obs_mode != adduct_mode:
                     continue
                 delta = abs(obs_mz - expected_mz)
                 if delta < tolerance:
                     candidates.append((
-                        ADDUCT_PRIORITY[adduct_name],   # 0=primary, 1=secondary
-                        ROLE_PRIORITY.get(species.role, 1),  # 0=SM/DP, 2=byproduct
-                        obs_rank,                       # 0=base peak
-                        MODE_PREFERENCE.get(obs_mode, 1),  # 0=ES+, 1=ES-
-                        delta,                          # mass accuracy
+                        ADDUCT_PRIORITY.get(adduct_name, 2),   # 0=primary, 1=secondary
+                        ROLE_PRIORITY.get(species.role, 1),    # 0=SM/DP, 2=byproduct
+                        obs_rank,                              # 0=base peak
+                        MODE_PREFERENCE.get(obs_mode, 1),      # 0=ES+, 1=ES-
+                        delta,                                 # mass accuracy
                         species, adduct_name, obs_mz,
                     ))
 
@@ -148,6 +162,48 @@ def match_ions_to_species(
     candidates.sort(key=lambda c: c[:5])
     best = candidates[0]
     return (best[5], best[6], best[7])
+
+
+def verify_halogen_isotope_pattern(
+    ms_spectra,
+    species: ExpectedSpecies,
+    adduct: str,
+    matched_mz: float,
+    tolerance: float = MASS_TOLERANCE,
+) -> Optional[str]:
+    """Check ``MassSpectrum.intensities`` for M / M+2 halogen isotope cluster when available."""
+    n_br, n_cl = has_heavy_halogens(species.smiles)
+    if n_br < 1 and n_cl < 2:
+        return None
+    adduct_mode = ADDUCTS.get(adduct, ("ES+", 0.0))[0]
+    if adduct == "[M+2+H]+":
+        m0_target = species.adducts.get("[M+H]+", matched_mz - 1.997)
+        m2_target = matched_mz
+    elif adduct == "[M+2-H]-":
+        m0_target = species.adducts.get("[M-H]-", matched_mz - 1.997)
+        m2_target = matched_mz
+    else:
+        m0_target = species.adducts.get(adduct, matched_mz)
+        m2_target = m0_target + 1.997
+
+    for spec in ms_spectra or []:
+        if getattr(spec, "mode", None) != adduct_mode:
+            continue
+        top_ions = getattr(spec, "top_ions", None) or []
+        intensities = getattr(spec, "intensities", None) or []
+        if len(intensities) != len(top_ions) or len(top_ions) < 2:
+            continue
+        m0_candidates = [(mz, inten) for mz, inten in zip(top_ions, intensities) if abs(mz - m0_target) < tolerance]
+        m2_candidates = [(mz, inten) for mz, inten in zip(top_ions, intensities) if abs(mz - m2_target) < tolerance]
+        if not m0_candidates or not m2_candidates:
+            continue
+        mz0, int0 = min(m0_candidates, key=lambda p: abs(p[0] - m0_target))
+        mz2, int2 = min(m2_candidates, key=lambda p: abs(p[0] - m2_target))
+        if int0 > 0 and int2 > 0 and 1.3 <= (mz2 - mz0) <= 2.7:
+            ratio = int2 / int0
+            if ratio >= 0.40:
+                return f"M/M+2 isotope cluster verified (I(M+2)/I(M)={ratio:.2f} for {n_br}Br,{n_cl}Cl)"
+    return None
 
 
 def _try_assign_species(match, used_species):
@@ -262,8 +318,10 @@ def _run_single_file_tracking(
         assigned = _try_assign_species(match, used_species)
         if assigned:
             species, adduct, mz = assigned
+            iso_note = verify_halogen_isotope_pattern(peak.ms_spectra, species, adduct, mz)
             identified.append(IdentifiedCompound(
                 compound=mc, species=species, adduct=adduct, matched_mz=mz,
+                isotope_verified=iso_note,
             ))
         else:
             unidentified_compounds.append(mc)
@@ -557,8 +615,10 @@ def run_purified_analysis(
         match = match_ions_to_species(ions, expected)
         if match:
             species, adduct, mz = match
+            iso_note = verify_halogen_isotope_pattern(peak.ms_spectra, species, adduct, mz)
             identified.append(IdentifiedPeak(
                 peak=peak, species=species, adduct=adduct, matched_mz=mz,
+                isotope_verified=iso_note,
             ))
 
     # Product purity: area% of the product peak on each detector.

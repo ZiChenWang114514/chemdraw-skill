@@ -55,9 +55,12 @@ SKILL_NAME = 'chemdraw'
 AGENTS = {
     'claude': ('.claude/skills', '.claude/skills'),
     'agents': ('.agents/skills', '.agents/skills'),
+    'codex': ('.agents/skills', '.agents/skills'),
     'gemini': ('.gemini/skills', '.gemini/skills'),
+    'antigravity': ('.gemini/antigravity/skills', '.agent/skills'),
     'copilot': ('.copilot/skills', '.github/skills'),
     'cursor': ('.cursor/skills', '.cursor/skills'),
+    'windsurf': ('.codeium/windsurf/skills', '.windsurf/skills'),
     'opencode': ('.config/opencode/skills', '.opencode/skills'),
     'kimi': ('.kimi-code/skills', '.kimi-code/skills'),
     'pi': ('.pi/agent/skills', '.pi/skills'),

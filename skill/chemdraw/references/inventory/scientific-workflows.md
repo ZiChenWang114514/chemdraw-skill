@@ -30,12 +30,12 @@
 ## `scientific.plots`
 
 - **function**, line 8: `envelope_indices(values, limit = 1600)` - No public docstring in the audited version.
-- **function**, line 19: `plot_xy(x, y, output_dir, *, title = 'Scientific plot', xlabel = 'x', ylabel = 'y', reverse_x = False, provenance = None)` - No public docstring in the audited version.
+- **function**, line 54: `plot_xy(x = None, y = None, output_dir = None, *, title = 'Scientific plot', xlabel = 'x', ylabel = 'y', reverse_x = False, provenance = None, dpi = 300, series = None)` - No public docstring in the audited version.
 
 ## `scientific.spectra`
 
-- **function**, line 24: `analyze_spectrum(path, options)` - No public docstring in the audited version.
-- **function**, line 9: `read_spectrum(path)` - No public docstring in the audited version.
+- **function**, line 618: `analyze_spectrum(path, options = None)` - No public docstring in the audited version.
+- **function**, line 520: `read_spectrum(path)` - No public docstring in the audited version.
 
 ## `scientific.tlc`
 

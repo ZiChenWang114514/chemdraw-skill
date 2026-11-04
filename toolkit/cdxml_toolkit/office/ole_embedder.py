@@ -62,6 +62,7 @@ ENDOFCHAIN = 0xFFFFFFFE
 FREESECT = 0xFFFFFFFF
 NOSTREAM = 0xFFFFFFFF
 FATSECT = 0xFFFFFFFD
+DIFSECT = 0xFFFFFFFC
 
 # Constant bytes from a known-good ChemDraw OLE object (via Office COM)
 COMPOBJ_BYTES = bytes.fromhex(
@@ -111,52 +112,50 @@ def batch_convert(cdxml_paths):
     results = []
     app = None
     try:
-        app = win32.Dispatch("ChemDraw.Application")
+        app = win32.DispatchEx("ChemDraw.Application")
         app.Visible = False
 
         for cdxml_path in cdxml_paths:
             cdxml_abs = os.path.abspath(cdxml_path)
             name = os.path.splitext(os.path.basename(cdxml_path))[0]
 
-            tmp_cdx = tempfile.mktemp(suffix=".cdx")
-            tmp_emf = tempfile.mktemp(suffix=".emf")
-            tmp_cdxml = tempfile.mktemp(suffix=".cdxml")
+            with tempfile.TemporaryDirectory(prefix="cdx-ole-") as tmp_dir:
+                tmp_cdx = os.path.join(tmp_dir, "object.cdx")
+                tmp_emf = os.path.join(tmp_dir, "preview.emf")
+                tmp_cdxml = os.path.join(tmp_dir, "object.cdxml")
 
-            doc = None
-            try:
-                doc = app.Documents.Open(cdxml_abs)
-
-                doc.SaveAs(os.path.abspath(tmp_cdx))
-                with open(tmp_cdx, "rb") as f:
-                    cdx_data = f.read()
-
-                doc.SaveAs(os.path.abspath(tmp_emf))
-                with open(tmp_emf, "rb") as f:
-                    emf_data = f.read()
-
-                content_bbox = None
+                doc = None
                 try:
-                    doc.SaveAs(os.path.abspath(tmp_cdxml))
-                    content_bbox = _parse_box(ET.parse(tmp_cdxml).getroot().get('BoundingBox'))
-                except Exception:
-                    content_bbox = None  # sizing falls back to measuring the input file
+                    doc = app.Documents.Open(cdxml_abs)
 
-                results.append({
-                    'path': cdxml_path,
-                    'name': name,
-                    'cdx_data': cdx_data,
-                    'emf_data': emf_data,
-                    'content_bbox': content_bbox,
-                })
-            finally:
-                try:
-                    if doc:
-                        doc.Close(False)
-                except Exception:
-                    pass
-                for tmp in (tmp_cdx, tmp_emf, tmp_cdxml):
-                    if os.path.exists(tmp):
-                        os.unlink(tmp)
+                    doc.SaveAs(os.path.abspath(tmp_cdx))
+                    with open(tmp_cdx, "rb") as f:
+                        cdx_data = f.read()
+
+                    doc.SaveAs(os.path.abspath(tmp_emf))
+                    with open(tmp_emf, "rb") as f:
+                        emf_data = f.read()
+
+                    content_bbox = None
+                    try:
+                        doc.SaveAs(os.path.abspath(tmp_cdxml))
+                        content_bbox = _parse_box(ET.parse(tmp_cdxml).getroot().get('BoundingBox'))
+                    except Exception:
+                        content_bbox = None  # sizing falls back to measuring the input file
+
+                    results.append({
+                        'path': cdxml_path,
+                        'name': name,
+                        'cdx_data': cdx_data,
+                        'emf_data': emf_data,
+                        'content_bbox': content_bbox,
+                    })
+                finally:
+                    try:
+                        if doc:
+                            doc.Close(False)
+                    except Exception:
+                        pass
 
     finally:
         try:
@@ -355,27 +354,45 @@ def build_ole_compound_file(cdx_data):
         Header (512 bytes)
         Sector 0-1: Free
         Sector 2:   Directory sector 1 (entries 0-3)
-        Sector 3:   FAT sector
+        Sector 3:   FAT sector 0
         Sector 4:   Directory sector 2 (entry 4 + 3 empty)
         Sector 5:   Mini-FAT sector
         Sector 6:   Mini-stream container (256 bytes)
-        Sectors 7+: CONTENTS data (CDX binary)
+        Sectors 7 .. 7 + cdx_sectors - 1: CONTENTS data (CDX binary)
+        Subsequent sectors (if > 1 FAT sector): additional FAT / DIFAT sectors
 
     CONTENTS always lives in regular sectors, so CDX shorter than the
     mini-stream cutoff is zero-padded to it: readers look up streams below the
     cutoff in the mini stream. ChemDraw ignores the trailing zeros.
     """
+    cdx_data = bytes(cdx_data)
     if len(cdx_data) < MINI_STREAM_CUTOFF:
-        cdx_data = bytes(cdx_data).ljust(MINI_STREAM_CUTOFF, b"\0")
+        cdx_data = cdx_data.ljust(MINI_STREAM_CUTOFF, b"\0")
     cdx_sectors = (len(cdx_data) + SECTOR_SIZE - 1) // SECTOR_SIZE
     cdx_start = 7
-    total_sectors = cdx_start + cdx_sectors
 
-    if total_sectors > 128:
-        raise ValueError(f"CDX data too large ({len(cdx_data)} bytes) for single-FAT CFB")
+    entries_per_fat = SECTOR_SIZE // 4  # 128 uint32 entries per 512B FAT sector
+    num_fat_sectors = 1
+    num_difat_sectors = 0
+    while True:
+        num_difat_sectors = (max(0, num_fat_sectors - 109) + 126) // 127
+        total_sectors = 6 + cdx_sectors + num_fat_sectors + num_difat_sectors
+        needed_fat = (total_sectors + entries_per_fat - 1) // entries_per_fat
+        if needed_fat <= num_fat_sectors:
+            break
+        num_fat_sectors = needed_fat
+
+    extra_fat_start = cdx_start + cdx_sectors
+    fat_sector_ids = [3] + [
+        extra_fat_start + i for i in range(num_fat_sectors - 1)
+    ]
+    difat_start = extra_fat_start + (num_fat_sectors - 1)
+    difat_sector_ids = [
+        difat_start + i for i in range(num_difat_sectors)
+    ]
 
     # --- FAT ---
-    fat = [FREESECT] * 128
+    fat = [FREESECT] * (num_fat_sectors * entries_per_fat)
     fat[0] = FREESECT
     fat[1] = FREESECT
     fat[2] = 4              # dir sector 1 -> sector 4
@@ -387,6 +404,12 @@ def build_ole_compound_file(cdx_data):
     for i in range(cdx_sectors):
         sec = cdx_start + i
         fat[sec] = sec + 1 if i < cdx_sectors - 1 else ENDOFCHAIN
+
+    for sec in fat_sector_ids[1:]:
+        fat[sec] = FATSECT
+
+    for sec in difat_sector_ids:
+        fat[sec] = DIFSECT
 
     # --- Mini-FAT ---
     mini_fat = [FREESECT] * 128
@@ -430,17 +453,22 @@ def build_ole_compound_file(cdx_data):
     struct.pack_into("<H", header, 30, 9)
     struct.pack_into("<H", header, 32, 6)
     struct.pack_into("<I", header, 40, 0)
-    struct.pack_into("<I", header, 44, 1)
+    struct.pack_into("<I", header, 44, num_fat_sectors)
     struct.pack_into("<I", header, 48, 2)
     struct.pack_into("<I", header, 52, 0)
     struct.pack_into("<I", header, 56, MINI_STREAM_CUTOFF)
     struct.pack_into("<I", header, 60, 5)
     struct.pack_into("<I", header, 64, 1)
-    struct.pack_into("<I", header, 68, ENDOFCHAIN)
-    struct.pack_into("<I", header, 72, 0)
-    struct.pack_into("<I", header, 76, 3)
-    for i in range(1, 109):
-        struct.pack_into("<I", header, 76 + i * 4, FREESECT)
+    struct.pack_into(
+        "<I",
+        header,
+        68,
+        difat_sector_ids[0] if difat_sector_ids else ENDOFCHAIN,
+    )
+    struct.pack_into("<I", header, 72, num_difat_sectors)
+    for i in range(109):
+        sec_id = fat_sector_ids[i] if i < len(fat_sector_ids) else FREESECT
+        struct.pack_into("<I", header, 76 + i * 4, sec_id)
 
     # --- Assemble ---
     out = io.BytesIO()
@@ -448,13 +476,31 @@ def build_ole_compound_file(cdx_data):
     out.write(b"\x00" * SECTOR_SIZE)       # sector 0
     out.write(b"\x00" * SECTOR_SIZE)       # sector 1
     out.write(dir_sector_1)                # sector 2
-    out.write(b"".join(struct.pack("<I", x) for x in fat))  # sector 3
+    out.write(b"".join(struct.pack("<I", x) for x in fat[:entries_per_fat]))  # sector 3 (FAT 0)
     out.write(dir_sector_2)                # sector 4
     out.write(b"".join(struct.pack("<I", x) for x in mini_fat))  # sector 5
     ms_padded = bytes(mini_stream) + b"\x00" * (SECTOR_SIZE - len(mini_stream))
     out.write(ms_padded)                   # sector 6
     cdx_padded = cdx_data + b"\x00" * (cdx_sectors * SECTOR_SIZE - len(cdx_data))
-    out.write(cdx_padded)                  # sectors 7+
+    out.write(cdx_padded)                  # sectors 7 .. 7 + cdx_sectors - 1
+
+    # Additional FAT sectors (if any)
+    for fat_idx in range(1, num_fat_sectors):
+        chunk = fat[fat_idx * entries_per_fat : (fat_idx + 1) * entries_per_fat]
+        out.write(b"".join(struct.pack("<I", x) for x in chunk))
+
+    # Optional DIFAT sectors (if > 109 FAT sectors)
+    remaining_fat_ids = fat_sector_ids[109:]
+    for difat_idx in range(num_difat_sectors):
+        slice_ids = remaining_fat_ids[difat_idx * 127 : (difat_idx + 1) * 127]
+        difat_entries = list(slice_ids) + [FREESECT] * (127 - len(slice_ids))
+        next_difat = (
+            difat_sector_ids[difat_idx + 1]
+            if difat_idx + 1 < num_difat_sectors
+            else ENDOFCHAIN
+        )
+        difat_entries.append(next_difat)
+        out.write(b"".join(struct.pack("<I", x) for x in difat_entries))
 
     return out.getvalue()
 
@@ -515,14 +561,10 @@ def build_pptx(items, output_path):
     for _ in items:
         prs.slides.add_slide(blank_layout)
 
-    tmp_pptx = tempfile.mktemp(suffix=".pptx")
-    prs.save(tmp_pptx)
-
-    try:
+    with tempfile.TemporaryDirectory(prefix="cdx-pptx-") as tmp_dir:
+        tmp_pptx = os.path.join(tmp_dir, "scaffold.pptx")
+        prs.save(tmp_pptx)
         _inject_pptx(tmp_pptx, output_path, items)
-    finally:
-        if os.path.exists(tmp_pptx):
-            os.unlink(tmp_pptx)
 
 
 def _inject_pptx(source_pptx, output_path, items):
@@ -711,14 +753,10 @@ def build_docx(items, output_path):
 
     doc = Document()
     doc.add_paragraph("")  # placeholder
-    tmp_docx = tempfile.mktemp(suffix=".docx")
-    doc.save(tmp_docx)
-
-    try:
+    with tempfile.TemporaryDirectory(prefix="cdx-docx-") as tmp_dir:
+        tmp_docx = os.path.join(tmp_dir, "scaffold.docx")
+        doc.save(tmp_docx)
         _inject_docx(tmp_docx, output_path, items)
-    finally:
-        if os.path.exists(tmp_docx):
-            os.unlink(tmp_docx)
 
 
 def _inject_docx(source_docx, output_path, items):

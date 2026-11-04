@@ -685,3 +685,73 @@ def test_a_size_marker_in_the_offer_table_shows_the_registry_sum_of_its_bundle()
     assert text == table.render(text)
     with pytest.raises(ValueError, match='no-such-bundle'):
         table.render('<!--size:no-such-bundle-->x<!--/size-->\n' + blocks)
+
+
+def test_recognize_batch_calls_each_worker_engine_once_and_aligns_results(tmp_path, monkeypatch):
+    from cdxml_toolkit.engines import consensus, document
+
+    img1 = tmp_path / 'a.png'
+    img2 = tmp_path / 'b.png'
+    img1.write_bytes(b'img1')
+    img2.write_bytes(b'img2')
+
+    assert ocsr.recognize_batch([]) == []
+
+    calls = []
+
+    def fake_call(name, action, params, timeout=0):
+        calls.append((name, action, list(params.get('images', []))))
+        return [{'smiles': 'c1ccccc1'}, {'smiles': 'CCO'}]
+
+    monkeypatch.setattr(env, 'call', fake_call)
+    monkeypatch.setattr(env, 'last_call_meta', lambda name: {'device': 'cuda', 'device_fallback': False})
+
+    reports = ocsr.recognize_batch([str(img1), str(img2)], engines='molscribe,molnextr', expected_formula='C6H6')
+    assert len(reports) == 2
+    assert len(calls) == 2
+    assert calls[0] == ('molscribe', 'predict', [str(img1.resolve()), str(img2.resolve())])
+    assert calls[1] == ('molnextr', 'predict', [str(img1.resolve()), str(img2.resolve())])
+    assert reports[0]['comparison']['agreed_smiles'] == 'c1ccccc1'
+    assert reports[0]['comparison']['groups'][0]['matches_expected_formula'] is True
+    assert reports[1]['comparison']['agreed_smiles'] == 'CCO'
+    assert reports[1]['comparison']['groups'][0]['matches_expected_formula'] is False
+
+    # document.extract delegates all segments in a single recognize_batch call
+    batch_calls = []
+    monkeypatch.setattr(document, '_render_pages', lambda *a, **k: [(1, str(img1))])
+    monkeypatch.setattr(document, '_segment', lambda *a, **k: ([{'page': 1, 'bbox': [0, 0, 10, 10], 'path': str(img1.resolve())},
+                                                                {'page': 1, 'bbox': [10, 10, 20, 20], 'path': str(img2.resolve())}], 'opencv'))
+    monkeypatch.setattr(document, '_sheet', lambda *a, **k: None)
+    monkeypatch.setattr(ocsr, 'recognize_batch', lambda paths, *a, **k: batch_calls.append(list(paths)) or reports)
+    out = document.extract(str(img1), str(tmp_path / 'out'), engines='molscribe,molnextr')
+    assert batch_calls == [[str(img1.resolve()), str(img2.resolve())]]
+    assert len(out['segments']) == 2
+
+
+def test_consensus_distinguishes_omitted_vs_inverted_stereo_tautomers_and_expected_formula():
+    from cdxml_toolkit.engines import consensus
+
+    # Omitted vs specified stereochemistry (same connectivity)
+    omitted = consensus.compare([
+        {'engine': 'molscribe', 'ok': True, 'smiles': 'CC(O)C(=O)O'},
+        {'engine': 'molnextr', 'ok': True, 'smiles': 'C[C@H](O)C(=O)O'},
+    ])
+    assert omitted['connectivity_match'] is True
+    assert any('omitted stereochemistry' in n for n in omitted['notes'])
+
+    # Inverted stereochemistry (both specify opposite stereocenters)
+    inverted = consensus.compare([
+        {'engine': 'molscribe', 'ok': True, 'smiles': 'C[C@H](O)C(=O)O'},
+        {'engine': 'molnextr', 'ok': True, 'smiles': 'C[C@@H](O)C(=O)O'},
+    ])
+    assert inverted['connectivity_match'] is True
+    assert any('inverted stereochemistry' in n for n in inverted['notes'])
+
+    # Canonical tautomers (different connectivity blocks in InChIKey, same canonical tautomer)
+    taut = consensus.compare([
+        {'engine': 'molscribe', 'ok': True, 'smiles': 'CC(=O)CC(=O)C'},
+        {'engine': 'molnextr', 'ok': True, 'smiles': 'CC(=O)/C=C(/O)C'},
+    ], expected_formula='C5H8O2')
+    assert any('tautomer' in n for n in taut['notes'])
+    assert all(g.get('matches_expected_formula') is True for g in taut['groups'])
+

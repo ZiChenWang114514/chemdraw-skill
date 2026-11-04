@@ -418,14 +418,31 @@ def _translate_mol(mol: Dict, dx: float, dy: float) -> Dict:
 # Fragment (molecule) XML builder — adapted from cdxml_builder.py
 # ---------------------------------------------------------------------------
 
-# Element numbers for heteroatoms
+# Element numbers for heteroatoms (populated for the full periodic table via RDKit)
 ELEMENT_NUMBERS: Dict[str, int] = {
-    "H":  1,  "B":  5,  "C":  6,  "N":  7,  "O":  8,
-    "F":  9,  "Si": 14, "P":  15, "S":  16, "Cl": 17,
-    "Se": 34, "Br": 35, "I":  53, "Cs": 55,
+    "H": 1, "He": 2, "Li": 3, "Be": 4, "B": 5, "C": 6, "N": 7, "O": 8, "F": 9, "Ne": 10,
+    "Na": 11, "Mg": 12, "Al": 13, "Si": 14, "P": 15, "S": 16, "Cl": 17, "Ar": 18,
+    "K": 19, "Ca": 20, "Sc": 21, "Ti": 22, "V": 23, "Cr": 24, "Mn": 25, "Fe": 26,
+    "Co": 27, "Ni": 28, "Cu": 29, "Zn": 30, "Ga": 31, "Ge": 32, "As": 33, "Se": 34,
+    "Br": 35, "Kr": 36, "Rb": 37, "Sr": 38, "Y": 39, "Zr": 40, "Nb": 41, "Mo": 42,
+    "Tc": 43, "Ru": 44, "Rh": 45, "Pd": 46, "Ag": 47, "Cd": 48, "In": 49, "Sn": 50,
+    "Sb": 51, "Te": 52, "I": 53, "Xe": 54, "Cs": 55, "Ba": 56, "La": 57, "Ce": 58,
+    "Pr": 59, "Nd": 60, "Pm": 61, "Sm": 62, "Eu": 63, "Gd": 64, "Tb": 65, "Dy": 66,
+    "Ho": 67, "Er": 68, "Tm": 69, "Yb": 70, "Lu": 71, "Hf": 72, "Ta": 73, "W": 74,
+    "Re": 75, "Os": 76, "Ir": 77, "Pt": 78, "Au": 79, "Hg": 80, "Tl": 81, "Pb": 82,
+    "Bi": 83, "Po": 84, "At": 85, "Rn": 86,
 }
+try:
+    from rdkit import Chem as _rdkit_chem
+    _pt = _rdkit_chem.GetPeriodicTable()
+    for _z in range(1, 119):
+        _sym = _pt.GetElementSymbol(_z)
+        if _sym:
+            ELEMENT_NUMBERS[_sym] = _z
+except Exception:
+    pass
 
-WIDE_SYMBOLS = {"Br", "Cl", "Si", "Se", "Cs"}
+WIDE_SYMBOLS = {sym for sym in ELEMENT_NUMBERS if len(sym) >= 2}
 
 BOND_ORDER_ATTR: Dict[int, Optional[str]] = {
     1: None, 2: "2", 3: "3", 4: "1.5",
@@ -472,7 +489,7 @@ def _build_fragment(
         charge = a.get("charge", 0)
 
         if not is_carbon:
-            el_num = ELEMENT_NUMBERS.get(sym, 0)
+            el_num = a.get("atomic_number") or ELEMENT_NUMBERS.get(sym, 0)
             if el_num:
                 attrs.append(f'Element="{el_num}"')
             nh = a.get("num_hydrogens", 0)
@@ -1084,18 +1101,20 @@ def _best_smiles_component(smiles: str) -> str:
 def _open_chemscript_bridge(verbose: bool = False):
     """Import and open a ChemScriptBridge instance.  Caller must call .close()."""
     import importlib.util
-    _dir = os.path.dirname(os.path.abspath(__file__))
     try:
-        spec = importlib.util.spec_from_file_location(
-            "chemscript_bridge", os.path.join(_dir, "chemscript_bridge.py")
-        )
-        csb_mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(csb_mod)
-    except Exception as exc:
-        raise ImportError(
-            f"Could not import chemscript_bridge.py: {exc}\n"
-            "ChemDraw and chemscript_bridge are required."
-        ) from exc
+        from ..chemdraw import chemscript_bridge as csb_mod
+    except ImportError:
+        _dir = os.path.dirname(os.path.abspath(__file__))
+        _csb_path = os.path.join(os.path.dirname(_dir), "chemdraw", "chemscript_bridge.py")
+        try:
+            spec = importlib.util.spec_from_file_location("chemscript_bridge", _csb_path)
+            csb_mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(csb_mod)
+        except Exception as exc:
+            raise ImportError(
+                f"Could not import chemscript_bridge.py: {exc}\n"
+                "ChemDraw and chemscript_bridge are required."
+            ) from exc
     if verbose:
         print("[reaction_from_image] Opening ChemScript bridge...",
               file=sys.stderr)

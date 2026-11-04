@@ -78,6 +78,7 @@ from .constants import (
     CDXML_HEADER as _CDXML_HEADER,
     CDXML_FOOTER as _CDXML_FOOTER,
 )
+from .cdxml_utils import hydrogens_lead
 
 # Element numbers for heteroatoms we care about
 ELEMENT_NUMBERS: Dict[str, int] = {
@@ -85,6 +86,15 @@ ELEMENT_NUMBERS: Dict[str, int] = {
     "F":  9,  "Si": 14, "P":  15, "S":  16, "Cl": 17,
     "Se": 34, "Br": 35, "I":  53, "Cs": 55,
 }
+try:
+    from rdkit import Chem as _Chem
+    _pt = _Chem.GetPeriodicTable()
+    for _z in range(1, 119):
+        _sym = _pt.GetElementSymbol(_z)
+        if _sym:
+            ELEMENT_NUMBERS[_sym] = _z
+except Exception:
+    pass
 
 
 def element_number(symbol: str) -> int:
@@ -426,9 +436,16 @@ def _build_fragment(
             ly = ay + 3.52
             bbox = _label_bbox(ax, ay, sym)
 
-            # Build label text including hydrogens: "N" → "NH", "O" → "OH"
+            # Build label text including hydrogens: "N" → "NH", "O" → "OH",
+            # standalone binary hydrides: "H2O", "HCl", "H2S", "HF", "HBr", "HI"
             nh = a.get("num_hydrogens", 0)
-            if nh == 1:
+            is_unbonded = not any(
+                b.get("atom1") == a["index"] or b.get("atom2") == a["index"]
+                for b in bonds
+            )
+            if not charge and is_unbonded and hydrogens_lead(sym, nh):
+                label_text = ("H" if nh == 1 else f"H{nh}") + xml_escape(sym)
+            elif nh == 1:
                 label_text = xml_escape(sym) + "H"
             elif nh > 1:
                 label_text = xml_escape(sym) + "H" + str(nh)

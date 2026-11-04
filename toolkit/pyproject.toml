@@ -70,6 +70,7 @@ image = [
 decimer = [
     "opencv-python>=4.5",
     "pytesseract>=0.3",
+    "pymupdf>=1.20",
     "tensorflow>=2.16",
     "decimer>=2.6",
     "requests>=2.31",
@@ -77,7 +78,6 @@ decimer = [
 http = [
     "uvicorn>=0.30",
     "starlette>=0.37",
-    "tomlkit>=0.13",
 ]
 opsin = [
     "py2opsin>=1.0",

@@ -187,7 +187,6 @@ def main() -> int:
             from .tool_registry import build_registry, normalize_profile
 
             profile = normalize_profile(payload.get("profile"))
-            build_registry(profile=profile)  # Validate the server's selected profile.
             # Profiles filter public exposure, not internal calls between tool implementations.
             registry = build_registry()
             # This worker handles one request; never mutate the parent server's environment.

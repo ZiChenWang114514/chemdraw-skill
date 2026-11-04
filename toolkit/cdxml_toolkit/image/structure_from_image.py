@@ -1448,15 +1448,19 @@ def results_to_cdxml(results: List[Dict]) -> str:
     import importlib.util
     import xml.etree.ElementTree as ET
 
-    _dir = os.path.dirname(os.path.abspath(__file__))
     try:
-        spec = importlib.util.spec_from_file_location(
-            "cdxml_builder", os.path.join(_dir, "cdxml_builder.py")
-        )
-        cdxml_builder = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(cdxml_builder)
-    except Exception as exc:
-        raise ImportError(f"Could not import cdxml_builder.py: {exc}") from exc
+        from .. import cdxml_builder
+    except ImportError:
+        _dir = os.path.dirname(os.path.abspath(__file__))
+        _parent_dir = os.path.dirname(_dir)
+        try:
+            spec = importlib.util.spec_from_file_location(
+                "cdxml_builder", os.path.join(_parent_dir, "cdxml_builder.py")
+            )
+            cdxml_builder = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(cdxml_builder)
+        except Exception as exc:
+            raise ImportError(f"Could not import cdxml_builder.py: {exc}") from exc
 
     PAGE_MARGIN = 36.0      # pt from page left edge to first atom bbox left
     MOL_GAP = 40.0          # pt gap between adjacent molecule bounding boxes
@@ -1568,18 +1572,20 @@ def results_to_cdxml_chemscript(
             print(f"[structure_from_image] {msg}", file=sys.stderr)
 
     # Import chemscript_bridge
-    _dir = os.path.dirname(os.path.abspath(__file__))
     try:
-        spec = importlib.util.spec_from_file_location(
-            "chemscript_bridge", os.path.join(_dir, "chemscript_bridge.py")
-        )
-        csb_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(csb_module)
-    except Exception as exc:
-        raise ImportError(
-            f"Could not import chemscript_bridge.py: {exc}\n"
-            "The --cleanup flag requires ChemDraw and chemscript_bridge."
-        ) from exc
+        from ..chemdraw import chemscript_bridge as csb_module
+    except ImportError:
+        _dir = os.path.dirname(os.path.abspath(__file__))
+        _csb_path = os.path.join(os.path.dirname(_dir), "chemdraw", "chemscript_bridge.py")
+        try:
+            spec = importlib.util.spec_from_file_location("chemscript_bridge", _csb_path)
+            csb_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(csb_module)
+        except Exception as exc:
+            raise ImportError(
+                f"Could not import chemscript_bridge.py: {exc}\n"
+                "The --cleanup flag requires ChemDraw and chemscript_bridge."
+            ) from exc
 
     PAGE_MARGIN = 36.0
     MOL_GAP = 40.0

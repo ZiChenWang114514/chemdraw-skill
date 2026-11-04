@@ -40,22 +40,25 @@
 
 ## `analysis.deterministic.lcms_identifier`
 
-- **class**, line 62: `IdentifiedCompound` - A multi-LCMS compound matched to an expected species.
-- **class**, line 78: `IdentifiedPeak` - A single-report chromatographic peak matched to an expected species.
-- **function**, line 102: `match_ions_to_species(ions: List[Tuple[str, float, int]], expected: List[ExpectedSpecies], tolerance: float = MASS_TOLERANCE) -> Optional[Tuple[ExpectedSpecies, str, float]]` - Match observed ions against expected species adducts.
-- **class**, line 86: `PurifiedAnalysis` - Results of purified product LCMS analysis.
-- **function**, line 502: `run_purified_analysis(exp, expected: List[ExpectedSpecies]) -> PurifiedAnalysis` - Parse and analyze the purified product LCMS file.
-- **function**, line 311: `run_tracking_analysis(exp, expected: List[ExpectedSpecies]) -> TrackingAnalysis` - Analyze tracking LCMS files and identify compounds.
-- **function**, line 452: `run_tracking_from_result(analysis: AnalysisResult, expected: List[ExpectedSpecies]) -> TrackingAnalysis` - Identify compounds in a pre-computed AnalysisResult.
-- **class**, line 70: `TrackingAnalysis` - Results of multi-LCMS tracking analysis with species identification.
+- **class**, line 63: `IdentifiedCompound` - A multi-LCMS compound matched to an expected species.
+- **class**, line 80: `IdentifiedPeak` - A single-report chromatographic peak matched to an expected species.
+- **function**, line 105: `match_ions_to_species(ions: List[Tuple[str, float, int]], expected: List[ExpectedSpecies], tolerance: float = MASS_TOLERANCE) -> Optional[Tuple[ExpectedSpecies, str, float]]` - Match observed ions against expected species adducts.
+- **class**, line 89: `PurifiedAnalysis` - Results of purified product LCMS analysis.
+- **function**, line 560: `run_purified_analysis(exp, expected: List[ExpectedSpecies]) -> PurifiedAnalysis` - Parse and analyze the purified product LCMS file.
+- **function**, line 369: `run_tracking_analysis(exp, expected: List[ExpectedSpecies]) -> TrackingAnalysis` - Analyze tracking LCMS files and identify compounds.
+- **function**, line 510: `run_tracking_from_result(analysis: AnalysisResult, expected: List[ExpectedSpecies]) -> TrackingAnalysis` - Identify compounds in a pre-computed AnalysisResult.
+- **class**, line 72: `TrackingAnalysis` - Results of multi-LCMS tracking analysis with species identification.
+- **function**, line 167: `verify_halogen_isotope_pattern(ms_spectra, species: ExpectedSpecies, adduct: str, matched_mz: float, tolerance: float = MASS_TOLERANCE) -> Optional[str]` - Check ``MassSpectrum.intensities`` for M / M+2 halogen isotope cluster when available.
 
 ## `analysis.deterministic.mass_resolver`
 
-- **function**, line 126: `build_adducts(exact_mass: float) -> Dict[str, float]` - Build expected adduct m/z dict from neutral exact mass.
-- **function**, line 93: `compute_masses(smiles: str) -> Optional[Tuple[float, float]]` - Compute monoisotopic masses from SMILES.
-- **class**, line 80: `ExpectedSpecies` - A chemical species with predicted LCMS adduct masses.
-- **function**, line 547: `extract_expected_masses(exp, predict_byproducts = False) -> List[ExpectedSpecies]` - Extract expected species masses from CDX/RXN structure files.
-- **function**, line 638: `get_last_flower_predictions() -> List[ExpectedSpecies]` - Return the full FlowER prediction list from the last call to ``extract_expected_masses(predict_byproducts=True)``.
+- **function**, line 164: `build_adducts(exact_mass: float, smiles: str = '', include_isotopologues: Optional[bool] = None) -> Dict[str, float]` - Build expected adduct m/z dict from neutral exact mass.
+- **function**, line 109: `compute_masses(smiles: str) -> Optional[Tuple[float, float]]` - Compute monoisotopic masses from SMILES.
+- **class**, line 96: `ExpectedSpecies` - A chemical species with predicted LCMS adduct masses.
+- **function**, line 609: `extract_expected_masses(exp, predict_byproducts = False) -> List[ExpectedSpecies]` - Extract expected species masses from CDX/RXN structure files.
+- **function**, line 700: `get_last_flower_predictions() -> List[ExpectedSpecies]` - Return the full FlowER prediction list from the last call to ``extract_expected_masses(predict_byproducts=True)``.
+- **function**, line 142: `has_heavy_halogens(smiles: str) -> Tuple[int, int]` - Return (n_br, n_cl) in the largest fragment of ``smiles``.
+- **function**, line 158: `needs_m_plus_2(smiles: str) -> bool` - True when the species contains >= 1 Br or >= 2 Cl (strong M+2 isotopologue peak).
 
 ## `analysis.deterministic.multi_lcms_analyzer`
 
@@ -89,7 +92,7 @@
 
 ## `analysis.format_procedure_entry`
 
-- **function**, line 427: `process_entries(entries: List[dict]) -> str` - Process all entries in order, return the formatted lab book entry.
+- **function**, line 484: `process_entries(entries: List[dict]) -> str` - Process all entries in order, return the formatted lab book entry.
 
 ## `analysis.lcms_analyzer`
 

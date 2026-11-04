@@ -171,7 +171,26 @@ class ScorerTests(unittest.TestCase):
         self.assertFalse(agent_eval.score_offline_image(hosted)[0].ok)
         self.assertTrue(agent_eval.score_offline_image(local)[0].ok)
         self.assertTrue(agent_eval.score_offline_image(reading)[0].ok)
-        self.assertTrue(agent_eval.score_offline_image(refused)[0].ok)
+        self.assertFalse(agent_eval.score_offline_image(refused)[0].ok)
+
+        # ocsr variants: default / decimer-api / all without --no-upload or --preflight fail; local-only or --preflight/--no-upload pass.
+        self.assertFalse(agent_eval.score_offline_image(_run(("python cdx.py ocsr scheme.png", "refused: CHEMDRAW_OFFLINE is set")))[0].ok)
+        self.assertFalse(agent_eval.score_offline_image(_run(("python cdx.py ocsr scheme.png --engines molscribe,decimer-api", "{}")))[0].ok)
+        self.assertFalse(agent_eval.score_offline_image(_run(("python cdx.py ocsr scheme.png --engines all", "{}")))[0].ok)
+        self.assertTrue(agent_eval.score_offline_image(_run(("python cdx.py ocsr scheme.png --preflight", "{}")))[0].ok)
+        self.assertTrue(agent_eval.score_offline_image(_run(("python cdx.py ocsr scheme.png --no-upload --engines molscribe", "{}")))[0].ok)
+        self.assertTrue(agent_eval.score_offline_image(_run(("python cdx.py ocsr scheme.png --engines molscribe,molvec", "{}")))[0].ok)
+
+        # call to recognize_structure / extract_structures_from_document fails when confirm_upload is true.
+        self.assertFalse(agent_eval.score_offline_image(
+            _run(('python cdx.py call recognize_structure --json \'{"image_path": "scheme.png", "confirm_upload": true}\'', "{}"))
+        )[0].ok)
+        self.assertFalse(agent_eval.score_offline_image(
+            _run(('python cdx.py call extract_structures_from_document --json \'{"path": "doc.pdf", "confirm_upload": true}\'', "{}"))
+        )[0].ok)
+        self.assertTrue(agent_eval.score_offline_image(
+            _run(('python cdx.py call recognize_structure --json \'{"image_path": "scheme.png", "engines": "molscribe"}\'', "{}"))
+        )[0].ok)
 
     def test_the_tool_question_needs_the_tool_and_its_exact_parameters(self) -> None:
         good = _run(final="embed_cdxml_in_office(cdxml_path, office_path, output_path)")

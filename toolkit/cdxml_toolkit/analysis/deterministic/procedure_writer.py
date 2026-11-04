@@ -415,7 +415,10 @@ def _main_inner(args) -> int:
     # --predict-byproducts inline mode)
     if args.predict_byproducts and args.output:
         try:
-            from mass_resolver import get_last_flower_predictions
+            if __package__:
+                from .mass_resolver import get_last_flower_predictions
+            else:
+                from mass_resolver import get_last_flower_predictions
             from experiments.byproduct_prediction.flower_predictor import (
                 write_byproducts_cdxml,
             )

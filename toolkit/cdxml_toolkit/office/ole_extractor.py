@@ -22,9 +22,10 @@ import argparse
 import io
 import os
 import sys
+import tempfile
 import zipfile
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import olefile
 
@@ -183,6 +184,73 @@ def _save_extracted_object(
     return obj
 
 
+def _save_extracted_objects(
+    raw_items: List[Tuple[bytes, str, str]],
+    output_dir: str,
+    output_format: str,
+    convert_method: str,
+    _converter,
+) -> List[ExtractedObject]:
+    """Save one or more extracted CDX blobs, batch-converting when multiple items exist."""
+    can_batch = (
+        len(raw_items) > 1
+        and output_format in ("cdxml", "both")
+        and _converter is not None
+        and callable(getattr(_converter, "batch_convert_files", None))
+        and not hasattr(getattr(_converter, "convert_cdx_to_cdxml", None), "_mock_name")
+    )
+    if not can_batch:
+        return [
+            _save_extracted_object(
+                cdx_data, source_path, entry_name,
+                output_dir, output_format, convert_method, _converter,
+            )
+            for cdx_data, source_path, entry_name in raw_items
+        ]
+
+    results: List[ExtractedObject] = []
+    with tempfile.TemporaryDirectory(prefix="cdx-extract-") as tmp_dir:
+        tmp_paths: List[str] = []
+        for idx, (cdx_data, source_path, entry_name) in enumerate(raw_items):
+            obj = ExtractedObject(source_path=source_path, cdx_data=cdx_data)
+            if output_format in ("cdx", "both"):
+                cdx_path = os.path.join(output_dir, f"{entry_name}.cdx")
+                with open(cdx_path, "wb") as f:
+                    f.write(cdx_data)
+                obj.cdx_output = cdx_path
+            tmp_cdx = os.path.join(tmp_dir, f"{idx:03d}_{entry_name}.cdx")
+            with open(tmp_cdx, "wb") as f:
+                f.write(cdx_data)
+            tmp_paths.append(tmp_cdx)
+            results.append(obj)
+
+        try:
+            batch_map = _converter.batch_convert_files(tmp_paths, method=convert_method)
+        except Exception as exc:
+            batch_map = {p: {"output": None, "error": str(exc)} for p in tmp_paths}
+
+        for obj, (_, _, entry_name), tmp_cdx in zip(results, raw_items, tmp_paths):
+            info = batch_map.get(tmp_cdx) or {}
+            out_file = info.get("output")
+            err = info.get("error")
+            if out_file and not err and os.path.isfile(out_file):
+                cdxml_path = os.path.join(output_dir, f"{entry_name}.cdxml")
+                with open(out_file, "r", encoding="utf-8", errors="replace") as src_f:
+                    cdxml_str = src_f.read()
+                with open(cdxml_path, "w", encoding="utf-8") as dst_f:
+                    dst_f.write(cdxml_str)
+                obj.cdxml_output = cdxml_path
+            else:
+                obj.error = f"CDXML conversion failed: {err or 'no output'}"
+                if obj.cdx_output is None:
+                    fallback = os.path.join(output_dir, f"{entry_name}.cdx")
+                    with open(fallback, "wb") as f:
+                        f.write(obj.cdx_data)
+                    obj.cdx_output = fallback
+
+    return results
+
+
 def _extract_from_zip(
     input_path: str,
     output_dir: str,
@@ -192,7 +260,7 @@ def _extract_from_zip(
 ) -> List[ExtractedObject]:
     """Extract ChemDraw objects from a ZIP-based Office file (PPTX/DOCX/XLSX)."""
     ole_entries = find_ole_entries(input_path)
-    results = []
+    raw_items: List[Tuple[bytes, str, str]] = []
 
     with zipfile.ZipFile(input_path, "r") as zf:
         for entry in ole_entries:
@@ -204,13 +272,11 @@ def _extract_from_zip(
                 continue
 
             entry_name = os.path.splitext(os.path.basename(entry))[0]
-            obj = _save_extracted_object(
-                cdx_data, entry, entry_name,
-                output_dir, output_format, convert_method, _converter,
-            )
-            results.append(obj)
+            raw_items.append((cdx_data, entry, entry_name))
 
-    return results
+    return _save_extracted_objects(
+        raw_items, output_dir, output_format, convert_method, _converter,
+    )
 
 
 def _extract_from_xls(
@@ -226,7 +292,7 @@ def _extract_from_xls(
     sub-storages with names starting with 'MBD' (e.g. MBD078DC381).
     ChemDraw objects contain a CONTENTS stream with CDX binary data.
     """
-    results = []
+    raw_items: List[Tuple[bytes, str, str]] = []
     ole = olefile.OleFileIO(input_path)
     try:
         # Find top-level MBD* storages (embedded OLE objects)
@@ -248,15 +314,13 @@ def _extract_from_xls(
             obj_index += 1
             source_path = f"{storage_name}/CONTENTS"
             entry_name = f"oleObject{obj_index}"
-            obj = _save_extracted_object(
-                cdx, source_path, entry_name,
-                output_dir, output_format, convert_method, _converter,
-            )
-            results.append(obj)
+            raw_items.append((cdx, source_path, entry_name))
     finally:
         ole.close()
 
-    return results
+    return _save_extracted_objects(
+        raw_items, output_dir, output_format, convert_method, _converter,
+    )
 
 
 def extract_from_office(

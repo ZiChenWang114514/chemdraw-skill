@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 
-from . import env
+from . import accel, env
 from .registry import BUNDLES, ENGINES, RECOMMEND, RECOMMEND_ALIASES
 
 LOCAL = ('local', 'jar')  # installable here; the rest are remote services
@@ -16,7 +16,7 @@ def _command(argv: list[str]) -> str:
     """The `cdx.py` command this run came from: all three share this one parser."""
     if '--remove' in argv:
         return 'cdx.py remove-engines'
-    return 'cdx.py engines' if '--recommend' in argv else 'cdx.py install-engines'
+    return 'cdx.py engines' if ('--recommend' in argv or '--stop-daemons' in argv) else 'cdx.py install-engines'
 
 
 def main(argv=None) -> int:
@@ -37,6 +37,8 @@ def main(argv=None) -> int:
     parser.add_argument('--status', action='store_true', help='print which engines are available; install nothing')
     parser.add_argument('--sizes', action='store_true', help='with --status: measure every engine folder again '
                                                              '(slow; otherwise the size recorded at install is shown)')
+    parser.add_argument('--stop-daemons', action='store_true',
+                        help='stop any idle-timeout resident engine workers and exit')
     ns = parser.parse_args(argv)
 
     def refuse(message: str) -> None:
@@ -49,6 +51,10 @@ def main(argv=None) -> int:
         refuse(f'unknown bundle {ns.bundle!r} (choose from {", ".join(BUNDLES)})')
     if ns.task and ns.task not in tasks:
         refuse(f'unknown task {ns.task!r} (choose from {", ".join(tasks)})')
+    if ns.stop_daemons:
+        stopped = accel.stop_all_daemons(env.home())
+        print(json.dumps({'home': str(env.home()), 'stopped_daemons': stopped}, indent=2))
+        return 0
     if ns.status:
         print(json.dumps(env.status(sizes=ns.sizes), indent=2))
         return 0

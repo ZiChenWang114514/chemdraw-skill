@@ -224,6 +224,11 @@ def _resolve_query(query: str, use_network: bool = True,
         db = get_reagent_db()
         entry = db.entry_for_name(clean.lower())
         if entry:
+            canon_smi = entry.get("canonical_smiles")
+            if isinstance(canon_smi, list):
+                canon_smi = canon_smi[0] if canon_smi else None
+            if canon_smi:
+                return {"smiles": canon_smi, "source": "reagent_db"}
             smi = entry.get("smiles")
             if isinstance(smi, list):
                 smi = smi[0]
@@ -231,6 +236,25 @@ def _resolve_query(query: str, use_network: bool = True,
                 return {"smiles": _rdkit_canonical(smi), "source": "reagent_db"}
     except Exception:
         pass
+
+    # Tier 1b: CAS number short-circuit (before formula / ChemScript / OPSIN)
+    from ..resolve.cas_resolver import _validate_cas, resolve_cas
+    if _validate_cas(clean):
+        if use_network:
+            try:
+                cas_info = resolve_cas(clean)
+                smi = cas_info.get("smiles") if cas_info else None
+                if smi:
+                    canon = _rdkit_canonical(smi)
+                    if canon:
+                        return {
+                            "smiles": canon,
+                            "source": "pubchem",
+                            "iupac_name": cas_info.get("name") or None,
+                        }
+            except Exception:
+                pass
+        return None
 
     # Tier 2: Condensed formula
     try:

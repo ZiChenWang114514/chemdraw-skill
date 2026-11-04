@@ -25,20 +25,20 @@
 
 ## `naming.mol_builder`
 
-- **function**, line 1803: `apply_reaction(reaction_name: str, substrate: str, reagent: Optional[str] = None) -> Dict[str, Any]` - Apply a named reaction template to transform a substrate.
-- **function**, line 645: `assemble_name(parent: str, substituents: List[Dict[str, str]], validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Assemble an IUPAC name from a parent and substituent list.
-- **function**, line 2006: `deprotect(smiles: str) -> Dict[str, Any]` - Remove common protecting groups from a molecule.
-- **function**, line 2156: `draw_molecule(mol_json: Dict[str, Any], output_path: Optional[str] = None) -> Dict[str, Any]` - Render a single molecule to a standalone CDXML document.
-- **function**, line 1136: `enumerate_names(identifier: str, use_network: bool = True) -> Dict[str, Any]` - Enumerate alternative IUPAC name forms for a molecule.
-- **function**, line 569: `get_prefix_form(group: str) -> Dict[str, Any]` - Get the IUPAC substituent prefix form for a chemical group.
-- **function**, line 3012: `get_tool_definitions() -> List[Dict[str, Any]]` - Return tool schemas suitable for LLM function calling.
-- **function**, line 1754: `list_reactions(category: Optional[str] = None) -> Dict[str, Any]` - List available named reaction templates.
-- **function**, line 2477: `modify_molecule(mol_json: Dict[str, Any], operation: str, **kwargs: Any) -> Dict[str, Any]` - Modify a molecule and verify the change with a structural diff.
-- **function**, line 758: `modify_name(name: str, operation: str, target: Optional[str] = None, replacement: Optional[str] = None, locant: Optional[str] = None, validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Modify an IUPAC name by swapping, adding, or removing a substituent.
-- **function**, line 1059: `name_to_structure(name: str, output_format: str = 'cdxml') -> Dict[str, Any]` - Convert a chemical name to a structure in the requested format.
-- **function**, line 406: `resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve any chemical identifier to a rich molecule descriptor.
-- **function**, line 534: `resolve_to_smiles(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve a chemical identifier to its canonical SMILES string.
-- **function**, line 1021: `validate_name(name: str, use_network: bool = True) -> Dict[str, Any]` - Validate an IUPAC name and return its SMILES if valid.
+- **function**, line 1827: `apply_reaction(reaction_name: str, substrate: str, reagent: Optional[str] = None) -> Dict[str, Any]` - Apply a named reaction template to transform a substrate.
+- **function**, line 669: `assemble_name(parent: str, substituents: List[Dict[str, str]], validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Assemble an IUPAC name from a parent and substituent list.
+- **function**, line 2030: `deprotect(smiles: str) -> Dict[str, Any]` - Remove common protecting groups from a molecule.
+- **function**, line 2180: `draw_molecule(mol_json: Dict[str, Any], output_path: Optional[str] = None) -> Dict[str, Any]` - Render a single molecule to a standalone CDXML document.
+- **function**, line 1160: `enumerate_names(identifier: str, use_network: bool = True) -> Dict[str, Any]` - Enumerate alternative IUPAC name forms for a molecule.
+- **function**, line 593: `get_prefix_form(group: str) -> Dict[str, Any]` - Get the IUPAC substituent prefix form for a chemical group.
+- **function**, line 3036: `get_tool_definitions() -> List[Dict[str, Any]]` - Return tool schemas suitable for LLM function calling.
+- **function**, line 1778: `list_reactions(category: Optional[str] = None) -> Dict[str, Any]` - List available named reaction templates.
+- **function**, line 2501: `modify_molecule(mol_json: Dict[str, Any], operation: str, **kwargs: Any) -> Dict[str, Any]` - Modify a molecule and verify the change with a structural diff.
+- **function**, line 782: `modify_name(name: str, operation: str, target: Optional[str] = None, replacement: Optional[str] = None, locant: Optional[str] = None, validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Modify an IUPAC name by swapping, adding, or removing a substituent.
+- **function**, line 1083: `name_to_structure(name: str, output_format: str = 'cdxml') -> Dict[str, Any]` - Convert a chemical name to a structure in the requested format.
+- **function**, line 430: `resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve any chemical identifier to a rich molecule descriptor.
+- **function**, line 558: `resolve_to_smiles(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve a chemical identifier to its canonical SMILES string.
+- **function**, line 1045: `validate_name(name: str, use_network: bool = True) -> Dict[str, Any]` - Validate an IUPAC name and return its SMILES if valid.
 
 ## `naming.name_decomposer`
 
@@ -77,9 +77,9 @@
 
 ## `resolve.cas_resolver`
 
-- **function**, line 274: `resolve_batch(cas_list: List[str], include_coords: bool = False, delay: float = REQUEST_DELAY) -> List[Dict[str, Any]]` - Resolve a list of CAS numbers with rate limiting.
-- **function**, line 44: `resolve_cas(cas: str, include_coords: bool = False) -> Optional[Dict[str, Any]]` - Resolve a single CAS number via PubChem PUG REST.
-- **function**, line 319: `resolve_name_to_smiles(name: str) -> Optional[str]` - Resolve a chemical name to a canonical SMILES via PubChem PUG REST.
+- **function**, line 361: `resolve_batch(cas_list: List[str], include_coords: bool = False, delay: float = REQUEST_DELAY) -> List[Dict[str, Any]]` - Resolve a list of CAS numbers with rate limiting.
+- **function**, line 106: `resolve_cas(cas: str, include_coords: bool = False) -> Optional[Dict[str, Any]]` - Resolve a single CAS number via PubChem PUG REST.
+- **function**, line 406: `resolve_name_to_smiles(name: str) -> Optional[str]` - Resolve a chemical name to a canonical SMILES via PubChem PUG REST.
 
 ## `resolve.condensed_formula`
 
@@ -103,16 +103,16 @@
 
 ## `resolve.reagent_db`
 
-- **function**, line 280: `get_reagent_db() -> ReagentDB` - Return the shared ReagentDB singleton (loaded on first call).
+- **function**, line 306: `get_reagent_db() -> ReagentDB` - Return the shared ReagentDB singleton (loaded on first call).
 - **class**, line 55: `ReagentDB` - In-memory reagent database with two-tier lookup.
-- **method**, line 176: `ReagentDB.display_for_name(name: str) -> Optional[str]` - Return display string for a name/alias, or None if unknown.
-- **method**, line 221: `ReagentDB.display_for_smiles(smiles: str) -> Optional[str]` - Return display string for a SMILES, or None if unknown.
-- **method**, line 194: `ReagentDB.entry_for_name(name: str) -> Optional[dict]` - Return the full entry dict for a name/alias, or None.
-- **method**, line 240: `ReagentDB.entry_for_smiles(smiles: str) -> Optional[dict]` - Return the full entry dict for a SMILES, or None.
-- **method**, line 252: `ReagentDB.resolve_display(name: str) -> str` - Return the display string for *name*, or *name* itself if unknown.
-- **method**, line 186: `ReagentDB.role_for_name(name: str) -> Optional[str]` - Return role string for a name/alias, or None.
-- **method**, line 232: `ReagentDB.role_for_smiles(smiles: str) -> Optional[str]` - Return role string for a SMILES, or None.
-- **method**, line 261: `ReagentDB.smiles_role_display(smiles: str) -> Optional[Tuple[str, str]]` - Return (role, display) for a SMILES, matching the old ROLE_BY_SMILES dict interface.
+- **method**, line 201: `ReagentDB.display_for_name(name: str) -> Optional[str]` - Return display string for a name/alias, or None if unknown.
+- **method**, line 247: `ReagentDB.display_for_smiles(smiles: str) -> Optional[str]` - Return display string for a SMILES, or None if unknown.
+- **method**, line 219: `ReagentDB.entry_for_name(name: str) -> Optional[dict]` - Return the full entry dict for a name/alias, or None.
+- **method**, line 266: `ReagentDB.entry_for_smiles(smiles: str) -> Optional[dict]` - Return the full entry dict for a SMILES, or None.
+- **method**, line 278: `ReagentDB.resolve_display(name: str) -> str` - Return the display string for *name*, or *name* itself if unknown.
+- **method**, line 211: `ReagentDB.role_for_name(name: str) -> Optional[str]` - Return role string for a name/alias, or None.
+- **method**, line 258: `ReagentDB.role_for_smiles(smiles: str) -> Optional[str]` - Return role string for a SMILES, or None.
+- **method**, line 287: `ReagentDB.smiles_role_display(smiles: str) -> Optional[Tuple[str, str]]` - Return (role, display) for a SMILES, matching the old ROLE_BY_SMILES dict interface.
 
 ## `resolve.superatom_table`
 
