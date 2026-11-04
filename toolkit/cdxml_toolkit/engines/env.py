@@ -651,8 +651,10 @@ def _install_into_runtime(name: str, log, allow_changes: bool = False) -> dict:
         _pip(sys.executable, requirements, log)
     except BaseException as exc:  # KeyboardInterrupt included: a half-installed TensorFlow breaks the other tools
         problem = _restore_runtime(before, known, log)
-        if isinstance(exc, Exception):
+        try:
             exc.runtime_rollback = problem
+        except AttributeError:
+            pass
         raise
     return {'python': sys.executable, 'requirements': requirements}
 

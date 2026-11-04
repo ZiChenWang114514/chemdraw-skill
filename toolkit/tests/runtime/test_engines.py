@@ -369,8 +369,11 @@ def _fake_decimer(monkeypatch, answers):
 
 def _weights(data_dir, *models):
     for model in models:
-        (data_dir / 'DECIMER-V2' / model).mkdir(parents=True)
+        (data_dir / 'DECIMER-V2' / model).mkdir(parents=True, exist_ok=True)
         (data_dir / 'DECIMER-V2' / model / 'saved_model.pb').write_bytes(b'x')
+        if model == 'DECIMER_model':
+            (data_dir / 'DECIMER-V2' / model / 'assets').mkdir(exist_ok=True)
+            (data_dir / 'DECIMER-V2' / model / 'assets' / 'tokenizer_SMILES.pkl').write_bytes(b'x')
 
 
 def test_decimer_local_worker_reads_each_image_and_scores_by_mean_token_confidence(tmp_path, monkeypatch):
@@ -388,6 +391,10 @@ def test_decimer_local_worker_never_lets_the_package_download_weights(tmp_path, 
     from cdxml_toolkit.engines import worker
     _fake_decimer(monkeypatch, {'a.png': ('CCO', [])})
     with pytest.raises(RuntimeError, match='install-engines decimer-local'):
+        worker._decimer_local({'images': ['a.png']}, str(tmp_path), {})
+    (tmp_path / 'DECIMER-V2' / 'DECIMER_model').mkdir(parents=True)
+    (tmp_path / 'DECIMER-V2' / 'DECIMER_model' / 'saved_model.pb').write_bytes(b'x')
+    with pytest.raises(RuntimeError, match='tokenizer_SMILES.pkl'):
         worker._decimer_local({'images': ['a.png']}, str(tmp_path), {})
     _weights(tmp_path, 'DECIMER_model')
     with pytest.raises(RuntimeError, match='DECIMER_HandDrawn_model'):
@@ -431,6 +438,63 @@ def test_decimer_local_fetch_unpacks_both_model_archives_under_the_package_folde
     # a second run (after a failure later in the install) does not fetch 300 MB again
     monkeypatch.setattr(worker, '_download', lambda *a, **k: pytest.fail('already unpacked'))
     assert worker.fetch('decimer-local', {}, str(tmp_path), spec) == receipt
+    # a verified archive left behind before unpacking is unpacked without re-downloading
+    resume_dir = tmp_path / 'resume'
+    (resume_dir / 'DECIMER-V2').mkdir(parents=True)
+    (resume_dir / 'DECIMER-V2' / 'models.zip').write_bytes(payloads['http://host/models.zip'])
+    (resume_dir / 'DECIMER-V2' / 'hand.zip').write_bytes(payloads['http://host/hand.zip'])
+    assert worker.fetch('decimer-local', {}, str(resume_dir), spec) == receipt
+    assert (resume_dir / 'DECIMER-V2' / 'DECIMER_model' / 'saved_model.pb').read_bytes() == b'model'
+    assert not list((resume_dir / 'DECIMER-V2').glob('*.zip'))
+
+
+def test_extract_structures_from_image_delegates_to_decimer_local_engine_when_in_process_tf_is_absent(tmp_path, monkeypatch):
+    import os
+    import numpy as np
+    import cv2
+    from cdxml_toolkit.image import structure_from_image as sfi
+
+    image_path = tmp_path / 'sheet.png'
+    canvas = np.full((160, 420, 3), 255, dtype=np.uint8)
+    cv2.rectangle(canvas, (20, 30), (110, 120), (0, 0, 0), 3)
+    cv2.rectangle(canvas, (280, 30), (370, 120), (0, 0, 0), 3)
+    cv2.imwrite(str(image_path), canvas)
+
+    monkeypatch.setattr(sfi, '_decimer_predict', None)
+    monkeypatch.setattr(sfi, '_decimer_mode', None)
+    monkeypatch.setitem(sys.modules, 'tensorflow', None)
+    monkeypatch.setattr(env, 'available', lambda: {n: n == 'decimer-local' for n in ENGINES})
+    calls = []
+
+    def fake_call(name, action, params):
+        calls.append((name, action, len(params['images']), params.get('hand_drawn')))
+        assert all(os.path.isfile(p) for p in params['images'])
+        return [{'smiles': 'c1ccccc1', 'score': 0.94} for _ in params['images']]
+
+    monkeypatch.setattr(env, 'call', fake_call)
+    out = sfi.extract_structures_from_image(str(image_path), segment=True, detect_labels=False)
+    assert out['ok'] is True
+    assert len(out['structures']) == 2
+    assert out['structures'][0]['smiles'] == 'c1ccccc1'
+    assert out['structures'][0]['confidence'] == pytest.approx(0.94)
+    assert calls == [('decimer-local', 'predict', 2, False)]  # batched into a single worker call
+
+
+def test_decimer_capability_recognizes_weights_installed_with_decimer_local_engine(tmp_path, monkeypatch):
+    from pathlib import Path
+    from cdxml_toolkit.mcp_runtime import runtime_diagnostics
+    engine_home = tmp_path / 'engines'
+    monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(engine_home))
+    monkeypatch.delenv('DECIMER_MODEL_DIR', raising=False)
+    monkeypatch.setattr(Path, 'home', classmethod(lambda cls: tmp_path / 'empty-home'))
+    monkeypatch.setattr(env, 'available', lambda: {n: n == 'decimer-local' for n in ENGINES})
+    data = engine_home / 'decimer-local' / 'data'
+    _weights(data, 'DECIMER_model', 'DECIMER_HandDrawn_model')
+    (engine_home / 'decimer-local' / env.RECEIPT).write_text('{}', encoding='utf-8')
+    cap = runtime_diagnostics._decimer_capability()
+    assert cap['status'] == 'available'
+    assert cap['models']['standard']['integrity'] == 'recorded'
+    assert cap['models']['handdrawn']['integrity'] == 'recorded'
 
 
 def test_structures_inchi_cannot_express_are_not_taken_for_each_other():

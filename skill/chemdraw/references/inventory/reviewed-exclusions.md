@@ -95,23 +95,23 @@
 - **function**, line 127: `available() -> dict` - Which engines can run now. Remote engines count as available; the network policy decides later.
 - **function**, line 179: `call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> dict` - Run ``action`` of engine ``name`` in its environment and return the worker's ``result``.
 - **function**, line 84: `data_dir(name: str) -> Path` - Where an engine's downloaded weights or data live (inside its own folder).
-- **function**, line 745: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
+- **function**, line 747: `disk_usage(name: str) -> int` - Bytes used by the engine's own folder (0 when it has none). Symbolic links are not followed.
 - **class**, line 37: `EngineError` - An engine is missing, could not run, or returned something unusable.
 - **class**, line 41: `EngineMissing` - The engine is not installed. ``hint`` says what installing it would cost, for the user to decide.
 - **function**, line 73: `environment(name: str) -> Path` - No public docstring in the audited version.
 - **function**, line 49: `hint(name: str) -> dict` - What to tell the user when ``name`` is needed but absent: use, size, licence and the command.
 - **function**, line 62: `home() -> Path` - No public docstring in the audited version.
-- **function**, line 660: `install(name: str, *, dry_run: bool = False, log = None, allow_runtime_changes: bool = False) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
+- **function**, line 662: `install(name: str, *, dry_run: bool = False, log = None, allow_runtime_changes: bool = False) -> dict` - Create the environment (or fetch the jar), install the pinned requirements and the weights.
 - **function**, line 77: `interpreter(env: Path) -> Path | None` - No public docstring in the audited version.
 - **function**, line 109: `jar_path(name: str) -> Path | None` - No public docstring in the audited version.
 - **function**, line 89: `java() -> str | None` - No public docstring in the audited version.
 - **function**, line 115: `python_for(name: str) -> Path | None` - The interpreter that runs engine ``name``, or None when it is not installed.
 - **function**, line 101: `receipt(name: str) -> dict | None` - No public docstring in the audited version.
-- **function**, line 791: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a need in ``RECOMMEND`` or an engine task name), with what each costs. Reads only; nothing is downloaded.
-- **function**, line 814: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
+- **function**, line 793: `recommend(task: str) -> dict` - The smallest set of engines that serves ``task`` (a need in ``RECOMMEND`` or an engine task name), with what each costs. Reads only; nothing is downloaded.
+- **function**, line 816: `remove(name: str, *, dry_run: bool = True) -> dict` - Delete one engine's folder. Only a direct child of ``home()`` that looks like an engine is removed.
 - **function**, line 236: `run_jar(name: str, args: list, timeout: int = 300) -> subprocess.CompletedProcess` - No public docstring in the audited version.
 - **function**, line 246: `sha256_of(path) -> str` - No public docstring in the audited version.
-- **function**, line 778: `status(sizes: bool = False) -> dict` - Which engines are available and their disk use. Sizes come from the receipts; ``sizes=True`` measures again.
+- **function**, line 780: `status(sizes: bool = False) -> dict` - Which engines are available and their disk use. Sizes come from the receipts; ``sizes=True`` measures again.
 
 ## `engines.envelope`
 
@@ -152,7 +152,7 @@
 
 - **function**, line 78: `fetch(engine, params, data_dir, spec)` - Download weights or data into ``data_dir`` and return a receipt (hashes, revisions).
 - **function**, line 351: `remote_range(url, first, last)` - No public docstring in the audited version.
-- **function**, line 1024: `spec_elements(params)` - No public docstring in the audited version.
+- **function**, line 1026: `spec_elements(params)` - No public docstring in the audited version.
 
 ## `mapping_backends`
 
@@ -472,7 +472,7 @@
 
 ## `mcp_runtime.runtime_diagnostics`
 
-- **function**, line 537: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
+- **function**, line 551: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
 
 ## `mcp_runtime.runtime_discovery`
 

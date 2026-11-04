@@ -172,18 +172,32 @@ def _engine_capabilities() -> dict[str, dict[str, Any]]:
 
 def _decimer_capability() -> dict[str, Any]:
     configured = os.environ.get("DECIMER_MODEL_DIR")
-    root = (
-        Path(configured).expanduser().resolve()
-        if configured
-        else (Path.home() / ".data" / "DECIMER-V2").resolve()
-    )
+    if configured:
+        root = Path(configured).expanduser().resolve()
+    else:
+        root = (Path.home() / ".data" / "DECIMER-V2").resolve()
+        if not (root / "DECIMER_model" / "saved_model.pb").is_file():
+            try:
+                from ..engines import env as engine_env
+
+                if engine_env.available().get("decimer-local"):
+                    candidate = (engine_env.data_dir("decimer-local") / "DECIMER-V2").resolve()
+                    if (candidate / "DECIMER_model" / "saved_model.pb").is_file():
+                        root = candidate
+            except Exception:
+                pass
+    engine_receipt = root.parent.parent / ".engine.json"
     models = {}
-    for key, relative in (
-        ("standard", "DECIMER_model/saved_model.pb"),
-        ("handdrawn", "DECIMER_HandDrawn_model/saved_model.pb"),
+    for key, relative, archive_name in (
+        ("standard", "DECIMER_model/saved_model.pb", "models.zip.unpacked"),
+        ("handdrawn", "DECIMER_HandDrawn_model/saved_model.pb", "DECIMER_HandDrawn_model.zip.unpacked"),
     ):
         marker = root / relative
         receipt = marker.parent / ".model.json"
+        if not receipt.is_file() and (root / archive_name).is_file():
+            receipt = root / archive_name
+        elif not receipt.is_file() and engine_receipt.is_file():
+            receipt = engine_receipt
         models[key] = {
             "status": "available" if marker.is_file() else "missing",
             "marker": str(marker),

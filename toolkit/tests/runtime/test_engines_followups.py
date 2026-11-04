@@ -469,9 +469,16 @@ def test_a_failed_runtime_install_puts_the_runtime_back_as_it_was(home, runtime_
 
 def test_an_interrupted_runtime_install_is_rolled_back_and_the_interrupt_still_propagates(home, runtime_engine, monkeypatch):
     runtime = FakeRuntime(monkeypatch, {'protobuf': '4.25.3'}, fail=KeyboardInterrupt())
-    with pytest.raises(KeyboardInterrupt):
+    with pytest.raises(KeyboardInterrupt) as caught:
         env.install(runtime_engine, allow_runtime_changes=True)
     assert runtime.installed == runtime.initial
+    assert getattr(caught.value, 'runtime_rollback', 'missing') is None
+
+    FakeRuntime(monkeypatch, {'protobuf': '4.25.3'}, fail=KeyboardInterrupt())
+    monkeypatch.setattr(env, '_uninstall', lambda *a: (_ for _ in ()).throw(_failure(2, 'locked')))
+    with pytest.raises(KeyboardInterrupt) as caught_failed:
+        env.install(runtime_engine, allow_runtime_changes=True)
+    assert 'locked' in str(getattr(caught_failed.value, 'runtime_rollback', ''))
 
 
 def test_a_rollback_that_fails_is_reported_next_to_the_original_error(home, runtime_engine, monkeypatch):

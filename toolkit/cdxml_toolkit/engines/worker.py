@@ -591,10 +591,12 @@ def _decimer_local(params, data_dir, spec):
     models that are missing, on the first prediction; a running engine must not, so their absence is an error here.
     """
     hand_drawn = bool(params.get('hand_drawn'))
-    needed = ['DECIMER_model'] + (['DECIMER_HandDrawn_model'] if hand_drawn else [])  # the printed model's tokenizer decodes both
-    for model in needed:
-        if not os.path.isfile(os.path.join(data_dir, 'DECIMER-V2', model, 'saved_model.pb')):
-            raise RuntimeError(f'the DECIMER weights ({model}) are missing from {data_dir}: '
+    needed = [('DECIMER_model', 'saved_model.pb'), ('DECIMER_model', os.path.join('assets', 'tokenizer_SMILES.pkl'))]
+    if hand_drawn:
+        needed.append(('DECIMER_HandDrawn_model', 'saved_model.pb'))
+    for model, marker in needed:
+        if not os.path.isfile(os.path.join(data_dir, 'DECIMER-V2', model, marker)):
+            raise RuntimeError(f'the DECIMER weights ({model}/{marker}) are missing from {data_dir}: '
                                'run `cdx.py install-engines decimer-local`')
     os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '3')
     import tensorflow  # noqa: F401  (imported first: the model loads about 4x slower otherwise)
