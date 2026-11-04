@@ -77,41 +77,50 @@ def test_every_engine_task_name_is_accepted_as_a_need(home):
 
 
 # --- an engine that runs in the toolkit runtime itself -----------------------------------------
+# No registered engine uses this kind now (DECIMER has an environment of its own); the mechanism stays, guarded,
+# for an engine that is only a few small packages. The tests register a made-up one.
 
 @pytest.fixture
 def runtime_extra(monkeypatch):
-    """The toolkit metadata as an installed runtime reports it, and a recorder for pip and the weights step."""
+    """The toolkit metadata as an installed runtime reports it, and a recorder for pip."""
     import importlib.metadata
-    import subprocess
-    calls = {'pip': [], 'run': []}
-    requires = ['rdkit>=2023.9', 'tensorflow>=2.16; extra == "decimer"', 'decimer>=2.6; extra == "decimer"',
-                'pywin32>=306; sys_platform == "win32" and extra == "decimer"', 'decimer>=2.6; extra == "all"']
+    calls = {'pip': []}
+    requires = ['rdkit>=2023.9', 'demo-lib>=1; extra == "demo"', 'other-lib>=2; extra == "demo"',
+                'pywin32>=306; sys_platform == "win32" and extra == "demo"', 'demo-lib>=1; extra == "all"']
+    monkeypatch.setitem(ENGINES, 'runtime-demo', {
+        'title': 'Runtime demo', 'does': 'nothing', 'task': 'ocsr', 'kind': 'runtime', 'module': 'demo_module_x',
+        'license': 'MIT', 'extra': 'demo', 'size': '1 MB'})
     monkeypatch.setattr(importlib.metadata, 'requires', lambda dist: requires)
     monkeypatch.setattr(importlib.metadata, 'version', lambda dist: '1.26.4')
     monkeypatch.setattr(env, '_pip', lambda python, reqs, log, *a, **k: calls['pip'].append((str(python), list(reqs))))
+    monkeypatch.setattr(env, '_installed_versions', lambda: {})
+    monkeypatch.setattr(env, '_site_packages', lambda: [])
     monkeypatch.setattr(env, '_dry_run_changes', lambda requirements: calls.setdefault('dry', []).append(requirements) or [])
-    monkeypatch.setattr(subprocess, 'run', lambda cmd, **k: calls['run'].append(cmd))
     return calls
 
 
-def test_the_runtime_engine_installs_the_decimer_extra_named_in_the_toolkit_metadata(home, runtime_extra, monkeypatch):
+def test_the_runtime_engine_installs_the_toolkit_extra_named_in_the_toolkit_metadata(home, runtime_extra, monkeypatch):
     import sys
     monkeypatch.setattr(env, 'available', lambda: {n: True for n in ENGINES})
-    report = env.install('decimer-local')
+    report = env.install('runtime-demo')
     assert report['ok'] and report['python'] == sys.executable
     (python, reqs), = runtime_extra['pip']
     assert python == sys.executable
-    assert reqs == ['tensorflow>=2.16', 'decimer>=2.6', 'pywin32>=306; sys_platform == "win32"', 'numpy==1.26.4']
+    assert reqs == ['demo-lib>=1', 'other-lib>=2', 'pywin32>=306; sys_platform == "win32"', 'numpy==1.26.4']
     assert runtime_extra['dry'] == [reqs]  # checked against the runtime before anything was installed
-    weights, = runtime_extra['run']
-    assert weights[1:3] == ['-m', 'cdxml_toolkit.mcp_runtime.install_decimer_models']
+
+
+def test_the_runtime_engine_counts_as_installed_when_its_module_imports(home, runtime_extra):
+    assert env.python_for('runtime-demo') is None  # demo_module_x does not exist
+    ENGINES['runtime-demo']['module'] = 'json'
+    assert env.python_for('runtime-demo') is not None
 
 
 def test_the_runtime_engine_dry_run_and_offline_install_nothing(home, runtime_extra, monkeypatch):
-    dry = env.install('decimer-local', dry_run=True)
-    assert 'tensorflow>=2.16' in dry['requirements'] and not runtime_extra['pip']
+    dry = env.install('runtime-demo', dry_run=True)
+    assert 'demo-lib>=1' in dry['requirements'] and not runtime_extra['pip']
     monkeypatch.setenv('CHEMDRAW_OFFLINE', '1')
-    offline = env.install('decimer-local')
+    offline = env.install('runtime-demo')
     assert offline['ok'] is False and 'CHEMDRAW_OFFLINE' in offline['error'] and not runtime_extra['pip']
 
 

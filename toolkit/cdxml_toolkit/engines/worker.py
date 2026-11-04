@@ -84,7 +84,7 @@ def fetch(engine, params, data_dir, spec):
         return _fetch_file(data_dir, spec['download'])
     if spec.get('data') == 'synplanner-preset':
         return _fetch_synplanner(data_dir, spec)
-    if spec.get('data') in ('retrochimera-pistachio', 'nmrnet-pp', 'reacon'):
+    if spec.get('data') in ('retrochimera-pistachio', 'nmrnet-pp', 'reacon', 'decimer-models'):
         return _fetch_bundle(data_dir, spec)
     weights = spec['weights']
     from huggingface_hub import hf_hub_download, snapshot_download
@@ -238,23 +238,36 @@ def _extract(archive, kind, destination):
 def _fetch_file(data_dir, download):
     """One file by URL, resumable, checked against its pinned hash (pystow looks for it under PYSTOW_HOME).
 
-    ``extract`` ('tar.gz' or 'zip') unpacks it into ``into`` (default: ``data_dir``) and removes the archive.
+    ``extract`` ('tar.gz' or 'zip') unpacks it into ``into`` (default: ``data_dir``) and removes the archive. With a
+    ``marker`` (a path inside ``into`` that the archive creates) an archive that was unpacked before is not fetched
+    again, and a verified archive that an interrupted install left unpacked is unpacked now.
     """
     target = os.path.join(data_dir, download['path'])
     os.makedirs(os.path.dirname(target), exist_ok=True)
-    if os.path.isfile(target) and _sha256(target) == download['sha256']:  # an earlier install got this far
-        return {'data': {download['path']: download['sha256']}}
-    partial = target + '.part'
-    _download(download['url'], partial)
-    digest = _sha256(partial)
-    if digest != download['sha256']:
-        os.remove(partial)
-        raise RuntimeError(f'{download["path"]} does not match the pinned sha256 (got {digest}); nothing was kept')
-    os.replace(partial, target)
+    receipt = {'data': {download['path']: download['sha256']}}
+    into = os.path.join(data_dir, download.get('into', ''))
+    stamp = target + '.unpacked'  # holds the archive's hash once it has been unpacked
+    if download.get('extract') and download.get('marker') and os.path.isfile(os.path.join(into, download['marker'])):
+        try:
+            with open(stamp, encoding='utf-8') as handle:
+                if handle.read().strip() == download['sha256']:
+                    return receipt
+        except OSError:
+            pass
+    if not (os.path.isfile(target) and _sha256(target) == download['sha256']):  # else an earlier install got this far
+        partial = target + '.part'
+        _download(download['url'], partial)
+        digest = _sha256(partial)
+        if digest != download['sha256']:
+            os.remove(partial)
+            raise RuntimeError(f'{download["path"]} does not match the pinned sha256 (got {digest}); nothing was kept')
+        os.replace(partial, target)
     if download.get('extract'):
-        _extract(target, download['extract'], os.path.join(data_dir, download.get('into', '')))
+        _extract(target, download['extract'], into)
         os.remove(target)
-    return {'data': {download['path']: digest}}
+        with open(stamp, 'w', encoding='utf-8') as handle:
+            handle.write(download['sha256'])
+    return receipt
 
 
 class _RangeFile:
@@ -572,13 +585,24 @@ def _molparser(params, data_dir, spec):
 
 
 def _decimer_local(params, data_dir, spec):
+    """DECIMER on TensorFlow 2.15 / Keras 2, on the CPU (TensorFlow has no GPU build for native Windows).
+
+    The models live in ``<data_dir>/DECIMER-V2`` (``PYSTOW_HOME`` is the engine's data folder). The package downloads
+    models that are missing, on the first prediction; a running engine must not, so their absence is an error here.
+    """
+    hand_drawn = bool(params.get('hand_drawn'))
+    needed = ['DECIMER_model'] + (['DECIMER_HandDrawn_model'] if hand_drawn else [])  # the printed model's tokenizer decodes both
+    for model in needed:
+        if not os.path.isfile(os.path.join(data_dir, 'DECIMER-V2', model, 'saved_model.pb')):
+            raise RuntimeError(f'the DECIMER weights ({model}) are missing from {data_dir}: '
+                               'run `cdx.py install-engines decimer-local`')
+    os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '3')
     import tensorflow  # noqa: F401  (imported first: the model loads about 4x slower otherwise)
-    from cdxml_toolkit.image.structure_from_image import _load_decimer
-    predict = _load_decimer(hand_drawn=bool(params.get('hand_drawn')))
+    from DECIMER import predict_SMILES
     out = []
     for path in params['images']:
         try:
-            smiles, confidence = predict(path, confidence=True, hand_drawn=bool(params.get('hand_drawn')))
+            smiles, confidence = predict_SMILES(path, confidence=True, hand_drawn=hand_drawn)
             values = [float(c) for _, c in confidence]
             out.append({'smiles': smiles, 'score': (sum(values) / len(values)) if values else None})
         except Exception as exc:

@@ -112,18 +112,12 @@ def jar_path(name: str) -> Path | None:
     return path if path.is_file() else None
 
 
-def _decimer_weights() -> bool:
-    """The local DECIMER models are on disk (the engine must never start a download while it runs)."""
-    root = Path(os.environ.get('DECIMER_MODEL_DIR') or Path.home() / '.data' / 'DECIMER-V2').expanduser()
-    return (root / 'DECIMER_model' / 'saved_model.pb').is_file()
-
-
 def python_for(name: str) -> Path | None:
     """The interpreter that runs engine ``name``, or None when it is not installed."""
     spec = ENGINES[name]
     kind = spec['kind']
     if kind == 'runtime':
-        return Path(sys.executable) if _find_spec(spec['module']) and _decimer_weights() else None
+        return Path(sys.executable) if _find_spec(spec['module']) else None
     if kind != 'local':
         return None
     own = interpreter(environment(name))
@@ -359,8 +353,9 @@ def _step(command, log, environment) -> None:
         raise subprocess.CalledProcessError(process.returncode, command, stderr='\n'.join(tail))
 
 
-def _pip(python, requirements, log, find_links=None, no_build_isolation=False, index_url=None):
+def _pip(python, requirements, log, find_links=None, no_build_isolation=False, index_url=None, no_deps=False):
     links = ['--find-links', find_links] if find_links else []
+    links += ['--no-deps'] if no_deps else []  # put exact versions back without resolving anything else
     links += ['--no-build-isolation'] if no_build_isolation else []  # packages whose setup.py imports torch
     if index_url:  # the CUDA wheels: torch from this index, everything else still from PyPI
         links += ['--index-url', index_url, '--extra-index-url', 'https://pypi.org/simple']
@@ -486,38 +481,70 @@ def _extra_requirements(extra: str) -> list[str]:
     return out
 
 
-def _parse_uv_dry_run(text: str) -> list[tuple]:
-    """(name, installed version, new version or None when removed) for packages ``uv pip install --dry-run`` would
-    replace or remove: its listing marks them ``- name==old``, and ``+ name==new`` when something takes their place."""
-    removed = dict(re.findall(r'^\s*-\s+(\S+?)==(\S+)\s*$', text, re.M))
-    added = dict(re.findall(r'^\s*\+\s+(\S+?)==(\S+)\s*$', text, re.M))
-    return [(name, old, added.get(name)) for name, old in sorted(removed.items())]
+def _norm(name: str) -> str:
+    """A package name as pip compares it: lower case, runs of ``-``, ``_`` and ``.`` as one ``-``."""
+    return re.sub(r'[-_.]+', '-', name).lower()
+
+
+def _installed_versions() -> dict:
+    """{normalised name: version} of every package installed in the runtime this process runs in."""
+    import importlib
+    import importlib.metadata
+    importlib.invalidate_caches()  # a package installed a moment ago must show
+    found = {}
+    for dist in importlib.metadata.distributions():
+        try:
+            name = dist.metadata['Name']
+        except Exception:  # a half-written dist-info
+            continue
+        if name:
+            found.setdefault(_norm(name), dist.version)
+    return found
+
+
+def _parse_uv_dry_run(text: str) -> tuple[dict, dict]:
+    """(installs, removals) as ``{name: version}``: the ``+ name==version`` and ``- name==version`` lines of what
+    ``uv pip install --dry-run`` prints. A replaced package is in both."""
+    installs = {_norm(n): v for n, v in re.findall(r'^\s*\+\s+(\S+?)==(\S+)\s*$', text, re.M)}
+    removals = {_norm(n): v for n, v in re.findall(r'^\s*-\s+(\S+?)==(\S+)\s*$', text, re.M)}
+    return installs, removals
+
+
+def _plan_changes(before: dict, installs: dict, removals: dict) -> list[tuple]:
+    """(name, installed version or None, new version or None) for every package the plan adds (installed is None),
+    moves to another version, or removes (new is None), compared with what ``before`` says is installed."""
+    changes = []
+    for name, new in installs.items():
+        old = before.get(name)
+        if old != new:
+            changes.append((name, old, new))
+    changes += [(name, old, None) for name, old in removals.items() if name not in installs and name in before]
+    return sorted(changes)
 
 
 def _parse_pip_report(report: dict) -> list[tuple]:
-    """The same list from ``pip install --dry-run --report``: packages it would install at another version."""
-    import importlib.metadata
-    changes = []
-    for item in report.get('install', []):
-        name, new = item['metadata']['name'], item['metadata']['version']
-        try:
-            old = importlib.metadata.version(name)
-        except importlib.metadata.PackageNotFoundError:
-            continue
-        if old != new:
-            changes.append((name, old, new))
-    return changes
+    """The same list from ``pip install --dry-run --report``."""
+    installs = {_norm(item['metadata']['name']): item['metadata']['version'] for item in report.get('install', [])}
+    return _plan_changes(_installed_versions(), installs, {})
 
 
 def _dry_run_changes(requirements: list[str]) -> list[tuple]:
-    """Packages already installed in this runtime that installing ``requirements`` would change, found without
-    installing anything."""
+    """What installing ``requirements`` into this runtime would add, move or remove, found without installing anything.
+
+    A plan that cannot be read is an error, never 'no changes': the answer decides whether the shared runtime is touched.
+    """
     if _uv():
         done = subprocess.run([_uv(), 'pip', 'install', '--dry-run', '--python', sys.executable, *requirements],
                               capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=VENV_TIMEOUT)
         if done.returncode != 0:
             raise RuntimeError('the requirements cannot be resolved against this runtime: ' + (done.stderr or '').strip()[-300:])
-        return _parse_uv_dry_run(done.stderr + done.stdout)
+        text = done.stderr + done.stdout
+        installs, removals = _parse_uv_dry_run(text)
+        announced = re.search(r'^Would install (\d+) package', text, re.M)
+        if len(installs) != (int(announced[1]) if announced else 0):
+            raise RuntimeError(f'the installer\'s plan could not be read (it announces {announced[1] if announced else "none"} '
+                               f'packages, {len(installs)} were listed); nothing was installed')
+        return _plan_changes(_installed_versions(), installs, removals)
     report = Path(sys.prefix) / '.engine-dry-run.json'
     try:
         done = subprocess.run([sys.executable, '-m', 'pip', 'install', '--dry-run', '--quiet', '--report', str(report),
@@ -530,35 +557,113 @@ def _dry_run_changes(requirements: list[str]) -> list[tuple]:
         report.unlink(missing_ok=True)
 
 
-def _install_into_runtime(name: str, log) -> dict:
-    """Add an engine that runs inside the toolkit runtime: the toolkit extra it needs, then its weights.
+def _site_packages() -> list[Path]:
+    import sysconfig
+    paths = sysconfig.get_paths()
+    return [Path(p) for p in dict.fromkeys(paths[key] for key in ('purelib', 'platlib'))]
 
-    The runtime is shared with every other tool, so nothing is installed that would move a package already in it.
+
+def _directories(roots) -> set:
+    return {dirpath for root in roots for dirpath, _dirs, _files in os.walk(root)}
+
+
+def _prune_new_empty_directories(roots, known) -> None:
+    """Remove folders under ``roots`` that did not exist before (``known``) and hold no file. An install killed half way
+    leaves such folders, and an empty ``backports/zstd`` imports as a package and breaks what looks for the real one."""
+    for root in roots:
+        for dirpath, _dirs, _files in os.walk(root, topdown=False):
+            if dirpath not in known and dirpath != str(root):
+                try:
+                    os.rmdir(dirpath)  # fails, harmlessly, on a folder that holds anything
+                except OSError:
+                    pass
+
+
+def _uninstall(python, names, log) -> None:
+    environment = dict(os.environ)
+    if _uv():
+        _step([_uv(), 'pip', 'uninstall', '--python', str(python), *names], log, environment)
+    else:
+        _step([str(python), '-m', 'pip', 'uninstall', '-y', *names], log, environment)
+
+
+def _restore_runtime(before: dict, known: set, log) -> str | None:
+    """Put the runtime back to ``before``: remove the packages that were not there, reinstall the versions that moved.
+    None when it worked, else what went wrong."""
+    print('putting the runtime back as it was ...', file=sys.stderr)
+    try:
+        after = _installed_versions()
+        added = sorted(set(after) - set(before))
+        moved = sorted(name for name, version in before.items() if after.get(name) != version)
+        if added:
+            _uninstall(sys.executable, added, log)
+        if moved:
+            _pip(sys.executable, [f'{name}=={before[name]}' for name in moved], log, no_deps=True)
+        _prune_new_empty_directories(_site_packages(), known)
+    except Exception as exc:  # reported next to the error that made the rollback necessary
+        return str(exc.stderr).strip().splitlines()[-1] if getattr(exc, 'stderr', None) else str(exc)
+    return None
+
+
+def _rollback_note(exc: BaseException) -> str:
+    outcome = getattr(exc, 'runtime_rollback', 'none')
+    if outcome == 'none':
+        return ''
+    if outcome is None:
+        return ' The runtime was put back as it was.'
+    return (f' The runtime could not be put back ({outcome}): run `cdx.py doctor`, and rebuild the runtime with '
+            f'`python scripts/install.py --runtime-only --apply` if it reports a problem.')
+
+
+def _brief(items: list, limit: int = 12) -> str:
+    return ', '.join(items[:limit]) + (f' and {len(items) - limit} more' if len(items) > limit else '')
+
+
+def _describe(changes: list[tuple]) -> str:
+    added = [f'{name} {new}' for name, old, new in changes if old is None]
+    moved = [f'{name} {old} -> {new}' for name, old, new in changes if old is not None and new is not None]
+    removed = [f'{name} {old}' for name, old, new in changes if new is None]
+    return '; '.join(part for part in (f'adds {_brief(added)}' if added else '', f'changes {_brief(moved)}' if moved else '',
+                                       f'removes {_brief(removed)}' if removed else '') if part)
+
+
+def _install_into_runtime(name: str, log, allow_changes: bool = False) -> dict:
+    """Add an engine that runs inside the toolkit runtime: the toolkit extra it needs.
+
+    The runtime is shared with every other tool, so the install is planned first (a dry run) and refused when it would
+    add, move or remove any package, unless ``allow_changes``. An install that fails or is interrupted is rolled back to
+    the packages recorded before it started. The engine must be usable once its packages are in: nothing is fetched here.
     """
     import importlib.metadata
     requirements = _extra_requirements(ENGINES[name]['extra'])
-    try:  # TensorFlow must not move the numpy that RDKit and the rest of the runtime were installed against
+    try:  # the pinned numpy of the runtime must not move: RDKit and the rest were installed against it
         requirements.append(f'numpy=={importlib.metadata.version("numpy")}')
     except importlib.metadata.PackageNotFoundError:
         pass
     changes = _dry_run_changes(requirements)
-    if changes:
-        listing = ', '.join(f'{pkg} {old} -> {new or "removed"}' for pkg, old, new in changes)
-        raise RuntimeError(f'installing {ENGINES[name]["title"]} into the shared runtime would change packages that are '
-                           f'already installed ({listing}); nothing was installed')
-    _pip(sys.executable, requirements, log)
-    target = os.environ.get('DECIMER_MODEL_DIR') or str(Path.home() / '.data' / 'DECIMER-V2')
-    subprocess.run([sys.executable, '-m', 'cdxml_toolkit.mcp_runtime.install_decimer_models', '--target', target],
-                   check=True, stdout=log, timeout=FETCH_TIMEOUT)
-    return {'python': sys.executable, 'requirements': requirements, 'weights': target}
+    if changes and not allow_changes:
+        raise RuntimeError(f'installing {ENGINES[name]["title"]} into the shared runtime would change it: {_describe(changes)}. '
+                           'Nothing was installed. The runtime is used by every other tool, so run the command again with '
+                           '--allow-runtime-changes if that is what you want (a failed or interrupted install is rolled '
+                           'back), or choose an engine that has an environment of its own')
+    before, known = _installed_versions(), _directories(_site_packages())
+    try:
+        _pip(sys.executable, requirements, log)
+    except BaseException as exc:  # KeyboardInterrupt included: a half-installed TensorFlow breaks the other tools
+        problem = _restore_runtime(before, known, log)
+        if isinstance(exc, Exception):
+            exc.runtime_rollback = problem
+        raise
+    return {'python': sys.executable, 'requirements': requirements}
 
 
-def install(name: str, *, dry_run: bool = False, log=None) -> dict:
+def install(name: str, *, dry_run: bool = False, log=None, allow_runtime_changes: bool = False) -> dict:
     """Create the environment (or fetch the jar), install the pinned requirements and the weights.
 
     The old receipt is withdrawn before the first step and written again only when every step has finished, so an
     install that is interrupted (even by Ctrl-C) leaves an engine that does not count as installed. One install of
-    an engine runs at a time.
+    an engine runs at a time. An engine that installs into the shared runtime is refused when that would add, move or
+    remove packages, unless ``allow_runtime_changes``.
     """
     spec = ENGINES[name]
     env = environment(name)
@@ -582,28 +687,29 @@ def install(name: str, *, dry_run: bool = False, log=None) -> dict:
     try:
         with _lock(name):
             _drop_receipt(env)
-            report.update(_install_steps(name, spec, env, log))
+            report.update(_install_steps(name, spec, env, log, allow_runtime_changes))
     except subprocess.CalledProcessError as exc:
         tail = '\n'.join(exc.stderr.strip().splitlines()[-ERROR_LINES:]) if isinstance(exc.stderr, str) else ''
         report.update(ok=False, error=f'installation failed: a step exited with status {exc.returncode}'
                                       + (f':\n{tail}\n' if tail else ' (see the messages above); ')
                                       + 'check the network or proxy, then run the same command again, finished '
-                                        'downloads are cached')
+                                        'downloads are cached.' + _rollback_note(exc))
     except subprocess.TimeoutExpired as exc:
-        report.update(ok=False, error=f'installation failed: a step timed out after {exc.timeout} s; run it again')
+        report.update(ok=False, error=f'installation failed: a step timed out after {exc.timeout} s; run it again'
+                                      + _rollback_note(exc))
     except (OSError, RuntimeError, EngineError) as exc:
-        report.update(ok=False, error=f'installation failed: {exc}')
+        report.update(ok=False, error=f'installation failed: {exc}' + _rollback_note(exc))
     return report
 
 
-def _install_steps(name: str, spec: dict, env: Path, log) -> dict:
+def _install_steps(name: str, spec: dict, env: Path, log, allow_runtime_changes: bool = False) -> dict:
     """What ``install`` adds to its report; raises when a step fails."""
     report = {}
     if spec['kind'] == 'runtime':
-        report.update(_install_into_runtime(name, log))
+        report.update(_install_into_runtime(name, log, allow_runtime_changes))
         report.update(ok=available()[name])
         if not report['ok']:
-            report['error'] = 'installed, but the module or its weights are still not found'
+            report['error'] = 'installed, but the module is still not found'
         return report
     if spec['kind'] == 'jar':
         if not java():

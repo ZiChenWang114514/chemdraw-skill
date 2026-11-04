@@ -24,10 +24,20 @@ ENGINES = {
         'note': 'The default image-recognition engine; uploads the image after preflight (see decimer-api.md).',
     },
     'decimer-local': {
-        'title': 'DECIMER (local)', 'does': 'OCSR, the DECIMER model on this computer', 'task': 'ocsr', 'kind': 'runtime', 'module': 'DECIMER', 'license': 'MIT',
-        'extra': 'decimer', 'size': '1.5 GB of packages in the runtime (TensorFlow), 0.7 GB weights',
-        'note': 'Runs in the runtime itself: installing adds the toolkit extra "decimer" (TensorFlow) to the runtime '
-                'and the DECIMER weights to DECIMER_MODEL_DIR (default ~/.data/DECIMER-V2).',
+        'title': 'DECIMER (local)', 'does': 'OCSR, the DECIMER model on this computer', 'task': 'ocsr', 'kind': 'local', 'license': 'MIT',
+        'python': (10, 11), 'module': 'DECIMER',
+        'requirements': ['decimer==2.8.1', 'tensorflow==2.15.1', 'numpy<2'],  # Keras 2: the models predate Keras 3
+        'data': 'decimer-models',
+        'downloads': [{'url': 'https://zenodo.org/records/8300489/files/models.zip?download=1', 'path': 'DECIMER-V2/models.zip',
+                       'sha256': '8ebc7db18fffac7e71a2cf8487708053620d124846bc9502eddac1283b431d2b',
+                       'extract': 'zip', 'into': 'DECIMER-V2', 'marker': 'DECIMER_model/saved_model.pb'},
+                      {'url': 'https://zenodo.org/records/10781330/files/DECIMER_HandDrawn_model.zip?download=1',
+                       'path': 'DECIMER-V2/DECIMER_HandDrawn_model.zip',
+                       'sha256': '91c70fee79b7d64c09d433ff82e2216d16070e4d098b83da2c13d34c52439fde',
+                       'extract': 'zip', 'into': 'DECIMER-V2', 'marker': 'DECIMER_HandDrawn_model/saved_model.pb'}],
+        'size': '1.7 GB environment (TensorFlow), 0.7 GB weights',
+        'note': 'Runs on the CPU: TensorFlow has no GPU build for native Windows. Needs TensorFlow 2.15 with Keras 2, '
+                'so it has its own environment; the Python 3.12 runtime takes a TensorFlow that cannot load the models.',
     },
     'molscribe': {
         'title': 'MolScribe', 'does': 'OCSR', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'MIT', 'python': (10, 10),
@@ -271,7 +281,7 @@ def by_task(task: str) -> list:
 # downloads anything: it is what the Skill reads to recommend an engine, with its size, before the user agrees.
 
 GUIDE = {
-    'decimer-local': {'disk_mb': 2300, 'use_when': 'the DECIMER reading is wanted but the image may not be uploaded',
+    'decimer-local': {'disk_mb': 2400, 'use_when': 'the DECIMER reading is wanted but the image may not be uploaded',
                       'skip_when': 'uploading is allowed: the DECIMER API runs the same model'},
     'molscribe': {'disk_mb': 4700, 'use_when': 'a second opinion on a structure image, good on clean and mid-quality drawings',
                   'skip_when': 'the default DECIMER read is already confirmed against the image'},

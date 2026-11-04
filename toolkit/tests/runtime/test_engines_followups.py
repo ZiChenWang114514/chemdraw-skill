@@ -327,38 +327,184 @@ def test_no_python_anywhere_says_what_to_install(tmp_path, monkeypatch):
 
 # --- the shared runtime is not changed under the user -----------------------------------------------
 
-def test_decimer_local_refuses_an_install_that_would_change_installed_packages(home, monkeypatch):
+# What `uv pip install --dry-run decimer tensorflow` printed on a runtime that had neither: every line is an
+# addition, none is a replacement. A guard that only looked at replaced packages let this install through.
+UV_PLAN_ONLY_ADDS = """\
+Using Python 3.12.14 environment at: C:\\Users\\someone\\AppData\\Local\\chemdraw-skill\\venv
+Resolved 50 packages in 846ms
+Would download 4 packages
+Would install 4 packages
+ + decimer==2.6.0
+ + keras==3.15.1
+ + numpy==2.4.1
+ + tensorflow==2.21.0
+"""
+
+
+@pytest.fixture
+def runtime_engine(monkeypatch):
+    """A made-up engine that installs into the shared runtime, as ``kind: runtime`` engines do."""
     import importlib.metadata
-    monkeypatch.setattr(importlib.metadata, 'requires', lambda dist: ['decimer>=2.6; extra == "decimer"'])
+    monkeypatch.setitem(ENGINES, 'runtime-demo', {
+        'title': 'Runtime demo', 'does': 'nothing', 'task': 'ocsr', 'kind': 'runtime', 'module': 'demo_module_x',
+        'license': 'MIT', 'extra': 'demo', 'size': '1 MB'})
+    monkeypatch.setattr(importlib.metadata, 'requires', lambda dist: ['demo-lib>=1; extra == "demo"'])
     monkeypatch.setattr(importlib.metadata, 'version', lambda dist: '1.26.4')
-    monkeypatch.setattr(env, '_dry_run_changes', lambda requirements: [('protobuf', '5.29.0', '4.25.3'), ('keras', '3.1', '2.14')])
-    monkeypatch.setattr(env, '_pip', lambda *a, **k: pytest.fail('installed anyway'))
-    report = env.install('decimer-local')
-    assert report['ok'] is False and 'protobuf 5.29.0 -> 4.25.3' in report['error'] and 'keras 3.1 -> 2.14' in report['error']
+    return 'runtime-demo'
 
 
-def test_the_uv_dry_run_listing_names_the_packages_it_would_replace_or_remove():
+class FakeRuntime:
+    """The packages of a runtime as a dict, with pip, uninstall and the dry run acting on it."""
+
+    def __init__(self, monkeypatch, installed, plan=None, fail=None):
+        self.installed = dict(installed)
+        self.initial = dict(installed)
+        self.plan = plan if plan is not None else []
+        self.fail = fail  # raised by the installing pip call after it has changed the runtime
+        self.calls = []
+        monkeypatch.setattr(env, '_installed_versions', lambda: dict(self.installed))
+        monkeypatch.setattr(env, '_dry_run_changes', lambda requirements: self.plan)
+        monkeypatch.setattr(env, '_pip', self.pip)
+        monkeypatch.setattr(env, '_uninstall', self.uninstall)
+        monkeypatch.setattr(env, '_site_packages', lambda: [])
+
+    def pip(self, python, requirements, log, find_links=None, no_build_isolation=False, index_url=None, no_deps=False):
+        self.calls.append(('pip', list(requirements), no_deps))
+        for requirement in requirements:
+            if '==' in requirement:
+                name, _, version = requirement.partition('==')
+                self.installed[name.lower()] = version
+        if not no_deps:  # the installing call: it drops the new packages in, moves one, then goes wrong
+            self.installed.update({'tensorflow': '2.21.0', 'keras': '3.15.1', 'protobuf': '5.0.0'})
+            if self.fail:
+                raise self.fail
+
+    def uninstall(self, python, names, log):
+        self.calls.append(('uninstall', sorted(names)))
+        for name in names:
+            self.installed.pop(name, None)
+
+
+def test_the_uv_dry_run_listing_names_every_package_it_would_install_replace_or_remove():
     text = ('Resolved 9 packages in 12ms\nWould download 2 packages\nWould uninstall 2 packages\nWould install 3 packages\n'
             ' - keras==3.1.0\n - protobuf==5.29.0\n + keras==2.14.0\n + protobuf==4.25.3\n + decimer==2.6.0\n')
-    assert env._parse_uv_dry_run(text) == [('keras', '3.1.0', '2.14.0'), ('protobuf', '5.29.0', '4.25.3')]
-    assert env._parse_uv_dry_run(' + decimer==2.6.0\n') == []
-    assert env._parse_uv_dry_run(' - gone==1.0\n') == [('gone', '1.0', None)]
+    installs, removals = env._parse_uv_dry_run(text)
+    assert installs == {'keras': '2.14.0', 'protobuf': '4.25.3', 'decimer': '2.6.0'}
+    assert removals == {'keras': '3.1.0', 'protobuf': '5.29.0'}
+    assert env._parse_uv_dry_run(' + decimer==2.6.0\n') == ({'decimer': '2.6.0'}, {})
+    assert env._parse_uv_dry_run(' - gone==1.0\n') == ({}, {'gone': '1.0'})
+    assert env._parse_uv_dry_run(UV_PLAN_ONLY_ADDS)[0]['tensorflow'] == '2.21.0'
 
 
-def test_the_pip_dry_run_report_names_changed_installed_packages(monkeypatch):
-    import importlib.metadata
-    versions = {'protobuf': '5.29.0', 'numpy': '1.26.4'}
+def test_a_dry_run_that_only_adds_packages_is_reported_as_additions(monkeypatch):
+    """The failure on the real machine: TensorFlow and Keras 3 were all new, so nothing was 'changed'."""
+    monkeypatch.setattr(env, '_uv', lambda: 'uv')
+    monkeypatch.setattr(env, '_installed_versions', lambda: {'numpy': '2.4.1', 'rdkit': '2026.3.1'})
+    done = subprocess.CompletedProcess([], 0, stdout='', stderr=UV_PLAN_ONLY_ADDS)
+    monkeypatch.setattr(env.subprocess, 'run', lambda *a, **k: done)
+    changes = env._dry_run_changes(['decimer', 'tensorflow'])
+    assert ('tensorflow', None, '2.21.0') in changes and ('keras', None, '3.15.1') in changes
+    assert not any(name == 'numpy' for name, *_ in changes)  # numpy is already at that version: no change
 
-    def version(name):
-        if name not in versions:
-            raise importlib.metadata.PackageNotFoundError(name)
-        return versions[name]
 
-    monkeypatch.setattr(importlib.metadata, 'version', version)
+def test_a_dry_run_reports_moved_added_and_removed_packages_against_the_installed_ones(monkeypatch):
+    monkeypatch.setattr(env, '_uv', lambda: 'uv')
+    monkeypatch.setattr(env, '_installed_versions', lambda: {'protobuf': '5.29.0', 'old-thing': '1.0', 'numpy': '1.26.4'})
+    text = 'Would install 2 packages\n - protobuf==5.29.0\n - old-thing==1.0\n + protobuf==4.25.3\n + decimer==2.6.0\n'
+    done = subprocess.CompletedProcess([], 0, stdout='', stderr=text)
+    monkeypatch.setattr(env.subprocess, 'run', lambda *a, **k: done)
+    assert sorted(env._dry_run_changes(['x'])) == [('decimer', None, '2.6.0'), ('old-thing', '1.0', None),
+                                                   ('protobuf', '5.29.0', '4.25.3')]
+
+
+def test_a_dry_run_listing_that_cannot_be_read_stops_the_install(monkeypatch):
+    """If uv words its plan differently one day, the guard must fail closed rather than see 'no changes'."""
+    monkeypatch.setattr(env, '_uv', lambda: 'uv')
+    monkeypatch.setattr(env, '_installed_versions', lambda: {})
+    done = subprocess.CompletedProcess([], 0, stdout='', stderr='Would install 7 packages\n  tensorflow 2.21.0\n')
+    monkeypatch.setattr(env.subprocess, 'run', lambda *a, **k: done)
+    with pytest.raises(RuntimeError, match='could not be read'):
+        env._dry_run_changes(['tensorflow'])
+
+
+def test_the_pip_dry_run_report_names_added_and_changed_packages(monkeypatch):
+    monkeypatch.setattr(env, '_installed_versions', lambda: {'protobuf': '5.29.0', 'numpy': '1.26.4'})
     report = {'install': [{'metadata': {'name': 'protobuf', 'version': '4.25.3'}},
                           {'metadata': {'name': 'numpy', 'version': '1.26.4'}},
-                          {'metadata': {'name': 'decimer', 'version': '2.6.0'}}]}
-    assert env._parse_pip_report(report) == [('protobuf', '5.29.0', '4.25.3')]
+                          {'metadata': {'name': 'Tensorflow', 'version': '2.21.0'}}]}
+    assert sorted(env._parse_pip_report(report)) == [('protobuf', '5.29.0', '4.25.3'), ('tensorflow', None, '2.21.0')]
+
+
+def test_the_runtime_install_refuses_new_packages_unless_they_are_allowed(home, runtime_engine, monkeypatch):
+    runtime = FakeRuntime(monkeypatch, {'numpy': '1.26.4'},
+                          plan=[('tensorflow', None, '2.21.0'), ('keras', None, '3.15.1')])
+    report = env.install(runtime_engine)
+    assert report['ok'] is False and not runtime.calls
+    assert 'adds tensorflow 2.21.0, keras 3.15.1' in report['error'] and '--allow-runtime-changes' in report['error']
+    assert 'Nothing was installed' in report['error']
+    env.install(runtime_engine, allow_runtime_changes=True)
+    assert runtime.calls and runtime.calls[0][0] == 'pip'
+
+
+def test_the_runtime_install_refuses_moved_and_removed_packages_and_says_which(home, runtime_engine, monkeypatch):
+    FakeRuntime(monkeypatch, {}, plan=[('protobuf', '5.29.0', '4.25.3'), ('keras', '3.1', None)])
+    error = env.install(runtime_engine)['error']
+    assert 'changes protobuf 5.29.0 -> 4.25.3' in error and 'removes keras 3.1' in error
+
+
+def test_a_plan_that_changes_nothing_installs_without_asking(home, runtime_engine, monkeypatch):
+    runtime = FakeRuntime(monkeypatch, {}, plan=[])
+    monkeypatch.setattr(env, 'available', lambda: {n: True for n in ENGINES})
+    assert env.install(runtime_engine)['ok'] is True and runtime.calls[0][0] == 'pip'
+
+
+def test_a_failed_runtime_install_puts_the_runtime_back_as_it_was(home, runtime_engine, monkeypatch):
+    runtime = FakeRuntime(monkeypatch, {'protobuf': '4.25.3', 'numpy': '1.26.4'}, fail=_failure(1, 'no space left'))
+    report = env.install(runtime_engine, allow_runtime_changes=True)
+    assert report['ok'] is False and 'no space left' in report['error'] and 'put back' in report['error']
+    assert runtime.installed == runtime.initial  # tensorflow and keras are gone, protobuf is at its old version
+    assert ('uninstall', ['keras', 'tensorflow']) in runtime.calls
+    assert ('pip', ['protobuf==4.25.3'], True) in runtime.calls  # restored without pulling in dependencies again
+
+
+def test_an_interrupted_runtime_install_is_rolled_back_and_the_interrupt_still_propagates(home, runtime_engine, monkeypatch):
+    runtime = FakeRuntime(monkeypatch, {'protobuf': '4.25.3'}, fail=KeyboardInterrupt())
+    with pytest.raises(KeyboardInterrupt):
+        env.install(runtime_engine, allow_runtime_changes=True)
+    assert runtime.installed == runtime.initial
+
+
+def test_a_rollback_that_fails_is_reported_next_to_the_original_error(home, runtime_engine, monkeypatch):
+    FakeRuntime(monkeypatch, {'protobuf': '4.25.3'}, fail=_failure(1, 'network down'))
+
+    def locked(*args):
+        raise _failure(2, 'locked')
+
+    monkeypatch.setattr(env, '_uninstall', locked)
+    error = env.install(runtime_engine, allow_runtime_changes=True)['error']
+    assert 'network down' in error and 'could not be put back' in error and 'doctor' in error
+
+
+def test_a_rollback_removes_the_empty_folders_a_killed_install_left_behind(tmp_path):
+    """Empty site-packages/backports/zstd made `import backports.zstd` succeed and broke urllib3."""
+    site = tmp_path / 'site-packages'
+    (site / 'backports').mkdir(parents=True)
+    (site / 'backports' / 'tarfile.py').write_text('x')
+    (site / 'pytest' / '__pycache__').mkdir(parents=True)  # empty before the install: not ours to remove
+    known = env._directories([site])
+    (site / 'backports' / 'zstd' / 'sub').mkdir(parents=True)
+    (site / 'newpkg' / 'data').mkdir(parents=True)
+    (site / 'filled').mkdir()
+    (site / 'filled' / 'file.py').write_text('x')
+    env._prune_new_empty_directories([site], known)
+    assert (site / 'backports').is_dir() and (site / 'pytest' / '__pycache__').is_dir()
+    assert not (site / 'backports' / 'zstd').exists() and not (site / 'newpkg').exists()
+    assert (site / 'filled' / 'file.py').is_file()
+
+
+def test_the_installed_packages_are_read_from_the_runtime_metadata():
+    versions = env._installed_versions()
+    assert 'pytest' in versions and all(name == name.lower() and '_' not in name for name in versions)
 
 
 # --- RetroChimera stops early when the model cannot fit ---------------------------------------------
