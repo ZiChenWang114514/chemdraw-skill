@@ -263,12 +263,15 @@ def _cuda_torch(name: str, python, log) -> dict:
     gpu = _nvidia_gpu() if ENGINES[name].get('gpu') else None
     if not gpu:
         return {'device': 'cpu'}
-    tag = CUDA_TORCH['tag']
-    requirements = [f'torch=={CUDA_TORCH["torch"]}+{tag}']
-    if _has_package(python, 'torchvision'):
-        requirements.append(f'torchvision=={CUDA_TORCH["torchvision"]}+{tag}')
+    build = ENGINES[name].get('cuda') or CUDA_TORCH
+    tag = build['tag']
+    requirements = [f'torch=={build["torch"]}+{tag}']
+    if build.get('torchvision') and _has_package(python, 'torchvision'):
+        requirements.append(f'torchvision=={build["torchvision"]}+{tag}')
     try:
-        _pip(python, requirements, log, index_url=CUDA_TORCH['index'])
+        _pip(python, requirements, log, index_url=build['index'])
+        if build.get('requirements'):  # compiled torch extensions built for this torch
+            _pip(python, build['requirements'], log, build.get('find_links'))
     except subprocess.CalledProcessError as exc:  # the CPU build stays and still works
         return {'device': 'cpu', 'gpu': gpu, 'gpu_error': f'the CUDA build of torch did not install (status '
                                                           f'{exc.returncode}); the engine runs on the CPU'}

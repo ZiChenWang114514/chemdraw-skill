@@ -232,6 +232,8 @@ def test_the_nmrnet_checkpoint_path_names_its_fold_after_a_split_on_slashes():
     command = worker._nmrnet_command('D:\\engines\\nmrnet-pp\\data', 'D:\\w\\data-H', 'D:\\w\\results-H', 'H')
     path = command[command.index('--path') + 1]
     assert path.split('/')[-2] == 'cv_seed_42_fold_0' and path.endswith('/checkpoint_last.pt')
+    assert '--cpu' in command  # the CPU unless the GPU is asked for
+    assert '--cpu' not in worker._nmrnet_command('d', 'data', 'results', 'H', 'cuda')
 
 
 def test_engine_post_processing_pools_stay_in_one_process():

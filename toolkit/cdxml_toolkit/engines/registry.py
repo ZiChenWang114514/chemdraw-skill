@@ -12,7 +12,9 @@ MOLPARSER_COMMIT = '8b67a082355a8fcf3b099e0e95c5ad948cbd7dcd'
 MOLPARSER_WEIGHTS_REVISION = '6b3cbae494e6870252cb218865ae01fc8aaa55dc'
 
 # An engine marked 'gpu' gets this CUDA build of torch (and of torchvision, when it has one) at install time
-# when an NVIDIA GPU is found; the others are pinned to a torch too old for current GPUs and stay on the CPU.
+# when an NVIDIA GPU is found; an engine's own 'cuda' entry replaces it (MagNET needs torch_scatter and
+# torch_cluster, whose wheels exist only for some torch builds). The pinned CPU torch of an older engine (1.13
+# to 2.5) has no kernels for current GPUs, so it is swapped too; on the GPU the outputs matched the CPU builds.
 CUDA_TORCH = {'index': 'https://download.pytorch.org/whl/cu130', 'tag': 'cu130', 'torch': '2.14.1',
               'torchvision': '0.29.1'}
 
@@ -28,13 +30,13 @@ ENGINES = {
                 'and the DECIMER weights to DECIMER_MODEL_DIR (default ~/.data/DECIMER-V2).',
     },
     'molscribe': {
-        'title': 'MolScribe', 'does': 'OCSR', 'task': 'ocsr', 'kind': 'local', 'license': 'MIT', 'python': (10, 10),
+        'title': 'MolScribe', 'does': 'OCSR', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'MIT', 'python': (10, 10),
         'module': 'molscribe',
         'requirements': ['molscribe==1.1.1', 'numpy<2', 'huggingface_hub'],
         'weights': {'repo': 'yujieq/MolScribe', 'type': 'model', 'files': ['swin_base_char_aux_1m.pth'],
                     'sha256': {'swin_base_char_aux_1m.pth':
                                '6f0df56fa32b5ffc21f8c7f311ef333da522f590bf5622e966c6bcb1f2d9ea1d'}},
-        'size': '1.4 GB environment, 1.1 GB weights',
+        'size': '3.6 GB environment with the CUDA build of PyTorch (about 1.4 GB with the CPU build), 1.1 GB weights',
     },
     'molnextr': {
         'title': 'MolNexTR', 'does': 'OCSR', 'gpu': True, 'task': 'ocsr', 'kind': 'local', 'license': 'Apache-2.0', 'python': (10, 10),
@@ -154,18 +156,21 @@ ENGINES = {
         'size': '3.1 GB environment with the CUDA build of PyTorch (about 1.3 GB with the CPU build), 0.8 GB weights',
     },
     'magnet': {
-        'title': 'MagNET', 'does': '1H and 13C shifts', 'task': 'nmr', 'kind': 'local', 'license': 'MIT', 'python': (12, 12),
+        'title': 'MagNET', 'does': '1H and 13C shifts', 'gpu': True, 'task': 'nmr', 'kind': 'local', 'license': 'MIT', 'python': (12, 12),
         'module': 'magnet',
         'requirements': ['torch==2.5.0', 'magnet-nmr==0.2.1', 'rdkit', 'huggingface_hub'],
         'find_links': 'https://data.pyg.org/whl/torch-2.5.0+cpu.html',
         'extra_requirements': ['torch_scatter', 'torch_cluster'],
+        'cuda': {'index': 'https://download.pytorch.org/whl/cu128', 'tag': 'cu128', 'torch': '2.10.0',
+                 'find_links': 'https://data.pyg.org/whl/torch-2.10.0+cu128.html',
+                 'requirements': ['torch_scatter==2.1.2+pt210cu128', 'torch_cluster==1.6.3+pt210cu128']},
         'weights': {'repo': 'ekwan16/MagNET', 'type': 'model', 'snapshot': True, 'include': 'model_checkpoints/*',
                     'revision': 'fe222d1894afb2d954fe8d2e67e70731a006c8d2'},
         'elements': ['H', 'C', 'N', 'O', 'F', 'Cl', 'S'],
-        'size': '1.5 GB environment, 0.6 GB weights',
+        'size': '4.7 GB environment with the CUDA build of PyTorch (about 1.5 GB with the CPU build), 0.6 GB weights',
     },
     'retrochimera': {
-        'title': 'RetroChimera + Syntheseus', 'does': 'retrosynthesis, single step and routes (Microsoft Research, with Syntheseus)', 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
+        'title': 'RetroChimera + Syntheseus', 'does': 'retrosynthesis, single step and routes (Microsoft Research, with Syntheseus)', 'gpu': True, 'task': 'retrosynthesis', 'kind': 'local', 'license': 'MIT',
         'python': (10, 10), 'module': 'retrochimera',
         'requirements': ['torch==2.2.2', 'torch_geometric==2.5.2', 'pytorch-lightning==2.2.2', 'torchmetrics<0.11', 'h5py',
                          'scipy<1.12', 'rdkit', 'numpy<2', 'pebble~=5.2.0', 'loky', 'omegaconf', 'more_itertools', 'tqdm',
@@ -186,15 +191,15 @@ ENGINES = {
                          'building_blocks/mcule-molport-2026-08/building_blocks.json.gz',
                   'path': 'building_blocks/building_blocks.json.gz',
                   'sha256': '0fea071b828e70baa8012216d91e929f896951329509ce8af6c93c136b57eb81'},
-        'size': '1.6 GB environment, 4.7 GB model (Pistachio ensemble), 0.5 GB building blocks; the model is a 4.2 GB '
+        'size': '3.4 GB environment with the CUDA build of PyTorch (about 1.6 GB with the CPU build), 4.7 GB model (Pistachio ensemble), 0.5 GB building blocks; the model is a 4.2 GB '
                 'download and building the stock list takes 15 to 70 minutes, depending on the CPU, once; running it '
-                'needs about 12 GB of free memory',
+                'needs about 14 GB of free memory, because loading and template localization run on the CPU',
         'note': "Microsoft Research's RetroChimera (Nature 2026) with the Syntheseus search. Single step (steps=\"single\") "
                 'or whole routes (steps="multi"). The authors state it is for research and experiments: an expert must '
                 'check every route, and lower-ranked reactions are more likely to be hallucinated.',
     },
     'nmrnet-pp': {
-        'title': 'NMRNet++', 'does': '1H and 13C shifts (a second model)', 'task': 'nmr', 'kind': 'local', 'license': 'MIT (code); CC BY 4.0 (weights)', 'python': (11, 11), 'module': 'unicore',
+        'title': 'NMRNet++', 'does': '1H and 13C shifts (a second model)', 'gpu': True, 'task': 'nmr', 'kind': 'local', 'license': 'MIT (code); CC BY 4.0 (weights)', 'python': (11, 11), 'module': 'unicore',
         'requirements': ['torch==2.5.1', 'numpy', 'setuptools<81', 'wheel', 'rdkit', 'lmdb', 'pandas', 'scikit-learn',
                          'scipy', 'joblib', 'tqdm', 'ml_collections', 'tensorboardX'],
         'late_requirements': ['https://github.com/dptech-corp/Uni-Core/archive/ace6fae1c8479a9751f2bb1e1d6e4047427bc134.tar.gz'
@@ -225,7 +230,7 @@ ENGINES = {
                 'is claimed here.',
     },
     'reacon': {
-        'title': 'Reacon', 'does': 'reaction conditions', 'task': 'conditions', 'kind': 'local',
+        'title': 'Reacon', 'does': 'reaction conditions', 'gpu': True, 'task': 'conditions', 'kind': 'local',
         'license': 'not declared by the authors (no LICENSE file in their repository)', 'restricted': True,
         'python': (10, 10), 'module': 'torch',
         'requirements': ['torch==2.5.1', 'chemprop==1.6.1', 'torch-geometric==2.3.0', 'pandas==1.5.3', 'numpy<2', 'setuptools<81', 'rdkit'],
@@ -268,7 +273,7 @@ def by_task(task: str) -> list:
 GUIDE = {
     'decimer-local': {'disk_mb': 2300, 'use_when': 'the DECIMER reading is wanted but the image may not be uploaded',
                       'skip_when': 'uploading is allowed: the DECIMER API runs the same model'},
-    'molscribe': {'disk_mb': 2500, 'use_when': 'a second opinion on a structure image, good on clean and mid-quality drawings',
+    'molscribe': {'disk_mb': 4700, 'use_when': 'a second opinion on a structure image, good on clean and mid-quality drawings',
                   'skip_when': 'the default DECIMER read is already confirmed against the image'},
     'molnextr': {'disk_mb': 4800, 'use_when': 'hard drawings with wedges and ring stereochemistry, as an extra vote',
                  'skip_when': 'two other engines already agree and the image checks out'},
@@ -286,7 +291,7 @@ GUIDE = {
                            'skip_when': 'the product is known or only needs an atom-balance check'},
     'reactiont5-retro': {'disk_mb': 3900, 'use_when': 'quick single-step precursor ideas',
                          'skip_when': 'AiZynthFinder is installed (it is more reliable)'},
-    'retrochimera': {'disk_mb': 6600, 'use_when': 'the strongest single-step precursor suggestions available here, '
+    'retrochimera': {'disk_mb': 8500, 'use_when': 'the strongest single-step precursor suggestions available here, '
                                                   'and routes searched with them',
                      'skip_when': 'a quick idea is enough (AiZynthFinder is much smaller), or the work needs a commercial '
                                   'licence check first: the authors state research use only'},
@@ -295,7 +300,7 @@ GUIDE = {
     'reacon': {'disk_mb': 1900, 'use_when': 'candidate catalysts, solvents and reagents for a reaction already drawn',
                'skip_when': 'the conditions are in the source, or the reaction type is new (it learned from patents); '
                             "its authors' repository declares no licence"},
-    'magnet': {'disk_mb': 2200, 'use_when': 'predicted 1H and 13C shifts of one molecule',
+    'magnet': {'disk_mb': 5400, 'use_when': 'predicted 1H and 13C shifts of one molecule',
                'skip_when': 'measured spectra are available (those are plotted without a model)'},
 }
 

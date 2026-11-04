@@ -11,6 +11,7 @@ from cdxml_toolkit.engines.registry import BUNDLES, ENGINES, GUIDE, RECOMMEND, d
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(tmp_path))
+    monkeypatch.setattr(env, '_nvidia_gpu', lambda: None)  # the tests that want a GPU say so
     return tmp_path
 
 
@@ -548,11 +549,30 @@ def test_an_nvidia_gpu_gets_a_cuda_build_of_torch_for_an_engine_that_can_use_it(
     assert receipt['device'] == 'cuda'
 
 
-def test_no_gpu_or_an_engine_pinned_to_an_old_torch_keeps_the_cpu_build(home, monkeypatch):
+def test_no_gpu_or_an_engine_without_torch_keeps_the_cpu_build(home, monkeypatch):
     report, calls = _gpu_install(home, monkeypatch, None)
     assert all(index is None for _, index in calls) and report['device'] == 'cpu'
-    report, calls = _gpu_install(home, monkeypatch, 'RTX', name='retrochimera')
+    report, calls = _gpu_install(home, monkeypatch, 'RTX', name='decimer-segmentation')  # TensorFlow, CPU on Windows
     assert all(index is None for _, index in calls) and report['device'] == 'cpu'
+
+
+def test_every_torch_engine_can_take_the_cuda_build():
+    # torch 1.13 to 2.5 has no kernels for current GPUs (an RTX 50xx is sm_120), so every torch engine is moved
+    # to a CUDA build that has them; their outputs on the GPU matched the CPU builds when this was set
+    torch_engines = {name for name, spec in ENGINES.items()
+                     if any(r.split('=')[0].split('<')[0].strip() == 'torch' or r.startswith('torch==')
+                            for r in spec.get('requirements', [])) or name in ('molscribe', 'molnextr')}
+    assert torch_engines and all(ENGINES[name].get('gpu') for name in torch_engines), torch_engines
+
+
+def test_an_engine_with_compiled_torch_extensions_gets_a_matching_cuda_build(home, monkeypatch):
+    # torch_scatter / torch_cluster wheels exist only for some torch builds, so MagNET takes its own build
+    cuda = ENGINES['magnet']['cuda']
+    report, calls = _gpu_install(home, monkeypatch, 'RTX', name='magnet', has_vision=False)
+    torch_call = next(c for c in calls if c[1] == cuda['index'])
+    assert torch_call[0] == [f'torch=={cuda["torch"]}+{cuda["tag"]}']
+    assert calls[-1][0] == cuda['requirements'] and all(cuda['tag'] in r for r in cuda['requirements'])
+    assert report['device'] == 'cuda' and report['torch'] == f'{cuda["torch"]}+{cuda["tag"]}'
 
 
 def test_engine_downloads_are_cached_under_the_engine_home(home, monkeypatch):
