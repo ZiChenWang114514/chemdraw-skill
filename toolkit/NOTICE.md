@@ -65,10 +65,11 @@ PubChem's request-volume limits; `CHEMDRAW_OFFLINE=1` turns these requests off.
 
 Image recognition uploads the image to the DECIMER endpoint of the
 [Cheminformatics Microservice](https://api.naturalproducts.net/) maintained by
-the Steinbeck group, or, with the `decimer` extra, runs the
+the Steinbeck group, or, with the `decimer` extra or the `decimer-local` engine, runs the
 [DECIMER](https://github.com/Kohulan/DECIMER-Image_Transformer) models locally.
-DECIMER is licensed under the MIT License; its model weights are downloaded by
-the `decimer` package and are not redistributed here. Uploads follow the terms
+DECIMER is licensed under the MIT License; its model weights are not redistributed here: the `decimer` package
+downloads them, and `decimer-local` fetches the Zenodo archives (records 8300489 and 10781330) into its own
+environment and checks them against pinned SHA-256 hashes. Uploads follow the terms
 of the service operator and are refused when `CHEMDRAW_OFFLINE=1` is set.
 
 ## Optional prediction engines

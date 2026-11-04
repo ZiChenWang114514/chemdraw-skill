@@ -114,7 +114,7 @@ Workers also keep `CHEMSCRIPT_*`, `CONDA_PREFIX` and `JAVA_HOME`. Credentials an
 
 ## DECIMER weights
 
-Local recognition requires official DECIMER weights: `cdx.py py -m cdxml_toolkit.mcp_runtime.install_decimer_models` (both) or `--model standard` / `--model handdrawn`. Archives come from the [standard](https://zenodo.org/records/8300489) and [hand-drawn](https://zenodo.org/records/10781330) model records and are checksum-verified on install. Missing weights are a warning only.
+Local recognition runs in the isolated `decimer-local` engine (`cdx.py install-engines decimer-local`, Python 3.10/3.11 + TensorFlow 2.15), which fetches and SHA-256-verifies both official [standard](https://zenodo.org/records/8300489) and [hand-drawn](https://zenodo.org/records/10781330) weight archives (`cdx.py py -m cdxml_toolkit.mcp_runtime.install_decimer_models` remains available for standalone `~/.data/DECIMER-V2` installs). Missing weights are a warning only.
 
 HTTP 502/503/504 from the remote API indicates a gateway or service failure, not a local ChemDraw or model problem. Follow [DECIMER failure diagnosis](decimer-api.md#diagnosing-failed-requests).
 
