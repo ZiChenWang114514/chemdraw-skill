@@ -194,6 +194,13 @@ def test_every_engine_that_downloads_data_has_a_pinned_hash():
             assert spec['sha256'] and all(len(h) == 64 for h in spec['sha256'].values()), name
 
 
+def test_figshare_files_use_the_api_download_endpoint():
+    # ndownloader.figshare.com answers some public files with 403; the API endpoint serves them with Range support
+    urls = json.dumps(ENGINES)
+    assert 'ndownloader.figshare.com' not in urls
+    assert ENGINES['retrochimera']['zip_members']['url'] == 'https://api.figshare.com/v2/file/download/59468882'
+
+
 def test_the_worker_receives_what_it_needs_to_verify_downloads(monkeypatch, tmp_path):
     monkeypatch.setenv('CHEMDRAW_ENGINE_HOME', str(tmp_path))
     captured = {}

@@ -75,9 +75,39 @@ def fetch(engine, params, data_dir, spec):
     return {'weights': receipt}
 
 
+FORBIDDEN_RETRIES = 8  # figshare redirects each request to a freshly signed URL whose host sometimes answers 403
+
+
 def _permanent(exc):
     """A 4xx answer stays the same however often it is asked; 408, 425 and 429 mean try again later."""
     return 400 <= exc.code < 500 and exc.code not in (408, 425, 429)
+
+
+def _give_up(exc, attempt, attempts):
+    """Whether a failed request ends the download: the last attempt, or a 4xx that will not change.
+
+    A 403 is asked again a few times before it counts as permanent.
+    """
+    if attempt >= attempts - 1:
+        return True
+    if not isinstance(exc, urllib.error.HTTPError) or not _permanent(exc):
+        return False
+    return exc.code != 403 or attempt >= FORBIDDEN_RETRIES
+
+
+def _range_bytes(url, first, last, attempts=20):
+    """Bytes ``first``..``last`` of ``url`` in one Range request, repeated after a transient failure."""
+    import time
+    import urllib.request
+    for attempt in range(attempts):
+        request = urllib.request.Request(url, headers={'Range': f'bytes={first}-{last}'})
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return response.headers, response.read()
+        except (OSError, http.client.HTTPException) as exc:
+            if _give_up(exc, attempt, attempts):
+                raise
+            time.sleep(min(3 * (attempt + 1), 30))
 
 
 def _download(url, partial, attempts=80, headers=None):
@@ -107,7 +137,7 @@ def _download(url, partial, attempts=80, headers=None):
         except urllib.error.HTTPError as exc:
             if exc.code == 416:  # nothing left to ask for: the file is complete
                 return
-            if _permanent(exc) or attempt == attempts - 1:
+            if _give_up(exc, attempt, attempts):
                 raise
         except (OSError, http.client.HTTPException):
             if attempt == attempts - 1:
@@ -176,11 +206,9 @@ class _RangeFile:
     """A read-only seekable view of a remote file, fetched with Range requests (enough for zipfile)."""
 
     def __init__(self, url):
-        import urllib.request
         self.url, self.pos = url, 0
-        request = urllib.request.Request(url, headers={'Range': 'bytes=0-0'})
-        with urllib.request.urlopen(request, timeout=60) as response:
-            self.size = int(response.headers['Content-Range'].rsplit('/', 1)[1])
+        headers, _ = _range_bytes(url, 0, 0)
+        self.size = int(headers['Content-Range'].rsplit('/', 1)[1])
 
     def seekable(self):
         return True
@@ -193,13 +221,10 @@ class _RangeFile:
         return self.pos
 
     def read(self, count=-1):
-        import urllib.request
         end = self.size if count is None or count < 0 else min(self.size, self.pos + count)
         if self.pos >= end:
             return b''
-        request = urllib.request.Request(self.url, headers={'Range': f'bytes={self.pos}-{end - 1}'})
-        with urllib.request.urlopen(request, timeout=60) as response:
-            data = response.read()
+        _, data = _range_bytes(self.url, self.pos, end - 1)
         self.pos += len(data)
         return data
 
@@ -256,10 +281,7 @@ def _fetch_zip_members(data_dir, source):
 
 
 def remote_range(url, first, last):
-    import urllib.request
-    request = urllib.request.Request(url, headers={'Range': f'bytes={first}-{last}'})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return response.read()
+    return _range_bytes(url, first, last)[1]
 
 
 def _download_range(url, first, last, partial, attempts=200):
@@ -277,7 +299,7 @@ def _download_range(url, first, last, partial, attempts=200):
                 for block in iter(lambda: response.read(1 << 20), b''):
                     out.write(block)
         except (OSError, http.client.HTTPException) as exc:
-            if isinstance(exc, urllib.error.HTTPError) and _permanent(exc) or attempt == attempts - 1:
+            if _give_up(exc, attempt, attempts):
                 raise
             time.sleep(min(3 * (attempt + 1), 30))
 
@@ -607,6 +629,11 @@ def _syntheseus_tree(graph, node, chosen):
     return item
 
 
+# RetroChimera defaults to one rule process per CPU; under spawn (Windows, macOS) each holds its own rulebase,
+# which on a many-core machine leaves too little memory for the 4.5 GB template checkpoint.
+RULE_PROCESSES = min(os.cpu_count() or 1, 4)
+
+
 def _retrochimera(params, data_dir, spec):
     from syntheseus.interface.molecule import Molecule
     smiles = params['smiles']
@@ -621,7 +648,7 @@ def _retrochimera(params, data_dir, spec):
             return {'steps': 'multi', 'target': smiles, 'solved': True, 'target_in_stock': True, 'top_score': None,
                     'routes': []}
     from retrochimera import RetroChimeraModel
-    model = RetroChimeraModel(model_dir=data_dir, device='cpu')
+    model = RetroChimeraModel(model_dir=data_dir, device='cpu', template_localization={'num_processes': RULE_PROCESSES})
     if single:
         reactions = model([Molecule(smiles)], num_results=count)[0]
         return {'steps': 'single', 'target': smiles, 'options': [{

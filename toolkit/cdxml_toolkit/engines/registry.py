@@ -157,7 +157,7 @@ ENGINES = {
                          'pandas', 'networkx', 'setuptools<81', 'retrochimera==1.3.0', 'syntheseus==0.9.0'],
         'data': 'retrochimera-pistachio',
         'zip_members': {
-            'url': 'https://ndownloader.figshare.com/files/59468882',
+            'url': 'https://api.figshare.com/v2/file/download/59468882',
             'members': [
                 {'match': ['models.json'], 'path': 'models.json', 'sha256': 'f9d5e152b7fb4713bf5df802aa6f5ddd1141adce164ca404965bd620a79e68ac'},
                 {'match': ['template_localization/combined.ckpt'], 'path': 'template_localization/combined.ckpt',
