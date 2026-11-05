@@ -114,9 +114,7 @@ def _run_one(engine: str, smiles: str, solvent: str, nuclei: list, timeout: int)
     env._LAST_CALL_META.set(None)
     raw = env.call(engine, 'predict', {'smiles': smiles, 'solvent': solvent, 'nuclei': nuclei}, timeout=timeout)
     meta = env.last_call_meta(engine)
-    accel_meta = env.last_accel_meta(engine)
     return {'engine': engine, 'raw': raw, 'device': meta['device'],
-            **({'accel': accel_meta} if accel_meta else {}),
             **({'device_fallback': True} if meta.get('device_fallback') else {})}
 
 
@@ -197,18 +195,14 @@ def predict(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequ
         return envelope.result('nmr', first, ENGINES[first], [], peaks=by_engine[first],
                                atoms=raws[first].get('atoms', []),
                                geometry=raws[first].get('geometry'), device=one['device'],
-                               **({'accel': one['accel']} if one.get('accel') else {}),
                                **({'device_fallback': True} if one.get('device_fallback') else {}), **common)
     devs = list(dict.fromkeys(r['device'] for r in runs if r.get('device')))
     any_fallback = any(r.get('device_fallback') for r in runs)
-    accels = [r['accel'] for r in runs if isinstance(r.get('accel'), dict)]
     out = envelope.result('nmr', ','.join(names), {'kind': 'local', 'license': 'see each engine'}, [],
                           device=devs[0] if len(devs) == 1 else 'mixed',
-                          **({'accel': accels[0]} if accels else {}),
                           **({'device_fallback': True} if any_fallback else {}),
                           engines=[{'engine': r['engine'], 'license': ENGINES[r['engine']].get('license'),
                                     'device': r['device'],
-                                    **({'accel': r['accel']} if r.get('accel') else {}),
                                     **({'device_fallback': True} if r.get('device_fallback') else {}),
                                     'peaks': by_engine[r['engine']],
                                     'atoms': raws[r['engine']].get('atoms', []),
@@ -274,12 +268,13 @@ def _normalize_predicted_groups(
     need_13c: bool,
     solvent: str,
     engines: Iterable[str],
-) -> dict[str, list[dict[str, Any]]]:
-    """Extract {'1H': [...], '13C': [...]} topological peak groups from predicted_result or engine call."""
+) -> tuple[dict[str, list[dict[str, Any]]], str]:
+    """Peak groups ``{'1H': [...], '13C': [...]}`` and where they came from: ``'supplied'`` (predicted_result),
+    ``'engine'`` (a prediction run here) or ``'heuristic'`` (no engine answered: a crude topology estimate)."""
     if predicted_result is not None:
         if 'atoms' in predicted_result and isinstance(predicted_result['atoms'], list) and 'peaks' not in predicted_result:
             atoms = predicted_result['atoms']
-            return {'1H': _peaks(atoms, '1H'), '13C': _peaks(atoms, '13C')}
+            return {'1H': _peaks(atoms, '1H'), '13C': _peaks(atoms, '13C')}, 'supplied'
         peaks_container = predicted_result.get('peaks', predicted_result)
         if isinstance(peaks_container, dict):
             out: dict[str, list[dict[str, Any]]] = {'1H': [], '13C': []}
@@ -309,7 +304,7 @@ def _normalize_predicted_groups(
                                 **({'shift_std': item['shift_std']} if 'shift_std' in item else {}),
                             })
             if out['1H'] or out['13C']:
-                return out
+                return out, 'supplied'
 
     nuc_arg = 'both' if (need_1h and need_13c) else ('13C' if need_13c and not need_1h else '1H')
     eng_str = ','.join(engines) if not isinstance(engines, str) else engines
@@ -319,10 +314,10 @@ def _normalize_predicted_groups(
             return {
                 '1H': list(res['peaks'].get('1H', [])),
                 '13C': list(res['peaks'].get('13C', [])),
-            }
+            }, 'engine'
     except Exception:
         pass
-    return _heuristic_topological_groups(smiles)
+    return _heuristic_topological_groups(smiles), 'heuristic'
 
 
 def _match_nucleus_hungarian(
@@ -416,7 +411,7 @@ def compare_shifts(
         raise ValueError(f'smiles is not valid: {smiles!r}')
     canonical = Chem.MolToSmiles(mol)
 
-    groups = _normalize_predicted_groups(
+    groups, source = _normalize_predicted_groups(
         canonical,
         predicted_result,
         need_1h=bool(experimental_1h),
@@ -434,6 +429,7 @@ def compare_shifts(
 
     return {
         'kind': 'model_assisted_candidate_assignment',
+        'prediction_source': source,
         'smiles': canonical,
         'solvent': solvent,
         'matches_1h': matches_1h,
@@ -443,5 +439,7 @@ def compare_shifts(
         'max_error_1h': max_err_1h,
         'max_error_13c': max_err_13c,
         'outliers': out_1h + out_13c,
-        'warning': 'Model-assisted candidate assignment only; verify with 2D NMR (COSY/HSQC/HMBC).',
+        'warning': 'Model-assisted candidate assignment only; verify with 2D NMR (COSY/HSQC/HMBC).'
+                   + ('' if source != 'heuristic' else ' No prediction engine answered: the shifts are a crude '
+                      'topology estimate, not a model prediction (install one with `cdx.py install-engines magnet`).'),
     }

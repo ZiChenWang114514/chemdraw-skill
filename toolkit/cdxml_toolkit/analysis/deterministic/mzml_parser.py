@@ -179,6 +179,13 @@ class LCMSPeak:
             self.spectrum = self.ms_spectra[0]
 
     @property
+    def peak_num(self) -> str:
+        """The peak label the report formatters use (same as ``ChromPeak.peak_num``)."""
+        return str(self.peak_id)
+
+    mass_found = None  # ChromPeak compatibility: an open-format file has no printed "mass found" column
+
+    @property
     def mz_values(self) -> List[float]:
         if self.spectrum is not None:
             return self.spectrum.mz_values
@@ -230,6 +237,17 @@ class LCMSAnalysis:
             self.method_path = self.method
         if not self.method_short and self.method:
             self.method_short = self.method
+
+    @property
+    def run_time(self) -> Optional[str]:
+        """Acquisition clock time, as the report formatters expect it (``None`` when the file has none)."""
+        return self.time or None
+
+    @property
+    def source_format(self) -> str:
+        """Key of the LCMS format registry (``lcms_analyzer.LCMS_FORMATS``) that reads this dataset."""
+        fmt = self.format.lower()
+        return "waters_raw" if "raw" in fmt else "mzml" if fmt.startswith("mz") else fmt
 
     @property
     def tac_peaks(self) -> List[LCMSPeak]:

@@ -13,6 +13,17 @@ Exact signatures are generated in [mcp-signatures.md](mcp-signatures.md). This f
 - Use the remote DECIMER tool (`cdx.py decimer`) by default for task images under the upload rule in SKILL.md.
 - New extended tools return `{ok, outputs, warnings, metadata}`. Existing official tools retain their upstream fields and add `metadata.artifacts`, listing the written files, after a successful write.
 
+## Overlapping tools: prefer
+
+When two tools can do the job, take the first:
+
+- Reading a structure image: `recognize_structure` (`cdx.py ocsr`, or `cdx.py decimer` for the remote engine) over `extract_structures_via_decimer_api` (the raw upload call) and `extract_structures_from_image` (upstream DECIMER segmentation and OCR; use it only to look for structures in an uncropped image). A PDF or a whole page: `extract_structures_from_document`.
+- Rendering CDXML to PNG: `render_cdxml_files` (`cdx.py render`; one ChemDraw session for many files, SVG too) over `render_to_png` (one file).
+- Drawing a figure: `draw_figure` for a reaction, route, scope panel or mechanism from a brief; `publication_figure` for a substrate-scope or SAR project kept in a folder; `compose_chemical_figure` only for exact coordinates you supply; `render_scheme` for a compact text scheme or a row-width setting.
+- Comparing molecules: `compare_molecules` for one pair, `batch_compare_molecules` for many pairs.
+- Putting drawings into Office: `embed_cdxml_in_office` for one new file with one object, `batch_embed_cdxml_in_office` for several objects or pages.
+- Reading a reaction drawing: `parse_scheme` for a CDXML scheme as ordered steps, `parse_reaction` for species, roles and SMILES (also from ELN files), `summarize_reaction` for a short view of an existing reaction JSON, `route_summary` for the overall yield and PMI of a route.
+
 ## Failures
 
 - `tool_timeout`: the isolated worker exceeded `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`; inspect input size and runtime health before retrying.

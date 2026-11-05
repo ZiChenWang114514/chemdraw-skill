@@ -84,27 +84,25 @@ Command-line registration, for example `claude mcp add --scope user cdxml-toolki
 ```text
 cdx.py tools [QUERY] [--detail summary]   list tools, timeouts and native-lock use
 cdx.py sig TOOL...                        print one or more generated signatures
-cdx.py call TOOL --json '{...}' | --args FILE [--out NEW.json] [--accel auto|on|off|simple|complex] [--task-hint TEXT]
+cdx.py call TOOL --json '{...}' | --args FILE [--out NEW.json] [--accel auto|on|off]
 cdx.py render A.cdxml [B.cdxml ...] [--out-dir DIR] [--replace]
 cdx.py build SPEC.json NEW.cdxml [--render]
 cdx.py draw BRIEF.json [OUTPUT] [--render] [--out NEW.json]   checked scheme, scope panel or mechanism from a brief
 cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--timeout S] [--out NEW.json]
-cdx.py ocsr IMAGE [--engines a,b|all] [--hand-drawn] [--preflight] [--no-upload] [--timeout S] [--out NEW.json] [--accel MODE] [--task-hint TEXT]   several OCSR engines, compared
-cdx.py predict products|retro|nmr|conditions SMILES [--products P] [--engine NAME] [--json ARGS] [--args FILE] [--out FILE] [--accel MODE] [--task-hint TEXT]   model predictions (see engines.md)
-cdx.py engines [--sizes] [--recommend NEED] [--stop-daemons]   which optional engines are installed, their disk use; what to install for a need
+cdx.py ocsr IMAGE [--engines a,b|all] [--hand-drawn] [--preflight] [--no-upload] [--timeout S] [--out NEW.json] [--accel MODE]   several OCSR engines, compared (`decimer` is `ocsr IMAGE --engines decimer-api`)
+cdx.py predict products|retro|nmr|conditions SMILES [--products P] [--engine NAME] [--json ARGS] [--args FILE] [--out FILE] [--accel MODE]   model predictions (see engines.md)
+cdx.py engines [--sizes] [--recommend NEED]   which optional engines are installed, their disk use; what to install for a need
+cdx.py stop-daemons                       end the resident engine workers that --accel started
 cdx.py install-engines NAME... [--bundle B] [--task T] [--dry-run] [--status]   optional engines, each in its own environment
 cdx.py remove-engines NAME... [--yes]     delete installed engines (dry run without --yes)
 cdx.py markush init|next|submit|status WORKDIR [TASK ANSWER.json] [--image IMG --text CLAIM --crop X0 Y0 X1 Y1 --reuse OLD]
 cdx.py office-edit DOCUMENT [--object N] [--workdir NEW_DIR] [--no-open]
 cdx.py office-edit DOCUMENT|EDIT_DIR --finish [--output NEW] [--wait S] [--pdf]
-cdx.py chemscript-info SAVED.cdxml [--timeout S]   direct ChemScript reading, under the native lock
 cdx.py calc REACTION|FILE.cdxml [--output NEW.cdxml] [--no-open]   ChemDraw's own stoichiometry grid, opened in ChemDraw
 cdx.py calc --read SAVED.cdxml            read the grid's numbers back as JSON (no ChemDraw needed)
 cdx.py install-mappers [rxnmapper] [localmapper] [--dry-run] [--status]   optional atom-mapping backends
 cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full]
 cdx.py py ARGS...                         run the runtime Python (helper scripts, -m modules, tests)
-cdx.py regen-signatures                   after a toolkit upgrade
-cdx.py regen-catalog [--check]            rewrite (or only check) the generated ChemDraw interface pages
 ```
 
 `call` prints results up to about 6 KB directly; larger results go to a new file under the temp folder's `chemdraw-cdx` directory (or `--out`) and a short summary with the path is printed. `ok` means the tool ran without error. Existing result files are never overwritten.

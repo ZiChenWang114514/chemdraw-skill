@@ -197,7 +197,6 @@ def _save_extracted_objects(
         and output_format in ("cdxml", "both")
         and _converter is not None
         and callable(getattr(_converter, "batch_convert_files", None))
-        and not hasattr(getattr(_converter, "convert_cdx_to_cdxml", None), "_mock_name")
     )
     if not can_batch:
         return [

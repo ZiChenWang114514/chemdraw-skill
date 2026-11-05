@@ -13,6 +13,7 @@ REFERENCES = SKILL_ROOT / "references"
 PROFILE_ROW = re.compile(r"^\| `(\w+)`(?: \(default\))? \| (\d+) \|", re.MULTILINE)
 TOOL_COUNT = re.compile(r"\b(\d+)[- ]tools?\b")
 SUBCOMMAND = re.compile(r"sub\.add_parser\('([a-z-]+)'")
+LISTED_SUBCOMMAND = re.compile(r"sub\.add_parser\('([a-z-]+)', help=")  # a command with no help text is hidden from --help
 
 
 class ToolCountTests(unittest.TestCase):
@@ -55,7 +56,7 @@ class ToolCountTests(unittest.TestCase):
 class CommandReferenceTests(unittest.TestCase):
     def test_every_cdx_subcommand_is_in_the_command_reference(self):
         source = (SKILL_ROOT / "scripts" / "cdx.py").read_text(encoding="utf-8")
-        names = set(SUBCOMMAND.findall(source))
+        names = set(LISTED_SUBCOMMAND.findall(source))
         self.assertGreaterEqual(len(names), 15)
         reference = (REFERENCES / "agent-integration.md").read_text(encoding="utf-8")
         block = reference.split("## Command reference", 1)[1].split("```", 2)[1]
@@ -63,6 +64,13 @@ class CommandReferenceTests(unittest.TestCase):
             line.split()[1] for line in block.splitlines() if line.startswith("cdx.py ")
         }
         self.assertEqual(sorted(names - documented), [])
+
+    def test_hidden_maintainer_commands_are_named_in_operations(self):
+        source = (SKILL_ROOT / "scripts" / "cdx.py").read_text(encoding="utf-8")
+        hidden = set(SUBCOMMAND.findall(source)) - set(LISTED_SUBCOMMAND.findall(source))
+        self.assertEqual(hidden, {"regen-signatures", "regen-catalog", "chemscript-info"})
+        operations = (REFERENCES / "operations.md").read_text(encoding="utf-8")
+        self.assertEqual([name for name in hidden if f"cdx.py {name}" not in operations], [])
 
 
 class CoverageTableTests(unittest.TestCase):
@@ -80,6 +88,53 @@ class CoverageTableTests(unittest.TestCase):
             text = (REPO / "docs" / name).read_text(encoding="utf-8")
             found = [[int(v.replace(",", "")) for v in row] for row in self.ROW.findall(text)]
             self.assertEqual(found, expected, name)
+
+
+class NamedToolTests(unittest.TestCase):
+    """A tool-like name in an agent-facing page is a real tool, command or function, never a guess."""
+
+    # Not tools: error codes, an image-review operation and a Python-only function. Each is checked below
+    # against the code that defines it, so a rename cannot leave a dead entry here.
+    ALLOWED = frozenset({
+        "recognize_batch", "map_reuse", "chemdraw_in_use", "chemdraw_not_found", "chemdraw_not_running",
+        "chemdraw_license_unavailable", "chemdraw_automation_not_authorized",
+    })
+    # Words that start tool names (besides the first word of every registered tool).
+    VERBS = frozenset({"build", "convert", "analyze", "compare", "render", "parse", "draw", "extract"})
+    GENERATED = frozenset({
+        "mcp-signatures.md", "interface-catalog.md", "interface-chemscript.md", "interface-com.md",
+        "interface-cdxml-model.md", "interface-menu.md", "recipes-chemdraw.md", "toolkit-public-inventory.md",
+    })
+    NAME = re.compile(r"`([a-z][a-z0-9]*(?:_[a-z0-9]+)+)(?=[`(])")
+
+    def pages(self):
+        generated = [p for p in REFERENCES.glob("*.md") if p.name in self.GENERATED or p.name.endswith("-interfaces.md")]
+        return [SKILL_ROOT / "SKILL.md", REPO / "README.md", REPO / "README.zh-cn.md",
+                *(p for p in sorted(REFERENCES.glob("*.md")) if p not in generated)]
+
+    def test_tool_like_names_exist(self):
+        signatures = (REFERENCES / "mcp-signatures.md").read_text(encoding="utf-8")
+        tools = set(re.findall(r"^### `(\w+)\(", signatures, re.MULTILINE))
+        self.assertGreater(len(tools), 50)
+        known = tools | set(re.findall(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b", signatures))
+        source = (SKILL_ROOT / "scripts" / "cdx.py").read_text(encoding="utf-8")
+        known |= {name.replace("-", "_") for name in SUBCOMMAND.findall(source)}
+        starts = {tool.split("_")[0] for tool in tools} | self.VERBS
+        unknown: dict[str, list[str]] = {}
+        for page in self.pages():
+            for name in self.NAME.findall(page.read_text(encoding="utf-8")):
+                if name.split("_")[0] in starts and name not in known | self.ALLOWED:
+                    unknown.setdefault(name, []).append(page.name)
+        self.assertEqual(unknown, {})
+
+    def test_the_allowlist_names_real_code(self):
+        code = "\n".join(
+            path.read_text(encoding="utf-8", errors="replace")
+            for root in (REPO / "toolkit" / "cdxml_toolkit", SKILL_ROOT / "scripts")
+            for path in root.rglob("*.py")
+        )
+        dead = [name for name in self.ALLOWED if not re.search(rf"\b{name}\b", code)]
+        self.assertEqual(dead, [])
 
 
 class SkillEntryTests(unittest.TestCase):

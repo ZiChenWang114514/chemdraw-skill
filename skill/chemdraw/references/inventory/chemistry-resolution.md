@@ -103,16 +103,16 @@
 
 ## `resolve.reagent_db`
 
-- **function**, line 306: `get_reagent_db() -> ReagentDB` - Return the shared ReagentDB singleton (loaded on first call).
+- **function**, line 313: `get_reagent_db() -> ReagentDB` - Return the shared ReagentDB singleton (loaded on first call).
 - **class**, line 55: `ReagentDB` - In-memory reagent database with two-tier lookup.
-- **method**, line 201: `ReagentDB.display_for_name(name: str) -> Optional[str]` - Return display string for a name/alias, or None if unknown.
-- **method**, line 247: `ReagentDB.display_for_smiles(smiles: str) -> Optional[str]` - Return display string for a SMILES, or None if unknown.
-- **method**, line 219: `ReagentDB.entry_for_name(name: str) -> Optional[dict]` - Return the full entry dict for a name/alias, or None.
-- **method**, line 266: `ReagentDB.entry_for_smiles(smiles: str) -> Optional[dict]` - Return the full entry dict for a SMILES, or None.
-- **method**, line 278: `ReagentDB.resolve_display(name: str) -> str` - Return the display string for *name*, or *name* itself if unknown.
-- **method**, line 211: `ReagentDB.role_for_name(name: str) -> Optional[str]` - Return role string for a name/alias, or None.
-- **method**, line 258: `ReagentDB.role_for_smiles(smiles: str) -> Optional[str]` - Return role string for a SMILES, or None.
-- **method**, line 287: `ReagentDB.smiles_role_display(smiles: str) -> Optional[Tuple[str, str]]` - Return (role, display) for a SMILES, matching the old ROLE_BY_SMILES dict interface.
+- **method**, line 208: `ReagentDB.display_for_name(name: str) -> Optional[str]` - Return display string for a name/alias, or None if unknown.
+- **method**, line 254: `ReagentDB.display_for_smiles(smiles: str) -> Optional[str]` - Return display string for a SMILES, or None if unknown.
+- **method**, line 226: `ReagentDB.entry_for_name(name: str) -> Optional[dict]` - Return the full entry dict for a name/alias, or None.
+- **method**, line 273: `ReagentDB.entry_for_smiles(smiles: str) -> Optional[dict]` - Return the full entry dict for a SMILES, or None.
+- **method**, line 285: `ReagentDB.resolve_display(name: str) -> str` - Return the display string for *name*, or *name* itself if unknown.
+- **method**, line 218: `ReagentDB.role_for_name(name: str) -> Optional[str]` - Return role string for a name/alias, or None.
+- **method**, line 265: `ReagentDB.role_for_smiles(smiles: str) -> Optional[str]` - Return role string for a SMILES, or None.
+- **method**, line 294: `ReagentDB.smiles_role_display(smiles: str) -> Optional[Tuple[str, str]]` - Return (role, display) for a SMILES, matching the old ROLE_BY_SMILES dict interface.
 
 ## `resolve.superatom_table`
 

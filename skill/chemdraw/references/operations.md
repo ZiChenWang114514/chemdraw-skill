@@ -71,7 +71,8 @@ On Windows the interpreter is `<venv>\Scripts\python.exe` (create the venv with 
 `install_runtime.py` builds from the repository's `toolkit/` folder when the Skill sits in a checkout, otherwise from the exact commit in `runtime.json`; `--toolkit-path` selects another toolkit source folder and `--print-requirement` only prints the requirement. Never upgrade the runtime unasked. After a toolkit change:
 
 ```bash
-cdx.py regen-signatures
+cdx.py regen-signatures        # maintainer command, not in `--help`: rewrite generated references after a toolkit change
+cdx.py regen-catalog --check   # maintainer command: report stale generated interface pages (without --check, rewrite them)
 cdx.py py -m pip install pytest
 cdx.py py -m pytest <skill>/tests -q
 ```
@@ -94,6 +95,9 @@ Runtime selection and workers:
 - `CHEMDRAW_EXE` — explicit ChemDraw executable (on macOS the binary inside the `.app` or the bundle; otherwise `/Applications/ChemDraw*.app` is found)
 - `OPSIN_JAR`, `CDXML_TOOLKIT_OPSIN_JAR` — explicit OPSIN JAR (otherwise the one `install.py --opsin` placed beside the shared venv)
 - `CHEMDRAW_ENGINE_HOME` — folder with one environment per optional prediction engine (default: `chemdraw-skill/engines` in the user data folder); `cdx.py engines` shows what is there ([engines](engines.md))
+- `CHEMDRAW_ENGINE_DEVICE` — `cpu` keeps every engine on the CPU, at install and at run time
+- `CHEMDRAW_ACCEL` — `auto` (default), `on` or `off`: whether engine predictions reuse a resident worker (what `--accel` sets); `CHEMDRAW_ACCEL_IDLE` — idle seconds before a resident worker exits (default 180, 5 to 3600); `cdx.py stop-daemons` ends them now ([engines](engines.md#gpu-memory-and-disk))
+- `CHEMDRAW_ENGINE_PROCESSES` — number of rule processes a RetroChimera run starts (default: one per 4 GB of free memory beyond the model's 14 GB, up to 4); setting it also skips the free-memory check
 - `CHEMDRAW_MAPPER_HOME` — folder with one environment per learned atom-mapping backend (default: `chemdraw-skill/mappers` in the user data folder, beside the shared venv); `cdx.py install-mappers --status` shows what is there
 - `CHEMDRAW_NATIVE_TEMP` — writable ASCII-only root for native staging
 - `CHEMDRAW_MCP_WORKER_TIMEOUT_SECONDS`, `CHEMDRAW_MCP_WORKER_INPUT_BYTES`, `CHEMDRAW_MCP_WORKER_OUTPUT_BYTES`

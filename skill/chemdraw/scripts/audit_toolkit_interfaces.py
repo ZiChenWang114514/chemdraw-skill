@@ -27,6 +27,12 @@ DOMAIN_REFERENCES = {
     "resolve": "toolkit-chemistry-resolution-interfaces.md",
 }
 
+# Symbols no domain guide covers are listed in the toolkit docs, not in the deployable Skill.
+EXCLUSIONS_REFERENCE = "toolkit-reviewed-exclusions.md"
+EXCLUSIONS_SHARD = "reviewed-exclusions.md"                  # its name among the rendered shards
+EXCLUSIONS_FILE = "reviewed-exclusions-inventory.md"          # where it is written, inside --docs-dir
+EXCLUSIONS_GUIDE = "toolkit/docs/reviewed-exclusions.md"
+
 ROOT_MODULE_REFERENCES = {
     "cdxml_builder": "toolkit-render-layout-interfaces.md",
     "cdxml_utils": "toolkit-render-layout-interfaces.md",
@@ -164,7 +170,7 @@ def _reference_for_module(module: str) -> str:
     first = module.split(".", 1)[0]
     if first in DOMAIN_REFERENCES:
         return DOMAIN_REFERENCES[first]
-    return ROOT_MODULE_REFERENCES.get(first, "toolkit-reviewed-exclusions.md")
+    return ROOT_MODULE_REFERENCES.get(first, EXCLUSIONS_REFERENCE)
 
 
 def render_inventory(version: str, symbols: list[dict[str, Any]]) -> str:
@@ -235,10 +241,17 @@ def render_inventory_shards(
         slug = reference.removeprefix("toolkit-").removesuffix("-interfaces.md").removesuffix(".md")
         shard_name = f"{slug}.md"
         domain_symbols = grouped[reference]
-        index_lines.append(
-            f"| [inventory/{shard_name}](inventory/{shard_name}) | "
-            f"{len(domain_symbols)} | [{reference}]({reference}) |"
-        )
+        outside = reference == EXCLUSIONS_REFERENCE
+        if outside:
+            index_lines.append(
+                f"| `toolkit/docs/{EXCLUSIONS_FILE}` (repository only) | "
+                f"{len(domain_symbols)} | `{EXCLUSIONS_GUIDE}` |"
+            )
+        else:
+            index_lines.append(
+                f"| [inventory/{shard_name}](inventory/{shard_name}) | "
+                f"{len(domain_symbols)} | [{reference}]({reference}) |"
+            )
         by_module: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for symbol in domain_symbols:
             by_module[symbol["module"]].append(symbol)
@@ -246,7 +259,7 @@ def render_inventory_shards(
             f"# {slug.replace('-', ' ').title()} Public Symbols",
             "",
             f"> Generated from cdxml-toolkit {version}. Curated guidance: "
-            f"[../{reference}](../{reference}).",
+            + (f"[{EXCLUSIONS_SHARD}]({EXCLUSIONS_SHARD})." if outside else f"[../{reference}](../{reference})."),
             "",
         ]
         for module in sorted(by_module):
@@ -274,18 +287,32 @@ def _generated_shards(shard_dir: Path) -> set[str]:
             if path.read_text(encoding="utf-8").split("\n", 1)[0].endswith("Public Symbols")}
 
 
-def _check(output_dir: Path, index: str, shards: dict[str, str]) -> int:
-    expected = {"toolkit-public-inventory.md": index, **{f"inventory/{name}": text for name, text in shards.items()}}
-    drift = [name for name, text in expected.items()
-             if not (output_dir / name).is_file() or (output_dir / name).read_text(encoding="utf-8") != text]
+def _targets(output_dir: Path, docs_dir: Path | None, index: str, shards: dict[str, str]) -> dict[Path, str]:
+    """Every file this script owns: the index and shards in the Skill, the exclusions shard in the docs."""
+    files = {output_dir / "toolkit-public-inventory.md": index}
+    for name, text in shards.items():
+        if name == EXCLUSIONS_SHARD:
+            if docs_dir is not None:
+                files[docs_dir / EXCLUSIONS_FILE] = text
+        else:
+            files[output_dir / "inventory" / name] = text
+    return files
+
+
+def _check(output_dir: Path, docs_dir: Path | None, index: str, shards: dict[str, str]) -> int:
+    expected = _targets(output_dir, docs_dir, index, shards)
+    drift = [str(path.relative_to(path.parent.parent)) for path, text in expected.items()
+             if not path.is_file() or path.read_text(encoding="utf-8") != text]
     shard_dir = output_dir / "inventory"
-    drift += [f"inventory/{name} (stale)" for name in sorted(_generated_shards(shard_dir) - set(shards))] \
-        if shard_dir.is_dir() else []
+    kept = {path.name for path in expected if path.parent == shard_dir}
+    if shard_dir.is_dir():
+        drift += [f"inventory/{name} (stale)" for name in sorted(_generated_shards(shard_dir) - kept)]
     for name in drift:
         print(f"out of date: {name}")
     if drift:
         print("Regenerate with: python skill/chemdraw/scripts/cdx.py py "
-              "skill/chemdraw/scripts/audit_toolkit_interfaces.py --output-dir skill/chemdraw/references")
+              "skill/chemdraw/scripts/audit_toolkit_interfaces.py --output-dir skill/chemdraw/references "
+              "--docs-dir toolkit/docs")
     return 1 if drift else 0
 
 
@@ -294,6 +321,9 @@ def main() -> int:
     parser.add_argument("--package-root", type=Path, default=None)
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument("--docs-dir", type=Path, default=None,
+                        help="with --output-dir: where the shard of unclassified symbols goes (toolkit/docs); "
+                             "without it that shard is neither written nor checked")
     parser.add_argument("--version", default=None)
     parser.add_argument("--check", action="store_true",
                         help="with --output-dir: report generated pages that differ, write nothing, exit 1 on drift")
@@ -309,22 +339,24 @@ def main() -> int:
         parser.error("--check needs --output-dir")
     symbols = scan_package(package_root)
     if args.check:
-        return _check(args.output_dir.resolve(), *render_inventory_shards(version, symbols))
+        docs_dir = args.docs_dir.resolve() if args.docs_dir else None
+        return _check(args.output_dir.resolve(), docs_dir, *render_inventory_shards(version, symbols))
     if args.output_dir:
         output_dir = args.output_dir.resolve()
         shard_dir = output_dir / "inventory"
         shard_dir.mkdir(parents=True, exist_ok=True)
         index, shards = render_inventory_shards(version, symbols)
-        index_path = output_dir / "toolkit-public-inventory.md"
-        index_path.write_text(index, encoding="utf-8", newline="\n")
-        expected = set(shards)
+        docs_dir = args.docs_dir.resolve() if args.docs_dir else None
+        files = _targets(output_dir, docs_dir, index, shards)
+        kept = {path.name for path in files if path.parent == shard_dir}
         for stale in shard_dir.glob("*.md"):
             # Only shards this script wrote; the ChemDraw catalog pages share the folder.
-            if stale.name not in expected and stale.read_text(encoding="utf-8").split("\n", 1)[0].endswith("Public Symbols"):
+            if stale.name not in kept and stale.read_text(encoding="utf-8").split("\n", 1)[0].endswith("Public Symbols"):
                 stale.unlink()
-        for name, content in shards.items():
-            (shard_dir / name).write_text(content, encoding="utf-8", newline="\n")
-        print(f"Wrote {index_path} and {len(shards)} domain shards")
+        for path, text in files.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8", newline="\n")
+        print(f"Wrote {len(files)} inventory files ({len(shards)} domain shards)")
     if args.output:
         inventory = render_inventory(version, symbols)
         args.output.parent.mkdir(parents=True, exist_ok=True)

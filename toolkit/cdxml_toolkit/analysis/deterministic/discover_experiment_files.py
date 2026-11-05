@@ -4,7 +4,8 @@ Experiment File Discovery Tool
 
 Discovers and classifies all files for a chemistry experiment: ELN CSV,
 CDX/RXN structure files, LCMS reports (Waters PDF, OpenLynx .rpt, Shimadzu
-.daml, and Agilent ChemStation report.txt / .D folders), and NMR PDFs.
+.daml, Agilent ChemStation report.txt / .D folders, mzML / mzXML and Waters .raw
+folders), and NMR PDFs.
 
 Handles two directory layouts:
   1. input_dir IS the experiment directory (contains .csv directly)
@@ -24,7 +25,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Tuple
 
-from ..lcms_analyzer import extract_all_text, is_rpt_path, is_waters_report
+from ..lcms_analyzer import LCMS_FILE_SUFFIXES, extract_all_text, is_waters_report, lcms_format
 from .lcms_file_categorizer import (
     categorize_lcms_file, categorize_lcms_files_batch,
 )
@@ -101,6 +102,26 @@ def _find_files_matching(directory: str, experiment_name: str,
     return sorted(matches)
 
 
+def _experiment_dirs(directory: str, experiment_name: str, suffix: str,
+                     allow_any_in_dir: bool = False) -> List[str]:
+    """Names of the ``*<suffix>`` folders in *directory* that belong to the experiment (all, if allowed)."""
+    if not os.path.isdir(directory):
+        return []
+    prefix = experiment_name.lower()
+    found: List[str] = []
+    for entry in sorted(os.listdir(directory)):
+        if not entry.lower().endswith(suffix) or not os.path.isdir(os.path.join(directory, entry)):
+            continue
+        if not allow_any_in_dir:
+            if not entry.lower().startswith(prefix):
+                continue
+            remainder = entry[len(experiment_name):]
+            if remainder and remainder[0] not in ('-', '_', '.', ' '):
+                continue
+        found.append(entry)
+    return found
+
+
 def _find_agilent_d_reports(directory: str, experiment_name: str,
                             allow_any_in_dir: bool = False) -> List[Tuple[str, str]]:
     """Find ``report.txt`` files inside Agilent ``.D`` directories in *directory*.
@@ -108,25 +129,11 @@ def _find_agilent_d_reports(directory: str, experiment_name: str,
     Returns ``[(report_txt_path, d_dir_basename), ...]`` for ``.D`` folders
     whose ``report.txt`` passes ``is_agilent_report_txt``.
     """
-    if not os.path.isdir(directory):
-        return []
     from ..agilent_txt import is_agilent_report_txt
 
-    prefix = experiment_name.lower()
     found: List[Tuple[str, str]] = []
-    for entry in sorted(os.listdir(directory)):
-        if not entry.lower().endswith('.d'):
-            continue
+    for entry in _experiment_dirs(directory, experiment_name, '.d', allow_any_in_dir):
         d_path = os.path.join(directory, entry)
-        if not os.path.isdir(d_path):
-            continue
-        if not allow_any_in_dir:
-            el = entry.lower()
-            if not el.startswith(prefix):
-                continue
-            remainder = entry[len(experiment_name):]
-            if remainder and remainder[0] not in ('-', '_', '.', ' '):
-                continue
         try:
             sub_entries = os.listdir(d_path)
         except OSError:
@@ -141,6 +148,14 @@ def _find_agilent_d_reports(directory: str, experiment_name: str,
         if is_agilent_report_txt(report_path):
             found.append((report_path, entry))
     return found
+
+
+def _find_waters_raw_dirs(directory: str, experiment_name: str,
+                          allow_any_in_dir: bool = False) -> List[Tuple[str, str]]:
+    """Find Waters ``.raw`` folders (those with a ``_HEADER.TXT``) in *directory*: ``[(path, name), ...]``."""
+    return [(os.path.join(directory, entry), entry)
+            for entry in _experiment_dirs(directory, experiment_name, '.raw', allow_any_in_dir)
+            if is_waters_report(os.path.join(directory, entry))]
 
 
 def _pdf_contains_nmr_data(pdf_path: str) -> bool:
@@ -240,7 +255,7 @@ def discover_experiment_files(
         if f not in result.rxn_files:
             result.rxn_files.append(f)
 
-    # --- LCMS reports (.pdf, .rpt, .daml, .txt, and .D/report.txt) ---
+    # --- LCMS reports (every registered format: files, Agilent .D/report.txt, Waters .raw folders) ---
     # Search LCMS files dir, experiment dir, input_dir, parent dir
     # NOT DATA directory (DATA is for NMR)
     lcms_dirs = [
@@ -266,7 +281,7 @@ def discover_experiment_files(
     seen_paths = set()
     lcms_candidates = []  # (path, filename) — collect all first, then batch
 
-    lcms_exts = ('.pdf', '.rpt', '.daml', '.txt')
+    lcms_exts = tuple(ext for ext in LCMS_FILE_SUFFIXES if ext != '.raw')  # .raw is a folder, found below
     for d in lcms_dirs:
         for f in _find_files_matching(d, experiment_name, lcms_exts):
             abs_f = os.path.abspath(f).lower()
@@ -279,7 +294,7 @@ def discover_experiment_files(
             # non-DAML .daml files without invoking pdfplumber on text/XML.
             if not is_waters_report(f):
                 continue
-            if is_rpt_path(f):
+            if lcms_format(f) is not None and lcms_format(f).multi_sample:
                 # The tracking pipeline takes one sample per file; a batch
                 # export goes through parse_analysis_file / analyze_lcms_series.
                 from ..openlynx_rpt import count_rpt_samples
@@ -295,8 +310,9 @@ def discover_experiment_files(
             lcms_candidates.append((f, os.path.basename(f)))
 
         allow_any_d = os.path.abspath(d) in dedicated_exp_dirs
-        for report_path, d_name in _find_agilent_d_reports(
-            d, experiment_name, allow_any_in_dir=allow_any_d
+        for report_path, d_name in (
+            *_find_agilent_d_reports(d, experiment_name, allow_any_in_dir=allow_any_d),
+            *_find_waters_raw_dirs(d, experiment_name, allow_any_in_dir=allow_any_d),
         ):
             abs_r = os.path.abspath(report_path).lower()
             d_key = d_name.lower()

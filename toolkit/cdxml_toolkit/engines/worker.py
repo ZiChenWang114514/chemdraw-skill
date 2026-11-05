@@ -1319,6 +1319,45 @@ ENGINES = {'molscribe': _molscribe, 'molnextr': _molnextr, 'molparser': _molpars
            'retrochimera': _retrochimera, 'nmrnet-pp': _nmrnet_pp, 'reacon': _reacon}
 
 
+CONN_IO_TIMEOUT = 10.0  # seconds a daemon waits for a client's request line and for the client to take its reply
+
+
+def _serve_connection(conn, token):
+    """Answer one request line on ``conn``; False once the daemon should stop."""
+    with conn:
+        conn.settimeout(CONN_IO_TIMEOUT)  # a client that connects and sends nothing must not block the loop
+        try:
+            line = conn.makefile('r', encoding='utf-8', errors='replace').readline()
+            if not line:
+                return True
+            msg = json.loads(line)
+        except Exception as exc:
+            conn.sendall((json.dumps({'ok': False, 'error': f'bad request: {exc}'}) + '\n').encode('utf-8'))
+            return True
+        if msg.get('token') != token:
+            conn.sendall((json.dumps({'ok': False, 'error': 'unauthorized'}) + '\n').encode('utf-8'))
+            return True
+        cmd = msg.get('cmd')
+        if cmd == 'ping':
+            conn.sendall((json.dumps({'ok': True, 'pid': os.getpid()}) + '\n').encode('utf-8'))
+        elif cmd == 'shutdown':
+            conn.sendall((json.dumps({'ok': True}) + '\n').encode('utf-8'))
+            return False
+        elif cmd == 'run':
+            try:
+                request = msg['request']
+                engine, action = request['engine'], request['action']
+                if action == 'predict' and engine in ENGINES:
+                    result = ENGINES[engine](request.get('params') or {}, request['data_dir'], request.get('spec') or {})
+                    payload = {'ok': True, 'engine': engine, 'device': _used_device(engine), 'result': result}
+                else:
+                    raise ValueError(f'unknown daemon engine action {engine!r} {action!r}')
+            except BaseException as exc:
+                payload = {'ok': False, 'error': f'{type(exc).__name__}: {exc}'}
+            conn.sendall((json.dumps(payload) + '\n').encode('utf-8'))
+    return True
+
+
 def _serve_daemon(argv):
     """Run an idle-timeout loopback JSON-RPC server in this engine's interpreter (`--daemon`)."""
     import argparse
@@ -1364,40 +1403,11 @@ def _serve_daemon(argv):
                 conn, _ = srv.accept()
             except socket.timeout:
                 break
-            with conn:
-                try:
-                    line = conn.makefile('r', encoding='utf-8', errors='replace').readline()
-                    if not line:
-                        continue
-                    msg = json.loads(line)
-                except Exception as exc:
-                    conn.sendall((json.dumps({'ok': False, 'error': f'bad request: {exc}'}) + '\n').encode('utf-8'))
-                    continue
-                if msg.get('token') != token:
-                    conn.sendall((json.dumps({'ok': False, 'error': 'unauthorized'}) + '\n').encode('utf-8'))
-                    continue
-                cmd = msg.get('cmd')
-                if cmd == 'ping':
-                    conn.sendall((json.dumps({'ok': True, 'pid': os.getpid()}) + '\n').encode('utf-8'))
-                elif cmd == 'shutdown':
-                    conn.sendall((json.dumps({'ok': True}) + '\n').encode('utf-8'))
+            try:
+                if not _serve_connection(conn, token):
                     break
-                elif cmd == 'run':
-                    try:
-                        request = msg['request']
-                        engine, action = request['engine'], request['action']
-                        if action == 'predict' and engine in ENGINES:
-                            result = ENGINES[engine](
-                                request.get('params') or {},
-                                request['data_dir'],
-                                request.get('spec') or {},
-                            )
-                            payload = {'ok': True, 'engine': engine, 'device': _used_device(engine), 'result': result}
-                        else:
-                            raise ValueError(f'unknown daemon engine action {engine!r} {action!r}')
-                    except BaseException as exc:
-                        payload = {'ok': False, 'error': f'{type(exc).__name__}: {exc}'}
-                    conn.sendall((json.dumps(payload) + '\n').encode('utf-8'))
+            except OSError:  # the client gave up (a busy daemon's late ping): keep serving
+                pass
     finally:
         try:
             state_path.unlink(missing_ok=True)

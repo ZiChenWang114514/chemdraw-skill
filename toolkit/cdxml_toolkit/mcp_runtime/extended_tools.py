@@ -1144,6 +1144,16 @@ def discover_experiment_files(
     return payload
 
 
+def _lcms_source(path: str) -> Path:
+    """An LCMS input: a file of a registered format, or a Waters ``.raw`` folder."""
+    from cdxml_toolkit.analysis.lcms_analyzer import LCMS_FILE_SUFFIXES
+
+    candidate = Path(path).expanduser().resolve()
+    if candidate.is_dir() and candidate.suffix.lower() == ".raw":
+        return candidate
+    return _source(path, suffixes=LCMS_FILE_SUFFIXES)
+
+
 def analyze_lcms_series(
     files: list[str],
     output_path: Optional[str] = None,
@@ -1151,18 +1161,21 @@ def analyze_lcms_series(
     mz_tolerance: float = 0.5,
     trend_threshold: float = 0.2,
     ignore_instrument: bool = False,
+    internal_standard_mw: Optional[float] = None,
+    internal_standard_rt: Optional[float] = None,
 ) -> dict[str, Any]:
-    """Analyze a time series of standard LCMS reports (PDF, .rpt, .daml, or report.txt).
+    """Analyze a time series of standard LCMS data (PDF, .rpt, .daml, report.txt, mzML/mzXML or Waters .raw).
 
-    Every PDF, Shimadzu .daml, or Agilent report.txt is one timepoint; every
-    sample inside an OpenLynx .rpt is one timepoint, so one multi-sample .rpt is
-    enough.
+    Every PDF, Shimadzu .daml, Agilent report.txt, mzML/mzXML file or Waters .raw folder is one timepoint;
+    every sample inside an OpenLynx .rpt is one timepoint, so one multi-sample .rpt is enough.
+    ``internal_standard_mw`` (exact mass) and/or ``internal_standard_rt`` (minutes) name an internal standard:
+    each species is then also reported relative to it.
     """
     if not files:
         raise ValueError("analyze_lcms_series requires at least two files")
     if min(rt_tolerance, mz_tolerance, trend_threshold) <= 0:
         raise ValueError("LCMS tolerances and trend_threshold must be positive")
-    sources = [_source(path, suffixes=(".pdf", ".rpt", ".daml", ".txt")) for path in files]
+    sources = [_lcms_source(path) for path in files]
     if len(files) < 2:
         only = sources[0]
         from cdxml_toolkit.analysis.openlynx_rpt import count_rpt_samples
@@ -1188,6 +1201,10 @@ def analyze_lcms_series(
         ]
         if ignore_instrument:
             argv.append("--ignore-instrument")
+        for flag, value in (("--internal-standard-mw", internal_standard_mw),
+                            ("--internal-standard-rt", internal_standard_rt)):
+            if value is not None:
+                argv.extend([flag, str(value)])
         stderr = io.StringIO()
         captured_stdout = io.TextIOWrapper(io.BytesIO(), encoding="utf-8")
         try:

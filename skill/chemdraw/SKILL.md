@@ -40,10 +40,8 @@ Write `tool(arg=value)` calls as `cdx.py call tool --args args.json` (`--json '{
 | --- | --- |
 | Exam, lecture or paper drawings in ACS 1996 style (C10H21, Chinese notes, compound codes) | [ACS 1996 drawings](references/acs1996-drawings.md) |
 | New scheme, route, scope panel or curved-arrow mechanism drawn and checked in one call | [Scheme drawing](references/scheme-drawing.md) (`cdx.py draw`) |
-| Publication image or reaction screenshot (prefer supplied native objects over OCSR) | [Image reconstruction](references/image-visual-review.md) |
+| Publication image or reaction screenshot (prefer supplied native objects over OCSR); many structures, subagents, repeated local repairs | [Image reconstruction](references/image-visual-review.md) |
 | Multi-engine OCSR, PDF structure extraction, product/retrosynthesis/condition/NMR predictions | [Prediction engines](references/engines.md) |
-| Small-context models, result files, local task packets | [Efficient reconstruction](references/efficient-reconstruction.md) |
-| Repeated local repairs, candidate caching, dual-variant delivery | [Incremental reconstruction](references/incremental-reconstruction.md) |
 | Molecule drawing, modification, comparison, reaction editing | Matching section in [workflow router](references/workflow-router.md) |
 | Exact coordinates, native template edits, arrows, crossings | [Figure manifest](references/publication-figures.md) |
 | Reader stereo disagreement, native-save H loss | [Stereo diagnosis](references/stereo-reconstruction.md) |

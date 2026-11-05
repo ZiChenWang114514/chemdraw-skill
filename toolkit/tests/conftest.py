@@ -95,3 +95,9 @@ def lcms_dir():
 def python_exe():
     """Path to the Python interpreter running the tests."""
     return sys.executable
+
+
+@pytest.fixture(autouse=True)
+def _no_resident_engine_daemons(monkeypatch):
+    """Engine calls stay one-shot unless a test turns ``CHEMDRAW_ACCEL`` on itself."""
+    monkeypatch.setenv("CHEMDRAW_ACCEL", "off")

@@ -154,3 +154,30 @@ def test_an_existing_output_file_is_refused_before_the_engine_runs(tmp_path, mon
     with pytest.raises(ValueError, match='exists'):
         predict_nmr('CCO', 'both', output_path=str(tmp_path / 'spectrum.csv'))
     assert (tmp_path / 'spectrum-13C.csv').read_text() == 'keep'
+
+
+def test_experimental_peaks_turn_a_prediction_into_a_peak_assignment(engine):
+    answer = predict_nmr('CCO', '1H', 'CDCl3', experimental_1h=[3.69, 2.35, 1.25], experimental_13c=[58.4, 18.2])
+    assert set(answer['peaks']) == {'1H', '13C'}  # the nuclei with experimental peaks are predicted, whatever `nucleus` says
+    comparison = answer['experimental_comparison']
+    assert comparison['kind'] == 'model_assisted_candidate_assignment'
+    assert comparison['prediction_source'] == 'supplied'  # the prediction made by this very call
+    pairs = {(m['predicted_shift'], m['experimental_shift']) for m in comparison['matches_1h']}
+    assert pairs == {(3.72, 3.69), (2.4, 2.35), (1.2, 1.25)}
+    assert comparison['mae_1h'] == pytest.approx(0.0433, abs=1e-4)
+    assert comparison['mae_13c'] == pytest.approx(0.3, abs=1e-4)
+    assert comparison['outliers'] == []
+    assert answer['provenance'] == 'model_prediction'  # still a prediction, never measured data
+
+
+def test_a_wrong_peak_is_flagged_as_an_outlier_and_the_engine_is_asked_for_the_experimental_nuclei(engine):
+    answer = predict_nmr('CCO', experimental_13c=[58.4, 30.0])
+    assert engine['params']['nuclei'] == ['13C']
+    assert [m['atoms'] for m in answer['experimental_comparison']['outliers']] and \
+        answer['experimental_comparison']['outliers'][0]['experimental_shift'] == 30.0
+
+
+def test_comparison_needs_one_engine_and_no_experimental_peaks_means_no_comparison(engine):
+    with pytest.raises(ValueError, match='one engine'):
+        predict_nmr('CCO', engine='magnet,nmrnet-pp', experimental_1h=[1.2])
+    assert 'experimental_comparison' not in predict_nmr('CCO')

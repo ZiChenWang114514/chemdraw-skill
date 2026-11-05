@@ -64,6 +64,46 @@ Keep the condition wording and order, structure labels and yield scope ("70% (3 
 
 Deliver the editable CDXML and the preview, plus any open questions. For bridges, charge symbols or stereo-sensitive edits, also run [saved-file validation](figure-validation.md).
 
+## Many structures, subagents and small contexts
+
+The main agent reads the whole source and keeps arrows, conditions, numbering and shared definitions; complete structures, salts and shared fragments stay together in one crop.
+
+1. Crop with `image_review_workspace.py prepare` (step 2). Look at each crop against the full image: automatic cropping is not segmentation.
+2. Optional packets: `cdx.py py <skill>/scripts/reconstruction_packets.py CROPS/manifest.json NEW_PACKETS_DIR [--config CONFIG_JSON]` gives each structure its crop, coordinate map, the context it needs and its own output folder, and proposes batches in `dispatch.json` (it launches nothing). Config keys: `parallel` (true only when the user asked for parallel work), `max_subagents`, `structures_per_task`, `max_ocsr_requests`, `max_native_workers`, `max_structure_retries`, `host_capacity`, `supports_subagents`, and `context` (region ID to only the definitions and style that structure needs).
+3. Per crop: recognize, correct connectivity and charges, check stereobonds and crossings locally (a broken line at a crossing may be an occluded single bond), render natively and look. Return the output path to the main agent, not long SMILES, XML or logs; anything ambiguous goes back to the main agent.
+4. The main agent checks every component and the whole figure and assembles them with the figure operations. If native object relationships cannot be kept, deliver separate components and say so.
+
+When authorized to run a queue, track each structure as pending, working, submitted, needs_review, failed or accepted. A subagent writes only into its own folder, and a late or duplicate result never replaces an accepted one. After an interruption rerun only missing or changed regions. Limit OCSR requests separately from agent count and follow the [DECIMER retry rule](decimer-api.md#diagnosing-failed-requests); native work is serialized by the ChemDraw lock however many agents run. An agent without vision cannot judge image agreement, and a model is not upgraded after a failure. Reuse a cached recognition only when the crop, scale and parameters are unchanged; a changed shared definition invalidates the structures that use it.
+
+## Repeated structures and local repairs
+
+For a figure with repeated structures or many local corrections, a controller keeps linked records, caches recognition candidates, works out which fragments a change affects and gates delivery on an explicit review. It does not infer unknown chemistry. Prefer supplied CDXML/CDX or native Office objects (convert CDX first with `convert_cdx_cdxml`) and probe the hard cases early (bridged stereo, N-H/O-H abbreviations, charged nitrogen) before propagating a template. Embed X-ray panels as images.
+
+```bash
+cdx.py py -m cdxml_toolkit.mcp_runtime.reconstruction --arguments operation.json
+```
+
+Each JSON object has `operation` and the arguments below. `result_path` (a new file for the full record) is **required** for `capture`, `plan`, `target`, `attempt`, `benchmark`, `map_reuse` and `finalize`, optional for the rest; existing files are never overwritten. Example: `{"operation": "capture", "cdxml": "<abs>/reviewed.cdxml", "source_image": "<abs>/source.png", "transform": {"scale": [2, 2], "offset": [0, 0]}, "context": {"Ar": "PMP"}, "result_path": "<abs>/snapshot-1.json"}`; `transform` maps native coordinates to source pixels (measured, or omitted).
+
+| Operation | Arguments | Behavior |
+| --- | --- | --- |
+| `capture` | `cdxml`, `source_image`, optional `transform`, `context`, `versions` | Snapshot of native objects, coordinates and molecule inventory. |
+| `compile` | `template`, `output_path`, `edits` | Replay a native tree through the figure composer; empty edits copy the bytes. |
+| `plan` | `before`, `after` snapshots | List the objects and fragments a change affects. Source, context or transform changes affect everything. |
+| `local` | `snapshot`, `plan`, `output_dir`; optional `native`, `cross_reader` (default true) | Check only the scheduled fragments. |
+| `map_reuse` | `reference`, `candidate` CDXML | Require a unique full graph mapping and show stereo differences. Does not copy stereo or coordinates. |
+| `cache` | `action` store/load, `root`, `spec`, optional `artifact`, `kind` | Store or load recognition/intermediate files keyed by their inputs. |
+| `attempt` | `previous` (or null), `issue_id`, `passed`, `difference`, `artifact_sha256` | Repair history; after two failures the issue becomes needs_review. |
+| `overlay` | `source`, `candidate`, `output_dir`, integer `offset` | Same-scale ink overlay with MAE and IoU. Never resizes. |
+| `target` | `molecules` (label/smiles), `provenance`, `reviewed: true` | Freeze the reviewed target structures. |
+| `verify_variants` | `source_cdxml`, `compatible_cdxml`, `target_record`, `output_dir` | Native save, readback and preview of both variants against the target. |
+| `finalize` | `package_dir`, `review_record` | Emit the delivery manifest after review. |
+| `benchmark` | `baseline`, `candidate` | Compare timings for the same fixture and versions. |
+
+A cache `spec` contains `source_image`, `crop`, `definitions`, `parameters`, `versions` and `transform`; any change is a miss, and a hit is still a candidate that needs review. Font and run styling need only visual review; changes to atom coordinates, bond display or order, hydrogens, charges or label meaning schedule chemical checks, and a shared-definition text change re-checks the whole inventory. Apply chemical corrections with `modify_molecule` or `rdkit_workbench`, then `capture` again. Nothing flips wedges or fills CIP labels automatically.
+
+**Two variants.** Keep the source-oriented drawing. A compatibility variant may change only stereobond depiction against the same target, with the visual changes listed. `verify_variants` requires the source variant's ChemScript reading to match the target (RDKit disagreement is reported) and the compatible variant to match in both readers. Then look at both previews and the overlays against the source, including compound numbers, conditions and yields. `review_record` holds `reviewer`, `verification_sha256`, `source_image`, `source_sha256` and `variants.source` / `variants.compatible`, each with `graph_checked`, `stereo_checked`, `text_checked`, `whole_figure_checked`, `preview_sha256`, `status` (`reviewed` or `reviewed_with_differences`) and `differences`; fill the booleans only after actually looking, and take the hashes from the `verify_variants` result. Failed attempts keep their folders; retry into a new folder, and never run several native workers to get past the lock.
+
 ## Common issues
 
 | Issue | Approach |

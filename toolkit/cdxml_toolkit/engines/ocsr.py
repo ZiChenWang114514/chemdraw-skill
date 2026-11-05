@@ -77,9 +77,6 @@ def _assemble_report(image: str, entries: list[dict], names: list[str], *,
         top_extra['device'] = devs[0] if len(devs) == 1 else 'mixed'
     if any(e.get('device_fallback') for e in entries):
         top_extra['device_fallback'] = True
-    accels = [e['accel'] for e in entries if isinstance(e.get('accel'), dict)]
-    if accels:
-        top_extra['accel'] = accels[0]
     return {'ok': any(e['ok'] for e in entries), 'task': 'ocsr', 'provenance': envelope.PROVENANCE, 'image': image,
             **top_extra, 'engines': entries, 'comparison': consensus.compare(entries, expected_formula=expected_formula),
             'warnings': warnings}
@@ -105,10 +102,7 @@ def recognize(image_path: str, engines='decimer-api', hand_drawn: bool = False, 
             try:
                 structures = _local(name, image, hand_drawn, timeout_seconds)
                 meta = {'device': 'cpu', 'device_fallback': False} if name == 'molvec' else env.last_call_meta(name)
-                accel_meta = None if name == 'molvec' else env.last_accel_meta(name)
                 extra = {'device': meta['device']}
-                if accel_meta:
-                    extra['accel'] = accel_meta
                 if meta.get('device_fallback'):
                     extra['device_fallback'] = True
                     extra['warnings'] = [f'{name}: CUDA failed at runtime; fell back to CPU.']
@@ -167,7 +161,6 @@ def recognize_batch(image_paths: list[str], engines: str = 'molscribe,molvec', *
                                           f'answers for {len(images)} images')
                 elapsed = round(time.time() - started, 2)
                 meta = env.last_call_meta(name)
-                accel_meta = env.last_accel_meta(name)
                 for idx, item in enumerate(raw):
                     if isinstance(item, dict) and 'error' in item:
                         entry = envelope.failure('ocsr', name, spec, env.EngineError(item['error']))
@@ -175,8 +168,6 @@ def recognize_batch(image_paths: list[str], engines: str = 'molscribe,molvec', *
                         try:
                             structures = [envelope.describe(item['smiles'], item.get('score'))]
                             extra = {'device': meta['device']}
-                            if accel_meta:
-                                extra['accel'] = accel_meta
                             if meta.get('device_fallback'):
                                 extra['device_fallback'] = True
                                 extra['warnings'] = [f'{name}: CUDA failed at runtime; fell back to CPU.']

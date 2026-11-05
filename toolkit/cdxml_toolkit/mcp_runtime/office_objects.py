@@ -376,10 +376,6 @@ def _render_cdxml_preview(source: str, destination: str) -> None:
     )
 
 
-_DEFAULT_CONVERT_CDX_TO_CDXML = _convert_cdx_to_cdxml
-_DEFAULT_RENDER_CDXML_PREVIEW = _render_cdxml_preview
-
-
 def _validate_cdxml_text(value: str, label: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise RuntimeError(f"CDX conversion returned empty CDXML for {label}")
@@ -441,7 +437,7 @@ def write_inspection(
     if render_previews:
         preview_dir.mkdir(parents=True, exist_ok=True)
 
-    if len(records) > 1 and _convert_cdx_to_cdxml is _DEFAULT_CONVERT_CDX_TO_CDXML:
+    if len(records) > 1:  # one ChemDraw session converts them all
         cdxml_texts = _batch_convert_cdx_records(records)
     else:
         cdxml_texts = [
@@ -451,11 +447,7 @@ def write_inspection(
             for record in records
         ]
 
-    use_batch_preview = (
-        render_previews
-        and len(records) > 1
-        and _render_cdxml_preview is _DEFAULT_RENDER_CDXML_PREVIEW
-    )
+    use_batch_preview = render_previews and len(records) > 1  # one ChemDraw session renders them all
     public_records = []
     preview_jobs: list[tuple[Path, Path, dict[str, Any], str]] = []
     for record, cdxml_text in zip(records, cdxml_texts):

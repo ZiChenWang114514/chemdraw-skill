@@ -594,3 +594,10 @@ def test_nmr_compare_shifts_hungarian_matching_and_outliers() -> None:
     assert res["max_error_13c"] == pytest.approx(1.0, abs=1e-4)
     assert len(res["outliers"]) == 1
     assert res["outliers"][0]["predicted_shift"] == pytest.approx(1.25)
+
+
+def test_compare_shifts_says_when_no_engine_answered_and_the_estimate_is_a_heuristic(monkeypatch) -> None:
+    monkeypatch.setattr(engines_nmr, "predict", lambda *a, **k: {"ok": False, "error": "no engine"})
+    result = engines_compare_shifts("CCO", [3.7, 1.2])
+    assert result["prediction_source"] == "heuristic"
+    assert "crude topology estimate" in result["warning"]

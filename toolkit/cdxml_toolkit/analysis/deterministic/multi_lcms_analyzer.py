@@ -39,7 +39,7 @@ from cdxml_toolkit.constants import (
 from ..lcms_analyzer import (
     parse_report, parse_reports, LCMSReport, ChromPeak, MassSpectrum,
     format_basic_report, is_waters_report,
-    is_rpt_path, is_daml_path, is_agilent_txt_path, method_basename,
+    lcms_format, report_datetime, method_basename,
 )
 from .lcms_file_categorizer import categorize_lcms_file, _AMBIGUOUS_SORT_KEYS
 from .mass_resolver import build_adducts
@@ -227,27 +227,12 @@ def extract_run_datetime(pdf_path: str,
     Extract the acquisition date+time from a supported LCMS report.
     Returns ISO-format string 'YYYY-MM-DD HH:MM:SS' or None.
 
-    Supports Waters MassLynx PDFs, OpenLynx ``.rpt`` exports, Shimadzu
-    ``.daml`` files, and Agilent ChemStation ``report.txt`` files.
+    Supports every format of the registry in ``lcms_analyzer`` (Waters MassLynx PDFs, OpenLynx ``.rpt``,
+    Shimadzu ``.daml``, Agilent ``report.txt``, mzML / mzXML, Waters ``.raw``).
     """
-    if is_rpt_path(pdf_path):
-        from ..openlynx_rpt import report_datetime
+    if lcms_format(pdf_path) is not None:
         try:
-            return report_datetime(report or parse_reports(pdf_path)[0])
-        except Exception:
-            return None
-
-    if is_daml_path(pdf_path):
-        from ..shimadzu_daml import report_datetime
-        try:
-            return report_datetime(report or parse_report(pdf_path))
-        except Exception:
-            return None
-
-    if is_agilent_txt_path(pdf_path):
-        from ..agilent_txt import report_datetime
-        try:
-            return report_datetime(report or parse_report(pdf_path))
+            return report_datetime(report if report is not None else parse_reports(pdf_path)[0])
         except Exception:
             return None
 
@@ -1722,7 +1707,7 @@ def main(argv=None) -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument('files', nargs='+',
-                        help='LCMS reports (MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, or Agilent report.txt)')
+                        help='LCMS reports (MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, Agilent report.txt, mzML/mzXML, or Waters .raw)')
     parser.add_argument('--rt-tolerance', type=float, default=LCMS_RT_TOLERANCE,
                         help='RT matching tolerance in minutes (default: %(default)s)')
     parser.add_argument('--mz-tolerance', type=float, default=LCMS_MZ_TOLERANCE,
@@ -1759,6 +1744,12 @@ def main(argv=None) -> int:
     parser.add_argument('--json-errors', action='store_true',
                         help='Output structured JSON error objects to stderr '
                              'on failure (for agent orchestration)')
+    parser.add_argument('--internal-standard-mw', type=float, default=None,
+                        help='Exact mass of an internal standard to normalise against')
+    parser.add_argument('--internal-standard-rt', type=float, default=None,
+                        help='Retention time (min) of an internal standard to normalise against')
+    parser.add_argument('--internal-standard-name', default='IS',
+                        help='Label for the internal standard (default: %(default)s)')
 
     args = parser.parse_args(argv)
 
@@ -1784,11 +1775,12 @@ def main(argv=None) -> int:
             print(f"  Warning: Could not parse {file_basename}: {e}",
                   file=sys.stderr)
             continue
+        fmt = lcms_format(path)
         for report in reports:
-            multi = is_rpt_path(path) and len(reports) > 1
+            multi = fmt is not None and fmt.multi_sample and len(reports) > 1
             if multi:
                 filename = report.sample_name
-            elif is_agilent_txt_path(path) and file_basename.lower() == "report.txt":
+            elif fmt is not None and fmt.key == "agilent_chemstation_txt" and file_basename.lower() == "report.txt":
                 parent_dir = os.path.basename(os.path.dirname(os.path.abspath(path)))
                 filename = parent_dir if parent_dir.lower().endswith(".d") else file_basename
             else:
@@ -1860,7 +1852,10 @@ def main(argv=None) -> int:
     results = analyze(file_entries, args.rt_tolerance, args.mz_tolerance,
                       args.trend_threshold, args.ignore_instrument,
                       use_run_time=use_run_time,
-                      max_ion_rank=args.max_ion_rank)
+                      max_ion_rank=args.max_ion_rank,
+                      internal_standard_mw=args.internal_standard_mw,
+                      internal_standard_rt=args.internal_standard_rt,
+                      internal_standard_name=args.internal_standard_name)
 
     if not results:
         msg = "Analysis produced no results."
