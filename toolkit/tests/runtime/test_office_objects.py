@@ -76,6 +76,32 @@ def _render_png(_source: str, destination: str) -> None:
     Image.new("RGB", (16, 12), "white").save(destination, format="PNG")
 
 
+def _converted_as_minimal_cdxml():
+    """Stands in for ChemDraw's one-session conversion of all objects of an Office file."""
+    return mock.patch(
+        "cdxml_toolkit.mcp_runtime.office_objects._batch_convert_cdx_records",
+        side_effect=lambda records: [MINIMAL_CDXML] * len(records),
+    )
+
+
+class _WhitePngSession:
+    """Stands in for ChemDraw's one-session preview rendering."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def render(self, source, destination, dpi=300):
+        _render_png(source, destination)
+        return str(destination)
+
+
+def _previews_as_white_png():
+    return mock.patch("cdxml_toolkit.mcp_runtime.office_objects.native_renderer.NativeRenderSession", _WhitePngSession)
+
+
 class OfficeInspectionTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -88,11 +114,7 @@ class OfficeInspectionTests(unittest.TestCase):
         source = self.root / f"dual{suffix}"
         output = self.root / f"inspection-{suffix[1:]}"
         _write_dual_office(source)
-        with mock.patch(
-            "cdxml_toolkit.mcp_runtime.office_objects._convert_cdx_to_cdxml", return_value=MINIMAL_CDXML
-        ), mock.patch(
-            "cdxml_toolkit.mcp_runtime.office_objects._render_cdxml_preview", side_effect=_render_png
-        ):
+        with _converted_as_minimal_cdxml(), _previews_as_white_png():
             result = extended_tools.inspect_chemdraw_objects_in_office(
                 str(source), str(output), render_previews=render_previews
             )
@@ -144,9 +166,7 @@ class OfficeInspectionTests(unittest.TestCase):
         source = self.root / "dual.pptx"
         output = self.root / "inspection"
         _write_dual_office(source)
-        with mock.patch(
-            "cdxml_toolkit.mcp_runtime.office_objects._convert_cdx_to_cdxml", return_value=MINIMAL_CDXML
-        ), mock.patch("cdxml_toolkit.mcp_runtime.office_objects._render_cdxml_preview") as renderer:
+        with _converted_as_minimal_cdxml(), mock.patch("cdxml_toolkit.mcp_runtime.office_objects._render_cdxml_preview") as renderer:
             result = extended_tools.inspect_chemdraw_objects_in_office(
                 str(source), str(output), render_previews=False
             )
@@ -160,9 +180,7 @@ class OfficeInspectionTests(unittest.TestCase):
         source = self.root / "dual.pptx"
         output = self.root / "inspection"
         _write_dual_office(source)
-        with mock.patch(
-            "cdxml_toolkit.mcp_runtime.office_objects._convert_cdx_to_cdxml", side_effect=RuntimeError("convert")
-        ):
+        with mock.patch("cdxml_toolkit.mcp_runtime.office_objects._batch_convert_cdx_records", side_effect=RuntimeError("convert")):
             with self.assertRaisesRegex(RuntimeError, "convert"):
                 extended_tools.inspect_chemdraw_objects_in_office(
                     str(source), str(output), render_previews=False
@@ -173,9 +191,7 @@ class OfficeInspectionTests(unittest.TestCase):
         source = self.root / "many.pptx"
         output = self.root / "inspection"
         _write_many_office(source, 11)
-        with mock.patch(
-            "cdxml_toolkit.mcp_runtime.office_objects._convert_cdx_to_cdxml", return_value=MINIMAL_CDXML
-        ):
+        with _converted_as_minimal_cdxml():
             extended_tools.inspect_chemdraw_objects_in_office(
                 str(source), str(output), render_previews=False
             )
@@ -254,9 +270,7 @@ class OfficeReplacementTests(unittest.TestCase):
         source = self.root / f"dual{suffix}"
         inspection = self.root / f"inspection-{suffix[1:]}"
         _write_dual_office(source)
-        with mock.patch(
-            "cdxml_toolkit.mcp_runtime.office_objects._convert_cdx_to_cdxml", return_value=MINIMAL_CDXML
-        ):
+        with _converted_as_minimal_cdxml():
             extended_tools.inspect_chemdraw_objects_in_office(
                 str(source), str(inspection), render_previews=False
             )
@@ -378,9 +392,7 @@ class OfficeReplacementTests(unittest.TestCase):
         ]
         (build_pptx if suffix == ".pptx" else build_docx)(items, str(source))
         inspection = self.root / f"framed-{suffix[1:]}"
-        with mock.patch(
-            "cdxml_toolkit.mcp_runtime.office_objects._convert_cdx_to_cdxml", return_value=MINIMAL_CDXML
-        ):
+        with _converted_as_minimal_cdxml():
             extended_tools.inspect_chemdraw_objects_in_office(str(source), str(inspection), render_previews=False)
         manifest = json.loads((inspection / "manifest.json").read_text(encoding="utf-8"))
         first = manifest["objects"][0]

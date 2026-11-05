@@ -91,7 +91,8 @@ class ReagentDB:
                 with open(secondary_path, encoding="utf-8") as f:
                     cs_raw: Dict[str, dict] = json.load(f)
                 self._index_entries(cs_raw, self._cs_by_name,
-                                    self._cs_by_smiles)
+                                    self._cs_by_smiles,
+                                    canonical_defaults_to_smiles=True)
             except Exception as exc:
                 print(f"[reagent_db] Warning: could not load tier-2 "
                       f"database: {exc}", file=sys.stderr)
@@ -108,8 +109,14 @@ class ReagentDB:
 
     def _index_entries(self, raw: Dict[str, dict],
                        by_name: Dict[str, dict],
-                       by_smiles: Dict[str, dict]):
-        """Index a set of JSON entries into name and SMILES lookup dicts."""
+                       by_smiles: Dict[str, dict],
+                       canonical_defaults_to_smiles: bool = False):
+        """Index a set of JSON entries into name and SMILES lookup dicts.
+
+        An entry without ``canonical_smiles`` is canonicalized with RDKit at load time, unless
+        ``canonical_defaults_to_smiles`` says the stored ``smiles`` already is canonical (the ChemScanner
+        file stores ``canonical_smiles`` only where it differs, which keeps loading free of RDKit).
+        """
         for key, entry in raw.items():
             # Index by primary key
             by_name[key] = entry
@@ -135,7 +142,7 @@ class ReagentDB:
                     )
                     for canon in canon_list:
                         by_smiles[canon] = entry
-                else:
+                elif not canonical_defaults_to_smiles:
                     chem = self._get_rdkit_chem()
                     if chem is not None:
                         try:

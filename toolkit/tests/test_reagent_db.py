@@ -343,3 +343,36 @@ class TestGracefulDegradation:
         result = db.display_for_name("hatu")
         # result may be None or not depending on curated file content — just no crash
         assert result is None or isinstance(result, str)
+
+
+# =========================================================================
+# Tier-2 storage: canonical_smiles only where it differs from smiles
+# =========================================================================
+
+class TestTierTwoCanonicalStorage:
+    def test_canonical_smiles_is_stored_only_when_it_differs(self):
+        with open(CS_JSON_PATH, encoding="utf-8") as f:
+            cs_data = json.load(f)
+        redundant = [k for k, v in cs_data.items() if "canonical_smiles" in v and v["canonical_smiles"] == v["smiles"]]
+        assert redundant == []
+        differing = {k for k, v in cs_data.items() if "canonical_smiles" in v}
+        assert {"dbeda", "trans-1,2-bis(diphenylphosphino)ethylene"} <= differing
+
+    def test_an_entry_without_canonical_smiles_is_found_by_its_smiles_without_rdkit(self):
+        db = ReagentDB.__new__(ReagentDB)
+        db._rdkit_Chem, db._rdkit_checked = None, True  # a lookup must not need RDKit for tier 2
+        by_name, by_smiles = {}, {}
+        db._index_entries({"x": {"display": "X", "smiles": ["CCO", "OCC"]},
+                           "y": {"display": "Y", "smiles": "C/C=C/C", "canonical_smiles": "C/C=C\C"}},
+                          by_name, by_smiles, canonical_defaults_to_smiles=True)
+        assert set(by_smiles) == {"CCO", "OCC", "C/C=C/C", "C/C=C\C"}
+
+    def test_every_tier_two_smiles_is_still_indexed(self):
+        db = get_reagent_db()
+        with open(CS_JSON_PATH, encoding="utf-8") as f:
+            cs_data = json.load(f)
+        for entry in cs_data.values():
+            for field in ("smiles", "canonical_smiles"):
+                value = entry.get(field)
+                for smi in (value if isinstance(value, list) else [value] if value else []):
+                    assert smi in db._cs_by_smiles
