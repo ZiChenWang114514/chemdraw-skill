@@ -217,6 +217,29 @@ def _safe_message(value: typing.Any) -> str:
     return message
 
 
+_OUT_OF_MEMORY = re.compile(
+    r"MemoryError|Unable to allocate|Memory allocation still failed|Insufficient memory"
+    r"|out of memory|std::bad_alloc",
+    re.IGNORECASE,
+)
+
+
+def _worker_crash(returncode: int, stdout: bytes, stderr: bytes) -> dict[str, str] | None:
+    """Explain a worker that died before writing its response envelope."""
+    if returncode == 0 or stdout.strip():
+        return None
+    lines = [line.strip() for line in stderr.decode("utf-8", errors="replace").splitlines() if line.strip()]
+    if not lines:
+        return {"code": "worker_crashed", "message": f"Worker exited with code {returncode} and no output"}
+    if _OUT_OF_MEMORY.search("\n".join(lines[-40:])):
+        return {
+            "code": "worker_out_of_memory",
+            "message": "The worker ran out of memory; close other programs or retry later. "
+            + _safe_message(lines[-1])[:300],
+        }
+    return {"code": "worker_crashed", "message": _safe_message(" | ".join(lines[-3:]))}
+
+
 def _interpret_worker_result(
     name: str,
     returncode: int,
@@ -249,6 +272,9 @@ def _interpret_worker_result(
     try:
         envelope = json.loads(stdout.decode("utf-8", errors="strict"))
     except (UnicodeDecodeError, json.JSONDecodeError):
+        crash = _worker_crash(returncode, stdout, stderr)
+        if crash is not None:
+            return {"ok": False, "error": crash, "metadata": {**metadata, "returncode": returncode}}
         return {
             "ok": False,
             "error": {"code": "worker_protocol_error", "message": "Worker returned an invalid response envelope"},
