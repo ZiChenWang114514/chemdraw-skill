@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 from cdxml_toolkit.render import renderer
 from cdxml_toolkit.render.parser import parse_yaml
@@ -108,7 +109,7 @@ def _run_arrows(cdxml):
 
 def test_run_arrows_of_neighbouring_steps_share_a_line():
     # The intermediate is wide enough for "1.60 g, 72%" and "1.60 g" side by side.
-    scheme = parse_yaml("experiments/scheme_dsl/showcase/27_sequential_run_arrows_no_wrap.yaml")
+    scheme = parse_yaml(str(Path(__file__).resolve().parents[1] / "experiments/scheme_dsl/showcase/27_sequential_run_arrows_no_wrap.yaml"))
     runs = _run_arrows(renderer.render(scheme))
 
     assert runs["2.15 g"] == runs["1.60 g"]

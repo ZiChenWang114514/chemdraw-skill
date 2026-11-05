@@ -128,7 +128,8 @@ def test_stdio_capabilities_match_listed_tools_and_business_failure(profile):
             'PATH', 'HOME', 'USERPROFILE', 'SYSTEMROOT', 'APPDATA', 'LOCALAPPDATA', 'TEMP', 'TMP'}}
         env['CHEMDRAW_MCP_PROFILE'] = 'analysis'  # Explicit CLI option must take precedence.
         params = StdioServerParameters(command=sys.executable,
-            args=['-B', '-m', 'cdxml_toolkit.mcp_runtime', '--profile', profile], env=env)
+            args=['-B', '-m', 'cdxml_toolkit.mcp_runtime', '--profile', profile], env=env,
+            cwd=str(Path(__file__).resolve().parents[2]))
         async with stdio_client(params) as (read, write):
             async with ClientSession(read, write) as client:
                 await client.initialize()

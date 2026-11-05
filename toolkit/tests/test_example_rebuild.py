@@ -4,7 +4,7 @@ import sys
 
 
 def test_rebuild_optimized_failure_does_not_publish(tmp_path):
-    script = Path(__file__).resolve().parents[1]/'examples/paper-reconstructions/rebuild.py'
+    script = Path(__file__).resolve().parents[2]/'skill/chemdraw/assets/paper-reconstructions/rebuild.py'
     output = tmp_path/'output'
     code = '''
 import runpy, sys
