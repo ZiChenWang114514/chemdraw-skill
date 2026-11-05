@@ -32,7 +32,7 @@ import re
 import os
 import sys
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Dict
+from typing import Callable, List, Optional, Tuple, Dict
 from datetime import datetime
 from collections import defaultdict
 
@@ -567,12 +567,115 @@ def _parse_spectrum_pages(pdf) -> Tuple[Dict[int, Tuple[float, list]],
     return ms_data, uv_data
 
 
+# ---------------------------------------------------------------------------
+# Report-format registry: the one place that knows which files are LCMS reports
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class LcmsFormat:
+    """One supported LCMS input format.
+
+    ``detect`` is the content check (does this file really have the format), ``parse`` returns one report
+    per sample, and ``report_datetime`` gives a report's acquisition time as ``YYYY-MM-DD HH:MM:SS``.
+    PDFs are not registered: they are the fallback for every other file name.
+    """
+
+    key: str                                    # LCMSReport.source_format of the reports it yields
+    label: str
+    suffixes: Tuple[str, ...]
+    detect: Callable[[str], bool]
+    parse: Callable[[str], list]
+    report_datetime: Callable[[object], Optional[str]]
+    multi_sample: bool = False                  # one file may hold several samples (OpenLynx .rpt)
+
+
+def _lazy(module: str, attr: str) -> Callable:
+    """``module.attr`` imported on first call (the format modules import this one)."""
+    def call(*args, **kwargs):
+        import importlib
+        return getattr(importlib.import_module(f"{__package__}.{module}"), attr)(*args, **kwargs)
+    return call
+
+
+def _single(module: str, attr: str) -> Callable[[str], list]:
+    parse = _lazy(module, attr)
+    return lambda path: [parse(path)]
+
+
+def _looks_like_ms_xml(path: str) -> bool:
+    """True for an mzML / mzXML file (checked by its root element, not only by name)."""
+    try:
+        with open(path, "rb") as handle:
+            head = handle.read(4096)
+    except OSError:
+        return False
+    return b"<mzML" in head or b"<indexedmzML" in head or b"<mzXML" in head
+
+
+def _is_waters_raw(path: str) -> bool:
+    """True for a Waters ``.raw`` folder that holds its ``_HEADER.TXT``."""
+    return os.path.isdir(path) and any(
+        name.upper() == "_HEADER.TXT" for name in os.listdir(path))
+
+
+def _analysis_datetime(report) -> Optional[str]:
+    """Acquisition time of an mzML / Waters .raw dataset (an ISO stamp, or separate date and time fields)."""
+    stamp = (getattr(report, "acquisition_date", "") or "").strip().rstrip("Z")[:19]
+    split = f"{getattr(report, 'date', '')} {getattr(report, 'time', '')}".strip()
+    for text, pattern in ((stamp, "%Y-%m-%dT%H:%M:%S"), (stamp, "%Y-%m-%d %H:%M:%S"),
+                          (split, "%d-%b-%Y %H:%M:%S")):
+        try:
+            return datetime.strptime(text, pattern).strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            continue
+    return None
+
+
+LCMS_FORMATS: Tuple[LcmsFormat, ...] = (
+    LcmsFormat("openlynx_rpt", "OpenLynx .rpt export", (".rpt",),
+               _lazy("openlynx_rpt", "is_openlynx_rpt"), _lazy("openlynx_rpt", "parse_rpt"),
+               _lazy("openlynx_rpt", "report_datetime"), multi_sample=True),
+    LcmsFormat("shimadzu_daml", "Shimadzu LabSolutions .daml file", (".daml",),
+               _lazy("shimadzu_daml", "is_shimadzu_daml"), _single("shimadzu_daml", "parse_daml"),
+               _lazy("shimadzu_daml", "report_datetime")),
+    LcmsFormat("agilent_chemstation_txt", "Agilent ChemStation report.txt file", (".txt",),
+               _lazy("agilent_txt", "is_agilent_report_txt"), _single("agilent_txt", "parse_agilent_txt"),
+               _lazy("agilent_txt", "report_datetime")),
+    LcmsFormat("mzml", "mzML / mzXML file", (".mzml", ".mzxml"),
+               _looks_like_ms_xml, _single("deterministic.mzml_parser", "parse_mzml"), _analysis_datetime),
+    LcmsFormat("waters_raw", "Waters MassLynx .raw folder", (".raw",),
+               _is_waters_raw, _single("deterministic.waters_raw", "parse_waters_raw"), _analysis_datetime),
+)
+
+# Everything a file-picking tool should offer: each registered suffix, and PDF reports.
+LCMS_FILE_SUFFIXES: Tuple[str, ...] = (".pdf", *(s for fmt in LCMS_FORMATS for s in fmt.suffixes))
+
+
+def lcms_format(path) -> Optional[LcmsFormat]:
+    """The registered format of ``path`` by its name, or None (a MassLynx PDF, or not an LCMS file)."""
+    suffix = os.path.splitext(str(path))[1].lower()
+    return next((fmt for fmt in LCMS_FORMATS if suffix in fmt.suffixes), None)
+
+
+def report_format(report) -> Optional[LcmsFormat]:
+    """The registered format that produced ``report`` (an LCMSReport or an LCMSAnalysis)."""
+    key = getattr(report, "source_format", None)
+    return next((fmt for fmt in LCMS_FORMATS if fmt.key == key), None)
+
+
+def report_datetime(report) -> Optional[str]:
+    """Acquisition time of a parsed report as ``YYYY-MM-DD HH:MM:SS``, or None when its format has none."""
+    fmt = report_format(report)
+    return fmt.report_datetime(report) if fmt else None
+
+
 def is_waters_report(pdf_path: str) -> bool:
     """Quick content-based check: is this a supported standard LCMS report?
 
     Accepts Waters MassLynx PDF reports, OpenLynx ``.rpt`` exports, Shimadzu
-    LabSolutions ``.daml`` files, and Agilent ChemStation ``report.txt`` files
-    (text/XML formats are checked by content without opening ``pdfplumber``).
+    LabSolutions ``.daml`` files, Agilent ChemStation ``report.txt`` files, mzML / mzXML
+    files and Waters ``.raw`` folders (every format but the PDF is checked by content without
+    opening ``pdfplumber``).
 
     Manually integrated chromatograms (e.g. LC-only or MS-only exports) lack
     the structured headers of a full UPLC-PDA-MS Open Access report. This
@@ -581,15 +684,9 @@ def is_waters_report(pdf_path: str) -> bool:
     Returns True for standard reports, False for manually integrated exports,
     unrelated text/XML files, or other non-standard PDFs.
     """
-    if is_rpt_path(pdf_path):
-        from cdxml_toolkit.analysis.openlynx_rpt import is_openlynx_rpt
-        return is_openlynx_rpt(pdf_path)
-    if is_daml_path(pdf_path):
-        from cdxml_toolkit.analysis.shimadzu_daml import is_shimadzu_daml
-        return is_shimadzu_daml(pdf_path)
-    if is_agilent_txt_path(pdf_path):
-        from cdxml_toolkit.analysis.agilent_txt import is_agilent_report_txt
-        return is_agilent_report_txt(pdf_path)
+    fmt = lcms_format(pdf_path)
+    if fmt:
+        return fmt.detect(pdf_path)
     import pdfplumber
     try:
         with pdfplumber.open(pdf_path) as pdf:
@@ -610,68 +707,53 @@ def is_waters_report(pdf_path: str) -> bool:
 
 def is_rpt_path(path: str) -> bool:
     """True when the file name says OpenLynx RPT (content is checked later)."""
-    return os.path.splitext(str(path))[1].lower() == ".rpt"
+    fmt = lcms_format(path)
+    return fmt is not None and fmt.key == "openlynx_rpt"
 
 
 def is_daml_path(path: str) -> bool:
     """True when the file name has a Shimadzu ``.daml`` extension."""
-    return os.path.splitext(str(path))[1].lower() == ".daml"
+    fmt = lcms_format(path)
+    return fmt is not None and fmt.key == "shimadzu_daml"
 
 
 def is_agilent_txt_path(path: str) -> bool:
     """True when the file name has a ``.txt`` extension (content checked later)."""
-    return os.path.splitext(str(path))[1].lower() == ".txt"
+    fmt = lcms_format(path)
+    return fmt is not None and fmt.key == "agilent_chemstation_txt"
 
 
 def parse_reports(path: str) -> List[LCMSReport]:
     """Parse a standard LCMS report file into a list of sample reports.
 
-    A MassLynx PDF, Shimadzu ``.daml``, or Agilent ``report.txt`` holds one
-    sample, so the list has one entry.  An OpenLynx ``.rpt`` export holds one
+    A MassLynx PDF, Shimadzu ``.daml``, Agilent ``report.txt``, mzML / mzXML file or Waters ``.raw``
+    folder holds one sample, so the list has one entry.  An OpenLynx ``.rpt`` export holds one
     entry per ``[SAMPLE]`` block.
     """
-    if is_rpt_path(path):
-        from cdxml_toolkit.analysis.openlynx_rpt import parse_rpt
-        return parse_rpt(path)
-    if is_daml_path(path):
-        from cdxml_toolkit.analysis.shimadzu_daml import is_shimadzu_daml, parse_daml
-        if not is_shimadzu_daml(path):
-            raise ValueError(f"Not a Shimadzu LabSolutions .daml file: {path}")
-        return [parse_daml(path)]
-    if is_agilent_txt_path(path):
-        from cdxml_toolkit.analysis.agilent_txt import (
-            is_agilent_report_txt,
-            parse_agilent_txt,
-        )
-        if not is_agilent_report_txt(path):
-            raise ValueError(f"Not an Agilent ChemStation report.txt file: {path}")
-        return [parse_agilent_txt(path)]
-    return [parse_report(path)]
+    fmt = lcms_format(path)
+    if fmt is None:
+        return [parse_report(path)]
+    if not fmt.detect(path):
+        raise ValueError(f"Not a {fmt.label}: {path}")
+    return fmt.parse(path)
 
 
 def parse_report(pdf_path: str, sample=None) -> LCMSReport:
-    """Parse one LCMS report: MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, or Agilent report.txt.
+    """Parse one LCMS report: MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, Agilent report.txt, mzML / mzXML
+    or Waters .raw.
 
     *sample* only matters for ``.rpt`` files with several samples: the 1-based
     sample number, well, SampleID or acquired file name.  Use
     :func:`parse_reports` to get every sample.
     """
-    if is_rpt_path(pdf_path):
-        from cdxml_toolkit.analysis.openlynx_rpt import parse_rpt, select_sample
-        return select_sample(parse_rpt(pdf_path), sample)
-    if is_daml_path(pdf_path):
-        from cdxml_toolkit.analysis.shimadzu_daml import is_shimadzu_daml, parse_daml
-        if not is_shimadzu_daml(pdf_path):
-            raise ValueError(f"Not a Shimadzu LabSolutions .daml file: {pdf_path}")
-        return parse_daml(pdf_path)
-    if is_agilent_txt_path(pdf_path):
-        from cdxml_toolkit.analysis.agilent_txt import (
-            is_agilent_report_txt,
-            parse_agilent_txt,
-        )
-        if not is_agilent_report_txt(pdf_path):
-            raise ValueError(f"Not an Agilent ChemStation report.txt file: {pdf_path}")
-        return parse_agilent_txt(pdf_path)
+    fmt = lcms_format(pdf_path)
+    if fmt is not None:
+        reports = parse_reports(pdf_path)
+        if fmt.multi_sample:
+            from cdxml_toolkit.analysis.openlynx_rpt import select_sample
+            return select_sample(reports, sample)
+        return reports[0]
+
     import pdfplumber
 
     with pdfplumber.open(pdf_path) as pdf:
@@ -760,7 +842,7 @@ def is_manual_integration(pdf_path: str) -> bool:
     Manual integration PDFs have "Diode Array" but lack the structured
     "Sample Name:" / "Date:" / "Time:" headers of a full Waters report.
     """
-    if os.path.splitext(str(pdf_path))[1].lower() in (".rpt", ".daml", ".txt"):
+    if lcms_format(pdf_path) is not None:
         return False
     import pdfplumber
     try:
@@ -1307,22 +1389,13 @@ def format_table(report: LCMSReport) -> str:
 # ---------------------------------------------------------------------------
 
 def _report_sort_key(report: LCMSReport) -> str:
-    if report.source_format == "openlynx_rpt":
-        from cdxml_toolkit.analysis.openlynx_rpt import report_datetime
-        return report_datetime(report) or report.date
-    if report.source_format == "shimadzu_daml":
-        from cdxml_toolkit.analysis.shimadzu_daml import report_datetime
-        return report_datetime(report) or report.date
-    if report.source_format == "agilent_chemstation_txt":
-        from cdxml_toolkit.analysis.agilent_txt import report_datetime
-        return report_datetime(report) or report.date
-    return report.date
+    return report_datetime(report) or report.date
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="LCMS Report Analyzer")
     parser.add_argument('files', nargs='+',
-                        help='LCMS reports (MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, or Agilent report.txt)')
+                        help='LCMS reports (MassLynx PDF, OpenLynx .rpt, Shimadzu .daml, Agilent report.txt, mzML/mzXML, or Waters .raw)')
     parser.add_argument('--sm-mass', type=float, default=None,
                        help='Exact mass of starting material')
     parser.add_argument('--product-mass', type=float, default=None,
@@ -1342,12 +1415,10 @@ def main(argv=None) -> int:
     manual_reports = []   # manual integration exports
     for f in sorted(args.files):
         try:
-            if is_rpt_path(f):
-                reports.extend(parse_reports(f))
-            elif is_manual_integration(f):
+            if is_manual_integration(f):
                 manual_reports.append(parse_manual_report(f))
             else:
-                reports.append(parse_report(f))
+                reports.extend(parse_reports(f))
         except Exception as e:
             print(f"Warning: Could not parse {f}: {e}", file=sys.stderr)
 

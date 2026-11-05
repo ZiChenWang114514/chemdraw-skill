@@ -981,8 +981,8 @@ def parse_analysis_file(
     """Parse an LCMS or NMR analysis file to extract peaks and data.
 
     Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports, Shimadzu
-    LabSolutions .daml files, Agilent ChemStation report.txt files, and
-    MestReNova NMR PDFs. Returns structured peak data for LCMS species
+    LabSolutions .daml files, Agilent ChemStation report.txt files, mzML / mzXML
+    files, Waters .raw folders, and MestReNova NMR PDFs. Returns structured peak data for LCMS species
     identification or NMR characterisation. A .rpt holds one or many samples:
     one sample returns the same dict as a PDF report, several return
     {source_format, sample_count, samples: [report, ...]}.
@@ -991,7 +991,7 @@ def parse_analysis_file(
     a graceful error rather than crashing.
 
     Args:
-        pdf_path:    Path to an LCMS file (.pdf, .rpt, .daml, or report.txt) or NMR PDF.
+        pdf_path:    Path to an LCMS file (.pdf, .rpt, .daml, report.txt, .mzML/.mzXML or a Waters .raw folder) or NMR PDF.
         output_path: If given, write the parsed data as JSON to this file and
                      return {ok, output_path, size} instead of the full dict.
 
@@ -1004,7 +1004,7 @@ def parse_analysis_file(
     if not pdf_path or not pdf_path.strip():
         return (
             "Usage: parse_analysis_file(pdf_path='report.pdf')\n"
-            "Supports: Waters LCMS PDFs, OpenLynx .rpt, Shimadzu .daml, Agilent report.txt, MestReNova NMR PDFs.\n"
+            "Supports: Waters LCMS PDFs, OpenLynx .rpt, Shimadzu .daml, Agilent report.txt, mzML/mzXML, Waters .raw, MestReNova NMR PDFs.\n"
             "Examples:\n"
             "  parse_analysis_file(pdf_path='lcms/t0.pdf')\n"
             "  parse_analysis_file(pdf_path='lcms/run1.daml')\n"
@@ -1025,7 +1025,9 @@ def parse_analysis_file(
             ),
         }
 
-    p = _validate_file(pdf_path, "Analysis file")
+    p = Path(pdf_path).resolve()
+    if not (p.is_dir() and p.suffix.lower() == ".raw"):  # a Waters .raw folder is the one directory input
+        p = _validate_file(pdf_path, "Analysis file")
     try:
         result = _parse(str(p))
         if not isinstance(result, dict):
@@ -1037,7 +1039,7 @@ def parse_analysis_file(
             "ok": False,
             "error": (
                 f"Parse failed: {e}. "
-                "Ensure the file is a Waters LCMS PDF/.rpt, Shimadzu .daml, Agilent report.txt, "
+                "Ensure the file is a Waters LCMS PDF/.rpt, Shimadzu .daml, Agilent report.txt, mzML/mzXML, Waters .raw, "
                 "or MestReNova NMR export; scanned PDFs without embedded text are not supported."
             ),
             "pdf_path": str(p),
