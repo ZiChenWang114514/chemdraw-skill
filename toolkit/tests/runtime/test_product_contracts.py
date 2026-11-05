@@ -148,3 +148,41 @@ def test_reference_version_follows_loaded_code_not_stale_metadata(monkeypatch):
     import cdxml_toolkit
     from cdxml_toolkit.mcp_runtime.generate_reference import manifest
     assert manifest()['version'] == cdxml_toolkit.__version__
+
+
+def crashed(stderr, returncode=1, stdout=b''):
+    return server._interpret_worker_result('draw_molecule', returncode, stdout, stderr,
+        timeout=90, duration=0.1, output_limit=4096)
+
+
+@pytest.mark.parametrize('stderr', [
+    b'OpenBLAS error: Memory allocation still failed after 10 retries, giving up.\n',
+    b'Traceback (most recent call last):\nnumpy._core._exceptions._ArrayMemoryError: Unable to allocate 1.00 MiB\n',
+    b'cv2.error: OpenCV(5.0.0) (-4:Insufficient memory) Failed to allocate 6343696 bytes\n',
+    b'Traceback (most recent call last):\nMemoryError\n',
+])
+def test_a_worker_that_runs_out_of_memory_says_so(stderr):
+    # Under memory pressure the worker dies before writing its envelope; the agent should
+    # learn why instead of seeing a protocol error.
+    result = crashed(stderr)
+    assert result['ok'] is False
+    assert result['error']['code'] == 'worker_out_of_memory'
+    assert 'memory' in result['error']['message'].lower()
+
+
+def test_a_crashed_worker_reports_the_end_of_its_stderr():
+    stderr = b'line\n' * 50 + b'ImportError: DLL load failed while importing _rdkit\n'
+    result = crashed(stderr)
+    assert result['error']['code'] == 'worker_crashed'
+    assert 'DLL load failed' in result['error']['message']
+    assert result['metadata']['returncode'] == 1
+
+
+def test_a_crashed_worker_keeps_secrets_out_of_the_message():
+    result = crashed(b'RuntimeError: request failed api_key=sk-123456\n')
+    assert 'sk-123456' not in result['error']['message']
+
+
+def test_garbage_stdout_from_a_clean_exit_is_still_a_protocol_error():
+    result = crashed(b'', returncode=0, stdout=b'not json')
+    assert result['error']['code'] == 'worker_protocol_error'
