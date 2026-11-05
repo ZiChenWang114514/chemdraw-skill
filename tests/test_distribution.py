@@ -312,21 +312,26 @@ class DistributionTests(unittest.TestCase):
         self.assertEqual(missing, [], "Broken Markdown anchors:\n" + "\n".join(missing))
 
     def test_ci_has_pinned_full_portable_skill_validation(self) -> None:
-        workflow = (ROOT / ".github" / "workflows" / "validate.yml").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("full-portable-tests:", workflow)
-        self.assertIn('python-version: "3.12"', workflow)
-        self.assertIn('skill/chemdraw/scripts/install_runtime.py', workflow)
+        workflows = ROOT / ".github" / "workflows"
+        fast = (workflows / "validate.yml").read_text(encoding="utf-8")
+        full = (workflows / "validate-full.yml").read_text(encoding="utf-8")
+        both = fast + full
+        for text in (fast, full):
+            self.assertIn("full-portable-tests:", text)
+            self.assertIn('python-version: "3.12"', text)
+            self.assertIn('skill/chemdraw/scripts/install_runtime.py', text)
+            self.assertIn('pytest skill/chemdraw/tests', text)
         import json
         baseline = json.loads((SKILL / 'runtime.json').read_text(encoding='utf-8'))
         self.assertRegex(baseline['commit'], r'^[0-9a-f]{40}$')
-        self.assertIn('mcp-version: ["1.28.1", "2.0.0"]', workflow)
-        self.assertIn('os: [windows-latest, ubuntu-latest]', workflow)
-        self.assertIn('pytest skill/chemdraw/tests', workflow)
-        self.assertIn('check_prerequisites.ps1', workflow)
-        self.assertIn('installer-end-to-end:', workflow)
-        self.assertIn('os: [windows-latest, ubuntu-latest, macos-latest]', workflow)
+        # Every pull request: Windows with MCP 2; the full matrix adds the other three.
+        self.assertIn('mcp-version: ["2.0.0"]', fast)
+        self.assertIn('mcp-version: ["1.28.1", "2.0.0"]', full)
+        self.assertIn('os: [windows-latest, ubuntu-latest]', full)
+        self.assertIn('check_prerequisites.ps1', fast)
+        self.assertIn('installer-end-to-end:', full)
+        self.assertIn('os: [windows-latest, ubuntu-latest, macos-latest]', full)
+        self.assertIn('tests.test_installer', both)
 
     def test_ci_takes_test_tools_from_the_toolkit_dev_extra(self) -> None:
         # Loose pins in a workflow drift away from the toolkit's own bounds (pytest 9.2 broke CI

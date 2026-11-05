@@ -1,7 +1,8 @@
 name: Release
 
 # Pushing a version tag (for example v0.7.0a3) builds the toolkit and publishes a GitHub
-# Release with the toolkit distributions and a zip of the Skill folder.
+# Release with the toolkit distributions and a zip of the Skill folder, after the full
+# validation matrix passes.
 on:
   push:
     tags: ["v*"]
@@ -17,8 +18,12 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
 
+  # A release runs the full operating-system and version matrix first.
+  validate:
+    uses: ./.github/workflows/validate-full.yml
+
   release:
-    needs: build
+    needs: [build, validate]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

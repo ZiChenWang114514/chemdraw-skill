@@ -701,7 +701,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 
 ## 测试与安全
 
-- CI 在 Windows 和 Linux 上运行 Skill 测试（Python 3.12，MCP 1.28.1 与 2.0.0），在 Python 3.10–3.13 上运行工具包测试，并在 Windows、Linux 和 macOS 上做端到端安装测试。ChemDraw、ChemScript 和 Office 的原生功能在一台已授权的 Windows 工作站上手动测试；macOS 的 AppleScript 路径在 macOS 26.6（Apple 芯片）和 ChemDraw 26.0 上测试过。
+- 每个 PR 只跑一小组 CI：发布校验、Windows（Python 3.13）和 Linux（3.12）上的工具包测试、Windows 上的 Skill 测试和打包。其余部分每周跑一次，每次发版前也要先跑通：Linux 和 MCP 1.28.1 上的 Skill 测试、Python 3.10 和 macOS 上的工具包测试、两个 MCP SDK 大版本，以及 Windows、Linux 和 macOS 上的端到端安装测试。ChemDraw、ChemScript 和 Office 的原生功能在一台已授权的 Windows 工作站上手动测试；macOS 的 AppleScript 路径在 macOS 26.6（Apple 芯片）和 ChemDraw 26.0 上测试过。
 - 工具只写入新的输出路径，除非你明确要求，否则不会覆盖已有文件。
 - 图像识别只把选定的图片发送到 DECIMER API。`cdx.py decimer --preflight` 可以先看将要发送什么，要求离线时不上传。各类报告和映射器在本地运行，ChemDraw 的化学计量表由本机的 ChemDraw 计算；只有报告在名称不在内置表中时才会联网查询，设置 `CHEMDRAW_OFFLINE=1` 可关闭。
 - 可选的预测引擎在各自的独立环境中本地运行，不上传任何内容；下载内容按固定哈希校验。它们的结果是模型预测，并会如此标注。

@@ -63,7 +63,10 @@ squashed commit.
 | Editable Office objects | Desktop Word and PowerPoint on Windows |
 | DECIMER recognition | Optional `decimer` dependency group and local weights |
 
-Hosted CI validates portable behavior. Native software checks must run on a
+Hosted CI validates portable behavior. `validate.yml` runs a small set on every
+pull request and merge; `validate-full.yml` runs the remaining operating systems,
+Python and MCP versions weekly, from the Actions tab, and before each release.
+Native software checks must run on a
 licensed local or self-hosted Windows machine and must identify skipped
 applications explicitly.
 
