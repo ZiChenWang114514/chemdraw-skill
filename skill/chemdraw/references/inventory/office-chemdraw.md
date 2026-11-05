@@ -177,11 +177,11 @@
 ## `office.ole_extractor`
 
 - **function**, line 94: `extract_cdx_from_ole(ole_data: bytes) -> Optional[bytes]` - Extract raw CDX bytes from an OLE compound document.
-- **function**, line 326: `extract_from_office(input_path: str, output_dir: Optional[str] = None, output_format: str = 'cdxml', convert_method: str = 'auto') -> List[ExtractedObject]` - Extract all ChemDraw objects from an Office file.
+- **function**, line 325: `extract_from_office(input_path: str, output_dir: Optional[str] = None, output_format: str = 'cdxml', convert_method: str = 'auto') -> List[ExtractedObject]` - Extract all ChemDraw objects from an Office file.
 - **class**, line 52: `ExtractedObject` - A single extracted ChemDraw object.
 - **function**, line 61: `find_ole_entries(zip_path: str) -> List[str]` - List OLE embedding paths inside a PPTX/DOCX/XLSX ZIP.
 - **function**, line 78: `is_chemdraw_ole(ole: olefile.OleFileIO) -> bool` - Check if an OLE container holds a ChemDraw object.
-- **function**, line 368: `print_summary(results: List[ExtractedObject], input_path: str) -> None` - Print extraction summary to stdout.
+- **function**, line 367: `print_summary(results: List[ExtractedObject], input_path: str) -> None` - Print extraction summary to stdout.
 
 ## `office.safe_xml`
 

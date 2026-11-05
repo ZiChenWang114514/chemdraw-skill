@@ -330,8 +330,6 @@ def cmd_sig(ns):
 def _apply_accel_flags(ns):
     if getattr(ns, 'accel', None):
         os.environ['CHEMDRAW_ACCEL'] = ns.accel
-    if getattr(ns, 'task_hint', None):
-        os.environ['CHEMDRAW_TASK_HINT'] = ns.task_hint
 
 
 def cmd_call(ns):
@@ -487,23 +485,10 @@ def cmd_chemscript_info(ns):
 
 
 def cmd_decimer(ns):
-    kwargs = {'image_path': str(Path(ns.image).resolve()), 'hand_drawn': ns.hand_drawn,
-              'confirm_upload': not ns.preflight, 'timeout_seconds': ns.timeout}
-    if ns.out:
-        kwargs['output_path'] = str(Path(ns.out).resolve())
-    result = _worker('extract_structures_via_decimer_api', kwargs)
-    if ns.preflight:
-        pre = next((x['preflight'] for x in _layers(result) if isinstance(x.get('preflight'), dict)), None)
-        print(json.dumps(pre or result, ensure_ascii=False, indent=2))
-        return 0 if pre else 1
-    inner = next((x for x in _layers(result) if 'structures' in x), None)
-    if inner is None:
-        return _emit('extract_structures_via_decimer_api', result)
-    print(json.dumps({'ok': inner.get('ok'), 'output_path': inner.get('output_path'),
-                      'structures': [{k: s.get(k) for k in ('index', 'smiles', 'valid', 'formula')}
-                                     for s in inner['structures']],
-                      'warnings': inner.get('warnings', [])}, ensure_ascii=False, indent=2))
-    return 0 if inner.get('ok') else 1
+    """Alias of `cdx.py ocsr IMAGE --engines decimer-api`."""
+    return cmd_ocsr(argparse.Namespace(
+        image=ns.image, engines='decimer-api', hand_drawn=ns.hand_drawn, preflight=ns.preflight, no_upload=False,
+        timeout=ns.timeout, out=ns.out, accel=None))
 
 
 def runtime_paths():
@@ -703,31 +688,8 @@ def cmd_doctor(ns):
     outputs = inner.get('outputs') or {}
     caps = outputs.get('capabilities') or {}
     report['capabilities'] = {k: (v.get('status') if isinstance(v, dict) else v) for k, v in caps.items()}
-    passive = outputs.get('passive_capabilities')
-    if not isinstance(passive, dict):
-        cs_cap = caps.get('chemscript') if isinstance(caps.get('chemscript'), dict) else {}
-        of_cap = caps.get('office') if isinstance(caps.get('office'), dict) else {}
-        passive = {
-            'chemscript_dll': (
-                'available'
-                if report['capabilities'].get('chemscript') == 'available'
-                or cs_cap.get('passive_status') == 'available'
-                or cs_cap.get('dll_available')
-                or (report['capabilities'].get('chemscript') == 'unverified'
-                    and report['capabilities'].get('chemdraw') == 'available')
-                else 'missing'
-            ),
-            'office_com': (
-                'available'
-                if report['capabilities'].get('office') == 'available'
-                or of_cap.get('passive_status') == 'available'
-                or (report['capabilities'].get('office') == 'unverified'
-                    and (report['capabilities'].get('chemdraw_com') == 'available'
-                         or report['capabilities'].get('chemdraw') == 'available'))
-                else 'missing'
-            ),
-        }
-    report['passive_capabilities'] = passive
+    if isinstance(outputs.get('passive_capabilities'), dict):  # the runtime's own reading, never guessed here
+        report['passive_capabilities'] = outputs['passive_capabilities']
     report['warnings'] = inner.get('warnings') or []
     if ns.full:
         report['diagnose_runtime'] = inner
@@ -870,13 +832,16 @@ def cmd_install_mappers(ns):
 
 def cmd_engines(ns):
     """Which optional engines are installed and how much disk each uses; `--recommend NEED` says what to install."""
-    if getattr(ns, 'stop_daemons', False):
-        flags = ['--stop-daemons']
-    elif ns.recommend:
+    if ns.recommend:
         flags = ['--recommend', ns.recommend]
     else:
         flags = ['--status', *(['--sizes'] if ns.sizes else [])]
     return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', *flags], env=_chemscript_env())
+
+
+def cmd_stop_daemons(ns):
+    """Stop the warm resident engine workers (they also end on their own after CHEMDRAW_ACCEL_IDLE seconds)."""
+    return subprocess.call([sys.executable, '-m', 'cdxml_toolkit.engines', '--stop-daemons'], env=_chemscript_env())
 
 
 def cmd_remove_engines(ns):
@@ -921,8 +886,6 @@ PREDICT = {  # task: (tool, the argument SMILES fills, a working example)
 
 
 def cmd_predict(ns):
-    if getattr(ns, 'stop_daemons', False) or ns.task == 'stop-daemons':
-        return cmd_engines(argparse.Namespace(stop_daemons=True, recommend=None, sizes=False))
     _apply_accel_flags(ns)
     tool, field, example = PREDICT[ns.task]
     if ns.products and ns.task != 'conditions':
@@ -955,7 +918,7 @@ def main(argv=None):
     if argv[:1] == ['install-mappers']:  # likewise: `--status` or `--dry-run` may come first
         return cmd_install_mappers(argparse.Namespace(rest=argv[1:]))
     p = argparse.ArgumentParser(prog='cdx.py', description=__doc__.split('\n')[0])
-    sub = p.add_subparsers(dest='cmd', required=True)
+    sub = p.add_subparsers(dest='cmd', required=True, metavar='command')
     s = sub.add_parser('tools', help='list registered tools')
     s.add_argument('query', nargs='?', default=None, help='case-insensitive substring filter')
     s.add_argument('--detail', choices=['full', 'summary'], default='full')
@@ -968,9 +931,8 @@ def main(argv=None):
     s.add_argument('--json', help='keyword arguments as a JSON object string')
     s.add_argument('--args', help='keyword arguments in a JSON file (or - for stdin)')
     s.add_argument('--out', help='new evidence file for the full result')
-    s.add_argument('--accel', choices=['auto', 'on', 'off', 'simple', 'complex'],
-                   help='task-complexity acceleration mode (default: auto classifier)')
-    s.add_argument('--task-hint', metavar='TEXT', help='complexity hint for the internal classifier')
+    s.add_argument('--accel', choices=['auto', 'on', 'off'],
+                   help='warm resident engine workers: auto (default; batches and multi-step searches), on, off')
     s.set_defaults(fn=cmd_call)
     s = sub.add_parser('render', help='native 300 dpi PNG next to each CDXML (replaces only its own earlier render)')
     s.add_argument('files', nargs='+')
@@ -990,11 +952,11 @@ def main(argv=None):
     s.add_argument('--render', action='store_true', help='also render a native PNG')
     s.add_argument('--out', help='new evidence file for the full report')
     s.set_defaults(fn=cmd_draw)
-    s = sub.add_parser('chemscript-info', help='ChemScript reading of a saved file, under the native lock')
+    s = sub.add_parser('chemscript-info')  # maintainer/diagnostic: ChemScript reading of a saved file
     s.add_argument('source')
     s.add_argument('--timeout', type=int, default=120)
     s.set_defaults(fn=cmd_chemscript_info)
-    s = sub.add_parser('decimer', help='recognize one image with the built-in DECIMER endpoint')
+    s = sub.add_parser('decimer', help='alias of: ocsr IMAGE --engines decimer-api (the built-in DECIMER endpoint)')
     s.add_argument('image')
     s.add_argument('--hand-drawn', action='store_true')
     s.add_argument('--preflight', action='store_true', help='no upload; print size/sha256/origin only')
@@ -1011,24 +973,21 @@ def main(argv=None):
     s.add_argument('--no-upload', action='store_true', help='never use a remote engine')
     s.add_argument('--timeout', type=int, default=600)
     s.add_argument('--out', help='new evidence file for the full result')
-    s.add_argument('--accel', choices=['auto', 'on', 'off', 'simple', 'complex'],
-                   help='task-complexity acceleration mode (default: auto classifier)')
-    s.add_argument('--task-hint', metavar='TEXT', help='complexity hint for the internal classifier')
+    s.add_argument('--accel', choices=['auto', 'on', 'off'],
+                   help='warm resident engine workers: auto (default; batches and multi-step searches), on, off')
     s.set_defaults(fn=cmd_ocsr)
     s = sub.add_parser('predict', help='model predictions: cdx.py predict products "A.B" | retro "TARGET" | nmr "SMILES" | '
-                                       'conditions "A.B" --products "P" | stop-daemons '
+                                       'conditions "A.B" --products "P" '
                                        '[--engine NAME] [--json ARGS | --args FILE] [--out FILE]; always labelled as predictions')
-    s.add_argument('task', choices=[*PREDICT, 'stop-daemons'])
+    s.add_argument('task', choices=list(PREDICT))
     s.add_argument('smiles', nargs='?')
     s.add_argument('--products', help='with conditions: the product SMILES')
     s.add_argument('--engine')
     s.add_argument('--json', help='further tool arguments as a JSON object or file (steps, count, nucleus, solvent, ...)')
     s.add_argument('--args', help='further tool arguments in a JSON file (or - for stdin)')
     s.add_argument('--out', help='new evidence file for the full result')
-    s.add_argument('--accel', choices=['auto', 'on', 'off', 'simple', 'complex'],
-                   help='task-complexity acceleration mode (default: auto classifier)')
-    s.add_argument('--task-hint', metavar='TEXT', help='complexity hint for the internal classifier')
-    s.add_argument('--stop-daemons', action='store_true', help='stop any warm resident engine workers immediately')
+    s.add_argument('--accel', choices=['auto', 'on', 'off'],
+                   help='warm resident engine workers: auto (default; batches and multi-step searches), on, off')
     s.set_defaults(fn=cmd_predict)
     s = sub.add_parser('engines', help='list the optional engines, what each is for and its disk use; '
                                        '--recommend NEED (a task such as ocsr, pdf or retrosynthesis; an unknown one '
@@ -1036,8 +995,9 @@ def main(argv=None):
     s.add_argument('--recommend', metavar='NEED')
     s.add_argument('--sizes', action='store_true', help='measure every engine folder again (slow; otherwise the size '
                                                         'recorded when the engine was installed is shown)')
-    s.add_argument('--stop-daemons', action='store_true', help='stop any warm resident engine workers immediately')
     s.set_defaults(fn=cmd_engines)
+    s = sub.add_parser('stop-daemons', help='stop the warm resident engine workers started by --accel')
+    s.set_defaults(fn=cmd_stop_daemons)
     s = sub.add_parser('remove-engines', help='delete installed engines: cdx.py remove-engines molnextr [--yes] (dry run '
                                               'without --yes)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
@@ -1085,11 +1045,9 @@ def main(argv=None):
                                                '[--dry-run] [--status] (map_reaction_atoms works without them)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_install_mappers)
-    s = sub.add_parser('regen-signatures', help='rewrite references/mcp-signatures.md from the live registry '
-                                                '(and, in a checkout, the toolkit fingerprint in runtime.json)')
+    s = sub.add_parser('regen-signatures')  # maintainer: rewrite mcp-signatures.md and the runtime.json fingerprint
     s.set_defaults(fn=cmd_regen_signatures)
-    s = sub.add_parser('regen-catalog', help='rewrite the generated interface pages (interface-chemscript/com/cdxml-model/menu, '
-                                             'recipes-chemdraw, their inventory shards) from the catalogs; --check only reports')
+    s = sub.add_parser('regen-catalog')  # maintainer: rewrite the generated interface pages; --check only reports
     s.add_argument('--check', action='store_true', help='report stale pages and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_catalog)
     ns = p.parse_args(argv)

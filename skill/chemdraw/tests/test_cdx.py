@@ -857,18 +857,63 @@ def test_doctor_returns_nonzero_when_requested_probe_fails_without_breaking_defa
     capsys.readouterr()
 
 
-def test_accel_and_task_hint_flags_and_engines_stop_daemons(monkeypatch):
+def test_accel_flag_reaches_the_environment_and_stop_daemons_is_its_own_command(monkeypatch):
     monkeypatch.delenv('CHEMDRAW_ACCEL', raising=False)
-    monkeypatch.delenv('CHEMDRAW_TASK_HINT', raising=False)
     with mock.patch.object(cdx, '_worker', return_value={'ok': True}):
-        assert cdx.main(['predict', 'nmr', 'CCO', '--accel', 'simple', '--task-hint', '\u7b80\u5355\u4efb\u52a1']) == 0
-    assert os.environ.get('CHEMDRAW_ACCEL') == 'simple'
-    assert os.environ.get('CHEMDRAW_TASK_HINT') == '\u7b80\u5355\u4efb\u52a1'
+        assert cdx.main(['predict', 'nmr', 'CCO', '--accel', 'on']) == 0
+    assert os.environ.pop('CHEMDRAW_ACCEL') == 'on'
+    for removed in ('simple', 'complex'):  # only auto, on and off remain
+        with pytest.raises(SystemExit):
+            cdx.main(['predict', 'nmr', 'CCO', '--accel', removed])
+    with pytest.raises(SystemExit):  # the hint option is gone
+        cdx.main(['predict', 'nmr', 'CCO', '--task-hint', 'x'])
 
     with mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
-        assert cdx.main(['engines', '--stop-daemons']) == 0
-    assert call.call_args.args[0][-1:] == ['--stop-daemons']
+        assert cdx.main(['stop-daemons']) == 0
+    assert call.call_args.args[0][-3:] == ['-m', 'cdxml_toolkit.engines', '--stop-daemons']
 
-    with mock.patch.object(cdx.subprocess, 'call', return_value=0) as call:
-        assert cdx.main(['predict', 'stop-daemons']) == 0
-    assert call.call_args.args[0][-1:] == ['--stop-daemons']
+
+def test_stop_daemons_never_rides_on_a_prediction_or_the_engine_listing():
+    for argv in (['predict', 'nmr', 'CCO', '--stop-daemons'], ['predict', 'stop-daemons'], ['engines', '--stop-daemons']):
+        with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+            with pytest.raises(SystemExit):
+                cdx.main(argv)
+        assert not worker.called
+
+
+def test_decimer_is_an_alias_of_ocsr_with_the_decimer_api_engine(tmp_path):
+    image = tmp_path / 'x.png'
+    image.write_bytes(b'x')
+    for flags, confirm in (([], True), (['--preflight'], False)):
+        with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+            cdx.main(['decimer', str(image), '--hand-drawn', *flags])
+        tool, kwargs = worker.call_args.args
+        assert tool == 'recognize_structure'
+        assert kwargs['engines'] == 'decimer-api' and kwargs['hand_drawn'] is True and kwargs['confirm_upload'] is confirm
+
+
+def test_maintainer_commands_stay_callable_but_out_of_the_main_help(capsys):
+    with pytest.raises(SystemExit):
+        cdx.main(['--help'])
+    listing = capsys.readouterr().out
+    for hidden in ('regen-signatures', 'regen-catalog', 'chemscript-info', 'SUPPRESS'):
+        assert hidden not in listing
+    for shown in ('doctor', 'ocsr', 'decimer', 'predict', 'stop-daemons'):
+        assert shown in listing
+    with pytest.raises(SystemExit) as helped:
+        cdx.main(['regen-signatures', '--help'])
+    assert helped.value.code == 0
+
+
+def test_doctor_reports_only_the_runtimes_own_passive_capabilities(monkeypatch, capsys):
+    monkeypatch.setattr(cdx, 'expected_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, '_signatures_current', lambda: True)
+    monkeypatch.setattr(cdx, 'catalog_stale', lambda: [])
+    caps = {'chemdraw': {'status': 'available'}, 'office': {'status': 'unverified'},
+            'chemscript': {'status': 'unverified'}, 'chemdraw_com': {'status': 'available'}}
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'outputs': {'capabilities': caps}}}):
+        assert cdx.main(['doctor']) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert 'passive_capabilities' not in report  # unverified is never relabelled as available
+    assert report['capabilities']['office'] == 'unverified'

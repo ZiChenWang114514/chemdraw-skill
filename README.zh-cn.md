@@ -181,7 +181,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
-| **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、PDF/图片批量识别（`recognize_batch`）、前体、路线、产物、反应条件和 1H/13C 位移，每个案例都对照已知答案运行并报告实际运行设备（`execution.device`）。自适应复杂度分类器（`--accel auto\|on\|off`、`--task-hint`）让简单单次调用保持无状态子进程，而在复杂、批量或连续突发任务中自动预热常驻工作守护进程（将重复 GPU 调用从约 21 秒降至 0.8 秒）。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
+| **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、PDF 结构抽取、前体、路线、产物、反应条件和 1H/13C 位移，每个案例都对照已知答案运行并报告实际运行设备（`execution.device`）。批量输入和多步搜索会让模型常驻在工作进程中供下次调用使用（`--accel auto\|on\|off`；`cdx.py stop-daemons` 可随时结束）：在这台笔记本上，第二次 `predict products` 只用 0.6 秒，第一次为 13.7 秒。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
 | **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；基于扩展的 116 条 GHS 试剂安全表与 SMARTS 官能团结构警示的安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
@@ -353,7 +353,7 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 <summary><b>增量流程：</b>修改三处标题，原生调用 8 → 2 次</summary>
 <br>
 
-关联化学与绘图记录、验证缓存依赖、按变化局部检查，并分别验收原图版和兼容版。只修改变化的三处标题字号时，下方链接的实测中原生调用从 8 次减至 2 次，耗时从 33.53 秒降至 8.88 秒。[原图画法版](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [使用流程](skill/chemdraw/references/incremental-reconstruction.md) · [实测证据](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
+关联化学与绘图记录、验证缓存依赖、按变化局部检查，并分别验收原图版和兼容版。只修改变化的三处标题字号时，下方链接的实测中原生调用从 8 次减至 2 次，耗时从 33.53 秒降至 8.88 秒。[原图画法版](toolkit/assets/readme/stereo-reconstruction/source-oriented.cdxml) · [使用流程](skill/chemdraw/references/image-visual-review.md#repeated-structures-and-local-repairs) · [实测证据](toolkit/assets/readme/stereo-reconstruction/incremental-verification.json)
 
 </details>
 
@@ -478,7 +478,7 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 
 十五个可选引擎负责读结构图、从 PDF 中找结构，以及预测前体、产物、反应条件和核磁位移。你同意之前不会安装任何东西；每个引擎各用一个独立环境；本地引擎运行时不上传内容（远程 DECIMER 是唯一会把图片发出去的引擎）；每个结果都标注为模型预测。多个引擎意见不一致时并排列出，不合并。
 
-下面的案例都在同一台带 RTX 5090 显卡的 Windows 笔记本上运行，各自对照已核对的结构、实验记录或实测谱图打分，出错的地方照实保留。它们说明引擎在这些输入上的表现，不代表一般情况下的准确率。输入、输出、打分和耗时都在 [`assets/readme/engines/`](assets/readme/engines/provenance.json)。下表中的冷启动单次耗时包含模型加载时间；自适应加速分类器（`--accel auto|on|off`、`--task-hint`）会让简单单次调用保持无状态（`oneshot`，零常驻显存），并在复杂、批量、多步或连续突发任务中自动预热常驻工作守护进程（将热态 GPU 推理从约 21 秒降至 **0.8 秒**，并为 PDF 提供单次批处理 OCSR `recognize_batch`），且每次引擎回复都会记录实际运行的 `execution.device`（`cuda:0` 或 `cpu`）。
+下面的案例都在同一台带 RTX 5090 显卡的 Windows 笔记本上运行，各自对照已核对的结构、实验记录或实测谱图打分，出错的地方照实保留。它们说明引擎在这些输入上的表现，不代表一般情况下的准确率。输入、输出、打分和耗时都在 [`assets/readme/engines/`](assets/readme/engines/provenance.json)。下表中的冷启动单次耗时包含模型加载时间。单次调用是干净的独立进程；批量输入和多步搜索（或加 `--accel on`）会保留常驻工作进程供下次调用使用，在这里把重复的 `predict products` 从 13.7 秒降到 0.6 秒（`cdx.py stop-daemons` 可结束工作进程），且每次引擎回复都会记录实际运行的 `execution.device`（`cuda:0` 或 `cpu`）。
 
 ### 结构图与 PDF
 

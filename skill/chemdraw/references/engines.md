@@ -9,12 +9,12 @@ cdx.py engines --recommend ocsr             # what to install for a need, with s
 cdx.py install-engines --bundle ocsr-standard   # or engine names, or --task ocsr; --dry-run shows sizes first
 cdx.py remove-engines molnextr              # dry run; add --yes to delete
 cdx.py ocsr crop.png --engines molscribe,molnextr,molvec
-cdx.py predict retro "CC(=O)Oc1ccccc1C(=O)O" --json '{"steps": "multi"}' --accel auto
-cdx.py predict conditions "CCO.CC(=O)O" --products "CCOC(C)=O" --task-hint "batch"
-cdx.py predict stop-daemons                 # stop warm resident worker daemons (alias: cdx.py engines --stop-daemons)
+cdx.py predict retro "CC(=O)Oc1ccccc1C(=O)O" --json '{"steps": "multi"}'
+cdx.py predict products "CCO.CC(=O)O" --accel on   # keep the model resident for the next call
+cdx.py stop-daemons                         # end the resident workers early
 ```
 
-Each engine installs into its own folder under `~/.local/share/chemdraw-skill/engines` (`%LOCALAPPDATA%\chemdraw-skill\engines` on Windows; `CHEMDRAW_ENGINE_HOME` moves it, for example to a larger disk, and must stay set afterwards or the engines are not found), with its own Python, so PyTorch 1.x, TensorFlow 2.14 and the numpy 1.x/2.x stacks never meet. The runtime itself never imports an engine. Weights are downloaded at install time, checked against a pinned sha256 and recorded in a receipt; nothing is stored in the repository. Installation needs a network; running an engine does not (`HF_HUB_OFFLINE` is set for every run) and never uploads anything.
+Each engine installs into its own folder under `~/.local/share/chemdraw-skill/engines` (`%LOCALAPPDATA%\chemdraw-skill\engines` on Windows; `CHEMDRAW_ENGINE_HOME` moves it to a larger disk and must stay set afterwards, or the engines are not found), with its own Python, so the PyTorch, TensorFlow and numpy stacks never meet. The runtime never imports an engine. Weights are downloaded at install time, checked against a pinned sha256 and recorded in a receipt; nothing is stored in the repository. Installing needs a network; running an engine does not (`HF_HUB_OFFLINE` is set) and never uploads anything.
 
 ## Engines
 
@@ -58,9 +58,9 @@ Nothing here is installed or downloaded until the user agrees. The default path 
 | the strongest single-step precursors, or routes searched with them (research use) | `retro-chimera` | <!--size:retro-chimera-->about 8.5 GB<!--/size--> (4.2 GB download, then 15 to 70 minutes, depending on the CPU, to build the stock list once); needs about 14 GB of free memory to run |
 | catalyst, solvent and reagent candidates for a drawn reaction | `conditions` (code without a stated licence) | <!--size:conditions-->about 1.9 GB<!--/size--> (a 2 GB download that is partly deleted afterwards) |
 
-Sizes are measured folder sizes of finished installs on Windows, which carry the CUDA build of PyTorch (about 2 GB per PyTorch engine); a CPU install, without an NVIDIA GPU or with `CHEMDRAW_ENGINE_DEVICE=cpu`, is smaller (the table above gives both). A tool that needs a missing engine answers `ok: false` with an `install_hint` (engine, use, size, licence, command): relay it instead of searching the documentation, and install only after the user says yes.
+Sizes are measured folder sizes of finished Windows installs, which carry the CUDA build of PyTorch (about 2 GB per PyTorch engine); a CPU install is smaller (see the table above). A tool that needs a missing engine answers `ok: false` with an `install_hint` (engine, use, size, licence, command): relay it instead of searching the documentation, and install only after the user says yes.
 
-**How to offer:** run `cdx.py engines --recommend NEED` (`ocsr`, `pdf`, `products`, `retro`, `nmr`, `conditions`; `retrosynthesis` and `segmentation` are accepted for `retro` and `pdf`), then say in a sentence or two what it is for, the download size, the licence in one line (MolParser's weights are non-commercial) and that it needs a network to install but not to run. After a yes, run `cdx.py install-engines --bundle NAME` and check `cdx.py engines`.
+**How to offer:** run `cdx.py engines --recommend NEED` (`ocsr`, `pdf`, `products`, `retro`, `nmr`, `conditions`), then say in a sentence or two what it is for, the download size, the licence in one line and that it needs a network to install but not to run. After a yes, run `cdx.py install-engines --bundle NAME` and check `cdx.py engines`.
 
 **Do not offer** when the task is already solved by the default path, when the user asked for offline or no-download work (`CHEMDRAW_OFFLINE=1` also makes installation refuse), in tasks unrelated to these needs, or again after the user declined in this conversation.
 
@@ -86,23 +86,20 @@ Sizes are measured folder sizes of finished installs on Windows, which carry the
 
 ## GPU, memory and disk
 
-- **GPU and `execution.device` reporting.** Every PyTorch engine uses an NVIDIA GPU: when `nvidia-smi` finds one at install time, the engine gets a CUDA build of PyTorch and runs on it, and the install report, `.engine.json`, `cdx.py engines` and every prediction/OCSR response record `device` and `execution.device` (for example `cuda:0` vs `cpu` or `remote`, plus `device_fallback: true` if a CUDA failure retried on the CPU). Engines that were pinned to an older PyTorch (1.13 to 2.5) have that pin replaced by a CUDA build, because those builds contain no kernels for RTX 50-series GPUs (compute capability 12.0); the predictions matched the CPU builds on the checks made. The ten PyTorch engines are `molscribe`, `molnextr`, `molparser`, `synplanner`, `reactiont5-forward`, `reactiont5-retro`, `magnet`, `retrochimera`, `nmrnet-pp` and `reacon`. Only `decimer-segmentation` and `decimer-local` (both TensorFlow 2.15, which has no GPU support on native Windows) and the Java and ONNX engines stay on the CPU. If the GPU fails while an engine runs (a CUDA error, no kernels for it, out of memory), the call is repeated once on the CPU (with `CUDA_VISIBLE_DEVICES=""`) unless `CHEMDRAW_ENGINE_DEVICE` was set. `CHEMDRAW_ENGINE_DEVICE=cpu` keeps every engine on the CPU, at install and at run time. Macs always use the CPU.
-- **Memory.** Engines run one at a time. RetroChimera is the largest: it still needs about 14 GB of free memory on a GPU machine, because loading the model and localizing templates run on the CPU. It starts one extra rule process for every further 4 GB free, up to 4 (`CHEMDRAW_ENGINE_PROCESSES` sets the number). Close other large programs before a RetroChimera run on a machine with less than 16 GB free.
-- **Adaptive Complexity Classifier (`--accel auto|on|off`, `--task-hint` / `CHEMDRAW_TASK_HINT`).** An internal task-complexity classifier (`cdxml_toolkit.engines.accel`) inspects the tool arguments, session history, and optional `--accel auto|on|off` (or `simple`|`complex`) and `--task-hint` / `CHEMDRAW_TASK_HINT` flags to classify each engine call as `simple` or `complex`:
-  - **`simple` tasks** (cold single-molecule or single-image calls, `--accel off`, `--accel simple`, or `--task-hint "simple task"`) run as stateless one-shot subprocesses and exit immediately after returning, leaving zero resident worker processes or GPU allocations behind.
-  - **`complex` tasks** (batches, multi-step routes, PDFs, multi-engine comparisons, burst sessions with 2+ calls within 3 minutes, `--accel on`, `--accel complex`, or `--task-hint "batch"`) automatically route through a loopback-only (`127.0.0.1`), token-authenticated warm resident worker daemon (`26x` faster warm GPU hits by keeping PyTorch/CUDA weights loaded in memory across calls), with a 180 s idle timeout (`CHEMDRAW_ACCEL_IDLE`) and an LRU cap of 2 resident engines.
-  - Inspect active workers with `cdx.py engines` (`active_daemons`) and stop them immediately with `cdx.py predict stop-daemons` or `cdx.py engines --stop-daemons`.
+- **GPU.** Every PyTorch engine uses an NVIDIA GPU: when `nvidia-smi` finds one at install time the engine gets a CUDA build of PyTorch (older pins are replaced, because they have no kernels for RTX 50-series GPUs), and every response records `device` (`cuda`, `cpu` or `remote`, plus `device_fallback: true` after a retry). If the GPU fails while an engine runs (a CUDA error, no kernels, out of memory), the call is repeated once on the CPU. `CHEMDRAW_ENGINE_DEVICE=cpu` keeps every engine on the CPU, at install and at run time; Macs always use the CPU. `decimer-segmentation`, `decimer-local` (TensorFlow has no GPU support on native Windows) and the Java and ONNX engines stay on the CPU.
+- **Memory.** RetroChimera is the largest engine: it needs about 14 GB of free memory on a GPU machine, because loading the model and localizing templates run on the CPU. It starts one rule process for every further 4 GB free, up to 4 (`CHEMDRAW_ENGINE_PROCESSES` sets the number and skips the check). Close other large programs before a RetroChimera run on a machine with less than 16 GB free.
+- **Resident workers (`--accel auto|on|off`, `CHEMDRAW_ACCEL`).** By default (`auto`) each prediction is a clean one-shot process, except that a batch of inputs, a multi-step search or a both-nuclei NMR run keeps the model in a loopback-only, token-authenticated worker for the next call. `on` does this for every call, `off` never. The worker handles one request at a time: a caller that finds it busy runs its own one-shot instead. It ends after `CHEMDRAW_ACCEL_IDLE` idle seconds (default 180) and at most two stay resident. `cdx.py engines` lists them; `cdx.py stop-daemons` ends them. Only engines whose models load in a plain Python process can stay resident (not `retrochimera`, `synplanner`, `nmrnet-pp` or `reacon`).
 - **Disk.** Package downloads are cached under `CHEMDRAW_ENGINE_HOME/.cache`, on the same disk as the engines, unless `UV_CACHE_DIR` or `PIP_CACHE_DIR` is set.
 
 ## Removing an engine
 
-`cdx.py remove-engines NAME...` shows what it would delete and how much space that frees; `--yes` deletes. It removes only that engine's own folder under the engines home, and refuses a folder that is a symbolic link, outside the home, or not an installation made by `install-engines`. Downloaded package caches outside the folder are not touched. Reinstalling later downloads again.
+`cdx.py remove-engines NAME...` shows what it would delete and how much space that frees; `--yes` deletes only that engine's own folder under the engines home (it refuses a symbolic link, a folder outside the home, or one `install-engines` did not make). Reinstalling downloads again.
 
 ## Reading a structure image
 
 `recognize_structure(image_path, engines=...)` runs the named engines and compares them. `engines` is a name, a comma-separated list, or `all` (every installed local engine; the remote `decimer-api` joins only with `confirm_upload`). The default stays `decimer-api`, with the upload rule in [SKILL.md](../SKILL.md).
 
-For multi-crop figures or scheme segments, `ocsr.recognize_batch(image_paths, engines=..., hand_drawn=False, confirm_upload=False, timeout_seconds=600)` (in `cdxml_toolkit.engines.ocsr`) processes all crops in a single batched invocation per local engine (and reuses the warm resident worker daemon when active), returning per-image `comparison` blocks alongside `batch_acceleration` and `execution.device` metadata without reloading model weights on every crop.
+`cdx.py ocsr` reads one image per call. For several crops, `extract_structures_from_document` does the whole page or PDF in one pass; from Python only, `cdxml_toolkit.engines.ocsr.recognize_batch(image_paths, engines, ...)` (run it with `cdx.py py`) calls each local engine once for all the crops and returns one report per image.
 
 The `comparison` block groups the engines by the structure they read (full InChIKey):
 
@@ -113,15 +110,13 @@ The `comparison` block groups the engines by the structure they read (full InChI
 
 When engines disagree, show the user the groups, look at the image, and decide per atom or bond; do not take the majority. Use [image visual review](image-visual-review.md) for the rest of the reconstruction.
 
-Real-paper accuracy is low for every open model. A 2026 benchmark of 5,029 structures from recent papers reports about 41% exact match for the best graph models (a self-reported figure on a third-party listing); clean computer-drawn images are much easier. Hand-drawn structures need `hand_drawn` with a DECIMER engine.
+Real-paper accuracy is low for every open model (a 2026 benchmark of 5,029 structures from recent papers reports about 41% exact match for the best graph models, a self-reported figure); clean computer-drawn images are much easier. Hand-drawn structures need `hand_drawn` with a DECIMER engine.
 
-`decimer-local` is the DECIMER model on this computer, for images that may not be uploaded. It reads the same weights as the remote service, so it gives the same answer; it runs on the CPU in its own TensorFlow 2.15 environment, and every call loads the model first (30 to 70 s on a laptop), so use it for single images, not batches.
-
-Measured here with `scripts/ocsr_benchmark.py` on 10 clean RDKit drawings (full InChIKey match, Apple-silicon CPU): MolScribe 10/10 at about 7 s per image, MolNexTR 10/10 at about 11 s, MolParser 10/10 at about 11 s, MolVec 10/10 at about 2 s. This is an upper bound for clean computer drawings, not an accuracy figure for papers.
+`decimer-local` is the DECIMER model on this computer, for images that may not be uploaded. It reads the same weights as the remote service, so it gives the same answer; it runs on the CPU in its own TensorFlow 2.15 environment and loads the model first (30 to 70 s on a laptop). A one-shot call pays that every time; a batch, or `--accel on`, keeps it resident for the next call.
 
 ## Structures in a PDF
 
-`extract_structures_from_document(path, out_dir, pages=[...], engines=...)` renders the pages (up to 50 per call), finds the structures, reads each one, and writes `structures.json` and `contact-sheet.png` into a new folder. The sheet puts each crop beside a drawing of what each group of engines read, so mismatches are visible at a glance. `needs_review` lists the segments where engines disagree or only one engine ran. The segmenter is DECIMER Segmentation when installed, otherwise the OpenCV segmenter in the toolkit (less reliable at merged or split structures; a warning says so). Segmentation can miss a structure entirely: check the sheet against the page.
+`extract_structures_from_document(path, out_dir, pages=[...], engines=...)` renders the pages (up to 50 per call), finds the structures, reads each one, and writes `structures.json` and `contact-sheet.png` into a new folder; the sheet puts each crop beside what each group of engines read. `needs_review` lists the segments where engines disagree or only one engine ran. The segmenter is DECIMER Segmentation when installed, otherwise the less reliable OpenCV one in the toolkit (a warning says so). Segmentation can miss, merge or split structures: check the sheet against the page.
 
 ## Predictions
 
@@ -129,41 +124,29 @@ Measured here with `scripts/ocsr_benchmark.py` on 10 clean RDKit drawings (full 
 | --- | --- | --- |
 | `predict_products(reactants, reagents)` | `reactiont5-forward` | ranked candidate products with beam scores, and `reactions` (`A.B>>P`) |
 | `predict_retrosynthesis(product, steps)` | `aizynthfinder`; `retrochimera` (single step and routes); `synplanner` (routes); `reactiont5-retro` (single step) | precursor options, or routes with `reactions`, `starting_materials` and `all_in_stock` |
-| `predict_nmr(smiles, nucleus, solvent, engine)` | `magnet`, `nmrnet-pp`, or both (`engine="magnet,nmrnet-pp"`) | Boltzmann-weighted peaks grouped by symmetry (`marked predicted: true`), Karplus `j_couplings` and multiplet patterns (`s`, `d`, `t`, `q`, `dd`, `m`), `execution.device` (`cuda:0` vs `cpu`); with two engines a `comparison` of each peak (never averaged); with `output_path` a simulated `ppm,intensity` CSV |
+| `predict_nmr(smiles, nucleus, solvent, engine)` | `magnet`, `nmrnet-pp`, or both (`engine="magnet,nmrnet-pp"`) | peaks grouped by symmetry (`predicted: true`) with `j_couplings` and multiplet patterns, `device`; with two engines a `comparison` of each peak (never averaged); with `output_path` a simulated `ppm,intensity` CSV; with `experimental_1h` / `experimental_13c` an `experimental_comparison` |
 | `predict_conditions(reactants, products)` | `reacon` | ranked catalyst, solvent and reagent sets; the atom-mapped reaction is returned for checking |
 
-For experimental vs. predicted shift verification, `nmr.compare_shifts(experimental_peaks, smiles, nucleus="1H", solvent="CDCl3", engine="magnet")` (in `cdxml_toolkit.engines.nmr`, also invoked when `scientific_workflow(operation="nmr", smiles=..., compare_predicted=True)` is set) matches observed peaks against predicted shifts via optimal assignment, returning `mae_ppm`, `rmse_ppm`, `max_error_ppm`, per-peak `assignments`, `outliers`, and `provenance: "model_assisted_candidate_assignment"`.
+To check a measured spectrum against a prediction, give `predict_nmr` the measured peak lists (`experimental_1h=[...]`, `experimental_13c=[...]`, ppm; one engine). Each predicted group is matched to one measured peak by optimal assignment, and `experimental_comparison` returns `kind: "model_assisted_candidate_assignment"`, `matches_1h` and `matches_13c` (atoms, `predicted_shift`, `experimental_shift`, signed `error`, `abs_error`, `is_outlier`), `mae_1h`, `mae_13c`, `max_error_1h`, `max_error_13c`, `outliers` (over 0.5 ppm for 1H, 5 ppm for 13C) and `prediction_source`. It is a candidate assignment, not a measured one: confirm it with 2D NMR.
 
 Limits to state when reporting:
 
 - Products and precursors are learned suggestions. The true product can be missing from the list; check atom balance with `check_reaction_balance`, and selectivity and conditions by chemistry.
-- `reactiont5-retro` mixes reagents and solvents into its reactant sets and can miss the obvious precursor; prefer `aizynthfinder`.
-- AiZynthFinder's building-block check uses the ZINC stock that ships with its public data, not the user's catalogue.
-- MagNET supports H, C, N, O, F, Cl and S. The toolkit generates a Boltzmann-weighted 3D conformer ensemble (ETKDGv3 + MMFF94s energies at 298.15 K) to average conformationally mobile shifts and estimates 1H-1H `j_couplings` (Altona-Haasnoot Karplus `^3J_{HH}` dihedral couplings, geminal `^2J_{HH}`, and aromatic ortho/meta couplings) so both peak tables and simulated CSV spectra include realistic multiplet splitting. Because MagNET was trained on AIMNet2 geometries, errors can still exceed the published ones, and exchangeable OH/NH shifts remain approximate.
-- RetroChimera: the authors release it for research and experiments; an expert must check every suggestion, lower-ranked reactions are more likely to be hallucinated (read the first 5 to 10), and its data end in 2023. Routes use the MCULE/Molport building-block list shared with SynPlanner; "in stock" means listed there, not buyable today. A CPU run takes tens of seconds per target because the model loads on every call.
-- NMRNet++ uses fold 0 of the authors' five cross-validation models, not their ensemble. Its models take no solvent, so the `solvent` argument does not change its answer, and the geometry is one RDKit/MMFF conformer. When it and MagNET differ by more than 0.3 ppm (1H) or 5 ppm (13C) the peak is flagged in `comparison`: at least one of them is wrong, and neither is the reference.
-- Reacon learned from USPTO patents and returns catalyst, solvent and reagent sets, never temperature, time, amounts or yield. It maps the reaction first (so a wrong map changes the answer); when no template of the library matches, the options combine each classifier's top three and are less reliable (`template_level: "none"`).
+- `reactiont5-retro` mixes reagents and solvents into its reactant sets and can miss the obvious precursor; prefer `aizynthfinder`. AiZynthFinder's building-block check uses the ZINC stock in its public data, not the user's catalogue.
+- MagNET supports H, C, N, O, F, Cl and S. Shifts are averaged over a Boltzmann-weighted conformer ensemble and 1H-1H `j_couplings` are estimated from the geometry, so peak tables and simulated spectra show multiplet splitting. Errors can exceed the published ones, and exchangeable OH/NH shifts remain approximate.
+- RetroChimera: research use only; an expert must check every suggestion, lower-ranked reactions are more likely to be hallucinated (read the first 5 to 10), and its data end in 2023. "In stock" means listed in the MCULE/Molport building blocks it shares with SynPlanner, not buyable today.
+- NMRNet++ uses one of the authors' five cross-validation models and takes no solvent, so `solvent` does not change its answer. When it and MagNET differ by more than 0.3 ppm (1H) or 5 ppm (13C) the peak is flagged in `comparison`: at least one is wrong, and neither is the reference.
+- Reacon learned from USPTO patents and returns catalyst, solvent and reagent sets, never temperature, time, amounts or yield. It maps the reaction first, so a wrong map changes the answer; with no matching template the options are less reliable (`template_level: "none"`).
 - Never put predicted values into an experimental characterization line or an SI table; label them as predicted. `scientific_workflow(operation="nmr")` accepts the simulated CSV for plotting.
 
 Route steps feed `render_scheme`, `route_summary` and `draw_figure` as ordinary reaction SMILES; title such a figure as predicted.
 
 ## Not included
 
-Checked and left out, with the reason:
-
-- **Other condition predictors** found with weights depend on commercial reaction-classification software or on data that is not public.
-- **NMRNet** (the first, 2025 version): its weights are 38 GB; NMRNet++ is provided instead.
-- **IBM RXN**: needs an account key and its API contract could not be verified without one.
-- **nmrdb.org**: a browser page without a programmatic interface.
-- **Molecular Transformer**: no licence is stated in its repository.
-- **RetroDFM-R**: an 8B language model trained on H200 GPUs; not practical on a laptop CPU.
-- **OSRA, Imago**: GPL; would only ever be called as external programs, not bundled.
+Left out, with the reason: other condition predictors (they need commercial reaction-classification software or non-public data); NMRNet, the first version (38 GB of weights; NMRNet++ is provided instead); IBM RXN (needs an account key); nmrdb.org (no programmatic interface); Molecular Transformer (no licence stated); RetroDFM-R (an 8B model that needs H200 GPUs); OSRA and Imago (GPL; they could only be called as external programs).
 
 ## Troubleshooting
 
 - `cdx.py engines` lists what is installed; `cdx.py doctor` shows one `engine_*` line per local engine.
-- A failed or half-finished install leaves no receipt and the engine does not count as installed. Run `install-engines` again; finished downloads are cached.
-- `another install of NAME is running`: one install, removal or download of an engine runs at a time (lock files under `.locks` in the engine home); wait for it, or stop the other command.
-- A failed install step prints the last lines of pip or uv; check the network or proxy, then run the same command again.
-- Package index or model hosts can drop connections during a large download (`tls handshake eof`); run the same command again.
+- A failed or half-finished install leaves no receipt and the engine does not count as installed: run `install-engines` again (finished downloads are cached; a dropped connection such as `tls handshake eof` is fixed the same way, after checking the network or proxy). `another install of NAME is running` means one install or removal runs at a time per engine: wait for it.
 - On macOS a worker script must guard its entry point with `if __name__ == "__main__":`, because the engines start worker processes that import it again.

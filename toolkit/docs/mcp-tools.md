@@ -8,13 +8,14 @@ Tools: `66`
 
 ## Extended Tools
 
-### `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False) -> dict[str, typing.Any]`
+### `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None) -> dict[str, typing.Any]`
 
-Analyze a time series of standard LCMS reports (PDF, .rpt, .daml, or report.txt).
+Analyze a time series of standard LCMS data (PDF, .rpt, .daml, report.txt, mzML/mzXML or Waters .raw).
 
-Every PDF, Shimadzu .daml, or Agilent report.txt is one timepoint; every
-sample inside an OpenLynx .rpt is one timepoint, so one multi-sample .rpt is
-enough.
+Every PDF, Shimadzu .daml, Agilent report.txt, mzML/mzXML file or Waters .raw folder is one timepoint;
+every sample inside an OpenLynx .rpt is one timepoint, so one multi-sample .rpt is enough.
+``internal_standard_mw`` (exact mass) and/or ``internal_standard_rt`` (minutes) name an internal standard:
+each species is then also reported relative to it.
 
 ### `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, typing.Any]`
 
@@ -393,7 +394,7 @@ Options list a catalyst, up to two solvents and up to three reagents with a scor
 reactions. They are candidates only: no temperature, time, amounts or yield, and a new reaction type may
 be answered poorly.
 
-### `predict_nmr(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: Optional[str] = None, output_path: Optional[str] = None, timeout_seconds: int = 900) -> dict[str, typing.Any]`
+### `predict_nmr(smiles: str, nucleus: str = '1H', solvent: str = 'chloroform', frequency_mhz: float = 400.0, engine: Optional[str] = None, output_path: Optional[str] = None, timeout_seconds: int = 900, experimental_1h: Optional[list[float]] = None, experimental_13c: Optional[list[float]] = None) -> dict[str, typing.Any]`
 
 Predict 1H and/or 13C chemical shifts (`nucleus` "1H", "13C" or "both") of one molecule in a solvent.
 
@@ -404,6 +405,12 @@ peaks grouped by symmetry (shift, proton count, atom indices) marked `predicted:
 (a new file) it also writes a simulated `ppm,intensity` spectrum of singlets that
 scientific_workflow(operation="nmr") can read. Predictions are not measured data: never put them in an
 experimental characterization line.
+
+With `experimental_1h` and/or `experimental_13c` (lists of measured ppm values) one engine's prediction is
+also matched to them peak by peak (Hungarian assignment): the nuclei you give peaks for are predicted
+whatever `nucleus` says, and `experimental_comparison` lists each predicted group with its closest
+measured peak, the signed and absolute error, the mean and largest error per nucleus and `outliers`
+(over 0.5 ppm for 1H, 5 ppm for 13C). It is a candidate assignment: confirm it with 2D NMR.
 
 ### `predict_products(reactants: str, reagents: Optional[str] = None, engine: Optional[str] = None, count: int = 5, timeout_seconds: int = 600) -> dict[str, typing.Any]`
 
@@ -843,8 +850,8 @@ Returns:
 Parse an LCMS or NMR analysis file to extract peaks and data.
 
 Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports, Shimadzu
-LabSolutions .daml files, Agilent ChemStation report.txt files, and
-MestReNova NMR PDFs. Returns structured peak data for LCMS species
+LabSolutions .daml files, Agilent ChemStation report.txt files, mzML / mzXML
+files, Waters .raw folders, and MestReNova NMR PDFs. Returns structured peak data for LCMS species
 identification or NMR characterisation. A .rpt holds one or many samples:
 one sample returns the same dict as a PDF report, several return
 {source_format, sample_count, samples: [report, ...]}.
@@ -853,7 +860,7 @@ This module is under active development. If unavailable, the tool returns
 a graceful error rather than crashing.
 
 Args:
-    pdf_path:    Path to an LCMS file (.pdf, .rpt, .daml, or report.txt) or NMR PDF.
+    pdf_path:    Path to an LCMS file (.pdf, .rpt, .daml, report.txt, .mzML/.mzXML or a Waters .raw folder) or NMR PDF.
     output_path: If given, write the parsed data as JSON to this file and
                  return {ok, output_path, size} instead of the full dict.
 

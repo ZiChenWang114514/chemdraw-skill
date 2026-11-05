@@ -38,12 +38,12 @@
     },
     {
       "structure_number": 8,
-      "source": "examples/paper-reconstructions/components/101-112/101.cdxml",
+      "source": "assets/paper-reconstructions/components/101-112/101.cdxml",
       "sha256": "23edebe8d9e12e95a0c1c8dda96b72e3691a71a2195430f9224cacbbe341cb4f"
     },
     {
       "structure_number": 9,
-      "source": "examples/paper-reconstructions/components/101-112/102.cdxml",
+      "source": "assets/paper-reconstructions/components/101-112/102.cdxml",
       "sha256": "d2c715e8c71781d42dc2f9f4d684e0878f262af5c11bddd8a08979f75a1c2d87"
     }
   ]

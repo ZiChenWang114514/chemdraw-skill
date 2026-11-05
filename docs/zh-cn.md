@@ -32,7 +32,7 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 
 如果想先试 ChemDraw 自带的反应计算器，而不是画图，可以运行 `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"`。
 
-可选的识别和预测引擎（更多 OCSR 引擎、逆合成、产物、反应条件和核磁预测）不随安装一起下载。先用 `cdx.py engines --recommend 需求` 看看该装哪个、要占多大空间，同意后再运行 `cdx.py install-engines --bundle 名称`。每个引擎占用从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存）。`decimer-local` 在本机运行 DECIMER 模型，直接装进工具包运行环境。有 NVIDIA 显卡时引擎会使用显卡并报告 `execution.device`，设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭；自适应复杂度分类器（`--accel auto|on|off`、`--task-hint`）让简单单次调用保持无状态，并在复杂或批量任务（如多图批处理 `recognize_batch`）中自动预热常驻工作守护进程。许可限制：MolParser 的权重仅限非商业用途，RetroChimera 仅供研究，Reacon 没有许可证。想装到其他磁盘，就在安装前设置 `CHEMDRAW_ENGINE_HOME`，并且之后一直保留这个设置（见[引擎说明](../skill/chemdraw/references/engines.md)）。
+可选的识别和预测引擎（更多 OCSR 引擎、逆合成、产物、反应条件和核磁预测）不随安装一起下载。先用 `cdx.py engines --recommend 需求` 看看该装哪个、要占多大空间，同意后再运行 `cdx.py install-engines --bundle 名称`。每个引擎占用从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存）。`decimer-local` 在本机运行 DECIMER 模型，直接装进工具包运行环境。有 NVIDIA 显卡时引擎会使用显卡并报告 `execution.device`，设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭；单次调用保持无状态；批量输入或多步搜索会让模型常驻在工作进程中供下次调用使用（`--accel auto|on|off`，`cdx.py stop-daemons` 可结束）。许可限制：MolParser 的权重仅限非商业用途，RetroChimera 仅供研究，Reacon 没有许可证。想装到其他磁盘，就在安装前设置 `CHEMDRAW_ENGINE_HOME`，并且之后一直保留这个设置（见[引擎说明](../skill/chemdraw/references/engines.md)）。
 
 其他 agent 的安装位置、手动构建运行时和诊断方法见[首次安装](guide.zh-cn.md#首次安装)；[agent 集成](../skill/chemdraw/references/agent-integration.md)解释了目录布局和每一条命令。
 

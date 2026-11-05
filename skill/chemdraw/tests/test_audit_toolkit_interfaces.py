@@ -211,8 +211,43 @@ class InterfaceAuditTests(unittest.TestCase):
         repo = MODULE_PATH.parents[3]
         references = MODULE_PATH.parents[1] / "references"
         self.assertEqual(self._run(auditor, "--package-root", str(repo / "toolkit" / "cdxml_toolkit"),
-                                   "--output-dir", str(references), "--version", cdxml_toolkit.__version__,
-                                   "--check"), 0)
+                                   "--output-dir", str(references), "--docs-dir", str(repo / "toolkit" / "docs"),
+                                   "--version", cdxml_toolkit.__version__, "--check"), 0)
+
+    def test_the_reviewed_exclusions_live_in_the_toolkit_docs_not_in_the_skill(self) -> None:
+        auditor = load_auditor()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "pkg"
+            root.mkdir()
+            (root / "module.py").write_text("def work(): pass\n", encoding="utf-8")  # no domain: an exclusion
+            out, docs = Path(temp_dir) / "references", Path(temp_dir) / "docs"
+            common = ("--package-root", str(root), "--output-dir", str(out), "--docs-dir", str(docs), "--version", "0.0.0")
+            self.assertEqual(self._run(auditor, *common), 0)
+            self.assertFalse((out / "inventory" / "reviewed-exclusions.md").exists())
+            self.assertFalse((out / "toolkit-reviewed-exclusions.md").exists())
+            shard = (docs / "reviewed-exclusions-inventory.md").read_text(encoding="utf-8")
+            self.assertIn("`work()`", shard)
+            index = (out / "toolkit-public-inventory.md").read_text(encoding="utf-8")
+            self.assertNotIn("(inventory/reviewed-exclusions.md)", index)
+            self.assertIn("toolkit/docs/reviewed-exclusions-inventory.md", index)
+
+            self.assertEqual(self._run(auditor, *common, "--check"), 0)
+            (docs / "reviewed-exclusions-inventory.md").write_text("old\n", encoding="utf-8")
+            self.assertEqual(self._run(auditor, *common, "--check"), 1)  # drift in the moved shard is still found
+
+    def test_a_stale_exclusions_shard_in_the_skill_is_removed(self) -> None:
+        auditor = load_auditor()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "pkg"
+            root.mkdir()
+            (root / "module.py").write_text("def work(): pass\n", encoding="utf-8")
+            out, docs = Path(temp_dir) / "references", Path(temp_dir) / "docs"
+            (out / "inventory").mkdir(parents=True)
+            old = out / "inventory" / "reviewed-exclusions.md"
+            old.write_text("# Reviewed Exclusions Public Symbols\n", encoding="utf-8")
+            self.assertEqual(self._run(auditor, "--package-root", str(root), "--output-dir", str(out),
+                                       "--docs-dir", str(docs), "--version", "0.0.0"), 0)
+            self.assertFalse(old.exists())
 
 
 if __name__ == "__main__":
