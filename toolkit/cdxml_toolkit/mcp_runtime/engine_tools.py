@@ -131,6 +131,8 @@ def predict_nmr(
     engine: Optional[str] = None,
     output_path: Optional[str] = None,
     timeout_seconds: int = 900,
+    experimental_1h: Optional[list[float]] = None,
+    experimental_13c: Optional[list[float]] = None,
 ) -> dict[str, Any]:
     """Predict 1H and/or 13C chemical shifts (`nucleus` "1H", "13C" or "both") of one molecule in a solvent.
 
@@ -141,8 +143,23 @@ def predict_nmr(
     (a new file) it also writes a simulated `ppm,intensity` spectrum of singlets that
     scientific_workflow(operation="nmr") can read. Predictions are not measured data: never put them in an
     experimental characterization line.
+
+    With `experimental_1h` and/or `experimental_13c` (lists of measured ppm values) one engine's prediction is
+    also matched to them peak by peak (Hungarian assignment): the nuclei you give peaks for are predicted
+    whatever `nucleus` says, and `experimental_comparison` lists each predicted group with its closest
+    measured peak, the signed and absolute error, the mean and largest error per nucleus and `outliers`
+    (over 0.5 ppm for 1H, 5 ppm for 13C). It is a candidate assignment: confirm it with 2D NMR.
     """
-    return nmr.predict(smiles, nucleus, solvent, frequency_mhz, engine, output_path, timeout_seconds)
+    experimental = bool(experimental_1h or experimental_13c)
+    if experimental:
+        if engine and len([n for n in engine.split(',') if n.strip()]) > 1:
+            raise ValueError('compare with experimental peaks using one engine at a time')
+        nucleus = 'both' if (experimental_1h and experimental_13c) else ('13C' if experimental_13c else '1H')
+    result = nmr.predict(smiles, nucleus, solvent, frequency_mhz, engine, output_path, timeout_seconds)
+    if experimental and result.get('ok', True):
+        result['experimental_comparison'] = nmr.compare_shifts(
+            smiles, experimental_1h, experimental_13c, solvent=solvent, predicted_result=result)
+    return result
 
 
 ENGINE_TOOLS = {

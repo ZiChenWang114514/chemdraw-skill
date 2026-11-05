@@ -144,14 +144,6 @@ def last_call_meta(name: str | None = None) -> dict:
     return {'device': configured_device(name) if name else 'cpu', 'device_fallback': False}
 
 
-def last_accel_meta(name: str | None = None) -> dict | None:
-    """Task-complexity classification and daemon execution metadata from the most recent ``call``."""
-    meta = _LAST_CALL_META.get()
-    if isinstance(meta, dict) and (name is None or meta.get('engine') == name):
-        return meta.get('accel')
-    return None
-
-
 def _cuda_failure(error) -> bool:
     return bool(DEVICE_ERRORS.search(str(error)))
 
@@ -203,8 +195,6 @@ def _run(command, *, timeout, input=None, env=None, capture=True) -> subprocess.
     return subprocess.CompletedProcess(command, process.returncode, out, err)
 
 
-_ORIG_RUN = _run
-
 
 def _missing(name: str, detail: str = '') -> EngineMissing:
     return EngineMissing(name, f'{ENGINES[name]["title"]} is not installed{detail} (looked in {home()}): '
@@ -229,8 +219,7 @@ def call(name: str, action: str, params: dict, timeout: int = RUN_TIMEOUT) -> di
             raise
         print(f'{ENGINES[name]["title"]}: the GPU failed ({str(exc)[:160]}); trying once on the CPU', file=sys.stderr)
         result = _call(name, action, params, timeout, device='cpu')
-        prev_accel = (_LAST_CALL_META.get() or {}).get('accel')
-        _LAST_CALL_META.set({'engine': name, 'device': 'cpu', 'device_fallback': True, 'accel': prev_accel})
+        _LAST_CALL_META.set({'engine': name, 'device': 'cpu', 'device_fallback': True})
         return result
 
 
@@ -253,37 +242,30 @@ def _call(name: str, action: str, params: dict, timeout: int, device: str | None
         env['PYSTOW_HOME'] = str(data_dir(name))
     env.update(HF_HUB_OFFLINE='0' if action == 'fetch' else '1', TRANSFORMERS_OFFLINE='0' if action == 'fetch' else '1')
 
-    engine_home = home()
-    decision = accel.classify_task(name, action, params, engine_home=engine_home if _run is _ORIG_RUN else None)
     effective_device = 'cpu' if force_cpu else (device or configured_device(name))
 
-    if _run is _ORIG_RUN and decision.primary_reason in ('user_indicated_simple_task', 'explicit_simple_mode'):
-        accel.stop_all_daemons(engine_home)
-
-    if decision.use_daemon and action == 'predict' and _run is _ORIG_RUN:
-        daemon_out = accel.call_via_daemon(
-            engine=name,
-            python=python,
-            worker_script=WORKER,
-            request=request,
-            env_vars=env,
-            engine_home=engine_home,
-            device_key=effective_device,
-            timeout=timeout,
-        )
+    if accel.wants_daemon(name, action, params):
+        try:
+            daemon_out = accel.call_via_daemon(
+                engine=name,
+                python=python,
+                worker_script=WORKER,
+                request=request,
+                env_vars=env,
+                engine_home=home(),
+                device_key=effective_device,
+                timeout=timeout,
+            )
+        except accel.DaemonTimeout as exc:
+            raise EngineError(f'{title} did not finish within {timeout} s') from exc
         if daemon_out is not None:
-            payload, exec_mode = daemon_out
+            payload, _ = daemon_out
             if not payload.get('ok'):
                 if _cuda_failure(payload.get('error', '')):
-                    accel.stop_daemon_file(accel._daemon_state_path(engine_home, name, effective_device))
+                    accel.stop_daemon_file(accel.daemon_state_path(home(), name, effective_device))
                 raise EngineError(f'{title}: {payload.get("error")}')
-            accel.record_call(engine_home, name)
-            _LAST_CALL_META.set({
-                'engine': name,
-                'device': payload.get('device') or effective_device,
-                'device_fallback': False,
-                'accel': decision.to_dict(exec_mode),
-            })
+            _LAST_CALL_META.set({'engine': name, 'device': payload.get('device') or effective_device,
+                                 'device_fallback': False})
             return payload['result']
 
     # A download shows its progress lines on the terminal; a prediction's output stays captured.
@@ -307,12 +289,7 @@ def _call(name: str, action: str, params: dict, timeout: int, device: str | None
         raise EngineError(f'{title} failed to start: {tail[0][:300] if tail else "see the messages above"}')
     if not payload.get('ok'):
         raise EngineError(f'{title}: {payload.get("error")}')
-    if action == 'predict' and _run is _ORIG_RUN and decision.primary_reason not in ('user_indicated_simple_task', 'explicit_simple_mode'):
-        accel.record_call(engine_home, name)
-    _LAST_CALL_META.set({'engine': name,
-                         'device': payload.get('device') or effective_device,
-                         'device_fallback': False,
-                         'accel': decision.to_dict('oneshot')})
+    _LAST_CALL_META.set({'engine': name, 'device': payload.get('device') or effective_device, 'device_fallback': False})
     return payload['result']
 
 
@@ -715,7 +692,7 @@ def remove(name: str, *, dry_run: bool = True) -> dict:
     try:
         with _lock(name):
             for dev in ('default', 'cpu'):
-                accel.stop_daemon_file(accel._daemon_state_path(home(), name, dev))
+                accel.stop_daemon_file(accel.daemon_state_path(home(), name, dev))
             shutil.rmtree(root)
     except EngineError as exc:  # an install of this engine is running
         return {**report, 'ok': False, 'error': str(exc)}

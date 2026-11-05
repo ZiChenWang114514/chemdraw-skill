@@ -31,9 +31,6 @@ def _reaction_smiles(reactants, product):
 def _device_extra(name: str, warnings: list) -> dict:
     meta = env.last_call_meta(name)
     extra = {'device': meta['device']}
-    accel_meta = env.last_accel_meta(name)
-    if accel_meta:
-        extra['accel'] = accel_meta
     if meta.get('device_fallback'):
         extra['device_fallback'] = True
         warnings.append(f'{name}: CUDA failed at runtime; fell back to CPU.')
