@@ -612,7 +612,11 @@ def compose_chemical_figure(manifest_path: str, output_path: str) -> dict:
     Supports molecules with exact atom coordinates or template alignment, CIP/
     atom labels, highlights, ring fills, multi-attachments, crossings, rich text,
     straight/equilibrium/resonance/retro arrows, curved electron arrows,
-    transition-state brackets, orbitals, interactions, and shapes.
+    transition-state brackets, orbitals, interactions, and shapes. The manifest
+    style is a built-in preset name (acs1996, wiley, rsc, nature, ...; see
+    chemdraw://style-guide/all) or an object with an optional "preset" plus font,
+    font_size, bond_length, line_width, bold_width, hash_spacing and margin_width,
+    which override the preset.
     """
     from ..render.renderer import _IDGen, _build_fragment
     from ..image.structure_from_image import _rdkit_mol_to_atom_bond_dicts
@@ -707,8 +711,17 @@ def compose_chemical_figure(manifest_path: str, output_path: str) -> dict:
 
     style = data.get('style', {})
     style_fields = {'font', 'font_size', 'bond_length', 'line_width', 'bold_width', 'hash_spacing', 'margin_width'}
-    if set(style) - style_fields:
-        raise ValueError('Unknown style field')
+    if isinstance(style, str):
+        style = {'preset': style}
+    if not isinstance(style, dict):
+        raise ValueError('style must be a preset name or an object')
+    unknown = set(style) - style_fields - {'preset'}
+    if unknown:
+        raise ValueError(f"Unknown style field(s) {sorted(unknown)}; allowed: preset, {', '.join(sorted(style_fields))}")
+    if style.get('preset') is not None:
+        from ..chemdraw.style_presets import style_preset_as_manifest_style
+        style = {**style_preset_as_manifest_style(str(style['preset'])),
+                 **{k: v for k, v in style.items() if k != 'preset'}}
     font_size = float(style.get('font_size', root.get('CaptionSize', 10)))
     bond_length = float(style.get('bond_length', root.get('BondLength', 14.4)))
     if not 3 <= font_size <= 72 or not 5 <= bond_length <= 100:

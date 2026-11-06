@@ -31,7 +31,7 @@
 
 ## `scientific.plots`
 
-- **function**, line 350: `build_lcms_plate_cdxml(source_or_spec: Any, output_path: str | Path | None = None, *, product_mass: float | None = None, sm_mass: float | None = None, plate_format: int | str | None = None, wavelength: int | str = 254, title: str = 'LCMS Plate Purity Heatmap') -> dict[str, Any]` - Build an editable 24-well or 96-well LCMS purity heatmap in CDXML.
+- **function**, line 375: `build_lcms_plate_cdxml(source_or_spec: Any, output_path: str | Path | None = None, *, product_mass: float | None = None, sm_mass: float | None = None, plate_format: int | str | None = None, wavelength: int | str = 254, title: str = 'LCMS Plate Purity Heatmap') -> dict[str, Any]` - Build an editable 24-well or 96-well LCMS purity heatmap in CDXML.
 - **function**, line 13: `envelope_indices(values, limit = 1600)` - No public docstring in the audited version.
 - **function**, line 59: `plot_xy(x = None, y = None, output_dir = None, *, title = 'Scientific plot', xlabel = 'x', ylabel = 'y', reverse_x = False, provenance = None, dpi = 300, series = None)` - No public docstring in the audited version.
 

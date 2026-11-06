@@ -684,7 +684,11 @@ def build_from_spec(spec_path, output_path=None):
       {"type": "arrow", "from": [150, 80], "to": [200, 80], "kind": "forward"},
       {"type": "box", "from": [10, 10], "to": [60, 40], "round": true},
       {"type": "label_box", "at": [100, 150], "text": "B"}
-    ]}
+    ], "style": "acs1996"}
+
+    The optional "style" names a built-in journal preset from ChemDraw's stock style
+    sheets (acs1996, wiley, rsc, nature, ...; `cdx.py styles` lists them).  The figure
+    is built at ACS geometry and then rescaled to the preset's bond length.
     """
     if isinstance(spec_path, Mapping):
         spec = dict(spec_path)
@@ -692,6 +696,10 @@ def build_from_spec(spec_path, output_path=None):
         spec = json.loads(Path(spec_path).read_text(encoding='utf-8-sig'))
     if not isinstance(spec, dict) or not isinstance(spec.get('objects'), list):
         raise ValueError('a spec is a JSON object with an "objects" list')
+    style = spec.get('style')
+    if style is not None:
+        from cdxml_toolkit.chemdraw.style_presets import style_preset_slug
+        style = style_preset_slug(str(style))  # refuse an unknown preset before building
     fig = Fig()
     for o in spec['objects']:
         kind = o['type']
@@ -751,6 +759,13 @@ def build_from_spec(spec_path, output_path=None):
             fig.add_conformer(conf_spec)
         else:
             raise ValueError(f'Unknown object type {kind!r}')
+    if style not in (None, 'acs1996'):
+        from cdxml_toolkit.chemdraw.style_presets import apply_style_preset
+        text = apply_style_preset(fig.to_cdxml(), style, rescale=True)
+        if output_path is not None:
+            Path(output_path).write_text(text, encoding='utf-8')
+            return Path(output_path)
+        return text
     if output_path is not None:
         return fig.write(output_path)
     return fig.to_cdxml()

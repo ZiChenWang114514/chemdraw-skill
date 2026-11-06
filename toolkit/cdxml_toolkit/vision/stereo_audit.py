@@ -504,18 +504,25 @@ def _stereo_from_wedges_mapped(
         m = work.GetMol()
         Chem.SanitizeMol(m)
         Chem.AssignChiralTypesFromBondDirs(m)
-        Chem.AssignStereochemistry(m, cleanIt=True, force=True)
-        rdCIPLabeler.AssignCIPLabels(m)
-        want = m.GetAtomWithIdx(c).GetPropsAsDict().get("_CIPCode")
-        if want is None:
+        tag = m.GetAtomWithIdx(c).GetChiralTag()
+        wedged = any(KINDS.get(str(v[2]).lower().strip(), "plain") in ("wedge", "hash") for v in nbrs.values())
+        if tag not in (Chem.ChiralType.CHI_TETRAHEDRAL_CW, Chem.ChiralType.CHI_TETRAHEDRAL_CCW):
+            if wedged:
+                raise ValueError(f"center {cmap}: the wedges do not define a tetrahedral configuration")
             continue
-        for tag in (Chem.ChiralType.CHI_TETRAHEDRAL_CW, Chem.ChiralType.CHI_TETRAHEDRAL_CCW):
-            final.GetAtomWithIdx(c).SetChiralTag(tag)
-            probe = final.GetMol()
-            Chem.AssignStereochemistry(probe, cleanIt=True, force=True)
-            rdCIPLabeler.AssignCIPLabels(probe)
-            if probe.GetAtomWithIdx(c).GetPropsAsDict().get("_CIPCode") == want:
-                break
+        # Copy the tag by neighbour-order parity (bond order differs between work and final),
+        # so centres without an R/S label (ring cis/trans, pseudoasymmetric) survive.
+        order_m = [b.GetOtherAtomIdx(c) for b in m.GetAtomWithIdx(c).GetBonds()]
+        order_f = [b.GetOtherAtomIdx(c) for b in final.GetAtomWithIdx(c).GetBonds()]
+        perm = [order_m.index(i) for i in order_f]
+        swaps = sum(1 for i in range(len(perm)) for j in range(i + 1, len(perm)) if perm[i] > perm[j])
+        if swaps % 2:
+            tag = (
+                Chem.ChiralType.CHI_TETRAHEDRAL_CCW
+                if tag == Chem.ChiralType.CHI_TETRAHEDRAL_CW
+                else Chem.ChiralType.CHI_TETRAHEDRAL_CW
+            )
+        final.GetAtomWithIdx(c).SetChiralTag(tag)
     out = final.GetMol()
     for a in out.GetAtoms():
         a.SetAtomMapNum(0)

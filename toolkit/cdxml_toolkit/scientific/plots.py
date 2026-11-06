@@ -154,36 +154,57 @@ LCMS_PLATE_TIERS = (
     ('high', '>= 70%', '#c8e6c9'),
     ('medium', '30-70%', '#fff9c4'),
     ('low', '>0-30%', '#ffcdd2'),
-    ('none', '0% / ND', '#eeeeee'),
+    ('none', '0% / empty', '#eeeeee'),
+    ('no_data', 'no data', '#b0bec5'),
 )
+LCMS_NO_DATA_COLOR = '#b0bec5'
 
-_WELL_RE = re.compile(r'([A-Ha-h])\s*[-_:]?\s*0?([1-9]|1[0-2])\b')
+_WELL_RE = re.compile(r'([A-Ha-h])\s*[-_]?\s*0?([1-9]|1[0-2])')
+_WELL_SEARCH_RE = re.compile(r'(?<![A-Za-z0-9])([A-Ha-h])[-_]?0?([1-9]|1[0-2])(?![0-9])')
 
 
-def _normalize_well_id(raw_well: Any, index: int, n_cols: int = 12) -> str:
-    if raw_well is not None:
-        text = str(raw_well).strip()
-        m = _WELL_RE.search(text)
-        if m:
-            return f'{m.group(1).upper()}{int(m.group(2))}'
-        # OpenLynx "rack:pos" or "row:col" or numeric well
-        if ':' in text:
-            parts = [p.strip() for p in text.split(':') if p.strip()]
-            if len(parts) == 2 and parts[0].isalpha() and len(parts[0]) == 1 and parts[1].isdigit():
-                return f'{parts[0].upper()}{int(parts[1])}'
-            if len(parts) == 2 and parts[-1].isdigit():
-                pos = max(int(parts[-1]) - 1, 0)
-                r_idx = (pos // n_cols) % 8
-                c_idx = (pos % n_cols) + 1
-                return f"{chr(ord('A') + r_idx)}{c_idx}"
-        if text.isdigit():
-            pos = max(int(text) - 1, 0)
-            r_idx = (pos // n_cols) % 8
-            c_idx = (pos % n_cols) + 1
-            return f"{chr(ord('A') + r_idx)}{c_idx}"
-    r_idx = (index // n_cols) % 8
-    c_idx = (index % n_cols) + 1
-    return f"{chr(ord('A') + r_idx)}{c_idx}"
+def _split_well_token(text: str) -> tuple[str | None, str]:
+    """Split an OpenLynx "rack:pos" / "row:col" value; return (row letter or None, token)."""
+    if ':' in text:
+        parts = [p.strip() for p in text.split(':') if p.strip()]
+        if len(parts) == 2 and len(parts[0]) == 1 and parts[0].isalpha() and parts[1].isdigit():
+            return parts[0].upper(), parts[1]
+        if parts:
+            return None, parts[-1]
+    return None, text
+
+
+def _parse_well_token(raw_well: Any) -> tuple[str, int] | int | None:
+    """Return (row, col) for a lettered well, an int for a 1-based numeric position, or None."""
+    if raw_well is None or isinstance(raw_well, bool):
+        return None
+    if isinstance(raw_well, int):
+        return int(raw_well)
+    text = str(raw_well).strip()
+    if not text:
+        return None
+    row, token = _split_well_token(text)
+    if row is not None:
+        return row, int(token)
+    m = _WELL_RE.fullmatch(token)
+    if m:
+        return m.group(1).upper(), int(m.group(2))
+    if token.isdigit():
+        return int(token)
+    raise ValueError(f'Unrecognised well identifier {raw_well!r}')
+
+
+def _normalize_well_id(raw_well: Any, index: int, n_cols: int = 12, n_rows: int = 8) -> str:
+    parsed = _parse_well_token(raw_well)
+    if isinstance(parsed, tuple):
+        return f'{parsed[0]}{parsed[1]}'
+    pos = (parsed - 1) if parsed is not None else index
+    if pos < 0 or pos >= n_rows * n_cols:
+        raise ValueError(
+            f'Well position {raw_well if parsed is not None else index + 1!r} is outside a '
+            f'{n_rows}x{n_cols} plate'
+        )
+    return f"{chr(ord('A') + pos // n_cols)}{pos % n_cols + 1}"
 
 
 def _peak_area_pct(peak: Any, wavelength: int | str | None) -> float:
@@ -225,18 +246,19 @@ def _reports_to_well_records(
     product_mass: float | None = None,
     sm_mass: float | None = None,
     wavelength: int | str | None = 254,
-    n_cols_hint: int = 12,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for idx, rep in enumerate(reports):
-        raw_well = getattr(rep, 'well', '') or ''
-        if not _WELL_RE.search(str(raw_well)):
+        raw_well: Any = str(getattr(rep, 'well', '') or '').strip()
+        if not raw_well:
             for candidate in (getattr(rep, 'sample_id', ''), getattr(rep, 'sample_name', ''), getattr(rep, 'filename', '')):
-                if _WELL_RE.search(str(candidate or '')):
-                    raw_well = candidate
+                m = _WELL_SEARCH_RE.search(str(candidate or ''))
+                if m:
+                    raw_well = f'{m.group(1).upper()}{int(m.group(2))}'
                     break
         s_idx = getattr(rep, 'sample_index', None)
-        well_id = _normalize_well_id(raw_well or s_idx, idx, n_cols=n_cols_hint)
+        # Keep the raw identifier; build_lcms_plate_cdxml normalises once against the plate size.
+        well_id = raw_well if raw_well else (s_idx if s_idx is not None else None)
 
         peaks = getattr(rep, 'peaks', []) or []
         best_purity = 0.0
@@ -313,31 +335,34 @@ def _load_lcms_reports_from_path(path: Path) -> list[Any]:
     raise ValueError(f'LCMS plate source path does not exist: {path}')
 
 
-def _detect_plate_dimensions(well_ids: Sequence[str], plate_format: int | str | None) -> tuple[list[str], list[int]]:
+def _detect_plate_dimensions(raw_well_ids: Sequence[Any], plate_format: int | str | None) -> tuple[list[str], list[int]]:
+    """Pick 24- or 96-well dimensions from raw (un-normalised) well identifiers."""
+    rows96, cols96 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], list(range(1, 13))
+    rows24, cols24 = ['A', 'B', 'C', 'D'], [1, 2, 3, 4, 5, 6]
     if plate_format is not None:
         pf = str(plate_format).strip().lower()
         if '24' in pf or '4x6' in pf:
-            return ['A', 'B', 'C', 'D'], [1, 2, 3, 4, 5, 6]
+            return rows24, cols24
         if '96' in pf or '8x12' in pf:
-            return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], list(range(1, 13))
+            return rows96, cols96
         raise ValueError(f'Unsupported plate_format {plate_format!r}; use 24 or 96')
 
-    needs_96 = len(well_ids) > 24
-    for wid in well_ids:
-        m = _WELL_RE.match(str(wid).strip())
-        if m:
-            row_ch = m.group(1).upper()
-            col_num = int(m.group(2))
-            if row_ch > 'D' or col_num > 6:
-                needs_96 = True
-                break
-    if needs_96:
-        return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], list(range(1, 13))
-    return ['A', 'B', 'C', 'D'], [1, 2, 3, 4, 5, 6]
+    if len(raw_well_ids) > 24:
+        return rows96, cols96
+    for raw in raw_well_ids:
+        parsed = _parse_well_token(raw)
+        if isinstance(parsed, tuple):
+            if parsed[0] > 'D' or parsed[1] > 6:
+                return rows96, cols96
+        elif parsed is not None and parsed > 24:
+            return rows96, cols96
+    return rows24, cols24
 
 
 def _purity_tier(purity: float | None) -> tuple[str, str]:
-    if purity is None or not np.isfinite(float(purity)) or float(purity) <= 0.0:
+    if purity is None or not np.isfinite(float(purity)):
+        return 'no_data', LCMS_NO_DATA_COLOR
+    if float(purity) <= 0.0:
         return 'none', '#eeeeee'
     val = float(purity)
     if val >= 70.0:
@@ -386,19 +411,17 @@ def build_lcms_plate_cdxml(
                     wavelength=wavelength,
                     title=title,
                 )
-            n_cols_hint = 6 if (plate_format and '24' in str(plate_format)) else 12
             reports = _load_lcms_reports_from_path(src_path)
             raw_wells = _reports_to_well_records(
                 reports,
                 product_mass=product_mass,
                 sm_mass=sm_mass,
                 wavelength=wavelength,
-                n_cols_hint=n_cols_hint,
             )
         else:
             # Allow dict mapping well_id -> purity or dict
             for k, v in spec.items():
-                if _WELL_RE.fullmatch(str(k).strip()):
+                if _WELL_RE.fullmatch(str(k).strip()) or str(k).strip().isdigit():
                     if isinstance(v, (int, float)):
                         raw_wells.append({'well': str(k).strip().upper(), 'purity': float(v)})
                     elif isinstance(v, Mapping):
@@ -416,14 +439,12 @@ def build_lcms_plate_cdxml(
                 wavelength=wavelength,
                 title=title,
             )
-        n_cols_hint = 6 if (plate_format and '24' in str(plate_format)) else 12
         reports = _load_lcms_reports_from_path(src_path)
         raw_wells = _reports_to_well_records(
             reports,
             product_mass=product_mass,
             sm_mass=sm_mass,
             wavelength=wavelength,
-            n_cols_hint=n_cols_hint,
         )
     elif isinstance(source_or_spec, Sequence):
         for item in source_or_spec:
@@ -441,25 +462,29 @@ def build_lcms_plate_cdxml(
     else:
         raise ValueError('Provide a path, spec dict, or list of well dicts for build_lcms_plate_cdxml')
 
-    prelim_ids = [
-        _normalize_well_id(w.get('well'), idx, n_cols=6 if (plate_format and '24' in str(plate_format)) else 12)
-        for idx, w in enumerate(raw_wells)
-    ]
-    rows, cols = _detect_plate_dimensions(prelim_ids, plate_format)
+    rows, cols = _detect_plate_dimensions([w.get('well') for w in raw_wells], plate_format)
     n_rows, n_cols = len(rows), len(cols)
 
     well_map: dict[str, dict[str, Any]] = {}
     for idx, w in enumerate(raw_wells):
-        wid = _normalize_well_id(w.get('well'), idx, n_cols=n_cols)
-        purity_val = w.get('purity', w.get('area_pct', w.get('product_pct', 0.0)))
-        purity = float(purity_val) if purity_val is not None else 0.0
+        wid = _normalize_well_id(w.get('well'), idx, n_cols=n_cols, n_rows=n_rows)
+        if wid[0] not in rows or int(wid[1:]) not in cols:
+            raise ValueError(f'Well {wid} is outside the {n_rows}x{n_cols} plate')
+        if wid in well_map:
+            raise ValueError(f'Duplicate well {wid} in LCMS plate input')
+        purity_val = None
+        for key in ('purity', 'area_pct', 'product_pct'):
+            if w.get(key) is not None:
+                purity_val = w[key]
+                break
+        purity = float(purity_val) if purity_val is not None else None
         rt_val = w.get('rt', w.get('tR', w.get('retention_time')))
         rt = float(rt_val) if rt_val is not None else None
         found_ion = w.get('found_ion', w.get('ion', w.get('adduct', w.get('mass_found'))))
         tier_name, fill_hex = _purity_tier(purity)
         well_map[wid] = {
             'well': wid,
-            'purity': round(purity, 1),
+            'purity': round(purity, 1) if purity is not None else None,
             'rt': round(rt, 2) if rt is not None else None,
             'found_ion': str(found_ion) if found_ion else None,
             'tier': tier_name,
@@ -473,7 +498,7 @@ def build_lcms_plate_cdxml(
     top_margin = 56.0
     grid_w = n_cols * cell_w + (n_cols - 1) * gap
     grid_h = n_rows * cell_h + (n_rows - 1) * gap
-    canvas_w = int(left_margin + grid_w + 40.0)
+    canvas_w = int(max(left_margin + grid_w + 40.0, left_margin + 64.0 + 70.0 * len(LCMS_PLATE_TIERS) + 10.0))
     canvas_h = int(top_margin + grid_h + 92.0)
 
     drawing = Drawing(canvas_w, canvas_h)
@@ -487,7 +512,7 @@ def build_lcms_plate_cdxml(
         cx = left_margin + c_idx * (cell_w + gap) + cell_w * 0.42
         drawing.text((cx, top_margin - 10.0), str(col_num), size=9, parent=plate_group)
 
-    tier_counts = {'high': 0, 'medium': 0, 'low': 0, 'none': 0}
+    tier_counts = {'high': 0, 'medium': 0, 'low': 0, 'none': 0, 'no_data': 0}
 
     # Plate grid cells (draw background fills/borders first, then text overlays on top)
     deferred_cell_texts: list[tuple[tuple[float, float], str, int, str | None]] = []
@@ -528,11 +553,15 @@ def build_lcms_plate_cdxml(
                 color='#9e9e9e',
             )
 
-            if info is not None and purity > 0.0:
+            if info is not None and purity is None:
+                deferred_cell_texts.append(((cx + cell_w * 0.28, ry + cell_h * 0.58), 'n/d', 8, '#37474f'))
+            elif info is not None and purity > 0.0:
                 p_str = f'{purity:.0f}%' if abs(purity - round(purity)) < 0.05 else f'{purity:.1f}%'
                 deferred_cell_texts.append(((cx + 8.0, ry + cell_h * 0.44), p_str, 8, None))
                 if rt is not None:
                     deferred_cell_texts.append(((cx + 6.0, ry + cell_h * 0.80), f'tR {rt:.2f}', 6, '#424242'))
+            elif info is not None:
+                deferred_cell_texts.append(((cx + cell_w * 0.34, ry + cell_h * 0.58), '0%', 8, '#757575'))
             else:
                 deferred_cell_texts.append(((cx + cell_w * 0.40, ry + cell_h * 0.58), '-', 8, '#757575'))
 
@@ -547,11 +576,11 @@ def build_lcms_plate_cdxml(
     for _, tier_label, tier_hex in LCMS_PLATE_TIERS:
         drawing.filled_rect(lx, legend_y, lx + 14.0, legend_y + 12.0, fill_color=tier_hex, border_color='#757575', parent=plate_group)
         drawing.text((lx + 18.0, legend_y + 10.0), tier_label, size=8, parent=plate_group)
-        lx += 78.0
+        lx += 70.0
 
     # Best Wells summary callout at the bottom
     ranked_wells = sorted(
-        (w for w in well_map.values() if w['purity'] > 0.0),
+        (w for w in well_map.values() if w['purity'] is not None and w['purity'] > 0.0),
         key=lambda w: (-w['purity'], w['well']),
     )
     top_wells = ranked_wells[:5]

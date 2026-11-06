@@ -711,6 +711,7 @@ def _register_observability_routes(mcp, *, tool_count: int) -> None:
 _REGISTERED_RESOURCE_URIS = (
     "chemdraw://references/{slug}",
     "chemdraw://templates/{slug}",
+    "chemdraw://style-guide/{preset}",
 )
 _REGISTERED_PROMPT_NAMES = (
     "draw_reaction_scheme",
@@ -818,6 +819,19 @@ def read_template_resource(slug: str) -> str:
     )
 
 
+def read_style_guide_resource(preset: str) -> str:
+    """JSON settings of one built-in style preset, or of all presets for ``all``."""
+    from ..chemdraw.style_presets import list_style_presets, style_preset
+
+    clean = (preset or "").strip()
+    if clean.casefold() in {"", "all", "index"}:
+        return json.dumps(list_style_presets(), indent=2)
+    try:
+        return json.dumps(style_preset(clean), indent=2)
+    except ValueError as exc:
+        return json.dumps({"error": str(exc)}, indent=2)
+
+
 def _register_resources_and_prompts(mcp: typing.Any) -> None:
     registered_resources: list[str] = []
     registered_prompts: list[str] = []
@@ -833,6 +847,12 @@ def _register_resources_and_prompts(mcp: typing.Any) -> None:
         def chemdraw_template(slug: str) -> str:
             """Read a ready-to-run ChemDraw JSON/DSL template by slug."""
             return read_template_resource(slug)
+
+        @resource_decorator("chemdraw://style-guide/{preset}")
+        def chemdraw_style_guide(preset: str) -> str:
+            """Settings of a built-in journal style preset from ChemDraw's stock style sheets
+            (acs1996, wiley, adv_synth_catal, rsc, rsc_1col, nature, synthesis, ...; "all" lists them)."""
+            return read_style_guide_resource(preset)
 
         registered_resources.extend(_REGISTERED_RESOURCE_URIS)
 

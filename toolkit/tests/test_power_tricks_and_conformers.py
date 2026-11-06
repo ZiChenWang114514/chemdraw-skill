@@ -283,3 +283,47 @@ def test_draw_figure_with_ring_fills_atom_halos_and_ts_bracket(tmp_path, monkeyp
     assert page.find("bracketedgroup") is not None
     page_texts = ["".join(t.itertext()) for t in page.findall("t")]
     assert "\u2021" in page_texts
+
+
+def test_newman_projection_is_one_connected_substituted_ethane():
+    from rdkit import Chem
+    from cdxml_toolkit.chemistry_semantics import read_fragments
+
+    res = newman_projection(front=("Me", "H", "H"), rear=("Br", "H", "Me"))
+    mols = [m for _, m in read_fragments(res["cdxml"])]
+    assert len(mols) == 1
+    assert len(Chem.GetMolFrags(mols[0])) == 1
+    assert Chem.MolToSmiles(mols[0]) == Chem.CanonSmiles("CCC(C)Br")
+    root = ET.fromstring(res["cdxml"])
+    assert root.find('.//page/graphic[@OvalType="Circle Filled"]') is not None
+    assert len(root.findall(".//fragment/b")) == 7  # 6 spokes + the front-rear C-C bond
+
+
+def test_conformer_labels_are_real_chemistry():
+    from rdkit import Chem
+    from rdkit.Chem import rdMolDescriptors
+    from cdxml_toolkit.chemistry_semantics import read_fragments
+
+    haw = [m for _, m in read_fragments(haworth_pyranose()["cdxml"])]
+    assert len(haw) == 1 and rdMolDescriptors.CalcMolFormula(haw[0]) == "C6H12O6"
+    fis = [m for _, m in read_fragments(fischer_projection(centers=[{"left": "H", "right": "OH"}])["cdxml"])]
+    assert len(fis) == 1 and len(Chem.GetMolFrags(fis[0])) == 1
+    assert Chem.MolToSmiles(fis[0], isomericSmiles=False) == Chem.CanonSmiles("O=CC(O)CO")
+
+
+def test_haworth_lower_up_labels_sit_outside_the_ring():
+    haw = haworth_pyranose()
+    ring = [haw["ring_coords"][i] for i in (1, 2, 3, 4, 5, 6)]
+
+    def inside(x, y):
+        hit = False
+        for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1]):
+            if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+                hit = not hit
+        return hit
+
+    ups = [a for a in haw["atoms"] if a.get("direction") == "up" and a["ring_position"] in (2, 3)]
+    assert ups
+    for a in ups:
+        assert not inside(a["x"], a["y"])
+        assert a["y"] < haw["ring_coords"][a["ring_position"]][1]

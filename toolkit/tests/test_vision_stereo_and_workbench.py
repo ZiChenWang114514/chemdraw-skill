@@ -502,3 +502,32 @@ def test_consensus_abbreviation_mismatch_detection():
     assert outcome["agreement"] == "split"
     assert len(outcome["pairwise_diagnostics"]) == 1
     assert outcome["pairwise_diagnostics"][0]["relation"] == "AbbreviationMismatch"
+
+
+@pytest.mark.parametrize(
+    "a,b",
+    [("c1ccccc1", "Cc1ccccc1"), ("OCC1CCCCC1", "CC1CCCCC1"), ("CCCCO", "CCCCN")],
+)
+def test_consensus_real_chemical_difference_is_different_skeleton(a, b):
+    assert consensus._chemistry_relation(a, b) == "DifferentSkeleton"
+
+
+def test_consensus_dummy_atom_counts_as_abbreviation():
+    assert consensus._chemistry_relation("*OCCc1ccc(Br)cc1", "CC(C)(C)[Si](C)(C)OCCc1ccc(Br)cc1") == "AbbreviationMismatch"
+
+
+def test_stereo_from_wedges_keeps_ring_cis_trans_without_cip_labels():
+    s = "[CH3:7][CH:1]1[CH2:2][CH2:3][CH:4]([CH3:8])[CH2:5][CH2:6]1"
+
+    def run(kind):
+        return stereo_audit.stereo_from_wedges(
+            s,
+            {
+                1: {7: (0, 1, "wedge"), 2: (1, -0.5, "plain"), 6: (-1, -0.5, "plain")},
+                4: {8: (0, 1, kind), 3: (-1, -0.5, "plain"), 5: (1, -0.5, "plain")},
+            },
+        )
+
+    up, down = run("wedge"), run("hash")
+    assert "@" in up and "@" in down
+    assert Chem.CanonSmiles(up) != Chem.CanonSmiles(down)

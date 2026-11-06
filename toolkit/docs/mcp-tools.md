@@ -189,7 +189,11 @@ Read the Skill publication-figures reference for the JSON manifest schema.
 Supports molecules with exact atom coordinates or template alignment, CIP/
 atom labels, highlights, ring fills, multi-attachments, crossings, rich text,
 straight/equilibrium/resonance/retro arrows, curved electron arrows,
-transition-state brackets, orbitals, interactions, and shapes.
+transition-state brackets, orbitals, interactions, and shapes. The manifest
+style is a built-in preset name (acs1996, wiley, rsc, nature, ...; see
+chemdraw://style-guide/all) or an object with an optional "preset" plus font,
+font_size, bond_length, line_width, bold_width, hash_spacing and margin_width,
+which override the preset.
 
 ### `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, typing.Any]`
 
@@ -206,9 +210,13 @@ Draw a reaction scheme from a brief and check it, in one call.
 brief is an object (or its JSON text) the caller writes from the user's request:
 species [{id, smiles or name, label?, ring_fills?, atom_halos?, ts_bracket?}],
 steps [{substrates [ids], products [ids], above [lines], below [lines], yield,
-arrow solid|dashed|failed|reversible|resonance, ts_bracket?}], optional layout
+arrow solid|dashed|failed|reversible|resonance, ts_bracket? (a species id)}], optional layout
 (e.g. "catalytic-cycle"), max_width (points, default 504, the width of a double-column
-ACS page) and title; kind defaults to "scheme" and style to "acs1996". The steps may
+ACS page) and title; kind defaults to "scheme". style names a built-in journal preset
+from ChemDraw's stock style sheets (default "acs1996"; others include "wiley", "rsc",
+"nature"; chemdraw://style-guide/{preset} lists its settings): the scheme is laid out at
+ACS geometry and then rescaled to the preset's bond length, and max_width is the width
+of the styled figure. The steps may
 form a linear route, a convergent route (arms that merge), one starting material with
 several products (divergent), or a closed catalytic-cycle (a loop of >= 3 steps or
 layout="catalytic-cycle"), in any order; the report names the layout used, and steps
@@ -216,7 +224,8 @@ that fit none of these are refused. Species entries may also specify optional vi
 decorations: ring_fills ([{ring_index, color, style, inset}]), atom_halos ([{atoms,
 color, radius}]), or ts_bracket (true or {superscript, bracket_type, lip_size}) to
 wrap the species fragment in a [...] transition-state bracket with a top-right double
-dagger. Only the conditions in the brief are drawn; a
+dagger; a step's ts_bracket names the bracketed species id (true is refused). Atom and
+ring indices are RDKit indices of the species SMILES. Only the conditions in the brief are drawn; a
 step without any is reported, never filled in. Structures given as SMILES are used
 as they are; names go through the curated reagent table and, when the network is
 allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked
@@ -331,8 +340,10 @@ Args:
           SMILES without modifying the open document, optionally saving a copy to output_path.
         - "read_selection": Read the currently selected objects (falling back to the active
           document if nothing is selected) as CDXML and SMILES.
-        - "insert_cdxml": Load cdxml (a CDXML string or file path) or smiles into the user's
-          active open ChemDraw window (or open a new visible document tab if none is open).
+        - "insert_cdxml": Load cdxml (a CDXML string or file path) or smiles into a new
+          visible document tab of the open ChemDraw window; the user's active document is
+          never overwritten. On macOS read actions save a persistent snapshot under the
+          staging dir and save a titled document back to its original path.
     cdxml: CDXML string or path to a .cdxml file for action="insert_cdxml".
     smiles: Optional SMILES string to render and insert when cdxml is not provided.
     output_path: Optional file path to save a copy of the read or inserted CDXML.

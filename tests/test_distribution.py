@@ -11,6 +11,17 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "skill" / "chemdraw"
 
 
+
+_FENCED_CODE = re.compile(r"^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?^[ \t]*\1[ \t]*$", re.M | re.S)
+_INLINE_CODE = re.compile(r"(`+)(?!`).+?(?<!`)\1(?!`)", re.S)
+_MD_LINK = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
+
+
+def markdown_link_targets(text: str) -> list[str]:
+    """Link targets in Markdown, ignoring fenced code blocks and inline code spans."""
+    text = _INLINE_CODE.sub("", _FENCED_CODE.sub("", text))
+    return _MD_LINK.findall(text)
+
 class DistributionTests(unittest.TestCase):
     CHINESE_DOCUMENTS = {"README.zh-cn.md", "docs/guide.zh-cn.md", "docs/zh-cn.md"}
     # The landing page (docs/website.md) has a Chinese home page and error page.
@@ -255,11 +266,10 @@ class DistributionTests(unittest.TestCase):
         self.assertEqual(offenders, [], "Unsafe distribution content:\n" + "\n".join(offenders))
 
     def test_local_markdown_links_resolve(self) -> None:
-        link_pattern = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
         missing: list[str] = []
         for path in ROOT.rglob("*.md"):
             text = path.read_text(encoding="utf-8", errors="replace")
-            for raw_target in link_pattern.findall(text):
+            for raw_target in markdown_link_targets(text):
                 target = raw_target.strip().split("#", 1)[0]
                 if not target or "://" in target or target.startswith("mailto:"):
                     continue
@@ -267,6 +277,14 @@ class DistributionTests(unittest.TestCase):
                 if not candidate.exists():
                     missing.append(f"{path.relative_to(ROOT).as_posix()} -> {raw_target}")
         self.assertEqual(missing, [], "Broken local Markdown links:\n" + "\n".join(missing))
+
+    def test_link_scan_ignores_code(self) -> None:
+        text = (
+            "Nitro `O=[N+]([O-])c1ccccc1` and `CC[C@H](c1ccccc1)C` stay code.\n"
+            "```\n[a](missing-in-fence.md)\n```\n"
+            "A ``[b](in-double.md)`` span, then [real](target.md#x).\n"
+        )
+        self.assertEqual(markdown_link_targets(text), ["target.md#x"])
 
     def test_local_markdown_anchors_resolve(self) -> None:
         link_pattern = re.compile(r"(?<!!)\[[^\]]+\]\(([^)\s]+)\)")

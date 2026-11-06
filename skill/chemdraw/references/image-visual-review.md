@@ -130,6 +130,7 @@ A cache `spec` contains `source_image`, `crop`, `definitions`, `parameters`, `ve
 
 - [Two complete publication schemes](../assets/paper-reconstructions/README.md): native components, layout manifests and an offline assembly script — `cdx.py py <skill>/assets/paper-reconstructions/rebuild.py NEW_DIR`. Covers shared OR groups, abbreviations, folded chains, bridge occlusion and electron arrows.
 - [Drawing example](../assets/paper-replica/example/CASE.md): manifest, CDXML and offline replay with arrows, electron curves, rich text, chirality and enhanced stereo — `cdx.py py <skill>/assets/paper-replica/example/replay.py NEW_DIR`.
+- Open-access paper replicas, each a `brief.json` for `cdx.py draw` with the journal's style preset, the reference crop (CC BY) and the ChemDraw render, replayed offline with `cdx.py py <skill>/assets/paper-replica/<case>/replay.py NEW_DIR`: [JACS Au, Pd-catalysed amination](../assets/paper-replica/jacs-au-pd-amination/CASE.md) (`acs1996`), [Chem. Sci., DPDTC formation](../assets/paper-replica/chem-sci-amide-coupling/CASE.md) (`rsc`), [Nat. Commun., electroreductive arylation](../assets/paper-replica/nat-commun-ni-ereductive/CASE.md) (`nature`). Each CASE.md lists the OCSR agreement per structure and what still differs from the paper's artwork.
 
 ## Comparison modes
 

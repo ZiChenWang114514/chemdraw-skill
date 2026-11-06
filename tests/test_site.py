@@ -1404,5 +1404,24 @@ class BrowserSmokeTests(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout[-4000:] + done.stderr[-2000:])
 
 
+class DbeAndRedoTests(unittest.TestCase):
+    def test_dbe_counts_every_halogen_and_flags_impossible_formulas(self):
+        out = run_editor("""
+const f = (count) => { const r = E.dbeOf(count); return [r.dbe, r.dbeFlag]; };
+console.log(JSON.stringify([
+  f({ C: 6, H: 5, I: 1 }), f({ C: 1, H: 3, Si: 1, Cl: 3 }), f({ C: 1, H: 3, P: 1 }),
+  f({ C: 1, H: 6 }), f({ C: 1, H: 3 }),
+  E.analyse(E.load("benzene")).dbe,
+]));
+""")
+        self.assertEqual(out, [[4, ""], [0, ""], [1, ""], [-1, "impossible"], [0.5, "radical"], 4])
+        for language in WORDS:
+            self.assertEqual(set(words(language)["dbeFlag"]), {"impossible", "radical"})
+
+    def test_redo_stack_lives_only_on_each_tab(self):
+        source = (SITE / "editor.js").read_text(encoding="utf-8")
+        self.assertNotRegex(source, r"future")
+
+
 if __name__ == "__main__":
     unittest.main()

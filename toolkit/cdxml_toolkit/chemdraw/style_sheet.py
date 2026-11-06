@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 
 _CDX_SIGNATURE = b"VjCD0100"
 _CDX_HEADER_SIZE = 22
+_CDX_SPEC_HEADER_SIZE = 28  # 8-byte signature, 4-byte version, 16 reserved bytes
 _OBJECT_FLAG = 0x8000
 _DOCUMENT = 0x8000
 
@@ -65,15 +66,32 @@ def _number(value: float) -> str:
     return text or "0"
 
 
+def _document_start(data: bytes) -> int:
+    """Offset of the first document property.
+
+    ChemDraw has written three layouts: a 28-byte header followed by the
+    document object (the CDX specification, ChemDraw 8 and later), a 22-byte
+    header followed by the document object (ChemDraw 17 style sheets), and a
+    28-byte header with the document properties at top level and no document
+    object at all (ChemDraw 7 style sheets such as the RSC and Wiley sheets).
+    """
+    for header in (_CDX_HEADER_SIZE, _CDX_SPEC_HEADER_SIZE):
+        if header + 6 > len(data):
+            continue
+        tag, = struct.unpack_from("<H", data, header)
+        if tag == _DOCUMENT:
+            return header + 6  # tag and object id
+    tag, = struct.unpack_from("<H", data, _CDX_SPEC_HEADER_SIZE)
+    if 0 < tag < _OBJECT_FLAG:
+        return _CDX_SPEC_HEADER_SIZE
+    raise StyleSheetError("CDX file has no document object")
+
+
 def _document_properties(data: bytes) -> dict[int, bytes]:
     """Properties of the CDX document object (nested objects are skipped)."""
     if not data.startswith(_CDX_SIGNATURE) or len(data) < _CDX_HEADER_SIZE + 6:
         raise StyleSheetError("not a CDX file")
-    offset = _CDX_HEADER_SIZE
-    tag, = struct.unpack_from("<H", data, offset)
-    if tag != _DOCUMENT:
-        raise StyleSheetError("CDX file has no document object")
-    offset += 6  # tag and object id
+    offset = _document_start(data)
     properties: dict[int, bytes] = {}
     depth = 0
     while offset + 2 <= len(data):

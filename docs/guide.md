@@ -77,7 +77,7 @@ What this does not claim: the numbers were checked on ChemDraw 22.2.0 for Window
 
 ## MCP (optional)
 
-The command line covers every tool, so no server is required. Clients that prefer MCP can register `<runtime-python> -m cdxml_toolkit.mcp_runtime` (no profile flag needed); `cdx.py doctor` prints the runtime path. The MCP server also registers `@mcp.resource` (`chemdraw://references/{slug}`, `chemdraw://templates/{slug}`) and `@mcp.prompt` (`draw_reaction_scheme`, `reconstruct_figure`, `analyze_nmr_and_lcms`, `build_acs1996_figure`) protocol endpoints, plus `live_chemdraw_session` (non-destructive live desktop ChemDraw window integration) and `build_acs_figure`. For a remote Windows host, see the HTTP section of [operations](../skill/chemdraw/references/operations.md#remote-http-only-when-asked).
+The command line covers every tool, so no server is required. Clients that prefer MCP can register `<runtime-python> -m cdxml_toolkit.mcp_runtime` (no profile flag needed); `cdx.py doctor` prints the runtime path. The MCP server also registers `@mcp.resource` (`chemdraw://references/{slug}`, `chemdraw://templates/{slug}`, `chemdraw://style-guide/{preset}`) and `@mcp.prompt` (`draw_reaction_scheme`, `reconstruct_figure`, `analyze_nmr_and_lcms`, `build_acs1996_figure`) protocol endpoints, plus `live_chemdraw_session` (non-destructive live desktop ChemDraw window integration) and `build_acs_figure`. For a remote Windows host, see the HTTP section of [operations](../skill/chemdraw/references/operations.md#remote-http-only-when-asked).
 
 ## Development validation
 

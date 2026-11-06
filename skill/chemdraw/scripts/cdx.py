@@ -468,10 +468,28 @@ def cmd_draw(ns):
         brief = json.loads(text)
     except ValueError as exc:
         raise SystemExit(f'The brief is not valid JSON: {exc}')
+    if getattr(ns, 'style', None):
+        if not isinstance(brief, dict):
+            raise SystemExit('--style needs a brief that is a JSON object')
+        brief['style'] = ns.style
     kwargs = {'brief': brief, 'render': ns.render}
     if ns.output:
         kwargs['output_path'] = ns.output
     return _emit('draw_figure', _worker('draw_figure', kwargs), ns.out)
+
+
+def cmd_styles(ns):
+    """List the built-in journal style presets (ChemDraw stock style sheets)."""
+    from cdxml_toolkit.chemdraw.style_presets import list_style_presets, style_preset
+    presets = [style_preset(ns.preset)] if ns.preset else list_style_presets()
+    if ns.json or ns.preset:
+        print(json.dumps(presets if not ns.preset else presets[0], indent=2))
+        return 0
+    for item in presets:
+        a, fonts = item['attributes'], item['fonts']
+        print(f"{item['slug']:<21} {a['BondLength']:>5} pt  {fonts['label'][0]} {a['LabelSize']} pt  "
+              f"{item['sheet']}: {item['used_by']}")
+    return 0
 
 
 def _markush_render(source, png):
@@ -1024,7 +1042,7 @@ def main(argv=None):
     s.add_argument('--out-dir')
     s.add_argument('--replace', action='store_true', help='also replace a same-named PNG this command did not write')
     s.set_defaults(fn=cmd_render)
-    s = sub.add_parser('build', help='ACS Document 1996 CDXML from a JSON spec (acs_builder)')
+    s = sub.add_parser('build', help='ACS Document 1996 (or a "style" preset) CDXML from a JSON spec (acs_builder)')
     s.add_argument('spec')
     s.add_argument('output')
     s.add_argument('--render', action='store_true')
@@ -1045,8 +1063,13 @@ def main(argv=None):
     s.add_argument('output', nargs='?', help='new .cdxml path, or a new folder for kind "scope" '
                                               '(default: a fresh name in the temp folder)')
     s.add_argument('--render', action='store_true', help='also render a native PNG')
+    s.add_argument('--style', metavar='PRESET', help='journal style preset (overrides the brief; see cdx.py styles)')
     s.add_argument('--out', help='new evidence file for the full report')
     s.set_defaults(fn=cmd_draw)
+    s = sub.add_parser('styles', help='list the built-in journal style presets taken from ChemDraw stock style sheets')
+    s.add_argument('preset', nargs='?', help='print one preset as JSON')
+    s.add_argument('--json', action='store_true', help='print all presets as JSON')
+    s.set_defaults(fn=cmd_styles)
     s = sub.add_parser('chemscript-info')  # maintainer/diagnostic: ChemScript reading of a saved file
     s.add_argument('source')
     s.add_argument('--timeout', type=int, default=120)

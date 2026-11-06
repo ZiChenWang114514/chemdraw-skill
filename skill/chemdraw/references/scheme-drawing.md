@@ -40,6 +40,7 @@ Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --rend
   - **Catalytic cycles (`layout: "catalytic-cycle"`):** when `"layout": "catalytic-cycle"` is set (or when the steps form a closed catalytic loop), intermediates are arranged around a circle of radius `cycle_radius` (default `120.0` pt) with curved arrows along the circumference and entering reactants / departing products placed on radial in/out arrows around each step.
   - Put in `above` / `below` only what the user gave: a step without conditions is drawn without them and the report says so.
 - `max_width` is the row budget in points (default 504). A longer route wraps onto more rows.
+- `style` is a journal preset from ChemDraw's stock style sheets (default `acs1996`; also `wiley`, `adv_synth_catal`, `rsc`, `rsc_1col`, `nature`, `synthesis` and others; `cdx.py styles` lists them, `cdx.py draw --style PRESET` sets it). The figure is laid out at ACS geometry and rescaled to the preset's bond length, fonts and line widths; `max_width` still applies to the styled figure, and the report's `style` field names the preset and bond length. Scope and mechanism briefs take the same key; `cdx.py build` specs take a top-level `style` too.
 
 Read the report before you answer:
 
@@ -150,7 +151,7 @@ When a scheme or figure requires top-journal visual highlights, transition state
 
 - **`ring_fills` & `atom_halos`:** pastel JACS/Angew ring-interior polygon shading (`ring_fills`) and circular pharmacophore atom highlights (`atom_halos`) placed on a background layer behind bonds and labels.
 - **`multi_attachments` ($\eta^5$-Cp ferrocene & organometallics):** native CDXML `NodeType="MultiAttachment"` centroid nodes with `Attachments="..."` atom ID lists and coordination bonds (`Display="Dash"` or `"WedgeBegin"`).
-- **`ts_bracket` (`[...]‡`):** square transition-state brackets (`BracketType="SquarePair"`) with a superscript double-dagger `‡` (`\u2021`) annotation.
+- **`ts_bracket` (`[...]‡`):** square transition-state brackets (`BracketType="SquarePair"`) with a superscript double-dagger `‡` (`\u2021`) annotation. In a `draw_figure` brief, set `ts_bracket: true` (or `{superscript, bracket_type, lip_size}`) on the species, or `ts_bracket: "<species id>"` on a step; a step's `ts_bracket: true` is refused because it does not say which species is the transition state.
 - **`orbital` & `interaction`:** native `<orbital>` lobes (`s`, `p`, `sp3`, `dz2`, `lobe`, shaded/filled/unfilled) and non-covalent H-bond / $\pi$-stacking dashed interaction lines with distance labels (`"2.8 Å"`).
 - **Conformer templates (`chair`, `newman`, `haworth`, `fischer`, `norbornane`):** deterministic 2D coordinate generators for cyclohexane chairs (`1_ax`/`1_eq` through `6_ax`/`6_eq`, optional `flip`), Newman projections (`front`, `back`, `dihedral_deg`), Haworth pyranose/furanose rings, Fischer projections, and bridged bicyclic `[2.2.1]` norbornane skeletons.
 

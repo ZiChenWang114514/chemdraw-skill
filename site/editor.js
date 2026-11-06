@@ -85,8 +85,7 @@
     let quest = null;
     let tween = 0;
 
-    let future = [];
-    const fresh = (name, g, title) => { future = []; return { name, title, g, original: JSON.stringify(g), undo: [], redo: future, future }; };
+    const fresh = (name, g, title) => ({ name, title, g, original: JSON.stringify(g), undo: [], redo: [] });
     const stateOf = (n) => {
       if (!states[n]) states[n] = fresh(n, load(n), T.names[n]);
       return states[n];
@@ -137,7 +136,7 @@
       paintPreview();
       hideTip();
       const empty = !st.g.atoms.length;
-      setText("[data-a=formula]", empty ? "—" : `${info.html} · DBE ${info.dbe}`);
+      setText("[data-a=formula]", empty ? "—" : `${info.html} · DBE ${info.dbe}${info.dbeFlag ? ` (${T.dbeFlag[info.dbeFlag]})` : ""}`);
       setText("[data-a=exact]", empty ? "—" : info.exact.toFixed(2));
       setText("[data-a=mw]", empty ? "—" : info.mass.toFixed(2));
       refreshLog(info);
@@ -184,7 +183,7 @@
     function keep(counted, run) {
       st.undo.push({ g: JSON.stringify(st.g), counted, run });
       if (st.undo.length > 40) st.undo.shift();
-      st.redo = st.future = future = [];
+      st.redo = [];
     }
     function change(message, mutate, counted = true, run) {
       stopPlay();
@@ -373,7 +372,7 @@
     function undo() {
       const last = st.undo.pop();
       if (!last) return;
-      st.redo.push({ ...last, g: JSON.stringify(st.g) }); future = st.future = st.redo;
+      st.redo.push({ ...last, g: JSON.stringify(st.g) });
       st.g = JSON.parse(last.g);
       if (quest && quest.doc === st && last.counted) quest.moves = Math.max(0, quest.moves - 1);
       aim = null;
@@ -383,7 +382,7 @@
     function redo() {
       const next = st.redo.pop();
       if (!next) return;
-      st.undo.push({ ...next, g: JSON.stringify(st.g) }); future = st.future = st.redo;
+      st.undo.push({ ...next, g: JSON.stringify(st.g) });
       st.g = JSON.parse(next.g);
       if (quest && quest.doc === st && next.counted) quest.moves++;
       aim = null;
@@ -397,7 +396,7 @@
         // Starting a challenge over clears its count, so it clears the way back to it too.
         quest.moves = 0;
         st.undo = [];
-        st.redo = st.future = future = [];
+        st.redo = [];
       } else {
         keep(false);
       }
@@ -682,7 +681,7 @@
       restart(mol) {
         const target = stateOf(mol);
         target.undo = [];
-        target.redo = target.future = future = [];
+        target.redo = [];
         target.g = JSON.parse(target.original);
         open(mol, false);
       },

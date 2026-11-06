@@ -28,6 +28,9 @@ from ..render.schema import ArrowContent, SchemeDescriptor, StepDescriptor, Stru
 from ..resolve.network_policy import network_allowed
 from . import artifact_safety, figure_lint, official_overrides
 from .report_tools import check_reaction_balance
+from ..chemdraw.style_presets import (
+    DEFAULT_STYLE_PRESET, STYLE_PRESETS, apply_style_preset, style_preset_bond_length, style_preset_slug,
+)
 
 DEFAULT_MAX_WIDTH = 504.0  # a double-column ACS page, 7 in
 RELAYOUT_GAP_SCALE = 1.4
@@ -76,8 +79,9 @@ def _validate(brief: dict) -> list[str]:
     kind = brief.get("kind", "scheme")
     if kind != "scheme":
         errors.append(f"kind {kind!r} is not available yet; only 'scheme', 'scope' and 'mechanism' can be drawn.")
-    if brief.get("style", "acs1996") != "acs1996":
-        errors.append("style: only 'acs1996' is available.")
+    style_error = style_preset_error(brief.get("style"))
+    if style_error:
+        errors.append(style_error)
     width = brief.get("max_width")
     if width is not None and not (isinstance(width, (int, float)) and width > 0):
         errors.append("max_width must be a positive number of points.")
@@ -287,6 +291,30 @@ def _curve_points(ring_pts: list[tuple[float, float]], style: str = "polygon", i
     return " ".join(f"{x:.2f} {y:.2f}" for x, y in poly)
 
 
+def _species_atom_points(frag_mol: Any, src_mol: Any, top_pts: list[tuple[float, float]],
+                         sp_id: str) -> list[tuple[float, float]]:
+    """Drawn position of each species SMILES atom, by substructure match to the drawn fragment.
+
+    RDKit's CDXML reader keeps node coordinates (scaled by 65536, y flipped); atoms inside
+    an abbreviation snap to the visible abbreviation node.
+    """
+    if src_mol is None or frag_mol is None or not frag_mol.GetNumConformers():
+        raise ValueError(f"species {sp_id!r}: cannot map decoration atoms onto the drawn structure")
+    match = frag_mol.GetSubstructMatch(src_mol)
+    if len(match) != src_mol.GetNumAtoms():
+        raise ValueError(
+            f"species {sp_id!r}: drawn fragment does not match its SMILES, so ring_fills/atom_halos "
+            "atom indices cannot be placed"
+        )
+    conf = frag_mol.GetConformer()
+    pts: list[tuple[float, float]] = []
+    for frag_idx in match:
+        pos = conf.GetAtomPosition(frag_idx)
+        x, y = pos.x / 65536.0, -pos.y / 65536.0
+        pts.append(min(top_pts, key=lambda q: (q[0] - x) ** 2 + (q[1] - y) ** 2))
+    return pts
+
+
 def _apply_decorations(cdxml: str, brief: dict, grounded: list[dict]) -> str:
     """Inject ring_fills, atom_halos, and ts_bracket decorations around species fragments."""
     raw_species = {str(s["id"]): s for s in brief.get("species", []) if isinstance(s, Mapping) and s.get("id")}
@@ -295,10 +323,14 @@ def _apply_decorations(cdxml: str, brief: dict, grounded: list[dict]) -> str:
         if not isinstance(step, Mapping):
             continue
         ts_val = step.get("ts_bracket")
-        if ts_val is True:
-            for sid in _as_list(step.get("products")) or _as_list(step.get("substrates")):
-                step_ts_ids.add(str(sid))
-        elif isinstance(ts_val, str):
+        if ts_val is None or ts_val is False:
+            continue
+        if isinstance(ts_val, bool):
+            raise ValueError(
+                'steps[].ts_bracket must name the transition-state species id '
+                '(ts_bracket: "<species id>"), not true; or set ts_bracket on that species'
+            )
+        if isinstance(ts_val, str):
             step_ts_ids.add(ts_val)
         elif isinstance(ts_val, (list, tuple)):
             for sid in ts_val:
@@ -357,7 +389,9 @@ def _apply_decorations(cdxml: str, brief: dict, grounded: list[dict]) -> str:
         color_cache[rgb] = idx
         return idx
 
-    next_id = 90000
+    used_ids = [int(v) for el in root.iter() for v in [el.get("id")] if v and v.isdigit()]
+    next_id = max(used_ids, default=0)
+    key_seen: dict[str, int] = {}
     bg_xml: list[str] = []
     fg_xml: list[str] = []
 
@@ -369,20 +403,30 @@ def _apply_decorations(cdxml: str, brief: dict, grounded: list[dict]) -> str:
         cand_ids = key_to_ids.get(f_key, [])
         if not cand_ids:
             continue
-        sp_id = cand_ids[0]
+        # Species sharing a structure are consumed in document order, one fragment each.
+        seen = key_seen.get(f_key, 0)
+        key_seen[f_key] = seen + 1
+        sp_id = cand_ids[min(seen, len(cand_ids) - 1)]
         sp_cfg = raw_species.get(sp_id, {})
         src_mol = Chem.MolFromSmiles(smiles_by_id.get(sp_id, ""))
 
-        node_pts: list[tuple[float, float]] = []
+        node_ids: list[str] = []
+        top_pts: list[tuple[float, float]] = []
         for n_el in frag_el.findall("n"):
             if n_el.get("NodeType") == "ExternalConnectionPoint":
                 continue
             parts = (n_el.get("p") or "").split()
             if len(parts) >= 2:
-                node_pts.append((float(parts[0]), float(parts[1])))
+                top_pts.append((float(parts[0]), float(parts[1])))
+                node_ids.append(n_el.get("id", ""))
 
-        if not node_pts:
+        if not top_pts:
             continue
+
+        needs_atoms = bool(sp_cfg.get("ring_fills") or sp_cfg.get("atom_halos"))
+        node_pts: list[tuple[float, float]] = []
+        if needs_atoms:
+            node_pts = _species_atom_points(frag_mol, src_mol, top_pts, sp_id)
 
         # 1. Ring fills
         ring_fills = sp_cfg.get("ring_fills") or []
@@ -448,8 +492,8 @@ def _apply_decorations(cdxml: str, brief: dict, grounded: list[dict]) -> str:
             superscript = str(ts_dict.get("superscript", "\u2021"))
             bracket_type = str(ts_dict.get("bracket_type", "Square"))
             lip = float(ts_dict.get("lip_size", 5.0))
-            fx1, fy1 = min(p[0] for p in node_pts), min(p[1] for p in node_pts)
-            fx2, fy2 = max(p[0] for p in node_pts), max(p[1] for p in node_pts)
+            fx1, fy1 = min(p[0] for p in top_pts), min(p[1] for p in top_pts)
+            fx2, fy2 = max(p[0] for p in top_pts), max(p[1] for p in top_pts)
             bx1, by1, bx2, by2 = fx1 - 5.0, fy1 - 4.0, fx2 + 5.0, fy2 + 4.0
             next_id += 1
             left_id = next_id
@@ -474,7 +518,7 @@ def _apply_decorations(cdxml: str, brief: dict, grounded: list[dict]) -> str:
                 f'GraphicType="Bracket" BracketType="{bracket_type}" LipSize="{lip:g}"/>'
             )
             fg_xml.append(
-                f'<bracketedgroup id="{bg_id}" BracketedObjectIDs="{frag_id_str}" BracketType="{bracket_type}">'
+                f'<bracketedgroup id="{bg_id}" BracketedObjectIDs="{' '.join(node_ids)}" BracketType="{bracket_type}">'
                 f'<bracketattachment id="{att1_id}" GraphicID="{left_id}"/>'
                 f'<bracketattachment id="{att2_id}" GraphicID="{right_id}"/>'
                 f'</bracketedgroup>'
@@ -506,12 +550,48 @@ def _apply_decorations(cdxml: str, brief: dict, grounded: list[dict]) -> str:
     return wrapped
 
 
+def style_preset_error(style: Any) -> str | None:
+    """Error text for a brief ``style`` that is not a built-in preset, else None."""
+    if style is None:
+        return None
+    try:
+        style_preset_slug(str(style))
+    except ValueError:
+        return f"style: unknown preset {style!r}; available: {', '.join(STYLE_PRESETS)}."
+    return None
+
+
+def brief_style(brief: dict) -> tuple[str, float]:
+    """The brief's preset slug and the factor from ACS layout geometry to that preset."""
+    slug = style_preset_slug(brief.get("style") or DEFAULT_STYLE_PRESET)
+    return slug, style_preset_bond_length(slug) / renderer.ACS_BOND_LENGTH
+
+
+def styled(cdxml: Any, slug: str) -> Any:
+    """Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged."""
+    if slug == DEFAULT_STYLE_PRESET:
+        return cdxml
+    wrapped = renderer._ValidatedCDXML(apply_style_preset(str(cdxml), slug, rescale=True))
+    wrapped.chemistry_validation = getattr(cdxml, "chemistry_validation", None)
+    return wrapped
+
+
+def style_report(slug: str) -> dict:
+    return {"preset": slug, "bond_length": style_preset_bond_length(slug)}
+
+
 def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float,
           line_chars: int | None = None):
-    """Lay out with ``layout_width`` but always measure against the requested ``budget``."""
-    cdxml = renderer.render(_scheme(brief, grounded, layout_width, gap_scale, line_chars))
+    """Lay out with ``layout_width`` but always measure against the requested ``budget``.
+
+    The layout is made at ACS geometry, so both widths are converted to ACS points
+    first and the brief's style preset is applied (with rescaling) afterwards.
+    """
+    slug, scale = brief_style(brief)
+    cdxml = renderer.render(_scheme(brief, grounded, layout_width / scale, gap_scale, line_chars))
     cdxml = _apply_decorations(cdxml, brief, grounded)
-    return cdxml, figure_lint.lint_cdxml(cdxml, max_width=budget)
+    issues = figure_lint.lint_cdxml(cdxml, max_width=budget / scale)
+    return styled(cdxml, slug), issues
 
 
 def _relayout(issues: list[dict], max_width: float, gap_scale: float,
@@ -577,9 +657,13 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     brief is an object (or its JSON text) the caller writes from the user's request:
     species [{id, smiles or name, label?, ring_fills?, atom_halos?, ts_bracket?}],
     steps [{substrates [ids], products [ids], above [lines], below [lines], yield,
-    arrow solid|dashed|failed|reversible|resonance, ts_bracket?}], optional layout
+    arrow solid|dashed|failed|reversible|resonance, ts_bracket? (a species id)}], optional layout
     (e.g. "catalytic-cycle"), max_width (points, default 504, the width of a double-column
-    ACS page) and title; kind defaults to "scheme" and style to "acs1996". The steps may
+    ACS page) and title; kind defaults to "scheme". style names a built-in journal preset
+    from ChemDraw's stock style sheets (default "acs1996"; others include "wiley", "rsc",
+    "nature"; chemdraw://style-guide/{preset} lists its settings): the scheme is laid out at
+    ACS geometry and then rescaled to the preset's bond length, and max_width is the width
+    of the styled figure. The steps may
     form a linear route, a convergent route (arms that merge), one starting material with
     several products (divergent), or a closed catalytic-cycle (a loop of >= 3 steps or
     layout="catalytic-cycle"), in any order; the report names the layout used, and steps
@@ -587,7 +671,8 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     decorations: ring_fills ([{ring_index, color, style, inset}]), atom_halos ([{atoms,
     color, radius}]), or ts_bracket (true or {superscript, bracket_type, lip_size}) to
     wrap the species fragment in a [...] transition-state bracket with a top-right double
-    dagger. Only the conditions in the brief are drawn; a
+    dagger; a step's ts_bracket names the bracketed species id (true is refused). Atom and
+    ring indices are RDKit indices of the species SMILES. Only the conditions in the brief are drawn; a
     step without any is reported, never filled in. Structures given as SMILES are used
     as they are; names go through the curated reagent table and, when the network is
     allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked
@@ -706,6 +791,7 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         "layout": _route_layout(_step_descriptors(brief), brief.get("layout"))[0],
         "species": [{k: g[k] for k in ("id", "label", "name", "smiles", "source")} for g in grounded],
         "steps": balance,
+        "style": style_report(brief_style(brief)[0]),
         "lint": {"issues": issues, "relayout": relayout, "max_width": max_width},
         "readback": readback,
         "native": native,

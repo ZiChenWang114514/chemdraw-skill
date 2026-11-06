@@ -16,7 +16,7 @@ Use `compose_chemical_figure(manifest_path, output_path)` for exact placement, m
 
 Top-level keys: `version: 1`, `objects`, optional `steps`, `style`, `grid`, `template_path`, `edits`, `crossings`. File paths are relative to the manifest unless absolute. All positions are **points, x right, y down**. Output path is a separate tool argument. Existing output files are rejected.
 
-`style` accepts `font`, `font_size`, `bond_length`, `line_width`, `bold_width`, `hash_spacing`, `margin_width`. The base is Arial 10 pt, 14.4 pt bonds. Explicitly set measurements from the target figure rather than assigning a supposed universal journal style. Template style overrides affect document defaults and newly added objects; existing explicit text/bond styles remain intact.
+`style` accepts `font`, `font_size`, `bond_length`, `line_width`, `bold_width`, `hash_spacing`, `margin_width`, and an optional `preset`; `style` may also be just a preset name such as `"nature"`. The base is Arial 10 pt, 14.4 pt bonds. A preset is one of ChemDraw's own stock style sheets (ACS Document 1996, Wiley, RSC, Nature Research, Thieme, and others; `cdx.py styles` lists them with their bond lengths and fonts, and `chemdraw://style-guide/{preset}` returns one as JSON); fields given next to `preset` override it. Use a preset for a new figure in a journal's house style. When reconstructing an existing figure, set the measurements from the target figure instead: a published figure often departs from the stock sheet. Template style overrides affect document defaults and newly added objects; existing explicit text/bond styles remain intact.
 
 Every object may have a unique string `id`, which `steps` can reference.
 

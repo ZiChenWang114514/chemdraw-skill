@@ -18,7 +18,8 @@ from rdkit import Chem
 
 from ..chemistry_semantics import document_inventory, semantic_key
 from . import artifact_safety
-from .figure_draw import _as_list, _failure, _ground
+from .figure_draw import _as_list, _failure, _ground, brief_style, style_preset_error, style_report
+from ..chemdraw.style_presets import DEFAULT_STYLE_PRESET, style_preset_as_manifest_style
 
 SCOPE_KEYS = {"kind", "species", "fields", "conditions", "footnotes", "title", "style", "width_mm", "height_mm"}
 SPECIES_KEYS = {"id", "smiles", "name", "label", "group", "values"}
@@ -54,8 +55,9 @@ def _validate(brief: dict) -> list[str]:
     unknown = sorted(set(brief) - SCOPE_KEYS)
     if unknown:
         errors.append(f"Unknown brief keys: {unknown}")
-    if brief.get("style", "acs1996") != "acs1996":
-        errors.append("style: only 'acs1996' is available.")
+    style_error = style_preset_error(brief.get("style"))
+    if style_error:
+        errors.append(style_error)
     for key, low, high in (("width_mm", 60, 400), ("height_mm", 60, 500)):
         value = brief.get(key)
         if value is not None and not (isinstance(value, (int, float)) and low <= value <= high):
@@ -125,6 +127,12 @@ def _write_inputs(work: Path, brief: dict, grounded: list[dict], fields: list[di
             writer.writerow([item["id"], item["smiles"], _text(entry.get("label")), _text(entry.get("group")),
                              *(_text(values.get(f["key"])) for f in fields)])
     style = {k: brief[k] for k in ("width_mm", "height_mm") if brief.get(k) is not None}
+    slug = brief_style(brief)[0]
+    if slug != DEFAULT_STYLE_PRESET:
+        # The panel keeps its own text size; the preset sets the structures' geometry and font.
+        preset = style_preset_as_manifest_style(slug)
+        preset.pop("font_size")
+        style.update(preset)
     spec = {
         "mode": "scope", "table": "table.csv", "label_column": "label", "group_column": "group",
         "fields": [{"column": columns[f["key"]], "label": f["label"], **({"unit": f["unit"]} if f["unit"] else {})}
@@ -227,6 +235,7 @@ def draw_scope(brief: dict, output_path: str | None, render: bool) -> dict:
         "pages": pages,
         "species": [{k: g[k] for k in ("id", "label", "name", "smiles", "source")} for g in grounded],
         "fields": fields,
+        "style": style_report(brief_style(brief)[0]),
         "checks": {"data_binding": checks["data_binding"], "chemistry": checks["chemistry"]},
         "lint": {"issues": checks["layout"]["issues"], "relayout": None},
         "readback": readback,

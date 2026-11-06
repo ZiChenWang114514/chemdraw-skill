@@ -113,7 +113,26 @@ def _check_abbreviation_skeleton_match(mol_a, mol_b) -> bool:
         a_to_b = dict(zip(match_a, match_b))
         if a_to_b.get(next(iter(attach_a))) != next(iter(attach_b)):
             return False
-    return True
+    # A real chemical difference (H vs Me, OH vs NH2, an extra CH2OH) is not an abbreviation
+    # problem: at least one side must carry a label-like atom in its unmapped part.
+    return any(_is_label_like(a.GetAtomWithIdx(i)) for i in unmapped_a) or any(
+        _is_label_like(b.GetAtomWithIdx(i)) for i in unmapped_b
+    )
+
+
+# Elements an organic drawing uses as written; anything else in an unmatched branch is
+# most likely a misread abbreviation label (OTBS read as [Ti], Ph as [P]h ...).
+_ORGANIC_ELEMENTS = frozenset({1, 5, 6, 7, 8, 9, 14, 15, 16, 17, 35, 53})
+
+
+def _is_label_like(atom) -> bool:
+    """A dummy/R-group/nickname atom, or an element unusual enough to be a misread label."""
+    if atom.GetAtomicNum() == 0:
+        return True
+    for prop in ('dummyLabel', 'molFileAlias', '_MolFileRLabel', 'atomLabel'):
+        if atom.HasProp(prop):
+            return True
+    return atom.GetAtomicNum() not in _ORGANIC_ELEMENTS
 
 
 def _chemistry_relation(mol_a, mol_b) -> _RelationResult:

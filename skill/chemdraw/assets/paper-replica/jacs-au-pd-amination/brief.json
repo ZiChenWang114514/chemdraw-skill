@@ -1,0 +1,43 @@
+{
+  "style": "acs1996",
+  "species": [
+    {
+      "id": "25b",
+      "smiles": "Fc1ccc(cc1)C(c1ccc(F)cc1)N1CCNCC1",
+      "label": "25b"
+    },
+    {
+      "id": "25a",
+      "smiles": "O=[N+]([O-])c1cccc(Br)c1",
+      "label": "25a"
+    },
+    {
+      "id": "25",
+      "smiles": "O=[N+]([O-])c1cccc(c1)N1CCN(CC1)C(c1ccc(F)cc1)c1ccc(F)cc1",
+      "label": "25"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "25b",
+        "25a"
+      ],
+      "products": [
+        "25"
+      ],
+      "above": [
+        "[Pd(crotyl)Cl]2 (x mol %)",
+        "BippyPhos (2 mol %)",
+        "KOtBu (2 equiv)"
+      ],
+      "below": [
+        "2 wt % Savie/H2O",
+        "10 v/v % THF, 70 °C",
+        "(aqueous layer is recycled)"
+      ],
+      "yield": "99%"
+    }
+  ],
+  "max_width": 504
+}

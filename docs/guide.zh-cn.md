@@ -77,7 +77,7 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 ## MCP（可选）
 
-命令行已覆盖全部工具，不需要常驻服务器。偏好 MCP 的客户端可以注册 `<runtime-python> -m cdxml_toolkit.mcp_runtime`（无需 profile 参数）；`cdx.py doctor` 会打印运行时路径。MCP 服务同时注册了 `@mcp.resource`（`chemdraw://references/{slug}`、`chemdraw://templates/{slug}`）和 `@mcp.prompt`（`draw_reaction_scheme`、`reconstruct_figure`、`analyze_nmr_and_lcms`、`build_acs1996_figure`）协议端点，以及非破坏性桌面 ChemDraw 活动窗口连接工具 `live_chemdraw_session` 和 `build_acs_figure`。远程 Windows 主机见[运维说明](../skill/chemdraw/references/operations.md#remote-http-only-when-asked)中的 HTTP 一节。
+命令行已覆盖全部工具，不需要常驻服务器。偏好 MCP 的客户端可以注册 `<runtime-python> -m cdxml_toolkit.mcp_runtime`（无需 profile 参数）；`cdx.py doctor` 会打印运行时路径。MCP 服务同时注册了 `@mcp.resource`（`chemdraw://references/{slug}`、`chemdraw://templates/{slug}`、`chemdraw://style-guide/{preset}`）和 `@mcp.prompt`（`draw_reaction_scheme`、`reconstruct_figure`、`analyze_nmr_and_lcms`、`build_acs1996_figure`）协议端点，以及非破坏性桌面 ChemDraw 活动窗口连接工具 `live_chemdraw_session` 和 `build_acs_figure`。远程 Windows 主机见[运维说明](../skill/chemdraw/references/operations.md#remote-http-only-when-asked)中的 HTTP 一节。
 
 ## 开发验证
 

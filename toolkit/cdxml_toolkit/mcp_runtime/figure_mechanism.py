@@ -88,8 +88,9 @@ def _validate(brief: dict) -> list[str]:
     unknown = sorted(set(brief) - MECH_KEYS)
     if unknown:
         errors.append(f"Unknown brief keys: {unknown}")
-    if brief.get("style", "acs1996") != "acs1996":
-        errors.append("style: only 'acs1996' is available.")
+    style_error = figure_draw.style_preset_error(brief.get("style"))
+    if style_error:
+        errors.append(style_error)
     width = brief.get("max_width")
     if width is not None and not (isinstance(width, (int, float)) and not isinstance(width, bool) and width > 0):
         errors.append("max_width must be a positive number of points.")
@@ -668,7 +669,10 @@ def draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict:
         warnings.append("The atom numbers are drawn so the moves can be checked; "
                         "remove show_atom_numbers for the final figure.")
 
-    budget = float(brief.get("max_width") or figure_draw.DEFAULT_MAX_WIDTH)
+    requested_width = float(brief.get("max_width") or figure_draw.DEFAULT_MAX_WIDTH)
+    # Laid out at ACS geometry; the style preset rescales the saved file afterwards.
+    slug, scale = figure_draw.brief_style(brief)
+    budget = requested_width / scale
     width, gap_scale, bulge = budget, 1.0, 1.0
     try:
         drawing = _draw(brief, grounded, width, gap_scale, bulge, numbers)
@@ -697,7 +701,7 @@ def draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict:
         target = artifact_safety.resolve_destination(
             source=None, output_path=output_path, tag="figure", suffix=".cdxml")
         with artifact_safety.staging_file(target) as stage:
-            stage.write_text(str(drawing.cdxml), encoding="utf-8", newline="")
+            stage.write_text(str(figure_draw.styled(drawing.cdxml, slug)), encoding="utf-8", newline="")
             artifact_safety.publish_file(stage, target)
     except ValueError as exc:  # includes OutputExistsError
         return figure_draw._failure([str(exc)], kind="mechanism", warnings=warnings)
@@ -747,7 +751,8 @@ def draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict:
         "steps": balance,
         "moves": moves,
         "arrows": {"count": len(drawing.curves), "crossings": crossings, "relayout": relayout},
-        "lint": {"issues": issues, "relayout": relayout, "max_width": budget},
+        "style": figure_draw.style_report(slug),
+        "lint": {"issues": issues, "relayout": relayout, "max_width": requested_width},
         "readback": readback,
         "native": native,
         "checks_passed": (not issues and not crossings and readback["status"] == "matched"

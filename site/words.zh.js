@@ -7,6 +7,7 @@ globalThis.ChemWords = {
   "ring": "点原子接苯环，点空白处放一个苯环。",
   "erase": "点击原子或化学键即可删除。"
  },
+ "dbeFlag": { "impossible": "不可能的分子式", "radical": "自由基或价态有误" },
  "ask": "“用 ChemDraw Skill 把{name}画成可编辑 CDXML，渲染后给我看。”",
  "names": {
   "aspirin": "阿司匹林",

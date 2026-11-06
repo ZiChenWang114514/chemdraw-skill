@@ -58,6 +58,13 @@
     };
   }
 
+  // DBE = C + Si - (H + halogens)/2 + (N + P)/2 + 1, unclamped: a negative or half value flags the formula.
+  function dbeOf(count) {
+    const n = (s) => count[s] || 0;
+    const dbe = n("C") + n("Si") - (n("H") + n("F") + n("Cl") + n("Br") + n("I") + n("At")) / 2 + (n("N") + n("P")) / 2 + 1;
+    return { dbe, dbeFlag: dbe < 0 ? "impossible" : dbe % 1 ? "radical" : "" };
+  }
+
   // Bond orders per atom, implicit hydrogens, the Hill formula, masses and any atom over its valence.
   function analyse(g) {
     const used = g.atoms.map(() => 0);
@@ -78,7 +85,7 @@
     const order = count.C ? ["C", "H", ...rest] : symbols.sort();
     const parts = order.filter((s) => count[s] > 0).map((s) => [s, count[s]]);
     return {
-      used, hyd, over, count, mass, exact, dbe: g.atoms.length ? Math.max(0, (count.C || 0) - ((count.H || 0) + (count.F || 0) + (count.Cl || 0) + (count.Br || 0)) / 2 + (count.N || 0) / 2 + 1) : 0,
+      used, hyd, over, count, mass, exact, ...(g.atoms.length ? dbeOf(count) : { dbe: 0, dbeFlag: "" }),
       text: parts.map(([s, n]) => s + (n > 1 ? n : "")).join(""),
       html: parts.map(([s, n]) => s + (n > 1 ? `<sub>${n}</sub>` : "")).join(""),
     };
@@ -936,7 +943,7 @@
 
   const api = {
     applyTool, previewMarkup, fileName, MOLS, STARTERS, W, H, EL, CYCLE, CHALLENGES, DAILIES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
-    fmt, load, analyse, bondLength, neighbours, remove, inside, freeAngle, place, toSmiles, toCdxml, cleanUp, drawMarkup, thumb,
+    fmt, load, analyse, dbeOf, bondLength, neighbours, remove, inside, freeAngle, place, toSmiles, toCdxml, cleanUp, drawMarkup, thumb,
     applyMoves, graphKey, targetOf, challengeKey, formulaDelta, stars,
     localDate, dailyNumber, dailyPick, isLevel, nextStreak, dailyShare,
     encodeDrawing, decodeDrawing, emptyStore, parseStore, record, earned, isomerKey, makeHunt,

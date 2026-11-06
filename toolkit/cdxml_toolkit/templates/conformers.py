@@ -50,6 +50,53 @@ def _runs_xml(label: str, font: int = 3, size: int = 10) -> str:
     return "".join(out)
 
 
+# Labels that are one heavy atom plus hydrogens: written as a plain element node.
+_HYDRIDE_LABELS: dict[str, tuple[int, int]] = {
+    "OH": (8, 1), "HO": (8, 1), "NH2": (7, 2), "H2N": (7, 2), "SH": (16, 1), "HS": (16, 1),
+    "Me": (6, 3), "CH3": (6, 3), "H3C": (6, 3), "NH": (7, 1),
+}
+
+# Multi-atom labels: written as ChemDraw abbreviations (NodeType="Fragment" with the expansion);
+# the first SMILES atom is the attachment atom.
+_ABBREVIATION_SMILES: dict[str, str] = {
+    "CH2OH": "CO", "HOCH2": "CO", "CHO": "C=O", "OHC": "C=O", "COOH": "C(=O)O", "CO2H": "C(=O)O",
+    "HOOC": "C(=O)O", "CO2Me": "C(=O)OC", "MeO2C": "C(=O)OC", "OMe": "OC", "MeO": "OC",
+    "OAc": "OC(C)=O", "AcO": "OC(C)=O", "NHAc": "NC(C)=O", "AcHN": "NC(C)=O", "Et": "CC",
+    "iPr": "C(C)C", "tBu": "C(C)(C)C", "Ph": "c1ccccc1", "CN": "C#N", "NC": "C#N",
+    "CH2OAc": "COC(C)=O", "CH2NH2": "CN", "OBn": "OCc1ccccc1", "BnO": "OCc1ccccc1",
+}
+
+
+def _abbreviation_inner_fragment(smiles: str, ax: float, ay: float, next_id) -> str:
+    """Inner <fragment> expansion of an abbreviation, attached through an ExternalConnectionPoint."""
+    from rdkit import Chem
+    from rdkit.Chem import rdDepictor
+
+    mol = Chem.MolFromSmiles(smiles)
+    rdDepictor.Compute2DCoords(mol)
+    conf = mol.GetConformer()
+    p0 = conf.GetAtomPosition(0)
+    scale = 14.4 / 1.5
+    ids = {a.GetIdx(): next_id() for a in mol.GetAtoms()}
+    lines = [f'<fragment id="{next_id()}">']
+    for atom in mol.GetAtoms():
+        pos = conf.GetAtomPosition(atom.GetIdx())
+        x, y = ax + (pos.x - p0.x) * scale, ay - (pos.y - p0.y) * scale
+        extra = ""
+        if atom.GetAtomicNum() != 6:
+            extra = f' Element="{atom.GetAtomicNum()}" NumHydrogens="{atom.GetTotalNumHs()}"'
+        lines.append(f'<n id="{ids[atom.GetIdx()]}" p="{x:.2f} {y:.2f}"{extra}/>')
+    for bond in mol.GetBonds():
+        order = {Chem.BondType.DOUBLE: ' Order="2"', Chem.BondType.TRIPLE: ' Order="3"',
+                 Chem.BondType.AROMATIC: ' Order="1.5"'}.get(bond.GetBondType(), "")
+        lines.append(f'<b id="{next_id()}" B="{ids[bond.GetBeginAtomIdx()]}" E="{ids[bond.GetEndAtomIdx()]}"{order}/>')
+    ecp = next_id()
+    lines.append(f'<n id="{ecp}" NodeType="ExternalConnectionPoint" p="{ax - 14.4:.2f} {ay:.2f}" ExternalConnectionNum="1"/>')
+    lines.append(f'<b id="{next_id()}" B="{ecp}" E="{ids[0]}"/>')
+    lines.append("</fragment>")
+    return "".join(lines)
+
+
 def _segments_intersect(
     a: tuple[float, float],
     b: tuple[float, float],
@@ -109,17 +156,26 @@ def _build_fragment_and_cdxml(
         ay = float(a["y"])
         sym = str(a.get("symbol", "C"))
         show_label = bool(a.get("show_label", sym != "C"))
-        attrs = [f'id="{aid}"', f'p="{ax:.2f} {ay:.2f}"', f'Z="{next_id()}"']
+        z_atom = next_id()
+        attrs = [f'id="{aid}"', f'p="{ax:.2f} {ay:.2f}"', f'Z="{a.get("z", z_atom)}"']
 
         if not show_label and sym == "C":
             frag_lines.append(f'<n {" ".join(attrs)}/>')
             continue
 
+        inner_xml = ""
         if sym in _SIMPLE_ELEMENTS and not a.get("generic"):
             el_num = _SIMPLE_ELEMENTS[sym]
             nh = int(a.get("num_hydrogens", 0))
             attrs.append(f'Element="{el_num}"')
             attrs.append(f'NumHydrogens="{nh}"')
+        elif sym in _HYDRIDE_LABELS and not a.get("generic"):
+            el_num, nh = _HYDRIDE_LABELS[sym]
+            attrs.append(f'Element="{el_num}"')
+            attrs.append(f'NumHydrogens="{nh}"')
+        elif sym in _ABBREVIATION_SMILES and not a.get("generic"):
+            attrs.append('NodeType="Fragment"')
+            inner_xml = _abbreviation_inner_fragment(_ABBREVIATION_SMILES[sym], ax, ay, next_id)
         else:
             attrs.append('NodeType="GenericNickname"')
             attrs.append(f'GenericNickname="{xml_escape(sym)}"')
@@ -130,7 +186,7 @@ def _build_fragment_and_cdxml(
         ly = ay + 3.50
         w = max(6.0, len(sym) * 5.5)
         frag_lines.append(
-            f'<n {" ".join(attrs)}>'
+            f'<n {" ".join(attrs)}>{inner_xml}'
             f'<t id="{tid}" p="{lx:.2f} {ly:.2f}" '
             f'BoundingBox="{lx:.2f} {ay - 7.5:.2f} {lx + w:.2f} {ay:.2f}" '
             f'LabelJustification="{just}" LabelAlignment="{just}">'
@@ -142,7 +198,8 @@ def _build_fragment_and_cdxml(
         bid = bond_id_map[b_idx]
         a1 = atom_id_map[int(b["atom1"])]
         a2 = atom_id_map[int(b["atom2"])]
-        attrs = [f'id="{bid}"', f'Z="{next_id()}"', f'B="{a1}"', f'E="{a2}"']
+        z_bond = next_id()
+        attrs = [f'id="{bid}"', f'Z="{b.get("z", z_bond)}"', f'B="{a1}"', f'E="{a2}"']
         order = b.get("order", 1)
         if order in (2, "2"):
             attrs.append('Order="2"')
@@ -336,7 +393,14 @@ def newman_projection(
     cy: float = 160.0,
     bond_length: float = 24.0,
 ) -> dict[str, Any]:
-    """Generate a Newman projection (staggered or eclipsed) with circle graphic and perimeter-clipped rear spokes."""
+    """Generate a Newman projection (staggered or eclipsed) with circle graphic and perimeter-clipped rear spokes.
+
+    The molecule is a connected substituted ethane: the front carbon and one rear carbon share
+    the projection centre and are bonded; rear bonds belong to the rear carbon and sit beneath
+    the filled circle, so they appear to start at its rim. ``conformation="eclipsed"`` uses a
+    14 degree dihedral offset (reported as ``dihedral_offset``) rather than 0, so eclipsed rear
+    bonds stay visible beside the front bonds; pass ``dihedral_offset=0`` for exact eclipsing.
+    """
     if len(front) != 3 or len(rear) != 3:
         raise ValueError("Newman projection requires exactly 3 front and 3 rear substituents.")
 
@@ -386,6 +450,18 @@ def newman_projection(
             "role": "front_spoke",
         })
 
+    # One real rear carbon behind the front carbon, bonded to it: the graph is a substituted
+    # ethane. Rear spokes start at the rear carbon but are drawn beneath the filled disk, so
+    # only the part outside the circle shows (the Newman convention).
+    rear_idx = len(atoms) + 1
+    atoms.append({
+        "index": rear_idx, "symbol": "C", "x": float(cx), "y": float(cy),
+        "show_label": False, "role": "rear_center", "z": 3,
+    })
+    bonds.append({
+        "index": len(bonds) + 1, "atom1": 1, "atom2": rear_idx, "order": 1,
+        "role": "front_rear", "z": 4,
+    })
     for theta_deg, label in zip(rear_angles, rear):
         rad = math.radians(theta_deg)
         sx = cx + R * math.cos(rad)
@@ -394,16 +470,6 @@ def newman_projection(
         ey = cy + L * math.sin(rad)
         rear_spoke_starts.append((sx, sy))
         rear_spoke_ends.append((ex, ey))
-        anchor_idx = len(atoms) + 1
-        atoms.append({
-            "index": anchor_idx,
-            "symbol": "C",
-            "x": sx,
-            "y": sy,
-            "show_label": False,
-            "role": "rear_perimeter_anchor",
-            "angle_deg": theta_deg,
-        })
         sub_idx = len(atoms) + 1
         atoms.append({
             "index": sub_idx,
@@ -416,20 +482,21 @@ def newman_projection(
         })
         bonds.append({
             "index": len(bonds) + 1,
-            "atom1": anchor_idx,
+            "atom1": rear_idx,
             "atom2": sub_idx,
             "order": 1,
             "role": "rear_spoke",
+            "z": 5 + len(bonds),
         })
 
     circle_graphic = (
-        f'<graphic id="950" GraphicType="Oval" OvalType="Circle Filled" color="2" Z="1" '
+        f'<graphic id="950" GraphicType="Oval" OvalType="Circle Filled" color="2" Z="100" '
         f'BoundingBox="{cx - R:.2f} {cy - R:.2f} {cx + R:.2f} {cy + R:.2f}" '
         f'Center3D="{cx:.2f} {cy:.2f} 0" MajorAxisEnd3D="{cx + R:.2f} {cy:.2f} 0" '
         f'MinorAxisEnd3D="{cx:.2f} {cy + R:.2f} 0"/>'
     )
     circle_outline_graphic = (
-        f'<graphic id="951" GraphicType="Oval" OvalType="Circle" color="3" Z="2" '
+        f'<graphic id="951" GraphicType="Oval" OvalType="Circle" color="3" Z="101" '
         f'BoundingBox="{cx - R:.2f} {cy - R:.2f} {cx + R:.2f} {cy + R:.2f}" '
         f'Center3D="{cx:.2f} {cy:.2f} 0" MajorAxisEnd3D="{cx + R:.2f} {cy:.2f} 0" '
         f'MinorAxisEnd3D="{cx:.2f} {cy + R:.2f} 0"/>'
@@ -457,6 +524,12 @@ def newman_projection(
         "fragment_xml": fragment_xml,
         "cdxml": cdxml,
     }
+
+
+def _lower_up(sub_spec: Mapping[Any, Any], pos: int) -> bool:
+    """True when ring atom ``pos`` carries an up substituent."""
+    entry = sub_spec.get(pos) or sub_spec.get(str(pos)) or {}
+    return bool(isinstance(entry, Mapping) and entry.get("up"))
 
 
 def haworth_pyranose(
@@ -540,12 +613,25 @@ def haworth_pyranose(
             if not label:
                 continue
             new_idx = len(atoms) + 1
+            sx, sy = rx, ry + dy_sign * L
+            just = "Left"
+            side = 1.0 if pos in (1, 2) else -1.0
+            if direction == "up" and pos in (2, 3):
+                # A vertical up bond from a lower ring atom would put the label inside the ring:
+                # lean it outward so the label sits above the ring plane, outside the polygon.
+                sx, sy = rx + side * 0.9 * L, ry - 0.2 * L
+                just = "Left" if side > 0 else "Right"
+            elif direction == "down" and pos in (1, 4) and _lower_up(sub_spec, 2 if pos == 1 else 3):
+                # Make room for the neighbouring lower atom's outward up label: tuck this bond
+                # under the ring, away from that label.
+                sx, sy = rx - side * 0.42 * L, ry + 1.1 * L
             atoms.append({
                 "index": new_idx,
                 "symbol": str(label),
-                "x": rx,
-                "y": ry + dy_sign * L,
+                "x": sx,
+                "y": sy,
                 "show_label": True,
+                "justification": just,
                 "direction": direction,
                 "ring_position": pos,
             })

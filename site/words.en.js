@@ -7,6 +7,7 @@ globalThis.ChemWords = {
   "ring": "Click an atom to attach a benzene ring, or click empty space to place one.",
   "erase": "Click an atom or a bond to remove it."
  },
+ "dbeFlag": { "impossible": "impossible formula", "radical": "radical or wrong valence" },
  "ask": "“Use ChemDraw Skill to draw {name} as editable CDXML and show me the render.”",
  "names": {
   "aspirin": "aspirin",

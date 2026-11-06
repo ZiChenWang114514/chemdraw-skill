@@ -308,25 +308,35 @@ def _macos_session(action: str, *, cdxml: str, smiles: str, output_path: str) ->
         })
 
     if action in ("read_active", "read_selection"):
+        # ChemDraw's AppleScript ``save ... in`` is a Save As: it re-points the open
+        # document at the new file. To stay non-destructive the snapshot is written to a
+        # persistent file under the staging dir (never deleted), and a document that
+        # already has a file on disk is saved straight back to that original path so it
+        # keeps pointing where the user left it. An untitled document stays attached to
+        # the persistent snapshot, which is reported as ``snapshot_path``.
         _LIVE_STAGE_DIR.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix="live-read-", dir=_LIVE_STAGE_DIR) as tmp_dir:
-            snapshot = Path(tmp_dir) / "snapshot.cdxml"
-            script = (
-                f'tell application id "{bundle_id}"\n'
-                '  if (count of documents) is 0 then error "No open document" number 1001\n'
-                '  set d to front document\n'
-                '  set docName to name of d\n'
-                '  set smi to ""\n'
-                '  try\n'
-                '    set smi to (SMILES of selection of d)\n'
-                '  end try\n'
-                f'  save d in (POSIX file "{snapshot.as_posix()}") as "ChemDraw XML"\n'
-                '  return docName & "|" & smi\n'
-                'end tell'
-            )
-            reply = mac_automation.run_applescript(script, timeout_seconds=30)
-            doc_name, _, smi = reply.partition("|")
-            cdxml_text = snapshot.read_text(encoding="utf-8") if snapshot.is_file() else ""
+        snapshot = artifact_safety._available_path(_LIVE_STAGE_DIR / "live-read-snapshot.cdxml")
+        script = (
+            f'tell application id "{bundle_id}"\n'
+            '  if (count of documents) is 0 then error "No open document" number 1001\n'
+            '  set d to front document\n'
+            '  set docName to name of d\n'
+            '  set origPath to ""\n'
+            '  try\n'
+            '    set origPath to POSIX path of (file of d as alias)\n'
+            '  end try\n'
+            '  set smi to ""\n'
+            '  try\n'
+            '    set smi to (SMILES of selection of d)\n'
+            '  end try\n'
+            f'  save d in (POSIX file "{snapshot.as_posix()}") as "ChemDraw XML"\n'
+            '  if origPath is not "" then save d in (POSIX file origPath)\n'
+            '  return docName & "|" & smi\n'
+            'end tell'
+        )
+        reply = mac_automation.run_applescript(script, timeout_seconds=30)
+        doc_name, _, smi = reply.partition("|")
+        cdxml_text = snapshot.read_text(encoding="utf-8") if snapshot.is_file() else ""
         if not smi and cdxml_text:
             smi = _extract_smiles_from_objects(None, cdxml_text)
         saved_path, artifacts = _publish_optional_cdxml(cdxml_text, output_path) if cdxml_text else (None, [])
@@ -340,6 +350,7 @@ def _macos_session(action: str, *, cdxml: str, smiles: str, output_path: str) ->
                 "cdxml": cdxml_text,
                 "smiles": smi,
                 "output_path": saved_path,
+                "snapshot_path": str(snapshot) if snapshot.is_file() else None,
             },
             artifacts=artifacts,
         )
@@ -395,8 +406,10 @@ def live_chemdraw_session(
               SMILES without modifying the open document, optionally saving a copy to output_path.
             - "read_selection": Read the currently selected objects (falling back to the active
               document if nothing is selected) as CDXML and SMILES.
-            - "insert_cdxml": Load cdxml (a CDXML string or file path) or smiles into the user's
-              active open ChemDraw window (or open a new visible document tab if none is open).
+            - "insert_cdxml": Load cdxml (a CDXML string or file path) or smiles into a new
+              visible document tab of the open ChemDraw window; the user's active document is
+              never overwritten. On macOS read actions save a persistent snapshot under the
+              staging dir and save a titled document back to its original path.
         cdxml: CDXML string or path to a .cdxml file for action="insert_cdxml".
         smiles: Optional SMILES string to render and insert when cdxml is not provided.
         output_path: Optional file path to save a copy of the read or inserted CDXML.
@@ -503,78 +516,61 @@ def live_chemdraw_session(
             )
 
         # normalized_action == "insert_cdxml"
+        # The active document is never written to: ChemDraw's Objects.SetData / Data
+        # replace the whole drawing, so the structure goes into a new document tab.
         cdxml_text = _resolve_cdxml_input(cdxml, smiles)
         saved_path, artifacts = _publish_optional_cdxml(cdxml_text, output_path)
         inserted = False
-        if doc is not None:
-            for holder in (getattr(doc, "Objects", None), _selection_objects(doc), getattr(doc, "DataObject", None)):
-                if holder is None:
-                    continue
-                set_data = getattr(holder, "SetData", None)
-                if callable(set_data):
-                    try:
-                        set_data("text/xml", cdxml_text)
-                        inserted = True
-                        break
-                    except Exception:
-                        try:
-                            set_data(cdxml_text, "text/xml")
-                            inserted = True
-                            break
-                        except Exception:
-                            pass
-            if not inserted and hasattr(doc, "Objects"):
-                try:
-                    setattr(doc.Objects, "Data", cdxml_text)
-                    inserted = True
-                except Exception:
-                    pass
-
-        if not inserted:
-            docs = getattr(app, "Documents", None)
-            if docs is not None and hasattr(docs, "Add"):
-                try:
-                    new_doc = docs.Add()
-                    if new_doc is not None:
-                        doc = new_doc
-                        objs = getattr(doc, "Objects", None)
-                        if objs is not None and callable(getattr(objs, "SetData", None)):
-                            objs.SetData("text/xml", cdxml_text)
-                            inserted = True
-                        elif objs is not None:
-                            setattr(objs, "Data", cdxml_text)
-                            inserted = True
-                except Exception:
-                    pass
-            if not inserted and docs is not None and hasattr(docs, "Open"):
-                if saved_path:
-                    open_file = Path(saved_path)
-                else:
-                    _LIVE_STAGE_DIR.mkdir(parents=True, exist_ok=True)
-                    open_file = artifact_safety._available_path(_LIVE_STAGE_DIR / "live-insert.cdxml")
-                    open_file.write_text(cdxml_text, encoding="utf-8")
-                doc = docs.Open(str(open_file))
-                inserted = doc is not None
-
-        if doc is not None and hasattr(doc, "Activate"):
+        reason = None
+        target = None
+        docs = getattr(app, "Documents", None)
+        if docs is not None and hasattr(docs, "Add"):
             try:
-                doc.Activate()
+                new_doc = docs.Add()
+                objs = getattr(new_doc, "Objects", None) if new_doc is not None else None
+                if objs is not None and callable(getattr(objs, "SetData", None)):
+                    objs.SetData("text/xml", cdxml_text)
+                    inserted, target = True, new_doc
+                elif objs is not None:
+                    setattr(objs, "Data", cdxml_text)
+                    inserted, target = True, new_doc
+            except Exception as exc:
+                reason = f"Could not fill a new ChemDraw document ({exc})"
+        if not inserted and docs is not None and hasattr(docs, "Open"):
+            # Open a staged copy, never the user's output artifact itself.
+            _LIVE_STAGE_DIR.mkdir(parents=True, exist_ok=True)
+            open_file = artifact_safety._available_path(_LIVE_STAGE_DIR / "live-insert.cdxml")
+            open_file.write_text(cdxml_text, encoding="utf-8")
+            try:
+                opened = docs.Open(str(open_file))
+                if opened is not None:
+                    inserted, target = True, opened
+                else:
+                    reason = "ChemDraw did not open the staged CDXML copy"
+            except Exception as exc:
+                reason = f"Could not open the staged CDXML copy ({exc})"
+        if not inserted and reason is None:
+            reason = "ChemDraw exposes no way to create or open a document"
+
+        if target is not None and hasattr(target, "Activate"):
+            try:
+                target.Activate()
             except Exception:
                 pass
 
-        return _envelope(
-            {
-                "ok": bool(inserted or doc is not None),
-                "action": "insert_cdxml",
-                "active_window": True,
-                "document_name": _document_name(doc),
-                "inserted": bool(inserted or doc is not None),
-                "cdxml": cdxml_text,
-                "smiles": _extract_smiles_from_objects(getattr(doc, "Objects", None), cdxml_text),
-                "output_path": saved_path,
-            },
-            artifacts=artifacts,
-        )
-
+        payload: dict[str, Any] = {
+            "ok": inserted,
+            "action": "insert_cdxml",
+            "active_window": True,
+            "document_name": _document_name(target if target is not None else doc),
+            "inserted": inserted,
+            "cdxml": cdxml_text,
+            "smiles": _extract_smiles_from_objects(getattr(target, "Objects", None), cdxml_text),
+            "output_path": saved_path,
+        }
+        if not inserted:
+            payload["reason"] = reason
+            payload["error"] = reason
+        return _envelope(payload, artifacts=artifacts)
 
 LIVE_CHEMDRAW_TOOLS = {"live_chemdraw_session": live_chemdraw_session}

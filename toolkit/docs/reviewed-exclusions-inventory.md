@@ -97,7 +97,7 @@
 
 ## `engines.consensus`
 
-- **function**, line 294: `compare(entries: list, expected_formula: str | None = None) -> dict` - Group the engines by the structure they read.
+- **function**, line 313: `compare(entries: list, expected_formula: str | None = None) -> dict` - Group the engines by the structure they read.
 
 ## `engines.document`
 
@@ -332,7 +332,11 @@
 
 ## `mcp_runtime.figure_draw`
 
-- **function**, line 574: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 564: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug and the factor from ACS layout geometry to that preset.
+- **function**, line 654: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 553: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is not a built-in preset, else None.
+- **function**, line 579: `style_report(slug: str) -> dict` - No public docstring in the audited version.
+- **function**, line 570: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
 
 ## `mcp_runtime.figure_editing`
 
@@ -345,15 +349,15 @@
 
 ## `mcp_runtime.figure_mechanism`
 
-- **function**, line 644: `draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a mechanism; called by draw_figure for ``kind: mechanism``.
+- **function**, line 645: `draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a mechanism; called by draw_figure for ``kind: mechanism``.
 
 ## `mcp_runtime.figure_scope`
 
-- **function**, line 160: `draw_scope(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a scope panel; called by draw_figure for ``kind: scope``.
+- **function**, line 168: `draw_scope(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a scope panel; called by draw_figure for ``kind: scope``.
 
 ## `mcp_runtime.figure_tools`
 
-- **function**, line 1455: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
+- **function**, line 1468: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
 - **function**, line 608: `compose_chemical_figure(manifest_path: str, output_path: str) -> dict` - Compose editable CDXML using explicit point coordinates and grounded molecules.
 - **function**, line 165: `rdkit_workbench(molecules: list[dict] | str | None = None, operation: str = 'inspect', options: dict | None = None, output_path: str | None = None, **kwargs) -> dict` - Analyze and edit grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo, edit_structure, edit_smarts, read_wedges, depict_like, enumerate_markush.
 
@@ -382,7 +386,7 @@
 
 ## `mcp_runtime.live_chemdraw`
 
-- **function**, line 378: `live_chemdraw_session(action: str = 'status', *, cdxml: str = '', smiles: str = '', output_path: str = '') -> dict[str, Any]` - Interact non-destructively with an already-open user-facing desktop ChemDraw window.
+- **function**, line 389: `live_chemdraw_session(action: str = 'status', *, cdxml: str = '', smiles: str = '', output_path: str = '') -> dict[str, Any]` - Interact non-destructively with an already-open user-facing desktop ChemDraw window.
 
 ## `mcp_runtime.markush_tools`
 
@@ -401,14 +405,15 @@
 ## `mcp_runtime.mcp_server`
 
 - **class**, line 574: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
-- **function**, line 992: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
-- **function**, line 927: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
-- **function**, line 909: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
-- **function**, line 960: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
-- **function**, line 784: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
-- **function**, line 798: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
+- **function**, line 1012: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
+- **function**, line 947: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
+- **function**, line 929: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
+- **function**, line 980: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
+- **function**, line 785: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
+- **function**, line 822: `read_style_guide_resource(preset: str) -> str` - JSON settings of one built-in style preset, or of all presets for ``all``.
+- **function**, line 799: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
 - **function**, line 638: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
-- **function**, line 1030: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
+- **function**, line 1050: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_io`
 
@@ -666,58 +671,58 @@
 
 ## `templates.conformers`
 
-- **function**, line 693: `bicyclic_cage(*, scaffold: str = 'norbornane', substituents: Mapping[int, str] | None = None, cx: float = 180.0, cy: float = 160.0, bond_length: float = 16.0) -> dict[str, Any]` - Generate a 3D perspective bridged cage (norbornane, bicyclo_222, adamantane) with CrossingBonds.
-- **function**, line 863: `build_conformer_cdxml(spec: Mapping[str, Any], output_path: str | Path | None = None) -> str` - Dispatch on ``spec['template']`` and return a complete ACS 1996 CDXML document.
-- **function**, line 198: `chair_cyclohexane(*, flip: bool = False, substituents: Mapping[int, Mapping[str, str]] | None = None, cx: float = 180.0, cy: float = 160.0, bond_length: float = 14.4) -> dict[str, Any]` - Generate a 6-membered chair cyclohexane (chair1 or ring-flipped chair2).
-- **function**, line 576: `fischer_projection(*, centers: Sequence[Mapping[str, str]] = ({'left': 'H', 'right': 'OH'},), top: str = 'CHO', bottom: str = 'CH2OH', cx: float = 180.0, cy: float = 120.0, bond_length: float = 18.0) -> dict[str, Any]` - Generate an orthogonal Fischer projection cross backbone.
-- **function**, line 462: `haworth_pyranose(*, anomer: str = 'beta', substituents: Mapping[int, Mapping[str, str]] | None = None, cx: float = 180.0, cy: float = 160.0, bond_length: float = 18.0) -> dict[str, Any]` - Generate a 6-membered Haworth perspective pyranose ring.
-- **function**, line 329: `newman_projection(*, conformation: str = 'staggered', dihedral_offset: float | None = None, front: Sequence[str] = ('Me', 'H', 'H'), rear: Sequence[str] = ('Br', 'H', 'Me'), cx: float = 180.0, cy: float = 160.0, bond_length: float = 24.0) -> dict[str, Any]` - Generate a Newman projection (staggered or eclipsed) with circle graphic and perimeter-clipped rear spokes.
+- **function**, line 779: `bicyclic_cage(*, scaffold: str = 'norbornane', substituents: Mapping[int, str] | None = None, cx: float = 180.0, cy: float = 160.0, bond_length: float = 16.0) -> dict[str, Any]` - Generate a 3D perspective bridged cage (norbornane, bicyclo_222, adamantane) with CrossingBonds.
+- **function**, line 949: `build_conformer_cdxml(spec: Mapping[str, Any], output_path: str | Path | None = None) -> str` - Dispatch on ``spec['template']`` and return a complete ACS 1996 CDXML document.
+- **function**, line 255: `chair_cyclohexane(*, flip: bool = False, substituents: Mapping[int, Mapping[str, str]] | None = None, cx: float = 180.0, cy: float = 160.0, bond_length: float = 14.4) -> dict[str, Any]` - Generate a 6-membered chair cyclohexane (chair1 or ring-flipped chair2).
+- **function**, line 662: `fischer_projection(*, centers: Sequence[Mapping[str, str]] = ({'left': 'H', 'right': 'OH'},), top: str = 'CHO', bottom: str = 'CH2OH', cx: float = 180.0, cy: float = 120.0, bond_length: float = 18.0) -> dict[str, Any]` - Generate an orthogonal Fischer projection cross backbone.
+- **function**, line 535: `haworth_pyranose(*, anomer: str = 'beta', substituents: Mapping[int, Mapping[str, str]] | None = None, cx: float = 180.0, cy: float = 160.0, bond_length: float = 18.0) -> dict[str, Any]` - Generate a 6-membered Haworth perspective pyranose ring.
+- **function**, line 386: `newman_projection(*, conformation: str = 'staggered', dihedral_offset: float | None = None, front: Sequence[str] = ('Me', 'H', 'H'), rear: Sequence[str] = ('Br', 'H', 'Me'), cx: float = 180.0, cy: float = 160.0, bond_length: float = 24.0) -> dict[str, Any]` - Generate a Newman projection (staggered or eclipsed) with circle graphic and perimeter-clipped rear spokes.
 
 ## `vision.stereo_audit`
 
-- **function**, line 1165: `audit(cand_smiles: str, reading: dict, image: Image.Image | str | Path | None = None) -> dict | None` - Backward-compatible wrapper around audit_stereo_wedges returning None when unusable.
-- **function**, line 1031: `audit_stereo_wedges(candidate_smiles: str, molscribe_reading: dict, image_path: str | Path | Image.Image | None = None) -> dict` - Map candidate_smiles onto molscribe_reading via MCS and return stereocenter agreement/conflict diagnostics.
-- **function**, line 1173: `audit_text(a: dict, confidence: float | None = None) -> str` - Format human-readable stereocenter audit report.
-- **function**, line 1785: `check_smiles(smiles: str) -> dict` - Validity, canonical form, formula, stereocenters, and warnings of a SMILES.
+- **function**, line 1172: `audit(cand_smiles: str, reading: dict, image: Image.Image | str | Path | None = None) -> dict | None` - Backward-compatible wrapper around audit_stereo_wedges returning None when unusable.
+- **function**, line 1038: `audit_stereo_wedges(candidate_smiles: str, molscribe_reading: dict, image_path: str | Path | Image.Image | None = None) -> dict` - Map candidate_smiles onto molscribe_reading via MCS and return stereocenter agreement/conflict diagnostics.
+- **function**, line 1180: `audit_text(a: dict, confidence: float | None = None) -> str` - Format human-readable stereocenter audit report.
+- **function**, line 1792: `check_smiles(smiles: str) -> dict` - Validity, canonical form, formula, stereocenters, and warnings of a SMILES.
 - **function**, line 333: `cip_labels(mol: Chem.Mol | str) -> dict[int, str]` - Atom index -> R/S (or '?' when unassigned) for each tetrahedral stereocenter.
-- **function**, line 756: `compare(a_smiles: str, b_smiles: str, a_name: str = 'yours', b_name: str = 'the reading', stereo: bool = True) -> list[str]` - Plain-language differences between two SMILES; atom indices are those of a_smiles.
+- **function**, line 763: `compare(a_smiles: str, b_smiles: str, a_name: str = 'yours', b_name: str = 'the reading', stereo: bool = True) -> list[str]` - Plain-language differences between two SMILES; atom indices are those of a_smiles.
 - **function**, line 377: `copy_stereo(tgt: Chem.Mol, src: Chem.Mol, s2t: dict[int, int]) -> tuple[Chem.Mol, list[dict]]` - Target molecule (same atom order) carrying the source's tetrahedral stereo over the atom map s2t.
-- **function**, line 1543: `depict_like(smiles: str, reference_image_path: str | Path | Image.Image, output_path: str | Path | None = None, annotate_indices: bool = True, *, size: int = 500, annotate: bool | None = None, coords: bool = False)` - Search all 16 rotations/reflections (8 x 45 deg x flip) against reference_image_path ink mask.
-- **function**, line 1687: `diagnose_smiles_error(smiles: str) -> SmilesErrorDiagnosis` - Capture RDKit parse errors and pinpoint unclosed parens/brackets, unclosed ring digits, and bare-bracket radicals.
-- **function**, line 1868: `edit_structure(smiles: str, ops: list[dict] | None = None, *, set_atom: list[dict] | None = None, set_bond: list[dict] | None = None, add_group: list[dict] | None = None, remove_atoms: list[int] | list[dict] | None = None, set_ez: list[dict] | None = None, set_stereo: list[dict] | dict | None = None) -> EditedSmiles` - Surgical atom-index molecular graph and stereochemistry editor.
+- **function**, line 1550: `depict_like(smiles: str, reference_image_path: str | Path | Image.Image, output_path: str | Path | None = None, annotate_indices: bool = True, *, size: int = 500, annotate: bool | None = None, coords: bool = False)` - Search all 16 rotations/reflections (8 x 45 deg x flip) against reference_image_path ink mask.
+- **function**, line 1694: `diagnose_smiles_error(smiles: str) -> SmilesErrorDiagnosis` - Capture RDKit parse errors and pinpoint unclosed parens/brackets, unclosed ring digits, and bare-bracket radicals.
+- **function**, line 1875: `edit_structure(smiles: str, ops: list[dict] | None = None, *, set_atom: list[dict] | None = None, set_bond: list[dict] | None = None, add_group: list[dict] | None = None, remove_atoms: list[int] | list[dict] | None = None, set_ez: list[dict] | None = None, set_stereo: list[dict] | dict | None = None) -> EditedSmiles` - Surgical atom-index molecular graph and stereochemistry editor.
 - **class**, line 80: `EditedSmiles` - A canonical SMILES string that also supports dict-style metadata lookup.
 - **method**, line 97: `EditedSmiles.get(key: str, default = None)` - No public docstring in the audited version.
 - **method**, line 100: `EditedSmiles.to_dict() -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 2195: `enumerate_markush_r_groups(core_smiles: str, r_groups_by_label: dict[str, list[str] | str] | list[str] | str)` - Take a [*:1]/[*:2] core SMILES and r_groups_by_label (e.g. {'5a': ['[*:1]F', '[*:2]C']}) and enumerate products via Chem.molzip.
-- **function**, line 2299: `find_structures(im: Image.Image | str | Path, min_side: int = 40) -> list[list[int]]` - Candidate boxes [x0, y0, x1, y1] of drawn structures, from connected ink.
+- **function**, line 2202: `enumerate_markush_r_groups(core_smiles: str, r_groups_by_label: dict[str, list[str] | str] | list[str] | str)` - Take a [*:1]/[*:2] core SMILES and r_groups_by_label (e.g. {'5a': ['[*:1]F', '[*:2]C']}) and enumerate products via Chem.molzip.
+- **function**, line 2306: `find_structures(im: Image.Image | str | Path, min_side: int = 40) -> list[list[int]]` - Candidate boxes [x0, y0, x1, y1] of drawn structures, from connected ink.
 - **class**, line 234: `ImageResultDict` - JSON-serializable result dictionary that also proxies PIL.Image.Image attributes.
 - **property**, line 242: `ImageResultDict.image` - No public docstring in the audited version.
-- **function**, line 1510: `ink(im: Image.Image, n: int = 64) -> np.ndarray` - No public docstring in the audited version.
+- **function**, line 1517: `ink(im: Image.Image, n: int = 64) -> np.ndarray` - No public docstring in the audited version.
 - **class**, line 295: `MarkushEnumerationResult` - Dictionary mapping label -> canonical SMILES while also exposing .products/.results metadata.
 - **method**, line 309: `MarkushEnumerationResult.get(key, default = None)` - No public docstring in the audited version.
 - **function**, line 346: `mcs_map(tgt: Chem.Mol, src: Chem.Mol, timeout: int = 20) -> tuple[dict[int, int], int]` - Source atom index -> target atom index over the maximum common substructure, and its size.
-- **function**, line 694: `mol_key(mol: Chem.Mol, stereo: bool = True) -> str` - Identity key of a molecule: InChIKey or canonical SMILES when dummy atoms are present.
-- **function**, line 816: `ms_mol(reading: dict) -> tuple[Chem.Mol | None, np.ndarray | None]` - Convert a MolScribe reading dict into an RDKit molecule and per-atom (x, y) pixel array.
-- **function**, line 1309: `overlay(crop: Image.Image, a: dict, max_patches: int = 4) -> Image.Image | None` - Candidate bonds drawn at MolScribe's atom positions over the washed-out crop plus zoomed conflict patches.
-- **function**, line 1363: `read_wedges(smiles: str, wedges: list[dict], positions: list[dict[int, tuple[float, float]]] | dict[int, tuple[float, float]] | None = None) -> ReadWedgesResult` - Set stereocenters in smiles from visual wedges and return canonical SMILES + per-center CIP labels.
-- **function**, line 746: `reader_labels(yours: str, reader: str) -> dict[int, str] | None` - CIP label each stereocentre of yours has in reader's SMILES; None when skeletons differ.
+- **function**, line 701: `mol_key(mol: Chem.Mol, stereo: bool = True) -> str` - Identity key of a molecule: InChIKey or canonical SMILES when dummy atoms are present.
+- **function**, line 823: `ms_mol(reading: dict) -> tuple[Chem.Mol | None, np.ndarray | None]` - Convert a MolScribe reading dict into an RDKit molecule and per-atom (x, y) pixel array.
+- **function**, line 1316: `overlay(crop: Image.Image, a: dict, max_patches: int = 4) -> Image.Image | None` - Candidate bonds drawn at MolScribe's atom positions over the washed-out crop plus zoomed conflict patches.
+- **function**, line 1370: `read_wedges(smiles: str, wedges: list[dict], positions: list[dict[int, tuple[float, float]]] | dict[int, tuple[float, float]] | None = None) -> ReadWedgesResult` - Set stereocenters in smiles from visual wedges and return canonical SMILES + per-center CIP labels.
+- **function**, line 753: `reader_labels(yours: str, reader: str) -> dict[int, str] | None` - CIP label each stereocentre of yours has in reader's SMILES; None when skeletons differ.
 - **class**, line 209: `ReadWedgesResult` - Result of read_wedges(smiles, wedges), usable as dict or unpacked as (smiles, cip_labels).
-- **function**, line 1315: `render_diff_overlay(image_path: str | Path | Image.Image, candidate_smiles: str, molscribe_reading: dict, output_path: str | Path | None = None) -> ImageResultDict` - Render green (shared), red (candidate-only), and blue (reading-only) bond overlays plus 240x240 patches.
-- **function**, line 1763: `smiles_warnings(mol: Chem.Mol, centers = None) -> list[str]` - Things that parse in RDKit but are almost never what a journal figure shows.
+- **function**, line 1322: `render_diff_overlay(image_path: str | Path | Image.Image, candidate_smiles: str, molscribe_reading: dict, output_path: str | Path | None = None) -> ImageResultDict` - Render green (shared), red (candidate-only), and blue (reading-only) bond overlays plus 240x240 patches.
+- **function**, line 1770: `smiles_warnings(mol: Chem.Mol, centers = None) -> list[str]` - Things that parse in RDKit but are almost never what a journal figure shows.
 - **class**, line 104: `SmilesErrorDiagnosis` - Diagnostic string from diagnose_smiles_error that also exposes structured fields.
 - **method**, line 125: `SmilesErrorDiagnosis.get(key: str, default = None)` - No public docstring in the audited version.
 - **method**, line 128: `SmilesErrorDiagnosis.to_dict() -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 978: `snap(image: Image.Image | str | Path, mol: Chem.Mol, xy: np.ndarray) -> np.ndarray` - MolScribe atom positions moved onto the drawn bonds.
-- **function**, line 932: `snap_with(image_path: str | Path | Image.Image, atoms: list[dict[str, Any]] | Chem.Mol | np.ndarray, bonds: list[dict[str, Any]] | np.ndarray, extra: np.ndarray | None = None)` - Align MolScribe 2D atom coordinates onto dark bond ink in image_path.
+- **function**, line 985: `snap(image: Image.Image | str | Path, mol: Chem.Mol, xy: np.ndarray) -> np.ndarray` - MolScribe atom positions moved onto the drawn bonds.
+- **function**, line 939: `snap_with(image_path: str | Path | Image.Image, atoms: list[dict[str, Any]] | Chem.Mol | np.ndarray, bonds: list[dict[str, Any]] | np.ndarray, extra: np.ndarray | None = None)` - Align MolScribe 2D atom coordinates onto dark bond ink in image_path.
 - **class**, line 256: `SnappedPoint` - 2D atom coordinate supporting both point['x']/point['y'] and point[0]/point[1].
 - **class**, line 277: `SnappedPointsList` - List of SnappedPoint entries that also behaves like an (N, 2) numpy float array.
 - **property**, line 281: `SnappedPointsList.shape` - No public docstring in the audited version.
-- **function**, line 708: `stereo_compare(cand: Chem.Mol, src: Chem.Mol, s2t: dict[int, int]) -> list[dict]` - Per candidate stereocenter: compare implied source label with candidate's own label.
-- **function**, line 624: `stereo_from_wedges(atoms: list[dict[str, Any]] | str, bonds: list[dict[str, Any]] | dict[int, dict[int, tuple]], *, flip_y: bool = True) -> StereoFromWedgesResult | str` - Build an RDKit 2D conformer from MolScribe (x, y) + wedges and extract per-atom (R/S, confidence).
-- **function**, line 1496: `stereo_notes(smiles: str) -> list[str]` - 'atom 3 C: R' for each stereocenter, in the atom order of smiles.
+- **function**, line 715: `stereo_compare(cand: Chem.Mol, src: Chem.Mol, s2t: dict[int, int]) -> list[dict]` - Per candidate stereocenter: compare implied source label with candidate's own label.
+- **function**, line 631: `stereo_from_wedges(atoms: list[dict[str, Any]] | str, bonds: list[dict[str, Any]] | dict[int, dict[int, tuple]], *, flip_y: bool = True) -> StereoFromWedgesResult | str` - Build an RDKit 2D conformer from MolScribe (x, y) + wedges and extract per-atom (R/S, confidence).
+- **function**, line 1503: `stereo_notes(smiles: str) -> list[str]` - 'atom 3 C: R' for each stereocenter, in the atom order of smiles.
 - **class**, line 132: `StereoFromWedgesResult` - Result of stereo_from_wedges(atoms, bonds), supporting both dict keys and atom-index lookup.
 - **property**, line 140: `StereoFromWedgesResult.mol` - No public docstring in the audited version.
 - **function**, line 428: `transfer_stereo(src_mol: Chem.Mol | str, dst_mol: Chem.Mol | str, timeout: int = 20) -> TransferStereoResult` - Transfer tetrahedral stereocenters from src_mol onto dst_mol over their MCS map.
 - **class**, line 163: `TransferStereoResult` - Result of transfer_stereo, usable as dict, (smiles, report) tuple, or RDKit Mol proxy.
 - **property**, line 176: `TransferStereoResult.mol` - No public docstring in the audited version.
-- **function**, line 2096: `visual_checkpoints(smiles: str, limit: int = 12) -> list[str]` - Flag terminal =CH2, Si carbon counts (TMS/TES/TBS/TIPS), and benzene ortho/meta/para substitution indices.
+- **function**, line 2103: `visual_checkpoints(smiles: str, limit: int = 12) -> list[str]` - Flag terminal =CH2, Si carbon counts (TMS/TES/TBS/TIPS), and benzene ortho/meta/para substitution indices.
