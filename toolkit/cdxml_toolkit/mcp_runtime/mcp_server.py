@@ -820,14 +820,16 @@ def read_template_resource(slug: str) -> str:
 
 
 def read_style_guide_resource(preset: str) -> str:
-    """JSON settings of one built-in style preset, or of all presets for ``all``."""
-    from ..chemdraw.style_presets import list_style_presets, style_preset
+    """JSON settings of one preset or house-style card, or of all of them for ``all``."""
+    from ..chemdraw.style_presets import list_style_presets
+    from ..publication.house_styles import list_house_styles, resolve_style
 
     clean = (preset or "").strip()
-    if clean.casefold() in {"", "all", "index"}:
-        return json.dumps(list_style_presets(), indent=2)
     try:
-        return json.dumps(style_preset(clean), indent=2)
+        if clean.casefold() in {"", "all", "index"}:
+            return json.dumps(list_style_presets() + [h.as_dict() for h in list_house_styles()], indent=2)
+        kind, value = resolve_style(clean)
+        return json.dumps(value.as_dict() if kind == "house" else value, indent=2)
     except ValueError as exc:
         return json.dumps({"error": str(exc)}, indent=2)
 
@@ -851,7 +853,8 @@ def _register_resources_and_prompts(mcp: typing.Any) -> None:
         @resource_decorator("chemdraw://style-guide/{preset}")
         def chemdraw_style_guide(preset: str) -> str:
             """Settings of a built-in journal style preset from ChemDraw's stock style sheets
-            (acs1996, wiley, adv_synth_catal, rsc, rsc_1col, nature, synthesis, ...; "all" lists them)."""
+            (acs1996, wiley, adv_synth_catal, rsc, rsc_1col, nature, synthesis, ...) or the card of a
+            house style (a journal's or group's drawing conventions); "all" lists them."""
             return read_style_guide_resource(preset)
 
         registered_resources.extend(_REGISTERED_RESOURCE_URIS)

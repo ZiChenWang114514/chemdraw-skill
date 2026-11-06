@@ -86,6 +86,7 @@ class SchemeDescriptor:
     steps_per_row: Optional[int] = None  # one row if omitted, unless max_row_width is set
     max_row_width: Optional[float] = None  # pt; picks steps_per_row so each row fits
     gap_scale: float = 1.0           # multiplies the gaps between structures and arrows
+    substrate_layout: str = "inline"  # "inline" (A + B) or "stacked_plus" (A over B, "+" between)
     title: Optional[str] = None
     run_arrows: list[StepRunArrows] = field(default_factory=list)
     condition_key: Optional[dict[str, str]] = None  # letter conditions: {"a": "..."}

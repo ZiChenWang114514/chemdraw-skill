@@ -1,0 +1,103 @@
+{
+  "slug": "macmillan_group",
+  "kind": "group",
+  "display_name": "MacMillan group (Princeton University)",
+  "applies_to": [
+    "MacMillan group papers, JACS"
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.25,
+    "line_width_over_bond_length": 0.055,
+    "bold_width_over_bond_length": null,
+    "label_font": "Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 5.2
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "after_product_label",
+    "yield_format": "{value}% yield",
+    "conditions_split": null,
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": [
+      "Boc",
+      "Cbz",
+      "Me",
+      "Et",
+      "TMS",
+      "OMe"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": "#0C549C",
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": false,
+    "signature_features": [
+      "yield line such as 6, 76% yield with bold number, comma and the word yield",
+      "new bonds and transferred H or D drawn in dark blue",
+      "substrates placed side by side with no plus sign",
+      "catalyst icons (PC, Ir, Ni discs, light bulb) on or before the arrow",
+      "italic descriptor text under starting materials"
+    ],
+    "notes": {
+      "new_bond_color": "dark blue in all crops; pixels read #0C2484 (crop 01) and #0C549C (crops 02, 03)",
+      "conditions_split": "crop 02 puts all conditions above the arrow, crop 03 puts only the scale below; not determined",
+      "highlight_fill": "grey halo behind the new bonds in crop 02 only",
+      "bold_width_over_bond_length": "no wedge large enough to measure"
+    },
+    "yield_separator": ", "
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/jacs.6c14333",
+      "citation": "MacMillan et al., J. Am. Chem. Soc. 2026 (A general photoredox platform for the hydroarylation of olefins)",
+      "licence": "CC BY 4.0",
+      "figure": "Scope figure, unactivated alkenes rows",
+      "crop": "evidence/macmillan_group-01.png",
+      "measurements_px": {
+        "bond_length": 46,
+        "cap_height": 20,
+        "line_width": 2.5,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 22
+      },
+      "observations": "bold label + 61% yield, substrate pairs without plus sign joined by a light-blue curved double-headed arrow"
+    },
+    {
+      "doi": "10.1021/jacs.6c03814",
+      "citation": "MacMillan et al., J. Am. Chem. Soc. 2026 (Oxyalkylation of alkenes via triple radical sorting)",
+      "licence": "CC BY 4.0",
+      "figure": "Scope figure, top scheme",
+      "crop": "evidence/macmillan_group-02.png",
+      "measurements_px": {
+        "bond_length": 20,
+        "cap_height": 9,
+        "line_width": 1.2,
+        "bold_width": null,
+        "arrow_length": 105
+      },
+      "observations": "no plus sign between substrates, italic descriptors under substrates, all conditions above the arrow, dark blue new bonds with grey halo, (+/-)-6, 76% yield"
+    },
+    {
+      "doi": "10.1021/jacs.6c03814",
+      "citation": "MacMillan et al., J. Am. Chem. Soc. 2026 (Oxyalkylation of alkenes via triple radical sorting)",
+      "licence": "CC BY 4.0",
+      "figure": "Scope figure, gram-scale scheme",
+      "crop": "evidence/macmillan_group-03.png",
+      "measurements_px": {
+        "bond_length": 20,
+        "cap_height": 9,
+        "line_width": 1.2,
+        "bold_width": null,
+        "arrow_length": 105
+      },
+      "observations": "Ir, bulb and Ni icons on the arrow, scale below the arrow in blue, bold label 5, dark blue new bonds, yield in a grey rounded box"
+    }
+  ]
+}

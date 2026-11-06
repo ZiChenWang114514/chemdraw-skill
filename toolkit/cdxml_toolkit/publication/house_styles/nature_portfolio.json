@@ -1,0 +1,97 @@
+{
+  "slug": "nature_portfolio",
+  "kind": "publisher",
+  "display_name": "Nature Portfolio",
+  "applies_to": [
+    "Nature",
+    "Nat. Chem.",
+    "Nat. Commun.",
+    "Nat. Synth.",
+    "Nat. Catal."
+  ],
+  "base_preset": "nature",
+  "measured": {
+    "bond_length_over_cap_height": 2.209,
+    "line_width_over_bond_length": 0.062,
+    "bold_width_over_bond_length": 0.244,
+    "label_font": "Arial",
+    "atom_label_size_pt_estimate": 7.3,
+    "arrow_length_over_bond_length": 11.1
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "after_product_label",
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "OMe",
+      "Ph",
+      "Me",
+      "Et",
+      "tBu",
+      "CN"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": [
+      "#0078B2"
+    ],
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "yield_separator": ", "
+  },
+  "evidence": [
+    {
+      "doi": "10.1038/s41467-025-56377-w",
+      "citation": "Wang et al., Nat. Commun. 2025, 16, 1108",
+      "licence": "CC BY 4.0",
+      "figure": "Table 1 scheme",
+      "crop": "evidence/nature_portfolio-01.png",
+      "measurements_px": {
+        "bond_length": 52,
+        "cap_height": 23,
+        "compound_label_cap_height": 23,
+        "line_width": 3.5,
+        "bold_width": 15,
+        "arrow_length": 485
+      },
+      "observations": "Kekulé rings; first substrate teal (#0078B2), second substrate blue (#0000FF), new C–C bond red (#FF0000); bold compound labels 1a, 2a, 3a; catalyst and ligand above the arrow, electrolyte, base, solvent and conditions below; A + B inline; t-Bu written with italic t."
+    },
+    {
+      "doi": "10.1038/s41467-025-56377-w",
+      "citation": "Wang et al., Nat. Commun. 2025, 16, 1108",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 2 scope header and first row",
+      "crop": "evidence/nature_portfolio-02.png",
+      "measurements_px": {
+        "bond_length": 40,
+        "cap_height": 25,
+        "compound_label_cap_height": 18,
+        "line_width": 3,
+        "bold_width": 8,
+        "arrow_length": 507
+      },
+      "observations": "Same colouring as the table scheme; yields written after the bold label on one line, e.g. 3a, 85%, 90% ee; ligand shown in a grey rounded panel; Ar1/Ar2 in circled ring placeholders."
+    },
+    {
+      "doi": "10.1038/s41467-024-46576-2",
+      "citation": "Zhao, Jia and Wang, Nat. Commun. 2024, 15, 2415",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 2 scope header and row a",
+      "crop": "evidence/nature_portfolio-03.png",
+      "measurements_px": {
+        "bond_length": 47,
+        "cap_height": 17,
+        "compound_label_cap_height": 17,
+        "line_width": 2,
+        "arrow_length": 531
+      },
+      "observations": "Single substrate; the part derived from the substrate (cyclohexyl to phenol ring and OH) teal (#0073AC); H2O in the conditions bold teal; catalysts above the arrow, additives, solvent, temperature below; bold labels with yields after the label on one line (2s, 86%) and R' variants listed as 2a, R' = H, 71%; brown rules and rounded boxes separate scope sections; Kekulé rings."
+    }
+  ]
+}

@@ -18,7 +18,7 @@ from rdkit import Chem
 
 from ..chemistry_semantics import document_inventory, semantic_key
 from . import artifact_safety
-from .figure_draw import _as_list, _failure, _ground, brief_style, style_preset_error, style_report
+from .figure_draw import _as_list, _failure, _ground, brief_house, brief_style, style_preset_error, style_report
 from ..chemdraw.style_presets import DEFAULT_STYLE_PRESET, style_preset_as_manifest_style
 
 SCOPE_KEYS = {"kind", "species", "fields", "conditions", "footnotes", "title", "style", "width_mm", "height_mm"}
@@ -235,7 +235,8 @@ def draw_scope(brief: dict, output_path: str | None, render: bool) -> dict:
         "pages": pages,
         "species": [{k: g[k] for k in ("id", "label", "name", "smiles", "source")} for g in grounded],
         "fields": fields,
-        "style": style_report(brief_style(brief)[0]),
+        "style": style_report(brief_style(brief)[0], brief_house(brief), [],
+                              ["house conventions apply to schemes only; the base preset was applied"]),
         "checks": {"data_binding": checks["data_binding"], "chemistry": checks["chemistry"]},
         "lint": {"issues": checks["layout"]["issues"], "relayout": None},
         "readback": readback,

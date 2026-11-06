@@ -479,16 +479,30 @@ def cmd_draw(ns):
 
 
 def cmd_styles(ns):
-    """List the built-in journal style presets (ChemDraw stock style sheets)."""
-    from cdxml_toolkit.chemdraw.style_presets import list_style_presets, style_preset
-    presets = [style_preset(ns.preset)] if ns.preset else list_style_presets()
-    if ns.json or ns.preset:
-        print(json.dumps(presets if not ns.preset else presets[0], indent=2))
+    """List the measurement presets (ChemDraw stock style sheets) and the house styles."""
+    from cdxml_toolkit.chemdraw.style_presets import list_style_presets
+    from cdxml_toolkit.publication.house_styles import house_style_summary, list_house_styles, resolve_style
+    if ns.preset:
+        kind, value = resolve_style(ns.preset)
+        print(json.dumps(value.as_dict() if kind == 'house' else value, indent=2, ensure_ascii=False))
+        return 0
+    presets, houses = list_style_presets(), list_house_styles()
+    if ns.json:
+        print(json.dumps({'presets': presets, 'house_styles': [h.as_dict() for h in houses]}, indent=2,
+                         ensure_ascii=False))
         return 0
     for item in presets:
         a, fonts = item['attributes'], item['fonts']
         print(f"{item['slug']:<21} {a['BondLength']:>5} pt  {fonts['label'][0]} {a['LabelSize']} pt  "
               f"{item['sheet']}: {item['used_by']}")
+    print()
+    print('House styles (drawing conventions on top of a preset; cdx.py styles NAME prints the card):')
+    for house in houses:
+        h = house_style_summary(house)
+        print(f"{h['slug']:<21} {h['kind']:<9} base {h['base_preset']:<12} {h['evidence']} evidence  "
+              f"{h['display_name']}")
+    if not houses:
+        print('(none installed)')
     return 0
 
 
@@ -1063,12 +1077,14 @@ def main(argv=None):
     s.add_argument('output', nargs='?', help='new .cdxml path, or a new folder for kind "scope" '
                                               '(default: a fresh name in the temp folder)')
     s.add_argument('--render', action='store_true', help='also render a native PNG')
-    s.add_argument('--style', metavar='PRESET', help='journal style preset (overrides the brief; see cdx.py styles)')
+    s.add_argument('--style', metavar='STYLE', help='measurement preset or house style '
+                                                   '(overrides the brief; see cdx.py styles)')
     s.add_argument('--out', help='new evidence file for the full report')
     s.set_defaults(fn=cmd_draw)
-    s = sub.add_parser('styles', help='list the built-in journal style presets taken from ChemDraw stock style sheets')
-    s.add_argument('preset', nargs='?', help='print one preset as JSON')
-    s.add_argument('--json', action='store_true', help='print all presets as JSON')
+    s = sub.add_parser('styles', help='list the measurement presets (ChemDraw stock style sheets) and the '
+                                    'house styles of journals and research groups')
+    s.add_argument('preset', nargs='?', help='print one preset or house-style card as JSON')
+    s.add_argument('--json', action='store_true', help='print all presets and house styles as JSON')
     s.set_defaults(fn=cmd_styles)
     s = sub.add_parser('chemscript-info')  # maintainer/diagnostic: ChemScript reading of a saved file
     s.add_argument('source')

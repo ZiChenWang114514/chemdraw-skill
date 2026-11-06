@@ -29,8 +29,11 @@ from ..resolve.network_policy import network_allowed
 from . import artifact_safety, figure_lint, official_overrides
 from .report_tools import check_reaction_balance
 from ..chemdraw.style_presets import (
-    DEFAULT_STYLE_PRESET, STYLE_PRESETS, apply_style_preset, style_preset_bond_length, style_preset_slug,
+    DEFAULT_STYLE_PRESET, STYLE_PRESETS, apply_style_preset, style_preset, style_preset_bond_length,
+    style_preset_slug,
 )
+from ..publication.house_styles import HouseStyle, resolve_style
+from . import figure_house
 
 DEFAULT_MAX_WIDTH = 504.0  # a double-column ACS page, 7 in
 RELAYOUT_GAP_SCALE = 1.4
@@ -189,16 +192,18 @@ def _check_balance(brief: dict, smiles: dict[str, str]) -> tuple[list[dict], lis
 
 
 def _scheme(brief: dict, grounded: list[dict], max_width: float | None, gap_scale: float,
-            line_chars: int | None = None) -> SchemeDescriptor:
+            line_chars: int | None = None, house: HouseStyle | None = None) -> SchemeDescriptor:
     structures = {
         g["id"]: StructureRef(id=g["id"], smiles=g["smiles"], label=(str(g["label"]) if g["label"] else None))
         for g in grounded
     }
-    steps = _step_descriptors(brief, line_chars)
+    steps = _step_descriptors(brief, line_chars, house)
     layout, order = _route_layout(steps, brief.get("layout"))
+    stacked = house is not None and house.convention("substrate_layout") == "stacked_plus"
     return SchemeDescriptor(
         structures=structures, steps=[steps[i] for i in order], layout=layout,
         max_row_width=max_width, gap_scale=gap_scale, title=brief.get("title"),
+        substrate_layout="stacked_plus" if stacked else "inline",
     )
 
 
@@ -225,17 +230,21 @@ def _longest_line(brief: dict) -> int:
                 for t in _as_list(step.get(side))), default=0)
 
 
-def _step_descriptors(brief: dict, line_chars: int | None = None) -> list[StepDescriptor]:
+def _step_descriptors(brief: dict, line_chars: int | None = None,
+                      house: HouseStyle | None = None) -> list[StepDescriptor]:
     steps = []
     for number, step in enumerate(brief["steps"], 1):
-        above = _broken_lines([str(t) for t in _as_list(step.get("above"))], line_chars)
-        below = _broken_lines([str(t) for t in _as_list(step.get("below"))], line_chars)
+        above, below = figure_house.split_conditions(
+            [str(t) for t in _as_list(step.get("above"))], [str(t) for t in _as_list(step.get("below"))], house)
+        above = _broken_lines(above, line_chars)
+        below = _broken_lines(below, line_chars)
+        yield_text = figure_house.step_yield(step, house)
         steps.append(StepDescriptor(
             substrates=[str(i) for i in _as_list(step["substrates"])],
             products=[str(i) for i in _as_list(step["products"])],
             above_arrow=ArrowContent(text=above) if above else None,
             below_arrow=ArrowContent(text=below) if below else None,
-            yield_=(str(step["yield"]) if step.get("yield") not in (None, "") else None),
+            yield_=yield_text,
             arrow_style=step.get("arrow", "solid"),
             id=str(number),
         ))
@@ -551,19 +560,28 @@ def _apply_decorations(cdxml: str, brief: dict, grounded: list[dict]) -> str:
 
 
 def style_preset_error(style: Any) -> str | None:
-    """Error text for a brief ``style`` that is not a built-in preset, else None."""
+    """Error text for a brief ``style`` that is neither a built-in preset nor a house style, else None."""
     if style is None:
         return None
     try:
-        style_preset_slug(str(style))
-    except ValueError:
-        return f"style: unknown preset {style!r}; available: {', '.join(STYLE_PRESETS)}."
+        resolve_style(str(style))
+    except ValueError as exc:
+        return f"style: {exc}."
     return None
 
 
+def brief_house(brief: dict) -> HouseStyle | None:
+    """The brief's house style, or None when ``style`` is a measurement preset or absent."""
+    if not brief.get("style"):
+        return None
+    kind, value = resolve_style(str(brief["style"]))
+    return value if kind == "house" else None
+
+
 def brief_style(brief: dict) -> tuple[str, float]:
-    """The brief's preset slug and the factor from ACS layout geometry to that preset."""
-    slug = style_preset_slug(brief.get("style") or DEFAULT_STYLE_PRESET)
+    """The brief's preset slug (a house style's base preset) and the factor from ACS geometry to it."""
+    house = brief_house(brief)
+    slug = house.base_preset if house else style_preset_slug(brief.get("style") or DEFAULT_STYLE_PRESET)
     return slug, style_preset_bond_length(slug) / renderer.ACS_BOND_LENGTH
 
 
@@ -576,8 +594,24 @@ def styled(cdxml: Any, slug: str) -> Any:
     return wrapped
 
 
-def style_report(slug: str) -> dict:
-    return {"preset": slug, "bond_length": style_preset_bond_length(slug)}
+def style_report(slug: str, house: HouseStyle | None = None, applied: list[str] | None = None,
+                 skipped: list[str] | None = None) -> dict:
+    report = {"preset": slug, "bond_length": style_preset_bond_length(slug)}
+    if house is not None:
+        report.update({"house": house.slug, "applied": list(applied or []), "skipped": list(skipped or [])})
+    return report
+
+
+def bold_arrows(cdxml: Any, slug: str) -> Any:
+    """Arrows at 1.5 times the preset's line width."""
+    width = 1.5 * float(style_preset(slug)["attributes"]["LineWidth"])
+    root = ET.fromstring(str(cdxml))
+    for arrow in root.iter("arrow"):
+        arrow.set("LineWidth", f"{width:g}")
+    wrapped = renderer._ValidatedCDXML('<?xml version="1.0" encoding="UTF-8" ?>\n'
+                                       + ET.tostring(root, encoding="unicode"))
+    wrapped.chemistry_validation = getattr(cdxml, "chemistry_validation", None)
+    return wrapped
 
 
 def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float,
@@ -588,10 +622,19 @@ def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: flo
     first and the brief's style preset is applied (with rescaling) afterwards.
     """
     slug, scale = brief_style(brief)
-    cdxml = renderer.render(_scheme(brief, grounded, layout_width / scale, gap_scale, line_chars))
+    house = brief_house(brief)
+    cdxml = renderer.render(_scheme(brief, grounded, layout_width / scale, gap_scale, line_chars, house))
     cdxml = _apply_decorations(cdxml, brief, grounded)
+    record: dict = {"applied": [], "skipped": [], "warnings": []}
+    if house is not None:
+        cdxml, record["applied"], record["skipped"], record["warnings"] = figure_house.apply_house_conventions(
+            cdxml, brief, grounded, house)
     issues = figure_lint.lint_cdxml(cdxml, max_width=budget / scale)
-    return styled(cdxml, slug), issues
+    cdxml = styled(cdxml, slug)
+    if house is not None and house.convention("arrow_style") == "bold":
+        cdxml = bold_arrows(cdxml, slug)
+        record["applied"].append("arrow_style=bold")
+    return cdxml, issues, record
 
 
 def _relayout(issues: list[dict], max_width: float, gap_scale: float,
@@ -663,7 +706,11 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     from ChemDraw's stock style sheets (default "acs1996"; others include "wiley", "rsc",
     "nature"; chemdraw://style-guide/{preset} lists its settings): the scheme is laid out at
     ACS geometry and then rescaled to the preset's bond length, and max_width is the width
-    of the styled figure. The steps may
+    of the styled figure. style may instead name a house style (`cdx.py styles` lists them):
+    its drawing conventions (bold compound numbers, yield placement, stacked substrates,
+    abbreviated groups, substrate and new-bond colours, bold arrows) are applied to the
+    scheme and then its base preset; the report's style lists what was applied and skipped.
+    Scope panels and mechanisms take only the house style's base preset. The steps may
     form a linear route, a convergent route (arms that merge), one starting material with
     several products (divergent), or a closed catalytic-cycle (a loop of >= 3 steps or
     layout="catalytic-cycle"), in any order; the report names the layout used, and steps
@@ -737,14 +784,16 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     max_width = float(brief.get("max_width") or DEFAULT_MAX_WIDTH)
     gap_scale = 1.0
     try:
-        cdxml, issues = _draw(brief, grounded, max_width, gap_scale, max_width)
+        house = brief_house(brief)
+        highlight = figure_house.add_highlight_fills(brief, grounded, house)
+        cdxml, issues, house_record = _draw(brief, grounded, max_width, gap_scale, max_width)
         relayout = None
         if issues:
             first_issues = issues
             new_width, new_gap, changed, line_chars = _relayout(issues, max_width, gap_scale,
                                                                 _longest_line(brief))
             if changed:
-                cdxml, issues = _draw(brief, grounded, new_width, new_gap, max_width, line_chars)
+                cdxml, issues, house_record = _draw(brief, grounded, new_width, new_gap, max_width, line_chars)
                 relayout = {"changed": changed, "first_issues": first_issues}
     except Exception as exc:
         return _failure([f"The layout failed: {exc}"], warnings=warnings)
@@ -758,6 +807,7 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     except ValueError as exc:  # includes OutputExistsError
         return _failure([str(exc)], warnings=warnings)
 
+    warnings.extend(house_record["warnings"])
     for issue in issues:
         warnings.append(f"Layout check: {issue['message']}")
     readback = _readback(target, grounded, used, getattr(cdxml, "chemistry_validation", None))
@@ -791,7 +841,9 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         "layout": _route_layout(_step_descriptors(brief), brief.get("layout"))[0],
         "species": [{k: g[k] for k in ("id", "label", "name", "smiles", "source")} for g in grounded],
         "steps": balance,
-        "style": style_report(brief_style(brief)[0]),
+        "style": style_report(brief_style(brief)[0], house,
+                              house_record["applied"] + ([highlight] if highlight else []),
+                              house_record["skipped"]),
         "lint": {"issues": issues, "relayout": relayout, "max_width": max_width},
         "readback": readback,
         "native": native,

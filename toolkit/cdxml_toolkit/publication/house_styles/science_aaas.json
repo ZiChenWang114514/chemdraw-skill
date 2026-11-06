@@ -1,0 +1,90 @@
+{
+  "slug": "science_aaas",
+  "kind": "publisher",
+  "display_name": "Science / Science Advances (AAAS)",
+  "applies_to": [
+    "Science",
+    "Sci. Adv."
+  ],
+  "base_preset": "nature",
+  "measured": {
+    "bond_length_over_cap_height": 1.935,
+    "line_width_over_bond_length": 0.052,
+    "bold_width_over_bond_length": null,
+    "label_font": "Arial",
+    "atom_label_size_pt_estimate": 8.0,
+    "arrow_length_over_bond_length": 12.82
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "after_product_label",
+    "yield_format": "{value}%",
+    "conditions_split": null,
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "OMe",
+      "CF3"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": [
+      "#000000",
+      "#0B0AED"
+    ],
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "yield_separator": ", "
+  },
+  "evidence": [
+    {
+      "doi": "10.1126/sciadv.adp7544",
+      "citation": "Choudhary, Zhang and Lin, Sci. Adv. 2024, 10, eadp7544",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 3 scope of amine (header and first rows)",
+      "crop": "evidence/science_aaas-01.png",
+      "measurements_px": {
+        "bond_length": 47,
+        "cap_height": 29,
+        "compound_label_cap_height": 23,
+        "line_width": 2,
+        "arrow_length": 727
+      },
+      "observations": "Amine component and its atoms in the product blue (#0B0AED); new C–N amide bond red (#F40405), drawn thicker; ester black; bold labels, yield after the label on one line (3a, 88%); solvent above the arrow, temperature and time below; A + B inline with +; Kekulé rings; TIPS, OEt abbreviated."
+    },
+    {
+      "doi": "10.1126/sciadv.adp7544",
+      "citation": "Choudhary, Zhang and Lin, Sci. Adv. 2024, 10, eadp7544",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 4 scope of bioactive amines",
+      "crop": "evidence/science_aaas-02.png",
+      "measurements_px": {
+        "bond_length": 47,
+        "cap_height": 22,
+        "compound_label_cap_height": 22,
+        "line_width": 2,
+        "bold_width": 20,
+        "arrow_length": 721
+      },
+      "observations": "Same scheme header; drug names after the yield on the label line (3ae, 88%, Lysine); NHBoc, OtBu, OMe, CF3 abbreviated."
+    },
+    {
+      "doi": "10.1126/sciadv.adq0028",
+      "citation": "Zhao et al., Sci. Adv. 2024, 10, eadq0028",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 3 arene bromination",
+      "crop": "evidence/science_aaas-03.png",
+      "measurements_px": {
+        "bond_length": 43,
+        "cap_height": 21,
+        "compound_label_cap_height": 21,
+        "line_width": 3,
+        "arrow_length": 329
+      },
+      "observations": "Introduced Br blue (#0C05CC) in substrates of the scope, yields blue after a colon (2a: 89%); reagents above the arrow, solvent and conditions below; header boxed with a drop shadow; Ar circle placeholder; Kekulé rings; side results in red parentheses."
+    }
+  ]
+}

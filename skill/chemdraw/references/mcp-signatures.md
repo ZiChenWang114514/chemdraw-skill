@@ -216,7 +216,11 @@ ACS page) and title; kind defaults to "scheme". style names a built-in journal p
 from ChemDraw's stock style sheets (default "acs1996"; others include "wiley", "rsc",
 "nature"; chemdraw://style-guide/{preset} lists its settings): the scheme is laid out at
 ACS geometry and then rescaled to the preset's bond length, and max_width is the width
-of the styled figure. The steps may
+of the styled figure. style may instead name a house style (`cdx.py styles` lists them):
+its drawing conventions (bold compound numbers, yield placement, stacked substrates,
+abbreviated groups, substrate and new-bond colours, bold arrows) are applied to the
+scheme and then its base preset; the report's style lists what was applied and skipped.
+Scope panels and mechanisms take only the house style's base preset. The steps may
 form a linear route, a convergent route (arms that merge), one starting material with
 several products (divergent), or a closed catalytic-cycle (a loop of >= 3 steps or
 layout="catalytic-cycle"), in any order; the report names the layout used, and steps

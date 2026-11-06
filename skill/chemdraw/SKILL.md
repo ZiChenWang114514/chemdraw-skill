@@ -45,6 +45,7 @@ Write `tool(arg=value)` calls as `cdx.py call tool --args args.json` (`--json '{
 | Molecule drawing, modification, comparison, reaction editing | Matching section in [workflow router](references/workflow-router.md) |
 | Exact coordinates, native template edits, arrows, crossings | [Figure manifest](references/publication-figures.md) |
 | Journal house style (Wiley, RSC, Nature, Thieme and other ChemDraw stock style sheets) | `cdx.py styles`; `style` in [Scheme drawing](references/scheme-drawing.md) or [Figure manifest](references/publication-figures.md) |
+| A journal's or group's scheme conventions (bold numbers, yield placement, stacked substrates, abbreviations, coloured new bonds) | house styles: `cdx.py styles`, then `style` in [Scheme drawing](references/scheme-drawing.md) |
 | Reader stereo disagreement, native-save H loss | [Stereo diagnosis](references/stereo-reconstruction.md) |
 | Saved-file and cross-reader validation | [Figure validation](references/figure-validation.md) |
 | Patent Markush / generic structures (R groups, variable rings, image + claims) | [Markush structures](references/markush.md) |

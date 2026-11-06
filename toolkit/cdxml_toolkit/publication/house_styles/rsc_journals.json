@@ -1,0 +1,88 @@
+{
+  "slug": "rsc_journals",
+  "kind": "publisher",
+  "display_name": "Royal Society of Chemistry",
+  "applies_to": [
+    "Chem. Sci.",
+    "Chem. Commun.",
+    "Org. Biomol. Chem.",
+    "Green Chem."
+  ],
+  "base_preset": "rsc",
+  "measured": {
+    "bond_length_over_cap_height": 1.91,
+    "line_width_over_bond_length": 0.046,
+    "bold_width_over_bond_length": null,
+    "label_font": "Arial",
+    "atom_label_size_pt_estimate": 7.9,
+    "arrow_length_over_bond_length": 7.681
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "OMe",
+      "CF3",
+      "OCF3"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true
+  },
+  "evidence": [
+    {
+      "doi": "10.1039/d4sc05429f",
+      "citation": "Cen et al., Chem. Sci. 2024 (Edge Article)",
+      "licence": "CC BY 3.0",
+      "figure": "Table 2 scope of carboxylic acids and alkynes",
+      "crop": "evidence/rsc_journals-01.png",
+      "measurements_px": {
+        "bond_length": 38,
+        "cap_height": 17,
+        "compound_label_cap_height": 18,
+        "line_width": 2,
+        "arrow_length": 452
+      },
+      "observations": "Acid-derived part navy (#090391), alkyne-derived part and new ring bonds magenta (#B11F59); bold labels, isolated yield then GC yield in parentheses after the label (3a, 77% (84%)); catalyst and reagents above the arrow, additive, solvent, temperature below; A + B inline; Kekulé rings; OMe, OPh, SMe, CF3, OCF3, CO2Me abbreviated."
+    },
+    {
+      "doi": "10.1039/d3sc00198a",
+      "citation": "Freiberg et al., Chem. Sci. 2023, 14, 3462",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 1 formation of DPDTC",
+      "crop": "evidence/rsc_journals-02.png",
+      "measurements_px": {
+        "bond_length": 46,
+        "cap_height": 25,
+        "compound_label_cap_height": 23,
+        "line_width": 2,
+        "arrow_length": 209
+      },
+      "observations": "Two substrates stacked with + between; base above the arrow, solvent and temperature below; product label bold (1; DPDTC) with (89% yield, 6.5 g scale) on the line below; carbonyl O blue."
+    },
+    {
+      "doi": "10.1039/d3sc00198a",
+      "citation": "Freiberg et al., Chem. Sci. 2023, 14, 3462",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 6 representative drug amides",
+      "crop": "evidence/rsc_journals-03.png",
+      "measurements_px": {
+        "bond_length": 48,
+        "cap_height": 29,
+        "compound_label_cap_height": 23,
+        "line_width": 2,
+        "arrow_length": 317
+      },
+      "observations": "Header on a pale grey panel; new amide bond red (#F40405) and thicker; plain (not bold) labels with yield in parentheses (27 (94%)) and drug names green (#038106); reagent above, solvent and conditions below; Kekulé rings."
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "slug": "acs_jacs",
+  "kind": "journal",
+  "display_name": "ACS organic journals (JACS, Org. Lett., J. Org. Chem., JACS Au)",
+  "applies_to": ["J. Am. Chem. Soc.", "Org. Lett.", "J. Org. Chem.", "JACS Au"],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.2,
+    "line_width_over_bond_length": 0.055,
+    "bold_width_over_bond_length": null,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 7.0
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": ["OMe"],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/acs.orglett.4c03519",
+      "citation": "Zhao, Gu and Wu, Org. Lett. 2024, 26, 10702",
+      "licence": "CC BY 4.0",
+      "figure": "Table 1 scheme",
+      "crop": "evidence/acs_jacs-01.png",
+      "measurements_px": {"bond_length": 36, "cap_height": 17, "line_width": 2, "bold_width": null, "arrow_length": 255},
+      "observations": "300 dpi render. Bold labels 1a, 2a, 3a centred below the structures; catalyst and ligand above the arrow, base, solvent, temperature and time below; substrates and CO inline with plus signs; nBu and OTf as labels, thianthrenium as TT; reagent 2a drawn in blue, carbonyl O in red."
+    },
+    {
+      "doi": "10.1021/acs.orglett.4c03212",
+      "citation": "Qing et al., Org. Lett. 2024, 26, 9215",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 2 (scope)",
+      "crop": "evidence/acs_jacs-02.png",
+      "measurements_px": {"bond_length": 37, "cap_height": 17, "line_width": 2, "bold_width": null, "arrow_length": 410},
+      "observations": "300 dpi render. Bold labels with the yield after a comma (7e, 73%); oxidant above the arrow, solvent and conditions below; inline plus; MeO2C, MeS, NC, O2N, Ph, Me, TMS and N3 as labels; substrate cores dark red #800000, azide and TMS dark blue #004080; italic blue section headers."
+    },
+    {
+      "doi": "10.1021/acs.orglett.4c03212",
+      "citation": "Qing et al., Org. Lett. 2024, 26, 9215",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3 (control experiments)",
+      "crop": "evidence/acs_jacs-03.png",
+      "measurements_px": {"bond_length": 39, "cap_height": 17, "line_width": 2, "bold_width": null, "arrow_length": 230},
+      "observations": "300 dpi render. Same colour coding as Scheme 2; yield after a comma in italic grey-blue; additive above the arrow, the words optimized conditions below."
+    },
+    {
+      "doi": "10.1021/jacsau.3c00742",
+      "citation": "Iyer et al., JACS Au 2024, 4, 680",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3 (published figure image)",
+      "crop": "evidence/acs_jacs-04.png",
+      "measurements_px": {"bond_length": 27, "cap_height": 12, "line_width": 1.5, "bold_width": null, "arrow_length": 300},
+      "observations": "Web figure image 776 px wide, print scale unknown. Bold labels; yield on a second line under the label (X = Br, 91%, 45 min); catalyst and ligand above, base, solvent and temperature below; inline plus; OMe as label; new C-N bond in purple, one word of the conditions in blue."
+    }
+  ]
+}

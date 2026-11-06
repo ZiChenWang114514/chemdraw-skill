@@ -332,20 +332,31 @@
 
 ## `mcp_runtime.figure_draw`
 
-- **function**, line 564: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug and the factor from ACS layout geometry to that preset.
-- **function**, line 654: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
-- **function**, line 553: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is not a built-in preset, else None.
-- **function**, line 579: `style_report(slug: str) -> dict` - No public docstring in the audited version.
-- **function**, line 570: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
+- **function**, line 605: `bold_arrows(cdxml: Any, slug: str) -> Any` - Arrows at 1.5 times the preset's line width.
+- **function**, line 573: `brief_house(brief: dict) -> HouseStyle | None` - The brief's house style, or None when ``style`` is a measurement preset or absent.
+- **function**, line 581: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug (a house style's base preset) and the factor from ACS geometry to it.
+- **function**, line 697: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 562: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is neither a built-in preset nor a house style, else None.
+- **function**, line 597: `style_report(slug: str, house: HouseStyle | None = None, applied: list[str] | None = None, skipped: list[str] | None = None) -> dict` - No public docstring in the audited version.
+- **function**, line 588: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
 
 ## `mcp_runtime.figure_editing`
 
 - **function**, line 4: `apply_crossings(page, crossings)` - No public docstring in the audited version.
 - **function**, line 50: `edit_bond_display(node, edit)` - No public docstring in the audited version.
 
+## `mcp_runtime.figure_house`
+
+- **function**, line 73: `add_highlight_fills(brief: dict, grounded: list[dict], house: HouseStyle | None) -> str | None` - Ask the ring_fills decoration for the largest ring of each final product.
+- **function**, line 192: `apply_house_conventions(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle) -> tuple[Any, list[str], list[str], list[str]]` - Edit the drawn scheme; returns (cdxml, applied, skipped reasons, warnings).
+- **function**, line 63: `final_products(brief: Mapping) -> list[str]` - No public docstring in the audited version.
+- **function**, line 34: `format_yield(text: str, template: str | None) -> str` - ``template`` filled with the number of a yield such as "85%"; other text is kept.
+- **function**, line 54: `split_conditions(above: list[str], below: list[str], house: HouseStyle | None) -> tuple[list, list]` - No public docstring in the audited version.
+- **function**, line 42: `step_yield(step: Mapping, house: HouseStyle | None) -> str | None` - The yield text drawn under the arrow, or None when the house style moves it.
+
 ## `mcp_runtime.figure_lint`
 
-- **function**, line 299: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
+- **function**, line 306: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
 
 ## `mcp_runtime.figure_mechanism`
 
@@ -405,15 +416,15 @@
 ## `mcp_runtime.mcp_server`
 
 - **class**, line 574: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
-- **function**, line 1012: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
-- **function**, line 947: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
-- **function**, line 929: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
-- **function**, line 980: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
+- **function**, line 1015: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
+- **function**, line 950: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
+- **function**, line 932: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
+- **function**, line 983: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
 - **function**, line 785: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
-- **function**, line 822: `read_style_guide_resource(preset: str) -> str` - JSON settings of one built-in style preset, or of all presets for ``all``.
+- **function**, line 822: `read_style_guide_resource(preset: str) -> str` - JSON settings of one preset or house-style card, or of all of them for ``all``.
 - **function**, line 799: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
 - **function**, line 638: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
-- **function**, line 1050: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
+- **function**, line 1053: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_io`
 
@@ -582,6 +593,19 @@
 - **function**, line 11: `sha256(path)` - No public docstring in the audited version.
 - **function**, line 36: `table_rows(path, sheet = None)` - No public docstring in the audited version.
 - **function**, line 155: `write_json(path, value)` - No public docstring in the audited version.
+
+## `publication.house_styles`
+
+- **function**, line 81: `group_name(name: str) -> str` - The table name of an abbreviation, resolving accepted spellings.
+- **function**, line 222: `house_style(name: str, directory: str | Path | None = None) -> HouseStyle` - One house style by slug or display name (any case).
+- **function**, line 250: `house_style_summary(style: HouseStyle) -> dict` - The fields ``cdx.py styles`` lists.
+- **class**, line 90: `HouseStyle` - No public docstring in the audited version.
+- **method**, line 104: `HouseStyle.as_dict() -> dict` - No public docstring in the audited version.
+- **method**, line 100: `HouseStyle.convention(key: str, default: Any = None) -> Any` - No public docstring in the audited version.
+- **function**, line 218: `list_house_styles(directory: str | Path | None = None) -> list[HouseStyle]` - No public docstring in the audited version.
+- **function**, line 194: `load_house_styles(directory: str | Path | None = None) -> dict[str, HouseStyle]` - Every card in the data folder (or ``directory``), validated, by slug.
+- **function**, line 232: `resolve_style(name: str, directory: str | Path | None = None) -> tuple[str, Any]` - ("preset", preset dict) for a measurement preset, ("house", HouseStyle) for a house style.
+- **function**, line 113: `validate_card(card: Any, *, source: str = 'card') -> HouseStyle` - A :class:`HouseStyle` from one card; ValueError listing every problem otherwise.
 
 ## `publication.layout`
 

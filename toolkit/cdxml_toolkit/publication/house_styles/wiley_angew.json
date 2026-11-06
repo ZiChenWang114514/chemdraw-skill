@@ -1,0 +1,61 @@
+{
+  "slug": "wiley_angew",
+  "kind": "publisher",
+  "display_name": "Wiley-VCH chemistry journals (Angewandte Chemie, Chemistry - A European Journal)",
+  "applies_to": ["Angew. Chem. Int. Ed.", "Chem. Eur. J.", "Adv. Synth. Catal."],
+  "base_preset": "wiley",
+  "measured": {
+    "bond_length_over_cap_height": 2.1,
+    "line_width_over_bond_length": 0.09,
+    "bold_width_over_bond_length": null,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 8.4
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": null,
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true
+  },
+  "evidence": [
+    {
+      "doi": "10.1002/anie.202400570",
+      "citation": "Rowett, Sweeting, Heard and Lennox, Angew. Chem. Int. Ed. 2024, 63, e202400570",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3 (scope)",
+      "crop": "evidence/wiley_angew-01.png",
+      "measurements_px": {"bond_length": 43, "cap_height": 21, "line_width": 4, "bold_width": null, "arrow_length": 360},
+      "observations": "300 dpi render. Bold labels with the yield after a space (3c 79%), label beside or below the structure; I2 and DBU above a grey filled arrow, solvent and temperature below; light grey plus sign; ketone part red #CB1C01 and alcohol part blue #031993 throughout; NO2, OMe and Me as labels; I2 in purple."
+    },
+    {
+      "doi": "10.1002/anie.202400570",
+      "citation": "Rowett, Sweeting, Heard and Lennox, Angew. Chem. Int. Ed. 2024, 63, e202400570",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2B scheme",
+      "crop": "evidence/wiley_angew-02.png",
+      "measurements_px": {"bond_length": 42, "cap_height": 21, "line_width": 4, "bold_width": null, "arrow_length": 260},
+      "observations": "300 dpi render. Same red and blue substrate colouring; bold labels 1a, 2a, 3a below the structures; reagent and base above the arrow, solvent and temperature below; Me as label."
+    },
+    {
+      "doi": "10.1002/chem.202302455",
+      "citation": "Zobernig et al., Chem. Eur. J. 2024, 30, e202302455",
+      "licence": "CC BY 4.0",
+      "figure": "Table 2 scheme and first scope rows",
+      "crop": "evidence/wiley_angew-03.png",
+      "measurements_px": {"bond_length": 46, "cap_height": 21, "line_width": 4, "bold_width": null, "arrow_length": 560},
+      "observations": "300 dpi render. Black structures with the hydrogenated bonds in red; catalyst above a black arrow, base, solvent and conditions below; bold labels with the yield on the line below (>99 (89)); methyl groups drawn as lines, NH2 as label."
+    }
+  ]
+}

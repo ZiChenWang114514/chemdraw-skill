@@ -1958,6 +1958,51 @@ def _layout_stacked_rows(
 # Core row layout: positions steps in a single row (LTR or RTL)
 # ---------------------------------------------------------------------------
 
+STACKED_PLUS_GAP = 16.0   # vertical room for the "+" between stacked substrates
+LABEL_ROOM = 20.0         # a compound number below a structure: baseline 14 pt + descent
+
+
+def _place_stacked_substrates(
+    subs: List[ResolvedFragment],
+    cursor_x: float,
+    arrow_y: float,
+    inter_gap: float,
+    is_rtl: bool,
+    ids: _IDGen,
+    xml_parts: List[str],
+    step_meta: Dict[str, Any],
+    all_frag_ids: List[int],
+) -> Tuple[float, float, float]:
+    """Draw a step's substrates in one column, a "+" between them, centred on the arrow.
+
+    Returns the cursor after the column, the column's bottom and its centre x.
+    """
+    col_w = max(_bbox_width(s.bbox) for s in subs)
+    heights = [_bbox_height(s.bbox) + (LABEL_ROOM if s.ref.label else 0.0) for s in subs]
+    total = sum(heights) + STACKED_PLUS_GAP * (len(subs) - 1)
+    col_cx = cursor_x - col_w / 2.0 if is_rtl else cursor_x + col_w / 2.0
+    top = arrow_y - total / 2.0
+    for k, sub in enumerate(subs):
+        if k:
+            plus_xml, _ = _build_text_element(['+'], col_cx, top + STACKED_PLUS_GAP / 2.0 + 3.5, ids)
+            xml_parts.append(plus_xml)
+            top += STACKED_PLUS_GAP
+        _shift_atoms(sub.atoms, col_cx - sub.cx, top + _bbox_height(sub.bbox) / 2.0 - sub.cy)
+        sub.bbox = _fragment_bbox(sub.atoms)
+        sub.cx, sub.cy = _bbox_center(sub.bbox)
+        frag_xml, _, frag_id = _build_fragment(sub.atoms, sub.bonds, ids)
+        sub.xml, sub.frag_id = frag_xml, frag_id
+        xml_parts.append(frag_xml)
+        step_meta["reactant_ids"].append(frag_id)
+        all_frag_ids.append(frag_id)
+        if sub.ref.label:
+            lbl_xml, _ = _build_label_element(sub.ref.label, sub.cx, sub.bbox[3] + 14.0, ids)
+            xml_parts.append(lbl_xml)
+        top += heights[k]
+    next_x = col_cx - col_w / 2.0 - inter_gap if is_rtl else col_cx + col_w / 2.0 + inter_gap
+    return next_x, top, col_cx
+
+
 def _layout_steps_row(
     scheme: SchemeDescriptor,
     steps: List[StepDescriptor],
@@ -2095,6 +2140,7 @@ def _layout_steps_row(
     _last_product_cx: float = start_x
     _last_product_bottom: float = arrow_y
     _first_substrate_cx: float = start_x
+    _stack_bottom: float = arrow_y
 
     for step_idx, rs in enumerate(resolved_steps):
         step_meta: Dict[str, Any] = {
@@ -2125,7 +2171,16 @@ def _layout_steps_row(
                 if prev_meta["product_ids"]:
                     step_meta["reactant_ids"].append(prev_meta["product_ids"][-1])
 
-        for i in range(start_sub_idx, len(rs.substrates)):
+        stacked = (getattr(scheme, "substrate_layout", "inline") == "stacked_plus"
+                   and len(rs.substrates) - start_sub_idx >= 2)
+        if stacked:
+            cursor_x, column_bottom, column_cx = _place_stacked_substrates(
+                rs.substrates[start_sub_idx:], cursor_x, arrow_y, inter_gap, is_rtl, ids,
+                xml_parts, step_meta, all_frag_ids)
+            _stack_bottom = max(_stack_bottom, column_bottom)
+            if step_idx == 0 and start_sub_idx == 0:
+                _first_substrate_cx = column_cx
+        for i in range(len(rs.substrates) if stacked else start_sub_idx, len(rs.substrates)):
             sub = rs.substrates[i]
             if i:
                 plus_x = cursor_x + inter_gap / 2 if is_rtl else cursor_x - inter_gap / 2
@@ -2412,6 +2467,7 @@ def _layout_steps_row(
             lowest_y = max(lowest_y, below_vis_bottom)
         for bf in rs.below_structures:
             lowest_y = max(lowest_y, bf.bbox[3] + 20.0)
+    lowest_y = max(lowest_y, _stack_bottom + 4.0)
 
     # Determine which run arrows to render
     effective_run_arrows = run_arrows if run_arrows is not None else scheme.run_arrows

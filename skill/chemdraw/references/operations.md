@@ -20,6 +20,8 @@ The report is read-only. A skipped probe is not a verified capability. ChemScrip
 
 `cdx.py py <skill>/scripts/smoke_test.py --output-dir NEW_DIR` runs an end-to-end check: name resolution, editable aspirin CDXML, native PNG and raster validation.
 
+`cdx.py py <skill>/scripts/style_gallery.py --output-dir NEW_DIR` draws one Suzuki coupling once per measurement preset and once per house style into NEW_DIR and writes `index.md` listing the files and the conventions applied; it does not render, so render or open the files to compare the styles.
+
 `cdx.py py <skill>/scripts/smoke_all_tools.py --output-dir NEW_DIR` calls every tool once, the way `cdx.py call` does, with the bundled assets and the files earlier calls write. It works offline unless `--network` is given (then name lookups and the DECIMER upload run too); a tool that needs ChemDraw, ChemScript or an optional engine that this computer lacks is skipped with the reason, and the LCMS tools run only with `--lcms-pdf REPORT.pdf ...`. `--only tool1,tool2` runs a subset. `NEW_DIR/report.json` lists each call as pass, fail or skipped, and the exit code is 1 when any call failed. With ChemDraw installed it starts ChemDraw automation many times, so close unsaved ChemDraw and Office work first.
 
 On Windows before any runtime exists, `pwsh <skill>/scripts/check_prerequisites.ps1 -Capabilities core,native` prints a read-only host report (Python, ChemDraw, ChemScript, Office); add `-Json` for machine-readable output.

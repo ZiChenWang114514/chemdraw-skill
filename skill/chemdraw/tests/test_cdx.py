@@ -926,6 +926,34 @@ def test_styles_lists_the_journal_presets(capsys):
     assert any(line.startswith('nature ') and '10.8 pt' in line for line in lines)
 
 
+def _example_house_style(tmp_path, monkeypatch):
+    from cdxml_toolkit.publication import house_styles
+    card = {
+        'slug': '_example', 'kind': 'group', 'display_name': 'Example Group', 'base_preset': 'rsc',
+        'measured': {}, 'conventions': {'compound_label_face': 'bold', 'notes': 'shown, not applied'},
+        'evidence': [{'doi': '10.0000/a'}, {'doi': '10.0000/b'}],
+    }
+    (tmp_path / '_example.json').write_text(json.dumps(card), encoding='utf-8')
+    monkeypatch.setattr(house_styles, 'DATA_DIR', tmp_path)
+
+
+def test_styles_lists_house_styles_in_a_second_section(capsys, tmp_path, monkeypatch):
+    _example_house_style(tmp_path, monkeypatch)
+    assert cdx.main(['styles']) == 0
+    out = capsys.readouterr().out
+    presets, houses = out.split('House styles', 1)
+    assert 'acs1996' in presets and '_example' not in presets
+    line = next(l for l in houses.splitlines() if l.startswith('_example'))
+    assert 'group' in line and 'base rsc' in line and '2 evidence' in line and 'Example Group' in line
+
+
+def test_styles_prints_a_house_style_card(capsys, tmp_path, monkeypatch):
+    _example_house_style(tmp_path, monkeypatch)
+    assert cdx.main(['styles', '_example']) == 0
+    card = json.loads(capsys.readouterr().out)
+    assert card['slug'] == '_example' and card['conventions']['notes'] == 'shown, not applied'
+
+
 def test_styles_prints_one_preset_as_json(capsys):
     assert cdx.main(['styles', 'Wiley Document']) == 0
     preset = json.loads(capsys.readouterr().out)
