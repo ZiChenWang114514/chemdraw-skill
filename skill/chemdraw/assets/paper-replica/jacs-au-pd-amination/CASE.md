@@ -4,7 +4,7 @@ Source: K. S. Iyer, R. D. Kavthe, R. M. Lammert, J. R. Yirak, B. H. Lipshutz, "L
 
 Licence: CC BY 4.0, © the authors 2024; reference crop reproduced under that licence.
 
-Drawing style: the `acs1996` preset in `brief.json` (ChemDraw's ACS Document 1996 style sheet, the default); see `cdx.py styles`.
+Drawing style: the `lipshutz_group` house style in `brief.json` (bold labels, yield under the label, reagents above and surfactant/water below; base preset ACS Document 1996); see `cdx.py styles`.
 
 ## What is reproduced
 

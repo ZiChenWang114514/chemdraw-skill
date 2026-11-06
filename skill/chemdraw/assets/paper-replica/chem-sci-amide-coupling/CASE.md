@@ -4,7 +4,7 @@ Source: K. M. Freiberg, R. D. Kavthe, R. M. Thomas, D. M. Fialho, P. Dee, M. Scu
 
 Licence: CC BY 3.0 (as stated), © the authors 2023; reference crop reproduced under that licence.
 
-Drawing style: the `rsc` preset in `brief.json` (ChemDraw's RSC (2 Column) style sheet, 12.2 pt bonds, Helvetica 7 pt); see `cdx.py styles`.
+Drawing style: the `rsc_journals` house style in `brief.json` (bold labels, reagents above and solvent below; base preset RSC (2 Column), 12.2 pt bonds); see `cdx.py styles`.
 
 ## What is reproduced
 

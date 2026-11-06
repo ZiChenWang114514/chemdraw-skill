@@ -4,7 +4,7 @@ Source: Y.-Z. Wang, B. Sun, J.-F. Guo, X.-Y. Zhu, Y.-C. Gu, Y.-P. Han, C. Ma, T.
 
 Licence: CC BY 4.0, © the authors 2025; reference crop reproduced under that licence.
 
-Drawing style: the `nature` preset in `brief.json` (ChemDraw's Nature Research style sheet, 10.8 pt bonds, Arial 6 pt); see `cdx.py styles`.
+Drawing style: the `nature_portfolio` house style in `brief.json` (bold labels, yield on the label line, substrate skeleton in teal; base preset Nature Research, 10.8 pt bonds); see `cdx.py styles`.
 
 ## What is reproduced
 

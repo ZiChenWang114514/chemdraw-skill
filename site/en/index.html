@@ -42,7 +42,7 @@
       "programmingLanguage": "Python",
       "license": "https://opensource.org/licenses/MIT",
       "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope",
-      "featureList": ["Draw editable ChemDraw structures and reaction schemes", "Rebuild paper reaction schemes and patent Markush structures", "SAR and substrate-scope figures from CSV or Excel", "Reaction calculator, characterization text and route yield", "Structure recognition with six engines side by side, and structures extracted from a PDF", "Precursor, route, product and reaction-condition prediction, always labelled as predicted", "NMR shift prediction and OpenLynx LCMS plate checking"],
+      "featureList": ["Draw editable ChemDraw structures and reaction schemes", "Rebuild paper reaction schemes and patent Markush structures", "Journal and group house styles: 16 ChemDraw measurement presets and eight journal and group styles", "SAR and substrate-scope figures from CSV or Excel", "Reaction calculator, characterization text and route yield", "Structure recognition with six engines side by side, and structures extracted from a PDF", "Precursor, route, product and reaction-condition prediction, always labelled as predicted", "NMR shift prediction and OpenLynx LCMS plate checking"],
       "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
     },
     {
@@ -66,6 +66,8 @@
           "acceptedAnswer": { "@type": "Answer", "text": "Yes. Bind trusted structures to CSV or XLSX data to produce editable SAR or substrate-scope figures. Updating the data keeps unrelated manual layout edits. See the data-driven figures guide." } },
         { "@type": "Question", "name": "Will it make up reaction conditions or predict a mechanism?",
           "acceptedAnswer": { "@type": "Answer", "text": "No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave. A missing value stays missing, and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list. An arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right. See drawing a new reaction scheme." } },
+        { "@type": "Question", "name": "Can it draw in the style of Nature, JACS or my group?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, in two layers, and any convention it has not measured keeps the default. The 16 measurement presets come from ChemDraw's own style sheets; cdx.py styles lists them. The eight journal and group styles use conventions measured from open-access (CC BY) figures, with the evidence crops kept beside each style. Where a convention was not measured, the default stays; nothing is guessed. See the style gallery." } },
         { "@type": "Question", "name": "Can it work out how much of each reagent to weigh?",
           "acceptedAnswer": { "@type": "Answer", "text": "Yes, with ChemDraw's own calculator. cdx.py calc runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw. Type a mass, volume or equivalents in the grid, and ChemDraw computes the rest. cdx.py calc --read reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the chemistry reports guide." } },
         { "@type": "Question", "name": "How far can I trust the safety information?",
@@ -352,9 +354,9 @@ Bonds:   13</code></pre></details></div>
   <div class="wrap caps-layout">
     <div class="head">
       <h2>What it handles</h2>
-      <p>Eighteen kinds of job: drawing, and the calculations that go with it.</p>
+      <p>Nineteen kinds of job: drawing, and the calculations that go with it.</p>
       <p class="try-note">Each comes with a request you can give your agent as it stands. Native rendering and Office embedding need desktop ChemDraw; see <a href="#start">what you need first</a>.</p>
-      <div class="filters" role="group" aria-label="Filter by kind" hidden><button type="button" data-filter="all" aria-pressed="true">All<span>18</span></button><button type="button" data-filter="draw" aria-pressed="false">Drawing<span>5</span></button><button type="button" data-filter="read" aria-pressed="false">Reading figures<span>3</span></button><button type="button" data-filter="data" aria-pressed="false">Data and documents<span>5</span></button><button type="button" data-filter="calc" aria-pressed="false">Calculations<span>5</span></button></div>
+      <div class="filters" role="group" aria-label="Filter by kind" hidden><button type="button" data-filter="all" aria-pressed="true">All<span>19</span></button><button type="button" data-filter="draw" aria-pressed="false">Drawing<span>6</span></button><button type="button" data-filter="read" aria-pressed="false">Reading figures<span>3</span></button><button type="button" data-filter="data" aria-pressed="false">Data and documents<span>5</span></button><button type="button" data-filter="calc" aria-pressed="false">Calculations<span>5</span></button></div>
     </div>
     <dl class="caps">
       <div data-kind="draw"><dt>Structures and reactions</dt><dd>Resolve names and identifiers; draw, edit, clean, merge, split, convert and render CDXML or CDX, plus connect non-destructively to an open desktop ChemDraw window and MCP resource/prompt endpoints.<details class="try"><summary>Try asking</summary><p class="ask">Convert this CDX file to CDXML, clean up the structures and render a PNG with ChemDraw.</p></details></dd></div>
@@ -362,6 +364,7 @@ Bonds:   13</code></pre></details></div>
       <div data-kind="read"><dt>Patent Markush</dt><dd>Extract a generic structure from a patent figure and its claims as CXSMILES, a V3000 molfile and editable CDXML.<details class="try"><summary>Try asking</summary><p class="ask">Extract the Markush structure from this patent figure and its claims as CXSMILES, a V3000 molfile and CDXML.</p></details></dd></div>
       <div data-kind="draw"><dt>New figures from a request</dt><dd>From a sentence to a finished figure: a reaction, a linear, convergent, divergent or catalytic-cycle scheme, a substrate-scope panel or a mechanism (with dative bonds and radicals), drawn and checked by one command. Conditions come only from you, and mechanisms are drawn from the electron moves you list.<details class="try"><summary>Try asking</summary><p class="ask">Draw the PCC oxidation of benzyl alcohol to benzaldehyde with PCC, CH<sub>2</sub>Cl<sub>2</sub>, rt as conditions, then check the render.</p></details></dd></div>
       <div data-kind="draw"><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations, boxed labels, JACS/Angew ring fills and pharmacophore halos, hapticity MultiAttachment bonds, [...] transition-state brackets, orbital lobes and 3D conformer templates (chair cyclohexane, Newman, Haworth, Fischer, norbornane).<details class="try"><summary>Try asking</summary><p class="ask">Draw an exam question in ACS Document 1996: hydrogenation of cyclohexene to cyclohexane, with a boxed number under the product.</p></details></dd></div>
+      <div data-kind="draw"><dt>Draw the way a journal or group draws</dt><dd>Two layers: <code>cdx.py styles</code> lists 16 measurement presets (bond length, line width, font size) taken from ChemDraw's own style sheets; eight house styles, <code>acs_jacs</code>, <code>wiley_angew</code>, <code>nature_portfolio</code>, <code>science_aaas</code>, <code>rsc_journals</code>, <code>baran_group</code>, <code>macmillan_group</code>, <code>lipshutz_group</code>, add conventions measured from CC BY paper figures, such as bold labels, “3a, 85%” on the label line, stacked substrates, abbreviation nodes, coloured new bonds, substrate colours, highlight fills and bold arrows. Run <code>cdx.py draw brief.json out.cdxml --style baran_group --render</code>; see the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">style gallery</a> and <a href="https://github.com/ZiChenWang114514/chemdraw-skill/tree/main/skill/chemdraw/assets/paper-replica">three paper figures</a> redrawn in their journal's style.<details class="try"><summary>Try asking</summary><p class="ask">Draw this Suzuki coupling the way the Baran group draws, with bold compound numbers and the yield after the number, and show me the render.</p></details></dd></div>
       <div data-kind="data"><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.<details class="try"><summary>Try asking</summary><p class="ask">Build a substrate-scope figure from the structures and yields in scope.xlsx, with the compound number and yield under each.</p></details></dd></div>
       <div data-kind="calc"><dt>Comparison and properties</dt><dd>Similarity and exact identity; property sheets with MS adducts and logP; reaction balance with the missing by-product; every structure of a file as SMILES and InChI; names from ChemDraw, parsed back to check them.<details class="try"><summary>Try asking</summary><p class="ask">Are these two SMILES the same compound? Then list their molecular weight, logP and [M+H]<sup>+</sup>.</p></details></dd></div>
       <div data-kind="calc"><dt>Reaction calculator</dt><dd>ChemDraw's own stoichiometry grid under a reaction, with its numbers read back as data; SI materials tables for up to 100 reactions with concentration, atom economy, PMI and safety reminders from a 116-entry reagent safety table plus SMARTS structural alerts.<details class="try"><summary>Try asking</summary><p class="ask">Open ChemDraw's stoichiometry grid for the acetylation of benzyl alcohol with acetyl chloride, using 1.08 g of benzyl alcohol.</p></details></dd></div>
@@ -481,6 +484,18 @@ cd chemdraw-skill
             <li>Mechanisms are drawn from electron moves you list. An arrow that starts where there is no lone pair or charge is flagged, but the tool does not judge whether the mechanism is right.</li>
           </ul>
           <p>See <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/references/scheme-drawing.md">drawing a new reaction scheme</a>.</p>
+        </div>
+      </details>
+      <details id="faq-styles">
+        <summary>Can it draw in the style of Nature, JACS or my group?</summary>
+        <div class="answer">
+          <p class="lead">Yes, in two layers, and any convention it has not measured keeps the default.</p>
+          <ul>
+            <li>The 16 measurement presets come from ChemDraw's own style sheets; <code>cdx.py styles</code> lists them.</li>
+            <li>The eight journal and group styles use conventions measured from open-access (CC BY) figures, with the evidence crops kept beside each style.</li>
+            <li>Where a convention was not measured, the default stays; nothing is guessed.</li>
+          </ul>
+          <p>See the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">style gallery</a>.</p>
         </div>
       </details>
       <details id="faq-stoichiometry">

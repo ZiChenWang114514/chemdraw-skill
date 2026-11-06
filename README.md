@@ -99,6 +99,12 @@ Every card is a native ChemDraw render of an editable file in this repository. C
       <br><b>Predicted against measured NMR</b><br><sub>MagNET and NMRNet++ on a real spectrum</sub>
     </td>
   </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <a href="#journal-and-group-house-styles"><img src="skill/chemdraw/assets/house-styles/gallery/house-baran_group.png" width="60%" alt="A Suzuki coupling drawn in the Baran group house style, with the new bond in dark red"></a>
+      <br><b>Journal and group house styles</b><br><sub>One brief drawn the way ACS, Wiley, Nature, Science, RSC or the Baran, MacMillan and Lipshutz groups draw schemes</sub>
+    </td>
+  </tr>
 </table>
 
 ## Quick start
@@ -180,7 +186,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 | **New figures from a request** | A reaction, a linear, convergent, divergent or catalytic-cycle (`catalytic-cycle`) route, a substrate-scope panel or a mechanism, drawn from a short brief or compact DSL (`compact_text`, including coordination/dative bonds, radicals, `ring_fills`, pharmacophore `atom_halos`, hapticity `multi_attachments`, `[...]` transition-state brackets, `<orbital>` lobes and 3D conformer templates) with the chemistry and layout checked in the same command. [Details below](#one-command-figures). |
 | **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec (`build_acs_figure`), with abbreviation nodes, rich text, Chinese notes, arrows, boxed compound codes, JACS/Angew ring-fill shading (`ring_fills`), pharmacophore halos, hapticity `MultiAttachment` bonds, transition-state brackets, orbital lobes and deterministic 3D conformer templates (chair cyclohexane, Newman, Haworth, Fischer, norbornane), plus vision and stereo audit tools (`depict_like` 16-orientation alignment, `read_wedges`, `edit_structure` atom-index and E/Z editor). |
 | **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
-| **Journal style presets** | Built-in presets taken from ChemDraw's own stock style sheets (ACS Document 1996 by default; Wiley, RSC, Nature Research, Thieme Synthesis/Synlett and more) for schemes, scope panels, mechanisms and manifests; `cdx.py styles` lists them. House styles measured from published figures add how a journal or research group draws schemes (bold compound numbers, yield placement, stacked substrates, abbreviated groups, colour-coded new bonds). |
+| **Journal and group styles** | Two layers named by one `style` key. Sixteen measurement presets read from ChemDraw's own stock style sheets (ACS Document 1996 by default; Wiley, RSC, Nature Research, Thieme Synthesis/Synlett and more) set bond length, line widths and fonts for schemes, scope panels, mechanisms and manifests. Eight house styles (ACS, Wiley, Nature Portfolio, Science, RSC, and the Baran, MacMillan and Lipshutz groups), measured from openly licensed published figures, add how that journal or group draws a scheme: bold compound numbers, yield placement, stacked substrates, abbreviated groups, colour-coded new bonds. `cdx.py styles` lists both. [Details below](#journal-and-group-house-styles). |
 | **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
 | **Engines and predictions** | Fifteen optional engines, installed only when you agree: six OCSR readers compared on one image, PDF structure extraction, precursors, routes, multi-engine route comparison sheets, products, reaction conditions and 1H/13C shifts (with `compare_nmr_shifts`), each case run against a known answer with GPU/CPU device reporting (`execution.device`). Batches and multi-step searches keep the model in a resident worker for the next call (`--accel auto\|on\|off`; `cdx.py stop-daemons` ends it): a second `predict products` call took 0.6 s instead of 13.7 s on this laptop. Every result is a labelled prediction. [Cases and install sizes](#prediction-and-analysis-engines). |
 | **Molecule comparison** | RDKit fingerprint similarity everywhere; exact-identity checks through ChemScript on Windows or ChemDraw for macOS. |
@@ -260,6 +266,53 @@ What the command does with a brief:
 - **Nothing is overwritten.** The report lists every structure with where it came from, the checks that passed or did not run, and the path of the native PNG. Without ChemDraw the file is reported as an unrendered draft. Open the PNG before you use the figure.
 
 See [drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md) for the full brief and report.
+
+<a id="journal-and-group-house-styles"></a>
+
+### Journal and group house styles
+
+A figure can follow a journal or a research group in two layers, both chosen with the same `style` name. A **measurement preset** is one of sixteen style sheets read from ChemDraw's own stock files (`acs1996`, the default, plus `wiley`, `rsc`, `nature`, `synthesis` and others); it fixes bond length, line widths and fonts and nothing else.
+
+A **house style** names one of those presets as its base and adds the conventions seen in that journal's or group's published schemes: how compound numbers are set, where the yield goes, whether substrates sit side by side or stacked, which groups are written as abbreviations, and whether new bonds, substrates or targets are coloured. Each convention was measured from three or four scheme crops taken from at least two openly licensed papers, and is set only when the crops agree; where they disagree it is left empty and the default drawing is kept.
+
+Put the name in a brief (draw, scope and mechanism briefs, compose manifests and `cdx.py build` specs all take it), or override it on the command line:
+
+```json
+{
+  "style": "nature_portfolio",
+  "species": [ ... ],
+  "steps": [ ... ]
+}
+```
+
+```bash
+python skill/chemdraw/scripts/cdx.py styles                 # presets and house styles
+python skill/chemdraw/scripts/cdx.py styles baran_group     # one card with its evidence
+python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style baran_group --render
+```
+
+| Style | Kind | Base preset | What it is known for |
+| --- | --- | --- | --- |
+| `acs_jacs` | journal | `acs1996` | Bold black compound numbers, substrates side by side with a plus sign, Kekulé rings, no colour rule |
+| `wiley_angew` | publisher | `wiley` | Bold numbers, heavier lines than ACS, reagents above and solvent below the arrow |
+| `nature_portfolio` | publisher | `nature` | Bold numbers with the yield on the label line (`3a, 85%`), substrate skeleton in teal |
+| `science_aaas` | publisher | `nature` | Yield on the label line, the incoming component in blue |
+| `rsc_journals` | publisher | `rsc` | Bold numbers and Kekulé rings; yield format and colours not settled by the papers |
+| `baran_group` | group | `acs1996` | New bonds in dark red, teal boxes behind target molecules, many abbreviated groups |
+| `macmillan_group` | group | `acs1996` | New bonds in dark blue, yield written as `6, 76% yield` after the bold number |
+| `lipshutz_group` | group | `acs1996` | Yield under the product number, surfactant and water written below the arrow |
+
+The same Suzuki coupling, drawn from one brief and rendered by desktop ChemDraw:
+
+<table>
+  <tr>
+    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-baran_group.png" alt="Suzuki coupling in the Baran group style: new bond in dark red, product on a teal box"><br><sub><code>baran_group</code></sub></td>
+    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-nature_portfolio.png" alt="Suzuki coupling in the Nature Portfolio style: bold number and yield on one line, substrate skeleton in teal"><br><sub><code>nature_portfolio</code></sub></td>
+    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-macmillan_group.png" alt="Suzuki coupling in the MacMillan group style: new bond in dark blue and the yield written after the number"><br><sub><code>macmillan_group</code></sub></td>
+  </tr>
+</table>
+
+Each style has a folder beside the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md) with its evidence crops and a README listing the sources; the crops are reproduced under their CC BY licences and each card lists the DOIs. The report says which conventions were applied and which were skipped and why; scope panels and mechanisms take only the base preset. One known limit: a group abbreviated on the left of its parent is placed correctly, but desktop ChemDraw spells it right-flowing (CO2Me rather than MeO2C) until Clean Up Structure is run. The gallery shows all eight styles and four presets; [drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md) has the full list of conventions. MCP clients read a card from `chemdraw://style-guide/{name}`.
 
 <a id="data-driven-publication-figures"></a>
 
@@ -638,6 +691,21 @@ native preview.
 ```
 
 [Image reconstruction guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
+
+Three openly licensed schemes are rebuilt as worked cases, each with the reference crop, the brief in the journal's style and the native render:
+
+| Case | Journal style | Files |
+| --- | --- | --- |
+| Pd-catalysed amination in water, *JACS Au* 2024 | `lipshutz_group` | [CASE.md](skill/chemdraw/assets/paper-replica/jacs-au-pd-amination/CASE.md) |
+| DPDTC synthesis for amide coupling, *Chem. Sci.* 2023 | `rsc_journals` | [CASE.md](skill/chemdraw/assets/paper-replica/chem-sci-amide-coupling/CASE.md) |
+| Ni-catalysed electroreductive arylation, *Nat. Commun.* 2025 | `nature_portfolio` | [CASE.md](skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/CASE.md) |
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/reference.png" alt="Published Nat. Commun. scheme: 1a and 2a give 3a under nickel-catalysed electroreductive conditions"><br><sub>Published scheme (CC BY 4.0)</sub></td>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/rendered.png" alt="The same scheme drawn from a brief in the Nature Portfolio house style and rendered by ChemDraw"><br><sub>Drawn from <code>brief.json</code> with <code>"style": "nature_portfolio"</code></sub></td>
+  </tr>
+</table>
 
 | Need | Ready-to-use route |
 | --- | --- |
