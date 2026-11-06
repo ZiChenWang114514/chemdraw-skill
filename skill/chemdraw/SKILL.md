@@ -39,18 +39,20 @@ Write `tool(arg=value)` calls as `cdx.py call tool --args args.json` (`--json '{
 | Task | Start here |
 | --- | --- |
 | Exam, lecture or paper drawings in ACS 1996 style (C10H21, Chinese notes, compound codes) | [ACS 1996 drawings](references/acs1996-drawings.md) |
-| New scheme, route, scope panel or curved-arrow mechanism drawn and checked in one call | [Scheme drawing](references/scheme-drawing.md) (`cdx.py draw`) |
+| New scheme, route, `catalytic-cycle`, scope panel or curved-arrow mechanism drawn and checked in one call | [Scheme drawing](references/scheme-drawing.md) (`cdx.py draw`) |
 | Publication image or reaction screenshot (prefer supplied native objects over OCSR); many structures, subagents, repeated local repairs | [Image reconstruction](references/image-visual-review.md) |
 | Multi-engine OCSR, PDF structure extraction, product/retrosynthesis/condition/NMR predictions | [Prediction engines](references/engines.md) |
 | Molecule drawing, modification, comparison, reaction editing | Matching section in [workflow router](references/workflow-router.md) |
 | Exact coordinates, native template edits, arrows, crossings | [Figure manifest](references/publication-figures.md) |
+| Journal house style (Wiley, RSC, Nature, Thieme and other ChemDraw stock style sheets) | `cdx.py styles`; `style` in [Scheme drawing](references/scheme-drawing.md) or [Figure manifest](references/publication-figures.md) |
+| A journal's or group's scheme conventions (bold numbers, yield placement, stacked substrates, abbreviations, coloured new bonds) | house styles: `cdx.py styles`, then `style` in [Scheme drawing](references/scheme-drawing.md) |
 | Reader stereo disagreement, native-save H loss | [Stereo diagnosis](references/stereo-reconstruction.md) |
 | Saved-file and cross-reader validation | [Figure validation](references/figure-validation.md) |
 | Patent Markush / generic structures (R groups, variable rings, image + claims) | [Markush structures](references/markush.md) |
 | Substrate scope, SAR, table-driven updates | [Data-driven figures](references/data-driven-figures.md) |
 | Office extraction, inspection, replacement or embedding | Office section in [workflow router](references/workflow-router.md) |
-| LCMS/NMR reports, RDF, experiment discovery and lab books | Analysis section in [workflow router](references/workflow-router.md) |
-| Processed spectra, plots and mechanisms | [Scientific workflows](references/scientific-workflows.md) |
+| LCMS/NMR reports (`.mzML`/`.raw`, internal standard `IS` normalization, `lcms_plate`), RDF, experiment discovery and lab books | Analysis section in [workflow router](references/workflow-router.md) |
+| Processed spectra (`Bruker/JCAMP/JEOL/Varian`, `inset_region`, `stack_nmr`, `lcms_plate`), plots and mechanisms | [Scientific workflows](references/scientific-workflows.md) |
 | TLC, apparatus and instruments | [Native laboratory drawings](references/native-laboratory-drawings.md) |
 | Atom indices, CIP, MCS or stereo enumeration | [RDKit workbench](references/rdkit-workbench.md) |
 | Formula, masses, logP, balance, stoichiometry grid, HRMS, SI tables, mapping, export, naming | [Chemistry reports](references/chemistry-reports.md) |

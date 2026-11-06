@@ -4,7 +4,157 @@ from __future__ import annotations
 
 import re
 
-_SUBSCRIPT_MAP = str.maketrans('₀₁₂₃₄₅₆₇₈₉⁺⁻', '01234567₈9+-'.replace('₈', '8'))
+_SUBSCRIPT_MAP = str.maketrans(
+    '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089\u207a\u207b',
+    '0123456789+-',
+)
+
+
+class _RelationResult(str):
+    """String relation label that also supports dict-style metadata lookup."""
+
+    def __new__(cls, value: str, meta: dict | None = None):
+        obj = super().__new__(cls, value)
+        obj._meta = dict(meta or {})
+        obj._meta.setdefault('relation', str(value))
+        return obj
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            if key in self._meta:
+                return self._meta[key]
+            raise KeyError(key)
+        return super().__getitem__(key)
+
+    def get(self, key: str, default=None):
+        return self._meta.get(key, default)
+
+    def to_dict(self) -> dict:
+        return dict(self._meta)
+
+
+def _as_mol(mol_or_smiles):
+    from rdkit import Chem, rdBase
+
+    if mol_or_smiles is None:
+        return None
+    if hasattr(mol_or_smiles, 'GetNumAtoms'):
+        return mol_or_smiles
+    if isinstance(mol_or_smiles, dict):
+        smi = mol_or_smiles.get('canonical') or mol_or_smiles.get('smiles') or ''
+    else:
+        smi = str(mol_or_smiles)
+    if not smi:
+        return None
+    with rdBase.BlockLogs():
+        return Chem.MolFromSmiles(smi)
+
+
+def _check_abbreviation_skeleton_match(mol_a, mol_b) -> bool:
+    """Return True when two OCSR readings share >= 75% of their heavy-atom MCS
+    and differ only at a single terminal attachment point.
+    """
+    from rdkit import Chem, rdBase
+    from rdkit.Chem import rdFMCS
+
+    a = _as_mol(mol_a)
+    b = _as_mol(mol_b)
+    if a is None or b is None:
+        return False
+    heavy_a = a.GetNumHeavyAtoms()
+    heavy_b = b.GetNumHeavyAtoms()
+    min_heavy = min(heavy_a, heavy_b)
+    if min_heavy < 3:
+        return False
+    with rdBase.BlockLogs():
+        mcs = rdFMCS.FindMCS(
+            [a, b],
+            atomCompare=rdFMCS.AtomCompare.CompareElements,
+            bondCompare=rdFMCS.BondCompare.CompareOrder,
+            ringMatchesRingOnly=True,
+            completeRingsOnly=True,
+            timeout=10,
+        )
+        if not mcs.numAtoms or not mcs.smartsString:
+            return False
+        patt = Chem.MolFromSmarts(mcs.smartsString)
+        if patt is None:
+            return False
+        match_a = a.GetSubstructMatch(patt)
+        match_b = b.GetSubstructMatch(patt)
+    if not match_a or not match_b:
+        return False
+    mcs_heavy = sum(1 for idx in match_a if a.GetAtomWithIdx(idx).GetAtomicNum() > 1)
+    if mcs_heavy / max(1, min_heavy) < 0.75:
+        return False
+
+    set_a = set(match_a)
+    set_b = set(match_b)
+    unmapped_a = set(range(a.GetNumAtoms())) - set_a
+    unmapped_b = set(range(b.GetNumAtoms())) - set_b
+    if not unmapped_a and not unmapped_b:
+        return False
+
+    attach_a = {
+        idx
+        for idx in set_a
+        if any(nb.GetIdx() in unmapped_a for nb in a.GetAtomWithIdx(idx).GetNeighbors())
+    }
+    attach_b = {
+        idx
+        for idx in set_b
+        if any(nb.GetIdx() in unmapped_b for nb in b.GetAtomWithIdx(idx).GetNeighbors())
+    }
+    if len(attach_a) > 1 or len(attach_b) > 1:
+        return False
+    if not attach_a and not attach_b:
+        return False
+    if attach_a and attach_b:
+        a_to_b = dict(zip(match_a, match_b))
+        if a_to_b.get(next(iter(attach_a))) != next(iter(attach_b)):
+            return False
+    # A real chemical difference (H vs Me, OH vs NH2, an extra CH2OH) is not an abbreviation
+    # problem: at least one side must carry a label-like atom in its unmapped part.
+    return any(_is_label_like(a.GetAtomWithIdx(i)) for i in unmapped_a) or any(
+        _is_label_like(b.GetAtomWithIdx(i)) for i in unmapped_b
+    )
+
+
+# Elements an organic drawing uses as written; anything else in an unmatched branch is
+# most likely a misread abbreviation label (OTBS read as [Ti], Ph as [P]h ...).
+_ORGANIC_ELEMENTS = frozenset({1, 5, 6, 7, 8, 9, 14, 15, 16, 17, 35, 53})
+
+
+def _is_label_like(atom) -> bool:
+    """A dummy/R-group/nickname atom, or an element unusual enough to be a misread label."""
+    if atom.GetAtomicNum() == 0:
+        return True
+    for prop in ('dummyLabel', 'molFileAlias', '_MolFileRLabel', 'atomLabel'):
+        if atom.HasProp(prop):
+            return True
+    return atom.GetAtomicNum() not in _ORGANIC_ELEMENTS
+
+
+def _chemistry_relation(mol_a, mol_b) -> _RelationResult:
+    """Classify the chemical relationship between two OCSR candidate structures."""
+    from rdkit import Chem, rdBase
+
+    a = _as_mol(mol_a)
+    b = _as_mol(mol_b)
+    if a is None or b is None:
+        return _RelationResult('Unparseable', {'relation': 'Unparseable'})
+    with rdBase.BlockLogs():
+        smi_a = Chem.MolToSmiles(a, isomericSmiles=True)
+        smi_b = Chem.MolToSmiles(b, isomericSmiles=True)
+        if smi_a == smi_b:
+            return _RelationResult('ExactMatch', {'relation': 'ExactMatch'})
+        flat_a = Chem.MolToSmiles(a, isomericSmiles=False)
+        flat_b = Chem.MolToSmiles(b, isomericSmiles=False)
+        if flat_a == flat_b:
+            return _RelationResult('SameConnectivity', {'relation': 'SameConnectivity'})
+    if _check_abbreviation_skeleton_match(a, b):
+        return _RelationResult('AbbreviationMismatch', {'relation': 'AbbreviationMismatch'})
+    return _RelationResult('DifferentSkeleton', {'relation': 'DifferentSkeleton'})
 
 
 def _primary(entry: dict) -> dict | None:
@@ -185,12 +335,28 @@ def compare(entries: list, expected_formula: str | None = None) -> dict:
     ran = sum(len(g['engines']) for g in ordered)
     blocks = {_skeleton(g) for g in ordered}
     notes = []
+    pairwise_diagnostics = []
     if len(ordered) > 1:
+        for i in range(len(ordered)):
+            for j in range(i + 1, len(ordered)):
+                rel = _chemistry_relation(ordered[i].get('canonical'), ordered[j].get('canonical'))
+                pairwise_diagnostics.append({
+                    'engines_a': list(ordered[i]['engines']),
+                    'engines_b': list(ordered[j]['engines']),
+                    'smiles_a': ordered[i].get('canonical'),
+                    'smiles_b': ordered[j].get('canonical'),
+                    'relation': str(rel),
+                })
         if len(blocks) == 1:
             notes.extend(_same_connectivity_notes(ordered))
         else:
             notes.append('the engines read different structures: check each against the image')
             notes.extend(_tautomer_notes(ordered))
+            if any(d['relation'] == 'AbbreviationMismatch' for d in pairwise_diagnostics):
+                notes.append(
+                    'candidates share the main skeleton and differ at a single terminal attachment point '
+                    '(likely an abbreviated group vs superatom misread)'
+                )
     if expected_formula is not None and str(expected_formula).strip():
         norm_expected = _normalize_hill_formula(expected_formula)
         matching_groups = []
@@ -213,5 +379,6 @@ def compare(entries: list, expected_formula: str | None = None) -> dict:
     return {'agreement': 'single' if ran < 2 else ('all' if len(ordered) == 1 else 'split'),
             'groups': ordered, 'no_result': silent, 'agreed_smiles': agreed,
             'agreed_inchikey': agreed_inchikey, 'connectivity_match': connectivity_match,
+            'pairwise_diagnostics': pairwise_diagnostics,
             'selected': None, 'needs_review': agreed is None or bool(silent), 'notes': notes,
             'rule': 'candidates only: compare every structure with the image before using it'}

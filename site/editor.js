@@ -136,7 +136,7 @@
       paintPreview();
       hideTip();
       const empty = !st.g.atoms.length;
-      setText("[data-a=formula]", empty ? "—" : info.html);
+      setText("[data-a=formula]", empty ? "—" : `${info.html} · DBE ${info.dbe}${info.dbeFlag ? ` (${T.dbeFlag[info.dbeFlag]})` : ""}`);
       setText("[data-a=exact]", empty ? "—" : info.exact.toFixed(2));
       setText("[data-a=mw]", empty ? "—" : info.mass.toFixed(2));
       refreshLog(info);
@@ -412,6 +412,7 @@
       if (e.target.matches("[role=tab]")) return;
       const letter = e.key.toLowerCase();
       if ((e.ctrlKey || e.metaKey) && letter === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+      if ((e.ctrlKey || e.metaKey) && letter === "y") { e.preventDefault(); redo(); return; }
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && letter === "k") { e.preventDefault(); clean(); return; }
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const next = keys[letter];

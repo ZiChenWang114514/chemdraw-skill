@@ -343,6 +343,8 @@
 
   function paintIsomers(set) {
     const found = foundIsomers(set.formula);
+    const ring = found.filter((g) => g.bonds.length >= g.atoms.length).length, oh = found.filter((g) => { const h = analyse(g).hyd; return g.atoms.some((a, i) => a.s === "O" && h[i] > 0); }).length;
+    const split = set.formula.includes("O") ? fmt(L.isoSplitO, { oh, ether: found.length - oh }) : fmt(L.isoSplitRing, { ring, chain: found.length - ring });
     const slots = Array.from({ length: set.count }, (_, k) => (found[k] ? `<li>${thumb(found[k], set.formula)}</li>` : '<li class="empty"></li>')).join("");
     const chips = ISOMERS.map((s) => {
       const have = foundIsomers(s.formula).length;
@@ -353,7 +355,7 @@
       <p class="task">${L.isoIntro}</p>
       <p class="sub">${L.isoPick}</p>
       <div class="chips">${chips}</div>
-      <p class="sub" data-iso-count>${found.length >= set.count ? L.isoDone : fmt(L.isoProgress, { n: found.length, total: set.count })}</p>
+      <p class="sub" data-iso-count>${found.length >= set.count ? L.isoDone : fmt(L.isoProgress, { n: found.length, total: set.count })} · ${split}</p>
       <ol class="slots">${slots}</ol>
       <div class="acts"><button type="button" class="btn sm" data-act="iso-clear">${L.isoClear}</button></div>`;
   }
@@ -392,7 +394,7 @@
       const smiles = toSmiles(targetOf(c));
       return `<li>
         <span class="frame">${thumb(targetOf(c), task.name)}</span>
-        <h3>${task.name}</h3>${rings(got.stars)}
+        <h3>${task.name}</h3>${rings(got.stars)}<p class="sub">${analyse(targetOf(c)).html} · ${L.dbe} ${analyse(targetOf(c)).dbe}</p>
         <p>${task.fact}</p>
         <code>${smiles}</code>
         <div class="acts"><button type="button" class="btn sm" data-act="dex-save" data-id="${c.id}">${L.saveCdxml}</button><button type="button" class="btn sm" data-act="dex-ask" data-id="${c.id}">${L.copyAsk}</button><a href="#s=${encodeDrawing(targetOf(c))}">${L.openBoard}</a></div>
@@ -416,17 +418,20 @@
     mission.innerHTML = `
       <h2>${L.modes.free}</h2>
       <p class="task">${L.freeIntro}</p>
+      <p class="sub" data-free-dbe>${L.dbe}: —</p>
       <p class="sub">${L.freeLoad}</p>
       <div class="chips"><button type="button" class="btn sm" data-act="free-blank">${L.freeBlank}</button>${chips}</div>`;
   }
   function showFree() {
     view("board", "free");
     missionFree();
+    onChange = (g) => { const el = mission.querySelector("[data-free-dbe]"); if (el) el.textContent = `${L.dbe}: ${g.atoms.length ? analyse(g).dbe : "—"}`; };
     editor.show(blank(), "structure", T.drawing);
   }
   function openShared(code) {
     view("board", "free");
     missionFree();
+    onChange = (g) => { const el = mission.querySelector("[data-free-dbe]"); if (el) el.textContent = `${L.dbe}: ${g.atoms.length ? analyse(g).dbe : "—"}`; };
     const g = decodeDrawing(code);
     editor.show(g || blank(), "structure", T.drawing);
     editor.status(g ? L.sharedLoaded : L.sharedBad);

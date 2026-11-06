@@ -1,0 +1,99 @@
+{
+  "slug": "lipshutz_group",
+  "kind": "group",
+  "display_name": "Lipshutz group (UC Santa Barbara)",
+  "applies_to": [
+    "Lipshutz group papers, JACS Au, JACS, Chem. Sci."
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.2,
+    "line_width_over_bond_length": 0.055,
+    "bold_width_over_bond_length": null,
+    "label_font": "Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 6.3
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "under_product_label",
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": [
+      "OMe",
+      "CF3",
+      "Boc",
+      "NO2",
+      "Ph",
+      "t-Bu",
+      "Cbz"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "surfactant and water written below the arrow, e.g. 2 wt % Savie/H2O or 2 wt % TPGS-750-M / H2O [0.5 M]",
+      "purple #840CFC marks the new C-N bond or the incoming amine fragment",
+      "yield line combines a condition and the yield, e.g. X = Br, 82% or Savie: 95%",
+      "bold italic blue section headers in scope figures"
+    ],
+    "notes": {
+      "new_bond_color": "purple in crop 01, red in crop 03 (with the incoming fragment purple); not consistent",
+      "highlight_fill": "pale cyan ellipses #CCFCFC behind the changing group in crop 02 only"
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/jacsau.3c00742",
+      "citation": "Iyer, Lipshutz et al., JACS Au 2024, 4, 680",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3, amination scope",
+      "crop": "evidence/lipshutz_group-01.png",
+      "measurements_px": {
+        "bond_length": 79,
+        "cap_height": 46,
+        "line_width": 4.7,
+        "bold_width": null,
+        "arrow_length": 592
+      },
+      "observations": "measured on the full-resolution crop (saved crop is scaled 0.61); inline plus, catalyst and ligand above, base, surfactant/H2O, THF and temperature below, purple new C-N bond, bold labels, X = Br, 82% under label, grey box for ligand"
+    },
+    {
+      "doi": "10.1039/d3sc00198a",
+      "citation": "Freiberg, Lipshutz et al., Chem. Sci. 2023, 14, 3462",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 8",
+      "crop": "evidence/lipshutz_group-02.png",
+      "measurements_px": {
+        "bond_length": 35,
+        "cap_height": 12,
+        "line_width": 1.5,
+        "bold_width": null,
+        "arrow_length": 180
+      },
+      "observations": "one-pot three-step sequence, reagent above and conditions below, bold labels, cyan ellipse highlights, yellow step ovals, yield under label in blue"
+    },
+    {
+      "doi": "10.1021/jacs.2c13444",
+      "citation": "Lipshutz et al., J. Am. Chem. Soc. 2023 (Introducing Savie: a biodegradable surfactant)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 5B, aminations",
+      "crop": "evidence/lipshutz_group-03.png",
+      "measurements_px": {
+        "bond_length": 10,
+        "cap_height": 5,
+        "line_width": 0.8,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "inline plus, catalyst and base above, 2 wt % surfactant/H2O below, red new bond, purple amine fragment, Savie: 95% under bold label"
+    }
+  ]
+}

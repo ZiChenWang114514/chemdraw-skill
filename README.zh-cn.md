@@ -99,6 +99,12 @@
       <br><b>预测与实测核磁对比</b><br><sub>MagNET 与 NMRNet++ 对照真实谱图</sub>
     </td>
   </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <a href="#期刊与课题组画法风格"><img src="skill/chemdraw/assets/house-styles/gallery/house-baran_group.png" width="60%" alt="按 Baran 课题组画法绘制的 Suzuki 偶联，新键为深红色"></a>
+      <br><b>期刊与课题组画法风格</b><br><sub>同一份说明，按 ACS、Wiley、Nature、Science、RSC 或 Baran、MacMillan、Lipshutz 课题组的习惯画出</sub>
+    </td>
+  </tr>
 </table>
 
 ## 快速开始
@@ -176,20 +182,21 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 
 | 领域 | 能做什么 |
 | --- | --- |
-| **结构与反应** | 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档。 |
-| **按需求新画图** | 由简短的说明画出单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或机理（支持配位键与自由基），并在同一条命令里检查化学与版面。[详见下文](#one-command-figures)。 |
-| **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图，支持缩写节点、富文本、中文注释、箭头和带框化合物代号。 |
+| **结构与反应** | 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档，并支持非破坏性地连接已打开的桌面 ChemDraw 活动窗口（`live_chemdraw_session`）与 MCP `@mcp.resource` / `@mcp.prompt` 协议端点。 |
+| **按需求新画图** | 由简短的说明或紧凑语法（`compact_text`）画出单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或机理（支持配位键、自由基、`ring_fills` 环着色、药效团 `atom_halos`、多点连接配位键 `multi_attachments`、`[…]‡` 过渡态方括号、`<orbital>` 轨道瓣与三维构象模板），并在同一条命令里检查化学与版面。[详见下文](#one-command-figures)。 |
+| **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图（`build_acs_figure`），支持缩写节点、富文本、中文注释、箭头、带框化合物代号、JACS/Angew 环着色（`ring_fills`）、药效团光晕、多点连接配位键 `MultiAttachment`、过渡态方括号、分子轨道瓣与确定性三维构象模板（椅式环己烷、Newman、Haworth、Fischer、降冰片烷），并提供视觉与立体审计工具（`depict_like` 16 方向对齐、`read_wedges` 楔形键回读、`edit_structure` 原子索引与 E/Z 编辑器）。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
+| **期刊与课题组风格** | 同一个 `style` 键选择两层风格。16 个尺寸预设取自 ChemDraw 自带样式表（默认 ACS Document 1996，另有 Wiley、RSC、Nature Research、Thieme Synthesis/Synlett 等），为反应式、底物拓展图、机理图和图形清单设定键长、线宽和字体。8 个画法风格（ACS、Wiley、Nature Portfolio、Science、RSC，以及 Baran、MacMillan、Lipshutz 课题组）从开放许可的已发表图中测得，加入该期刊或课题组画反应式的习惯：化合物编号加粗、收率位置、底物上下排列、基团缩写、新键着色。`cdx.py styles` 两层都列出。[详见下文](#期刊与课题组画法风格)。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
-| **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、PDF 结构抽取、前体、路线、产物、反应条件和 1H/13C 位移，每个案例都对照已知答案运行并报告实际运行设备（`execution.device`）。批量输入和多步搜索会让模型常驻在工作进程中供下次调用使用（`--accel auto\|on\|off`；`cdx.py stop-daemons` 可随时结束）：在这台笔记本上，第二次 `predict products` 只用 0.6 秒，第一次为 13.7 秒。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
+| **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、PDF 结构抽取、前体、路线、多引擎路线并排对比图、产物、反应条件和 1H/13C 位移（含 `compare_nmr_shifts`），每个案例都对照已知答案运行并报告实际运行设备（`execution.device`）。批量输入和多步搜索会让模型常驻在工作进程中供下次调用使用（`--accel auto\|on\|off`；`cdx.py stop-daemons` 可随时结束）：在这台笔记本上，第二次 `predict products` 只用 0.6 秒，第一次为 13.7 秒。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
 | **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；基于扩展的 116 条 GHS 试剂安全表与 SMARTS 官能团结构警示的安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
-| **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算和可编辑装置组装。 |
-| **谱图与科研绘图** | 通过 `nmrglue` 原生读取一维 NMR（Bruker `1r` 与原始 `fid`、JCAMP-DX `.jdx`/`.dx`、JEOL `.jdf`、Varian/Agilent `.fid`）及 CSV/FT 数据，支持寻峰、指定区间积分、氘代残留溶剂自动标注、多重峰裂分（*J* 耦合）、局部放大插图（`inset_region`）以及多系列可编辑曲线。 |
+| **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算、自动共点泳道（`auto_cospot`）、显色剂配色（KMnO4、茚三酮、茴香醛、I2）与二维 TLC（`mode="2d"`），以及可编辑装置组装。 |
+| **谱图与科研绘图** | 通过 `nmrglue` 原生读取一维 NMR（Bruker `1r` 与原始 `fid`、JCAMP-DX `.jdx`/`.dx`、JEOL `.jdf`、Varian/Agilent `.fid`）及 CSV/FT 数据，支持寻峰、指定区间积分、氘代残留溶剂自动标注、多重峰裂分（*J* 耦合）、局部放大插图（`inset_region`）、多谱堆叠对比图（`stack_nmr`）以及多系列可编辑曲线。 |
 | **专利 Markush 通式** | 从专利图片和权利要求文本提取通式：R 基、可变环、多中心键与重复次数，保存为 CXSMILES、V3000 molfile 和沿用原图版式的可编辑绘图。 |
 | **反应机理** | 根据你列出的电子转移绘制弯箭头，或按明确的原子坐标复刻机理，包括电荷和抗衡离子。 |
 | **Office 文档** | 在桌面版 Word 和 PowerPoint 文档中嵌入可编辑的 ChemDraw 对象，可在 Windows 或 macOS 上用 ChemDraw 生成。 |
-| **实验记录** | 发现文件，并处理选定的 LCMS（Waters PDF、OpenLynx `.rpt`、含 `_HEADER.TXT` 元数据与色谱图的 Waters `.raw`、Shimadzu `.daml`、Agilent ChemStation `report.txt` 以及开放格式 `mzML` / `mzXML`），支持 Cl/Br `M+2` 同位素包络校验与跨时间点内标（`IS`）归一化，以及 SciFinder RDF 和实验记录工作流。 |
+| **实验记录** | 发现文件，并处理选定的 LCMS（Waters PDF、OpenLynx `.rpt`、含 `_HEADER.TXT` 元数据与色谱图的 Waters `.raw`、Shimadzu `.daml`、Agilent ChemStation `report.txt` 以及开放格式 `mzML` / `mzXML`），支持 Cl/Br `M+2` 同位素包络校验、跨时间点内标（`IS`）归一化与 24/96 孔板纯度热力图（`lcms_plate`），以及 SciFinder RDF 和实验记录工作流。 |
 | **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作，并模拟核心 SDK 类）。 |
 | **ChemDraw 接口覆盖** | 为 ChemDraw 22.2 的 ChemScript SDK、COM 对象、CDXML 元素和菜单命令建立目录，每一条标明是有专用工具、有已核对的配方，还是仅有文档；并提供操作 CDXML 元素、调用 COM 以及获取 ChemDraw 自身分子性质的工具。[详见](docs/guide.zh-cn.md#chemdraw-接口覆盖)。 |
 | **远程工作站访问** | 可选地通过 Streamable HTTP 对外提供 Windows 原生主机服务，带健康检查与 Prometheus 端点。 |
@@ -261,6 +268,53 @@ python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 - **不覆盖已有文件。** 报告列出每个结构的来源、通过或未运行的检查，以及原生 PNG 的路径。没有 ChemDraw 时，文件会被标为未渲染的草稿。使用前请先打开 PNG 看一遍。
 
 完整的说明格式和报告字段见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)。
+
+<a id="期刊与课题组画法风格"></a>
+
+### 期刊与课题组画法风格
+
+图可以分两层跟随某个期刊或课题组，两层都用同一个 `style` 名称选择。**尺寸预设**是从 ChemDraw 自带样式文件读出的 16 个样式表之一（默认 `acs1996`，另有 `wiley`、`rsc`、`nature`、`synthesis` 等），只规定键长、线宽和字体。
+
+**画法风格**以其中一个预设为基础，再加上该期刊或课题组已发表反应式中的习惯：化合物编号怎么写、收率放在哪里、底物并排还是上下排列、哪些基团写成缩写，以及新键、底物或目标分子是否着色。每条习惯都从至少两篇开放许可论文的三到四张反应式截图中测得，截图一致才设定；不一致的留空，保持默认画法。
+
+把名称写进说明文件（draw、scope 和 mechanism 说明、compose 清单和 `cdx.py build` 规格都接受），或在命令行覆盖：
+
+```json
+{
+  "style": "nature_portfolio",
+  "species": [ ... ],
+  "steps": [ ... ]
+}
+```
+
+```bash
+python skill/chemdraw/scripts/cdx.py styles                 # 预设与画法风格
+python skill/chemdraw/scripts/cdx.py styles baran_group     # 单个风格卡片及其证据
+python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style baran_group --render
+```
+
+| 风格 | 类别 | 基础预设 | 主要特点 |
+| --- | --- | --- | --- |
+| `acs_jacs` | 期刊 | `acs1996` | 化合物编号黑色加粗，底物并排加号相连，Kekulé 式芳环，不设颜色规则 |
+| `wiley_angew` | 出版社 | `wiley` | 编号加粗，线条比 ACS 粗，试剂在箭头上方、溶剂在下方 |
+| `nature_portfolio` | 出版社 | `nature` | 编号加粗，收率写在编号同一行（`3a, 85%`），底物骨架为青蓝色 |
+| `science_aaas` | 出版社 | `nature` | 收率写在编号同一行，引入的组分为蓝色 |
+| `rsc_journals` | 出版社 | `rsc` | 编号加粗、Kekulé 式芳环；收率格式和颜色在论文间不一致，未设定 |
+| `baran_group` | 课题组 | `acs1996` | 新键深红色，目标分子后衬青绿色底框，缩写基团多 |
+| `macmillan_group` | 课题组 | `acs1996` | 新键深蓝色，收率写成加粗编号后的 `6, 76% yield` |
+| `lipshutz_group` | 课题组 | `acs1996` | 收率在产物编号下方，表面活性剂与水写在箭头下方 |
+
+同一个 Suzuki 偶联，用一份说明画出，由桌面版 ChemDraw 渲染：
+
+<table>
+  <tr>
+    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-baran_group.png" alt="Baran 课题组风格的 Suzuki 偶联：新键深红色，产物衬青绿色底框"><br><sub><code>baran_group</code></sub></td>
+    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-nature_portfolio.png" alt="Nature Portfolio 风格的 Suzuki 偶联：加粗编号与收率同行，底物骨架青蓝色"><br><sub><code>nature_portfolio</code></sub></td>
+    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-macmillan_group.png" alt="MacMillan 课题组风格的 Suzuki 偶联：新键深蓝色，收率写在编号之后"><br><sub><code>macmillan_group</code></sub></td>
+  </tr>
+</table>
+
+每个风格在[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)旁边都有一个目录，存放证据截图和列出来源的 README；截图按其 CC BY 许可转载，每张风格卡片都列出 DOI。报告会说明哪些习惯已应用、哪些被跳过及原因；底物拓展图和机理图只采用基础预设。已知限制：写在母体左侧的缩写基团位置正确，但桌面版 ChemDraw 在运行 Clean Up Structure 之前会按向右的方向拼写（写成 CO2Me 而不是 MeO2C）。图库展示全部 8 个风格和 4 个预设；完整的习惯列表见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)。MCP 客户端可从 `chemdraw://style-guide/{name}` 读取风格卡片。
 
 <a id="从数据生成可持续修改的论文图"></a>
 
@@ -637,6 +691,21 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 ```
 
 [图像复刻指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
+
+三张开放许可的反应式作为完整案例重建，每个都附参考截图、按期刊风格写的说明文件和原生渲染图：
+
+| 案例 | 期刊风格 | 文件 |
+| --- | --- | --- |
+| 水相钯催化胺化，*JACS Au* 2024 | `lipshutz_group` | [CASE.md](skill/chemdraw/assets/paper-replica/jacs-au-pd-amination/CASE.md) |
+| 用于酰胺偶联的 DPDTC 合成，*Chem. Sci.* 2023 | `rsc_journals` | [CASE.md](skill/chemdraw/assets/paper-replica/chem-sci-amide-coupling/CASE.md) |
+| 镍催化电还原芳基化，*Nat. Commun.* 2025 | `nature_portfolio` | [CASE.md](skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/CASE.md) |
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/reference.png" alt="已发表的 Nat. Commun. 反应式：1a 与 2a 在镍催化电还原条件下生成 3a"><br><sub>已发表的反应式（CC BY 4.0）</sub></td>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/rendered.png" alt="同一反应式按 Nature Portfolio 风格从说明文件画出并由 ChemDraw 渲染"><br><sub>由 <code>brief.json</code> 以 <code>"style": "nature_portfolio"</code> 画出</sub></td>
+  </tr>
+</table>
 
 | 遇到的需求 | 现成处理路线 |
 | --- | --- |

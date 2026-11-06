@@ -917,3 +917,60 @@ def test_doctor_reports_only_the_runtimes_own_passive_capabilities(monkeypatch, 
     report = json.loads(capsys.readouterr().out)
     assert 'passive_capabilities' not in report  # unverified is never relabelled as available
     assert report['capabilities']['office'] == 'unverified'
+
+
+def test_styles_lists_the_journal_presets(capsys):
+    assert cdx.main(['styles']) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0].startswith('acs1996') and '14.4 pt' in lines[0]
+    assert any(line.startswith('nature ') and '10.8 pt' in line for line in lines)
+
+
+def _example_house_style(tmp_path, monkeypatch):
+    from cdxml_toolkit.publication import house_styles
+    card = {
+        'slug': '_example', 'kind': 'group', 'display_name': 'Example Group', 'base_preset': 'rsc',
+        'measured': {}, 'conventions': {'compound_label_face': 'bold', 'notes': 'shown, not applied'},
+        'evidence': [{'doi': '10.0000/a'}, {'doi': '10.0000/b'}],
+    }
+    (tmp_path / '_example.json').write_text(json.dumps(card), encoding='utf-8')
+    monkeypatch.setattr(house_styles, 'DATA_DIR', tmp_path)
+
+
+def test_styles_lists_house_styles_in_a_second_section(capsys, tmp_path, monkeypatch):
+    _example_house_style(tmp_path, monkeypatch)
+    assert cdx.main(['styles']) == 0
+    out = capsys.readouterr().out
+    presets, houses = out.split('House styles', 1)
+    assert 'acs1996' in presets and '_example' not in presets
+    line = next(l for l in houses.splitlines() if l.startswith('_example'))
+    assert 'group' in line and 'base rsc' in line and '2 evidence' in line and 'Example Group' in line
+
+
+def test_styles_prints_a_house_style_card(capsys, tmp_path, monkeypatch):
+    _example_house_style(tmp_path, monkeypatch)
+    assert cdx.main(['styles', '_example']) == 0
+    card = json.loads(capsys.readouterr().out)
+    assert card['slug'] == '_example' and card['conventions']['notes'] == 'shown, not applied'
+
+
+def test_styles_prints_one_preset_as_json(capsys):
+    assert cdx.main(['styles', 'Wiley Document']) == 0
+    preset = json.loads(capsys.readouterr().out)
+    assert preset['slug'] == 'wiley' and preset['attributes']['BondLength'] == '17'
+
+
+def test_draw_style_flag_sets_the_brief_style(tmp_path):
+    brief = tmp_path / 'brief.json'
+    brief.write_text('{"species": [], "steps": []}', encoding='utf-8')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+        cdx.main(['draw', str(brief), '--style', 'rsc'])
+    assert worker.call_args[0][1]['brief']['style'] == 'rsc'
+
+
+def test_build_applies_a_style_preset(tmp_path):
+    spec = {'style': 'nature', 'objects': [{'type': 'molecule', 'smiles': 'c1ccccc1', 'at': [100, 100]}]}
+    root = ET.fromstring(acs_builder.build_from_spec(spec))
+    assert root.get('BondLength') == '10.8'
+    with pytest.raises(ValueError, match='acs1996'):
+        acs_builder.build_from_spec({**spec, 'style': 'no-such-journal'})

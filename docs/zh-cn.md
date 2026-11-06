@@ -44,7 +44,7 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 使用 ChemDraw Skill 解析阿司匹林并生成可编辑的 CDXML。如果有原生 ChemDraw，请渲染并查看 PNG。报告结构回读结果和输出路径。
 ```
 
-结构已知、图还不存在时，把需求说成一句话，agent 会写出简短的说明文件，再用 `cdx.py draw` 一次画出并检查单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或带弯箭头的机理，见[绘制新反应图](../skill/chemdraw/references/scheme-drawing.md)。条件只取自你给的内容。科研与实验记录工作流还支持原生读取一维 NMR（Bruker `1r`/`fid`、JCAMP-DX、JEOL、Varian 与 CSV/FT）以及解析 LCMS（Waters PDF、OpenLynx `.rpt`、Waters `.raw`、Shimadzu `.daml`、Agilent `report.txt` 与 `mzML`/`mzXML`）。
+结构已知、图还不存在时，把需求说成一句话，agent 会写出简短的说明文件，再用 `cdx.py draw` 一次画出并检查单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或带弯箭头的机理，见[绘制新反应图](../skill/chemdraw/references/scheme-drawing.md)。条件只取自你给的内容。`cdx.py styles` 列出期刊尺寸预设和期刊、课题组画法风格，在说明里写 `"style": "nature_portfolio"` 或加 `--style baran_group` 即可按该风格出图。科研与实验记录工作流还支持原生读取一维 NMR（Bruker `1r`/`fid`、JCAMP-DX、JEOL、Varian 与 CSV/FT）以及解析 LCMS（Waters PDF、OpenLynx `.rpt`、Waters `.raw`、Shimadzu `.daml`、Agilent `report.txt` 与 `mzML`/`mzXML`）。
 
 考试或讲义图（含 C10H21 之类的缩写、化合物代号、中文批注）走 [ACS 1996 绘图器](../skill/chemdraw/references/acs1996-drawings.md)。论文图片走[重建指南](../skill/chemdraw/references/image-visual-review.md)：通读整图、裁剪、用 DECIMER API 识别、对齐方向、并排比对、修正化学、组装条件与版面、原生渲染。
 

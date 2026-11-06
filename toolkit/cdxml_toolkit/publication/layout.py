@@ -171,7 +171,7 @@ def create_pages(records,spec,stage,start_index=0):
     for page in manifests:
         name=f"page-{page['index']+1:03d}.cdxml"
         manifest=stage/f"page-{page['index']+1:03d}.manifest.json"
-        write_json(manifest,{'style':{k:style[k] for k in ('font','font_size','bond_length')},'objects':page['objects']})
+        write_json(manifest,{'style':{k:style[k] for k in ('font','font_size','bond_length','line_width','bold_width','hash_spacing','margin_width') if k in style},'objects':page['objects']})
         result=compose_chemical_figure(str(manifest),str(stage/name))
         tree=ET.parse(stage/name); root=tree.getroot(); native_page=root.find('page')
         root.set('BoundingBox',f'0 0 {width:g} {height:g}')

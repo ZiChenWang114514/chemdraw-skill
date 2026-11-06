@@ -5,7 +5,7 @@ import io
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Optional, Sequence, Tuple, Union
+from typing import Any, Mapping, Optional, Sequence, Tuple, Union
 import numpy as np
 from scipy.signal import find_peaks
 from .common import Drawing, number
@@ -524,6 +524,9 @@ def read_spectrum(path):
     return x, y
 
 
+load_nmr_spectrum = read_spectrum
+
+
 def _flag_solvent_peaks(peaks, solvent, nucleus):
     norm_solvent = _normalize_solvent(solvent)
     if not norm_solvent:
@@ -883,7 +886,7 @@ def build_nmr_cdxml(
         ppm, intensity, peaks=peaks, x=x, y=y, spectrum=spectrum
     )
 
-    drawing = Drawing(title)
+    drawing = Drawing(540, 320)
     x0, y0, w, h = 60.0, 50.0, 420.0, 220.0
     x_min, x_max = float(x_arr[0]), float(x_arr[-1])
     if x_max <= x_min:
@@ -1079,3 +1082,337 @@ def plot_nmr(
             'inset_region': [float(min(inset_region)), float(max(inset_region))] if inset_region is not None else None,
         }
     return cdxml_str
+
+
+STACKED_NMR_PALETTE = (
+    '#000000',
+    '#007c83',
+    '#1565c0',
+    '#c62828',
+    '#6a1b9a',
+    '#ef6c00',
+    '#2e7d32',
+    '#455a64',
+)
+
+
+def _coerce_single_trace(item: str | Path | Mapping[str, Any], index: int) -> dict[str, Any]:
+    """Load or simulate one NMR trace into {'x', 'y', 'peaks', 'label', 'nucleus'}."""
+    default_label = f'Trace {index + 1}'
+    nucleus = '1H'
+    if isinstance(item, (str, Path)):
+        p = Path(item)
+        rx, ry = load_nmr_spectrum(p)
+        x_arr, y_arr, norm_peaks = _extract_nmr_arrays_and_peaks(rx, ry)
+        return {
+            'x': x_arr,
+            'y': y_arr,
+            'peaks': norm_peaks,
+            'label': p.stem or p.name or default_label,
+            'nucleus': _normalize_nucleus(None, x_arr),
+        }
+
+    if not isinstance(item, Mapping):
+        raise ValueError(f'Unsupported spectrum entry at index {index}: {type(item)!r}')
+
+    d = dict(item)
+    lbl = d.get('label') or d.get('title') or d.get('name')
+    if not lbl and isinstance(d.get('source'), (str, Path)):
+        lbl = Path(d['source']).stem or Path(d['source']).name
+    if not lbl and isinstance(d.get('path') or d.get('input'), (str, Path)):
+        p_raw = Path(d.get('path') or d.get('input'))
+        lbl = p_raw.stem or p_raw.name
+
+    has_xy_arrays = (
+        isinstance(d.get('spectrum'), Mapping)
+        or ('ppm' in d and d.get('ppm') is not None)
+        or ('x' in d and d.get('x') is not None)
+    )
+    if not has_xy_arrays and any(k in d for k in ('path', 'input', 'source')):
+        raw_p = d.get('path') or d.get('input') or d.get('source')
+        if raw_p is not None and Path(str(raw_p)).exists():
+            rx, ry = load_nmr_spectrum(raw_p)
+            x_arr, y_arr, norm_peaks = _extract_nmr_arrays_and_peaks(rx, ry, peaks=d.get('peaks'))
+            return {
+                'x': x_arr,
+                'y': y_arr,
+                'peaks': norm_peaks,
+                'label': str(lbl or default_label),
+                'nucleus': _normalize_nucleus(d.get('nucleus'), x_arr),
+            }
+
+    # Check if this is a predicted shift dict from engines.nmr
+    peaks_field = d.get('peaks') if 'peaks' in d else d.get('shifts')
+    if not has_xy_arrays and peaks_field is not None:
+        raw_peak_list: list[Any] = []
+        if isinstance(peaks_field, Mapping):
+            if d.get('nucleus') in ('1H', '13C') and peaks_field.get(d['nucleus']):
+                nucleus = str(d['nucleus'])
+                raw_peak_list = list(peaks_field[nucleus])
+            elif peaks_field.get('1H'):
+                nucleus = '1H'
+                raw_peak_list = list(peaks_field['1H'])
+            elif peaks_field.get('13C'):
+                nucleus = '13C'
+                raw_peak_list = list(peaks_field['13C'])
+            else:
+                for k_nuc, v_list in peaks_field.items():
+                    if isinstance(v_list, Sequence) and not isinstance(v_list, (str, bytes)) and v_list:
+                        nucleus = _normalize_nucleus(k_nuc)
+                        raw_peak_list = list(v_list)
+                        break
+        elif isinstance(peaks_field, Sequence) and not isinstance(peaks_field, (str, bytes)):
+            raw_peak_list = list(peaks_field)
+            if d.get('nucleus'):
+                nucleus = _normalize_nucleus(d.get('nucleus'))
+
+        sim_peaks: list[dict[str, Any]] = []
+        for pk in raw_peak_list:
+            if isinstance(pk, (int, float)):
+                sim_peaks.append({'shift_ppm': float(pk), 'count': 1})
+            elif isinstance(pk, Mapping):
+                s_val = pk.get('shift_ppm', pk.get('ppm', pk.get('shift', pk.get('center'))))
+                if s_val is not None:
+                    cnt = pk.get('count', pk.get('intensity', pk.get('height', 1)))
+                    sim_peaks.append({'shift_ppm': float(s_val), 'count': float(cnt if cnt is not None else 1.0)})
+                    if pk.get('nucleus') and not d.get('nucleus'):
+                        nucleus = _normalize_nucleus(pk.get('nucleus'))
+
+        from ..engines import nmr as nmr_engine
+        freq = float(d.get('frequency_mhz') or 400.0)
+        rows = nmr_engine.simulate(sim_peaks, nucleus, freq, points=4096)
+        x_arr = np.array([r[0] for r in rows], dtype=float)
+        y_arr = np.array([r[1] for r in rows], dtype=float)
+        order = np.argsort(x_arr)
+        x_arr = x_arr[order]
+        y_arr = y_arr[order]
+        norm_peaks = [
+            {
+                'ppm': float(p['shift_ppm']),
+                'intensity': float(np.interp(float(p['shift_ppm']), x_arr, y_arr)),
+            }
+            for p in sim_peaks
+        ]
+        if not lbl:
+            lbl = f"Predicted ({d.get('engine', nucleus)})" if d.get('predicted') or 'peaks' in d else default_label
+        return {
+            'x': x_arr,
+            'y': y_arr,
+            'peaks': norm_peaks,
+            'label': str(lbl),
+            'nucleus': nucleus,
+        }
+
+    x_arr, y_arr, norm_peaks = _extract_nmr_arrays_and_peaks(d)
+    return {
+        'x': x_arr,
+        'y': y_arr,
+        'peaks': norm_peaks,
+        'label': str(lbl or default_label),
+        'nucleus': _normalize_nucleus(d.get('nucleus'), x_arr),
+    }
+
+
+def _extract_match_pairs(match_shifts: Sequence[Mapping[str, Any]] | Mapping[str, Any] | None) -> list[dict[str, float]]:
+    if match_shifts is None:
+        return []
+    raw_items: Sequence[Any]
+    if isinstance(match_shifts, Mapping):
+        raw_items = list(match_shifts.get('matches_1h') or []) + list(match_shifts.get('matches_13c') or [])
+        if not raw_items and 'matches' in match_shifts:
+            raw_items = list(match_shifts.get('matches') or [])
+    else:
+        raw_items = list(match_shifts)
+
+    pairs: list[dict[str, float]] = []
+    for item in raw_items:
+        if not isinstance(item, Mapping):
+            continue
+        p0 = item.get('predicted_shift', item.get('predicted_ppm', item.get('from_ppm', item.get('ppm_1', item.get('pred')))))
+        p1 = item.get('experimental_shift', item.get('experimental_ppm', item.get('to_ppm', item.get('ppm_2', item.get('exp')))))
+        if p0 is not None and p1 is not None:
+            f0, f1 = float(p0), float(p1)
+            err = item.get('error')
+            delta = float(err) if err is not None else (f1 - f0)
+            pairs.append({'ppm_0': f0, 'ppm_1': f1, 'delta': delta})
+    return pairs
+
+
+def build_stacked_nmr_cdxml(
+    spectra: Sequence[str | Path | Mapping[str, Any]],
+    output_path: str | Path | None = None,
+    *,
+    labels: Sequence[str] | None = None,
+    ppm_range: tuple[float, float] | None = None,
+    title: str = 'Stacked NMR Comparison',
+    normalize: str = 'each',
+    show_peaks: bool = True,
+    match_shifts: Sequence[Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Build a multi-trace stacked NMR comparison CDXML figure (2 to 8 spectra)."""
+    if not isinstance(spectra, Sequence) or not (2 <= len(spectra) <= 8):
+        raise ValueError('Provide 2 to 8 spectra for stacked NMR comparison')
+    if normalize not in ('each', 'global', 'max', 'none'):
+        raise ValueError("normalize must be 'each', 'global', 'max', or 'none'")
+
+    traces = [_coerce_single_trace(item, idx) for idx, item in enumerate(spectra)]
+    if labels is not None:
+        if len(labels) != len(traces):
+            raise ValueError('labels length must match spectra length')
+        resolved_labels = [str(lbl) for lbl in labels]
+    else:
+        resolved_labels = [t['label'] for t in traces]
+
+    if ppm_range is not None:
+        if len(ppm_range) != 2:
+            raise ValueError('ppm_range must be a 2-element (ppm_high, ppm_low) tuple or list')
+        ppm_lo = float(min(ppm_range[0], ppm_range[1]))
+        ppm_hi = float(max(ppm_range[0], ppm_range[1]))
+        if ppm_hi <= ppm_lo:
+            raise ValueError('ppm_range bounds must differ')
+    else:
+        ppm_lo = min(float(np.min(t['x'])) for t in traces)
+        ppm_hi = max(float(np.max(t['x'])) for t in traces)
+        if ppm_hi <= ppm_lo:
+            ppm_hi = ppm_lo + 10.0
+
+    # Slice or interpolate each trace onto [ppm_lo, ppm_hi]
+    sliced_traces = []
+    global_span = 1e-12
+    for t in traces:
+        x_full, y_full = t['x'], t['y']
+        mask = (x_full >= ppm_lo) & (x_full <= ppm_hi)
+        if int(np.sum(mask)) >= 2:
+            xs = np.r_[ppm_lo, x_full[mask], ppm_hi]
+            ys = np.interp(xs, x_full, y_full)
+        else:
+            xs = np.linspace(ppm_lo, ppm_hi, 512, dtype=float)
+            ys = np.interp(xs, x_full, y_full)
+        y_min = float(np.min(ys))
+        y_max = float(np.max(ys))
+        span = max(y_max - y_min, 1e-12)
+        global_span = max(global_span, span)
+        pks = [pk for pk in t['peaks'] if ppm_lo <= pk['ppm'] <= ppm_hi]
+        sliced_traces.append({
+            'x': xs,
+            'y': ys,
+            'y_min': y_min,
+            'span': span,
+            'peaks': pks,
+            'nucleus': t['nucleus'],
+        })
+
+    n_traces = len(sliced_traces)
+    lane_h = 82.0
+    top_margin = 46.0
+    bottom_margin = 54.0
+    width = 620.0
+    height = top_margin + n_traces * lane_h + bottom_margin
+    x0 = 115.0
+    plot_w = 470.0
+
+    drawing = Drawing(int(width), int(height))
+    main_group = drawing.add('group', {'BoundingBox': f'0 0 {width:.2f} {height:.2f}'})
+    drawing.text((x0 + plot_w * 0.30, 22.0), title, size=11, parent=main_group)
+
+    def sx(ppm_val: float) -> float:
+        return x0 + (ppm_hi - float(ppm_val)) / (ppm_hi - ppm_lo) * plot_w
+
+    trace_baselines: list[float] = []
+    trace_sy_funcs = []
+
+    for idx, st in enumerate(sliced_traces):
+        color_hex = STACKED_NMR_PALETTE[idx % len(STACKED_NMR_PALETTE)]
+        y_top = top_margin + idx * lane_h
+        y_base = y_top + lane_h - 12.0
+        amp_h = lane_h - 24.0
+        denom = st['span'] if normalize == 'each' else global_span
+        y_min = st['y_min']
+
+        def make_sy(yb: float, ym: float, dn: float, ah: float):
+            return lambda val: yb - ((float(val) - ym) / dn) * ah
+
+        sy_fn = make_sy(y_base, y_min, denom, amp_h)
+        trace_baselines.append(y_base)
+        trace_sy_funcs.append(sy_fn)
+
+        # Left-margin trace label
+        drawing.text((14.0, y_base - 14.0), resolved_labels[idx], size=9, parent=main_group, color=color_hex)
+        # Subtle baseline reference
+        drawing.line((x0, y_base), (x0 + plot_w, y_base), parent=main_group, color='#cccccc')
+
+        # Downsampled trace polyline
+        keep = _downsample_indices(st['y'], max_points=700)
+        pts = [(sx(float(st['x'][i])), sy_fn(float(st['y'][i]))) for i in keep]
+        if len(pts) >= 2:
+            drawing.curve(pts, parent=main_group, color=color_hex)
+
+        # Peak ticks
+        if show_peaks:
+            for pk in st['peaks'][:25]:
+                px = sx(pk['ppm'])
+                p_int = float(np.interp(pk['ppm'], st['x'], st['y']))
+                py = sy_fn(p_int)
+                tick_top = max(y_top + 2.0, py - 7.0)
+                tick_bot = max(y_top + 4.0, py - 2.0)
+                drawing.line((px, tick_top), (px, tick_bot), parent=main_group, color=color_hex)
+
+    # Dashed connectors when match_shifts is provided for >= 2 traces
+    pairs = _extract_match_pairs(match_shifts)
+    if pairs and n_traces >= 2:
+        t_idx_a = n_traces - 2
+        t_idx_b = n_traces - 1
+        st0, st1 = sliced_traces[t_idx_a], sliced_traces[t_idx_b]
+        sy0, sy1 = trace_sy_funcs[t_idx_a], trace_sy_funcs[t_idx_b]
+        sorted_pairs = sorted(pairs, key=lambda p: -p['ppm_0'])
+        for p_i, pair in enumerate(sorted_pairs):
+            p0, p1, delta = pair['ppm_0'], pair['ppm_1'], pair['delta']
+            if ppm_lo <= p0 <= ppm_hi and ppm_lo <= p1 <= ppm_hi:
+                x_a = sx(p0)
+                y_a = trace_baselines[t_idx_a] + 2.0
+                x_b = sx(p1)
+                y_b = sy1(float(np.interp(p1, st1['x'], st1['y']))) - 4.0
+                drawing.line((x_a, y_a), (x_b, y_b), parent=main_group, color='#616161', dashed=True)
+                mid_x = 0.5 * (x_a + x_b)
+                mid_y = 0.5 * (y_a + y_b) + ((-5.0 if p_i % 2 == 0 else 5.0) if len(sorted_pairs) > 1 else 0.0)
+                drawing.text(
+                    (mid_x - 14.0, mid_y),
+                    f'\u0394\u03b4 {delta:+.2f} ppm',
+                    size=7,
+                    parent=main_group,
+                    color='#616161',
+                )
+
+    # Shared bottom ppm axis
+    y_axis = top_margin + n_traces * lane_h
+    drawing.line((x0, y_axis), (x0 + plot_w, y_axis), parent=main_group)
+    for tick_ppm in np.linspace(ppm_hi, ppm_lo, 7):
+        tx = sx(float(tick_ppm))
+        drawing.line((tx, y_axis), (tx, y_axis + 5.0), parent=main_group)
+        drawing.text((tx - 8.0, y_axis + 15.0), f'{tick_ppm:.2f}', size=8, parent=main_group)
+
+    axis_nuc = sliced_traces[0]['nucleus']
+    drawing.text((x0 + plot_w * 0.36, y_axis + 32.0), f'{axis_nuc} Chemical Shift (ppm)', size=9, parent=main_group)
+
+    saved_path = None
+    if output_path is not None:
+        saved_path = drawing.save(output_path)
+
+    xml_body = ET.tostring(drawing.root, encoding='unicode')
+    xml_str = (
+        '<?xml version="1.0" encoding="UTF-8" ?>\n'
+        '<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >\n'
+        + xml_body
+    )
+    out: dict[str, Any] = {
+        'cdxml': xml_str,
+        'trace_count': len(sliced_traces),
+        'ppm_range': [round(float(ppm_hi), 4), round(float(ppm_lo), 4)],
+        'labels': resolved_labels,
+    }
+    if saved_path is not None:
+        out['output_path'] = saved_path
+    return out
+
+
+stack_spectra = build_stacked_nmr_cdxml

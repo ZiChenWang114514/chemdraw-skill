@@ -217,9 +217,9 @@ async function main() {
   await type("zzzz");
   check("an empty search offers a way forward", await run(`!document.querySelector(".faq-empty").hidden && !!document.querySelector(".faq-empty a")`));
   await type("");
-  check("clearing the search restores the list", (await shownQuestions()) === 9 && (await count(".faq details[open]")) === 1 && (await count(".faq mark")) === 0);
+  check("clearing the search restores the list", (await shownQuestions()) === 10 && (await count(".faq details[open]")) === 1 && (await count(".faq mark")) === 0);
   await click("[data-faq-all]");
-  check("expand all opens every answer", (await count(".faq details[open]")) === 9);
+  check("expand all opens every answer", (await count(".faq details[open]")) === 10);
   await sleep(320);
   await click("[data-faq-all]");
   check("expand all closes them again", (await count(".faq details[open]")) === 0);
@@ -231,7 +231,7 @@ async function main() {
   check("a deep link opens its answer", await run(`document.querySelector("#faq-safety").open`));
   await send("Emulation.setScriptExecutionDisabled", { value: true });
   await open("");
-  check("without scripts the FAQ still reads", (await count(".faq details .lead")) === 9 && await run(`getComputedStyle(document.querySelector(".faq-tools")).display === "none"`));
+  check("without scripts the FAQ still reads", (await count(".faq details .lead")) === 10 && await run(`getComputedStyle(document.querySelector(".faq-tools")).display === "none"`));
   await send("Emulation.setScriptExecutionDisabled", { value: false });
 
   // The pointer: each tool shows its own cursor, and a preview is exactly what the click does

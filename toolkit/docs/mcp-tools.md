@@ -4,18 +4,18 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full`
-Tools: `66`
+Tools: `69`
 
 ## Extended Tools
 
-### `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None) -> dict[str, typing.Any]`
+### `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None, internal_standard_name: str = 'IS') -> dict[str, typing.Any]`
 
 Analyze a time series of standard LCMS data (PDF, .rpt, .daml, report.txt, mzML/mzXML or Waters .raw).
 
 Every PDF, Shimadzu .daml, Agilent report.txt, mzML/mzXML file or Waters .raw folder is one timepoint;
 every sample inside an OpenLynx .rpt is one timepoint, so one multi-sample .rpt is enough.
-``internal_standard_mw`` (exact mass) and/or ``internal_standard_rt`` (minutes) name an internal standard:
-each species is then also reported relative to it.
+``internal_standard_mw`` (exact mass) and/or ``internal_standard_rt`` (minutes) name an internal standard
+(labeled by ``internal_standard_name``, default ``"IS"``): each species is then also reported relative to it.
 
 ### `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, typing.Any]`
 
@@ -31,6 +31,19 @@ as compare_molecules names them), with an optional unique ``pair_id``.
 ### `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, typing.Any]`
 
 Create PPTX or DOCX containing editable ChemDraw OLE objects.
+
+### `build_acs_figure(spec: dict[str, typing.Any] | str, output_path: str | None = None, render: bool = False) -> dict[str, typing.Any]`
+
+Build an ACS Document 1996 CDXML figure from an acs_builder JSON spec.
+
+Supports molecule, conformer (chair, newman, haworth, fischer, norbornane), text,
+arrow, box, and label_box objects, plus ring_fills, atom_halos, multi_attachments,
+ts_bracket, orbital, and interaction styling.
+
+Args:
+    spec: Spec dict, JSON string, or path to a .json spec file.
+    output_path: Optional destination .cdxml path (never overwrites an existing file).
+    render: If True, also render a native 300 dpi PNG beside the CDXML when ChemDraw is available.
 
 ### `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict`
 
@@ -159,17 +172,28 @@ fail comparison. This evaluates appearance only, never chemical identity.
 
 Compare two molecule representations using ChemScript identity and RDKit Tanimoto fingerprints.
 
+### `compare_nmr_shifts(smiles: str, experimental_1h: Optional[list[float]] = None, experimental_13c: Optional[list[float]] = None, predicted_result: Optional[dict[str, Any]] = None, solvent: str = 'CDCl3', engines: str = '', outlier_threshold_1h: float = 0.5, outlier_threshold_13c: float = 5.0) -> dict[str, typing.Any]`
+
+Compare experimental 1H and/or 13C NMR shifts against predicted or topological groups for `smiles`.
+
+Performs optimal peak-to-group Hungarian assignment (`scipy.optimize.linear_sum_assignment`).
+When `predicted_result` is omitted and no local NMR engine is installed, automatically falls
+back to RDKit symmetry-equivalent topological group heuristics so assignments and outlier flags
+remain available offline.
+
 ### `compose_chemical_figure(manifest_path: str, output_path: str) -> dict`
 
 Compose editable CDXML using explicit point coordinates and grounded molecules.
 
 Read the Skill publication-figures reference for the JSON manifest schema.
 Supports molecules with exact atom coordinates or template alignment, CIP/
-atom labels, highlights, rich text, straight/equilibrium/resonance/retro arrows,
-curved electron arrows, brackets and shapes. A template_path preserves native
-objects and permits translations/text edits without flattening. Outputs final
-CDXML round-trip validation; native rendering and reference comparison are
-separate required steps. Never claims journal identity from export success.
+atom labels, highlights, ring fills, multi-attachments, crossings, rich text,
+straight/equilibrium/resonance/retro arrows, curved electron arrows,
+transition-state brackets, orbitals, interactions, and shapes. The manifest
+style is a built-in preset name (acs1996, wiley, rsc, nature, ...; see
+chemdraw://style-guide/all) or an object with an optional "preset" plus font,
+font_size, bond_length, line_width, bold_width, hash_spacing and margin_width,
+which override the preset.
 
 ### `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, typing.Any]`
 
@@ -184,13 +208,28 @@ Discover and classify files belonging to one experiment.
 Draw a reaction scheme from a brief and check it, in one call.
 
 brief is an object (or its JSON text) the caller writes from the user's request:
-species [{id, smiles or name, label?}], steps [{substrates [ids], products [ids],
-above [lines], below [lines], yield, arrow solid|dashed|failed|reversible|resonance}],
-optional max_width (points, default 504, the width of a double-column ACS page) and
-title; kind defaults to "scheme" and style to "acs1996". The steps may form a linear
-route, a convergent route (arms that merge) or one starting material with several
-products, in any order; the report names the layout used, and steps that fit none of
-these are refused. Only the conditions in the brief are drawn; a
+species [{id, smiles or name, label?, ring_fills?, atom_halos?, ts_bracket?}],
+steps [{substrates [ids], products [ids], above [lines], below [lines], yield,
+arrow solid|dashed|failed|reversible|resonance, ts_bracket? (a species id)}], optional layout
+(e.g. "catalytic-cycle"), max_width (points, default 504, the width of a double-column
+ACS page) and title; kind defaults to "scheme". style names a built-in journal preset
+from ChemDraw's stock style sheets (default "acs1996"; others include "wiley", "rsc",
+"nature"; chemdraw://style-guide/{preset} lists its settings): the scheme is laid out at
+ACS geometry and then rescaled to the preset's bond length, and max_width is the width
+of the styled figure. style may instead name a house style (`cdx.py styles` lists them):
+its drawing conventions (bold compound numbers, yield placement, stacked substrates,
+abbreviated groups, substrate and new-bond colours, bold arrows) are applied to the
+scheme and then its base preset; the report's style lists what was applied and skipped.
+Scope panels and mechanisms take only the house style's base preset. The steps may
+form a linear route, a convergent route (arms that merge), one starting material with
+several products (divergent), or a closed catalytic-cycle (a loop of >= 3 steps or
+layout="catalytic-cycle"), in any order; the report names the layout used, and steps
+that fit none of these are refused. Species entries may also specify optional visual
+decorations: ring_fills ([{ring_index, color, style, inset}]), atom_halos ([{atoms,
+color, radius}]), or ts_bracket (true or {superscript, bracket_type, lip_size}) to
+wrap the species fragment in a [...] transition-state bracket with a top-right double
+dagger; a step's ts_bracket names the bracketed species id (true is refused). Atom and
+ring indices are RDKit indices of the species SMILES. Only the conditions in the brief are drawn; a
 step without any is reported, never filled in. Structures given as SMILES are used
 as they are; names go through the curated reagent table and, when the network is
 allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked
@@ -289,6 +328,29 @@ List the optional OCSR, segmentation, reaction, retrosynthesis, condition and NM
 
 Install with `cdx.py install-engines NAME...` (each engine gets its own environment). Remote engines
 upload data and need the user's consent (see the Skill's upload rule).
+
+### `live_chemdraw_session(action: str = 'status', *, cdxml: str = '', smiles: str = '', output_path: str = '') -> dict[str, typing.Any]`
+
+Interact non-destructively with an already-open user-facing desktop ChemDraw window.
+
+Connects to a running ChemDraw instance (GetActiveObject on Windows COM or AppleScript on
+macOS) without hiding the window, closing user documents, or exiting the application.
+
+Args:
+    action: One of:
+        - "status": Check if ChemDraw is open with an active document and whether the
+          current selection (or active canvas) contains chemical structures.
+        - "read_active": Read the active document (or selection if active) as CDXML and
+          SMILES without modifying the open document, optionally saving a copy to output_path.
+        - "read_selection": Read the currently selected objects (falling back to the active
+          document if nothing is selected) as CDXML and SMILES.
+        - "insert_cdxml": Load cdxml (a CDXML string or file path) or smiles into a new
+          visible document tab of the open ChemDraw window; the user's active document is
+          never overwritten. On macOS read actions save a persistent snapshot under the
+          staging dir and save a titled document back to its original path.
+    cdxml: CDXML string or path to a .cdxml file for action="insert_cdxml".
+    smiles: Optional SMILES string to render and insert when cdxml is not provided.
+    output_path: Optional file path to save a copy of the read or inserted CDXML.
 
 ### `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict`
 
@@ -420,7 +482,7 @@ Engine: reactiont5-forward (local; install with `cdx.py install-engines reaction
 to `count` ranked candidates with beam scores and ready `reactions` (A.B>>P). These are predictions,
 not literature facts; the true product may not be among them.
 
-### `predict_retrosynthesis(product: str, engine: Optional[str] = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900) -> dict[str, typing.Any]`
+### `predict_retrosynthesis(product: str, engine: Optional[str] = None, steps: str = 'single', count: int = 5, time_limit: int = 60, timeout_seconds: int = 900, output_cdxml: str = '') -> dict[str, typing.Any]`
 
 Suggest precursors (steps="single") or full routes to purchasable stock (steps="multi") for a target.
 
@@ -444,19 +506,11 @@ never a new accepted project. Native PNG/SVG rendering defaults on, through
 isolated locked workers; native failure is reported as pending validation.
 This checks reader consistency and data binding, not experimental chemistry.
 
-### `rdkit_workbench(molecules: list[dict], operation: str = 'inspect', options: dict | None = None, output_path: str | None = None) -> dict`
+### `rdkit_workbench(molecules: list[dict] | str | None = None, operation: str = 'inspect', options: dict | None = None, output_path: str | None = None, **kwargs) -> dict`
 
-Analyze grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo.
-
-Input records accept smiles/CXSMILES, molblock, or file (CDXML/MOL/SDF).
-Atom indices are zero-based and refer to each input's atom order. Options:
-max_results (1..128), only_unassigned (stereoisomers, default true),
-include_molblock, timeout (MCS, 1..30 seconds). R-group decomposition uses
-molecules[0] as the explicit core. set_stereo takes configurations={index:
-R/S/unspecified} for one molecule, verifies the achieved CIP labels, and emits
-a connectivity-preserving diff. Enumeration creates candidate structures,
-not predictions of populations, reaction products, or experimental ratios.
-Writes provenance, bounded candidate results and truncation status to JSON.
+Analyze and edit grounded molecules: inspect, stereoisomers, tautomers, mcs,
+r_groups, set_stereo, edit_structure, edit_smarts, read_wedges, depict_like,
+enumerate_markush.
 
 ### `recognize_structure(image_path: str, engines: str = 'decimer-api', hand_drawn: bool = False, output_path: Optional[str] = None, timeout_seconds: int = 600, confirm_upload: bool = False, approved_sha256: Optional[str] = None, approved_origin: Optional[str] = None) -> dict[str, typing.Any]`
 
@@ -850,7 +904,7 @@ Returns:
 Parse an LCMS or NMR analysis file to extract peaks and data.
 
 Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports, Shimadzu
-LabSolutions .daml files, Agilent ChemStation report.txt files, mzML / mzXML
+LabSolutions .daml files, Agilent ChemStation report.txt files, .mzML / .mzXML
 files, Waters .raw folders, and MestReNova NMR PDFs. Returns structured peak data for LCMS species
 identification or NMR characterisation. A .rpt holds one or many samples:
 one sample returns the same dict as a PDF report, several return
@@ -936,11 +990,15 @@ Safety override: Parse a scheme and atomically publish its JSON descriptor.
 Render an editable chemical reaction scheme with per-fragment chemical validation.
 
 Accepts exactly ONE of: yaml_text, compact_text, or json_path.
-Call with NO arguments to see the full YAML schema reference.
+Call with NO arguments to see the full YAML schema and compact syntax reference.
 
-- yaml_text:  Write YAML with structures (ID + SMILES) and steps
-              (substrates, products, above/below arrow).
-- json_path:  Path to reaction JSON from parse_reaction (auto-layout).
+- yaml_text:    Write YAML with structures (ID + SMILES) and steps
+                (substrates, products, above/below arrow).
+- compact_text: Write Compact Scheme DSL ("Mermaid for reaction schemes"):
+                @layout linear|sequential|stacked|divergent|catalytic-cycle,
+                ID: {SMILES} "label", A + B -->|a| C (or ..> dashed, X> no-go),
+                above:/below: annotations, and run[1]: 85% yield tables.
+- json_path:    Path to reaction JSON from parse_reaction (auto-layout).
 
 IMPORTANT: Every SMILES in the YAML must come from a tool — resolve_name,
 modify_molecule, parse_reaction, extract_structures_from_image, etc.
@@ -965,7 +1023,7 @@ Returns:
     when output_path is provided, or YAML schema reference if called with
     no arguments.
 
-Safety override: Render a scheme through a validated no-overwrite staging file.
+Safety override: Render a scheme (yaml_text, compact_text with @layout/-->/..>/X>/run[1], or json_path) through a validated no-overwrite staging file.
 
 ### `render_to_png(cdxml_path: str, output_path: Optional[str] = None) -> dict`
 

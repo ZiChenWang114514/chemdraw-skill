@@ -1,0 +1,44 @@
+{
+  "style": "nature_portfolio",
+  "species": [
+    {
+      "id": "1a",
+      "smiles": "CCC(Cl)c1ccccc1",
+      "label": "1a"
+    },
+    {
+      "id": "2a",
+      "smiles": "COC(=O)c1ccc(Br)cc1",
+      "label": "2a"
+    },
+    {
+      "id": "3a",
+      "smiles": "CC[C@H](c1ccccc1)c1ccc(C(=O)OC)cc1",
+      "label": "3a"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "1a",
+        "2a"
+      ],
+      "products": [
+        "3a"
+      ],
+      "above": [
+        "(+)Pt | Ni foam (-)",
+        "NiBr2•glyme (10 mol%)",
+        "L1 (15 mol%)"
+      ],
+      "below": [
+        "TBABF4 (1.0 equiv.)",
+        "Et3N (4.5 equiv.), 4Å MS",
+        "DMAc:THF = 1:45",
+        "2 mA, 12 h, rt"
+      ],
+      "yield": "85%, 90% ee"
+    }
+  ],
+  "max_width": 560
+}

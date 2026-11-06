@@ -745,7 +745,7 @@ class InteractionMarkupTests(unittest.TestCase):
             with self.subTest(page=language):
                 caps = re.search(r'<dl class="caps">(.*?)</dl>', html, re.S).group(1)
                 items = re.findall(r'<div data-kind="(\w+)">(.*?)</div>\n', caps, re.S)
-                self.assertEqual(len(items), 18)
+                self.assertEqual(len(items), 19)
                 for _kind, body in items:
                     self.assertIn('<details class="try">', body)
                     ask = re.search(r'<p class="ask">(.*?)</p>', body).group(1)
@@ -1011,8 +1011,8 @@ class FaqTests(unittest.TestCase):
     def test_both_languages_ask_the_same_questions(self) -> None:
         ids = [[entry[0] for entry in faq_entries(language)] for language in PAGES]
         self.assertEqual(ids[0], ids[1])
-        self.assertEqual(len(ids[0]), 9)
-        self.assertEqual(len(set(ids[0])), 9)
+        self.assertEqual(len(ids[0]), 10)
+        self.assertEqual(len(set(ids[0])), 10)
         self.assertTrue(all(i.startswith("faq-") for i in ids[0]))
 
     def test_structured_data_quotes_the_page_word_for_word(self) -> None:
@@ -1402,6 +1402,25 @@ class BrowserSmokeTests(unittest.TestCase):
             finally:
                 server.shutdown()
         self.assertEqual(done.returncode, 0, done.stdout[-4000:] + done.stderr[-2000:])
+
+
+class DbeAndRedoTests(unittest.TestCase):
+    def test_dbe_counts_every_halogen_and_flags_impossible_formulas(self):
+        out = run_editor("""
+const f = (count) => { const r = E.dbeOf(count); return [r.dbe, r.dbeFlag]; };
+console.log(JSON.stringify([
+  f({ C: 6, H: 5, I: 1 }), f({ C: 1, H: 3, Si: 1, Cl: 3 }), f({ C: 1, H: 3, P: 1 }),
+  f({ C: 1, H: 6 }), f({ C: 1, H: 3 }),
+  E.analyse(E.load("benzene")).dbe,
+]));
+""")
+        self.assertEqual(out, [[4, ""], [0, ""], [1, ""], [-1, "impossible"], [0.5, "radical"], 4])
+        for language in WORDS:
+            self.assertEqual(set(words(language)["dbeFlag"]), {"impossible", "radical"})
+
+    def test_redo_stack_lives_only_on_each_tab(self):
+        source = (SITE / "editor.js").read_text(encoding="utf-8")
+        self.assertNotRegex(source, r"future")
 
 
 if __name__ == "__main__":

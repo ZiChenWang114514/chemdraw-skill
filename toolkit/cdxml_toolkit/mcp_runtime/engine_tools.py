@@ -70,6 +70,7 @@ def predict_retrosynthesis(
     count: int = 5,
     time_limit: int = 60,
     timeout_seconds: int = 900,
+    output_cdxml: str = "",
 ) -> dict[str, Any]:
     """Suggest precursors (steps="single") or full routes to purchasable stock (steps="multi") for a target.
 
@@ -81,7 +82,15 @@ def predict_retrosynthesis(
     accept, `starting_materials` and whether all are in stock. Learned suggestions only: check selectivity,
     conditions and availability before relying on them.
     """
-    return reactions.retrosynthesis(product, engine, steps, count, time_limit, timeout_seconds)
+    return reactions.retrosynthesis(
+        product,
+        engine,
+        steps,
+        count,
+        time_limit,
+        timeout_seconds,
+        output_cdxml=output_cdxml or None,
+    )
 
 
 def predict_conditions(
@@ -156,10 +165,49 @@ def predict_nmr(
             raise ValueError('compare with experimental peaks using one engine at a time')
         nucleus = 'both' if (experimental_1h and experimental_13c) else ('13C' if experimental_13c else '1H')
     result = nmr.predict(smiles, nucleus, solvent, frequency_mhz, engine, output_path, timeout_seconds)
-    if experimental and result.get('ok', True):
+    if experimental:
         result['experimental_comparison'] = nmr.compare_shifts(
-            smiles, experimental_1h, experimental_13c, solvent=solvent, predicted_result=result)
+            smiles,
+            experimental_1h,
+            experimental_13c,
+            solvent=solvent,
+            engines=() if not result.get('ok', True) else ((engine,) if engine else ('magnet',)),
+            predicted_result=result if result.get('ok', True) else None,
+        )
     return result
+
+
+def compare_nmr_shifts(
+    smiles: str,
+    experimental_1h: Optional[list[float]] = None,
+    experimental_13c: Optional[list[float]] = None,
+    predicted_result: Optional[dict[str, Any]] = None,
+    solvent: str = "CDCl3",
+    engines: str = "",
+    outlier_threshold_1h: float = 0.5,
+    outlier_threshold_13c: float = 5.0,
+) -> dict[str, Any]:
+    """Compare experimental 1H and/or 13C NMR shifts against predicted or topological groups for `smiles`.
+
+    Performs optimal peak-to-group Hungarian assignment (`scipy.optimize.linear_sum_assignment`).
+    When `predicted_result` is omitted and no local NMR engine is installed, automatically falls
+    back to RDKit symmetry-equivalent topological group heuristics so assignments and outlier flags
+    remain available offline.
+    """
+    if isinstance(engines, str):
+        eng_seq = tuple(e.strip() for e in engines.split(",") if e.strip()) or ("magnet",)
+    else:
+        eng_seq = tuple(engines) if engines else ("magnet",)
+    return nmr.compare_shifts(
+        smiles,
+        experimental_1h=experimental_1h,
+        experimental_13c=experimental_13c,
+        solvent=solvent,
+        engines=eng_seq,
+        predicted_result=predicted_result,
+        outlier_threshold_1h=outlier_threshold_1h,
+        outlier_threshold_13c=outlier_threshold_13c,
+    )
 
 
 ENGINE_TOOLS = {
@@ -170,6 +218,7 @@ ENGINE_TOOLS = {
     "predict_retrosynthesis": predict_retrosynthesis,
     "predict_conditions": predict_conditions,
     "predict_nmr": predict_nmr,
+    "compare_nmr_shifts": compare_nmr_shifts,
 }
 
-__all__ = ["ENGINE_TOOLS", "ENGINES"]
+__all__ = ["ENGINE_TOOLS", "ENGINES", "compare_nmr_shifts"]

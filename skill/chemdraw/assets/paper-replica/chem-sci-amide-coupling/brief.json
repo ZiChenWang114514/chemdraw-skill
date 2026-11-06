@@ -1,0 +1,39 @@
+{
+  "style": "rsc_journals",
+  "species": [
+    {
+      "id": "PySH",
+      "smiles": "Sc1ccccn1"
+    },
+    {
+      "id": "TP",
+      "smiles": "O=C(OC(Cl)(Cl)Cl)OC(Cl)(Cl)Cl",
+      "label": "triphosgene"
+    },
+    {
+      "id": "DPDTC",
+      "smiles": "O=C(Sc1ccccn1)Sc1ccccn1",
+      "label": "1; DPDTC"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "PySH",
+        "TP"
+      ],
+      "products": [
+        "DPDTC"
+      ],
+      "above": [
+        "Et3N (2 equiv)"
+      ],
+      "below": [
+        "acetone",
+        "0 °C - rt, 16 h"
+      ],
+      "yield": "89% yield, 6.5 g scale"
+    }
+  ],
+  "max_width": 504
+}

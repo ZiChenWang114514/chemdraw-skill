@@ -134,11 +134,20 @@
 - **function**, line 116: `read_grid(path: str | Path) -> dict` - Every stoichiometry grid in a saved CDXML file, as ChemDraw wrote it.
 - **class**, line 49: `StoichiometryGridError` - A failure with a stable public error code.
 
+## `chemdraw.style_presets`
+
+- **function**, line 189: `apply_style_preset(cdxml_text: str, name: str, *, rescale: bool = True) -> str` - Write a preset's settings and fonts onto a CDXML document.
+- **function**, line 161: `list_style_presets() -> list[dict]` - All presets, default first, as plain dictionaries.
+- **function**, line 166: `style_preset(name: str) -> dict` - One preset by slug, display name or style-sheet name (case-insensitive).
+- **function**, line 230: `style_preset_as_manifest_style(name: str) -> dict` - A preset as the ``style`` dictionary of ``compose_chemical_figure``.
+- **function**, line 171: `style_preset_bond_length(name: str) -> float` - No public docstring in the audited version.
+- **function**, line 148: `style_preset_slug(name: str) -> str` - Slug of a preset named by slug, display name or style-sheet name (any case).
+
 ## `chemdraw.style_sheet`
 
-- **function**, line 167: `apply_style_sheet(cdxml_text: str, style: dict, *, rescale: bool = True) -> str` - Write the settings from :func:`read_style_sheet` onto a CDXML document.
-- **function**, line 124: `read_style_sheet(path: str | Path) -> dict` - Drawing settings of a ChemDraw style sheet (.cds) or CDX document.
-- **class**, line 59: `StyleSheetError` - The file is not a ChemDraw style sheet this module can read.
+- **function**, line 185: `apply_style_sheet(cdxml_text: str, style: dict, *, rescale: bool = True) -> str` - Write the settings from :func:`read_style_sheet` onto a CDXML document.
+- **function**, line 142: `read_style_sheet(path: str | Path) -> dict` - Drawing settings of a ChemDraw style sheet (.cds) or CDX document.
+- **class**, line 60: `StyleSheetError` - The file is not a ChemDraw style sheet this module can read.
 
 ## `office.doc_from_template`
 

@@ -1163,13 +1163,14 @@ def analyze_lcms_series(
     ignore_instrument: bool = False,
     internal_standard_mw: Optional[float] = None,
     internal_standard_rt: Optional[float] = None,
+    internal_standard_name: str = "IS",
 ) -> dict[str, Any]:
     """Analyze a time series of standard LCMS data (PDF, .rpt, .daml, report.txt, mzML/mzXML or Waters .raw).
 
     Every PDF, Shimadzu .daml, Agilent report.txt, mzML/mzXML file or Waters .raw folder is one timepoint;
     every sample inside an OpenLynx .rpt is one timepoint, so one multi-sample .rpt is enough.
-    ``internal_standard_mw`` (exact mass) and/or ``internal_standard_rt`` (minutes) name an internal standard:
-    each species is then also reported relative to it.
+    ``internal_standard_mw`` (exact mass) and/or ``internal_standard_rt`` (minutes) name an internal standard
+    (labeled by ``internal_standard_name``, default ``"IS"``): each species is then also reported relative to it.
     """
     if not files:
         raise ValueError("analyze_lcms_series requires at least two files")
@@ -1202,7 +1203,8 @@ def analyze_lcms_series(
         if ignore_instrument:
             argv.append("--ignore-instrument")
         for flag, value in (("--internal-standard-mw", internal_standard_mw),
-                            ("--internal-standard-rt", internal_standard_rt)):
+                            ("--internal-standard-rt", internal_standard_rt),
+                            ("--internal-standard-name", internal_standard_name)):
             if value is not None:
                 argv.extend([flag, str(value)])
         stderr = io.StringIO()

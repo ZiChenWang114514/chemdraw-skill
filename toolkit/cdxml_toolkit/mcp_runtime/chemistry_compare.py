@@ -46,6 +46,25 @@ def _representation(value: Any, label: str) -> str:
     return value
 
 
+def _has_dummy_atoms(molecule) -> bool:
+    return any(atom.GetAtomicNum() == 0 for atom in molecule.GetAtoms())
+
+
+def _normalize_dummy_labels(molecule):
+    from rdkit import Chem
+
+    out = Chem.Mol(molecule)
+    for atom in out.GetAtoms():
+        if atom.GetAtomicNum() == 0:
+            map_num = atom.GetAtomMapNum()
+            isotope = atom.GetIsotope()
+            label = map_num if map_num > 0 else isotope
+            if label > 0:
+                atom.SetIsotope(int(label))
+                atom.SetAtomMapNum(0)
+    return out
+
+
 def _molecule_from_info(info: dict[str, Any], label: str):
     from rdkit import Chem
 
@@ -54,9 +73,20 @@ def _molecule_from_info(info: dict[str, Any], label: str):
     smiles = info.get("smiles")
     if not isinstance(smiles, str) or not smiles.strip():
         raise ValueError(f"ChemScript did not return SMILES for {label}")
+    raw_smiles = info.get("_raw_smiles")
+    if (
+        isinstance(raw_smiles, str)
+        and ("*:" in raw_smiles or "*]" in raw_smiles)
+        and "*:" not in smiles
+    ):
+        raw_mol = Chem.MolFromSmiles(raw_smiles)
+        if raw_mol is not None:
+            return _normalize_dummy_labels(raw_mol)
     molecule = Chem.MolFromSmiles(smiles)
     if molecule is None:
         raise ValueError(f"RDKit could not parse ChemScript output for {label}")
+    if _has_dummy_atoms(molecule):
+        molecule = _normalize_dummy_labels(molecule)
     return molecule
 
 
@@ -79,10 +109,11 @@ def _fingerprint(molecule, kind: str, radius: int, n_bits: int, use_chirality: b
 def _normalized(info: dict[str, Any], molecule) -> dict[str, Any]:
     from rdkit import Chem
 
+    norm_mol = _normalize_dummy_labels(molecule) if _has_dummy_atoms(molecule) else molecule
     return {
         "formula": info.get("formula"),
         "inchi": info.get("inchi"),
-        "canonical_smiles": Chem.MolToSmiles(molecule, canonical=True, isomericSmiles=True),
+        "canonical_smiles": Chem.MolToSmiles(norm_mol, canonical=True, isomericSmiles=True),
         "atom_count": info.get("atom_count"),
         "bond_count": info.get("bond_count"),
     }
@@ -104,7 +135,11 @@ def _compare_infos(
     canonical_b = _normalized(info_b, molecule_b)
     inchi_a = info_a.get("inchi")
     inchi_b = info_b.get("inchi")
-    if isinstance(inchi_a, str) and inchi_a and isinstance(inchi_b, str) and inchi_b:
+    has_dummies = _has_dummy_atoms(molecule_a) or _has_dummy_atoms(molecule_b)
+    if has_dummies:
+        exact_match = canonical_a["canonical_smiles"] == canonical_b["canonical_smiles"]
+        identity_basis = "RDKit canonical isomeric SMILES (dummy atom labels preserved)"
+    elif isinstance(inchi_a, str) and inchi_a and isinstance(inchi_b, str) and inchi_b:
         exact_match = inchi_a == inchi_b
         identity_basis = "ChemScript InChI"
     else:

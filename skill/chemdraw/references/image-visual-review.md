@@ -31,6 +31,16 @@ cdx.py call modify_molecule --json '{"mol_json": {"smiles": "<recognized>"}, "op
 
 `<corrected>` is the recognized SMILES with only the change you can point to in the image (here one methyl replaced by OH); do not write a new SMILES from memory. Prefer an operation that states the change (`name_surgery`, `smarts`) when one fits. When the compound has a name or number in the source text, `resolve_name` gives an independent structure to compare with. Read the returned diff status: the diff must show exactly the intended change, and a null MCS or `partial`/`not_completed` does not mean "no change".
 
+### Atom-index & stereochemical surgery with `rdkit_workbench`
+
+When OCSR returns a structure that needs targeted atom/bond edits, wedge/dash inspection, or 2D orientation alignment to match the source crop, use `rdkit_workbench`:
+
+- **`edit_structure`:** apply deterministic graph edits by zero-based atom index (`set_atom`, `set_bond`, `add_group`, `remove_atoms`, `set_ez` for $E/Z$ alkene geometry) with full valence and sanitisation checks.
+- **`read_wedges`:** read back 2D wedge/dash/wavy bond directions (`BEGINWEDGE`, `BEGINDASH`, `UNKNOWN`), CIP ($R$/$S$, $E$/$Z$) labels, and narrow-end / wide-end atom indices from a CDXML or MOL file.
+- **`depict_like`:** align a molecule onto a reference template (or search 16 candidate rotation/flip orientations) to match the source drawing's ring and substituent orientation while recomputing stereo wedges consistently.
+- **`enumerate_markush`:** expand R-group tables and variable attachment points into concrete member structures.
+- **`visual_checkpoints` & `diagnose_smiles_error`:** generate structured visual inspection checklists (ring sizes, hetero-labels, wedge narrow ends, charges) and pinpoint syntax/valence errors in broken OCSR SMILES strings.
+
 At every crossing decide: occluded solid bond (keep one bond, set depth with `crossings`), dashed bond, or hashed wedge. A crossing never creates an atom. See [publication figures](publication-figures.md) for `crossings` and bond-display edits.
 
 Place molecules with `compose_chemical_figure`:
@@ -120,6 +130,7 @@ A cache `spec` contains `source_image`, `crop`, `definitions`, `parameters`, `ve
 
 - [Two complete publication schemes](../assets/paper-reconstructions/README.md): native components, layout manifests and an offline assembly script — `cdx.py py <skill>/assets/paper-reconstructions/rebuild.py NEW_DIR`. Covers shared OR groups, abbreviations, folded chains, bridge occlusion and electron arrows.
 - [Drawing example](../assets/paper-replica/example/CASE.md): manifest, CDXML and offline replay with arrows, electron curves, rich text, chirality and enhanced stereo — `cdx.py py <skill>/assets/paper-replica/example/replay.py NEW_DIR`.
+- Open-access paper replicas, each a `brief.json` for `cdx.py draw` with the journal's house style, the reference crop (CC BY) and the ChemDraw render, replayed offline with `cdx.py py <skill>/assets/paper-replica/<case>/replay.py NEW_DIR`: [JACS Au, Pd-catalysed amination](../assets/paper-replica/jacs-au-pd-amination/CASE.md) (`lipshutz_group`), [Chem. Sci., DPDTC formation](../assets/paper-replica/chem-sci-amide-coupling/CASE.md) (`rsc_journals`), [Nat. Commun., electroreductive arylation](../assets/paper-replica/nat-commun-ni-ereductive/CASE.md) (`nature_portfolio`). Each CASE.md lists the OCSR agreement per structure and what still differs from the paper's artwork.
 
 ## Comparison modes
 

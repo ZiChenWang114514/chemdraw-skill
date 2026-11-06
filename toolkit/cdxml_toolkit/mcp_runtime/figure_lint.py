@@ -279,13 +279,20 @@ def _plus_issues(objects: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         level = [(obj, box) for obj, box in species if box[1] <= cy <= box[3]]
         left = max((box[2] for _, box in level if (box[0] + box[2]) / 2.0 < cx), default=None)
         right = min((box[0] for _, box in level if (box[0] + box[2]) / 2.0 > cx), default=None)
-        if left is None or right is None or x1 - left > PLUS_MAX_GAP or right - x2 > PLUS_MAX_GAP:
+        inline = not (left is None or right is None or x1 - left > PLUS_MAX_GAP or right - x2 > PLUS_MAX_GAP)
+        # Stacked substrates: the "+" sits in a column, one species above and one below.
+        column = [box for _, box in species if box[0] <= cx <= box[2]]
+        above = max((box[3] for box in column if (box[1] + box[3]) / 2.0 < cy), default=None)
+        below = min((box[1] for box in column if (box[1] + box[3]) / 2.0 > cy), default=None)
+        stacked = (above is not None and below is not None
+                   and y1 - above <= PLUS_MAX_GAP and below - y2 <= PLUS_MAX_GAP)
+        if not inline and not stacked:
             issues.append({
                 "kind": "stray_plus",
                 "ids": [plus["id"]],
                 "message": f"The + {plus['id']} is not between two species on its line.",
             })
-        elif 0 <= min(x1 - left, right - x2) < PLUS_MIN_CLEARANCE:
+        elif inline and 0 <= min(x1 - left, right - x2) < PLUS_MIN_CLEARANCE:
             issues.append({
                 "kind": "crowded_plus",
                 "ids": [plus["id"]],

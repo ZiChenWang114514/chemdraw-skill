@@ -40,6 +40,16 @@ Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --rend
   - **Catalytic cycles (`layout: "catalytic-cycle"`):** when `"layout": "catalytic-cycle"` is set (or when the steps form a closed catalytic loop), intermediates are arranged around a circle of radius `cycle_radius` (default `120.0` pt) with curved arrows along the circumference and entering reactants / departing products placed on radial in/out arrows around each step.
   - Put in `above` / `below` only what the user gave: a step without conditions is drawn without them and the report says so.
 - `max_width` is the row budget in points (default 504). A longer route wraps onto more rows.
+- `style` is a journal preset from ChemDraw's stock style sheets (default `acs1996`; also `wiley`, `adv_synth_catal`, `rsc`, `rsc_1col`, `nature`, `synthesis` and others; `cdx.py styles` lists them, `cdx.py draw --style PRESET` sets it). The figure is laid out at ACS geometry and rescaled to the preset's bond length, fonts and line widths; `max_width` still applies to the styled figure, and the report's `style` field names the preset and bond length. Scope and mechanism briefs take the same key; `cdx.py build` specs take a top-level `style` too.
+- `style` can also name a **house style**: how a journal, publisher or research group actually draws schemes, measured from openly licensed published figures. A measurement preset fixes only bond length, line widths and fonts; a house style names one of those presets as its base and adds drawing conventions. `cdx.py styles` lists both kinds (house styles in a second section with their kind, base preset and number of evidence figures), `cdx.py styles NAME` prints a card with its evidence, and `chemdraw://style-guide/{name}` returns it. The conventions a scheme takes:
+  - `compound_label_face` (`bold` or `plain`) and `compound_label_color` for the compound numbers;
+  - `yield_placement`: `under_arrow` (the default), `under_product_label` (a separate line under the product's number), `after_product_label` (`3, 85%` on the number's line, joined by `yield_separator`, default `", "`) or `after_product_label_parenthesised` (`3 (85%)`); `yield_format` is a template such as `"{value}% yield"`;
+  - `substrate_layout`: `inline_plus` (A + B) or `stacked_plus` (A above B with the "+" between, centred on the arrow);
+  - `abbreviate_groups`: groups drawn as abbreviation labels (CO2Me, CO2Et, OMe, OCF3, OAc, NO2, CN, Boc, NHBoc, Cbz, Ph, Bn, OBn, Ts, OTBS, TMS, CF3, tBu, Et, Me, Ac, PhthN); they stay chemically complete, so the saved file reads back as the same molecule. A group on the left of its parent is placed correctly but desktop ChemDraw spells it right-flowing (CO2Me rather than MeO2C) until Clean Up Structure is run on the file; see the [style gallery](../assets/house-styles/gallery/README.md) and the per-style evidence folders beside it;
+  - `new_bond_color`: bonds formed in the step, found by atom mapping; when the mapping is incomplete or ambiguous the bonds stay black and the report says so;
+  - `substrate_colors`: the i-th substrate of a step drawn in the i-th colour; `highlight_fill`: a pastel fill behind the largest ring of the final product; `reagent_text_color`; `arrow_style` `bold`; `show_plus_sign`; `conditions_split` `all_above` or `all_below`.
+
+  A null convention leaves today's drawing. The report's `style` gives `house`, `preset`, `applied` and `skipped` (with the reason); `compound_label_italic_suffix`, `aromatic_rings: "circle"` and `conditions_split: "reagents_above_solvent_below"` (the brief's own above/below split is kept) are not applied yet. Scope panels and mechanisms take only the base preset of a house style.
 
 Read the report before you answer:
 
@@ -123,8 +133,36 @@ Compact text, one scheme in a few lines:
 - `-->` is a solid arrow, `..>` a dashed one, `<=>` an equilibrium arrow, `<->` a resonance arrow, `X>` a failed one. `A --> B --> C` makes two steps and draws the shared intermediate once.
 - `(85%)` after the last product is the yield, printed under the arrow.
 - `above:` and `below:` take quoted text lines or bare structure IDs (drawn as structures). For several steps use `step 1:`, `step 2:` blocks, or `-->|a|` with an `@conditions` block of lettered conditions.
-- `run: "2.15 g" -> "1.60 g, 72% yield"` adds a mass-in to mass-out arrow.
-- Directives start with `@`: `@layout sequential|divergent|convergent|stacked-rows|catalytic-cycle`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
+- `run: "2.15 g" -> "1.60 g, 72% yield"` or `run[1]: 85%` adds per-run scale and yield annotations.
+- Directives start with `@`: `@layout linear|sequential|stacked|divergent|convergent|stacked-rows|catalytic-cycle`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
+
+### Compact Scheme DSL (`compact_text` — "Mermaid for reaction schemes")
+
+`compact_text` lets you write complete multi-step schemes, divergent routes, and catalytic cycles in a concise declarative syntax:
+
+```text
+@layout catalytic-cycle
+Cat: {[Pd]} "Pd(0)"
+Int1: {c1ccccc1[Pd]Br} "Ar-Pd-Br"
+Int2: {c1ccccc1[Pd]c2ccccc2} "Ar-Pd-Ar'"
+Cat -->|a| Int1
+  above: "ArBr, oxidative addition"
+Int1 -->|b| Int2
+  above: "Ar'B(OH)2, base"
+Int2 -->|c| Cat
+  above: "reductive elimination"
+  run[1]: 85%
+```
+
+### JACS / Angew publication styling & 3D conformers
+
+When a scheme or figure requires top-journal visual highlights, transition states, organometallic hapticity, orbitals, or 3D conformer projections (via `draw_figure`, `build_acs_figure`, or `acs_builder.py`):
+
+- **`ring_fills` & `atom_halos`:** pastel JACS/Angew ring-interior polygon shading (`ring_fills`) and circular pharmacophore atom highlights (`atom_halos`) placed on a background layer behind bonds and labels.
+- **`multi_attachments` ($\eta^5$-Cp ferrocene & organometallics):** native CDXML `NodeType="MultiAttachment"` centroid nodes with `Attachments="..."` atom ID lists and coordination bonds (`Display="Dash"` or `"WedgeBegin"`).
+- **`ts_bracket` (`[...]‡`):** square transition-state brackets (`BracketType="SquarePair"`) with a superscript double-dagger `‡` (`\u2021`) annotation. In a `draw_figure` brief, set `ts_bracket: true` (or `{superscript, bracket_type, lip_size}`) on the species, or `ts_bracket: "<species id>"` on a step; a step's `ts_bracket: true` is refused because it does not say which species is the transition state.
+- **`orbital` & `interaction`:** native `<orbital>` lobes (`s`, `p`, `sp3`, `dz2`, `lobe`, shaded/filled/unfilled) and non-covalent H-bond / $\pi$-stacking dashed interaction lines with distance labels (`"2.8 Å"`).
+- **Conformer templates (`chair`, `newman`, `haworth`, `fischer`, `norbornane`):** deterministic 2D coordinate generators for cyclohexane chairs (`1_ax`/`1_eq` through `6_ax`/`6_eq`, optional `flip`), Newman projections (`front`, `back`, `dihedral_deg`), Haworth pyranose/furanose rings, Fischer projections, and bridged bicyclic `[2.2.1]` norbornane skeletons.
 
 A route stays on one row unless told otherwise. Set `@max_row_width 504` (points, the width of a two-column journal page) and the renderer picks the largest number of steps per row that fits; an explicit `@steps_per_row` always wins. In YAML the keys are `max_row_width` and `steps_per_row`.
 

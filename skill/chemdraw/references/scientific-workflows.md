@@ -4,12 +4,14 @@ These commands need the `cdxml_toolkit.scientific` module and the `scientific` e
 
 | Request | Execute | Deliver |
 | --- | --- | --- |
-| TLC or laboratory apparatus | [Native laboratory drawings](native-laboratory-drawings.md) | Native editable TLC/template objects and ChemDraw preview |
-| Processed 1D NMR analysis | `nmr` | Input hash, processing record, peak/integral tables and plots |
+| TLC or laboratory apparatus | `tlc`, `apparatus` ([Native laboratory drawings](native-laboratory-drawings.md)) | Native editable TLC/template objects (`auto_cospot`, stain palettes, `mode="2d"` 2D TLC) and ChemDraw preview |
+| Processed 1D NMR analysis | `nmr` | Input hash, processing record, peak/integral tables and plots (`inset_region`) |
+| Stacked multi-spectrum NMR | `stack_nmr` | Stacked time-course / step-by-step NMR comparison (`build_stacked_nmr_cdxml`) |
+| LCMS 24/96-well purity plate | `lcms_plate` | High-throughput screening 24/96-well purity heatmap (`build_lcms_plate_cdxml`) |
 | Numerical scientific plot | `plot` | SVG, PNG, full data CSV and editable CDXML |
 | Explicit mechanism | `mechanism` | Grounded molecule graphs and atom/bond-anchored electron arrows |
 
-Each operation also runs as the MCP tool `scientific_workflow(operation, spec_path, output_path)` (profiles `full` and `analysis`) with the same spec files: `tlc`, `apparatus` and `mechanism` write one new `.cdxml`, `nmr` and `plot` a new directory. Output is staged and published only on success, and an existing path is never replaced. The commands below remain the way to run it without an MCP client.
+Each operation runs either via the CLI subcommand `cdx.py scientific <nmr|plot|tlc|apparatus|mechanism|stack_nmr|lcms_plate> SPEC.json OUTPUT` or as the MCP tool `scientific_workflow(operation, spec_path, output_path)` (profiles `full` and `analysis`) with the same spec files: `tlc`, `apparatus`, `mechanism`, `stack_nmr`, and `lcms_plate` write one new `.cdxml` (plus SVG/PNG sidecars where configured), while `nmr` and `plot` write a new directory. Output is staged and published only on success, and an existing path is never replaced. The commands below remain the way to run it without an MCP client.
 
 ## Fast examples
 
@@ -38,7 +40,24 @@ This produces TLC, substitution-mechanism and simulated kinetic-plot examples. T
 5. Run the command and inspect the plotted spectrum for a distorted baseline, missing peaks or inappropriate integration limits. Report assignments as unperformed unless separately supported by evidence. To match measured peaks to a model prediction, give `predict_nmr` the measured ppm lists (`experimental_1h`, `experimental_13c`): it returns a model-assisted candidate assignment per peak with errors and outliers ([engines.md](engines.md#predictions)).
 
 ```console
-cdx.py py -m cdxml_toolkit.scientific nmr --spec nmr.json --output nmr-results
+cdx.py scientific nmr nmr.json nmr-results
+```
+
+### Stacked multi-spectrum NMR (`stack_nmr` / `build_stacked_nmr_cdxml`)
+
+To compare reaction timepoints, purification fractions, or multistep synthetic intermediates on a shared chemical-shift axis (with vertical offset, optional `match_shifts` dashed tracking lines, and `normalize: "each" | "max" | "none"`):
+
+```console
+cdx.py scientific stack_nmr stack_nmr.json stacked.cdxml
+```
+
+### TLC (`auto_cospot`, stain palettes, `mode="2d"`) & LCMS well plates (`lcms_plate`)
+
+- **TLC (`tlc`):** `draw_tlc` supports automatic co-spot lane generation (`"auto_cospot": true`), chemical stain palettes (`"stain": "uv254" | "kmno4" | "cam" | "ninhydrin" | "anisaldehyde" | "iodine" | "pma"`), and 2D stability TLC (`"mode": "2d"` with diagonal decomposition reference line and first/second-dimension spots).
+- **LCMS 24/96-well purity plates (`lcms_plate` / `build_lcms_plate_cdxml`):** render high-throughput screening plates (`rows: 4, cols: 6` or `rows: 8, cols: 12`) colored by target product purity % or internal-standard ratio (`"wells": {"A1": {"purity": 94.2, "label": "94%"}}`):
+
+```console
+cdx.py scientific lcms_plate plate.json plate.cdxml
 ```
 
 The [NMR JSON example](../assets/scientific/nmr.json) uses integration ranges from the real [nmrglue integration example](https://nmrglue.readthedocs.io/en/latest/examples/integrate_1d.html). Its spectrum is not bundled: download `1d_data.ft` from that page (network access; skip this example for offline work) and set the input path to it. For another spectrum, replace the ranges or use the example runner, which omits those preset intervals.

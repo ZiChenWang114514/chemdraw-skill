@@ -242,6 +242,9 @@ CASES = [
      'args': {'reactants': AMIDE[0], 'products': AMIDE[1], 'engine': 'reacon', 'count': 2}},
     {'tool': 'predict_nmr', 'needs': ['engine:magnet'], 'args': {'smiles': 'CCOC(C)=O', 'engine': 'magnet'}},
     {'tool': 'predict_nmr', 'needs': ['engine:nmrnet-pp'], 'args': {'smiles': 'CCOC(C)=O', 'engine': 'nmrnet-pp'}},
+    {'tool': 'compare_nmr_shifts', 'args': {'smiles': ASPIRIN, 'experimental_1h': [7.95, 7.55, 7.30, 7.10, 2.30]}},
+    {'tool': 'build_acs_figure', 'args': lambda c: {'spec': {'molecules': [{'smiles': ASPIRIN, 'label': 'aspirin'}]}, 'output_path': _p(c, 'acs-built.cdxml')}},
+    {'tool': 'live_chemdraw_session', 'args': {'action': 'status'}},
 ]
 
 

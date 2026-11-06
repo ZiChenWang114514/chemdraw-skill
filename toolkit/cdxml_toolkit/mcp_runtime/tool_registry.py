@@ -25,8 +25,123 @@ from .object_tools import OBJECT_TOOLS
 from .report_tools import REPORT_TOOLS
 from .scientific_tool import SCIENTIFIC_TOOLS
 from .engine_tools import ENGINE_TOOLS
+from .live_chemdraw import LIVE_CHEMDRAW_TOOLS
 from .figure_draw import draw_figure
 from .publication_figure import publication_figure
+
+
+def _load_acs_builder():
+    import importlib.util
+    from pathlib import Path
+
+    script_path = Path(__file__).resolve().parents[3] / "skill" / "chemdraw" / "scripts" / "acs_builder.py"
+    if script_path.is_file():
+        mod_spec = importlib.util.spec_from_file_location("chemdraw_skill_acs_builder", script_path)
+        if mod_spec is not None and mod_spec.loader is not None:
+            module = importlib.util.module_from_spec(mod_spec)
+            mod_spec.loader.exec_module(module)
+            return module
+    import acs_builder  # type: ignore[import-not-found]
+    return acs_builder
+
+
+def build_acs_figure(
+    spec: dict[str, Any] | str,
+    output_path: str | None = None,
+    render: bool = False,
+) -> dict[str, Any]:
+    """Build an ACS Document 1996 CDXML figure from an acs_builder JSON spec.
+
+    Supports molecule, conformer (chair, newman, haworth, fischer, norbornane), text,
+    arrow, box, and label_box objects, plus ring_fills, atom_halos, multi_attachments,
+    ts_bracket, orbital, and interaction styling.
+
+    Args:
+        spec: Spec dict, JSON string, or path to a .json spec file.
+        output_path: Optional destination .cdxml path (never overwrites an existing file).
+        render: If True, also render a native 300 dpi PNG beside the CDXML when ChemDraw is available.
+    """
+    import json
+    from pathlib import Path
+    import tempfile
+    from . import artifact_safety
+
+    source_anchor: Path | None = None
+    if isinstance(spec, dict):
+        spec_dict = spec
+    elif isinstance(spec, str):
+        stripped = spec.lstrip("\ufeff").strip()
+        if stripped.startswith("{"):
+            spec_dict = json.loads(stripped)
+        else:
+            candidate = Path(stripped).expanduser().resolve()
+            if not candidate.is_file():
+                raise FileNotFoundError(f"ACS spec file not found: {candidate}")
+            source_anchor = candidate
+            spec_dict = json.loads(candidate.read_text(encoding="utf-8-sig"))
+    else:
+        raise ValueError("spec must be a dict, JSON string, or path to a JSON file")
+
+    if not isinstance(spec_dict, dict) or not isinstance(spec_dict.get("objects"), list):
+        raise ValueError('spec must be a JSON object with an "objects" list')
+
+    acs_builder = _load_acs_builder()
+    destination = artifact_safety.resolve_destination(
+        source=source_anchor,
+        output_path=output_path,
+        tag="acs-figure",
+        suffix=".cdxml",
+    )
+    with artifact_safety.staging_file(destination) as staged:
+        with tempfile.TemporaryDirectory(prefix="acs-spec-") as tmp_dir:
+            spec_file = Path(tmp_dir) / "spec.json"
+            spec_file.write_text(json.dumps(spec_dict, ensure_ascii=False), encoding="utf-8")
+            acs_builder.build_from_spec(str(spec_file), str(staged))
+        artifact_safety.validate_artifact(staged)
+        artifact_safety.publish_file(staged, destination)
+
+    cdxml_text = destination.read_text(encoding="utf-8")
+    files = [destination]
+    png_path: str | None = None
+    warnings: list[str] = []
+    native_render = "not_requested"
+    if render:
+        from .official_overrides import render_to_png
+
+        png_dest = destination.with_suffix(".png")
+        try:
+            rendered = render_to_png(str(destination), output_path=str(png_dest))
+            if isinstance(rendered, dict) and rendered.get("ok"):
+                png_path = str(rendered.get("output") or png_dest)
+                if Path(png_path).is_file():
+                    files.append(Path(png_path))
+                native_render = "ok"
+            else:
+                native_render = "unrendered_draft"
+                warnings.append("Native ChemDraw rendering was unavailable; returning unrendered CDXML draft.")
+        except Exception as exc:
+            native_render = "unrendered_draft"
+            warnings.append(f"Native ChemDraw rendering was unavailable ({exc}); returning unrendered CDXML draft.")
+
+    artifacts = artifact_safety.artifact_records(files)
+    outputs = {
+        "output_path": str(destination),
+        "cdxml_path": str(destination),
+        "png_path": png_path,
+        "native_render": native_render,
+    }
+    return {
+        "ok": True,
+        "output_path": str(destination),
+        "cdxml_path": str(destination),
+        "cdxml": cdxml_text,
+        "png_path": png_path,
+        "native_render": native_render,
+        "outputs": outputs,
+        "warnings": warnings,
+        "artifacts": artifacts,
+        "metadata": {"network_used": False, "artifacts": artifacts},
+    }
 
 
 @dataclass(frozen=True)
@@ -224,6 +339,12 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     )
     extended_functions = _merge_named_tools(
         extended_functions, ENGINE_TOOLS, source="prediction engine tools"
+    )
+    extended_functions = _merge_named_tools(
+        extended_functions, LIVE_CHEMDRAW_TOOLS, source="live ChemDraw session tools"
+    )
+    extended_functions = _merge_named_tools(
+        extended_functions, {"build_acs_figure": build_acs_figure}, source="ACS figure builder"
     )
     extended = {
         name: ToolSpec(

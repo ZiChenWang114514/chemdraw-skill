@@ -40,6 +40,32 @@ SUBSCRIPT_RE = re.compile(r'([A-Za-z)])(\d+)')
 # import the private name directly.
 _SUBSCRIPT_RE = SUBSCRIPT_RE
 
+# One-letter element symbols: a lone "H2", "N2", "O2" or "I2" is a formula.
+_SINGLE_LETTER_ELEMENTS = frozenset("HBCNOFPSKVYIWU")
+
+
+def _is_compound_label(text: str, m: re.Match) -> bool:
+    """True when a match is a compound or ligand label such as "L1", "P1" or "A2".
+
+    The token must be one capital letter plus digits standing alone (bounded by
+    start/end, space or punctuation), and either not an element symbol or
+    followed by "1", which formulas never write.
+    """
+    letter, digits = m.group(1), m.group(2)
+    if not letter.isupper():
+        return False
+    start, end = m.start(1), m.end(2)
+    if start > 0 and (text[start - 1].isalnum() or text[start - 1] in ")]"):
+        return False
+    if end < len(text) and text[end].isalnum():
+        return False
+    return letter not in _SINGLE_LETTER_ELEMENTS or digits == "1"
+
+
+def subscript_matches(text: str) -> list[re.Match]:
+    """Formula digit groups in *text* that should be subscripted."""
+    return [m for m in SUBSCRIPT_RE.finditer(text) if not _is_compound_label(text, m)]
+
 # ---------------------------------------------------------------------------
 # Italic prefixes recognised in organic chemistry nomenclature.
 # Matched at the start of the display name, case-sensitive.
@@ -129,7 +155,7 @@ def needs_subscript(text: str) -> bool:
     # Pure numeric / unit strings like "reflux", "rt", "120 °C, 2 h"
     if re.fullmatch(r'[\d\s.,°ChmsMinHr/]+', text, re.IGNORECASE):
         return False
-    return bool(SUBSCRIPT_RE.search(text))
+    return bool(subscript_matches(text))
 
 
 # Private-name alias for callers that import ``_needs_subscript``.
@@ -219,35 +245,27 @@ def build_formatted_s_xml(
         )
 
     # ---- remainder with subscript handling ----
+    # Formula face (96) makes ChemDraw subscript any digit that follows a
+    # letter on its own, so a label such as "L1" or "P1" must leave the
+    # formula face: it is written as a plain-face (0) run instead.
     if rest:
-        if needs_subscript(rest):
-            pos = 0
-            for m in SUBSCRIPT_RE.finditer(rest):
-                normal_end = m.start(2)
-                if pos < normal_end:
-                    chunk = xml_escape(rest[pos:normal_end])
-                    parts.append(
-                        f'<s font="{font}" size="{size}" color="{color}" '
-                        f'face="96">{chunk}</s>'
-                    )
-                digits = xml_escape(m.group(2))
+        def run(chunk: str, face: str) -> None:
+            if chunk:
                 parts.append(
                     f'<s font="{font}" size="{size}" color="{color}" '
-                    f'face="32">{digits}</s>'
+                    f'face="{face}">{xml_escape(chunk)}</s>'
                 )
-                pos = m.end()
 
-            if pos < len(rest):
-                chunk = xml_escape(rest[pos:])
-                parts.append(
-                    f'<s font="{font}" size="{size}" color="{color}" '
-                    f'face="96">{chunk}</s>'
-                )
-        else:
-            parts.append(
-                f'<s font="{font}" size="{size}" color="{color}" '
-                f'face="96">{xml_escape(rest)}</s>'
-            )
+        pos = 0
+        for m in SUBSCRIPT_RE.finditer(rest):
+            if _is_compound_label(rest, m):
+                run(rest[pos:m.start()], "96")
+                run(m.group(0), "0")
+            else:
+                run(rest[pos:m.start(2)], "96")
+                run(m.group(2), "32")
+            pos = m.end()
+        run(rest[pos:], "96")
 
     return "".join(parts)
 
