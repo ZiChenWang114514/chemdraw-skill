@@ -86,7 +86,8 @@ cdx.py tools [QUERY] [--detail summary]   list tools, timeouts and native-lock u
 cdx.py sig TOOL...                        print one or more generated signatures
 cdx.py call TOOL --json '{...}' | --args FILE [--out NEW.json] [--accel auto|on|off]
 cdx.py render A.cdxml [B.cdxml ...] [--out-dir DIR] [--replace]
-cdx.py build SPEC.json NEW.cdxml [--render]
+cdx.py build SPEC.json NEW.cdxml [--render] [--allow-draft]
+cdx.py scientific nmr|plot|tlc|apparatus|mechanism|stack_nmr|lcms_plate SPEC.json OUTPUT [--render]
 cdx.py draw BRIEF.json [OUTPUT] [--render] [--out NEW.json]   checked scheme, scope panel or mechanism from a brief
 cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--timeout S] [--out NEW.json]
 cdx.py ocsr IMAGE [--engines a,b|all] [--hand-drawn] [--preflight] [--no-upload] [--timeout S] [--out NEW.json] [--accel MODE]   several OCSR engines, compared (`decimer` is `ocsr IMAGE --engines decimer-api`)

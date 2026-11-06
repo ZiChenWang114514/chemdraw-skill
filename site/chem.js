@@ -78,7 +78,7 @@
     const order = count.C ? ["C", "H", ...rest] : symbols.sort();
     const parts = order.filter((s) => count[s] > 0).map((s) => [s, count[s]]);
     return {
-      used, hyd, over, count, mass, exact,
+      used, hyd, over, count, mass, exact, dbe: g.atoms.length ? Math.max(0, (count.C || 0) - ((count.H || 0) + (count.F || 0) + (count.Cl || 0) + (count.Br || 0)) / 2 + (count.N || 0) / 2 + 1) : 0,
       text: parts.map(([s, n]) => s + (n > 1 ? n : "")).join(""),
       html: parts.map(([s, n]) => s + (n > 1 ? `<sub>${n}</sub>` : "")).join(""),
     };

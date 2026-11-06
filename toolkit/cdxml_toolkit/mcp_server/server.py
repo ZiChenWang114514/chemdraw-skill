@@ -429,11 +429,15 @@ def render_scheme(
     """Render an editable chemical reaction scheme with per-fragment chemical validation.
 
     Accepts exactly ONE of: yaml_text, compact_text, or json_path.
-    Call with NO arguments to see the full YAML schema reference.
+    Call with NO arguments to see the full YAML schema and compact syntax reference.
 
-    - yaml_text:  Write YAML with structures (ID + SMILES) and steps
-                  (substrates, products, above/below arrow).
-    - json_path:  Path to reaction JSON from parse_reaction (auto-layout).
+    - yaml_text:    Write YAML with structures (ID + SMILES) and steps
+                    (substrates, products, above/below arrow).
+    - compact_text: Write Compact Scheme DSL ("Mermaid for reaction schemes"):
+                    @layout linear|sequential|stacked|divergent|catalytic-cycle,
+                    ID: {SMILES} "label", A + B -->|a| C (or ..> dashed, X> no-go),
+                    above:/below: annotations, and run[1]: 85% yield tables.
+    - json_path:    Path to reaction JSON from parse_reaction (auto-layout).
 
     IMPORTANT: Every SMILES in the YAML must come from a tool — resolve_name,
     modify_molecule, parse_reaction, extract_structures_from_image, etc.
@@ -465,7 +469,7 @@ def render_scheme(
         return (
             "No input provided. Call with exactly one of: yaml_text, compact_text, or json_path.\n\n"
             "YAML SCHEMA REFERENCE:\n"
-            "  layout: sequential       # linear | sequential | stacked-rows\n"
+            "  layout: sequential       # linear | sequential | stacked-rows | divergent | catalytic-cycle\n"
             "  source: reaction.json    # optional — resolve SMILES by ID from this JSON\n"
             "  structures:\n"
             "    SM:\n"
@@ -487,6 +491,14 @@ def render_scheme(
             "      steps: [{substrates: [A], products: [B], ...}]\n"
             "    - label: \"(ii)\"\n"
             "      steps: [{substrates: [C], products: [D], ...}]\n\n"
+            "COMPACT SYNTAX REFERENCE (compact_text):\n"
+            "  @layout linear|sequential|stacked|divergent|catalytic-cycle\n"
+            "  A: {CCO} \"1a\"\n"
+            "  B: {CC=O} \"2a\"\n"
+            "  A + B -->|a| C      # solid arrow (..> dashed, X> no-go)\n"
+            "    above: [Reagent] \"PCC (1.5 eq)\"\n"
+            "    below: \"DCM, rt, 2 h\"\n"
+            "    run[1]: 85%\n\n"
             "Multiple substrates/products are supported. Use above_arrow for catalysts or conditions.\n"
             "output_path: optional — write CDXML to file and get {ok, output_path, size} back."
         )
@@ -981,7 +993,7 @@ def parse_analysis_file(
     """Parse an LCMS or NMR analysis file to extract peaks and data.
 
     Supports Waters MassLynx LCMS PDF reports, OpenLynx .rpt exports, Shimadzu
-    LabSolutions .daml files, Agilent ChemStation report.txt files, mzML / mzXML
+    LabSolutions .daml files, Agilent ChemStation report.txt files, .mzML / .mzXML
     files, Waters .raw folders, and MestReNova NMR PDFs. Returns structured peak data for LCMS species
     identification or NMR characterisation. A .rpt holds one or many samples:
     one sample returns the same dict as a PDF report, several return

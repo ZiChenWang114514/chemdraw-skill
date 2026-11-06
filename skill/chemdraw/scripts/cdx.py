@@ -419,9 +419,45 @@ def cmd_build(ns):
                          else f'{ns.spec}: {exc}') from None
     except KeyError as exc:
         raise SystemExit(f'{ns.spec}: an object is missing {exc}') from None
+    if ns.render and getattr(ns, 'allow_draft', False):
+        source = Path(out).resolve()
+        png = source.with_suffix('.png')
+        staged = source.parent / f'.{source.stem}.{os.getpid()}.rendering.png'
+        staged.unlink(missing_ok=True)
+        result = _worker('render_to_png', {'output_path': str(staged)}, [str(source)])
+        summary = _summary('render_to_png', result)
+        ok = summary['ok'] and staged.is_file()
+        if ok:
+            os.replace(staged, png)
+            _record_render(png)
+            print(json.dumps({'cdxml': str(out), 'png': str(png), 'ok': True, 'status': 'rendered'},
+                             ensure_ascii=False))
+        else:
+            staged.unlink(missing_ok=True)
+            print(json.dumps({'cdxml': str(out), 'png': None, 'ok': True, 'status': 'unrendered_draft',
+                              'native_render': 'unavailable'}, ensure_ascii=False))
+        return 0
     print(json.dumps({'cdxml': str(out), 'ok': True}))
     if ns.render:
         return cmd_render(argparse.Namespace(files=[str(out)], out_dir=None, replace=False))
+    return 0
+
+
+SCIENTIFIC_OPERATIONS = ('nmr', 'plot', 'tlc', 'apparatus', 'mechanism', 'stack_nmr', 'lcms_plate')
+
+
+def cmd_scientific(ns):
+    spec = getattr(ns, 'spec_opt', None) or getattr(ns, 'spec_pos', None)
+    output = getattr(ns, 'output_opt', None) or getattr(ns, 'output_pos', None)
+    if not spec or not output:
+        raise SystemExit('scientific requires SPEC.json and OUTPUT')
+    from cdxml_toolkit.scientific import __main__ as sci_main
+    main_fn = getattr(sci_main, 'main', None)
+    if callable(main_fn):
+        rc = main_fn([ns.operation, '--spec', str(spec), '--output', str(output)])
+        return int(rc) if isinstance(rc, int) else 0
+    out = sci_main.run(ns.operation, spec, output)
+    print(json.dumps(out, ensure_ascii=False, indent=2))
     return 0
 
 
@@ -445,6 +481,27 @@ def _markush_render(source, png):
 
 
 def cmd_markush(ns):
+    if ns.action == 'validate':
+        return _emit('markush_validate', _worker('markush_validate', {'spec_path': ns.workdir}),
+                     getattr(ns, 'out', None))
+    if ns.action == 'compile':
+        out_dir = getattr(ns, 'output_dir', None) or ns.task
+        if not out_dir:
+            raise SystemExit('compile needs OUTPUT_DIR (positional or --output-dir)')
+        kwargs = {'spec_path': ns.workdir, 'output_dir': out_dir,
+                  'render': not getattr(ns, 'no_render', False)}
+        if getattr(ns, 'layout', None):
+            kwargs['layout_path'] = ns.layout
+        return _emit('markush_compile', _worker('markush_compile', kwargs), getattr(ns, 'out', None))
+    if ns.action == 'enumerate':
+        kwargs = {'spec_path': ns.workdir, 'count': getattr(ns, 'count', 5), 'seed': getattr(ns, 'seed', 0)}
+        return _emit('markush_enumerate', _worker('markush_enumerate', kwargs), getattr(ns, 'out', None))
+    if ns.action == 'detect':
+        out_dir = getattr(ns, 'output_dir', None) or ns.task
+        if not out_dir:
+            raise SystemExit('detect needs OUTPUT_DIR (positional or --output-dir)')
+        return _emit('markush_detect', _worker('markush_detect', {'image_path': ns.workdir, 'output_dir': out_dir}),
+                     getattr(ns, 'out', None))
     # Plain checks first: the workflow needs the runtime's optional image packages.
     if ns.action == 'init':
         if not ns.image:
@@ -885,11 +942,29 @@ PREDICT = {  # task: (tool, the argument SMILES fills, a working example)
 }
 
 
+def _parse_shift_list(raw):
+    if raw is None:
+        return None
+    if isinstance(raw, list):
+        tokens = []
+        for item in raw:
+            tokens.extend(re.split(r'[\s,]+', str(item).strip('[] ')))
+        return [float(t) for t in tokens if t]
+    text = str(raw).strip()
+    if text.startswith('['):
+        return [float(x) for x in json.loads(text)]
+    return [float(t) for t in re.split(r'[\s,]+', text) if t]
+
+
 def cmd_predict(ns):
     _apply_accel_flags(ns)
     tool, field, example = PREDICT[ns.task]
     if ns.products and ns.task != 'conditions':
         raise SystemExit('--products belongs to `cdx.py predict conditions`')
+    nmr_only = any(getattr(ns, attr, None) is not None for attr in (
+        'solvent', 'nucleus', 'experimental_1h', 'experimental_13c', 'output_csv'))
+    if nmr_only and ns.task != 'nmr':
+        raise SystemExit('--solvent, --nucleus, --experimental-1h, --experimental-13c, and --output-csv belong to `cdx.py predict nmr`')
     kwargs = _load_args(ns)
     if ns.smiles:
         kwargs[field] = ns.smiles
@@ -897,6 +972,16 @@ def cmd_predict(ns):
         kwargs['products'] = ns.products
     if ns.engine:
         kwargs['engine'] = ns.engine
+    if getattr(ns, 'solvent', None):
+        kwargs['solvent'] = ns.solvent
+    if getattr(ns, 'nucleus', None):
+        kwargs['nucleus'] = ns.nucleus
+    if getattr(ns, 'experimental_1h', None) is not None:
+        kwargs['experimental_1h'] = _parse_shift_list(ns.experimental_1h)
+    if getattr(ns, 'experimental_13c', None) is not None:
+        kwargs['experimental_13c'] = _parse_shift_list(ns.experimental_13c)
+    if getattr(ns, 'output_csv', None):
+        kwargs['output_path'] = ns.output_csv
     if not kwargs.get(field) or (ns.task == 'conditions' and not kwargs.get('products')):
         raise SystemExit(f'Say which molecules to predict for, for example: {example}')
     return _emit(tool, _worker(tool, kwargs), getattr(ns, 'out', None))
@@ -943,7 +1028,17 @@ def main(argv=None):
     s.add_argument('spec')
     s.add_argument('output')
     s.add_argument('--render', action='store_true')
+    s.add_argument('--allow-draft', action='store_true',
+                   help='succeed with unrendered_draft status when native ChemDraw rendering is unavailable')
     s.set_defaults(fn=cmd_build)
+    s = sub.add_parser('scientific', help='scientific figure or spectrum workflow: '
+                                          'cdx.py scientific <nmr|plot|tlc|apparatus|mechanism|stack_nmr|lcms_plate> SPEC.json OUTPUT')
+    s.add_argument('operation', choices=list(SCIENTIFIC_OPERATIONS))
+    s.add_argument('spec_pos', nargs='?', metavar='SPEC.json')
+    s.add_argument('output_pos', nargs='?', metavar='OUTPUT')
+    s.add_argument('--spec', dest='spec_opt')
+    s.add_argument('--output', dest='output_opt')
+    s.set_defaults(fn=cmd_scientific)
     s = sub.add_parser('draw', help='checked reaction scheme, scope panel or mechanism from a brief (JSON file or -): '
                                     'cdx.py draw BRIEF [OUTPUT] [--render]')
     s.add_argument('brief')
@@ -983,6 +1078,11 @@ def main(argv=None):
     s.add_argument('smiles', nargs='?')
     s.add_argument('--products', help='with conditions: the product SMILES')
     s.add_argument('--engine')
+    s.add_argument('--solvent', help='with nmr: solvent name (e.g. chloroform, dmso)')
+    s.add_argument('--nucleus', help='with nmr: 1H, 13C or both')
+    s.add_argument('--experimental-1h', help='with nmr: comma-separated or JSON list of measured 1H shifts (ppm)')
+    s.add_argument('--experimental-13c', help='with nmr: comma-separated or JSON list of measured 13C shifts (ppm)')
+    s.add_argument('--output-csv', help='with nmr: output CSV path for the simulated spectrum')
     s.add_argument('--json', help='further tool arguments as a JSON object or file (steps, count, nucleus, solvent, ...)')
     s.add_argument('--args', help='further tool arguments in a JSON file (or - for stdin)')
     s.add_argument('--out', help='new evidence file for the full result')
@@ -1006,15 +1106,21 @@ def main(argv=None):
                                                'molscribe molnextr molvec | --bundle ocsr-standard | --task ocsr [--dry-run] [--status]')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_install_engines)
-    s = sub.add_parser('markush', help='Markush workflow from an image: init, next task, submit an answer, status')
-    s.add_argument('action', choices=['init', 'next', 'submit', 'status'])
+    s = sub.add_parser('markush', help='Markush workflow: init, next, submit, status, validate, compile, enumerate, detect')
+    s.add_argument('action', choices=['init', 'next', 'submit', 'status', 'validate', 'compile', 'enumerate', 'detect'])
     s.add_argument('workdir')
-    s.add_argument('task', nargs='?', help='submit: the task id printed by next')
+    s.add_argument('task', nargs='?', help='submit: the task id printed by next; compile/detect: output directory')
     s.add_argument('answer', nargs='?', help='submit: JSON answer file')
     s.add_argument('--image', help='init: the structure image (crop of the figure)')
     s.add_argument('--text', help='init: claim text (.txt or .pdf) with the variable definitions')
     s.add_argument('--crop', nargs=4, metavar=('X0', 'Y0', 'X1', 'Y1'), help='init: crop box in image pixels')
     s.add_argument('--reuse', help='init: earlier workdir whose answers are reused when the task input is unchanged')
+    s.add_argument('--output-dir', help='compile/detect: new output directory')
+    s.add_argument('--layout', help='compile: optional layout.json path')
+    s.add_argument('--no-render', action='store_true', help='compile: skip native PNG rendering')
+    s.add_argument('--count', type=int, default=5, help='enumerate: number of concrete SMILES members (1..200)')
+    s.add_argument('--seed', type=int, default=0, help='enumerate: random seed')
+    s.add_argument('--out', help='validate/compile/enumerate/detect: new JSON evidence file')
     s.set_defaults(fn=cmd_markush)
     s = sub.add_parser('doctor', help='runtime, extras, signatures, installation and capability report')
     s.add_argument('--paths', action='store_true', help='also print log, lock and temp locations')

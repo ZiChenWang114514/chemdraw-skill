@@ -854,7 +854,10 @@
   "resetConfirm": "再点一次确认清除",
   "resetDone": "进度已清除。",
   "prog": "进度只保存在这个浏览器里，不会上传。",
-  "from": "起始分子"
+  "from": "起始分子",
+  "dbe": "DBE",
+  "isoSplitRing": "已找到：环 {ring} · 链 {chain}",
+  "isoSplitO": "已找到：-OH {oh} · -O- {ether}"
  }
 };
   Object.assign(globalThis.ChemWords.challenge.tasks, daily.tasks);

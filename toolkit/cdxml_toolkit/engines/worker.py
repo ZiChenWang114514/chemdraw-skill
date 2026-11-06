@@ -562,8 +562,15 @@ def _molscribe(params, data_dir, spec):
     out = []
     for path in params['images']:
         try:
-            result = model.predict_image_file(path, return_confidence=True)
-            out.append({'smiles': result['smiles'], 'score': float(result['confidence'])})
+            try:
+                result = model.predict_image_file(path, return_atoms_bonds=True, return_confidence=True)
+            except TypeError:
+                result = model.predict_image_file(path, return_confidence=True)
+            entry = {'smiles': result['smiles'], 'score': float(result['confidence'])}
+            for extra_key in ('atoms', 'bonds', 'molfile'):
+                if result.get(extra_key) is not None:
+                    entry[extra_key] = result[extra_key]
+            out.append(entry)
         except Exception as exc:  # one unreadable crop must not lose the others
             out.append({'error': f'{type(exc).__name__}: {exc}'})
     return out

@@ -12,6 +12,8 @@ OPERATIONS = {
     "tlc": ".cdxml",
     "apparatus": ".cdxml",
     "mechanism": ".cdxml",
+    "stack_nmr": ".cdxml",
+    "lcms_plate": ".cdxml",
     "nmr": None,
     "plot": None,
 }

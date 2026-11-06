@@ -123,8 +123,36 @@ Compact text, one scheme in a few lines:
 - `-->` is a solid arrow, `..>` a dashed one, `<=>` an equilibrium arrow, `<->` a resonance arrow, `X>` a failed one. `A --> B --> C` makes two steps and draws the shared intermediate once.
 - `(85%)` after the last product is the yield, printed under the arrow.
 - `above:` and `below:` take quoted text lines or bare structure IDs (drawn as structures). For several steps use `step 1:`, `step 2:` blocks, or `-->|a|` with an `@conditions` block of lettered conditions.
-- `run: "2.15 g" -> "1.60 g, 72% yield"` adds a mass-in to mass-out arrow.
-- Directives start with `@`: `@layout sequential|divergent|convergent|stacked-rows|catalytic-cycle`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
+- `run: "2.15 g" -> "1.60 g, 72% yield"` or `run[1]: 85%` adds per-run scale and yield annotations.
+- Directives start with `@`: `@layout linear|sequential|stacked|divergent|convergent|stacked-rows|catalytic-cycle`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
+
+### Compact Scheme DSL (`compact_text` — "Mermaid for reaction schemes")
+
+`compact_text` lets you write complete multi-step schemes, divergent routes, and catalytic cycles in a concise declarative syntax:
+
+```text
+@layout catalytic-cycle
+Cat: {[Pd]} "Pd(0)"
+Int1: {c1ccccc1[Pd]Br} "Ar-Pd-Br"
+Int2: {c1ccccc1[Pd]c2ccccc2} "Ar-Pd-Ar'"
+Cat -->|a| Int1
+  above: "ArBr, oxidative addition"
+Int1 -->|b| Int2
+  above: "Ar'B(OH)2, base"
+Int2 -->|c| Cat
+  above: "reductive elimination"
+  run[1]: 85%
+```
+
+### JACS / Angew publication styling & 3D conformers
+
+When a scheme or figure requires top-journal visual highlights, transition states, organometallic hapticity, orbitals, or 3D conformer projections (via `draw_figure`, `build_acs_figure`, or `acs_builder.py`):
+
+- **`ring_fills` & `atom_halos`:** pastel JACS/Angew ring-interior polygon shading (`ring_fills`) and circular pharmacophore atom highlights (`atom_halos`) placed on a background layer behind bonds and labels.
+- **`multi_attachments` ($\eta^5$-Cp ferrocene & organometallics):** native CDXML `NodeType="MultiAttachment"` centroid nodes with `Attachments="..."` atom ID lists and coordination bonds (`Display="Dash"` or `"WedgeBegin"`).
+- **`ts_bracket` (`[...]‡`):** square transition-state brackets (`BracketType="SquarePair"`) with a superscript double-dagger `‡` (`\u2021`) annotation.
+- **`orbital` & `interaction`:** native `<orbital>` lobes (`s`, `p`, `sp3`, `dz2`, `lobe`, shaded/filled/unfilled) and non-covalent H-bond / $\pi$-stacking dashed interaction lines with distance labels (`"2.8 Å"`).
+- **Conformer templates (`chair`, `newman`, `haworth`, `fischer`, `norbornane`):** deterministic 2D coordinate generators for cyclohexane chairs (`1_ax`/`1_eq` through `6_ax`/`6_eq`, optional `flip`), Newman projections (`front`, `back`, `dihedral_deg`), Haworth pyranose/furanose rings, Fischer projections, and bridged bicyclic `[2.2.1]` norbornane skeletons.
 
 A route stays on one row unless told otherwise. Set `@max_row_width 504` (points, the width of a two-column journal page) and the renderer picks the largest number of steps per row that fits; an explicit `@steps_per_row` always wins. In YAML the keys are `max_row_width` and `steps_per_row`.
 

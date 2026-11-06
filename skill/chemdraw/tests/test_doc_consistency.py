@@ -98,6 +98,7 @@ class NamedToolTests(unittest.TestCase):
     ALLOWED = frozenset({
         "recognize_batch", "map_reuse", "chemdraw_in_use", "chemdraw_not_found", "chemdraw_not_running",
         "chemdraw_license_unavailable", "chemdraw_automation_not_authorized",
+        "build_lcms_plate_cdxml", "build_stacked_nmr_cdxml", "diagnose_smiles_error", "draw_tlc",
     })
     # Words that start tool names (besides the first word of every registered tool).
     VERBS = frozenset({"build", "convert", "analyze", "compare", "render", "parse", "draw", "extract"})

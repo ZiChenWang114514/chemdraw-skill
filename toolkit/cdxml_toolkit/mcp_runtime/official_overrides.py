@@ -112,7 +112,7 @@ def render_scheme(
     layout: str = "auto",
     output_path: Optional[str] = None,
 ) -> str:
-    """Render a scheme through a validated no-overwrite staging file."""
+    """Render a scheme (yaml_text, compact_text with @layout/-->/..>/X>/run[1], or json_path) through a validated no-overwrite staging file."""
     from cdxml_toolkit.mcp_server.server import render_scheme as upstream
 
     upstream = _raw_upstream(upstream)

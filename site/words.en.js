@@ -70,7 +70,7 @@ globalThis.ChemWords = {
    ["Shift Arrows", "Nudge an atom"],
    ["Enter", "Use the tool at the cursor"],
    ["Ctrl Z", "Undo"],
-   ["Ctrl Shift Z", "Redo"],
+   ["Ctrl Shift Z / Ctrl Y", "Redo"],
    ["Ctrl Shift K", "Clean up the structure"],
    ["Esc", "Close this list"]
   ]

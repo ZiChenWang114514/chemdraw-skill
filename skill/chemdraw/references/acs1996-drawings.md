@@ -28,11 +28,24 @@ This build spec is not the figure manifest of [publication figures](publication-
 
 | Object | Fields |
 | --- | --- |
-| `molecule` | `smiles`; `at` (centre); `labels` map from dummy-atom map number to abbreviation; optional `rotate` (degrees), `flip`, `displays` (bond index → `WedgeBegin`/`WedgedHashBegin`/`Bold`/…), `radicals` (atom indices), `lone_pairs` (`[atom, "left"|"right"|"up"|"down"]`), `hide_charge_label` |
+| `molecule` | `smiles`; `at` (centre); `labels` map from dummy-atom map number to abbreviation; optional `rotate` (degrees), `flip`, `displays` (bond index → `WedgeBegin`/`WedgedHashBegin`/`Bold`/…), `radicals` (atom indices), `lone_pairs` (`[atom, "left"|"right"|"up"|"down"]`), `hide_charge_label`, `ring_fills`, `atom_halos`, `multi_attachments` |
+| `conformer` | `"type": "conformer"`, `kind` (`"chair"`, `"newman"`, `"haworth"`, `"fischer"`, `"norbornane"`), `at`, plus template parameters (`substituents`, `flip`, `front`, `back`, `dihedral_deg`, `ring_size`, `anomeric`, `top`, `bottom`, `chiral_centers`, `bridge`) |
+| `ts_bracket` | `from`, `to` corners (or `bbox`), optional `charge` / `label` (renders square brackets `[...]‡` with superscript double-dagger `\u2021`) |
+| `orbital` | `at`, `kind` (`"p"`, `"sp3"`, `"s"`, `"dz2"`, `"lobe"`), `angle`, `size`, `shaded` (`"filled"`/`"shaded"`/`"unfilled"`), `color` |
+| `interaction` | `from`, `to`, optional `label` (e.g. `"2.8 Å"`), `color`, `style` (dashed non-covalent H-bond / $\pi$-stacking line) |
 | `text` | `at`, `text` (markup), optional `size`, `align` (`Left`/`Center`/`Right`), `bold` |
 | `arrow` | `from`, `to`, optional `kind`: `forward` or `resonance` (double-headed) |
 | `box` | `from`, `to` corners, optional `round` |
 | `label_box` | `at`, `text`, optional `width`: bold Arial code in a rounded box |
+
+## JACS / Angew palette, organometallics & 3D conformers
+
+`acs_builder.py` (and the MCP tool `build_acs_figure`) includes `JACS_PALETTE` pastel colors (`blue`, `red`, `green`, `amber`, `purple`, `teal`, `rose`, `slate`) and top-journal primitives:
+
+- **`ring_fills` & `atom_halos`:** shade aromatic or aliphatic rings (`"ring_fills": [{"atoms": [0,1,2,3,4,5], "color": "blue"}]` or `"ring_index": 0`) and highlight pharmacophore atoms (`"atom_halos": [{"atom": 3, "color": "amber", "radius": 6.5}]`) behind the molecular graph.
+- **`multi_attachments` ($\eta^n$ hapticity):** connect a metal atom to a haptic ring centroid (`"multi_attachments": [{"metal_atom": 0, "ring_atoms": [1,2,3,4,5], "style": "dash"}]`) using native CDXML `NodeType="MultiAttachment"`.
+- **`ts_bracket`, `orbital`, and `interaction`:** draw transition-state brackets `[...]‡`, frontier molecular orbital lobes (`HOMO`/`LUMO`), and non-covalent interaction distances.
+- **`"type": "conformer"`:** generate deterministic 2D coordinates for `chair` (cyclohexane axial/equatorial), `newman` (staggered/eclipsed dihedral), `haworth` (sugar rings), `fischer` (stereocenters), and `norbornane` (`[2.2.1]` bicyclic exo/endo).
 
 ## Rules that matter
 

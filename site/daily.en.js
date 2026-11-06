@@ -854,7 +854,10 @@
   "resetConfirm": "Click again to clear",
   "resetDone": "Progress cleared.",
   "prog": "Your progress stays in this browser and is never uploaded.",
-  "from": "Starting molecule"
+  "from": "Starting molecule",
+  "dbe": "DBE",
+  "isoSplitRing": "Found: {ring} ring · {chain} chain",
+  "isoSplitO": "Found: {oh} -OH · {ether} -O-"
  }
 };
   Object.assign(globalThis.ChemWords.challenge.tasks, daily.tasks);

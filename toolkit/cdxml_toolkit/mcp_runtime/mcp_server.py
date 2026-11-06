@@ -708,6 +708,222 @@ def _register_observability_routes(mcp, *, tool_count: int) -> None:
         )
 
 
+_REGISTERED_RESOURCE_URIS = (
+    "chemdraw://references/{slug}",
+    "chemdraw://templates/{slug}",
+)
+_REGISTERED_PROMPT_NAMES = (
+    "draw_reaction_scheme",
+    "reconstruct_figure",
+    "analyze_nmr_and_lcms",
+    "build_acs1996_figure",
+)
+_SLUG_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+_BUILTIN_TEMPLATES: dict[str, str] = {
+    "acs1996": json.dumps(
+        {
+            "objects": [
+                {
+                    "type": "molecule",
+                    "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+                    "at": [120, 90],
+                    "ring_fills": [{"atoms": [3, 4, 5, 6, 7, 8], "color": "#dbeafe"}],
+                },
+                {"type": "label_box", "at": [120, 145], "text": "1a"},
+            ]
+        },
+        indent=2,
+    ),
+    "chair": json.dumps(
+        {
+            "objects": [
+                {
+                    "type": "conformer",
+                    "kind": "chair",
+                    "at": [120, 100],
+                    "substituents": {"1_eq": "OH", "4_ax": "Me"},
+                }
+            ]
+        },
+        indent=2,
+    ),
+    "newman": json.dumps(
+        {
+            "objects": [
+                {
+                    "type": "conformer",
+                    "kind": "newman",
+                    "at": [120, 100],
+                    "front": ["Me", "H", "H"],
+                    "back": ["Me", "H", "H"],
+                    "dihedral_deg": 60,
+                }
+            ]
+        },
+        indent=2,
+    ),
+    "catalytic-cycle": (
+        "@layout catalytic-cycle\n"
+        'Cat: {[Pd]} "Pd(0)"\n'
+        'Int1: {c1ccccc1[Pd]Br} "Ar-Pd-Br"\n'
+        'Int2: {c1ccccc1[Pd]c2ccccc2} "Ar-Pd-Ar\'"\n'
+        'Cat -->|a| Int1\n'
+        '  above: "ArBr, OA"\n'
+        'Int1 -->|b| Int2\n'
+        '  above: "Ar\'B(OH)2, TM"\n'
+        'Int2 -->|c| Cat\n'
+        '  above: "RE"\n'
+    ),
+}
+
+
+def _references_directory() -> Path:
+    return Path(__file__).resolve().parents[3] / "skill" / "chemdraw" / "references"
+
+
+def read_reference_resource(slug: str) -> str:
+    clean = (slug or "").strip()
+    if clean.endswith(".md"):
+        clean = clean[:-3]
+    if not _SLUG_PATTERN.fullmatch(clean):
+        raise ValueError(f"Invalid reference slug: {slug!r}")
+    ref_dir = _references_directory()
+    target = ref_dir / f"{clean}.md"
+    if target.is_file():
+        return target.read_text(encoding="utf-8")
+    available = sorted(p.stem for p in ref_dir.glob("*.md")) if ref_dir.is_dir() else []
+    return f"Reference {clean!r} not found. Available references: {', '.join(available)}"
+
+
+def read_template_resource(slug: str) -> str:
+    clean = (slug or "").strip()
+    for ext in (".json", ".yaml", ".yml", ".cdxml"):
+        if clean.endswith(ext):
+            clean = clean[: -len(ext)]
+    if not _SLUG_PATTERN.fullmatch(clean):
+        raise ValueError(f"Invalid template slug: {slug!r}")
+    if clean in _BUILTIN_TEMPLATES:
+        return _BUILTIN_TEMPLATES[clean]
+    examples_dir = Path(__file__).resolve().parents[2] / "examples"
+    if examples_dir.is_dir():
+        for path in sorted(examples_dir.rglob(f"{clean}.*")):
+            if path.is_file() and path.suffix.lower() in {".json", ".yaml", ".yml", ".cdxml"}:
+                return path.read_text(encoding="utf-8")
+    return json.dumps(
+        {
+            "error": f"Unknown template {clean!r}",
+            "available_templates": sorted(_BUILTIN_TEMPLATES),
+        },
+        indent=2,
+    )
+
+
+def _register_resources_and_prompts(mcp: typing.Any) -> None:
+    registered_resources: list[str] = []
+    registered_prompts: list[str] = []
+
+    resource_decorator = getattr(mcp, "resource", None)
+    if callable(resource_decorator):
+        @resource_decorator("chemdraw://references/{slug}")
+        def chemdraw_reference(slug: str) -> str:
+            """Read a ChemDraw skill workflow reference document by slug."""
+            return read_reference_resource(slug)
+
+        @resource_decorator("chemdraw://templates/{slug}")
+        def chemdraw_template(slug: str) -> str:
+            """Read a ready-to-run ChemDraw JSON/DSL template by slug."""
+            return read_template_resource(slug)
+
+        registered_resources.extend(_REGISTERED_RESOURCE_URIS)
+
+    prompt_decorator = getattr(mcp, "prompt", None)
+    if callable(prompt_decorator):
+        @prompt_decorator()
+        def draw_reaction_scheme(
+            reactants: str = "",
+            products: str = "",
+            conditions: str = "",
+            layout: str = "linear",
+        ) -> str:
+            """Guided workflow for drawing a validated reaction scheme in ACS 1996 style."""
+            return (
+                "Draw an editable ChemDraw reaction scheme:\n"
+                f"- Reactants: {reactants or '(resolve with resolve_name)'}\n"
+                f"- Products: {products or '(resolve or transform with modify_molecule)'}\n"
+                f"- Conditions: {conditions or '(specify above/below arrow)'}\n"
+                f"- Layout: {layout} (linear | sequential | stacked | divergent | catalytic-cycle)\n"
+                "Steps:\n"
+                "1. Ground every species with resolve_name or modify_molecule.\n"
+                "2. Call draw_figure or render_scheme (yaml_text or compact_text).\n"
+                "3. Render a 300 dpi PNG with render_to_png and visually verify labels, arrows, and stereo."
+            )
+
+        @prompt_decorator()
+        def reconstruct_figure(image_path: str = "", verify_stereo: bool = True) -> str:
+            """Guided workflow for reconstructing a chemical figure or screenshot into editable CDXML."""
+            return (
+                f"Reconstruct the chemical figure at {image_path or '<image_path>'} into editable CDXML:\n"
+                "1. Run recognize_structure or extract_structures_from_image to obtain candidate SMILES.\n"
+                "2. Audit wedge/dash stereochemistry and orientation with rdkit_workbench "
+                f"(operations: read_wedges, depict_like, edit_structure; verify_stereo={verify_stereo}).\n"
+                "3. Assemble the editable CDXML via draw_figure or build_acs_figure and verify with render_to_png."
+            )
+
+        @prompt_decorator()
+        def analyze_nmr_and_lcms(
+            nmr_path: str = "",
+            lcms_path: str = "",
+            smiles: str = "",
+        ) -> str:
+            """Guided workflow for processing NMR spectra, comparing shifts, and analyzing LCMS series."""
+            return (
+                "Analyze spectroscopic and chromatographic data:\n"
+                f"- Candidate SMILES: {smiles or '(optional)'}\n"
+                f"- NMR input: {nmr_path or '(Bruker/JCAMP/JEOL/Varian/CSV)'}\n"
+                f"- LCMS input: {lcms_path or '(PDF/.rpt/.daml/report.txt/.mzML/.raw)'}\n"
+                "Steps:\n"
+                "1. For NMR: run scientific_workflow(operation='nmr' or 'stack_nmr') and compare_nmr_shifts.\n"
+                "2. For LCMS: run parse_analysis_file, analyze_lcms_series (with internal_standard_name if applicable), "
+                "or scientific_workflow(operation='lcms_plate')."
+            )
+
+        @prompt_decorator()
+        def build_acs1996_figure(description: str = "", style: str = "jacs") -> str:
+            """Guided workflow for building JACS/Angew/ACS 1996 figures with ring fills, conformers, and orbitals."""
+            return (
+                f"Build an ACS Document 1996 publication figure (style={style}):\n"
+                f"- Brief: {description or '(structures, conformers, annotations)'}\n"
+                "Capabilities available in build_acs_figure:\n"
+                "- JACS_PALETTE ring_fills, atom_halos, multi_attachments (eta^n organometallics), "
+                "ts_bracket ([...] double-dagger), orbital lobes, and non-covalent interaction lines.\n"
+                "- Deterministic 3D conformers: chair, newman, haworth, fischer, norbornane.\n"
+                "Call build_acs_figure(spec=..., output_path=..., render=True) and inspect the PNG."
+            )
+
+        registered_prompts.extend(_REGISTERED_PROMPT_NAMES)
+
+    setattr(mcp, "_chemdraw_registered_resources", tuple(registered_resources))
+    setattr(mcp, "_chemdraw_registered_prompts", tuple(registered_prompts))
+
+
+def list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]:
+    """Return the MCP resource URI templates and prompt names registered on the server."""
+    if mcp is None:
+        mcp = build_server()
+    resources = list(getattr(mcp, "_chemdraw_registered_resources", _REGISTERED_RESOURCE_URIS))
+    prompts = list(getattr(mcp, "_chemdraw_registered_prompts", _REGISTERED_PROMPT_NAMES))
+    ref_dir = _references_directory()
+    reference_slugs = sorted(p.stem for p in ref_dir.glob("*.md")) if ref_dir.is_dir() else []
+    return {
+        "resources": resources,
+        "resource_uris": resources,
+        "prompts": prompts,
+        "prompt_names": prompts,
+        "reference_slugs": reference_slugs,
+        "template_slugs": sorted(_BUILTIN_TEMPLATES),
+    }
+
+
 def build_server(*, profile: str | None = None, **server_settings):
     server_type = mcp_compat.server_class()
     selected_profile = normalize_profile(profile)
@@ -733,8 +949,12 @@ def build_server(*, profile: str | None = None, **server_settings):
                 profile=selected_profile,
             )
         )
+    _register_resources_and_prompts(mcp)
     _register_observability_routes(mcp, tool_count=len(registry))
     return mcp
+
+
+create_server = build_server
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

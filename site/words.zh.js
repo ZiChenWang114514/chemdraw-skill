@@ -70,7 +70,7 @@ globalThis.ChemWords = {
    ["Shift 方向键", "微移原子"],
    ["Enter", "在光标处使用当前工具"],
    ["Ctrl Z", "撤销"],
-   ["Ctrl Shift Z", "重做"],
+   ["Ctrl Shift Z / Ctrl Y", "重做"],
    ["Ctrl Shift K", "整理结构"],
    ["Esc", "关闭这个列表"]
   ]

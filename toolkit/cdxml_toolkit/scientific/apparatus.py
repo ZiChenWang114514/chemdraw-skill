@@ -91,3 +91,6 @@ def draw_apparatus(spec, output):
         if a!=b or via:d.curve([a,*via,b])
     return {'output_path':d.save(output),'ports':ports,'native_templates':receipts,
         'scope':'Native ChemDraw template assembly; connection ports describe drawing geometry'}
+
+
+build_apparatus_cdxml = draw_apparatus
