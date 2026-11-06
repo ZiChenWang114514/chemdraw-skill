@@ -1,8 +1,5 @@
 <a id="top"></a>
 
-> [!IMPORTANT]
-> **This project has moved to [WangZiChen-pku/chemdraw-skill](https://github.com/WangZiChen-pku/chemdraw-skill).** New releases, issues and the website ([wangzichen-pku.github.io/chemdraw-skill](https://wangzichen-pku.github.io/chemdraw-skill/)) live there now. Please star the new repository.
-
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/readme/hero-dark.svg">

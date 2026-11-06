@@ -4,6 +4,7 @@ import importlib.metadata
 from pathlib import Path
 import socket
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -249,6 +250,7 @@ class RuntimeDiagnosticsTests(unittest.TestCase):
             any("ChemDraw unavailable" in warning for warning in result["warnings"])
         )
 
+    @unittest.skipIf(sys.platform.startswith("linux"), "ChemScript and Office COM are reported missing on Linux before any DLL check")
     def test_passive_chemscript_and_office_capabilities_are_reported_without_probing(self):
         with mock.patch.object(
             runtime_diagnostics, "_has_windows_chemscript_dlls", return_value=True
