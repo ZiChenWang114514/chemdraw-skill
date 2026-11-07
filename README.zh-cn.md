@@ -660,9 +660,35 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 
 十五个可选引擎负责读结构图、从 PDF 中找结构，以及预测前体、产物、反应条件和核磁位移。你同意之前不会安装任何东西；每个引擎各用一个独立环境；本地引擎运行时不上传内容（远程 DECIMER 是唯一会把图片发出去的引擎）；每个结果都标注为模型预测。多个引擎意见不一致时并排列出，不合并。
 
+### 十五个引擎一览
+
+| 引擎 | 作用 | 磁盘 | 许可 | GPU |
+| --- | --- | --- | --- | --- |
+| `decimer-api` | 图片转结构，远程服务 | 无 | MIT | 否 |
+| `decimer-local` | 同一模型在本机运行 | 2.4 GB | MIT | 否（CPU） |
+| `molscribe` | 图片转结构 | 4.7 GB | MIT | 是 |
+| `molnextr` | 图片转结构 | 4.8 GB | Apache-2.0 | 是 |
+| `molparser` | 图片转结构，含 Markush | 3.4 GB | 权重仅限非商业 | 是 |
+| `molvec` | 图片转结构，基于规则 | 2 MB | Apache-2.0 | 否（Java） |
+| `decimer-segmentation` | 在页面上找结构 | 2.1 GB | MIT | 否 |
+| `aizynthfinder` | 逆合成、路线 | 1.7 GB | MIT | 否 |
+| `synplanner` | 逆合成、路线 | 4.8 GB | MIT | 是 |
+| `reactiont5-forward` | 产物 | 3.9 GB | MIT | 是 |
+| `reactiont5-retro` | 单步逆合成 | 3.9 GB | MIT | 是 |
+| `retrochimera` | 单步逆合成与路线 | 8.5 GB | 仅限研究 | 是 |
+| `magnet` | 1H 和 13C 位移 | 5.4 GB | MIT | 是 |
+| `nmrnet-pp` | 1H 和 13C 位移，第二个模型 | 2.8 GB | 代码 MIT，权重 CC BY 4.0 | 是 |
+| `reacon` | 催化剂、溶剂和试剂组合 | 1.9 GB | 作者未声明 | 是 |
+
+大小是 Windows 上装好后的实测值，含 CUDA 版 PyTorch，CPU 安装更小。`CHEMDRAW_ENGINE_HOME` 可把它们装到别的磁盘。`cdx.py engines --recommend 需求` 会在下载任何东西之前说明某项任务需要什么。许可和注册表细节见 [engines.md](skill/chemdraw/references/engines.md)。
+
 下面的案例都在同一台带 RTX 5090 显卡的 Windows 笔记本上运行，各自对照已核对的结构、实验记录或实测谱图打分，出错的地方照实保留。它们说明引擎在这些输入上的表现，不代表一般情况下的准确率。输入、输出、打分和耗时都在 [`assets/readme/engines/`](assets/readme/engines/provenance.json)。下表中的冷启动单次耗时包含模型加载时间。单次调用是干净的独立进程；批量输入和多步搜索（或加 `--accel on`）会保留常驻工作进程供下次调用使用，在这里把重复的 `predict products` 从 13.7 秒降到 0.6 秒（`cdx.py stop-daemons` 可结束工作进程），且每次引擎回复都会记录实际运行的 `execution.device`（`cuda:0` 或 `cpu`）。
 
-### 结构图与 PDF
+展开下面的案例可以看到图和结果。
+
+<details>
+<summary><b>结构图与 PDF</b></summary>
+<br>
 
 > **你可以说：**“用本地所有引擎读这个结构，告诉我它们哪里不一致。”·“把这个 PDF 里的结构都抽出来并读一遍。”
 
@@ -694,7 +720,11 @@ X-ray 图像裁自原论文，不在 MIT 许可范围内。
 
 **安装：** `ocsr-standard`（MolScribe 与 MolVec，4.7 GB）、`ocsr-full`（再加 MolNexTR 和 MolParser，12.9 GB）、`pdf`（切分器、MolScribe、MolVec，6.8 GB）。MolParser 的权重仅限非商业用途，MolVec 需要 Java。[详情](skill/chemdraw/references/engines.md#reading-a-structure-image)
 
-### 路线、产物与反应条件
+</details>
+
+<details>
+<summary><b>路线、产物与反应条件</b></summary>
+<br>
 
 > **你可以说：**“用本地逆合成引擎给这个目标分子找前体，并把路线画出来。”·“这个反应会得到什么，用什么条件？”
 
@@ -723,7 +753,11 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 
 **安装：** `retro`（AiZynthFinder，1.7 GB）、`products`（3.9 GB）、`conditions`（Reacon，1.9 GB）；SynPlanner 和 ReactionT5 逆合成按名称安装；`retro-chimera`（8.5 GB，运行需要约 14 GB 可用内存）。RetroChimera 仅供研究使用；Reacon 的作者没有声明许可证，所以只在你要求时才从他们的仓库下载。[详情](skill/chemdraw/references/engines.md#predictions)
 
-### 对照实测谱图的核磁位移
+</details>
+
+<details>
+<summary><b>对照实测谱图的核磁位移</b></summary>
+<br>
 
 > **你可以说：**“用两个核磁模型预测咖啡因的 1H 和 13C 位移，并和实测谱图对比。”
 
@@ -774,7 +808,11 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 
 **安装：** `nmr`（MagNET，5.4 GB）和 `nmr-pp`（NMRNet++，2.8 GB；权重为 CC BY 4.0，且不接受溶剂参数）。[20 个分子的实测对比 JSON](assets/readme/engines/nmr/benchmark20.json) · [咖啡因谱图与数据](assets/readme/engines/nmr/caffeine/)
 
-### LCMS 板
+</details>
+
+<details>
+<summary><b>LCMS 板</b></summary>
+<br>
 
 > **你可以说：**“把这份 OpenLynx 报告和板图对一下，告诉我哪些孔里有预期的产物。”
 
@@ -782,27 +820,7 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 
 <img src="assets/readme/engines/lcms/panel/page-001.png" alt="板上四个孔的预期质量、检出离子、保留时间、纯度和 PyParse 数值">
 
-### 十五个引擎一览
-
-| 引擎 | 作用 | 磁盘 | 许可 | GPU |
-| --- | --- | --- | --- | --- |
-| `decimer-api` | 图片转结构，远程服务 | 无 | MIT | 否 |
-| `decimer-local` | 同一模型在本机运行 | 2.4 GB | MIT | 否（CPU） |
-| `molscribe` | 图片转结构 | 4.7 GB | MIT | 是 |
-| `molnextr` | 图片转结构 | 4.8 GB | Apache-2.0 | 是 |
-| `molparser` | 图片转结构，含 Markush | 3.4 GB | 权重仅限非商业 | 是 |
-| `molvec` | 图片转结构，基于规则 | 2 MB | Apache-2.0 | 否（Java） |
-| `decimer-segmentation` | 在页面上找结构 | 2.1 GB | MIT | 否 |
-| `aizynthfinder` | 逆合成、路线 | 1.7 GB | MIT | 否 |
-| `synplanner` | 逆合成、路线 | 4.8 GB | MIT | 是 |
-| `reactiont5-forward` | 产物 | 3.9 GB | MIT | 是 |
-| `reactiont5-retro` | 单步逆合成 | 3.9 GB | MIT | 是 |
-| `retrochimera` | 单步逆合成与路线 | 8.5 GB | 仅限研究 | 是 |
-| `magnet` | 1H 和 13C 位移 | 5.4 GB | MIT | 是 |
-| `nmrnet-pp` | 1H 和 13C 位移，第二个模型 | 2.8 GB | 代码 MIT，权重 CC BY 4.0 | 是 |
-| `reacon` | 催化剂、溶剂和试剂组合 | 1.9 GB | 作者未声明 | 是 |
-
-大小是 Windows 上装好后的实测值，含 CUDA 版 PyTorch，CPU 安装更小。`CHEMDRAW_ENGINE_HOME` 可把它们装到别的磁盘。`cdx.py engines --recommend 需求` 会在下载任何东西之前说明某项任务需要什么。许可和注册表细节见 [engines.md](skill/chemdraw/references/engines.md)。
+</details>
 
 ## 平台支持
 

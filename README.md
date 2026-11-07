@@ -660,9 +660,35 @@ A generic structure from a patent figure plus claim text: R groups and linkers, 
 
 Fifteen optional engines read structure images, find structures in a PDF, and predict precursors, products, reaction conditions and NMR shifts. Nothing is installed until you agree, each engine lives in its own environment, a local engine uploads nothing while it runs (the remote DECIMER service is the one engine that sends an image out), and every answer is labelled a model prediction. Disagreeing engines are shown side by side, never merged.
 
+### The fifteen engines
+
+| Engine | Does | Disk | Licence | GPU |
+| --- | --- | --- | --- | --- |
+| `decimer-api` | image to structure, remote service | none | MIT | no |
+| `decimer-local` | the same model on this computer | 2.4 GB | MIT | no (CPU) |
+| `molscribe` | image to structure | 4.7 GB | MIT | yes |
+| `molnextr` | image to structure | 4.8 GB | Apache-2.0 | yes |
+| `molparser` | image to structure, Markush | 3.4 GB | weights non-commercial | yes |
+| `molvec` | image to structure, rule-based | 2 MB | Apache-2.0 | no (Java) |
+| `decimer-segmentation` | find structures on a page | 2.1 GB | MIT | no |
+| `aizynthfinder` | retrosynthesis, routes | 1.7 GB | MIT | no |
+| `synplanner` | retrosynthesis, routes | 4.8 GB | MIT | yes |
+| `reactiont5-forward` | products | 3.9 GB | MIT | yes |
+| `reactiont5-retro` | single-step retrosynthesis | 3.9 GB | MIT | yes |
+| `retrochimera` | single-step retrosynthesis and routes | 8.5 GB | research use only | yes |
+| `magnet` | 1H and 13C shifts | 5.4 GB | MIT | yes |
+| `nmrnet-pp` | 1H and 13C shifts, second model | 2.8 GB | code MIT, weights CC BY 4.0 | yes |
+| `reacon` | catalyst, solvent and reagent sets | 1.9 GB | none stated by the authors | yes |
+
+Sizes are finished installs on Windows with the CUDA build of PyTorch; a CPU install is smaller. `CHEMDRAW_ENGINE_HOME` moves them to another disk. `cdx.py engines --recommend NEED` says what a task needs before anything is downloaded. The licence and registry details are in [engines.md](skill/chemdraw/references/engines.md).
+
 The cases below were run on one Windows laptop with an RTX 5090 GPU. Each is scored against a reviewed structure, a recorded experiment or a measured spectrum, and the misses are kept. They show how the engines behave on these inputs, not how accurate they are in general. Inputs, outputs, scoring and timings are in [`assets/readme/engines/`](assets/readme/engines/provenance.json). Cold one-shot times below include model loading. A one-off call is a clean process; batches and multi-step searches (or `--accel on`) keep a resident worker for the next call, which cut a repeated `predict products` call from 13.7 s to 0.6 s here (`cdx.py stop-daemons` ends the workers), and every engine reply records its actual `execution.device` (`cuda:0` or `cpu`).
 
-### Structure images and PDFs
+Open a case to see its images and results.
+
+<details>
+<summary><b>Structure images and PDFs</b></summary>
+<br>
 
 > **You say:** "Read this structure with every local engine and show me where they disagree." · "Pull every structure out of this PDF and read them."
 
@@ -694,7 +720,11 @@ A two-page PDF of the same scheme and a second published scheme went through DEC
 
 **Install:** `ocsr-standard` (MolScribe and MolVec, 4.7 GB), `ocsr-full` (adds MolNexTR and MolParser, 12.9 GB), `pdf` (segmenter, MolScribe, MolVec, 6.8 GB). MolParser's weights are non-commercial only. MolVec needs Java. [Details](skill/chemdraw/references/engines.md#reading-a-structure-image)
 
-### Routes, products and conditions
+</details>
+
+<details>
+<summary><b>Routes, products and conditions</b></summary>
+<br>
 
 > **You say:** "Find precursors for this target with the local retrosynthesis engines and draw the routes." · "What does this reaction give, and under what conditions?"
 
@@ -723,7 +753,11 @@ For KL-CC-002 no engine proposed the recorded last step. AiZynthFinder's top rou
 
 **Install:** `retro` (AiZynthFinder, 1.7 GB), `products` (3.9 GB), `conditions` (Reacon, 1.9 GB); SynPlanner and ReactionT5 retro by name; `retro-chimera` (8.5 GB, needs about 14 GB of free memory). RetroChimera is for research use only and Reacon's authors state no licence, so it is downloaded from their repository only when you ask. [Details](skill/chemdraw/references/engines.md#predictions)
 
-### NMR shifts against a measured spectrum
+</details>
+
+<details>
+<summary><b>NMR shifts against a measured spectrum</b></summary>
+<br>
 
 > **You say:** "Predict the 1H and 13C shifts of caffeine with both NMR models and compare them with the measured spectrum."
 
@@ -774,7 +808,11 @@ The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bms
 
 **Install:** `nmr` (MagNET, 5.4 GB) and `nmr-pp` (NMRNet++, 2.8 GB; its weights are CC BY 4.0, and it takes no solvent). [20-molecule benchmark JSON](assets/readme/engines/nmr/benchmark20.json) · [Caffeine chart and data](assets/readme/engines/nmr/caffeine/)
 
-### LCMS plates
+</details>
+
+<details>
+<summary><b>LCMS plates</b></summary>
+<br>
 
 > **You say:** "Check this OpenLynx report against the plate map and tell me which wells contain the expected product."
 
@@ -782,27 +820,7 @@ No engine is needed. The 24-well Waters report and plate map from the PyParse ex
 
 <img src="assets/readme/engines/lcms/panel/page-001.png" alt="Four wells of the plate with their expected mass, found ion, retention time, purity and PyParse values">
 
-### The fifteen engines
-
-| Engine | Does | Disk | Licence | GPU |
-| --- | --- | --- | --- | --- |
-| `decimer-api` | image to structure, remote service | none | MIT | no |
-| `decimer-local` | the same model on this computer | 2.4 GB | MIT | no (CPU) |
-| `molscribe` | image to structure | 4.7 GB | MIT | yes |
-| `molnextr` | image to structure | 4.8 GB | Apache-2.0 | yes |
-| `molparser` | image to structure, Markush | 3.4 GB | weights non-commercial | yes |
-| `molvec` | image to structure, rule-based | 2 MB | Apache-2.0 | no (Java) |
-| `decimer-segmentation` | find structures on a page | 2.1 GB | MIT | no |
-| `aizynthfinder` | retrosynthesis, routes | 1.7 GB | MIT | no |
-| `synplanner` | retrosynthesis, routes | 4.8 GB | MIT | yes |
-| `reactiont5-forward` | products | 3.9 GB | MIT | yes |
-| `reactiont5-retro` | single-step retrosynthesis | 3.9 GB | MIT | yes |
-| `retrochimera` | single-step retrosynthesis and routes | 8.5 GB | research use only | yes |
-| `magnet` | 1H and 13C shifts | 5.4 GB | MIT | yes |
-| `nmrnet-pp` | 1H and 13C shifts, second model | 2.8 GB | code MIT, weights CC BY 4.0 | yes |
-| `reacon` | catalyst, solvent and reagent sets | 1.9 GB | none stated by the authors | yes |
-
-Sizes are finished installs on Windows with the CUDA build of PyTorch; a CPU install is smaller. `CHEMDRAW_ENGINE_HOME` moves them to another disk. `cdx.py engines --recommend NEED` says what a task needs before anything is downloaded. The licence and registry details are in [engines.md](skill/chemdraw/references/engines.md).
+</details>
 
 ## Platform support
 
