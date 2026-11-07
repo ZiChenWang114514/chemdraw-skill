@@ -27,23 +27,47 @@
     "conditions_split": "reagents_above_solvent_below",
     "substrate_layout": null,
     "abbreviate_groups": [
-      "OMe",
-      "Ph",
-      "Me",
-      "Et",
-      "tBu",
-      "CN"
+      "CO2Me",
+      "Et"
     ],
     "aromatic_rings": "kekule",
-    "new_bond_color": null,
+    "new_bond_color": "#FF0000",
     "substrate_colors": [
-      "#0078B2"
+      "#0078B2",
+      "#0000FF"
     ],
     "highlight_fill": null,
     "reagent_text_color": "#000000",
     "arrow_style": "plain",
     "show_plus_sign": null,
-    "yield_separator": ", "
+    "yield_separator": ", ",
+    "notes": {
+      "abbreviate_groups": "Listed only where two or more crops draw the group as a label: CO2Me (crops 01 and 02) and Et (crops 01 and 02). CN and tBu are drawn as labels in crop 02 only. Ph is drawn as a ring in crop 01 and as a label in crop 02 only, so it is not listed. OMe and Me occur only as text in the crop 02 scope table. CO2Et and SO2Me appear in crop 02 only; SO2Me has no ABBREVIATIONS entry.",
+      "new_bond_color": "#FF0000 in crops 01 and 02, both from Wang et al. 2025. Crop 03 has no coloured new bond. The second paper has not been checked for this colour.",
+      "substrate_colors": "Teal #0078B2 in crops 01 and 02 (exact). Crop 03 teal sampled at #0073AC and #0072A7, within 6 units per channel. Second substrate #0000FF in crops 01 and 02, both from one paper. Crop 03 has a single substrate.",
+      "reagent_text_color": "Plain reagent text is black in all three crops. H2O in the conditions is bold teal in crops 02 and 03; the card records the plain text colour.",
+      "substrate_layout": "Left null. Crops 01 and 02 both show an inline A + B layout, but both are from one paper, and the stacked form is not seen.",
+      "show_plus_sign": "Left null. Crops 01 and 02 show a plus sign between substrates, but both are from one paper.",
+      "measured_spread": "Measured ratios are means of the evidence crops. bond_length_over_cap_height 2.209 from 2.26 (crop 01), 1.60 (crop 02), 2.76 (crop 03); range 1.6 to 2.8. line_width_over_bond_length 0.062 from 0.067, 0.075 and 0.043; range 0.043 to 0.075. bold_width_over_bond_length 0.244 from 0.288 (crop 01) and 0.200 (crop 02); crop 03 has no wedge. arrow_length_over_bond_length 11.1 from 9.3 (crop 01), 12.7 (crop 02) and 11.3 (crop 03); range 9.3 to 12.7, and no single crop matches the mean. atom_label_size_pt_estimate 7.3 is a print-size estimate; the crops carry no print size, so it is not checked against the 6 pt label size of the nature preset."
+    }
+  },
+  "figure_types": {
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "yield_format": "{value}%",
+        "selectivity_format": "{value}% ee"
+      },
+      "signature_features": [
+        "brown rules and rounded boxes separate scope sections",
+        "bold compound labels with the yield on the same line after the label"
+      ],
+      "crops": [
+        "evidence/nature_portfolio-02.png",
+        "evidence/nature_portfolio-03.png"
+      ],
+      "notes": "scope_layout grid from crops 02 and 03. The yield_format is from both crops. selectivity_format comes from crop 02 only (for example 85%, 90% ee); crop 03 has no ee. Crop 03 shows only the top of scope row a."
+    }
   },
   "evidence": [
     {
@@ -82,7 +106,7 @@
       "doi": "10.1038/s41467-024-46576-2",
       "citation": "Zhao, Jia and Wang, Nat. Commun. 2024, 15, 2415",
       "licence": "CC BY 4.0",
-      "figure": "Fig. 2 scope header and row a",
+      "figure": "Fig. 2 scheme with X-ray panels and scope row a",
       "crop": "evidence/nature_portfolio-03.png",
       "measurements_px": {
         "bond_length": 47,

@@ -1,0 +1,301 @@
+{
+  "slug": "sarpong_group",
+  "kind": "group",
+  "display_name": "Sarpong group (UC Berkeley)",
+  "applies_to": [
+    "Sarpong group papers: Nat. Commun., JACS, Angew. Chem. (natural-product total synthesis, skeletal editing)"
+  ],
+  "base_preset": "nature",
+  "measured": {
+    "bond_length_over_cap_height": 2.9,
+    "line_width_over_bond_length": 0.056,
+    "bold_width_over_bond_length": 0.19,
+    "label_font": "Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 3.7
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "Me",
+      "OMe"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "signature_features": [
+      "bold heavy bonds (about 3x line width) on the near face of caged polycycles, plain thin bonds behind (not in crop 08)",
+      "atoms or bonds that change in the key step coloured: dark red #800000 (Nat. Commun.), crimson #A10E3D (JACS 2026 review)",
+      "condensed sequences as an arrow labelled 'N steps' above the arrow in crop 06 (below it in crop 07), yield below"
+    ],
+    "notes": {
+      "yield_placement": "yields sit under the arrow in one crop only (06: 18%, 62%, 98%, 64%); crops 03 and 07 show no yields; the scope crop 05 puts yields under the product (substrate_scope section), so null.",
+      "substrate_layout": "only one-component steps in the crops",
+      "new_bond_color": "colour marks changed atoms, bonds or rings (crop 01 dark red, crop 06 crimson), strategic bonds (crop 08 red and green) or new bonds (crop 07 blue); the colour differs between papers, so null.",
+      "highlight_fill": "one crop (01) has a flat #CCCCCC box behind a molecule (structure_panel section); no other crop does, so null here.",
+      "show_plus_sign": "no two-component scheme seen",
+      "abbreviate_groups": "Me in crops 01, 02, 03, 05, 06, 07 and 08; OMe in crops 03, 05 and 07 (written MeO where the group sits on the right, the house reading in house_styles.ABBREVIATIONS). Boc is in crop 07 only, so it is not listed at top level (2+ crops rule). tBu is in no crop and was dropped. Piv (crops 04, 05) and Teoc (crop 06) are not in house_styles.ABBREVIATIONS, so they cannot be listed.",
+      "arrow_style": "plain single shafts in crops 02, 06 and 07; the condensed-sequence arrows ('N steps') in crop 06 are drawn with a double shaft, which the enum cannot express; crop 03 draws its arrows between intermediates dashed.",
+      "arrow_length_over_bond_length": "measured on crop 03 (134 px arrow over 36 px bond). Crop 07 gives about 2.2 (67 px over 30 px, rough, not re-measured here). Two crops disagree, so the spread is recorded and the value from crop 03, the crop measured on all four ratios, is kept."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1038/s41467-024-48586-6",
+      "citation": "Sarpong et al., Nat. Commun. 2024 (Late-stage benzenoid-to-troponoid skeletal modification of the cephalotanes: total synthesis of harringtonolide)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1A",
+      "crop": "evidence/sarpong_group-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "cephalotane family; dark red #800000 for differing atoms and bonds, bold front bonds, step counts '(total 10 steps)' in bold italic teal #0C5C61, grey block arrow 'previous work', boxed C18 and C19-benzenoid core with grey ring letters"
+    },
+    {
+      "doi": "10.1038/s41467-024-48586-6",
+      "citation": "Sarpong et al., Nat. Commun. 2024 (Late-stage benzenoid-to-troponoid skeletal modification of the cephalotanes: total synthesis of harringtonolide)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1C",
+      "crop": "evidence/sarpong_group-02.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "biosynthesis vs chemical synthesis: headings underlined in plum #800040 and navy #000080, thick grey block arrows, dark red curved arrows, navy R groups, intermediates in square brackets"
+    },
+    {
+      "doi": "10.1038/s41467-024-48586-6",
+      "citation": "Sarpong et al., Nat. Commun. 2024 (Late-stage benzenoid-to-troponoid skeletal modification of the cephalotanes: total synthesis of harringtonolide)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2B",
+      "crop": "evidence/sarpong_group-03.png",
+      "measurements_px": {
+        "bond_length": 36,
+        "cap_height": 12.5,
+        "line_width": 2,
+        "bold_width": 6.7,
+        "arrow_length": 134,
+        "compound_label_cap_height": 13
+      },
+      "observations": "measured on the 2000 px figure; dashed grey box 'desired pathway', BF3·OEt2 and CH2N2 above the arrow, CH2Cl2 below, dashed arrows between intermediates, dark red curved arrows, teal dot #0C5C60 on the migrating carbon, bold labels 20-22"
+    },
+    {
+      "doi": "10.1021/jacs.3c01318",
+      "citation": "Sarpong et al., J. Am. Chem. Soc. 2023 (Photo- and metal-mediated deconstructive approaches to cyclic aliphatic amine diversification)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2B (proposed mechanism)",
+      "crop": "evidence/sarpong_group-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "flavin photocatalytic cycle on large black arcs, bold italic purple #752ED6 'Proposed Mechanism' in the centre, blue lightbulb in a blue #092DFF ring, blue radical dots, bold labels 2.A, 2.B*, 2.C"
+    },
+    {
+      "doi": "10.1021/jacs.3c01318",
+      "citation": "Sarpong et al., J. Am. Chem. Soc. 2023 (Photo- and metal-mediated deconstructive approaches to cyclic aliphatic amine diversification)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3 (scope of reaction)",
+      "crop": "evidence/sarpong_group-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "grid scope, substrate left and product right in each cell, bold label and yield under the product (label and yield on one line), title 'Scope of reaction' over a violet #C385DB rule; the new CHO is black and the magenta is the title only"
+    },
+    {
+      "doi": "10.1021/jacs.6c04423",
+      "citation": "Sarpong et al., J. Am. Chem. Soc. 2026 (Strategic applications of single-atom skeletal editing in natural product synthesis)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3",
+      "crop": "evidence/sarpong_group-06.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "total-synthesis panels with grey title pills A-D, inserted atoms and rings in crimson #A10E3D, reagents above and yield below the arrow, 'N steps' arrows with double shafts, target names bold italic black, 'prepared in N steps' under the start"
+    },
+    {
+      "doi": "10.1002/anie.201909656",
+      "citation": "Sarpong and Hoffmann et al., Angew. Chem. Int. Ed. 2020 (A case for bond-network analysis in the synthesis of bridged polycyclic complex molecules: hetidine and hetisine alkaloids)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/sarpong_group-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "Sarpong hetidine route as redrawn in the review: new bonds in blue #2758A5, ring letters in blue, reagents and 'N steps' beside the arrows, final product boxed; rasterised from the PDF at 200 dpi"
+    },
+    {
+      "doi": "10.1002/anie.201909656",
+      "citation": "Sarpong and Hoffmann et al., Angew. Chem. Int. Ed. 2020 (A case for bond-network analysis in the synthesis of bridged polycyclic complex molecules: hetidine and hetisine alkaloids)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 6",
+      "crop": "evidence/sarpong_group-08.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "bond-network analysis of the hetisine skeleton: strategic bonds as thick red #EA3735 and green #42B54F bonds, ring letters in blue, carbon numbers in small black text; no retro arrows"
+    }
+  ],
+  "figure_types": {
+    "structure_panel": {
+      "conventions": {
+        "highlight_fill": "#CCCCCC",
+        "variation_color": "#800000",
+        "intermediate_label_style": "bold_number"
+      },
+      "signature_features": [
+        "family members side by side, differing atoms in dark red #800000",
+        "name with bold number in parentheses, step count below in bold italic teal #0C5C61",
+        "core skeleton in a thin grey frame with grey ring letters A-E"
+      ],
+      "crops": [
+        "evidence/sarpong_group-01.png"
+      ],
+      "notes": "one crop (01); unambiguous. highlight_fill is the flat #CCCCCC grey box behind the common intermediate at the right edge of the crop (one crop)."
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": "#800000",
+        "curved_arrow_weight": "thin",
+        "show_lone_pairs": false,
+        "formal_charge_style": "plain",
+        "intermediate_label_style": "bold_number",
+        "ts_marker": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "dark red #800000 curved arrows thinner than bonds, drawn over the cage",
+        "intermediates in tall square brackets; one pair can enclose several species (crop 03: 21 to 22', 22 inside), 20 and the product not bracketed",
+        "dashed reaction arrows between them (crop 03; crop 02 uses solid arrows)",
+        "teal dot #0C5C60 on the reacting carbon",
+        "dashed grey frame around the pathway with an underlined bullet title"
+      ],
+      "crops": [
+        "evidence/sarpong_group-02.png",
+        "evidence/sarpong_group-03.png"
+      ],
+      "notes": "no double-dagger transition-state marks on the structures. Crop 03 has energy-profile labels TS1 (11.7) and TS2-C (10.1) at its bottom edge; they belong to the energy profile, not the mechanism. formal_charge_style plain comes from crop 03 only (N2+ and the BF3 anion on 21); crop 02 has no charged atom."
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": "circle",
+        "cycle_arrow_color": "#000000",
+        "catalyst_color": null,
+        "center_label": true,
+        "step_names": false,
+        "intermediate_label_style": "bold_letter",
+        "curved_arrow_color": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "black arcs form the cycle; side inputs and outputs on small curved arrows",
+        "bold italic purple #752ED6 'Proposed Mechanism' in the centre",
+        "blue lightbulb in a blue #092DFF ring at the excitation step",
+        "radical dots in blue"
+      ],
+      "crops": [
+        "evidence/sarpong_group-04.png"
+      ],
+      "notes": "one crop (JACS 2023, crop 04). cycle_shape circle: a closed ring of black arcs, broken where the side arrows enter and leave. intermediate_label_style bold_letter is the nearest value: the labels are bold number.letter (2.A, 2.B*, 1.B) and no enum value covers number.letter."
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "variation_color": null,
+        "yield_format": "{value}%",
+        "selectivity_format": null,
+        "conditions_position": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "each cell pairs substrate (left) with product (right)",
+        "bold label and yield (e.g. '3b: 62%', label and yield on one line) under the product",
+        "section title over a violet #C385DB rule"
+      ],
+      "crops": [
+        "evidence/sarpong_group-05.png"
+      ],
+      "notes": "one crop; no selectivity values. No conditions appear in the crop, so conditions_position is null. No variation colour: the crop has no magenta below the title and the new CHO is black; the magenta is the title colour only."
+    },
+    "total_synthesis": {
+      "conventions": {
+        "step_label_style": "none",
+        "step_count_shown": true,
+        "yield_format": "{value}%",
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "reagents above each arrow and the yield below it where shown (crop 06); 'N steps' on the arrow for condensed sequences",
+        "'prepared in N steps' in small grey text under the start (crop 06 only)",
+        "target name in bold italic black under the final structure (crop 06 only)",
+        "changed atoms in crimson #A10E3D (crop 06, review) or new bonds in blue #2758A5 (crop 07, Angew)"
+      ],
+      "crops": [
+        "evidence/sarpong_group-06.png",
+        "evidence/sarpong_group-07.png"
+      ],
+      "notes": "variation_color null: crop 06 colours changed atoms crimson and crop 07 colours new bonds blue, so the colour differs between papers. Yield under the arrow in crop 06 only (crop 07 shows none). 'N steps' sits above the arrow in crop 06 and below it in crop 07. The prepared-in and target-name features are crop 06 only; crop 07 has neither, and the target names in crop 06 are black, not blue."
+    },
+    "retrosynthesis": {
+      "conventions": {
+        "retro_arrow": "none",
+        "disconnection_mark": "colored_bond",
+        "disconnection_color": "#EA3735",
+        "highlight_fill": null,
+        "step_count_shown": false
+      },
+      "signature_features": [
+        "strategic bonds as thick red #EA3735 and green #42B54F bonds on the skeleton instead of retro arrows; the crop does not say what green marks",
+        "ring letters in blue and carbon numbers in small black digits"
+      ],
+      "crops": [
+        "evidence/sarpong_group-08.png"
+      ],
+      "notes": "one crop; bond-network analysis; no open retro arrows. disconnection_color covers the red bonds only; green bonds (14a and the lower-right structure) also appear, with no rule given in the figure."
+    }
+  }
+}

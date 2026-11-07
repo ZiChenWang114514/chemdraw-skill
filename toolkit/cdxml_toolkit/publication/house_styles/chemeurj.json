@@ -1,0 +1,284 @@
+{
+  "slug": "chemeurj",
+  "kind": "journal",
+  "display_name": "Chemistry - A European Journal (Wiley-VCH)",
+  "applies_to": [
+    "Chem. Eur. J. research articles"
+  ],
+  "base_preset": "wiley",
+  "measured": {
+    "bond_length_over_cap_height": 2.0,
+    "line_width_over_bond_length": 0.04,
+    "bold_width_over_bond_length": 0.19,
+    "label_font": "Arial",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 7.0
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": [
+      "Ts",
+      "tBu",
+      "OMe"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "ChemDraw palette colours for heteroatoms or fragments: navy #004080, blue #0080C0, maroon #800000, purple #800040",
+      "light grey #E6E6E6 boxes behind products (crop 01 panel b, crop 05), behind transition-state labels (crop 05) and behind the starting-material group (crop 08)",
+      "bold sans-serif panel letters a, b, c at the top left of each panel, panels separated by grey #808080 rules",
+      "substrate fragments coloured and the colour carried into the product (blue/red in crops 02 and 07, maroon with blue or navy in crops 04 and 06)"
+    ],
+    "notes": {
+      "yield_placement": "under the compound label in bold navy #004080 in crop 03, after the label as \"4aa, 88%\" in crop 04; differs between papers",
+      "substrate_colors": "two pairs, one per paper: blue and red in Bourissou et al. (crop 02 alkenol and aryl iodide; crop 07 the same pair), maroon and blue or navy in Maes et al. (crops 04 and 06). No pair is shared between the papers, so null.",
+      "new_bond_color": "crop 01 draws the new C to Nu bond red (about #DD211E); crops 02 and 07 (one paper, Bourissou et al.) draw the new C to aryl bond black and bold. The crops disagree, so null.",
+      "highlight_fill": "null at top level: among the reaction figures only crop 01 shows the fill (grey #E6E6E6 behind the panel b products, none in panel a) and crop 02 has none, so there is no 2+ agreement. The fill also appears in crop 05 (transition-state labels and product boxes) and crop 08 (starting-material group), which are cycle and energy figures; see the figure_types sections.",
+      "arrow_length": "13.0 bond lengths in crop 01 (long multi-reagent arrow), 6.3 in crop 04 and 7.2 in crop 02; the median 7.0 is recorded",
+      "abbreviate_groups": "Ph removed: crop 02 draws both phenyl rings in full, while Ph is abbreviated only in scope crops 03 and 04. OMe is the ether group (crops 03, 04); crop 09 writes a methyl ester as MeO-C(=O) in an energy profile, whereas scope crop 03 writes esters as CO2Me."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1002/chem.202302821",
+      "citation": "Anderson et al., Chem. Eur. J. 2023 (Gold-catalyzed cyclization of yndiamides with isoxazoles via alpha-imino gold Fischer carbenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1a-b",
+      "crop": "evidence/chemeurj-01.png",
+      "measurements_px": {
+        "bond_length": 121,
+        "cap_height": 59,
+        "line_width": 4.4,
+        "bold_width": 23,
+        "arrow_length": 1576,
+        "compound_label_cap_height": 60
+      },
+      "observations": "Ynamide scheme; heteroatoms blue #0080C0, newly formed ring atoms maroon, panel b products on grey #E6E6E6 boxes (panel a has none), bold labels, italic navy product class names, bulleted summary in a black framed box; measured on the panel a arrow"
+    },
+    {
+      "doi": "10.1002/chem.202202110",
+      "citation": "Bourissou et al., Chem. Eur. J. 2022 (Mechanistic insights about the ligand-enabled oxy-arylation/vinylation of alkenes via Au(I)/Au(III) catalysis)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 2",
+      "crop": "evidence/chemeurj-02.png",
+      "measurements_px": {
+        "bond_length": 105,
+        "cap_height": 54,
+        "line_width": 3.4,
+        "bold_width": null,
+        "arrow_length": 753,
+        "compound_label_cap_height": null
+      },
+      "observations": "Plain arrow, catalyst above, silver salt, base and solvent/temperature/time stacked below; alkenol drawn in blue #0000FF, aryl iodide in red #FF0000 and both colours kept in the product; plain-weight plus sign"
+    },
+    {
+      "doi": "10.1002/chem.202302821",
+      "citation": "Anderson et al., Chem. Eur. J. 2023 (Gold-catalyzed cyclization of yndiamides with isoxazoles via alpha-imino gold Fischer carbenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1",
+      "crop": "evidence/chemeurj-03.png",
+      "measurements_px": {
+        "bond_length": 123,
+        "cap_height": 60,
+        "line_width": 5,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 61
+      },
+      "observations": "Grid scope under a reaction header; section headers in navy bold on light grey #F5F5F5 tabs joined by grey #808080 rules; bold black labels, yields in bold navy #004080 under the label with bracketed footnote letters; X-ray inset"
+    },
+    {
+      "doi": "10.1002/chem.202203074",
+      "citation": "Maes et al., Chem. Eur. J. 2023 (Iron-catalysed carbene transfer to isocyanides as a platform for heterocycle synthesis)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 2",
+      "crop": "evidence/chemeurj-04.png",
+      "measurements_px": {
+        "bond_length": 120,
+        "cap_height": 59,
+        "line_width": 6,
+        "bold_width": null,
+        "arrow_length": 752,
+        "compound_label_cap_height": 58
+      },
+      "observations": "Two-stage scope header with bracketed intermediate; isocyanide part maroon #800000, diazo part navy #004080; labels bold, yields plain after the label as \"4aa, 88%\"; panels A and B separated by a dashed rule"
+    },
+    {
+      "doi": "10.1002/chem.202302821",
+      "citation": "Anderson et al., Chem. Eur. J. 2023 (Gold-catalyzed cyclization of yndiamides with isoxazoles via alpha-imino gold Fischer carbenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3a",
+      "crop": "evidence/chemeurj-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "Catalytic cycle laid out as an open loop of thin black curved arrows, not a circle; TS names navy bold on #E6E6E6 tabs with relative energies in parentheses; intermediates labelled Int1-Int8 in bold; Au in orange"
+    },
+    {
+      "doi": "10.1002/chem.202203074",
+      "citation": "Maes et al., Chem. Eur. J. 2023 (Iron-catalysed carbene transfer to isocyanides as a platform for heterocycle synthesis)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 5",
+      "crop": "evidence/chemeurj-06.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": 61,
+        "line_width": 9.5,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 61
+      },
+      "observations": "Circular cycle of four thick black arcs around [Fe]; intermediates labelled with grey bold capital letters A-D; pathways I-III numbered with roman numerals in grey framed boxes with a grey drop shadow; legend in a black framed box with drop shadow"
+    },
+    {
+      "doi": "10.1002/chem.202202110",
+      "citation": "Bourissou et al., Chem. Eur. J. 2022 (Mechanistic insights about the ligand-enabled oxy-arylation/vinylation of alkenes via Au(I)/Au(III) catalysis)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/chemeurj-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "Circle of thin black arcs; catalyst structure inside a rounded black frame at the centre; step names (oxidative addition, coordination, reductive elimination) in plain black text inside the circle; incoming partners red #FF0000 and blue #0000FF"
+    },
+    {
+      "doi": "10.1002/chem.202302821",
+      "citation": "Anderson et al., Chem. Eur. J. 2023 (Gold-catalyzed cyclization of yndiamides with isoxazoles via alpha-imino gold Fischer carbenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3b",
+      "crop": "evidence/chemeurj-08.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "Gibbs energy profile: thick horizontal bars (17 px) joined by thinner solid slanted lines; minor pathway blue #0080BF, major maroon #800000, dotted connectors to the starting material; bold names with value below; vertical axis label DeltaG_sol / kcal mol-1; single-headed coloured arrows under the profile naming each regioisomer (blue minor pointing left, maroon major pointing right)"
+    },
+    {
+      "doi": "10.1002/chem.202203074",
+      "citation": "Maes et al., Chem. Eur. J. 2023 (Iron-catalysed carbene transfer to isocyanides as a platform for heterocycle synthesis)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1",
+      "crop": "evidence/chemeurj-09.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": 53,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 67
+      },
+      "observations": "Energy profile with thick black bars (15 px) and thinner solid connectors (about 7 px); competing pathway grey #808080; bold labels with DeltaG and DeltaE in parentheses, unit kcal mol-1; small 2D structures next to ball-and-stick models, with the diazo fragments (MeO, N2) in navy and the Fe(CO)3 cores black"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": null,
+        "selectivity_format": null,
+        "highlight_fill": "#E6E6E6",
+        "variation_color": null
+      },
+      "signature_features": [
+        "reagents above the arrow and additives, solvent, temperature, time stacked below in plain Arial (crop 02)",
+        "substrate fragments colour-coded and the colours kept in the product",
+        "grey #E6E6E6 box behind the panel b products in crop 01 (panel a has none)"
+      ],
+      "crops": [
+        "evidence/chemeurj-01.png",
+        "evidence/chemeurj-02.png"
+      ],
+      "notes": "highlight_fill rests on crop 01 only: grey boxes behind the two panel b products (2 and 3); panel a and crop 02 have no fill. yield_format is null because neither reaction-scheme crop (01, 02) prints a yield; the {value}% format comes from the scope crops 03 and 04 at top level."
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "variation_color": null,
+        "yield_format": "{value}%",
+        "selectivity_format": null,
+        "conditions_position": "scheme_on_top",
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "reaction header with conditions on the arrow above a grid of products, sections separated by grey #808080 rules (crop 03) or a dashed rule (crop 04)",
+        "section titles in bold navy #004080 (crop 03) or bold panel letters A/B (crop 04)",
+        "footnote letters in square brackets or superscript after yields",
+        "section titles on light grey #F5F5F5 tabs (crop 03)"
+      ],
+      "crops": [
+        "evidence/chemeurj-03.png",
+        "evidence/chemeurj-04.png"
+      ],
+      "notes": "variation colour differs and stays null: crop 03 draws the varied R1 and R2 groups black, with the sulfonamide nitrogens blue (scaffold atoms, not the varied part); crop 04 draws the varied amine part maroon (about #6C0000 to #800000 on the stroke)."
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": null,
+        "cycle_arrow_color": "#000000",
+        "catalyst_color": null,
+        "highlight_fill": "#E6E6E6",
+        "center_label": null,
+        "step_names": true,
+        "intermediate_label_style": null,
+        "curved_arrow_color": "#000000"
+      },
+      "signature_features": [
+        "cycle drawn with black arcs around a circle (crops 06, 07); crop 05 is an open loop",
+        "incoming and leaving species on short curved black arrows touching the cycle arc",
+        "framed legend or catalyst box with black outline, in crop 06 with a grey drop shadow",
+        "grey #E6E6E6 tabs behind transition-state labels and product boxes (crop 05)"
+      ],
+      "crops": [
+        "evidence/chemeurj-05.png",
+        "evidence/chemeurj-06.png",
+        "evidence/chemeurj-07.png"
+      ],
+      "notes": "intermediate labels differ and stay null: Int1 to Int8 in bold (crop 05), grey bold capital letters A to D (crop 06), bold compound numbers 2 and 2v (crop 07). Catalyst colour differs and stays null: Au orange in crop 05, black in crops 06 and 07. Cycle shape differs and stays null: crop 05 is an open loop, crops 06 and 07 are circles. Step names: plain black beside the arrows in crop 07 only (crops 05 and 06 have none). Grey #E6E6E6 fill: crop 05 only (transition-state tabs and product boxes); crops 06 and 07 have no fill (crop 06 has grey drop shadows on its pathway boxes). The catalyst sits centred in a black-framed box in crop 07 only."
+    },
+    "energy_profile": {
+      "conventions": {
+        "energy_unit": "kcal/mol",
+        "energy_label": "delta_G",
+        "level_style": "bars_solid_connectors",
+        "pathway_colors": null,
+        "ts_marker": "none",
+        "intermediate_label_style": null
+      },
+      "signature_features": [
+        "thick horizontal level bars (15-17 px, about 3x the bond line) joined by thinner solid slanted lines",
+        "bold species name stacked over its energy value beside each bar, above the bar for most levels and below for some (crops 08, 09)",
+        "vertical axis arrow at left with DeltaG label in kcal mol-1",
+        "second pathway in a contrasting colour: blue #0080BF vs maroon #800000 (crop 08), grey #808080 vs black (crop 09)"
+      ],
+      "crops": [
+        "evidence/chemeurj-08.png",
+        "evidence/chemeurj-09.png"
+      ],
+      "notes": "transition states carry no double dagger: crop 08 TS1minor, TS2minor, TS1major, TS2major and TS_Interconv; crop 09 TS1, TS2 and TS1'. Crop 08 reads DeltaG_sol (solvation-corrected) on the axis and crop 09 reads DeltaG298 with DeltaE in parentheses; delta_G is the nearest value. Pathway colours differ between the two crops (crop 08 blue minor and maroon major; crop 09 grey competing and black main), so pathway_colors is null."
+    }
+  }
+}

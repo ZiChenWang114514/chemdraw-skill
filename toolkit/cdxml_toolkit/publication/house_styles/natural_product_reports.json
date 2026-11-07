@@ -1,0 +1,259 @@
+{
+  "slug": "natural_product_reports",
+  "kind": "journal",
+  "display_name": "Natural Product Reports (RSC)",
+  "applies_to": [
+    "Natural Product Reports reviews and highlights"
+  ],
+  "base_preset": "rsc",
+  "measured": {
+    "bond_length_over_cap_height": 2.6,
+    "line_width_over_bond_length": 0.05,
+    "bold_width_over_bond_length": 0.25,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 4.8
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "under_arrow",
+    "yield_format": "{value}%",
+    "conditions_split": null,
+    "substrate_layout": null,
+    "abbreviate_groups": null,
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "signature_features": [
+      "bold compound numbers under each structure, at the lower left in crop 01 (crops 01, 06, 07); after the trivial name in crops 05 and 08",
+      "yields in bold under the arrow (crops 06, 07); numbered reagent lines 1. ..., 2. ... only where one arrow carries two operations (crops 06, 07)",
+      "final natural-product target named and numbered inside a thin rounded rectangle, e.g. Dragmacidin B (111b) (crop 06; the final compound of crop 07 is not boxed)",
+      "intermediates that are not isolated drawn in square brackets (crop 07)",
+      "thin plain lines, Kekule rings, Arial-like sans-serif labels"
+    ],
+    "notes": {
+      "conditions_split": "biosynthetic steps put the enzyme above and cofactors below (crop 01); synthetic steps number all reagents above and below without a solvent split (crops 06, 07)",
+      "new_bond_color": "null: the red #D8151F on newly installed oxygen atoms appears only in the biosynthesis crop 01, so it is recorded in the biosynthesis section, not as a house-wide colour. The biosynthesis variation_color is not applied by any drawing tool key.",
+      "show_plus_sign": "no two-substrate step in the reaction-scheme crops",
+      "abbreviate_groups": "null: Me is abbreviated only in crop 06 (N-methyl groups) and CO2Et only in crop 07 (ethyl ester). Crop 01 draws the heptyl chain as a plain zigzag with no Me label. No group is abbreviated in two reaction schemes.",
+      "yield_placement": "under_arrow in crops 06 and 07. The 25% yield in crop 06 sits beside the arrow shaft under the BH3-THF label; this is the one exception.",
+      "measured": "arrow length 4.8 (mean of four crops): crop 01 4.35 (87 / 20 px), crop 03 4.7 (136 / 29 px), crop 04 about 4.8 (visual), crop 06 5.4 (about 190 / 35 px); three of the four lie within 0.5 of 4.8. Bond length over cap height 2.6: crop 01 2.9 (20 / 7 px), crop 06 2.3 (35 / 15 px), crop 04 about 2.4 (visual); all three lie within 0.3 of 2.6. Line width 0.05: crop 01 0.05 (1 / 20 px), crop 06 0.04 (1.5 / 35 px), crop 03 about 0.07 (rough). Bold width 0.25: crop 01 only (5 / 20 px)."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1039/d2np00041e",
+      "citation": "Williams et al., Nat. Prod. Rep. 2022 (Maleidride biosynthesis: construction of dimeric anhydrides)",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 24",
+      "crop": "evidence/natural_product_reports-01.png",
+      "measurements_px": {
+        "bond_length": 20,
+        "cap_height": 7,
+        "line_width": 1,
+        "bold_width": 5,
+        "arrow_length": 87,
+        "compound_label_cap_height": 6
+      },
+      "observations": "enzyme names (RbtB, RbtG, RbtE, RbtU, RbtA) bold italic blue above the arrow; Fe2+, alpha-KG, O2 under the arrow, stacked in three steps and on one line in two, with O2 in red; succinate and CO2 released on a curved side arrow; new OH and C=O red; bold compound numbers at lower left"
+    },
+    {
+      "doi": "10.1039/d2np00041e",
+      "citation": "Williams et al., Nat. Prod. Rep. 2022 (Maleidride biosynthesis: construction of dimeric anhydrides)",
+      "licence": "CC BY 3.0",
+      "figure": "Fig. 1a",
+      "crop": "evidence/natural_product_reports-02.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "maleidride and nonadride cores in thin black outlined boxes on a lavender #C9C9FD fill; octadride and heptadride boxes on white; maleidride and nonadride headings bold, octadride and heptadride headings regular; sub-class lines (head-to-head, head-to-tail, head-to-side) in italic; monomer-derived bonds drawn bold"
+    },
+    {
+      "doi": "10.1039/d3np00051f",
+      "citation": "Miller et al., Nat. Prod. Rep. 2024 (Purine nucleoside antibiotics: recent synthetic advances harnessing chemistry and biology)",
+      "licence": "CC BY 3.0",
+      "figure": "Fig. 6",
+      "crop": "evidence/natural_product_reports-03.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "glucose drawn as a chair with the added sugar in dark blue #074383; enzyme NucGS in a dark-blue rounded box; compound 44 name in italic dark blue, compound 45 name in black; dark-blue bold title"
+    },
+    {
+      "doi": "10.1039/d3np00051f",
+      "citation": "Miller et al., Nat. Prod. Rep. 2024 (Purine nucleoside antibiotics: recent synthetic advances harnessing chemistry and biology)",
+      "licence": "CC BY 3.0",
+      "figure": "Fig. 3",
+      "crop": "evidence/natural_product_reports-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "one-step biosynthesis: enzyme AgmF boxed above a long arrow, H2O lost on a curved arrow below; ribose drawn as a Haworth-like furanose with bold lower bonds; compound names in italic dark blue with black numbers in parentheses; new exocyclic alkene in blue"
+    },
+    {
+      "doi": "10.1039/d3np00041a",
+      "citation": "Wang, Tang et al., Nat. Prod. Rep. 2023 (Dehydroamino acid residues in bioactive natural products)",
+      "licence": "CC BY 3.0",
+      "figure": "Fig. 5",
+      "crop": "evidence/natural_product_reports-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "lanthipeptides drawn as circles with three-letter residue codes in grey; Dha, Dhb and Lan residues coloured magenta #FB1AE0, cyan and blue; thioether bridges as coloured lines with S; producer organism in italic under the bold numbered name"
+    },
+    {
+      "doi": "10.1039/d4np00012a",
+      "citation": "Tepe et al., Nat. Prod. Rep. 2024 (Advances in the total synthesis of bis- and tris-indole alkaloids containing N-heterocyclic linker moieties)",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 25",
+      "crop": "evidence/natural_product_reports-06.png",
+      "measurements_px": {
+        "bond_length": 35,
+        "cap_height": 15,
+        "line_width": 1.5,
+        "bold_width": null,
+        "arrow_length": 190,
+        "compound_label_cap_height": 13
+      },
+      "observations": "numbered conditions on the first arrow (1. NBS, AIBN, CCl4 above; 2. DMF below); bold yields 57% under the arrow and 25% beside the arrow shaft under the BH3-THF label; bold compound numbers; target Dragmacidin B (111b) in a rounded box below a vertical step from 117"
+    },
+    {
+      "doi": "10.1039/d4np00012a",
+      "citation": "Tepe et al., Nat. Prod. Rep. 2024 (Advances in the total synthesis of bis- and tris-indole alkaloids containing N-heterocyclic linker moieties)",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 10",
+      "crop": "evidence/natural_product_reports-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "linear route folded into a U, with the PPh2Me arrow running right to left; bold yields under each arrow; only the two operations of the LiOH/CDI arrow are numbered; unisolated iminophosphorane in square brackets; final Rhopaladin D (53d) named in bold, not boxed"
+    },
+    {
+      "doi": "10.1039/d3np00041a",
+      "citation": "Wang, Tang et al., Nat. Prod. Rep. 2023 (Dehydroamino acid residues in bioactive natural products)",
+      "licence": "CC BY 3.0",
+      "figure": "Fig. 14",
+      "crop": "evidence/natural_product_reports-08.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "full skeletal structures of lipopeptides; the dehydroamino acid residue drawn in red #FC332F; bold name with bold number, organism italic and activity plain beneath"
+    }
+  ],
+  "figure_types": {
+    "biosynthesis": {
+      "conventions": {
+        "enzyme_label_style": "boxed",
+        "highlight_fill": null,
+        "variation_color": "#074383",
+        "intermediate_label_style": "bold_number"
+      },
+      "signature_features": [
+        "enzyme name above the reaction arrow, in a dark-blue rounded box in crops 03 and 04 and in bold italic blue text without a box in crop 01",
+        "cofactors (Fe2+, alpha-KG, O2) written under the arrow, stacked in three steps and on one line in two (crop 01); by-products (succinate and CO2 in crop 01, H2O in crop 04) leave on a small curved arrow (crops 01, 04)",
+        "atoms changed by the enzyme coloured: red #D8151F for the new oxygen atoms in crop 01, dark blue in crops 03 and 04 (added sugar, new exocyclic alkene)",
+        "intermediates labelled with bold numbers (crop 01); in crops 03 and 04 the trivial name of the changed compound is in italic dark blue #074383 (crop 03: compound 44 only; crop 04: both compound names), with the number in parentheses after it"
+      ],
+      "crops": [
+        "evidence/natural_product_reports-01.png",
+        "evidence/natural_product_reports-03.png",
+        "evidence/natural_product_reports-04.png"
+      ],
+      "notes": "enzyme_label_style boxed: crops 03 and 04 (dark-blue rounded box with blue text); crop 01, from another paper, sets the enzyme names in bold italic blue above the arrow with no box. variation_color takes the value shared by most crops: #074383 in crops 03 and 04 (one paper); crop 01 (another paper) colours the new oxygen atoms red #D8151F. The drawing tools do not apply biosynthesis conventions."
+    },
+    "biomolecule": {
+      "conventions": {
+        "sugar_projection": null,
+        "peptide_style": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "sugars as chairs (crop 03) or Haworth-like furanoses with bold front bonds (crop 04)",
+        "ribosomal peptides as chains of grey circles with three-letter codes, modified residues coloured magenta #FB1AE0 and blue, thioether bridges as coloured lines (crop 05)",
+        "nonribosomal lipopeptides as full skeletal structures with the dehydro residue in red #FC332F (crop 08)"
+      ],
+      "crops": [
+        "evidence/natural_product_reports-03.png",
+        "evidence/natural_product_reports-04.png",
+        "evidence/natural_product_reports-05.png",
+        "evidence/natural_product_reports-08.png"
+      ],
+      "notes": "sugar_projection and peptide_style vary with the molecule; both forms occur, so null. variation_color null: the coloured atoms differ by purpose and crop (dark blue added sugar in crops 03 and 04, magenta modified residues in crop 05, red dehydro residue in crop 08), so no value is shared by most crops."
+    },
+    "structure_panel": {
+      "conventions": {
+        "highlight_fill": "#C9C9FD",
+        "variation_color": null,
+        "intermediate_label_style": "bold_number"
+      },
+      "signature_features": [
+        "core families in thin black outlined boxes, one box per family, with bold headings for maleidrides and nonadrides and regular headings for octadrides and heptadrides; italic sub-class lines (head-to-head, head-to-tail, head-to-side) where a family has one (crop 02)",
+        "monomer-derived bonds drawn bold (the anhydride C=C and the adjacent ring bonds) while the rest of each ring is plain (crop 02)",
+        "a lavender #C9C9FD fill sits behind the maleidride and nonadride groups only; the octadride and heptadride boxes stand on white (crop 02)",
+        "each natural product: name with a bold number, organism in italic under it, activity in plain text below (crops 05, 08)"
+      ],
+      "crops": [
+        "evidence/natural_product_reports-02.png",
+        "evidence/natural_product_reports-05.png",
+        "evidence/natural_product_reports-08.png"
+      ],
+      "notes": "highlight_fill rests on crop 02 only (exact flat pixels #C9C9FD in that crop); crops 05 and 08 have no fill. intermediate_label_style bold_number rests on the bold compound numbers of crops 05 and 08; crop 02 has no numbers. variation_color null: crop 08 colours the dehydro residue red #FC332F and crop 05 colours modified residues magenta, so no value is shared by most crops."
+    },
+    "total_synthesis": {
+      "conventions": {
+        "step_label_style": "numbered",
+        "step_count_shown": null,
+        "yield_format": "{value}%",
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "two-operation arrows number each operation 1. ..., 2. ... (crops 06, 07); single-reagent arrows carry unnumbered reagent text (crops 06, 07); yields in bold under the arrow (crops 06, 07)",
+        "final target in a thin rounded rectangle with its name and bold number (crop 06 only; the final compound of crop 07 is not boxed)",
+        "long route folded into a U, with one arrow running right to left (crop 07); unisolated intermediates in square brackets (crop 07)"
+      ],
+      "crops": [
+        "evidence/natural_product_reports-06.png",
+        "evidence/natural_product_reports-07.png"
+      ],
+      "notes": "two crops from one review"
+    }
+  }
+}

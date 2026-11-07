@@ -2,8 +2,10 @@
 
 Run with ``cdx.py py <skill>/scripts/style_gallery.py --output-dir NEW_DIR``. The demo is a
 Suzuki coupling of methyl 4-bromobenzoate with 4-methoxyphenylboronic acid, with conditions
-and a yield. Each style gives one editable CDXML file; ``index.md`` lists them. Nothing is
-rendered: open or render the files natively to compare the styles.
+and a yield. Each style gives one editable CDXML file; ``index.md`` lists them. A house style
+whose card describes mechanisms or catalytic cycles also gets a hydroxide-addition mechanism
+and a three-step cycle, so its curved-arrow and cycle-arrow conventions can be compared.
+Nothing is rendered: open or render the files natively to compare the styles.
 """
 from __future__ import annotations
 
@@ -23,6 +25,27 @@ DEMO = {
                "yield": "85%"}],
 }
 
+MECHANISM = {
+    "kind": "mechanism",
+    "species": [{"id": "ald", "smiles": "CC=O", "label": "1"}, {"id": "hyd", "smiles": "[OH-]"},
+                {"id": "alk", "smiles": "CC([O-])O", "label": "2"}],
+    "steps": [{"substrates": ["ald", "hyd"], "products": ["alk"], "above": ["H2O"], "moves": [
+        {"from": {"species": "hyd", "atom": 0}, "to": {"species": "ald", "atom": 1}},
+        {"from": {"species": "ald", "bond": [1, 2]}, "to": {"species": "ald", "atom": 2}}]}],
+}
+
+CYCLE = {
+    "layout": "catalytic-cycle",
+    "species": [{"id": "A", "smiles": "CCO", "label": "I"}, {"id": "B", "smiles": "CC=O", "label": "II"},
+                {"id": "C", "smiles": "CC(=O)O", "label": "III"}],
+    "steps": [{"substrates": ["A"], "products": ["B"], "above": ["[O]"]},
+              {"substrates": ["B"], "products": ["C"], "above": ["[O]"]},
+              {"substrates": ["C"], "products": ["A"], "above": ["[H]"]}],
+}
+
+# Figure-type section of a card -> (file suffix, demo brief).
+FIGURE_DEMOS = {"mechanism": ("mechanism", MECHANISM), "catalytic_cycle": ("cycle", CYCLE)}
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -38,7 +61,8 @@ def main(argv: list[str] | None = None) -> int:
     if any(out.iterdir()):
         raise SystemExit(f"{out} is not empty; give a new folder")
     styles = [("preset", p["slug"], p["name"]) for p in list_style_presets()]
-    styles += [("house", h.slug, h.display_name) for h in list_house_styles()]
+    houses = list_house_styles()
+    styles += [("house", h.slug, h.display_name) for h in houses]
     lines = ["# Style gallery", "", "One Suzuki coupling drawn in each style.", "",
              "| Kind | Style | Name | File | Notes |", "| --- | --- | --- | --- | --- |"]
     failed = 0
@@ -51,6 +75,20 @@ def main(argv: list[str] | None = None) -> int:
             continue
         applied = ", ".join(report["style"].get("applied", [])) or "preset only"
         lines.append(f"| {kind} | {slug} | {name} | {target.name} | {applied} |")
+    for house in houses:
+        for section, (suffix, demo) in FIGURE_DEMOS.items():
+            if section not in house.figure_types:
+                continue
+            styles.append(("house", house.slug, house.display_name))
+            target = out / f"house-{house.slug}-{suffix}.cdxml"
+            report = draw_figure({**json.loads(json.dumps(demo)), "style": house.slug}, str(target))
+            if not report.get("ok"):
+                failed += 1
+                lines.append(f"| house {suffix} | {house.slug} | {house.display_name} | (failed) | "
+                             f"{'; '.join(report.get('errors', []))} |")
+                continue
+            applied = ", ".join(report["style"].get("applied", [])) or "preset only"
+            lines.append(f"| house {suffix} | {house.slug} | {house.display_name} | {target.name} | {applied} |")
     (out / "index.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(json.dumps({"ok": not failed, "output_dir": str(out), "drawn": len(styles) - failed,
                       "failed": failed}))

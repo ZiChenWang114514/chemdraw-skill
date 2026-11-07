@@ -20,6 +20,7 @@ class StructureRef:
     file: Optional[str] = None       # path to CDXML file
     cdxml_id: Optional[int] = None   # existing fragment ID
     label: Optional[str] = None      # compound number displayed below (e.g. "1")
+    orientation: Optional[str] = None  # "flip_horizontal", "flip_vertical" or "rotate_180"
 
 
 @dataclass

@@ -28,7 +28,7 @@ from ..constants import (
 from ..render import renderer as R
 from ..render.schema import StructureRef
 from ..text_formatting import normalize_condition_text
-from . import artifact_safety, figure_draw, figure_lint
+from . import artifact_safety, figure_draw, figure_house, figure_lint
 
 MECH_KEYS = {"kind", "species", "steps", "max_width", "title", "style", "show_atom_numbers"}
 SPECIES_KEYS = {"id", "smiles", "name", "label"}
@@ -697,11 +697,20 @@ def draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict:
     except Exception as exc:
         return figure_draw._failure([f"The layout failed: {exc}"], kind="mechanism", warnings=warnings)
 
+    house = figure_draw.brief_house(brief)
+    final = figure_draw.styled(drawing.cdxml, slug)
+    house_applied: list[str] = []
+    house_skipped = ["the reaction-scheme conventions (labels, yields, abbreviations) apply to schemes only"]
+    if house is not None:
+        final, house_applied, _ = figure_house.apply_measured_geometry(final, house, slug)
+        final, applied, more = figure_house.apply_figure_type_conventions(final, house, "mechanism", slug)
+        house_applied += applied
+        house_skipped += more
     try:
         target = artifact_safety.resolve_destination(
             source=None, output_path=output_path, tag="figure", suffix=".cdxml")
         with artifact_safety.staging_file(target) as stage:
-            stage.write_text(str(figure_draw.styled(drawing.cdxml, slug)), encoding="utf-8", newline="")
+            stage.write_text(str(final), encoding="utf-8", newline="")
             artifact_safety.publish_file(stage, target)
     except ValueError as exc:  # includes OutputExistsError
         return figure_draw._failure([str(exc)], kind="mechanism", warnings=warnings)
@@ -751,8 +760,7 @@ def draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict:
         "steps": balance,
         "moves": moves,
         "arrows": {"count": len(drawing.curves), "crossings": crossings, "relayout": relayout},
-        "style": figure_draw.style_report(slug, figure_draw.brief_house(brief), [],
-                                          ["house conventions apply to schemes only; the base preset was applied"]),
+        "style": figure_draw.style_report(slug, house, house_applied, house_skipped),
         "lint": {"issues": issues, "relayout": relayout, "max_width": requested_width},
         "readback": readback,
         "native": native,

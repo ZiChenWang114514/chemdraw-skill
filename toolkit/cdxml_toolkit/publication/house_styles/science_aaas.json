@@ -9,11 +9,11 @@
   "base_preset": "nature",
   "measured": {
     "bond_length_over_cap_height": 1.935,
-    "line_width_over_bond_length": 0.052,
-    "bold_width_over_bond_length": null,
+    "line_width_over_bond_length": 0.043,
+    "bold_width_over_bond_length": 0.115,
     "label_font": "Arial",
     "atom_label_size_pt_estimate": 8.0,
-    "arrow_length_over_bond_length": 12.82
+    "arrow_length_over_bond_length": 15.4
   },
   "conventions": {
     "compound_label_face": "bold",
@@ -24,20 +24,44 @@
     "conditions_split": null,
     "substrate_layout": null,
     "abbreviate_groups": [
-      "OMe",
-      "CF3"
+      "OMe"
     ],
     "aromatic_rings": "kekule",
-    "new_bond_color": null,
+    "new_bond_color": "#F80302",
     "substrate_colors": [
       "#000000",
-      "#0B0AED"
+      "#0202F4"
     ],
     "highlight_fill": null,
     "reagent_text_color": "#000000",
     "arrow_style": "plain",
     "show_plus_sign": null,
-    "yield_separator": ", "
+    "yield_separator": ", ",
+    "notes": {
+      "measured_spread": "arrow_length_over_bond_length 15.4 is the mean of crops 01 (727 px / 47 px = 15.5) and 02 (721 / 47 = 15.3). Crop 03 gives 329 / 43 = 7.7, a shorter arrow in the Zhao et al. scheme. The earlier 12.82 was the mean of all three crops. line_width_over_bond_length 0.043 is 2 px / 47 px in crops 01 and 02; crop 03 records 3 px / 43 px = 0.070 (a pixel ridge reading gives 2 px). bold_width_over_bond_length 0.115 is 5.4 px / 47 px on the red amide bond in crops 01 and 02; the crop 02 record of 20 px was not reproduced.",
+      "bond_length_over_cap_height": "1.935 is not reproduced. The TIPS atom labels are about 30 px cap height in crops 01 and 02 (ratio about 1.57 with 47 px bonds), and the crop 03 record gives 2.05. Left unchanged until it is re-measured.",
+      "new_bond_color": "Red #F80302, sampled from flat interior pixels of the bold C-N bond in crops 01 and 02 (Choudhary et al.). Crop 03 (Zhao et al.) colours the formed C-Br bond blue (#0B04CE), so the colour is not settled across the two papers.",
+      "substrate_colors": "Blue #0202F4 is the median of flat interior pixels in crops 01 and 02, where the amine is blue in the reagent and in the product. Crop 03 colours the incoming Br blue (#0B04CE) only in the product; the card has one incoming-component colour, so this is taken as the same convention.",
+      "compound_label_color": "Black in crops 01 and 02. Crop 03 draws the compound labels and yields blue, so black is kept on the two-crop majority.",
+      "yield_separator": "', ' in crops 01 and 02 (3a, 88%). Crop 03 uses a colon (2a: 89%), so the separator is not settled across the two papers.",
+      "yield_colour": "Crop 03 draws the yields in blue. The house-style schema has no yield colour key, so it is not recorded.",
+      "abbreviate_groups": "OMe is drawn abbreviated in crops 01, 02 and 03. CF3 appears only in crop 01 (3f), and NHBoc only in crop 02 (3ae), so neither is a top-level convention. TIPS, OEt and O-tBu have no entry in house_styles.ABBREVIATIONS and cannot be listed.",
+      "conditions_split": "Null. Crops 01 and 02 put the solvent above the arrow and temperature and time below, which has no enum value. Crop 03 puts reagents above the arrow and solvent and conditions below (reagents_above_solvent_below). The two papers disagree."
+    }
+  },
+  "figure_types": {
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid_with_core",
+        "yield_format": "{value}%"
+      },
+      "crops": [
+        "evidence/science_aaas-01.png",
+        "evidence/science_aaas-02.png",
+        "evidence/science_aaas-03.png"
+      ],
+      "notes": "A core reaction header above a grid of scope products in all three crops. Yields are plain percentages in all three. The crops show a scope table, not a single reaction scheme, so the section is substrate_scope rather than reaction_scheme."
+    }
   },
   "evidence": [
     {
@@ -51,9 +75,10 @@
         "cap_height": 29,
         "compound_label_cap_height": 23,
         "line_width": 2,
+        "bold_width": 5,
         "arrow_length": 727
       },
-      "observations": "Amine component and its atoms in the product blue (#0B0AED); new C–N amide bond red (#F40405), drawn thicker; ester black; bold labels, yield after the label on one line (3a, 88%); solvent above the arrow, temperature and time below; A + B inline with +; Kekulé rings; TIPS, OEt abbreviated."
+      "observations": "Amine component and its atoms in the product blue (#0202F4); new C–N amide bond red (#F80302), drawn thicker (about 5 px); ester black; bold labels, yield after the label on one line (3a, 88%); solvent above the arrow, temperature and time below; A + B inline with +; Kekulé rings; TIPS and OEt written as labels."
     },
     {
       "doi": "10.1126/sciadv.adp7544",
@@ -66,10 +91,10 @@
         "cap_height": 22,
         "compound_label_cap_height": 22,
         "line_width": 2,
-        "bold_width": 20,
+        "bold_width": 5,
         "arrow_length": 721
       },
-      "observations": "Same scheme header; drug names after the yield on the label line (3ae, 88%, Lysine); NHBoc, OtBu, OMe, CF3 abbreviated."
+      "observations": "Same scheme header; drug names after the yield on the label line (3ae, 88%, Lysine); NHBoc and OMe abbreviated; O-tBu written as a label; no CF3 is drawn in this crop."
     },
     {
       "doi": "10.1126/sciadv.adq0028",
@@ -84,7 +109,7 @@
         "line_width": 3,
         "arrow_length": 329
       },
-      "observations": "Introduced Br blue (#0C05CC) in substrates of the scope, yields blue after a colon (2a: 89%); reagents above the arrow, solvent and conditions below; header boxed with a drop shadow; Ar circle placeholder; Kekulé rings; side results in red parentheses."
+      "observations": "Introduced Br blue (#0B04CE) in the product; compound labels and yields blue, yield after a colon (2a: 89%); reagents above the arrow, solvent and conditions below; header boxed with a drop shadow; Ar circle placeholder; Kekulé rings; side results in red parentheses."
     }
   ]
 }

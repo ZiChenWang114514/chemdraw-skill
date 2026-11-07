@@ -1,0 +1,323 @@
+{
+  "slug": "org_lett",
+  "kind": "journal",
+  "display_name": "Organic Letters (ACS)",
+  "applies_to": [
+    "Org. Lett."
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.2,
+    "line_width_over_bond_length": 0.065,
+    "bold_width_over_bond_length": 0.2,
+    "label_font": "Arial",
+    "atom_label_size_pt_estimate": 9.0,
+    "arrow_length_over_bond_length": 6.5
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "under_product_label",
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": [
+      "Me",
+      "Ph",
+      "OMe",
+      "Bn",
+      "Boc",
+      "OAc",
+      "CF3",
+      "tBu"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "yield_separator": ", ",
+    "notes": {
+      "conditions_split": "Crops 02 and 04 put reagents above the arrow and solvent and temperature below. Crops 01 and 06 are two-step schemes that split by step (crop 01: NMP and r.t. 1 h above, NiBr2 diglyme, n-Bu2phen, Mn and r.t. 23 h below), so the rule holds for single-step schemes only.",
+      "substrate_layout": "Inline in crops 02, 04 and 05. Crop 03 shows the general alcohol and chlorosilane pair stacked, with the plus sign between them. Crop 01 places the chlorosilane 2a under the start of the arrow as a reagent, with no plus sign.",
+      "show_plus_sign": "Plus sign shown in crops 02, 04, 05 and 08. Crop 01 has none because 2a is a reagent under the arrow.",
+      "yield_placement": "under_product_label in crops 06 (under the product), 08, 09 and 10: yield and ee on the line under the label. Crop 04 has no product label and sets '92%, 18% ee' directly under the structure. Crop 07 writes 'label: yield' on the label line (7aa: 70%).",
+      "yield_format": "{value}% in crops 04, 06, 07, 08 and 09. Crop 10 writes '24 % Yield' on its own line under the label; the majority form is kept.",
+      "yield_separator": "', ' between yield and ee in crops 04 and 08 ('92%, 18% ee', '70%, 89% ee'). Crop 07's colon sits between the label and a yield with no ee, so it is a label separator, not this one.",
+      "reagent_text_color": "Black in crops 01, 02 and 04 and in most of crop 06. Exceptions: the introduced reagent Mn in crop 06 is blue, and the light source (Blue LEDs) in crop 08 is blue. Black is kept as the majority colour.",
+      "arrow_length_over_bond_length": "Crops disagree widely: 3.3 (crop 09), 4.9 (01), 5.6 (04), 6.25 (06), 6.7 (02), 9.0 (03), 10.3 (07), 11.0 (08). The median of these eight, 6.5, is kept; 7.6 lies within one unit of crop 02 only.",
+      "abbreviate_groups": "Me is labelled on silicon (crop 01) and on aryl and alkyl ends (crop 07); the terminal CH3 of ethyl and methyl groups stays skeletal (crops 09 and 10). OMe is labelled in crops 07 and 08; crop 02 draws the methoxy group skeletally. TIPS and OEt are labelled in crop 04 but are not in the abbreviation table, so they cannot be listed.",
+      "substrate_colors": "Null. Crop 02 (Ma et al.) colours 1a slate and 2a dark red; crops 03, 06 and 07 (Oestreich et al.) colour the silyl fragment blue. No colour list is shared across papers.",
+      "new_bond_color": "Null. The blue new C-Si bond in crops 03, 06 and 07 comes from one paper (Oestreich et al.); crops 04 and 09 are all black."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/acs.orglett.5c00830",
+      "citation": "Oestreich et al., Org. Lett. 2025, 27, 3686 (One-pot sequential alcohol activation and nickel-catalyzed cross-electrophile coupling with chlorosilanes)",
+      "licence": "CC BY 4.0",
+      "figure": "Table 1 (PDF page 2, 300 dpi)",
+      "crop": "evidence/org_lett-01.png",
+      "measurements_px": {
+        "bond_length": 35,
+        "cap_height": 16,
+        "compound_label_cap_height": 16,
+        "line_width": 2.5,
+        "arrow_length": 172
+      },
+      "observations": "Scheme on top of the table, reagents above and below the arrow, R defined at right after a vertical rule; reagent structures drawn in a grey box #F1F2F1; table in Times-like serif with horizontal rules only (top, below the header, bottom); entry 1 (none, 94%) not bold or shaded; footnotes as italic superscript letters a-d, footnote d = ND."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c01129",
+      "citation": "Ma et al., Org. Lett. 2025, 27, 4732 (Transition-metal free photocatalytic synthesis of acylsulfonamides)",
+      "licence": "CC BY 4.0",
+      "figure": "Table 1 (PDF page 1, 300 dpi)",
+      "crop": "evidence/org_lett-02.png",
+      "measurements_px": {
+        "bond_length": 30,
+        "cap_height": 14,
+        "line_width": 2.5,
+        "arrow_length": 200
+      },
+      "observations": "Optimization table: header scheme with PC and PTC bold above the arrow; columns entry, PC, x, PTC, yield^b (%); horizontal rules only, no highlighted best entry; footnote letters superscript italic on entries (7c, 8c,d)."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c00830",
+      "citation": "Oestreich et al., Org. Lett. 2025, 27, 3686 (One-pot sequential alcohol activation and nickel-catalyzed cross-electrophile coupling with chlorosilanes)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/org_lett-03.png",
+      "measurements_px": {
+        "bond_length": 30,
+        "cap_height": 13,
+        "line_width": 2,
+        "arrow_length": 270
+      },
+      "observations": "Two stacked sub-panels with bold italic titles, separated by a thin black full-width rule; known routes in the upper rows, this work in the bottom row with bold italic 'this work' under the arrow; silyl group blue #0336FF throughout, new C-Si bond as a thick blue line."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c01864",
+      "citation": "Akiyama et al., Org. Lett. 2025, 27, 6204 (Chiral phosphoric acid-catalyzed enantioselective Pictet-Spengler reaction for CF3-substituted tetrahydro-beta-carbolines)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/org_lett-04.png",
+      "measurements_px": {
+        "bond_length": 34,
+        "cap_height": 15,
+        "line_width": 2.5,
+        "bold_width": 7,
+        "arrow_length": 190
+      },
+      "observations": "Earlier approaches (a), (b) and 'Present work:' (c) as stacked rows, panel letters in parentheses at the right end of each row, 'Present work:' bold sans-serif; all black; yield and ee under the product."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c02365",
+      "citation": "Dell'Amico et al., Org. Lett. 2025 (Enantioselective organophotocatalytic alpha-functionalization of aldehydes with N-lactam radicals)",
+      "licence": "CC BY 4.0",
+      "figure": "Graphical abstract (TOC)",
+      "crop": "evidence/org_lett-05.png",
+      "measurements_px": {
+        "bond_length": 40,
+        "cap_height": 17,
+        "line_width": 3
+      },
+      "observations": "Free-form TOC: blue #0B0DFE ring with lamp icon on the arrow, two interlocking arc arrows (mint #55FFA9 and dark green #066A34) around a bold PC; lactam ring filled lilac #DFB3FE; three dark green check-mark bullets with bold green text; target drug in a rounded black frame."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c00830",
+      "citation": "Oestreich et al., Org. Lett. 2025, 27, 3686 (One-pot sequential alcohol activation and nickel-catalyzed cross-electrophile coupling with chlorosilanes)",
+      "licence": "CC BY 4.0",
+      "figure": "Abstract graphic (PDF page 1, 300 dpi)",
+      "crop": "evidence/org_lett-06.png",
+      "measurements_px": {
+        "bond_length": 32,
+        "cap_height": 15,
+        "line_width": 2.5,
+        "arrow_length": 200
+      },
+      "observations": "TOC graphic is a single-line two-step scheme on the pale blue abstract band #CEEDFC; OH red #FF0000, SiR3 blue #0080FF; bracketed intermediate; bold italic 'two-step/one-pot' under the bracket; '48 examples up to 98% yield' under the product."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c00830",
+      "citation": "Oestreich et al., Org. Lett. 2025, 27, 3686 (One-pot sequential alcohol activation and nickel-catalyzed cross-electrophile coupling with chlorosilanes)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 4 (top rows)",
+      "crop": "evidence/org_lett-07.png",
+      "measurements_px": {
+        "bond_length": 30,
+        "cap_height": 13.5,
+        "compound_label_cap_height": 13,
+        "line_width": 2,
+        "bold_width": 6,
+        "arrow_length": 310
+      },
+      "observations": "Late-stage scope: generic substrate as a dark green #036500 pill shape with red OH; scheme above a full-width black rule; each product with an italic 'from Drug' line, then bold label: yield on one line; introduced SiMe2(vinyl) group blue #0336FF."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c02365",
+      "citation": "Dell'Amico et al., Org. Lett. 2025 (Enantioselective organophotocatalytic alpha-functionalization of aldehydes with N-lactam radicals)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3 (reaction scope)",
+      "crop": "evidence/org_lett-08.png",
+      "measurements_px": {
+        "bond_length": 30,
+        "cap_height": 13,
+        "compound_label_cap_height": 13,
+        "line_width": 2,
+        "arrow_length": 330
+      },
+      "observations": "Grid of 4 x 2 products under a one-arrow scheme 1 + 2 -> 4; bold label then 'yield, ee' line under it; asterisk footnote line centred at the bottom; 'Blue LEDs' blue #0C11FF text in the conditions."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c01864",
+      "citation": "Akiyama et al., Org. Lett. 2025, 27, 6204 (Chiral phosphoric acid-catalyzed enantioselective Pictet-Spengler reaction for CF3-substituted tetrahydro-beta-carbolines)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3 (derivatization of 4ac)",
+      "crop": "evidence/org_lett-09.png",
+      "measurements_px": {
+        "bond_length": 30,
+        "cap_height": 13,
+        "compound_label_cap_height": 13,
+        "line_width": 2,
+        "bold_width": 6,
+        "arrow_length": 100
+      },
+      "observations": "Starting product top left, arrows leaving right, down and diagonally; reagents next to each arrow; bold number with 'yield, ee' under each product; all black."
+    },
+    {
+      "doi": "10.1021/acs.orglett.5c02365",
+      "citation": "Dell'Amico et al., Org. Lett. 2025 (Enantioselective organophotocatalytic alpha-functionalization of aldehydes with N-lactam radicals)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 5 (telescoped flow synthesis)",
+      "crop": "evidence/org_lett-10.png",
+      "measurements_px": {
+        "bond_length": 28,
+        "cap_height": 12,
+        "line_width": 2
+      },
+      "observations": "Flow setup in three horizontal colour bands, each with a bold coloured title: mint #D7FFF6 'Photocatalytic reaction' (green #21C467 title), light blue #C0EFFF 'In-line separation' (blue #1A14DA title), lilac #DBD4FE 'Oxidation'; coil reactors as stacked rings, reagent feeds in dashed boxes, T-pieces as small bars."
+    }
+  ],
+  "figure_types": {
+    "optimization_table": {
+      "conventions": {
+        "table_style": "none",
+        "entry_highlight": "none",
+        "footnote_style": "superscript_letters",
+        "yield_format": "{value}",
+        "selectivity_format": null
+      },
+      "signature_features": [
+        "reaction scheme drawn above the table body; table text in the journal serif (Times-like), scheme text in Arial",
+        "no rules: a filled light grey header band (#E6E6E6) over the column heads, with no horizontal rules and no vertical lines (crops 01, 02)",
+        "yield column header carries the footnote letter and unit, yield^b (%); cells give bare numbers, isolated yield in parentheses with its own letter, 94 (91^c)",
+        "footnote letters are italic superscripts attached to entries or cells (7^c, ND^d)",
+        "the best entry is not bold, shaded or boxed in either table; in crop 01 it is entry 1 'none' of a variation-from-standard table",
+        "in crop 01 reagent structures sit in a grey box #F1F2F1 between scheme and table"
+      ],
+      "crops": [
+        "evidence/org_lett-01.png",
+        "evidence/org_lett-02.png"
+      ],
+      "notes": "Crops 01 and 02 agree: no highlighted best entry, no rules, header row filled #E6E6E6. table_style is none because the value set has no band option. selectivity_format null: no ee column in these crops. Org. Lett. tables are typeset text, so they were cropped from the article PDF."
+    },
+    "concept_panel": {
+      "conventions": {
+        "panel_label_style": "parenthesised_lowercase",
+        "comparison_layout": "stacked_rows",
+        "this_work_color": null,
+        "background_fill": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "previous approaches and this work as stacked rows, this work last",
+        "this work flagged by text only: bold italic 'this work' under the arrow (crop 03) or bold 'Present work:' above the row (crop 04); no coloured box",
+        "panel letters in parentheses (a), (b), (c) at the right end of each row in crop 04; crop 03 uses bold italic sub-panel titles instead",
+        "sub-panels separated by a thin black full-width rule (crop 03)"
+      ],
+      "crops": [
+        "evidence/org_lett-03.png",
+        "evidence/org_lett-04.png"
+      ],
+      "notes": "panel_label_style rests on crop 04. this_work_color null: black in crop 04, the method's blue silyl colour in crop 03. Crop 04 writes yield and ee directly under each structure as '81%, 86% ee'. This section takes no yield or selectivity convention, so that format is recorded in the top-level notes (yield_format, yield_separator)."
+    },
+    "graphical_abstract": {
+      "conventions": {
+        "background_fill": null,
+        "highlight_fill": "#DFB3FE",
+        "variation_color": null,
+        "this_work_color": null
+      },
+      "signature_features": [
+        "light source as a blue #0B0DFE ring with a lamp icon sitting on the reaction arrow (crop 05)",
+        "catalysts as two interlocking arc arrows in mint #55FFA9 and dark green #066A34 around a bold PC (crop 05)",
+        "key ring filled lilac #DFB3FE (crop 05)",
+        "check-mark bullets with bold dark green #066A34 claims (crop 05)",
+        "crop 06: a one-line scheme with the reacting group red #FF0000 and the introduced group blue #0080FF, '48 examples, up to 98% yield' under the product"
+      ],
+      "crops": [
+        "evidence/org_lett-05.png",
+        "evidence/org_lett-06.png"
+      ],
+      "notes": "Two TOC styles: free-form graphic (crop 05) and a single scheme (crop 06). highlight_fill rests on crop 05 only. The blue band in crop 06 is the journal's abstract box, not part of the graphic. draw_figure reads only the top-level highlight_fill, so the lilac ring is reproduced per species rather than from this section."
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "variation_color": null,
+        "yield_format": "{value}%",
+        "selectivity_format": "{value}% ee",
+        "conditions_position": "scheme_on_top",
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "one reaction arrow with conditions above and below, products in a grid underneath",
+        "bold product label with 'yield, ee' on the line beneath (70%, 89% ee) or label: yield on one line (7aa: 70%)",
+        "crop 07: generic substrate as a dark green #036500 pill with red #FF0305 OH, introduced group blue #0336FF, italic 'from Drug' line above each label",
+        "footnote marker as an asterisk with its explanation centred under the grid (crop 08)"
+      ],
+      "crops": [
+        "evidence/org_lett-07.png",
+        "evidence/org_lett-08.png"
+      ],
+      "notes": "variation_color null: blue in crop 07, black structures in crop 08. selectivity_format from crop 08. conditions_position: crop 08 has one arrow with the conditions above and below it and 1 + 2 reactants; the reactant row is not recorded in this card."
+    },
+    "derivatization": {
+      "conventions": {
+        "derivatization_layout": "radial",
+        "yield_format": "{value}%",
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "parent 4ac top left: an arrow to the right gives 7 (top middle) and an arrow down gives 6; 7 is the hub, with arrows leaving it to the right (to 9), down (to 8) and diagonally down-right (to 10)",
+        "reagents written beside each arrow, two steps as 1) 2)",
+        "bold compound number with 'yield, ee' below every derivative, (2 steps) in parentheses",
+        "all black, no colour or boxes"
+      ],
+      "crops": [
+        "evidence/org_lett-09.png"
+      ],
+      "notes": "One crop (Akiyama et al., Scheme 3). Radial kept: the arrows fan out from 7, the middle hub."
+    },
+    "setup_diagram": {
+      "conventions": {
+        "background_fill": "#D7FFF6",
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "telescoped flow route split into horizontal pastel bands, mint #D7FFF6, light blue #C0EFFF and lilac #DBD4FE, each with a bold coloured title",
+        "coil reactors drawn as stacked rings with residence time and temperature in bold italic",
+        "reagent feeds in dashed boxes joining the line at small T-pieces"
+      ],
+      "crops": [
+        "evidence/org_lett-10.png"
+      ],
+      "notes": "Bonus type; one crop; background_fill is the first band."
+    }
+  }
+}

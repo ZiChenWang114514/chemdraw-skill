@@ -501,6 +501,8 @@ def cmd_styles(ns):
         h = house_style_summary(house)
         print(f"{h['slug']:<21} {h['kind']:<9} base {h['base_preset']:<12} {h['evidence']} evidence  "
               f"{h['display_name']}")
+        if h.get('figure_types'):
+            print(f"{'':<21} figures: {', '.join(h['figure_types'])}")
     if not houses:
         print('(none installed)')
     return 0

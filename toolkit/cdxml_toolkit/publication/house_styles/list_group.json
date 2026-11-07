@@ -1,0 +1,270 @@
+{
+  "slug": "list_group",
+  "kind": "group",
+  "display_name": "List group (MPI für Kohlenforschung)",
+  "applies_to": [
+    "List group papers, Nature (asymmetric organocatalysis, IDPi catalysts)"
+  ],
+  "base_preset": "nature",
+  "measured": {
+    "bond_length_over_cap_height": 2.65,
+    "line_width_over_bond_length": 0.044,
+    "bold_width_over_bond_length": 0.13,
+    "label_font": "Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 5.9
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "CF3",
+      "TMS"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "signature_features": [
+      "catalyst and reagent above the arrow; solvent with molarity, temperature and time below, e.g. 'Toluene (0.2 M)' over 'T (°C), 24 h'",
+      "product label with yield and e.r. stacked below it, e.g. '6, 91%' then '98:2 e.r.' (crop 02); crop 03 sets the label alone on one line and yield and e.r. on the next",
+      "catalyst aryl variants 2 to 5 drawn with a blue #456A98 dot above and a gold #DEC27D dot below (crop 02)",
+      "light teal #CCE6E6 disc behind the key product in overview figures (crop 01)"
+    ],
+    "notes": {
+      "yield_placement": "not set: no two crops agree. Crop 01 stacks yield and d.r./e.r. to the right of the product; crop 02 puts the yield on the label line ('6, 91%'); crop 03 puts the label alone with yield and e.r. on the next line.",
+      "yield_format": "'{value}%' from crops 02 and 03 (bare percentages on scope labels). Crop 01 writes '{value}% yield'; that value is set in figure_types.reaction_scheme.",
+      "substrate_layout": "only one-component schemes in the crops",
+      "abbreviate_groups": "CF3 (crops 02, 04) and TMS (crops 02, 04, 06) meet the two-crop rule. One-crop groups are not set here: tBu (crop 03), OMe (crop 02), OBn (crop 03), CN (crop 02), TBSO (crop 02). nHex (crop 05) and C2F5 (crop 02) are not in the abbreviation table; OTMS in crop 02 reads through TMS.",
+      "show_plus_sign": "not seen",
+      "new_bond_color": "no new-bond colouring",
+      "highlight_fill": "no agreement at top level: teal #CCE6E6 disc in crop 01; grey background panels in crop 03 (#F0F0F0 behind the scheme, #F7F7F7 behind the catalyst). Grey highlight fills are set per section: #EFEFEF in mechanism (crop 04), #F9F9F9 in catalytic_cycle (crop 05).",
+      "catalyst_arc_colour": "steel-blue #457898 in crops 04 and 06; black in crops 03 and 05. Not a top-level feature; see figure_types.",
+      "compound_label_color": "#000000 for scheme compounds (crops 02, 03). Energy-profile species labels are navy (crop 07), recorded in figure_types.energy_profile signature features; that section has no compound-label colour key."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1038/s41586-023-05747-9",
+      "citation": "List et al., Nature 2023 (Catalytic asymmetric synthesis of cannabinoids and menthol from neral)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1a,b",
+      "crop": "evidence/list_group-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "grey disc with teal #CCE6E6 inner disc around the product, curved text on the disc, teal block arrows to boxed applications with grey title strips; catalysis as a teal ring arrow, 3D TS in brackets with double dagger, '76% yield / d.r. > 20:1 / e.r. = 99:1' stacked right of the product"
+    },
+    {
+      "doi": "10.1038/s41586-022-04531-5",
+      "citation": "List et al., Nature 2022 (Organocatalytic stereoselective cyanosilylation of small ketones)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2 top",
+      "crop": "evidence/list_group-02.png",
+      "measurements_px": {
+        "bond_length": 45,
+        "cap_height": 17,
+        "line_width": 2,
+        "bold_width": 6,
+        "arrow_length": 264,
+        "compound_label_cap_height": 14
+      },
+      "observations": "measured on the 2078 px figure; scope grid with thin grey rules and centred category titles, bold label with yield then e.r., catalyst substituents as blue #456A98 and gold #DEC27D dots"
+    },
+    {
+      "doi": "10.1038/s41586-023-06826-7",
+      "citation": "List et al., Nature 2024 (Catalytic asymmetric cationic shifts of aliphatic hydrocarbons)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3",
+      "crop": "evidence/list_group-03.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "scope grid under grey header bands (#F0F0F0 behind the scheme, #F7F7F7 behind the catalyst), bold labels with '93%, 97.5:2.5 e.r.', X-ray structures beside derivatisations"
+    },
+    {
+      "doi": "10.1038/s41586-022-04531-5",
+      "citation": "List et al., Nature 2022 (Organocatalytic stereoselective cyanosilylation of small ketones)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4a",
+      "crop": "evidence/list_group-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "computed mechanism: TSs in square brackets with double dagger, bold labels (TS0, INT1) with free energies in blue #0000FF in parentheses, H-bonds dashed, products in purple #800080, red cross on the disfavoured arrow"
+    },
+    {
+      "doi": "10.1038/s41586-023-06826-7",
+      "citation": "List et al., Nature 2024 (Catalytic asymmetric cationic shifts of aliphatic hydrocarbons)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4e",
+      "crop": "evidence/list_group-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "catalytic cycle of large black arcs, step names (Protonation, Deprotonation, Ring expansion) in plain text, bracketed intermediates with bold roman labels I-IV, 13C label in red, carbons marked by lavender #8080BE and teal #408080 dots"
+    },
+    {
+      "doi": "10.1038/s41586-022-04531-5",
+      "citation": "List et al., Nature 2022 (Organocatalytic stereoselective cyanosilylation of small ketones)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4d",
+      "crop": "evidence/list_group-06.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "cycle with the IDPi catalyst drawn at top and left, step names on grey boxes (Silylation, Ketone activation, Asymmetric cyanation), equilibrium half-arrows, steel-blue #457898 backbone arcs"
+    },
+    {
+      "doi": "10.1038/s41586-023-05747-9",
+      "citation": "List et al., Nature 2023 (Catalytic asymmetric synthesis of cannabinoids and menthol from neral)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4e",
+      "crop": "evidence/list_group-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "free energy (kcal mol-1) vs reaction coordinate, short thick black bars joined by dashed lines, bold navy #000086 labels above and values below each bar, 3D TS inset with a grey magnifier ring"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": "{value}% yield",
+        "selectivity_format": "e.r. = {value}",
+        "highlight_fill": "#CCE6E6",
+        "variation_color": null
+      },
+      "signature_features": [
+        "yield, d.r. and e.r. stacked to the right of the product: '76% yield', 'd.r. > 20:1', 'e.r. = 99:1'",
+        "teal #CCE6E6 disc behind the key product, inside a grey #ECECEC backing around the overview scheme"
+      ],
+      "crops": [
+        "evidence/list_group-01.png"
+      ],
+      "notes": "one crop (crop 01); the yield format, the teal disc and the grey backing are read from that single unambiguous crop. The section value overrides the top-level yield format."
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "variation_color": null,
+        "yield_format": "{value}%",
+        "selectivity_format": "{value} e.r.",
+        "conditions_position": "scheme_on_top",
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "bold number centred under the structure; yield and e.r. on the lines below (crop 02: yield on the label line, '6, 91%', then e.r.; crop 03: label alone, then yield and e.r. on one line)",
+        "category titles centred between thin grey horizontal rules, e.g. 'Aliphatic ketones' (crop 02); crop 03 has a left-aligned plain title and no rules",
+        "footnote letters as superscripts after the yield (crop 02) or on the compound label (crop 03, 3k^a)"
+      ],
+      "crops": [
+        "evidence/list_group-02.png",
+        "evidence/list_group-03.png"
+      ],
+      "notes": "both crops agree on the e.r. format ('{value} e.r.'). highlight_fill stays null: the grey panel in crop 03 is a two-tone background (#F0F0F0 behind the scheme, #F7F7F7 behind the catalyst), not a highlight, and crop 02 has none."
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": null,
+        "curved_arrow_weight": null,
+        "show_lone_pairs": false,
+        "formal_charge_style": "circled",
+        "intermediate_label_style": "bold_number",
+        "ts_marker": "bracket_double_dagger",
+        "highlight_fill": "#EFEFEF"
+      },
+      "signature_features": [
+        "TSs in square brackets with a double dagger at top right",
+        "free energies in blue #0000FF in parentheses after bold labels",
+        "hydrogen bonds as dashed black lines",
+        "products in purple #800080, disfavoured path marked with a red cross",
+        "IDPi catalyst drawn with steel-blue #457898 backbone arcs; no substituent dots in this crop"
+      ],
+      "crops": [
+        "evidence/list_group-04.png"
+      ],
+      "notes": "computed mechanism without curved arrows (crop 04, one crop). Grey #EFEFEF highlight boxes sit behind the ketone at the TS1 and TS1' positions. Labels are bold prefix plus number (TS0, INT1, TS1', INT2); the schema has no bold alphanumeric value, so bold_number is the nearest and this is a schema limit."
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": "open_arc",
+        "cycle_arrow_color": "#000000",
+        "catalyst_color": null,
+        "center_label": false,
+        "step_names": true,
+        "intermediate_label_style": "bold_roman",
+        "curved_arrow_color": null,
+        "highlight_fill": "#F9F9F9"
+      },
+      "signature_features": [
+        "large black arcs; substrates enter and products leave on short curved arrows",
+        "step names in plain text, on grey boxes (#E7E7E7) in crop 06",
+        "catalyst drawn schematically; backbone arcs steel-blue #457898 in crop 06 but black in crop 05",
+        "bracketed intermediates with bold roman labels I-IV (crop 05)"
+      ],
+      "crops": [
+        "evidence/list_group-05.png",
+        "evidence/list_group-06.png"
+      ],
+      "notes": "roman labels in crop 05 only. catalyst_color is left unset because the two crops disagree (crop 06 steel-blue, crop 05 black). highlight_fill #F9F9F9 is the grey box behind intermediate II in crop 05 (one crop); the crop 06 step-name boxes are #E7E7E7 label backgrounds and are not set here."
+    },
+    "energy_profile": {
+      "conventions": {
+        "energy_unit": "kcal/mol",
+        "energy_label": null,
+        "level_style": "bars_dashed_connectors",
+        "pathway_colors": null,
+        "ts_marker": "none",
+        "intermediate_label_style": "bold_letter"
+      },
+      "signature_features": [
+        "short thick black bars joined by thin dashed lines",
+        "bold navy #000086 species labels above, values below each bar",
+        "y axis 'Free energy (kcal mol-1)', x axis 'Reaction coordinate'"
+      ],
+      "crops": [
+        "evidence/list_group-07.png"
+      ],
+      "notes": "one crop (crop 07). energy_label is left unset: the y axis reads 'Free energy (kcal mol-1)' and the species values carry no delta symbol, and the schema has no value for an unlabelled energy."
+    }
+  }
+}

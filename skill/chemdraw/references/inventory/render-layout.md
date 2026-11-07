@@ -99,11 +99,11 @@
 
 ## `render.renderer`
 
-- **function**, line 3082: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
-- **function**, line 3104: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
-- **function**, line 3070: `render_with(build) -> str` - Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
-- **class**, line 147: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
-- **class**, line 162: `ResolvedStep` - A step with all structures resolved and laid out.
+- **function**, line 3133: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 3155: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **function**, line 3121: `render_with(build) -> str` - Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
+- **class**, line 149: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
+- **class**, line 164: `ResolvedStep` - A step with all structures resolved and laid out.
 
 ## `render.route_graph`
 
@@ -113,12 +113,12 @@
 
 ## `render.schema`
 
-- **class**, line 26: `ArrowContent` - Content placed above or below an arrow.
-- **class**, line 46: `RunArrowEntry` - A single run (one scale) of a reaction step.
-- **class**, line 79: `SchemeDescriptor` - Complete scheme description.
-- **class**, line 71: `SectionDescriptor` - A section in a stacked-rows layout.
-- **class**, line 33: `StepDescriptor` - A single reaction step.
-- **class**, line 54: `StepRunArrows` - Run arrows for a specific step (may have multiple scales).
+- **class**, line 27: `ArrowContent` - Content placed above or below an arrow.
+- **class**, line 47: `RunArrowEntry` - A single run (one scale) of a reaction step.
+- **class**, line 80: `SchemeDescriptor` - Complete scheme description.
+- **class**, line 72: `SectionDescriptor` - A section in a stacked-rows layout.
+- **class**, line 34: `StepDescriptor` - A single reaction step.
+- **class**, line 55: `StepRunArrows` - Run arrows for a specific step (may have multiple scales).
 - **class**, line 15: `StructureRef` - Reference to a chemical structure — resolved later by the renderer.
 
 ## `render.scheme_maker`

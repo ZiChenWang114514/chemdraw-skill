@@ -1,0 +1,308 @@
+{
+  "slug": "beilstein_joc",
+  "kind": "journal",
+  "display_name": "Beilstein Journal of Organic Chemistry",
+  "applies_to": [
+    "Beilstein J. Org. Chem. (Beilstein-Institut, all articles CC BY 4.0)"
+  ],
+  "base_preset": "nature",
+  "measured": {
+    "bond_length_over_cap_height": 2.2,
+    "line_width_over_bond_length": 0.068,
+    "bold_width_over_bond_length": 0.16,
+    "label_font": "Arial-like sans-serif",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 6.4
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "after_product_label",
+    "yield_separator": null,
+    "yield_format": "{value}%",
+    "conditions_split": null,
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "OMe",
+      "tBu",
+      "Ph",
+      "CO2Me"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": null,
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "scope figures open with the general reaction on top, separated from the product grid by a full-width thin grey rule (crops 01, 02)",
+      "product yield on the label line: bold label then plain yield, e.g. 2a: 69% (crop 02) or 3m 43% (crop 01)",
+      "tert-butyl written t-Bu with an italic t (crops 01, 02)",
+      "in multistep schemes the step yield sits in parentheses as the last line under the conditions, e.g. (30%) (crop 05)",
+      "sans-serif (Arial-like) text throughout (crops 01 to 07)"
+    ],
+    "notes": {
+      "yield_placement": "after the product label in both scope crops (01, 02); in the total-synthesis scheme (05) the yield is under the arrow in parentheses. Two agreeing crops (01, 02) hold the value; crop 05 is the exception and is recorded under total_synthesis.",
+      "yield_separator": "no single separator: crop 02 uses a colon (2a: 69%); crop 01 uses a comma in R = ... rows (3c R = OCF3, 69%) and a space for single compounds (3m 43%).",
+      "yield_format": "{value}% in the product labels of the scope crops (01, 02); the step yield in the multistep scheme (05) is ({value}%) and is recorded under reaction_scheme and total_synthesis.",
+      "conditions_split": "Crops 01 and 02 put the base or AgNO3 below the arrow with the solvent (Cs2CO3 and H2O in 01; AgNO3 in 02); only crop 05 puts all reagents above and the solvent below. Two agreeing crops are needed, so null.",
+      "substrate_layout": "Crop 01 (1a + 2b-q) is inline_plus; crop 04 (retrosynthesis, 7 over 8 with a plus) is stacked_plus. Crops 02 and 05 show a single substrate. The crops disagree, so null.",
+      "reagent_text_color": "Author colouring: NO2, NO3 and HNO3 in red in crops 02 and 03; Ni in dark red in crop 04 (#8A0004); reagent text black in crops 01 and 05. The journal sets no colour, so null.",
+      "new_bond_color": "Dark red new bonds appear in crop 02 (C-NO2 bond, #800000, Gandeepan et al.), crop 04 (bonds to be formed, #8A3123) and crop 05 (two new C-C bonds of 13, dark red on thin lines, Xiao et al.). The hex differs between papers; author choice, not a journal rule.",
+      "highlight_fill": "light blue ring fill #BEDAFF in crops 02 and 03 only (one paper); the substrate_scope and catalytic_cycle sections carry the same fill.",
+      "arrow_style": "plain in crops 01, 02 and 05. Crop 07 (a mechanism, Scheme 5 of Chusov et al.) uses equilibrium double arrows in its top row; mechanism figures are outside this top-level convention.",
+      "base_preset": "nature is closest on the three ratios; the journal does not redraw author figures, so ratios vary between papers (bond/cap 1.95 in crop 05, 2.48 in crop 02).",
+      "measured": "Only crops 02 and 05 carry measurements and they disagree. bond/atom-label cap: 2.48 (crop 02: 28.5/11.5) vs 1.95 (crop 05: 19.5/10), card 2.2 is the mean. line/bond: 0.070 vs 0.067, card 0.068 is the mean. bold/bond: 0.123 vs 0.205, card 0.16 is the mean. arrow/bond: 8.3 (crop 02: 236/28.5) vs 4.6 (crop 05: 89/19.5), card 6.4 is the mean. The values are averages of two crops, not values supported by a majority."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.3762/bjoc.21.170",
+      "citation": "Beller et al., Beilstein J. Org. Chem. 2025 (Pd-catalyzed dehydrogenative arylation of arylhydrazines to access non-symmetric azobenzenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/beilstein_joc-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "general reaction above a grey rule: catalyst and ligand above the arrow, base, water, solvent, temperature and O2 below; inline + between substrates, plain (1 equiv) after bold labels; product grid with rows like 3c R = OCF3, 69%; Kekule rings; Ph in purple and the aryl-Br bond in dark red (author colouring)"
+    },
+    {
+      "doi": "10.3762/bjoc.21.190",
+      "citation": "Gandeepan et al., Beilstein J. Org. Chem. 2025 (Palladium-catalyzed regioselective C1-selective nitration of carbazoles)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3 top",
+      "crop": "evidence/beilstein_joc-02.png",
+      "measurements_px": {
+        "bond_length": 28.5,
+        "cap_height": 11.5,
+        "line_width": 2,
+        "bold_width": 3.5,
+        "arrow_length": 236,
+        "compound_label_cap_height": 14
+      },
+      "observations": "scope grid with blue-filled rings #BEDAFF and blue bonds #255A90; new C-NO2 bond bold dark red #800000, NO2 text red #FF0000; labels as 2a: 69% with superscript footnote a; Pd above the arrow, AgNO3 and solvent below"
+    },
+    {
+      "doi": "10.3762/bjoc.21.190",
+      "citation": "Gandeepan et al., Beilstein J. Org. Chem. 2025 (Palladium-catalyzed regioselective C1-selective nitration of carbazoles)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2",
+      "crop": "evidence/beilstein_joc-03.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "catalytic cycle: black curved arrows on an open circle; shaded sphere labelled Pd with maroon #8B0542 circular arrows at the centre; bold numbered intermediates 7, 8, 9; Pd2(dba)3 activation arrow entering from the top"
+    },
+    {
+      "doi": "10.3762/bjoc.21.197",
+      "citation": "Xiao et al., Beilstein J. Org. Chem. 2025 (Ni-promoted reductive cyclization cascade enables a total synthesis of (+)-aglacin B)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/beilstein_joc-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "retrosynthesis with open double arrows; bonds to be formed in dark red #8A3123 with atom numbers in blue #3839FF; key reagent Ni in bold italic dark red #8A0004 above the arrow, then [H] below"
+    },
+    {
+      "doi": "10.3762/bjoc.21.197",
+      "citation": "Xiao et al., Beilstein J. Org. Chem. 2025 (Ni-promoted reductive cyclization cascade enables a total synthesis of (+)-aglacin B)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3",
+      "crop": "evidence/beilstein_joc-05.png",
+      "measurements_px": {
+        "bond_length": 19.5,
+        "cap_height": 10,
+        "line_width": 1.3,
+        "bold_width": 4,
+        "arrow_length": 89,
+        "compound_label_cap_height": 10
+      },
+      "observations": "two-step end game: reagents and DMA, rt, 4 h stacked over and under the arrow with (30%) last; bold labels 5, 13 and (+)-aglacin B (2) with only the number bold; X-ray ball-and-stick model with italic caption"
+    },
+    {
+      "doi": "10.3762/bjoc.21.130",
+      "citation": "Chusov et al., Beilstein J. Org. Chem. 2025 (Influence of the cation in hypophosphite-mediated catalyst-free reductive amination)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2 top",
+      "crop": "evidence/beilstein_joc-06.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "free-energy diagram: short thick bars, main path blue #0000FF, side paths orange #FF7F00 and red #FF0000, joined by dashed lines in the same colour; energies in italics above bars, state names in the pathway colour below; axis Gibbs Free Energy (kcal/mol) in italics"
+    },
+    {
+      "doi": "10.3762/bjoc.21.130",
+      "citation": "Chusov et al., Beilstein J. Org. Chem. 2025 (Influence of the cation in hypophosphite-mediated catalyst-free reductive amination)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 5",
+      "crop": "evidence/beilstein_joc-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "mechanism with the carbonyl fragment in red #FC0000 and the amine fragment in blue #0000FC; small black curved arrows; charges as plain superscript + and -; phosphorus species in grey rounded boxes with drop shadow; overall drawn as a cycle with black arrows"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": "({value}%)",
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "catalyst above the arrow; base and additives each on their own line below, with solvent, temperature and time on one line (crops 01, 02)",
+        "step yield in parentheses as the last line under the conditions (crop 05)"
+      ],
+      "crops": [
+        "evidence/beilstein_joc-01.png",
+        "evidence/beilstein_joc-05.png"
+      ],
+      "notes": "colours are chosen by the authors; the journal imposes no palette. yield_format rests on crop 05 (step yield in parentheses). Crop 01 product yields are {value}% on the product labels and are recorded under substrate_scope, so the scheme-level format is not {value}%."
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "variation_color": null,
+        "yield_format": "{value}%",
+        "selectivity_format": null,
+        "conditions_position": "scheme_on_top",
+        "highlight_fill": "#BEDAFF"
+      },
+      "signature_features": [
+        "general reaction on top, a full-width thin grey rule, then the product grid (crops 01, 02)",
+        "label and yield on one line under each product: bold 2a then : 69% (crop 02); crop 01 writes bold 3m, a space and 43% for single compounds and R = OCF3, 69% (comma) in R = ... rows",
+        "products sharing one core listed as R = ... rows under a single drawing (crop 01)",
+        "footnotes as superscript a after the yield"
+      ],
+      "crops": [
+        "evidence/beilstein_joc-01.png",
+        "evidence/beilstein_joc-02.png"
+      ],
+      "notes": "variation colours differ (purple Ph and dark red C-Br in crop 01; dark red bond and red NO2 in crop 02), and crop 02 also draws the core bonds in blue #255A90, so variation_color is null. highlight_fill #BEDAFF rests on crop 02 alone (light blue ring fill over each product core, unambiguous there); crop 01 has no ring fill, so the fill is one paper's choice."
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": "circle",
+        "cycle_arrow_color": "#000000",
+        "catalyst_color": "#8B0542",
+        "center_label": true,
+        "step_names": false,
+        "intermediate_label_style": "bold_number",
+        "curved_arrow_color": "#000000",
+        "highlight_fill": "#BEDAFF"
+      },
+      "signature_features": [
+        "black curved arrows on a circle; substrates enter and by-products (HNO3) leave on short tangent arrows",
+        "shaded sphere labelled Pd with two maroon #8B0542 circular arrows at the centre of the cycle",
+        "intermediates numbered with bold Arabic numbers under each structure; no step names"
+      ],
+      "crops": [
+        "evidence/beilstein_joc-03.png"
+      ],
+      "notes": "rests on one crop; the cycle in crop 07 also uses black arrows but puts key species in grey rounded boxes instead of a centre label"
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": "#000000",
+        "curved_arrow_weight": "thin",
+        "show_lone_pairs": false,
+        "formal_charge_style": "plain",
+        "intermediate_label_style": "none",
+        "ts_marker": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "fragments colour coded through the mechanism: carbonyl part red #FC0000, amine part blue #0000FC",
+        "small black curved arrows, thinner than bonds",
+        "phosphorus reagents in grey rounded boxes with a drop shadow"
+      ],
+      "crops": [
+        "evidence/beilstein_joc-07.png"
+      ],
+      "notes": "rests on one crop. The top row of crop 07 uses equilibrium double arrows; plain curved arrows appear only in the lower cycle, which is not drawn."
+    },
+    "energy_profile": {
+      "conventions": {
+        "energy_unit": "kcal/mol",
+        "energy_label": null,
+        "level_style": "bars_dashed_connectors",
+        "pathway_colors": [
+          "#0000FF",
+          "#FF7F00",
+          "#FF0000"
+        ],
+        "ts_marker": "none",
+        "intermediate_label_style": "none"
+      },
+      "signature_features": [
+        "short thick horizontal bars joined by thin dashed lines in the pathway colour",
+        "energy values in italics above each bar; state names (Step_1, TS2->3) in bold pathway colour below",
+        "y axis titled Gibbs Free Energy (kcal/mol) in italics; x axis an arrow without ticks"
+      ],
+      "crops": [
+        "evidence/beilstein_joc-06.png"
+      ],
+      "notes": "rests on one crop; transition states named TS with arrow subscripts, no double dagger. energy_label is null: the values carry no delta-G symbol, only the y-axis title Gibbs Free Energy (kcal/mol). intermediate_label_style none refers to numbered intermediates; every state carries a name (Step_1, Step_2', TS2->3'', Step_3'' and so on), which the enum does not express. Side-pathway states carry prime marks; two black x marks sit on the orange and red connectors near Step_1. Step_3 is the one state name that sits above its bar; the others are below."
+    },
+    "retrosynthesis": {
+      "conventions": {
+        "retro_arrow": "open_double",
+        "disconnection_mark": "colored_bond",
+        "disconnection_color": "#8A3123",
+        "highlight_fill": null,
+        "step_count_shown": false
+      },
+      "signature_features": [
+        "open double retrosynthetic arrows with the key reagent (bold italic Ni, dark red #8A0004) above",
+        "bonds to be formed in dark red #8A3123, atom numbers in blue #3839FF"
+      ],
+      "crops": [
+        "evidence/beilstein_joc-04.png"
+      ],
+      "notes": "rests on one crop"
+    },
+    "total_synthesis": {
+      "conventions": {
+        "step_label_style": "none",
+        "step_count_shown": false,
+        "yield_format": "({value}%)",
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "each step written in full above and below its arrow, yield in parentheses as the last line",
+        "target named with its number in parentheses, (+)-aglacin B (2), only the number bold",
+        "X-ray ball-and-stick model linked to the structure by a triple-bar sign, italic caption"
+      ],
+      "crops": [
+        "evidence/beilstein_joc-05.png"
+      ],
+      "notes": "rests on one crop. The two new C-C bonds of 13 are drawn in dark red (crop 05), the same author colouring as the bonds to be formed in the retrosynthesis (crop 04); total_synthesis has no new_bond_color key, so this is recorded here."
+    }
+  }
+}

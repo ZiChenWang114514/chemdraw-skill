@@ -21,13 +21,12 @@
     "compound_label_face": "bold",
     "compound_label_color": "#000000",
     "compound_label_italic_suffix": false,
-    "yield_placement": null,
+    "yield_placement": "after_product_label_parenthesised",
     "yield_format": null,
     "conditions_split": "reagents_above_solvent_below",
     "substrate_layout": null,
     "abbreviate_groups": [
       "OMe",
-      "CF3",
       "OCF3"
     ],
     "aromatic_rings": "kekule",
@@ -36,7 +35,20 @@
     "highlight_fill": null,
     "reagent_text_color": "#000000",
     "arrow_style": "plain",
-    "show_plus_sign": true
+    "show_plus_sign": true,
+    "notes": {
+      "compound_label_face": "Bold in Table 2 (crop 01: 3a bold, yields regular) and Scheme 1 (crop 02: 1; DPDTC bold). Plain in Scheme 6 (crop 03: 27 (94%), 28, 29). Two of three crops are bold, so bold stays; the plain numbers are recorded here only.",
+      "yield_placement": "Crop 01 (3a, 77% (84%)) and crop 03 (27 (94%)) put the yield after the product label on the same line, in parentheses for the second value. Crop 02 puts it on the line under the label ((89% yield, 6.5 g scale)). Two crops agree on after-label, so that is set; the under-label form is not representable as a top-level value.",
+      "yield_format": "Null: crop 01 writes the isolated yield then the GC yield in parentheses (77% (84%)); crop 03 writes one yield in parentheses (27 (94%)); crop 02 writes 89% yield with the scale. The formats do not agree. The Table 2 format is recorded under figure_types.substrate_scope.",
+      "substrate_layout": "Null: crop 01 places the two substrates inline with a plus (A + B); crop 02 stacks them with a plus (pyridine-2-thiol above triphosgene); crop 03 stacks the amine above the second arrow with no plus. No two crops agree.",
+      "abbreviate_groups": "OMe (crop 01 3e, 3f, 3g; crop 03 MeO on the trimethoxy ring) and OCF3 (crop 01 3q; crop 03 F3CO on sonidegib, the right-reading label of OCF3) appear in two crops. CF3 (crop 01 3r) and CO2Me (crop 01 3s) appear in one crop only, so they are not listed. OPh and SMe are abbreviated in crop 01 but are not in the house abbreviation table. Crop 02 has no abbreviable group (CCl3 is drawn with Cl atoms).",
+      "aromatic_rings": "Kekule rings in all three crops.",
+      "new_bond_color": "Null: only crop 03 colours a new bond (the amide C-N bond, red, core #F70000, drawn thicker). Crop 01 colours the alkyne-derived aryl magenta, not new bonds: the naphthalene, including the new ring, is navy. Crop 02 colours no new bond; its blue is on the triphosgene carbonyl. One crop only.",
+      "substrate_colors": "Null: only crop 01 colours whole substrates (acid-derived naphthalene navy, alkyne-derived aryl magenta). Crop 02 colours only the triphosgene carbonyl O and C=O blue (#0000FF). The colours do not agree.",
+      "highlight_fill": "Null at top level: the grey panel appears in crop 03 only (Scheme 6). It is recorded under figure_types.reaction_scheme.",
+      "show_plus_sign": "True in crops 01 and 02. Crop 03 has no plus: the amine sits above the second arrow.",
+      "measured": "Measured ratios are means of the three crops. bond_length_over_cap_height: 2.24 (crop 01), 1.84 (crop 02), 1.66 (crop 03); mean 1.91; two of three crops are within 15 percent of the mean. line_width_over_bond_length: 0.053, 0.043, 0.042 (2 px lines); mean 0.046. arrow_length_over_bond_length: 11.9, 4.5, 6.6; mean 7.68; the crops disagree too much for a single value, so use with care. bold_width_over_bond_length stays null: the bold red bond in crop 03 is about 5 px wide in its render, but its visible length (39 px) and the bond length used for the other ratios (48 px) do not agree, so no ratio is computed."
+    }
   },
   "evidence": [
     {
@@ -52,7 +64,7 @@
         "line_width": 2,
         "arrow_length": 452
       },
-      "observations": "Acid-derived part navy (#090391), alkyne-derived part and new ring bonds magenta (#B11F59); bold labels, isolated yield then GC yield in parentheses after the label (3a, 77% (84%)); catalyst and reagents above the arrow, additive, solvent, temperature below; A + B inline; Kekulé rings; OMe, OPh, SMe, CF3, OCF3, CO2Me abbreviated."
+      "observations": "Acid-derived naphthalene navy (flat core #00007F); alkyne-derived aryl magenta (core #9D0A42), including the aryl rings of the 3b to 3s cells; the new ring is navy; bold labels, isolated yield then GC yield in parentheses after the label (3a, 77% (84%)); catalyst and reagents above the arrow, additive, solvent, temperature below; A + B inline; Kekule rings; OMe, OPh, SMe, CF3, OCF3, CO2Me abbreviated."
     },
     {
       "doi": "10.1039/d3sc00198a",
@@ -67,7 +79,7 @@
         "line_width": 2,
         "arrow_length": 209
       },
-      "observations": "Two substrates stacked with + between; base above the arrow, solvent and temperature below; product label bold (1; DPDTC) with (89% yield, 6.5 g scale) on the line below; carbonyl O blue."
+      "observations": "Two substrates stacked with + between; base above the arrow, solvent and temperature below; product label bold (1; DPDTC) with (89% yield, 6.5 g scale) on the line below; carbonyl O and C=O of the triphosgene drawn blue (#0000FF)."
     },
     {
       "doi": "10.1039/d3sc00198a",
@@ -82,7 +94,47 @@
         "line_width": 2,
         "arrow_length": 317
       },
-      "observations": "Header on a pale grey panel; new amide bond red (#F40405) and thicker; plain (not bold) labels with yield in parentheses (27 (94%)) and drug names green (#038106); reagent above, solvent and conditions below; Kekulé rings."
+      "observations": "Header on a pale grey panel (#F1F5F8) with a black rule beneath; new amide bond red (core #F70000) and thicker; plain (not bold) labels with yield in parentheses (27 (94%)) and drug names green (#038106); reagent above, solvent and conditions below; Kekule rings; amine added above the second arrow with no plus."
     }
-  ]
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "highlight_fill": "#F1F5F8"
+      },
+      "signature_features": [
+        "pale grey panel (#F1F5F8) behind the upper reaction, with a black rule beneath it (crop 03)",
+        "new amide C-N bond drawn red and thicker than the other bonds (crop 03)",
+        "product yield written after the number in parentheses, e.g. 27 (94%) (crop 03)",
+        "drug names under the products in green (crop 03)",
+        "triphosgene carbonyl O and C=O bond drawn blue, #0000FF (crop 02)",
+        "two substrates stacked with a plus, the first above the arrow (crop 02)",
+        "reagents above the arrow, solvent and temperature below (crops 02 and 03)"
+      ],
+      "crops": [
+        "evidence/rsc_journals-02.png",
+        "evidence/rsc_journals-03.png"
+      ],
+      "notes": "Two Freiberg et al. schemes (Scheme 1 and Scheme 6). highlight_fill rests on crop 03 alone; the grey panel is unambiguous in that crop. The red bond, the panel rule and the green drug names have no key in this section, so they are recorded as signature features only. Yield placement and format differ between the two schemes; see the top-level conventions notes."
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid_with_core",
+        "conditions_position": "scheme_on_top",
+        "variation_color": "#9D0A42",
+        "yield_format": "isolated yield, then GC yield in parentheses, e.g. 77% (84%)"
+      },
+      "signature_features": [
+        "one 1-phenylnaphthalene core repeated in a grid, with the varied alkyne-derived aryl drawn magenta (crop 01)",
+        "acid-derived naphthalene drawn navy (crop 01)",
+        "catalyst, reagents and conditions written once in the scheme header above the grid (crop 01)",
+        "compound labels bold (3a,), yields in regular weight (crop 01)",
+        "abbreviations OMe, OPh, SMe, CF3, OCF3 and CO2Me on the varied groups (crop 01)"
+      ],
+      "crops": [
+        "evidence/rsc_journals-01.png"
+      ],
+      "notes": "Table 2 (Cen et al.) is a single crop, so every value in this section rests on it. variation_color is the core of the magenta aryl bonds (darkest-decile median, stable across six regions of the table, #9C0942 to #A00A42). scope_layout and conditions_position are read from the same table. OPh and SMe are shown but have no abbreviation entry, so they are not listed."
+    }
+  }
 }

@@ -19,7 +19,7 @@ import math
 import os
 from copy import deepcopy
 from functools import partial
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace as dataclass_replace
 from typing import Any, Dict, List, Optional, Tuple
 from xml.sax.saxutils import escape as xml_escape
 
@@ -69,6 +69,8 @@ from .schema import (
 _CHAR_WIDTH = 4.7       # average character width (proportional Arial)
 RUN_LABEL_GAP = 6.0     # white space between run-arrow labels on one line
 _LINE_ADVANCE = 11.5    # line-to-line distance (ChemDraw ~1.15× multiplier)
+# Shortest reaction arrow, in bond lengths; a house style's measured arrow length raises it.
+MIN_ARROW_BONDS = 5.0
 _CAP_HEIGHT = 9.1       # baseline to top of uppercase letters
 _DESCENT = 2.0          # baseline to bottom of descenders
 
@@ -1096,7 +1098,56 @@ def _estimate_text_height(lines: List[str]) -> float:
 # Structure resolver
 # ---------------------------------------------------------------------------
 
+ORIENTATIONS = ("flip_horizontal", "flip_vertical", "rotate_180")
+
+
+def _orient_fragment(frag: ResolvedFragment, orientation: Optional[str]) -> ResolvedFragment:
+    """Mirror or turn a resolved structure about its centre, keeping its stereochemistry.
+
+    A mirror image swaps wedges and hashes and the side of ring double bonds, so the
+    drawn molecule is the same compound; a half turn needs neither.
+    """
+    if not orientation:
+        return frag
+    if orientation not in ORIENTATIONS:
+        raise ValueError(f"orientation must be one of {list(ORIENTATIONS)}, not {orientation!r}")
+    cx, cy = _bbox_center(_fragment_bbox(frag.atoms))
+    flip_x = orientation in ("flip_horizontal", "rotate_180")
+    flip_y = orientation in ("flip_vertical", "rotate_180")
+    for atom in frag.atoms:
+        if flip_x:
+            atom["x"] = 2 * cx - atom["x"]
+        if flip_y:
+            atom["y"] = 2 * cy - atom["y"]
+    if orientation != "rotate_180":
+        swap_cfg = {1: 6, 6: 1}
+        swap_side = {"Left": "Right", "Right": "Left"}
+        for bond in frag.bonds:
+            bond["cfg"] = swap_cfg.get(bond.get("cfg"), bond.get("cfg"))
+            if bond.get("double_pos") in swap_side:
+                bond["double_pos"] = swap_side[bond["double_pos"]]
+    frag.bbox = _fragment_bbox(frag.atoms)
+    frag.cx, frag.cy = _bbox_center(frag.bbox)
+    return frag
+
+
 def _resolve_structure(
+    ref: StructureRef,
+    center_x: float = 200.0,
+    center_y: float = 300.0,
+    source_data: Optional[Dict[str, Dict]] = None,
+    reference_mol: Optional[Any] = None,
+) -> ResolvedFragment:
+    """Resolve a StructureRef, then mirror or turn it as ``ref.orientation`` asks."""
+    frag = _resolve_structure_unoriented(ref, center_x, center_y, source_data, reference_mol)
+    if not ref.orientation:
+        return frag
+    frag = _orient_fragment(frag, ref.orientation)
+    frag.ref = dataclass_replace(frag.ref, orientation=ref.orientation)
+    return frag
+
+
+def _resolve_structure_unoriented(
     ref: StructureRef,
     center_x: float = 200.0,
     center_y: float = 300.0,
@@ -1660,7 +1711,7 @@ def _layout_divergent(
     bond_len = ACS_BOND_LENGTH
     frag_gap = bond_len * LAYOUT_FRAG_GAP_BONDS * scheme.gap_scale
     inter_gap = max(bond_len * LAYOUT_INTER_GAP_BONDS, LAYOUT_PLUS_GAP) * scheme.gap_scale
-    min_arrow_len = 5.0 * bond_len
+    min_arrow_len = MIN_ARROW_BONDS * bond_len
 
     start_x = 100.0
     arrow_y = 300.0
@@ -2100,7 +2151,7 @@ def _layout_steps_row(
         ))
 
     # --- Phase 2: Compute arrow lengths from content ---
-    min_arrow_len = 5.0 * bond_len
+    min_arrow_len = MIN_ARROW_BONDS * bond_len
     use_letter_conditions = bool(scheme.condition_key)
 
     for rs in resolved_steps:

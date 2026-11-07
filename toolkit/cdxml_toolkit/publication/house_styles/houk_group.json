@@ -1,0 +1,300 @@
+{
+  "slug": "houk_group",
+  "kind": "group",
+  "display_name": "Houk group (UCLA), computational organic chemistry",
+  "applies_to": [
+    "K. N. Houk group papers and collaborations (JACS, Nat. Commun.)",
+    "DFT mechanism figures: free-energy profiles, pathway maps, transition-state panels"
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.4,
+    "line_width_over_bond_length": 0.09,
+    "bold_width_over_bond_length": 0.22,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 6.2
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": null,
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": [
+      "Ts",
+      "Ph",
+      "CF3",
+      "tBu"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "product mixtures drawn inline with plus signs; yields set out as a row under the products (crop 07) or as numbered entry rows (1) and (2) under the scheme, each yield in parentheses after its product (crop 08)",
+      "bold black compound labels under each structure (crop 07: P6-O, P6-O3, P6-O4)",
+      "long plain arrows, about six bond lengths (median of the scheme crops, see notes), with the oxidant drawn as a structure above the arrow (crop 07) or the catalyst as bold italic text above it (crop 08)",
+      "single colour accents on the scheme: the new oxygen atom in dark red #861212 and the reaction time in green #4E9845 (crop 07)"
+    ],
+    "notes": {
+      "compound_labels": "Bold black labels: crop 07 (P6-O, P6-O3, P6-O4 under the structures), crop 03 (bold numbers 4, 6, 7 and TS5) and crop 05 (bold TS labels). Crop 08 has no labels under its structures. Energy-profile species labels in crops 01 and 02 are bold italic in pathway colours and are recorded under energy_profile.",
+      "yield_placement": "crop 07: a % yield row under the product labels (14, 21, 11 under P6-O, P6-O3, P6-O4), with % conv. in grey above it; crop 08: numbered entry rows (1) and (2) under the scheme, each product followed by its yield in parentheses. The two crops do not share one pattern, so null.",
+      "yield_format": "crop 07 gives bare values under a % yield row label; crop 08 gives (87%) after the product. No single template, so null.",
+      "conditions_split": "crop 07: step 1 (dioxirane, 48 hours) above the arrow and step 2 (H2CrO4, acetone) below it; crop 08: cat, L above and PhMe, 110 °C below. No single rule, so null.",
+      "new_bond_color": "red new oxygen (dark red #861212) appears in crop 07 only, so null at top level; the reaction_scheme variation_color carries it.",
+      "abbreviate_groups": "Ts and Ph in crops 03, 05 and 08; CF3 in crops 01, 02 and 07 (written F3C in crop 07); tBu in crops 01 and 07. Me is labelled in crop 02 only, so it is not listed; add it once a second crop shows it.",
+      "bond_length_over_cap_height": "Crop values run from 2.0 (crop 02, 85 over 42 px) to 2.6 (crop 05); median 2.37, kept at 2.4. Crop 02 is the outlier.",
+      "line_width_over_bond_length": "Crop values run from 0.06 (crop 06) to 0.09 (crops 01 and 02, measured on the originals). Crops 03 to 08 are about one pixel wide over 12 to 28 px bonds, so each has a precision of about 0.04 and all agree with 0.09 within it. Kept at 0.09.",
+      "bold_width_over_bond_length": "Crop values run from 0.21 to 0.23 (crops 02, 03, 05, 07, 08); crop 06 gives 0.25 (4 over 16 px). Kept at 0.22.",
+      "arrow_length_over_bond_length": "Recorded crop values: 5.0 (crop 06, 80 over 16 px), 6.25 (crop 07, 175 over 28 px) and about 11 (crop 08, 160 over 14 px). The median of the three is 6.25, kept at 6.2. A pixel re-check found longer arrows: crop 07 has three arrows of 228, 227 and 158 px over a 28 px bond, and crop 08 a 215 px arrow. The arrow ratio is unresolved and should be re-measured on the original figures."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/jacs.3c07163",
+      "citation": "Galeotti, Houk, Bietti et al., J. Am. Chem. Soc. 2023 (Radical and cationic pathways in C(sp3)-H bond oxygenation by dioxiranes)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 7 (energy profile for S8)",
+      "crop": "evidence/houk_group-01.png",
+      "measurements_px": {
+        "bond_length": 105,
+        "cap_height": 43,
+        "line_width": 9,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 55
+      },
+      "observations": "measured on the 3950 px original; short horizontal level bars joined by solid sloped lines; energies in bold italic above each bar, coloured by pathway (red #FF0000, blue #3A4694, black for shared states); species labels bold italic in the same pathway colour (S8-TS1ax red, P8c-OH blue); double slash breaks on long drops; conformational chair drawings with the reacting H coloured; spectator fragments in light grey"
+    },
+    {
+      "doi": "10.1021/jacs.3c07163",
+      "citation": "Galeotti, Houk, Bietti et al., J. Am. Chem. Soc. 2023 (Radical and cationic pathways in C(sp3)-H bond oxygenation by dioxiranes)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 5 (energy profile for S3)",
+      "crop": "evidence/houk_group-02.png",
+      "measurements_px": {
+        "bond_length": 85,
+        "cap_height": 42,
+        "line_width": 8,
+        "bold_width": 19,
+        "arrow_length": null,
+        "compound_label_cap_height": 50
+      },
+      "observations": "measured on the 3717 px original; four pathways coloured red #FF0000, orange #FF6000, green #18A000, blue #202A67 in labels and energy values, connectors stay black; ring position numbers in small red; partial bonds dashed; charges circled"
+    },
+    {
+      "doi": "10.1038/s41467-022-34837-x",
+      "citation": "Chen, Wipf, Houk et al., Nat. Commun. 2022 (How mono- and diphosphine ligands alter regioselectivity of the Rh-catalyzed annulative cleavage of bicyclo[1.1.0]butanes)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 4",
+      "crop": "evidence/houk_group-03.png",
+      "measurements_px": {
+        "bond_length": 14,
+        "cap_height": 6,
+        "line_width": 1,
+        "bold_width": 3,
+        "arrow_length": null,
+        "compound_label_cap_height": 7
+      },
+      "observations": "black only; thick level bars joined by thin solid lines; energy value above each bar in plain text; bold labels 4, 6, 7, TS5, TS8 under or over each structure; TS structures in square brackets with double dagger; vertical axis titled ΔGsol (kcal mol-1) with the method; stage names in bold italic between double-headed arrows along the bottom; L = PPh3 key in a box"
+    },
+    {
+      "doi": "10.1038/s41467-022-34837-x",
+      "citation": "Chen, Wipf, Houk et al., Nat. Commun. 2022 (How mono- and diphosphine ligands alter regioselectivity of the Rh-catalyzed annulative cleavage of bicyclo[1.1.0]butanes)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 2",
+      "crop": "evidence/houk_group-04.png",
+      "measurements_px": {
+        "bond_length": 12,
+        "cap_height": 5,
+        "line_width": 1,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 6
+      },
+      "observations": "two mirrored catalytic loops drawn as open arcs around a central entry Rh(I)Ln + substrate; pathways A to F coloured red #FF1D1E, green #38996E, blue #382DFF, solid for one ligand manifold and dashed for the other; bold roman intermediate labels I to XII; step names in bold black along the arcs (Reductive Elimination, Olefin Insertion); path names in bold italic; small curved arrows in red and green inside intermediates"
+    },
+    {
+      "doi": "10.1038/s41467-022-34837-x",
+      "citation": "Chen, Wipf, Houk et al., Nat. Commun. 2022 (How mono- and diphosphine ligands alter regioselectivity of the Rh-catalyzed annulative cleavage of bicyclo[1.1.0]butanes)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 6",
+      "crop": "evidence/houk_group-05.png",
+      "measurements_px": {
+        "bond_length": 13,
+        "cap_height": 5,
+        "line_width": 1,
+        "bold_width": 3,
+        "arrow_length": null,
+        "compound_label_cap_height": 7
+      },
+      "observations": "CYLview ball-and-stick TS geometries (grey C, orange P, green Cl, blue Rh) with forming-bond distances in Å on leader lines; under each a ChemDraw TS in square brackets with double dagger, bold label TS5 / TS5*, and ΔΔG‡ in kcal mol-1 under it; panels a and b separated by a grey dashed rule"
+    },
+    {
+      "doi": "10.1021/jacs.3c07163",
+      "citation": "Galeotti, Houk, Bietti et al., J. Am. Chem. Soc. 2023 (Radical and cationic pathways in C(sp3)-H bond oxygenation by dioxiranes)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 2",
+      "crop": "evidence/houk_group-06.png",
+      "measurements_px": {
+        "bond_length": 16,
+        "cap_height": 7,
+        "line_width": 1,
+        "bold_width": 4,
+        "arrow_length": 80,
+        "compound_label_cap_height": null
+      },
+      "observations": "one-line mechanism; each step named in a rounded pill sitting on the arrow, HAT pill filled pale cyan #DAFFF7, OH rebound pill pale green #E0FFC3; radicals as dots; no curved arrows"
+    },
+    {
+      "doi": "10.1021/jacs.3c07163",
+      "citation": "Galeotti, Houk, Bietti et al., J. Am. Chem. Soc. 2023 (Radical and cationic pathways in C(sp3)-H bond oxygenation by dioxiranes)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 4",
+      "crop": "evidence/houk_group-07.png",
+      "measurements_px": {
+        "bond_length": 28,
+        "cap_height": 11,
+        "line_width": 2,
+        "bold_width": 6,
+        "arrow_length": 175,
+        "compound_label_cap_height": 12
+      },
+      "observations": "dioxirane drawn above the arrow with bold step numbers 1. and 2.; time in green #4E9845 above; new carbonyl O in dark red #861212; bold labels P6-O etc.; % conv. in grey and % yield row under the products; panels separated by dashed rules"
+    },
+    {
+      "doi": "10.1038/s41467-022-34837-x",
+      "citation": "Chen, Wipf, Houk et al., Nat. Commun. 2022 (How mono- and diphosphine ligands alter regioselectivity of the Rh-catalyzed annulative cleavage of bicyclo[1.1.0]butanes)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 1",
+      "crop": "evidence/houk_group-08.png",
+      "measurements_px": {
+        "bond_length": 14,
+        "cap_height": 6,
+        "line_width": 1,
+        "bold_width": 3,
+        "arrow_length": 160,
+        "compound_label_cap_height": 7
+      },
+      "observations": "bold italic cat, L above the arrow, bold PhMe, 110 oC below; two products with plus; conditions table (1), (2) underneath with yields as bold label plus (87%)"
+    }
+  ],
+  "figure_types": {
+    "energy_profile": {
+      "conventions": {
+        "energy_unit": "kcal/mol",
+        "energy_label": "delta_G",
+        "level_style": "bars_solid_connectors",
+        "pathway_colors": [
+          "#FF0000",
+          "#3A4694",
+          "#FF6000",
+          "#18A000"
+        ],
+        "ts_marker": null,
+        "intermediate_label_style": null
+      },
+      "signature_features": [
+        "short thick horizontal level bars joined by thin solid sloped lines (all three crops)",
+        "energy value above each bar; in JACS crops bold italic and coloured by pathway, in the Nat. Commun. crop plain black",
+        "competing pathways told apart by coloured labels and numbers (red #FF0000, blue #3A4694, orange #FF6000, green #18A000) while the connector lines stay black",
+        "species labels in bold italic and the pathway colour in crops 01 and 02 (S8-TS1ax red, P8c-OH blue); bold upright black numbers and TS labels in crop 03",
+        "a structure drawing next to every stationary point, TS partial bonds dashed, spectator fragments in light grey",
+        "double slash breaks on long descending connectors",
+        "stage names in bold upright, not italic, between double-headed arrows along the bottom (crop 03)"
+      ],
+      "crops": [
+        "evidence/houk_group-01.png",
+        "evidence/houk_group-02.png",
+        "evidence/houk_group-03.png"
+      ],
+      "notes": "energy_unit and energy_label rest on crop 03 alone, where the axis title reads ΔGsol (kcal mol-1). Crops 01 and 02 print bare energy numbers with no unit or delta-G label, which is an absence rather than a different unit. Blue in pathway_colors is the flat fill of crop 01 (#3A4694); crop 02 is darker (#202A67). ts_marker null: brackets with double dagger in crop 03 only, while crops 01 and 02 name TS without brackets. Labels are bold numbers or TS5 in crop 03 and bold italic names (S8-TS1ax) in crops 01 and 02."
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": "open_arc",
+        "cycle_arrow_color": null,
+        "catalyst_color": null,
+        "center_label": false,
+        "step_names": true,
+        "intermediate_label_style": "bold_roman",
+        "curved_arrow_color": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "two mirrored loops of open arcs leaving a central catalyst-substrate complex",
+        "each pathway its own colour (red #FF1D1E, green #38996E, blue #382DFF), solid for one manifold and dashed for the competing one",
+        "bold roman intermediate labels I to XII",
+        "step names in bold black along the arcs, path letters in bold italic (path A)"
+      ],
+      "crops": [
+        "evidence/houk_group-04.png"
+      ],
+      "notes": "one crop; arrow colour varies by pathway so cycle_arrow_color is null"
+    },
+    "structure_panel": {
+      "conventions": {
+        "highlight_fill": null,
+        "variation_color": null,
+        "intermediate_label_style": null
+      },
+      "signature_features": [
+        "3D ball-and-stick TS geometry (CYLview style, grey C, orange P, green Cl) above a 2D ChemDraw drawing of the same TS",
+        "2D TS in square brackets with a double dagger, forming bonds dashed",
+        "bold TS label (TS5, TS5*) with ΔΔG‡ = x.x kcal mol-1 underneath",
+        "key distances in Å on thin leader lines"
+      ],
+      "crops": [
+        "evidence/houk_group-05.png"
+      ],
+      "notes": "one crop"
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": null,
+        "curved_arrow_weight": null,
+        "show_lone_pairs": false,
+        "formal_charge_style": "circled",
+        "intermediate_label_style": null,
+        "ts_marker": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "step names written in rounded pastel pills on the arrow (HAT pale cyan #DAFFF7, OH rebound pale green #E0FFC3)",
+        "radicals drawn as dots, no curved arrows",
+        "charges circled (crops 01, 02)"
+      ],
+      "crops": [
+        "evidence/houk_group-06.png",
+        "evidence/houk_group-01.png",
+        "evidence/houk_group-02.png"
+      ],
+      "notes": "Pill fills from crop 06 only: HAT pill pale cyan (about #DAFFF7), OH rebound pill pale green (#E0FFC3). Two pill colours cannot share one highlight_fill, so it is null; crop 02 has no pills. Circled charges from crops 01 and 02."
+    },
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": null,
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": "#861212"
+      },
+      "signature_features": [
+        "reagent drawn as a structure above the arrow, with bold step numbers 1. and 2. (crop 07; step 1 above the arrow, step 2 below it)",
+        "conditions in bold: cat, L bold italic above the arrow and PhMe, 110 °C bold below (crop 08)",
+        "new oxygen in dark red #861212 and reaction time in green #4E9845 (crop 07)",
+        "results as rows under the products, % conv. in grey and % yield in black (crop 07)"
+      ],
+      "crops": [
+        "evidence/houk_group-07.png",
+        "evidence/houk_group-08.png"
+      ],
+      "notes": "variation_color rests on crop 07 alone, where the new carbonyl oxygen atoms are dark red. Crop 08 has no structure reagent and no step numbers. The red new atom is in crop 07 only."
+    }
+  }
+}

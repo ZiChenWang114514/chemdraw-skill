@@ -1,0 +1,305 @@
+{
+  "slug": "jacs_au",
+  "kind": "journal",
+  "display_name": "JACS Au (ACS)",
+  "applies_to": [
+    "JACS Au"
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.06,
+    "line_width_over_bond_length": 0.09,
+    "bold_width_over_bond_length": null,
+    "label_font": null,
+    "atom_label_size_pt_estimate": 9.8,
+    "arrow_length_over_bond_length": 3.2
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": null,
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "Me",
+      "Ph",
+      "tBu",
+      "CF3",
+      "NO2",
+      "CO2Me"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "yield_separator": null,
+    "notes": "The crops are concept, mechanism and diagram figures; no scope figure was cropped, so yield placement, yield format, conditions split and yield separator are null. substrate_layout is null: crop 02 writes the substrates inline with a plus (panel D), while crop 10 stacks the radical precursor above the alkene with a plus between them, so no two crops agree. new_bond_color is null: only crop 02 draws the newly formed bond (tBu-CH2) in green (#26A83E), and no other crop shows a coloured new bond. reagent_text_color #000000 holds for most reagent text (crops 02 and 05); the exceptions are NaBr in navy (crop 02), the bold red HAT label (crop 09) and the blue Blue LEDs label (crop 08). compound_label_color #000000 holds for crops 05 and 07; C4 is green in crop 03, and crop 04 colours the complex labels C2 to C5 by series. Bold compound labels appear in crops 03 (C4), 05 (t-DCZCB) and 07 (Int-III, CoIII-4(Ag)+, CoIII-5, CoII-6); plain chemical names in crop 03 are not compound labels. Bold intermediate and catalyst-state labels: Int-I and Int-II (crop 01), Int-III and the CoIII and CoII species (crop 07), Ir(III) and Ir(IV) (green) and LnCo (crop 08). arrow_length_over_bond_length 3.2 is the mean of crops 01, 05 and 08 (3.0 to 3.4); crops 02 and 07 give 5.5 and 5.0, so the spread across crops is 3.0 to 5.5. bond_length_over_cap_height 2.06 sits within the 2.0 to 2.2 spread of crops 01, 02, 05, 07 and 08. Halogen atoms drawn as filled discs (Br pink #CC6AE5, Cl blue #4F8EDB) in crops 01, 07, 08, 10, all from one paper. bold_width null: no solid wedge measurable in the cropped regions. measured.label_font is null: no crop measures a font; the Arial label font comes from the acs1996 preset, and the crops read as sans-serif by eye."
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/jacsau.5c01211",
+      "citation": "Gilmour et al., JACS Au 2025 (Chloroalkylation of unactivated alkenes via a cobalt-mediated radical ligand transfer)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1 (A)-(C)",
+      "crop": "evidence/jacs_au-01.png",
+      "measurements_px": {
+        "bond_length": 63,
+        "cap_height": 31,
+        "compound_label_cap_height": 32,
+        "line_width": 6,
+        "arrow_length": 200
+      },
+      "observations": "Panels framed by a thin grey #B1BDBD border, bold panel titles with (A) letters set into the frame line; the this-work row headed '(C) Our Platform' on a dotted blue rule; Cl and Br as blue #4F8EDB and pink #CC6AE5 discs; radicals as blue orbital lobes; photocatalyst as dark navy #000050 discs; boxed substrates with teal #7ABECB frames."
+    },
+    {
+      "doi": "10.1021/jacsau.5c00530",
+      "citation": "Ravelli et al., JACS Au 2025 (A decarbonylative strategy to enhance efficiency and regioselectivity in photocatalyzed HAT)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1 (A-E)",
+      "crop": "evidence/jacs_au-02.png",
+      "measurements_px": {
+        "bond_length": 60,
+        "cap_height": 30,
+        "line_width": 6,
+        "arrow_length": 330
+      },
+      "observations": "Five panels A-E with bold uppercase letters (no parentheses) and bold titles; 'This work' as panel E at the bottom; grey boxes #DEE2E3 hold bullet lists and the photocatalyst; abstracted H red #FE0000; substituents as orange #FFAA73, green and blue #7CBEF0 discs; green #26A83E flag for the activating group; outlined light bulb above the arrow."
+    },
+    {
+      "doi": "10.1021/jacsau.5c00357",
+      "citation": "Steffen et al., JACS Au 2025 (Photoactive neutral three-coordinate Cu(I) complexes of anionic N-heterocyclic carbenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 7",
+      "crop": "evidence/jacs_au-03.png",
+      "measurements_px": {
+        "line_width": 2,
+        "cap_height": 11
+      },
+      "observations": "Triplet energies on one horizontal eV axis (1.7-2.9 eV, grey tick labels); each sensitizer as a vertical bar capped by filled discs, navy #213570; the new complex C4 green #369134 with a bold green label; labels lie above the axis for Cu(dpp)2+, Cu(bcp)(xant)+ and C4, and below it for Ru(bpy)3, Ir(ppy)3, Ir(dFppy)3 and Ir(p-F-ppy)3, so they do not strictly alternate."
+    },
+    {
+      "doi": "10.1021/jacsau.5c00357",
+      "citation": "Steffen et al., JACS Au 2025 (Photoactive neutral three-coordinate Cu(I) complexes of anionic N-heterocyclic carbenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 5 (lower part)",
+      "crop": "evidence/jacs_au-04.png",
+      "measurements_px": {
+        "line_width": 2,
+        "cap_height": 11
+      },
+      "observations": "Frontier orbital energies as coloured dots per complex in two boxed panels (unoccupied, occupied); y axis 'Energy / eV'; complex names bold in their series colour, red #F90000, orange #FFA300, green, navy #000085."
+    },
+    {
+      "doi": "10.1021/jacsau.5c00804",
+      "citation": "Landfester et al., JACS Au 2025 (Photoactive PFA coating through fluorophilic interactions for continuous flow photochemistry)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4",
+      "crop": "evidence/jacs_au-05.png",
+      "measurements_px": {
+        "bond_length": 20,
+        "cap_height": 9,
+        "line_width": 2,
+        "arrow_length": 60
+      },
+      "observations": "Flow scheme left to right: pump as a circle with a chevron, coil reactor as stacked rings lit green with a black LED head on top, valve as circled x, waste arrow down; conditions in plain text under the coil; product name bold italic t-DCZCB."
+    },
+    {
+      "doi": "10.1021/jacsau.5c00804",
+      "citation": "Landfester et al., JACS Au 2025 (Photoactive PFA coating through fluorophilic interactions for continuous flow photochemistry)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1",
+      "crop": "evidence/jacs_au-06.png",
+      "measurements_px": {
+        "line_width": 2
+      },
+      "observations": "Reactor types as grey tubes with black end fittings, sub-panels a)-e) with bold lowercase letter and closing parenthesis; the 'e) This work' coil outlined in red with a magnifier, its PFA tubing bars and the photocatalyst disc filled red #FE0000 (blue glow around the disc); polymer formula in bold blue #120CFF."
+    },
+    {
+      "doi": "10.1021/jacsau.5c01211",
+      "citation": "Gilmour et al., JACS Au 2025 (Chloroalkylation of unactivated alkenes via a cobalt-mediated radical ligand transfer)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 5D (computed mechanism)",
+      "crop": "evidence/jacs_au-07.png",
+      "measurements_px": {
+        "bond_length": 66,
+        "cap_height": 32,
+        "compound_label_cap_height": 32,
+        "line_width": 6,
+        "arrow_length": 330
+      },
+      "observations": "Free-energy profile as one smooth thick grey #889897 curve, stationary points as black dots with plain values; TSs in square brackets with double dagger and radical dot; no axis, only an up arrow with italic ΔG (kcal·mol-1); branching pathway as a second grey curve; photoexcitation as a dashed vertical arrow from a navy bulb disc."
+    },
+    {
+      "doi": "10.1021/jacsau.5c01211",
+      "citation": "Gilmour et al., JACS Au 2025 (Chloroalkylation of unactivated alkenes via a cobalt-mediated radical ligand transfer)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 5A-C",
+      "crop": "evidence/jacs_au-08.png",
+      "measurements_px": {
+        "bond_length": 64,
+        "cap_height": 31,
+        "compound_label_cap_height": 32,
+        "line_width": 6,
+        "arrow_length": 220
+      },
+      "observations": "Two touching catalytic cycles: photoredox cycle with black arcs, Co cycle with dark maroon arcs, species in grey square brackets; cycle names bold italic in the centres; thin grey panel frames with A) titles set into the frame line; cyan-to-blue gradient arrow for the oxidation trend."
+    },
+    {
+      "doi": "10.1021/jacsau.5c00530",
+      "citation": "Ravelli et al., JACS Au 2025 (A decarbonylative strategy to enhance efficiency and regioselectivity in photocatalyzed HAT)",
+      "licence": "CC BY 4.0",
+      "figure": "Graphical abstract (TOC)",
+      "crop": "evidence/jacs_au-09.png",
+      "measurements_px": {
+        "line_width": 2
+      },
+      "observations": "Rounded light grey frame; concept scheme with outlined bulb, red HAT, green #26A83E flag; black box defining 'Traceless Activating Group' with bold initials; grey bar #DEE2E3 at the bottom with square bullets and italic claims."
+    },
+    {
+      "doi": "10.1021/jacsau.5c01211",
+      "citation": "Gilmour et al., JACS Au 2025 (Chloroalkylation of unactivated alkenes via a cobalt-mediated radical ligand transfer)",
+      "licence": "CC BY 4.0",
+      "figure": "Graphical abstract (TOC)",
+      "crop": "evidence/jacs_au-10.png",
+      "measurements_px": {
+        "line_width": 2
+      },
+      "observations": "Scheme with interlocking photocatalyst/Co circles, halogens as pink and blue discs, italic substrate captions; inset circle with a gold-brown #705100 italic title 'Radical Ligand Transfer (RLT)', beige #DED7A3 shadow and a red #F12908 squiggly arrow."
+    }
+  ],
+  "figure_types": {
+    "concept_panel": {
+      "conventions": {
+        "panel_label_style": null,
+        "comparison_layout": "stacked_rows",
+        "this_work_color": null,
+        "background_fill": "#FFFFFF",
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "multi-panel concept figure: background and prior art first, this work last as its own panel ((C) Our Platform in crop 01, E This work in crop 02)",
+        "bold sans-serif panel titles with the panel letter; crop 01 sets them into a thin grey #B1BDBD frame line, crop 02 as free headings",
+        "abstract substituents as coloured discs (orange #FFAA73, blue #7CBEF0, green) and halogens as filled discs (Br pink #CC6AE5, Cl blue #4F8EDB)",
+        "grey boxes #DEE2E3 hold bullet-point lists with square bullets (crop 02)",
+        "the transferred H atom in red #FE0000 (crop 02)",
+        "radicals drawn as blue orbital lobes on the radical carbon (crop 01)"
+      ],
+      "crops": [
+        "evidence/jacs_au-01.png",
+        "evidence/jacs_au-02.png"
+      ],
+      "notes": "panel_label_style null: bold (A) in crop 01, bare bold A in crop 02, neither enum value fits. background_fill is white in crops 01 and 02; the #DEE2E3 grey only fills boxes inside the panels (the TAG bullet box and the photocatalyst box in crop 02)."
+    },
+    "photophysical_diagram": {
+      "conventions": {
+        "energy_unit": "eV",
+        "level_style": null,
+        "pathway_colors": [
+          "#213570",
+          "#369134"
+        ]
+      },
+      "signature_features": [
+        "excited-state (triplet) energies along one horizontal eV axis with grey tick labels, unit written '/ eV' at the axis end",
+        "each compound as a vertical bar capped by filled discs, navy #213570; the new compound highlighted in green #369134 with a bold green label",
+        "orbital energies as coloured dots per compound in boxed panels with an 'Energy / eV' axis (crop 04)"
+      ],
+      "crops": [
+        "evidence/jacs_au-03.png",
+        "evidence/jacs_au-04.png"
+      ],
+      "notes": "No Jablonski diagram was found in the CC BY JACS Au papers checked; both crops are energy-level diagrams from one paper. level_style null: neither bars with connectors nor a curve. pathway_colors are the crop 03 bar and highlight colours; crop 04 colours orbital dots per complex by series (red, orange, green, navy), which is not a pathway palette, so crop 03 alone sets this value."
+    },
+    "setup_diagram": {
+      "conventions": {
+        "background_fill": null,
+        "highlight_fill": "#FE0000"
+      },
+      "signature_features": [
+        "flat schematic flow setup left to right: pump circle with chevron, coil reactor as stacked pale pink rings with an LED head and green light, valve as circled x, waste arrow downward (crop 05)",
+        "conditions in plain text under the reactor, product name bold italic",
+        "reactor types as grey tubes with black end fittings; the authors' reactor ('e) This work') drawn with red #FE0000 tubing and photocatalyst disc, its coil outlined in red (crop 06)",
+        "sub-panel letters bold lowercase with a closing parenthesis, a) to e)",
+        "grey bold 'PFA tubing' label, blue bold polymer formula and bold figure heading (crop 06)"
+      ],
+      "crops": [
+        "evidence/jacs_au-05.png",
+        "evidence/jacs_au-06.png"
+      ],
+      "notes": "Both crops from one paper; highlight_fill rests on crop 06 only, where the PFA tubing bars and the photocatalyst disc are filled #FE0000 and the coil is outlined; crop 05 has no highlight. No electrochemical cell figure was cropped."
+    },
+    "graphical_abstract": {
+      "conventions": {
+        "background_fill": null,
+        "highlight_fill": "#DEE2E3",
+        "variation_color": null,
+        "this_work_color": null
+      },
+      "signature_features": [
+        "white background, concept scheme reused from Figure 1 rather than a new illustration (compare crop 02 panel C, same paper)",
+        "claims as italic text in a grey bar #DEE2E3 with square bullets (crop 09)",
+        "key concept boxed or circled: black box defining the activating group (crop 09); circle with a beige #DED7A3 shadow and gold-brown #705100 italic title (crop 10)",
+        "catalysts as interlocking circular arrows, halogens as coloured discs (crop 10)",
+        "R groups as coloured discs, light blue #7CBEF0 and orange #FFAA73, a green #26A83E activating-group flag, and thick light grey block arrows for activation and fragmentation (crop 09)"
+      ],
+      "crops": [
+        "evidence/jacs_au-09.png",
+        "evidence/jacs_au-10.png"
+      ],
+      "notes": "highlight_fill from crop 09 only: the grey claims bar. Crop 10 has no grey fill, which matches this note."
+    },
+    "energy_profile": {
+      "conventions": {
+        "energy_unit": "kcal/mol",
+        "energy_label": "delta_G",
+        "level_style": "smooth_curve",
+        "pathway_colors": [
+          "#889897"
+        ],
+        "ts_marker": "bracket_double_dagger",
+        "intermediate_label_style": null
+      },
+      "signature_features": [
+        "one smooth thick grey #889897 curve through all stationary points; the branch is a second grey curve labelled 'barrierless' in italics",
+        "stationary points as small black dots with plain values (-13.9) beside them, 'complex' in grey italics under the value",
+        "no y axis: an up arrow with italic ΔG (kcal·mol-1) at the top right",
+        "transition states drawn in square brackets with double dagger and radical dot",
+        "species drawn along the curve, halogens as pink #CC6AE5 and blue #4F8EDB discs; photoexcitation as a dashed vertical arrow from a navy bulb disc",
+        "blue omega annotations beside the radical species (ω 2.63 eV and 1.07 eV) and a boxed ΔrG = -4.9 side reaction with a 3D structure inset (crop 07)"
+      ],
+      "crops": [
+        "evidence/jacs_au-07.png"
+      ],
+      "notes": "One crop, unambiguous. Only one intermediate is named (bold Int-III), so intermediate_label_style is null."
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": "circle",
+        "cycle_arrow_color": "#000000",
+        "catalyst_color": null,
+        "center_label": true,
+        "step_names": true,
+        "intermediate_label_style": null,
+        "curved_arrow_color": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "two touching circular cycles, photoredox (black arcs) and cobalt (dark maroon arcs)",
+        "cycle name bold italic in the centre of each cycle",
+        "catalyst states in grey square brackets, oxidation states as bold superscript roman numerals, IrIV green",
+        "light step marked by a navy disc with a bulb and blue bold italic 'Blue LEDs'",
+        "grey arc for the competing radical chain; step name RLT bold italic maroon"
+      ],
+      "crops": [
+        "evidence/jacs_au-08.png"
+      ],
+      "notes": "Bonus type; one crop. cycle_arrow_color is the photoredox arc colour (black). The cobalt-cycle arcs are dark maroon (about #200008 at the darkest pixels) and the radical-chain arc is grey, so curved_arrow_color stays null."
+    }
+  }
+}

@@ -99,6 +99,7 @@ class NamedToolTests(unittest.TestCase):
         "recognize_batch", "map_reuse", "chemdraw_in_use", "chemdraw_not_found", "chemdraw_not_running",
         "chemdraw_license_unavailable", "chemdraw_automation_not_authorized",
         "build_lcms_plate_cdxml", "build_stacked_nmr_cdxml", "diagnose_smiles_error", "draw_tlc",
+        "structure_panel",
     })
     # Words that start tool names (besides the first word of every registered tool).
     VERBS = frozenset({"build", "convert", "analyze", "compare", "render", "parse", "draw", "extract"})
@@ -120,6 +121,10 @@ class NamedToolTests(unittest.TestCase):
         known = tools | set(re.findall(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b", signatures))
         source = (SKILL_ROOT / "scripts" / "cdx.py").read_text(encoding="utf-8")
         known |= {name.replace("-", "_") for name in SUBCOMMAND.findall(source)}
+        # Style names (house-style cards and measurement presets) are written in code spans too.
+        toolkit = REPO / "toolkit" / "cdxml_toolkit"
+        known |= {card.stem for card in (toolkit / "publication" / "house_styles").glob("*.json")}
+        known |= set(re.findall(r"[\"']([a-z0-9_]+)[\"']", (toolkit / "chemdraw" / "style_presets.py").read_text(encoding="utf-8")))
         starts = {tool.split("_")[0] for tool in tools} | self.VERBS
         unknown: dict[str, list[str]] = {}
         for page in self.pages():

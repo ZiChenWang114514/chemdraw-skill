@@ -18,11 +18,15 @@ from rdkit import Chem
 
 from ..chemistry_semantics import document_inventory, semantic_key
 from . import artifact_safety
-from .figure_draw import _as_list, _failure, _ground, brief_house, brief_style, style_preset_error, style_report
+from . import figure_house
+from .figure_draw import (
+    _as_list, _failure, _ground, _render_png, brief_house, brief_style, style_preset_error, style_report,
+)
 from ..chemdraw.style_presets import DEFAULT_STYLE_PRESET, style_preset_as_manifest_style
 
 SCOPE_KEYS = {"kind", "species", "fields", "conditions", "footnotes", "title", "style", "width_mm", "height_mm"}
-SPECIES_KEYS = {"id", "smiles", "name", "label", "group", "values"}
+SPECIES_STYLE = ("color", "atom_colors", "bond_colors", "abbreviate")
+SPECIES_KEYS = {"id", "smiles", "name", "label", "group", "values", *SPECIES_STYLE}
 MAX_SPECIES = 1000
 
 
@@ -58,6 +62,9 @@ def _validate(brief: dict) -> list[str]:
     style_error = style_preset_error(brief.get("style"))
     if style_error:
         errors.append(style_error)
+    for entry in brief.get("species") or []:
+        if isinstance(entry, dict):
+            errors += figure_house.species_style_errors(entry)
     for key, low, high in (("width_mm", 60, 400), ("height_mm", 60, 500)):
         value = brief.get(key)
         if value is not None and not (isinstance(value, (int, float)) and low <= value <= high):
@@ -181,9 +188,13 @@ def draw_scope(brief: dict, output_path: str | None, render: bool) -> dict:
     if target.exists():
         return _failure([f"Refusing to overwrite an existing folder: {target}"], kind="scope")
 
+    house = brief_house(brief)
+    restyle = house is not None or any(isinstance(e, dict) and any(k in e for k in SPECIES_STYLE)
+                                       for e in brief["species"])
     try:
         with tempfile.TemporaryDirectory(prefix="scope-inputs-") as scratch:
-            spec = _write_inputs(Path(scratch), brief, grounded, fields, render)
+            # A page that is edited afterwards is rendered after the edit, not by the builder.
+            spec = _write_inputs(Path(scratch), brief, grounded, fields, render and not restyle)
             result = publication.publication_figure("create", str(spec), str(target))
     except Exception as exc:
         return _failure([f"The scope panel could not be drawn: {exc}"], kind="scope")
@@ -196,6 +207,27 @@ def draw_scope(brief: dict, output_path: str | None, render: bool) -> dict:
     pages = [{"path": str(target / p["file"]), "file": p["file"], "compounds": per_page[i]}
              for i, p in enumerate(project["pages"])]
     checks = result["checks"]
+    applied: list[str] = []
+    skipped: list[str] = []
+    style_warnings: list[str] = []
+    if restyle:
+        slug = brief_style(brief)[0]
+        for page in pages:
+            path = Path(page["path"])
+            text, page_applied, skipped, warned = figure_house.apply_scope_conventions(
+                path.read_text(encoding="utf-8"), brief, grounded, house, slug)
+            path.write_text(str(text), encoding="utf-8")
+            applied += [a for a in page_applied if a not in applied]
+            style_warnings += [w for w in warned if w not in style_warnings]
+        if render:
+            png_dir = target / "png"
+            png_dir.mkdir(exist_ok=True)
+            try:
+                for page in pages:
+                    _render_png(page["path"], str(png_dir / (Path(page["file"]).stem + ".png")))
+                checks.setdefault("native_preview", {})["status"] = "rendered_pending_visual_review"
+            except Exception as exc:
+                checks.setdefault("native_preview", {})["error"] = str(exc)
     readback = _readback([Path(p["path"]) for p in pages], grounded)
 
     notes: list[str] = []
@@ -205,6 +237,7 @@ def draw_scope(brief: dict, output_path: str | None, render: bool) -> dict:
         blank = [f["key"] for f in fields if values.get(f["key"]) in (None, "")]
         if blank:
             notes.append(f"species {entry['id']} has no {', '.join(blank)}; shown as a dash, not as zero.")
+    warnings += style_warnings
     for item in checks["layout"]["issues"]:
         warnings.append(f"Layout check: {item}")
     for item in checks["data_binding"]["errors"]:
@@ -235,8 +268,7 @@ def draw_scope(brief: dict, output_path: str | None, render: bool) -> dict:
         "pages": pages,
         "species": [{k: g[k] for k in ("id", "label", "name", "smiles", "source")} for g in grounded],
         "fields": fields,
-        "style": style_report(brief_style(brief)[0], brief_house(brief), [],
-                              ["house conventions apply to schemes only; the base preset was applied"]),
+        "style": style_report(brief_style(brief)[0], house, applied, skipped),
         "checks": {"data_binding": checks["data_binding"], "chemistry": checks["chemistry"]},
         "lint": {"issues": checks["layout"]["issues"], "relayout": None},
         "readback": readback,

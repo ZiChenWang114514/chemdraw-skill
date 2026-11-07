@@ -1,0 +1,258 @@
+{
+  "slug": "mdpi_molecules",
+  "kind": "journal",
+  "display_name": "Molecules (MDPI)",
+  "applies_to": [
+    "Molecules research articles"
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.0,
+    "line_width_over_bond_length": 0.042,
+    "bold_width_over_bond_length": 0.13,
+    "label_font": "Arial",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": null
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": null,
+    "aromatic_rings": "kekule",
+    "new_bond_color": "#FF0000",
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": null,
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "introduced group written as a bold blue #0000FF label (CN) on a red #FF0000 bold new bond (crops 01, 03)",
+      "methoxy on the trimethoxyphenyl written as H3CO / OCH3 rather than MeO (crops 02, 05); crop 03 writes the para-methoxy of 2g as MeO",
+      "compound labels bold, slightly smaller than atom labels (cap height about 0.85 of atom labels)"
+    ],
+    "notes": {
+      "yield_placement": "only crop 03 gives yields: the yield follows the label after a comma with the halide in parentheses (\"2b, 89% (X = I)\"), and a second yield for the other halide stacks under the first (2e: 90% (X = I) over 47% (X = Br)); one scheme crop only, so yield_placement stays null",
+      "arrow_length": "9.6 bond lengths in crop 03 and 2.5 in crop 02; no common value",
+      "highlight_fill": "teal #BBFDF4 section bars in crop 01 only",
+      "conditions_split": "crop 03 catalyst above, reductant/solvent/temperature below; crop 01 catalyst above, reductant below; crop 02 uses step letters",
+      "abbreviate_groups": "null: Ph is written in one scheme crop only (03, the N-phenyl of 2d'; crop 01 writes the aryl as Ar); CO2Et is written in one scheme crop only (02) and in the SAR table (05, not a scheme); the two-crop rule is not met",
+      "reagent_text_color": "null: crop 01 writes the metal reductant (Zn or Mn) in maroon (about #74002E) with Ni in black; crop 03 writes its Zn reagent in black; the crops disagree",
+      "yield_format": "null: only crop 03 gives yields, so the two-crop rule is not met; the substrate_scope section keeps {value}%",
+      "measured_bond_length_over_cap_height": "2.0 kept: crop 02 gives 2.07 (118/57) and crop 06 gives 2.02 (113/56); crop 03 gives 1.75 (84/48)",
+      "measured_line_width_over_bond_length": "0.042 kept: crop 06 gives 0.042 (4.8/113) and crop 03 gives 0.040 (3.35/84); crop 02 gives 0.076 (9/118)",
+      "measured_bold_width_over_bond_length": "0.13 kept as the midpoint: crop 03 gives 0.12 (10/84) and crop 06 gives 0.15 (17/113); no majority between the two"
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.3390/molecules29246016",
+      "citation": "Wu et al., Molecules 2024 (Nickel-catalyzed reductive cyanation of aryl halides and epoxides with cyanogen bromide)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/mdpi_molecules-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "Concept scheme in a light grey #BDBDBD frame; section titles bold black on teal #BBFDF4 bars; CN blue #0000FF, new bond red #FF0000; Ni catalyst in a circle on the arrow, reductant (Zn or Mn) below in maroon about #74002E"
+    },
+    {
+      "doi": "10.3390/molecules30010063",
+      "citation": "Wünsch et al., Molecules 2025 (Structure-activity relationship studies of tetracyclic pyrrolocarbazoles inhibiting heterotetrameric CK2)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/mdpi_molecules-02.png",
+      "measurements_px": {
+        "bond_length": 118,
+        "cap_height": 57,
+        "line_width": 9,
+        "bold_width": null,
+        "arrow_length": 296,
+        "compound_label_cap_height": 47
+      },
+      "observations": "Synthesis sequence with step letters (a), (b), (c) above short arrows, reagents in the caption; Kekule rings, bold hashed and bold wedges, ring letters A-D and atom locants in small plain type; side table of NR2 groups with an L-shaped rule (horizontal under the NR2 header, vertical at its left)"
+    },
+    {
+      "doi": "10.3390/molecules29246016",
+      "citation": "Wu et al., Molecules 2024 (Nickel-catalyzed reductive cyanation of aryl halides and epoxides with cyanogen bromide)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 2",
+      "crop": "evidence/mdpi_molecules-03.png",
+      "measurements_px": {
+        "bond_length": 84,
+        "cap_height": 48,
+        "line_width": 3.35,
+        "bold_width": 10,
+        "arrow_length": 810,
+        "compound_label_cap_height": 39
+      },
+      "observations": "Scope grid inside a grey #BDBDBD frame; header reaction with reagents above and Zn, solvent, temperature below; bold labels with yield after \", 89% (X = I)\"; CN bold blue #0000FF and the formed C-CN bond red #FF0000 and bold; full-width black rule under the header reaction; bold-italic note after some numbers (2f', from cholesterol, 32%)"
+    },
+    {
+      "doi": "10.3390/molecules29246016",
+      "citation": "Wu et al., Molecules 2024 (Nickel-catalyzed reductive cyanation of aryl halides and epoxides with cyanogen bromide)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 6",
+      "crop": "evidence/mdpi_molecules-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "Proposed mechanism as two circles of thin black arcs side by side inside a grey frame (Ni cycle A to E, Mn cycle F to I), with an epoxide side path and a rearrangement to 4; intermediates labelled with bold blue #0000FF capital letters A-I under each species; oxidation states as superscript roman numerals"
+    },
+    {
+      "doi": "10.3390/molecules30010063",
+      "citation": "Wünsch et al., Molecules 2025 (Structure-activity relationship studies of tetracyclic pyrrolocarbazoles inhibiting heterotetrameric CK2)",
+      "licence": "CC BY 4.0",
+      "figure": "Table 1",
+      "crop": "evidence/mdpi_molecules-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "SAR table: core structures drawn above the header row, black horizontal rules only (top, under header, bottom), centred columns, mean +/- SD in nM only in the KD′ column; Ki and test concentration in µM, compound ids (+/-)-9a with bold numbers, footnote letters superscript, n.s. for not significant"
+    },
+    {
+      "doi": "10.3390/molecules29020459",
+      "citation": "Sun et al., Molecules 2024 (Isolation and structure elucidation of new metabolites from the Mariana-Trench-associated fungus Aspergillus sp. SY2601)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1",
+      "crop": "evidence/mdpi_molecules-06.png",
+      "measurements_px": {
+        "bond_length": 113,
+        "cap_height": 56,
+        "line_width": 4.8,
+        "bold_width": 17,
+        "arrow_length": null,
+        "compound_label_cap_height": 51
+      },
+      "observations": "Natural products panel: black line structures without colour or boxes, bold compound numbers under most structures, with shared captions under a pair or triple of structures, shared numbering as \"1. R = alpha-OH; 2. R = beta-OH\", bold wedges and hashed bonds for stereocentres"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": null,
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": "#0000FF"
+      },
+      "signature_features": [
+        "introduced group in bold blue #0000FF, new bond red #FF0000",
+        "thin grey #BDBDBD frame around the scheme in crop 01"
+      ],
+      "crops": [
+        "evidence/mdpi_molecules-01.png"
+      ],
+      "notes": "one crop; frame and teal section bars are author choices"
+    },
+    "total_synthesis": {
+      "conventions": {
+        "step_label_style": "letter_above_arrow",
+        "step_count_shown": false,
+        "yield_format": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "step letters (a), (b), (c) in parentheses above each arrow, reagents in the caption",
+        "plain black structures, bold compound labels with \": R = H\" variations"
+      ],
+      "crops": [
+        "evidence/mdpi_molecules-02.png"
+      ],
+      "notes": "one crop (02); the step letters sit above each arrow, which is letter_above_arrow"
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "variation_color": "#0000FF",
+        "yield_format": "{value}%",
+        "selectivity_format": null,
+        "conditions_position": "both",
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "header reaction above a six-column grid, conditions repeated in the caption",
+        "label then yield on one line: \"2b, 89% (X = I)\"",
+        "a second yield for the other halide stacked under the first (2e, 2w, 2a')",
+        "new C-CN bond red #FF0000 in every product, CN label bold blue #0000FF",
+        "thin grey #BDBDBD frame around the scheme (top and bottom edges in crop 03)",
+        "full-width black rule under the header reaction",
+        "bold-italic note after the compound number on some entries (2f', from cholesterol, 32%; 2g', from DL-Menthol, 81%; 2i', CF102 intermediate, 75%; 2j', Fulvestrant intermediate, 67%)"
+      ],
+      "crops": [
+        "evidence/mdpi_molecules-03.png"
+      ],
+      "notes": "one crop; the crop is cut at the left edge, so the six-column count is not confirmed (at least five columns are visible); yield_format {value}% leaves out the halide qualifier (X = I) or (X = Br) that every yield carries"
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": "circle",
+        "cycle_arrow_color": "#000000",
+        "catalyst_color": null,
+        "center_label": false,
+        "step_names": false,
+        "intermediate_label_style": "bold_letter",
+        "curved_arrow_color": "#000000"
+      },
+      "signature_features": [
+        "intermediates named by bold blue #0000FF capital letters below each species",
+        "thin black arcs with small arrowheads; reagents enter on short curved arrows"
+      ],
+      "crops": [
+        "evidence/mdpi_molecules-04.png"
+      ],
+      "notes": "one crop (04); two circular cycles side by side, Ni (A to E) and Mn (F to I), with an epoxide side path (3 to 6) and a rearrangement to 4"
+    },
+    "sar_table": {
+      "conventions": {
+        "table_style": "horizontal_rules",
+        "activity_format": "{mean} ± {sd}",
+        "variation_color": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "three black horizontal rules, no vertical rules",
+        "core structures drawn above the table with R and R' positions",
+        "cyclic or N-heteroaryl R groups drawn as small structures in the R column (rows 15 to 17); other R groups written as text (OEt, NHCH3, NHCH2C6H5, NH(CH2)2-indol-3-yl)"
+      ],
+      "crops": [
+        "evidence/mdpi_molecules-05.png"
+      ],
+      "notes": "one crop; typeset MDPI table (serif body text); activity_format applies to the KD′ column only (mean ± SD in nM); the Ki column holds single values in µM and the test-concentration column is in µM"
+    },
+    "structure_panel": {
+      "conventions": {
+        "highlight_fill": null,
+        "variation_color": null,
+        "intermediate_label_style": "bold_number"
+      },
+      "signature_features": [
+        "grid of black natural-product structures, no colour",
+        "bold numbers under each structure; a scaffold carrying several R groups shares one caption, e.g. \"25. R = alpha-OH; 26. R = beta-OH\""
+      ],
+      "crops": [
+        "evidence/mdpi_molecules-06.png"
+      ],
+      "notes": "one crop"
+    }
+  }
+}
