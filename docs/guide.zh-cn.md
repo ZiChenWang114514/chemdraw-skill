@@ -58,7 +58,7 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 ## 绘图风格
 
-每张图都接受一个 `style` 名称，可写在 draw、scope 或 mechanism 说明、compose 清单或 `cdx.py build` 规格里，也可用 `cdx.py draw --style NAME` 指定。`cdx.py styles` 列出从 ChemDraw 自带样式表读出的 16 个尺寸预设（键长、线宽、字体；默认 `acs1996`），以及 28 个画法风格（期刊、出版社、专利、教材和课题组），它们在预设之上写明每家怎么画 23 类图，测自 179 张开放许可图片截图；说明文件还能为单张图设定标题、分图字母、说明文字、框和颜色；`cdx.py styles NAME` 打印单个风格卡片及其证据，MCP 客户端可从 `chemdraw://style-guide/{name}` 读取。详见[期刊与课题组画法风格](../README.zh-cn.md#期刊与课题组画法风格)和[风格图库](../skill/chemdraw/assets/house-styles/gallery/README.md)，图库还列出按各自风格重画的 153 张已发表的图。
+每张图都接受一个 `style` 名称，可写在 draw、scope 或 mechanism 说明、compose 清单或 `cdx.py build` 规格里，也可用 `cdx.py draw --style NAME` 指定。`cdx.py styles` 列出从 ChemDraw 自带样式表读出的 16 个尺寸预设（键长、线宽、字体；默认 `acs1996`），以及 28 个画法风格（期刊、出版社、专利、教材和课题组），它们在预设之上写明每家怎么画 23 类图，测自 179 张开放许可图片截图；说明文件还能为单张图设定标题、分图字母、说明文字、框和颜色；`cdx.py styles NAME` 打印单个风格卡片及其证据，MCP 客户端可从 `chemdraw://style-guide/{name}` 读取。详见[期刊与课题组画法风格](../README.zh-cn.md#期刊与课题组画法风格)和[风格图库](../skill/chemdraw/assets/house-styles/gallery/README.md)，图库还列出按各自风格重画的 47 张已发表的图。
 
 ## ChemDraw 接口覆盖
 

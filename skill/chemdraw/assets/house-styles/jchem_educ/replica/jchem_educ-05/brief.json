@@ -1,7 +1,0 @@
-{
-  "kind": "scope",
-  "style": "jchem_educ",
-  "species": [
-    {"id": "m", "smiles": "CCCCC[*]"}
-  ]
-}

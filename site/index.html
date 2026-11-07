@@ -44,7 +44,7 @@
       "programmingLanguage": "Python",
       "license": "https://opensource.org/licenses/MIT",
       "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope, journal house style, JACS style, Nature style, literature figure reproduction",
-      "featureList": ["绘制可编辑的 ChemDraw 结构式和反应图", "复刻论文反应图与专利 Markush 通式", "按期刊和课题组的习惯画图：16 个 ChemDraw 尺寸预设与 28 个期刊、出版社、专利、教材和课题组画法风格，覆盖 23 类图，并以 153 张已发表的图检验", "由 CSV 或 Excel 生成 SAR 与底物拓展图", "反应计算器、表征文字和路线收率", "结构图识别：六个引擎并排比对，并可从 PDF 中抽取结构", "前体、路线、产物和反应条件预测，均标注为预测", "核磁位移预测与 OpenLynx LCMS 板核对"],
+      "featureList": ["绘制可编辑的 ChemDraw 结构式和反应图", "复刻论文反应图与专利 Markush 通式", "按期刊和课题组的习惯画图：16 个 ChemDraw 尺寸预设与 28 个期刊、出版社、专利、教材和课题组画法风格，覆盖 23 类图，并按原风格重画了 47 张已发表的图", "由 CSV 或 Excel 生成 SAR 与底物拓展图", "反应计算器、表征文字和路线收率", "结构图识别：六个引擎并排比对，并可从 PDF 中抽取结构", "前体、路线、产物和反应条件预测，均标注为预测", "核磁位移预测与 OpenLynx LCMS 板核对"],
       "inLanguage": ["zh-CN", "en"],
       "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
     },
@@ -70,7 +70,7 @@
         { "@type": "Question", "name": "它会编造反应条件或推测机理吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "不会。按需求画的图，条件、收率和实测数值只取自你给的内容。 缺的数值保持缺失，并在报告里说明。 解析不了的名称会被拒绝，而不是猜一个。 机理只按你列出的电子转移绘制。箭头起点没有孤对电子或电荷时会提醒，但不会判断机理本身对不对。 见绘制新反应图。" } },
         { "@type": "Question", "name": "能按 Nature、JACS 或我们课题组的风格画图吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以，内置 28 个期刊与课题组画法风格，量不到的习惯保持默认。 尺寸预设取自 ChemDraw 自带的样式表，共 16 个，用 cdx.py styles 列出。 28 个画法风格覆盖期刊、出版社、专利、教材和课题组，习惯测自 81 篇开放许可论文和教材中的 179 张图。 每个风格按 23 类图分节，并用 153 张已发表的图按原风格重画来检验。 某个习惯没有量到时就沿用默认值，不去猜。 见样式图库。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "可以，内置 28 个期刊与课题组画法风格，量不到的习惯保持默认。 尺寸预设取自 ChemDraw 自带的样式表，共 16 个，用 cdx.py styles 列出。 28 个画法风格覆盖期刊、出版社、专利、教材和课题组，习惯测自 81 篇开放许可论文和教材中的 179 张图。 每个风格按 23 类图分节，并展示按原风格重画的 47 张已发表的图。 某个习惯没有量到时就沿用默认值，不去猜。 见样式图库。" } },
         { "@type": "Question", "name": "能帮我算每种试剂该称多少吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "可以，用的是 ChemDraw 自带的计算器。 cdx.py calc 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure > Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表。 在表里填质量、体积或当量，其余数值由 ChemDraw 算出。 cdx.py calc --read 把保存后的数值读回来。 没有 ChemDraw 时，SI 原料表也能给出用量，其中所有默认值都标明是假设值。见化学报告指南。" } },
         { "@type": "Question", "name": "安全信息可以信到什么程度？",
@@ -251,7 +251,7 @@
       </figure>
       <figure class="lg">
         <div class="plate"><img decoding="async" data-zoom src="gallery/house-style-replicas.webp" width="1440" height="900" loading="lazy" alt="两张已发表的图与按各自画法风格重画的 ChemDraw 文档并排对比：Nat. Prod. Rep. 的 Dragmacidin B 合成和 Houk 课题组的铑催化反应"></div>
-        <figcaption><b>153 个文献复现。</b>每张图按自己的风格重画，案例逐条列出符合与不符合的习惯，以及工具还做不到的地方。</figcaption>
+        <figcaption><b>47 个文献复现。</b>每张图按自己的风格重画，案例逐条列出符合与不符合的习惯，以及工具还做不到的地方。</figcaption>
       </figure>
       <figure class="lg">
         <div class="plate"><img decoding="async" data-zoom src="gallery/complex-synthesis.webp" width="720" height="450" loading="lazy" alt="在 ChemDraw 中复刻的复杂多步合成路线"></div>
@@ -386,7 +386,7 @@ Bonds:   13</code></pre></details></div>
       <div data-kind="read"><dt>专利 Markush</dt><dd>从专利图和权利要求提取通式，输出 CXSMILES、V3000 molfile 和可编辑 CDXML。<details class="try"><summary>试着这样说</summary><p class="ask">从这张专利图和权利要求里提取 Markush 通式，给我 CXSMILES、V3000 molfile 和 CDXML。</p></details></dd></div>
       <div data-kind="draw"><dt>按需求新画图</dt><dd>一句话到成图：单步反应、线性/收敛/发散或催化循环路线、底物拓展图和机理（支持配位键与自由基），用一条命令画出并检查。条件只取自你给的内容，缺的不补，机理只按你列出的电子转移绘制。<details class="try"><summary>试着这样说</summary><p class="ask">画苯甲醇被 PCC 氧化成苯甲醛的反应，条件写 PCC、CH<sub>2</sub>Cl<sub>2</sub>、室温，渲染后检查一遍。</p></details></dd></div>
       <div data-kind="draw"><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释、带框编号、JACS/Angew 环着色与药效团光晕、η<sup>n</sup> 多点连接配位键、[…]‡ 过渡态方括号、分子轨道瓣及三维构象模板（椅式环己烷、Newman、Haworth、Fischer、降冰片烷）。<details class="try"><summary>试着这样说</summary><p class="ask">按 ACS Document 1996 画一道题：环己烯加氢生成环己烷，产物下面放一个带框的编号。</p></details></dd></div>
-      <div data-kind="draw"><dt>按期刊和课题组的习惯画图</dt><dd>两层样式：<code>cdx.py styles</code> 列出取自 ChemDraw 自带样式表的 16 个尺寸预设（键长、线宽、字号）；28 个画法风格覆盖期刊（JACS、Org. Lett.、J. Med. Chem.、Dalton Trans. 等）、出版社（Nature、Science、Wiley、RSC、Cell Press）、美国专利、OpenStax 教材和 Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer、Lipshutz 课题组，从 179 张 CC BY 论文图里量出编号、收率、条件布局、缩写、新键和底物配色、线宽和箭头长度，并按反应式、底物拓展、机理、催化循环等 23 类图分节。说明文件还能为单张图加标题、分图字母、说明文字、框和颜色。用 <code>cdx.py draw brief.json out.cdxml --style studer_group --render</code> 出图，见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>，其中列出按原风格重画的 153 张已发表的图。<details class="try"><summary>试着这样说</summary><p class="ask">按 Studer 课题组的习惯画这个反应，新键标红、收率写在编号后面，渲染后给我看。</p></details></dd></div>
+      <div data-kind="draw"><dt>按期刊和课题组的习惯画图</dt><dd>两层样式：<code>cdx.py styles</code> 列出取自 ChemDraw 自带样式表的 16 个尺寸预设（键长、线宽、字号）；28 个画法风格覆盖期刊（JACS、Org. Lett.、J. Med. Chem.、Dalton Trans. 等）、出版社（Nature、Science、Wiley、RSC、Cell Press）、美国专利、OpenStax 教材和 Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer、Lipshutz 课题组，从 179 张 CC BY 论文图里量出编号、收率、条件布局、缩写、新键和底物配色、线宽和箭头长度，并按反应式、底物拓展、机理、催化循环等 23 类图分节。说明文件还能为单张图加标题、分图字母、说明文字、框和颜色。用 <code>cdx.py draw brief.json out.cdxml --style studer_group --render</code> 出图，见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>，其中列出按原风格重画的 47 张已发表的图。<details class="try"><summary>试着这样说</summary><p class="ask">按 Studer 课题组的习惯画这个反应，新键标红、收率写在编号后面，渲染后给我看。</p></details></dd></div>
       <div data-kind="data"><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。<details class="try"><summary>试着这样说</summary><p class="ask">用 scope.xlsx 里的结构和收率生成底物拓展图，每个化合物下面标编号和收率。</p></details></dd></div>
       <div data-kind="calc"><dt>比较与性质</dt><dd>相似度与精确身份比较；含 MS 加合物和 logP 的性质表；反应配平检查，指出缺失的副产物；把文件中的全部结构导出为 SMILES 和 InChI；ChemDraw 生成的名称会读回核对。<details class="try"><summary>试着这样说</summary><p class="ask">这两个 SMILES 是同一个化合物吗？再列出它们的分子量、logP 和 [M+H]<sup>+</sup>。</p></details></dd></div>
       <div data-kind="calc"><dt>反应计算器</dt><dd>反应下方 ChemDraw 自带的化学计量表，数值可读回为数据；最多 100 个反应的 SI 原料表，含浓度、原子经济性、PMI 以及基于 116 条试剂安全表和 SMARTS 结构警示的安全提示。<details class="try"><summary>试着这样说</summary><p class="ask">给苯甲醇和乙酰氯的乙酰化反应打开 ChemDraw 化学计量表，苯甲醇用 1.08 g。</p></details></dd></div>
@@ -515,7 +515,7 @@ cd chemdraw-skill
           <ul>
             <li>尺寸预设取自 ChemDraw 自带的样式表，共 16 个，用 <code>cdx.py styles</code> 列出。</li>
             <li>28 个画法风格覆盖期刊、出版社、专利、教材和课题组，习惯测自 81 篇开放许可论文和教材中的 179 张图。</li>
-            <li>每个风格按 23 类图分节，并用 153 张已发表的图按原风格重画来检验。</li>
+            <li>每个风格按 23 类图分节，并展示按原风格重画的 47 张已发表的图。</li>
             <li>某个习惯没有量到时就沿用默认值，不去猜。</li>
           </ul>
           <p>见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>。</p>

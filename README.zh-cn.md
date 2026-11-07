@@ -102,7 +102,7 @@
   <tr>
     <td colspan="3" align="center">
       <a href="#期刊与课题组画法风格"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="按 Studer 课题组画法风格重画的已发表自由基探针反应式，新键为红色"></a>
-      <br><b>28 个期刊与课题组画法风格</b><br><sub>测自 179 张已发表的图；23 类图，153 个文献复现案例</sub>
+      <br><b>28 个期刊与课题组画法风格</b><br><sub>测自 179 张已发表的图；23 类图，47 个文献复现案例</sub>
     </td>
   </tr>
 </table>
@@ -186,7 +186,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **按需求新画图** | 由简短的说明或紧凑语法（`compact_text`）画出单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或机理（支持配位键、自由基、`ring_fills` 环着色、药效团 `atom_halos`、多点连接配位键 `multi_attachments`、`[…]‡` 过渡态方括号、`<orbital>` 轨道瓣与三维构象模板），并在同一条命令里检查化学与版面。[详见下文](#one-command-figures)。 |
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图（`build_acs_figure`），支持缩写节点、富文本、中文注释、箭头、带框化合物代号、JACS/Angew 环着色（`ring_fills`）、药效团光晕、多点连接配位键 `MultiAttachment`、过渡态方括号、分子轨道瓣与确定性三维构象模板（椅式环己烷、Newman、Haworth、Fischer、降冰片烷），并提供视觉与立体审计工具（`depict_like` 16 方向对齐、`read_wedges` 楔形键回读、`edit_structure` 原子索引与 E/Z 编辑器）。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
-| **期刊与课题组风格** | 同一个 `style` 键选择两层风格。16 个尺寸预设取自 ChemDraw 自带样式表（默认 ACS Document 1996，另有 Wiley、RSC、Nature Research、Thieme Synthesis/Synlett 等），设定键长、线宽和字体。28 个画法风格覆盖期刊、出版社、专利、教材和课题组（JACS、Org. Lett.、J. Med. Chem.、Angew. Chem.、Nature、Science、Chem. Sci.、Dalton Trans.，以及 Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer 等课题组），从 179 张开放许可图片截图中测得，写明每家怎么画 23 类图：化合物编号、收率位置、条件布局、缩写、新键着色、弯箭头和循环箭头、线宽和箭头长度。说明文件还能为单张图加标题、分图字母、说明文字、框和颜色。153 张已发表的图按各自风格重画，用来检验卡片。`cdx.py styles` 两层都列出。[详见下文](#期刊与课题组画法风格)。 |
+| **期刊与课题组风格** | 同一个 `style` 键选择两层风格。16 个尺寸预设取自 ChemDraw 自带样式表（默认 ACS Document 1996，另有 Wiley、RSC、Nature Research、Thieme Synthesis/Synlett 等），设定键长、线宽和字体。28 个画法风格覆盖期刊、出版社、专利、教材和课题组（JACS、Org. Lett.、J. Med. Chem.、Angew. Chem.、Nature、Science、Chem. Sci.、Dalton Trans.，以及 Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer 等课题组），从 179 张开放许可图片截图中测得，写明每家怎么画 23 类图：化合物编号、收率位置、条件布局、缩写、新键着色、弯箭头和循环箭头、线宽和箭头长度。说明文件还能为单张图加标题、分图字母、说明文字、框和颜色。47 张已发表的图按各自风格重画，用来检验卡片。`cdx.py styles` 两层都列出。[详见下文](#期刊与课题组画法风格)。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
 | **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、PDF 结构抽取、前体、路线、多引擎路线并排对比图、产物、反应条件和 1H/13C 位移（含 `compare_nmr_shifts`），每个案例都对照已知答案运行并报告实际运行设备（`execution.device`）。批量输入和多步搜索会让模型常驻在工作进程中供下次调用使用（`--accel auto\|on\|off`；`cdx.py stop-daemons` 可随时结束）：在这台笔记本上，第二次 `predict products` 只用 0.6 秒，第一次为 13.7 秒。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
@@ -357,7 +357,7 @@ python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_gr
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="同一个 Suzuki 偶联按六个画法风格画出：acs_jacs、nature_portfolio、baran_group、macmillan_group、science_aaas 和 glorius_group"></p>
 
-**文献复现。**每个风格都用它自己的证据图检验过：153 张已发表的图，从单步反应式到催化循环、底物拓展网格和全合成，都按该风格从说明文件重新画出，各自保存为一个案例，包括参考截图、说明文件、ChemDraw 渲染图和 `CASE.md`。案例列出卡片对这类图声明的每条习惯，说明复现是否符合，并写明工具还做不到什么。[复现索引](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)列出全部案例。
+**文献复现。**卡片用它们自己的证据图检验过，这里精选了 47 张已发表的图，从单步反应式到催化循环、底物拓展网格和全合成，都按该风格从说明文件重新画出，各自保存为一个案例，包括参考截图、说明文件、ChemDraw 渲染图和 `CASE.md`。案例列出卡片对这类图声明的每条习惯，说明复现是否符合，并写明工具还做不到什么。[复现索引](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)列出全部案例。
 
 每个风格在图库旁边都有一个目录，存放证据截图和列出来源的 README；截图按其 CC BY 许可转载，每张卡片都列出 DOI。绘图报告会说明哪些习惯已应用、哪些被跳过及原因。已知限制：写在母体左侧的缩写基团位置正确，但桌面版 ChemDraw 在运行 Clean Up Structure 之前会把其中一些按向右的方向拼写（写成 CO2Me 而不是 MeO2C）。完整的习惯和说明选项见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)。MCP 客户端可从 `chemdraw://style-guide/{name}` 读取风格卡片。
 

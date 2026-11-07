@@ -1,9 +1,0 @@
-{
-  "style": "openstax_chemistry",
-  "kind": "scope",
-  "title": "",
-  "conditions": "",
-  "species": [
-    {"id": "M", "smiles": "[Ni]%11%12%13%14%15%16.[O-]%11C(=O)CN%15(CC(=O)[O-]%12)CCN%16(CC(=O)[O-]%13)CC(=O)[O-]%14", "label": ""}
-  ]
-}

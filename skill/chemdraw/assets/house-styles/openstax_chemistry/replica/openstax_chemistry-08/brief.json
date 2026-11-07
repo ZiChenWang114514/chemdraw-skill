@@ -1,8 +1,0 @@
-{
-  "style": "openstax_chemistry",
-  "kind": "scope",
-  "species": [
-    {"id": "1-butene", "smiles": "C=CCC", "label": "1-butene"},
-    {"id": "cis-2-butene", "smiles": "C/C=C\\C", "label": "cis isomer"}
-  ]
-}

@@ -1,9 +1,0 @@
-{
-  "kind": "scope",
-  "style": "sarpong_group",
-  "title": "hetisine skeleton",
-  "species": [
-    {"id": "14", "smiles": "C=C1CC23CC4C5C6(C)CCCC57C(C2CC1CC37)N4C6", "label": "14"},
-    {"id": "14a", "smiles": "C=C1CC23CC4C5C6(C)CCCC57C(C2CC1CC37)N4C6", "label": "14a"}
-  ]
-}
