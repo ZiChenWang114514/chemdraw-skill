@@ -111,9 +111,9 @@ class InterfaceAuditTests(unittest.TestCase):
             }
         ]
         index, shards = auditor.render_inventory_shards("0.5.17", symbols)
-        self.assertIn("inventory/render-layout.md", index)
-        self.assertIn("render-layout.md", shards)
-        self.assertIn("`run_cleanup(path: str)`", shards["render-layout.md"])
+        self.assertIn("inventory/render-layout-symbols.md", index)
+        self.assertIn("render-layout-symbols.md", shards)
+        self.assertIn("`run_cleanup(path: str)`", shards["render-layout-symbols.md"])
 
     def test_scan_fails_closed_on_unparseable_module(self):
         auditor = load_auditor()

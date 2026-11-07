@@ -7,12 +7,12 @@ Total audited public symbols: **1181**.
 
 | Domain shard | Symbols | Curated guidance |
 | --- | ---: | --- |
-| [inventory/markush.md](inventory/markush.md) | 34 | [markush.md](markush.md) |
-| [inventory/scientific-workflows.md](inventory/scientific-workflows.md) | 26 | [scientific-workflows.md](scientific-workflows.md) |
-| [inventory/analysis.md](inventory/analysis.md) | 134 | [toolkit-analysis-interfaces.md](toolkit-analysis-interfaces.md) |
-| [inventory/chemistry-resolution.md](inventory/chemistry-resolution.md) | 86 | [toolkit-chemistry-resolution-interfaces.md](toolkit-chemistry-resolution-interfaces.md) |
-| [inventory/office-chemdraw.md](inventory/office-chemdraw.md) | 143 | [toolkit-office-chemdraw-interfaces.md](toolkit-office-chemdraw-interfaces.md) |
-| [inventory/perception-image.md](inventory/perception-image.md) | 131 | [toolkit-perception-image-interfaces.md](toolkit-perception-image-interfaces.md) |
-| [inventory/render-layout.md](inventory/render-layout.md) | 93 | [toolkit-render-layout-interfaces.md](toolkit-render-layout-interfaces.md) |
+| [inventory/markush-symbols.md](inventory/markush-symbols.md) | 34 | [markush.md](markush.md) |
+| [inventory/scientific-workflows-symbols.md](inventory/scientific-workflows-symbols.md) | 26 | [scientific-workflows.md](scientific-workflows.md) |
+| [inventory/analysis-symbols.md](inventory/analysis-symbols.md) | 134 | [toolkit-analysis-interfaces.md](toolkit-analysis-interfaces.md) |
+| [inventory/chemistry-resolution-symbols.md](inventory/chemistry-resolution-symbols.md) | 86 | [toolkit-chemistry-resolution-interfaces.md](toolkit-chemistry-resolution-interfaces.md) |
+| [inventory/office-chemdraw-symbols.md](inventory/office-chemdraw-symbols.md) | 143 | [toolkit-office-chemdraw-interfaces.md](toolkit-office-chemdraw-interfaces.md) |
+| [inventory/perception-image-symbols.md](inventory/perception-image-symbols.md) | 131 | [toolkit-perception-image-interfaces.md](toolkit-perception-image-interfaces.md) |
+| [inventory/render-layout-symbols.md](inventory/render-layout-symbols.md) | 93 | [toolkit-render-layout-interfaces.md](toolkit-render-layout-interfaces.md) |
 | `toolkit/docs/reviewed-exclusions-inventory.md` (repository only) | 515 | `toolkit/docs/reviewed-exclusions.md` |
-| [inventory/tools.md](inventory/tools.md) | 19 | [toolkit-tools.md](toolkit-tools.md) |
+| [inventory/tools-symbols.md](inventory/tools-symbols.md) | 19 | [toolkit-tools.md](toolkit-tools.md) |

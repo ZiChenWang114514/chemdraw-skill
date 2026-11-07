@@ -239,9 +239,11 @@ def render_inventory_shards(
     ]
     for reference in sorted(grouped):
         slug = reference.removeprefix("toolkit-").removesuffix("-interfaces.md").removesuffix(".md")
-        shard_name = f"{slug}.md"
         domain_symbols = grouped[reference]
         outside = reference == EXCLUSIONS_REFERENCE
+        # The "-symbols" suffix keeps Skill shards distinct from same-named curated guides
+        # (markush.md, scientific-workflows.md); the exclusions shard lives in toolkit/docs.
+        shard_name = EXCLUSIONS_SHARD if outside else f"{slug}-symbols.md"
         if outside:
             index_lines.append(
                 f"| `toolkit/docs/{EXCLUSIONS_FILE}` (repository only) | "
