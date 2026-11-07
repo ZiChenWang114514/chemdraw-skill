@@ -115,7 +115,10 @@
 - **ChemDraw。** 原生渲染、第 3 步中的 PNG、CDX 转换以及 Word/PowerPoint 对象都需要 Windows 或 macOS 上已激活的桌面版 ChemDraw。没有 ChemDraw 时，Skill 仍可构建、编辑、检查和识别结构，也能使用各类计算器（[具体差异](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)）。
 - **Python。** 构建运行时需要 64 位 Python 3.10–3.13；安装脚本本身在 3.9+ 上即可运行。
 - **磁盘空间。** 默认运行时是一个约 760 MB 的虚拟环境。`--extras` 后不跟名称时只安装核心部分，`--extras publication office` 则只额外安装这两组依赖。
-- **可选工具。** 默认不安装 OPSIN 名称转结构，需要时加 `--opsin`。OPSIN 依赖 Java：Windows 上首次使用时自动下载，macOS 和 Linux 需自行安装。`image` 依赖组中的文字识别需要 Tesseract 程序。加 `--mapping` 会装上机器学习原子映射后端（RXNMapper、LocalMapper），各自在独立环境中。
+- **可选工具**，默认都不安装：
+  - 加 `--opsin` 得到名称转结构。OPSIN 依赖 Java：Windows 上首次使用时自动下载，macOS 和 Linux 需自行安装。
+  - `image` 依赖组中的文字识别需要 Tesseract 程序。
+  - 加 `--mapping` 会装上机器学习原子映射后端（RXNMapper、LocalMapper），各自在独立环境中。
 
 **1. 安装。** 安装脚本需要 Python 3.9+，它会自动查找 64 位 Python 3.10–3.13 作为工具包运行时（通过 `py` 启动器、`uv` 管理的解释器或 PATH 上的 `python3.x`）。
 
@@ -474,7 +477,9 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
 </p>
 
-不用 ChemDraw 计算用量时，`si_materials_tables` 可为最多 100 个反应写出原料表，含浓度、原子经济性和过程质量强度（PMI；E 因子等于 PMI 减 1）。加上 `reagent_safety` 后，它会从内置的 116 种常见溶剂与试剂表以及 SMARTS 官能团结构警示（叠氮、过氧化物、有机锂、酰氯、金属氢化物等）中给出常见溶剂和试剂的 GHS 图标、H 说明、沸点和闪点。表里没有的物质显示为“未收录”，而不是安全。这张表只是提醒，以供应商的 SDS 为准。
+不用 ChemDraw 计算用量时，`si_materials_tables` 可为最多 100 个反应写出原料表，含浓度、原子经济性和过程质量强度（PMI；E 因子等于 PMI 减 1）。
+
+**安全提示。**加上 `reagent_safety` 后，原料表还会给出 GHS 图标、H 说明、沸点和闪点，数据来自内置的 116 种常见溶剂与试剂表，另有针对叠氮、过氧化物、有机锂、酰氯和金属氢化物的 SMARTS 结构警示。表里没有的物质显示为“未收录”，而不是安全。这张表只是提醒，以供应商的 SDS 为准。
 
 ### 表征文字
 
@@ -501,18 +506,18 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
 
 从真实论文图片和数据出发，直接查看原生预览、原图对照和可编辑文件。
 
-| 案例 | 展示内容 | 亮点 |
-| --- | --- | --- |
-| [20 个结构](#stereo-reconstruction-demo) | 修复不同化学软件之间的立体信息分歧 | ChemScript 与 RDKit 立体信息 20/20 一致 |
-| [论文反应路线](#paper-scheme-demo) | 五个结构、条件、产率与波浪键 | 完整可编辑复刻 |
-| [Sceptrin 反应机理](#mechanism-demo) | 八个结构、电子箭头、电荷与条件 | 完整可编辑复刻 |
-| [专利 Markush 通式](#markush-demo) | 从专利图片和权利要求文本提取 R 基、可变环与多中心键 | 结构与参考一致，附 CXSMILES 与 V3000 |
-| [原生 TLC](#tlc-demo) | 可编辑泳道、斑点与 Rf | 可运行示例 |
-| [原生装置图](#apparatus-demo) | 原生 ChemDraw 模板组装 | 可运行示例 |
-| [实验 NMR 谱图](#nmr-demo) | 真实一维数据与可编辑谱图 | 可运行示例 |
-| [模拟反应动力学](#kinetics-demo) | 数值数据转为可编辑曲线 | 可运行示例 |
-| [复杂合成：101–112](#synthesis-101-demo) | 完整原生路线图与机理箭头 | 全部化合物、条件与箭头 |
-| [复杂合成：113–122](#synthesis-113-demo) | 完整原生路线图与机理箭头 | 全部化合物、条件与箭头 |
+| 案例 | 展示什么 |
+| --- | --- |
+| [20 个结构](#stereo-reconstruction-demo) | 修复不同化学软件之间的立体信息分歧：ChemScript 与 RDKit 20/20 一致 |
+| [论文反应路线](#paper-scheme-demo) | 五个结构、条件、产率与波浪键，完整复刻为可编辑图 |
+| [Sceptrin 反应机理](#mechanism-demo) | 八个结构、电子箭头、电荷与条件，完整复刻为可编辑图 |
+| [专利 Markush 通式](#markush-demo) | 从专利图片和权利要求文本提取 R 基、可变环与多中心键；结构与参考一致，附 CXSMILES 与 V3000 |
+| [原生 TLC](#tlc-demo) | 可编辑泳道、斑点与 Rf；可运行示例 |
+| [原生装置图](#apparatus-demo) | 用原生 ChemDraw 模板组装；可运行示例 |
+| [实验 NMR 谱图](#nmr-demo) | 真实一维数据转成可编辑谱图；可运行示例 |
+| [模拟反应动力学](#kinetics-demo) | 数值数据转为可编辑曲线；可运行示例 |
+| [复杂合成：101–112](#synthesis-101-demo) | 完整原生路线图，含全部化合物、条件与箭头 |
+| [复杂合成：113–122](#synthesis-113-demo) | 完整原生路线图，含全部化合物、条件与箭头 |
 
 <a id="stereo-reconstruction-demo"></a>
 

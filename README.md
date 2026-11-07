@@ -115,7 +115,10 @@ Every card is a native ChemDraw render of an editable file in this repository. C
 - **ChemDraw.** Native rendering, the PNG in step 3, CDX conversion and Word/PowerPoint objects need licensed desktop ChemDraw on Windows or macOS. Without it the Skill still builds, edits, checks and recognises structures and runs the calculators ([what changes](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)).
 - **Python.** A 64-bit Python 3.10–3.13 builds the runtime; the installer itself runs on 3.9+.
 - **Disk.** The default runtime is a virtual environment of about 760 MB. `--extras` with no names installs the core only, and `--extras publication office` adds just those groups.
-- **Optional tools.** Name-to-structure through OPSIN is not installed by default: add `--opsin`. OPSIN needs Java, which is fetched on first use on Windows and must be installed on macOS and Linux. Text recognition in the `image` extra needs the Tesseract program. `--mapping` adds the machine-learning atom-mapping backends (RXNMapper, LocalMapper), each in its own environment.
+- **Optional tools**, none installed by default:
+  - `--opsin` adds name-to-structure. OPSIN needs Java, which is fetched on first use on Windows and must be installed on macOS and Linux.
+  - Text recognition in the `image` extra needs the Tesseract program.
+  - `--mapping` adds the machine-learning atom-mapping backends (RXNMapper, LocalMapper), each in its own environment.
 
 **1. Install.** The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the toolkit runtime on its own (through the `py` launcher, `uv`-managed interpreters or `python3.x` on PATH).
 
@@ -474,7 +477,9 @@ After you have typed the amounts and saved, `cdx.py calc --read reaction-stoichi
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
 </p>
 
-For amounts without ChemDraw, `si_materials_tables` writes materials tables for up to 100 reactions with concentration, atom economy and process mass intensity (PMI; E-factor is PMI minus 1). With `reagent_safety` it adds GHS pictograms, H-statements, boiling and flash point for common solvents and reagents from a built-in table of 116 common solvents and bench reagents plus SMARTS structural alerts (azides, peroxides, organolithiums, acyl chlorides, hydrides). A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
+For amounts without ChemDraw, `si_materials_tables` writes materials tables for up to 100 reactions with concentration, atom economy and process mass intensity (PMI; E-factor is PMI minus 1).
+
+**Safety reminders.** With `reagent_safety`, the materials table also shows GHS pictograms, H-statements, boiling and flash point. They come from a built-in table of 116 common solvents and bench reagents, plus SMARTS alerts for azides, peroxides, organolithiums, acyl chlorides and hydrides. A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
 
 ### Characterization text
 
@@ -501,18 +506,18 @@ The full inputs and rules are in the [chemistry reports guide](skill/chemdraw/re
 
 Real paper images and data, with native previews, reference comparisons and editable downloads.
 
-| Case | What it demonstrates | Highlights |
-| --- | --- | --- |
-| [Twenty structures](#stereo-reconstruction-demo) | Resolving stereo disagreement between chemistry readers | 20/20 stereo agreement between ChemScript and RDKit |
-| [Paper reaction scheme](#paper-scheme-demo) | Five structures, conditions, yields and wavy bonds | Complete editable figure |
-| [Sceptrin mechanism](#mechanism-demo) | Eight structures, electron arrows, charges and conditions | Complete editable figure |
-| [Patent Markush structure](#markush-demo) | R groups, variable rings and a multicentre bond from a patent figure plus claim text | Structure matches the reference; CXSMILES and V3000 included |
-| [Native TLC](#tlc-demo) | Editable lanes, spots and Rf | Runnable example |
-| [Native apparatus](#apparatus-demo) | Assembly from native ChemDraw templates | Runnable example |
-| [Experimental NMR](#nmr-demo) | Real processed 1D data and an editable spectrum | Runnable example |
-| [Simulated reaction kinetics](#kinetics-demo) | Numerical data as editable curves | Runnable example |
-| [Complex synthesis: 101–112](#synthesis-101-demo) | Full native scheme and electron arrows | Every compound, condition and arrow |
-| [Complex synthesis: 113–122](#synthesis-113-demo) | Full native scheme and electron arrows | Every compound, condition and arrow |
+| Case | What it shows |
+| --- | --- |
+| [Twenty structures](#stereo-reconstruction-demo) | Resolving stereo disagreement between chemistry readers: 20 of 20 agree between ChemScript and RDKit |
+| [Paper reaction scheme](#paper-scheme-demo) | Five structures, conditions, yields and wavy bonds, rebuilt as an editable figure |
+| [Sceptrin mechanism](#mechanism-demo) | Eight structures, electron arrows, charges and conditions, rebuilt as an editable figure |
+| [Patent Markush structure](#markush-demo) | R groups, variable rings and a multicentre bond from a patent figure and its claim text; structure matches the reference, with CXSMILES and V3000 |
+| [Native TLC](#tlc-demo) | Editable lanes, spots and Rf values; runnable example |
+| [Native apparatus](#apparatus-demo) | Assembly from native ChemDraw templates; runnable example |
+| [Experimental NMR](#nmr-demo) | Real processed 1D data as an editable spectrum; runnable example |
+| [Simulated reaction kinetics](#kinetics-demo) | Numerical data as editable curves; runnable example |
+| [Complex synthesis: 101–112](#synthesis-101-demo) | Full native scheme with every compound, condition and arrow |
+| [Complex synthesis: 113–122](#synthesis-113-demo) | Full native scheme with every compound, condition and arrow |
 
 <a id="stereo-reconstruction-demo"></a>
 
