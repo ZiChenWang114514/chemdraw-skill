@@ -1,0 +1,63 @@
+{
+ "style": "houk_group",
+ "species": [
+  {
+   "id": "RH",
+   "smiles": "C1CCCCC1",
+   "label": "1"
+  },
+  {
+   "id": "DO",
+   "smiles": "CC1(C)OO1",
+   "label": "2"
+  },
+  {
+   "id": "Rr",
+   "smiles": "[CH]1CCCCC1"
+  },
+  {
+   "id": "Int",
+   "smiles": "OC(C)(C)[O]"
+  },
+  {
+   "id": "ROH",
+   "smiles": "OC1CCCCC1",
+   "label": "3"
+  },
+  {
+   "id": "Ket",
+   "smiles": "CC(C)=O",
+   "label": "4"
+  }
+ ],
+ "steps": [
+  {
+   "substrates": [
+    "RH",
+    "DO"
+   ],
+   "products": [
+    "Rr",
+    "Int"
+   ],
+   "above": [
+    "HAT"
+   ]
+  },
+  {
+   "substrates": [
+    "Rr",
+    "Int"
+   ],
+   "products": [
+    "ROH",
+    "Ket"
+   ],
+   "above": [
+    "OH rebound"
+   ]
+  }
+ ],
+ "max_width": 720,
+ "layout": "linear"
+}

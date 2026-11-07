@@ -1,0 +1,14 @@
+{
+  "style": "wiley_angew",
+  "species": [
+    {"id": "1a", "smiles": "CC(=O)c1ccc(F)cc1", "label": "1a"},
+    {"id": "2a", "smiles": "OCc1ccccc1", "label": "2a"},
+    {"id": "3a", "smiles": "O=C(OCc1ccccc1)c1ccc(F)cc1", "label": "3a"}
+  ],
+  "steps": [
+    {"substrates": ["1a", "2a"], "products": ["3a"],
+     "above": ["Halogenation reagent “X” (equiv.)", "Base (equiv.)"],
+     "below": ["Solvent (0.1 M)", "0 °C to rt, 16 h"]}
+  ],
+  "max_width": 504
+}

@@ -1,0 +1,17 @@
+{
+  "style": "chemeurj",
+  "species": [
+    {"id": "alk", "smiles": "C=CCCCO"},
+    {"id": "ArI", "smiles": "Ic1ccccc1"},
+    {"id": "prod", "smiles": "O1CCC[C@@H]1Cc1ccccc1"}
+  ],
+  "steps": [
+    {
+      "substrates": ["alk", "ArI"],
+      "products": ["prod"],
+      "above": ["(P,N)AuCl 1 (5 mol%)"],
+      "below": ["AgSbF6 (1.05 eq.)", "K3PO4 (1 eq.)", "CH2Cl2, 25 °C, overnight"]
+    }
+  ],
+  "max_width": 504
+}

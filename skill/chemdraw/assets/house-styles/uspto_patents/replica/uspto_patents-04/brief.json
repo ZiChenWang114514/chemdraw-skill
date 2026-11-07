@@ -1,0 +1,35 @@
+{
+  "kind": "scope",
+  "style": "uspto_patents",
+  "title": " ",
+  "footnotes": [],
+  "width_mm": 90,
+  "height_mm": 240,
+  "species": [
+    {
+      "id": "1",
+      "label": "1",
+      "smiles": "O=C(Nc1ccc2cc[nH]c2n1)C1(CC1)c1ccc2OCOc2c1"
+    },
+    {
+      "id": "2",
+      "label": "2",
+      "smiles": "COc1ccc(cc1)C1(CC1)C(=O)Nc1ccc2[nH]c(cc2n1)C(C)(C)C"
+    },
+    {
+      "id": "3",
+      "label": "3",
+      "smiles": "COc1ccc(cc1)C1(CC1)C(=O)Nc1cnc2[nH]c(cc2c1)C(C)(C)C"
+    },
+    {
+      "id": "4",
+      "label": "4",
+      "smiles": "COc1cccc(c1)C1(CC1)C(=O)Nc1ccc2[nH]c(cc2n1)C(C)(C)C"
+    },
+    {
+      "id": "5",
+      "label": "5",
+      "smiles": "COc1cccc(c1)C1(CC1)C(=O)Nc1cnc2[nH]c(cc2c1)C(C)(C)C"
+    }
+  ]
+}

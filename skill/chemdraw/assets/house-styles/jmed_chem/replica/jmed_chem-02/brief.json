@@ -1,0 +1,14 @@
+{
+  "style": "jmed_chem",
+  "title": "Scheme 5 top row, series a (87a to 57)",
+  "species": [
+    {"id": "87a", "smiles": "O=Cc1ccccc1", "label": "87a"},
+    {"id": "88a", "smiles": "C1CC1CNCc1ccccc1", "label": "88a"},
+    {"id": "57", "smiles": "O=C(c1ccc(cc1)S(=O)(=O)Nc1ccccc1)N(CC1CC1)Cc1ccccc1", "label": "57"}
+  ],
+  "steps": [
+    {"substrates": ["87a"], "products": ["88a"], "above": ["a"]},
+    {"substrates": ["88a"], "products": ["57"], "above": ["b"]}
+  ],
+  "max_width": 600
+}

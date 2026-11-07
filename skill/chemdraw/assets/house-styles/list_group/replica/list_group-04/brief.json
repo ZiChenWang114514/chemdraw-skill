@@ -1,0 +1,36 @@
+{
+  "style": "list_group",
+  "species": [
+    {
+      "id": "ket",
+      "smiles": "CCC(C)=O"
+    },
+    {
+      "id": "cn",
+      "smiles": "N#C[Si](C)(C)C"
+    },
+    {
+      "id": "ts",
+      "smiles": "CCC(C)=O.N#C[Si](C)(C)C",
+      "ts_bracket": true
+    },
+    {
+      "id": "p6",
+      "smiles": "CCC(C)(C#N)O[Si](C)(C)C",
+      "label": "6 (−1.5)"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": ["ket", "cn"],
+      "products": ["ts"],
+      "arrow": "solid"
+    },
+    {
+      "substrates": ["ts"],
+      "products": ["p6"],
+      "arrow": "solid"
+    }
+  ],
+  "max_width": 504
+}

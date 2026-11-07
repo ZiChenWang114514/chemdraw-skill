@@ -1,0 +1,53 @@
+{
+ "style": "polymer_chemistry",
+ "species": [
+  {
+   "id": "PA",
+   "smiles": "OC(=O)C(C)CC(OCCCC)C1C(=O)OC(=O)C1SC(=S)SCCCCCCCCCCCC"
+  },
+  {
+   "id": "BuA",
+   "smiles": "C=CC(=O)OCCCC"
+  },
+  {
+   "id": "PB",
+   "smiles": "OC(=O)C(C)CC(OCCCC)C1C(=O)OC(=O)C1CC(C(=O)OCCCC)SC(=S)SCCCCCCCCCCCC"
+  },
+  {
+   "id": "PBh",
+   "smiles": "OC(=O)C(C)CC(OCCCC)C(C(=O)[O-])C(C(=O)[O-])CC(C(=O)[O-])SC(=S)SCCCCCCCCCCCC"
+  }
+ ],
+ "steps": [
+  {
+   "substrates": [
+    "PA",
+    "BuA"
+   ],
+   "products": [
+    "PB"
+   ],
+   "above": [
+    "AIBN"
+   ],
+   "below": [
+    "12 hours, 65 °C"
+   ]
+  },
+  {
+   "substrates": [
+    "PB"
+   ],
+   "products": [
+    "PBh"
+   ],
+   "above": [
+    "NaOH"
+   ],
+   "below": [
+    "50 °C, 12 hours"
+   ]
+  }
+ ],
+ "max_width": 504
+}

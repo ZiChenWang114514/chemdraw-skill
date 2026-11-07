@@ -1,0 +1,19 @@
+{
+  "style": "natural_product_reports",
+  "species": [
+    {"id": "54", "smiles": "O=Cc1cn(COCC[Si](C)(C)C)c2ccccc12", "label": "54"},
+    {"id": "55", "smiles": "CCOC(=O)/C(=C/c1cn(COCC[Si](C)(C)C)c2ccccc12)N=[N+]=[N-]", "label": "55"},
+    {"id": "56", "smiles": "NC(=O)/C(=C/c1cn(COCC[Si](C)(C)C)c2ccccc12)N=[N+]=[N-]", "label": "56"},
+    {"id": "57", "smiles": "NC(=O)/C(=C/c1cn(COCC[Si](C)(C)C)c2ccccc12)N=P(C)(c1ccccc1)c1ccccc1", "label": "57", "ts_bracket": {"superscript": "", "bracket_type": "Square"}},
+    {"id": "58", "smiles": "O=C1NC(C(=O)c2c[nH]c3ccccc23)=N/C1=C\\c1cn(COCC[Si](C)(C)C)c2ccccc12", "label": "58"},
+    {"id": "53d", "smiles": "O=C1NC(C(=O)c2c[nH]c3ccccc23)=N/C1=C\\c1c[nH]c2ccccc12", "label": "Rhopaladin D (53d)"}
+  ],
+  "steps": [
+    {"substrates": ["54"], "products": ["55"], "above": ["N3CH2COOEt, NaOEt, EtOH, -15 °C"], "yield": "80%"},
+    {"substrates": ["55"], "products": ["56"], "above": ["1. LiOH, THF, H2O (90%)", "2. CDI, NH3, DMF (92%)"]},
+    {"substrates": ["56"], "products": ["57"], "above": ["PPh2Me, THF"]},
+    {"substrates": ["57"], "products": ["58"], "below": ["23a, polymer-bound BEMP, THF"], "yield": "56%"},
+    {"substrates": ["58"], "products": ["53d"], "above": ["TBAF,"], "below": ["THF, reflux"], "yield": "60%"}
+  ],
+  "max_width": 504
+}

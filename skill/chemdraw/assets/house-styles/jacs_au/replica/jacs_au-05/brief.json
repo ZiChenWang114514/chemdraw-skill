@@ -1,0 +1,13 @@
+{
+  "style": "jacs_au",
+  "species": [
+    {"id": "VCZ", "smiles": "C=Cn1c2ccccc2c2ccccc21", "label": "VCZ"},
+    {"id": "VCZ2", "smiles": "C=Cn1c2ccccc2c2ccccc21", "label": "VCZ"},
+    {"id": "t-DCZCB", "smiles": "c1ccc2c(c1)c1ccccc1n2[C@@H]1CC[C@H]1n1c2ccccc2c2ccccc21", "label": "t-DCZCB"}
+  ],
+  "steps": [
+    {"substrates": ["VCZ", "VCZ2"], "products": ["t-DCZCB"],
+     "below": ["1:5 v/v Acetone:MeCN", "525 nm LED Lamp, 25 °C"]}
+  ],
+  "max_width": 504
+}

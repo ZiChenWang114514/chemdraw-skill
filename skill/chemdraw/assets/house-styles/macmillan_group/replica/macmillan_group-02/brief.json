@@ -1,0 +1,15 @@
+{
+  "style": "macmillan_group",
+  "species": [
+    {"id": "ALK", "smiles": "C=COC1CCCCC1"},
+    {"id": "ACID", "smiles": "COc1ccccc1C(=O)O"},
+    {"id": "ME", "smiles": "CC(=O)ON1C(=O)c2ccccc2C1=O"},
+    {"id": "PROD", "smiles": "COc1ccccc1C(=O)OCC(C)OC1CCCCC1",
+     "atom_halos": [{"atoms": [11, 12, 13], "color": "#D9D9D9", "radius": 9}]}
+  ],
+  "steps": [
+    {"substrates": ["ALK", "ACID", "ME"], "products": ["PROD"],
+     "above": ["Ni(acac)2, KTp*", "Ir (1), BTTP", "t-AmOH", "450 nm LEDs, 4h"]}
+  ],
+  "max_width": 504
+}

@@ -1,0 +1,34 @@
+{
+ "style": "cell_press_chem",
+ "species": [
+  {
+   "id": "1",
+   "smiles": "Cl[Si-]%11%12%13N5C(=CC=C5%20)C(CC)(CC)C6=CC=C(N6%11)C(CC)(CC)C7=CC=C(N7%12)C(CC)(CC)C8=CC=C(N8%13)C(CC)(CC)%20",
+   "label": "[PPh4][1]"
+  },
+  {
+   "id": "2",
+   "smiles": "[Si]%11%12%13N5C(=CC=C5%20)C(CC)(CC)C6=CC=C(N6%11)C(CC)(CC)C7=CC=C(N7%12)C(CC)(CC)C8=CC=C(N8%13)C(CC)(CC)%20",
+   "label": "2"
+  }
+ ],
+ "steps": [
+  {
+   "substrates": [
+    "1"
+   ],
+   "products": [
+    "2"
+   ],
+   "above": [
+    "1 eq. Na[B(C6F5)4]"
+   ],
+   "below": [
+    "rt, CH2Cl2, 78 %",
+    "- NaCl",
+    "- [PPh4][B(C6F5)4]"
+   ]
+  }
+ ],
+ "max_width": 504
+}

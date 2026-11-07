@@ -1,0 +1,70 @@
+{
+  "kind": "scope",
+  "style": "list_group",
+  "conditions": "(S,S)-IDPi 2d (5 mol%), CHCl3, RT, 24 h",
+  "fields": [
+    {
+      "key": "result",
+      "label": ""
+    }
+  ],
+  "species": [
+    {
+      "id": "3b",
+      "smiles": "CCCCCCCCCC[C@@]1(C)CCCC=C1C",
+      "label": "3b",
+      "group": "Five- to six-membered ring expansion",
+      "values": {
+        "result": "93%, 97.5:2.5 e.r."
+      }
+    },
+    {
+      "id": "3a",
+      "smiles": "CCCCCC[C@@]1(C)CCCC=C1C",
+      "label": "3a",
+      "group": "Five- to six-membered ring expansion",
+      "values": {
+        "result": "91%, 97:3 e.r."
+      }
+    },
+    {
+      "id": "3c",
+      "smiles": "CCCC[C@@]1(C)CCCC=C1C",
+      "label": "3c",
+      "group": "Five- to six-membered ring expansion",
+      "values": {
+        "result": "90%, 96:4 e.r."
+      }
+    },
+    {
+      "id": "3d",
+      "smiles": "CCC[C@@]1(C)CCCC=C1C",
+      "label": "3d",
+      "group": "Five- to six-membered ring expansion",
+      "values": {
+        "result": "81%, 94:6 e.r."
+      }
+    },
+    {
+      "id": "3e",
+      "smiles": "CC[C@@]1(C)CCCC=C1C",
+      "label": "3e",
+      "group": "Five- to six-membered ring expansion",
+      "values": {
+        "result": "62%, 84:16 e.r."
+      }
+    },
+    {
+      "id": "3f",
+      "smiles": "CC1=CCCC[C@]1(C)CCC(C)C",
+      "label": "3f",
+      "group": "Five- to six-membered ring expansion",
+      "values": {
+        "result": "92%, 98:2 e.r."
+      }
+    }
+  ],
+  "width_mm": 260,
+  "height_mm": 150,
+  "title": ""
+}

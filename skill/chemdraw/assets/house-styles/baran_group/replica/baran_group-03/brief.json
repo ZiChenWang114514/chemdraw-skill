@@ -1,0 +1,18 @@
+{
+  "style": "baran_group",
+  "species": [
+    {"id": "25", "label": "25", "smiles": "OC[C@H]1O[C@@H](NNS(=O)(=O)c2ccc(C)cc2)[C@H](O)[C@@H](O)[C@@H]1O"},
+    {"id": "26", "label": "26", "smiles": "CCOc1ccc(Cc2cc(I)ccc2Cl)cc1"},
+    {"id": "1", "label": "1", "smiles": "CCOc1ccc(Cc2cc([C@@H]3O[C@H](CO)[C@@H](O)[C@H](O)[C@H]3O)ccc2Cl)cc1"}
+  ],
+  "steps": [
+    {
+      "substrates": ["25", "26"],
+      "products": ["1"],
+      "above": ["Ni(dme)Cl2 (20 mol %)", "L1 (20 mol %)", "TMG (3 equiv)"],
+      "below": ["DMSO (0.1 M), 70 °C"],
+      "yield": "88%"
+    }
+  ],
+  "max_width": 420
+}

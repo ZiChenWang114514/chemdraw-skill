@@ -1,0 +1,21 @@
+{
+  "style": "natural_product_reports",
+  "species": [
+    {"id": "108", "smiles": "O=C1OC(=O)C2=C1CC(CCC/C=C/CO)CC3=C(C(=O)OC3=O)CC2CCCCCCC", "label": "108"},
+    {"id": "112", "smiles": "O=C1OC(=O)C2=C1CC(CC(O)C/C=C/CO)CC3=C(C(=O)OC3=O)CC2CCCCCCC", "label": "112"},
+    {"id": "113", "smiles": "O=C1OC(=O)C2=C1CC(C(O)C(O)C/C=C/CO)CC3=C(C(=O)OC3=O)CC2CCCCCCC", "label": "113"},
+    {"id": "114", "smiles": "O=C1OC(=O)C2=C1CC(C(O)C(O)C/C=C/CO)CC3=C(C(=O)OC3=O)C(O)C2CCCCCCC", "label": "114"},
+    {"id": "13", "smiles": "O=C1OC(=O)C2=C1CC(C(O)C(O)C/C=C/CO)CC3=C(C(=O)OC3=O)C(O)C2C(O)CCCCCC", "label": "13"},
+    {"id": "111", "smiles": "O=C1OC(=O)C2=C1CC(C(O)C(O)C/C=C/C=O)CC3=C(C(=O)OC3=O)C(O)C2C(O)CCCCCC", "label": "111"},
+    {"id": "115", "smiles": "O=C1OC(=O)C2=C1CC(C(O)C(O)C/C=C/C(=O)O)CC3=C(C(=O)OC3=O)C(O)C2C(O)CCCCCC", "label": "115"}
+  ],
+  "steps": [
+    {"substrates": ["108"], "products": ["112"], "above": ["RbtB"], "below": ["Fe²⁺", "α-KG", "O2", "succinate, CO2"]},
+    {"substrates": ["112"], "products": ["113"], "above": ["RbtG"], "below": ["Fe²⁺", "α-KG", "O2", "succinate, CO2"]},
+    {"substrates": ["113"], "products": ["114"], "above": ["RbtE"], "below": ["Fe²⁺", "α-KG", "O2", "succinate, CO2"]},
+    {"substrates": ["114"], "products": ["13"], "above": ["RbtU"], "below": ["Fe²⁺", "α-KG", "O2", "succinate, CO2"]},
+    {"substrates": ["13"], "products": ["111"], "above": ["RbtA (FMO)"]},
+    {"substrates": ["111"], "products": ["115"], "above": ["RbtB"], "below": ["Fe²⁺", "α-KG", "O2", "succinate, CO2"]}
+  ],
+  "max_width": 1100
+}

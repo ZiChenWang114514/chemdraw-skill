@@ -1,0 +1,16 @@
+{
+  "style": "sarpong_group",
+  "title": "Schmidt rearrangement (Büchi, 1957)",
+  "species": [
+    {"id": "11", "smiles": "C12CCCCCCCCCCC1=CCC2", "label": "11"},
+    {"id": "12", "smiles": "C12CCCCCCCCCCC(=CCC2)N1", "label": "12"},
+    {"id": "13", "smiles": "c12cccc(n1)CCCCCCCCCC2", "label": "13"},
+    {"id": "14", "smiles": "c12cccc(n1)CC[C@H](C)CCCCCCC2", "label": "14"}
+  ],
+  "steps": [
+    {"substrates": ["11"], "products": ["12"], "above": ["H2SO4, HN3"]},
+    {"substrates": ["12"], "products": ["13"], "above": ["Pd/C"], "yield": "18%", "below": ["(2 steps)"]},
+    {"substrates": ["13"], "products": ["14"], "above": ["6 steps"]}
+  ],
+  "max_width": 760
+}

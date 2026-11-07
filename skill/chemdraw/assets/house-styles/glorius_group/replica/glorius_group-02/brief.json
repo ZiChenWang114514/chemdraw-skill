@@ -1,0 +1,35 @@
+{
+  "style": "glorius_group",
+  "species": [
+    {
+      "id": "alk",
+      "smiles": "CC=C",
+      "label": "1"
+    },
+    {
+      "id": "carb",
+      "smiles": "O=C(ON=C(c1ccccc1)c1ccccc1)OC[Si](C)(C)C",
+      "label": "2"
+    },
+    {
+      "id": "prod",
+      "smiles": "CC(CCO[Si](C)(C)C)N=C(c1ccccc1)c1ccccc1",
+      "label": "3"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "alk",
+        "carb"
+      ],
+      "products": [
+        "prod"
+      ],
+      "above": [
+        "hν, EnT"
+      ]
+    }
+  ],
+  "max_width": 504
+}

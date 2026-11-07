@@ -1,0 +1,81 @@
+{
+  "kind": "scope",
+  "style": "org_lett",
+  "conditions": "1) Imi-1 30 mol%, 2,6-lutidine 1.7 equiv., [2,6-lutidine][TfOH] 0.3 equiv., 4CzIPN 2 mol%, DMA 0.2 M, Blue LEDs 573 mW, rt, 16 h; 2) NaBH4, CH2Cl2/EtOH 1:1, -30 °C, 1 h",
+  "footnotes": [
+    "* determined on 2-naphthoyl derivative"
+  ],
+  "fields": [
+    {
+      "key": "result",
+      "label": " "
+    }
+  ],
+  "species": [
+    {
+      "id": "4aa",
+      "smiles": "CC[C@@H](CO)N1CCCC1=O",
+      "label": "4aa",
+      "values": {
+        "result": "70%, 89% ee*"
+      }
+    },
+    {
+      "id": "4ba",
+      "smiles": "CC(C)[C@@H](CO)N1CCCC1=O",
+      "label": "4ba",
+      "values": {
+        "result": "53%, 91% ee*"
+      }
+    },
+    {
+      "id": "4ca",
+      "smiles": "COc1ccc(C[C@@H](CO)N2CCCC2=O)cc1OC",
+      "label": "4ca",
+      "values": {
+        "result": "48%, 91% ee*"
+      }
+    },
+    {
+      "id": "4da",
+      "smiles": "O=C1CCCN1[C@H](CO)Cc1ccccc1",
+      "label": "4da",
+      "values": {
+        "result": "58%, 90% ee"
+      }
+    },
+    {
+      "id": "4ea",
+      "smiles": "C=CCCCCCCCC[C@@H](CO)N1CCCC1=O",
+      "label": "4ea",
+      "values": {
+        "result": "60%, 90% ee*"
+      }
+    },
+    {
+      "id": "4fa",
+      "smiles": "O=C1CCCN1[C@H](CO)CCOCc1ccccc1",
+      "label": "4fa",
+      "values": {
+        "result": "53%, 92% ee"
+      }
+    },
+    {
+      "id": "4ab",
+      "smiles": "CC[C@@H](CO)N1CCCCC1=O",
+      "label": "4ab",
+      "values": {
+        "result": "40%, 86% ee*"
+      }
+    },
+    {
+      "id": "4ac",
+      "smiles": "CC[C@@H](CO)N1CCCCCC1=O",
+      "label": "4ac",
+      "values": {
+        "result": "11%, 74% ee*"
+      }
+    }
+  ],
+  "width_mm": 150
+}

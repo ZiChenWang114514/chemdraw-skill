@@ -1,0 +1,14 @@
+{
+  "style": "science_aaas",
+  "species": [
+    {"id": "ArH", "smiles": "CC(=O)Nc1ccccc1"},
+    {"id": "P2a", "smiles": "CC(=O)Nc1ccc(Br)cc1", "label": "2a"}
+  ],
+  "steps": [
+    {"substrates": ["ArH"], "products": ["P2a"],
+     "above": ["Fe(TPY10)Br3 (10 mol %)", "H2O2 (6 equiv), NH4Br (6 equiv)"],
+     "below": ["EtOH/H2O, RT, 2.5 h"],
+     "yield": "89%"}
+  ],
+  "max_width": 504
+}

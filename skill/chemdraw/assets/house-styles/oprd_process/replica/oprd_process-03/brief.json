@@ -1,0 +1,20 @@
+{
+  "style": "oprd_process",
+  "species": [
+    {"id": "5", "smiles": "CC(C)(C)OC(=O)NC(Cc1cc(F)cc(F)c1)c1nc(C#CC(C)(C)S(C)(=O)=O)ccc1Br", "label": "5 (100mg)"},
+    {"id": "7", "smiles": "CC(C)(C)OC(=O)NC(Cc1cc(F)cc(F)c1)c1nc(C#CC(C)(C)S(C)(=O)=O)ccc1-c1ccc(Cl)c2c(NS(C)(=O)=O)nn(CC(F)(F)F)c12", "label": "7"},
+    {"id": "9", "smiles": "CC(C)(C)OC(=O)NC(Cc1cc(F)cc(F)c1)c1nc(C#CC(C)(C)S(C)(=O)=O)ccc1-c1ccc(Cl)c2c(N)nn(CC(F)(F)F)c12", "label": "9"}
+  ],
+  "steps": [
+    {"substrates": ["5"], "products": ["7"],
+     "above": ["Pd(dppf)Cl2 (5 mol %)", "K2CO3 (6 eq)", "NR2 = NHMs"],
+     "below": ["1,4-Dioxane (2 mL)", "water (0.3 mL)", "16 h, 110 °C"],
+     "yield": "A%: ~ 40 %"},
+    {"substrates": ["5"], "products": ["9"],
+     "above": ["Pd(dppf)Cl2 (5 mol %)", "K2CO3 (6 eq)", "NR2 = NH2"],
+     "below": ["1,4-Dioxane (2 mL)", "water (0.3 mL)", "16 h, 110 °C"],
+     "yield": "IY: 52 %"}
+  ],
+  "layout": "divergent",
+  "max_width": 504
+}

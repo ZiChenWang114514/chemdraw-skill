@@ -1,0 +1,14 @@
+{
+  "style": "houk_group",
+  "title": "C-H oxygenation of S3 by a dioxirane (first step of the S3 energy profile)",
+  "species": [
+    {"id": "S3", "smiles": "CC12CCCCC1C2", "label": "S3"},
+    {"id": "DO", "smiles": "CCC1(OO1)C(F)(F)F"},
+    {"id": "P3OH2", "smiles": "CC12C(O)CCCC1C2", "label": "P3-OH2"},
+    {"id": "KET", "smiles": "CCC(=O)C(F)(F)F"}
+  ],
+  "steps": [
+    {"substrates": ["S3", "DO"], "products": ["P3OH2", "KET"]}
+  ],
+  "max_width": 504
+}

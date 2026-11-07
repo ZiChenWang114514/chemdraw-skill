@@ -1,0 +1,13 @@
+{
+  "kind": "scope",
+  "style": "beilstein_joc",
+  "conditions": "Pd2(dba)3 (10 mol %), AgNO3 (1.2 equiv), 1,4-dioxane, 120 °C, 24 h",
+  "fields": [{"key": "yield", "label": ""}],
+  "species": [
+    {"id": "2a", "smiles": "[O-][N+](=O)c1cccc2c1n(-c1ccccn1)c1ccccc12", "label": "2a", "values": {"yield": "69%"}},
+    {"id": "2j", "smiles": "[O-][N+](=O)c1cc(OC)cc2c1n(-c1ccccn1)c1ccc(OC)cc12", "label": "2j", "values": {"yield": "60%"}},
+    {"id": "2k", "smiles": "[O-][N+](=O)c1cc(C(C)(C)C)cc2c1n(-c1ccccn1)c1ccc(C(C)(C)C)cc12", "label": "2k", "values": {"yield": "55%"}}
+  ],
+  "width_mm": 180,
+  "height_mm": 110
+}

@@ -1,0 +1,15 @@
+{
+  "style": "acs_jacs",
+  "title": "Silyl enol ether azidation (Scheme 2 header)",
+  "species": [
+    {"id": "6", "smiles": "C=C(O[Si](C)(C)C)c1ccccc1", "label": "6"},
+    {"id": "2", "smiles": "C[Si](C)(C)N=[N+]=[N-]", "label": "2"},
+    {"id": "7", "smiles": "[N-]=[N+]=NCC(=O)c1ccccc1", "label": "7"}
+  ],
+  "steps": [
+    {"substrates": ["6", "2"], "products": ["7"],
+     "above": ["PhI(OAc)2 (2 equiv), residual H2O"],
+     "below": ["DMSO, air, rt, 30 min"]}
+  ],
+  "max_width": 504
+}

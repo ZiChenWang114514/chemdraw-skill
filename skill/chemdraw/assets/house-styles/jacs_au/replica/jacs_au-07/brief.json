@@ -1,0 +1,15 @@
+{
+  "style": "jacs_au",
+  "species": [
+    {"id": "rad", "smiles": "[CH2][N+](=O)[O-]"},
+    {"id": "prop", "smiles": "CC=C"},
+    {"id": "BrM", "smiles": "BrC[N+](=O)[O-]"},
+    {"id": "Int3", "smiles": "C[CH]CC[N+](=O)[O-]", "label": "Int-III"},
+    {"id": "Pbr", "smiles": "CC(Br)CC[N+](=O)[O-]"}
+  ],
+  "steps": [
+    {"substrates": ["rad", "prop"], "products": ["Int3"]},
+    {"substrates": ["Int3", "BrM"], "products": ["Pbr"]}
+  ],
+  "max_width": 504
+}

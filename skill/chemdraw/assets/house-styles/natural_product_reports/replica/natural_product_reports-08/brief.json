@@ -1,0 +1,16 @@
+{
+  "kind": "scope",
+  "style": "natural_product_reports",
+  "title": "Lipopeptide natural products",
+  "fields": [
+    {"key": "name", "label": ""},
+    {"key": "source", "label": ""},
+    {"key": "activity", "label": ""}
+  ],
+  "species": [
+    {"id": "60", "smiles": "C/C=C(\\NC(=O)CC(CCCCCCCCCCC)OC1OC(CO)C(O)C(O)C1O)C(=O)NC", "label": "60",
+     "values": {"name": "Herbicolin A", "source": "Erwinia herbicola", "activity": "antifungal activity"}}
+  ],
+  "width_mm": 120,
+  "height_mm": 120
+}

@@ -1,0 +1,56 @@
+{
+  "style": "acs_chem_biol",
+  "species": [
+    {
+      "id": "trp",
+      "smiles": "COC(=O)C(Cc1c[nH]c2ccccc12)NC(C)=O"
+    },
+    {
+      "id": "brtrp",
+      "smiles": "COC(=O)C(Cc1c[nH]c2c(Br)cccc12)NC(C)=O"
+    },
+    {
+      "id": "bora",
+      "smiles": "OB(O)c1cccc(C(F)(F)F)c1"
+    },
+    {
+      "id": "artrp",
+      "smiles": "COC(=O)C(Cc1c[nH]c2c(-c3cccc(C(F)(F)F)c3)cccc12)NC(C)=O"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "trp"
+      ],
+      "products": [
+        "brtrp"
+      ],
+      "above": [
+        "10 µM 4V",
+        "10 mM NaBr",
+        "cofactor regen. system"
+      ],
+      "below": [
+        "24 h, r.t."
+      ],
+      "yield": "44%"
+    },
+    {
+      "substrates": [
+        "brtrp",
+        "bora"
+      ],
+      "products": [
+        "artrp"
+      ],
+      "above": [
+        "Pd(OAc)2, DMG",
+        "1:1 EtOH:H2O",
+        "45 °C, 4 h, 500 rpm"
+      ],
+      "yield": "81%"
+    }
+  ],
+  "max_width": 480
+}

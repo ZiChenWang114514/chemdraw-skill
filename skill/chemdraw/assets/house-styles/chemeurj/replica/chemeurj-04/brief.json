@@ -1,0 +1,67 @@
+{
+  "kind": "scope",
+  "style": "chemeurj",
+  "conditions": "Bu4N[Fe(CO)3NO] (5 mol %), DCE, 80 °C, 15 min, 4 Å MS; then amidine 3, 16-20 h",
+  "fields": [
+    {
+      "key": "yield"
+    }
+  ],
+  "species": [
+    {
+      "id": "4aa",
+      "smiles": "CC(C)(C)Nc1cc(=O)[nH]c(-c2ccccc2)n1",
+      "label": "4aa",
+      "group": "A",
+      "values": {
+        "yield": "88% (85%b)"
+      }
+    },
+    {
+      "id": "4ba",
+      "smiles": "CC(C)(C)CC(C)(C)Nc1cc(=O)[nH]c(-c2ccccc2)n1",
+      "label": "4ba",
+      "group": "A",
+      "values": {
+        "yield": "86%"
+      }
+    },
+    {
+      "id": "4ca",
+      "smiles": "CC(C)Nc1cc(=O)[nH]c(-c2ccccc2)n1",
+      "label": "4ca",
+      "group": "A",
+      "values": {
+        "yield": "71%"
+      }
+    },
+    {
+      "id": "4ab",
+      "smiles": "COc1ccc(-c2nc(NC(C)(C)C)cc(=O)[nH]2)cc1",
+      "label": "4ab",
+      "group": "B",
+      "values": {
+        "yield": "84%b"
+      }
+    },
+    {
+      "id": "4ac",
+      "smiles": "CC(C)(C)Nc1cc(=O)[nH]c(-c2ccc(C(F)(F)F)cc2)n1",
+      "label": "4ac",
+      "group": "B",
+      "values": {
+        "yield": "71%b"
+      }
+    },
+    {
+      "id": "4ae",
+      "smiles": "Cc1nc(NC(C)(C)C)cc(=O)[nH]1",
+      "label": "4ae",
+      "group": "B",
+      "values": {
+        "yield": "61%b"
+      }
+    }
+  ],
+  "width_mm": 180
+}

@@ -1,0 +1,8 @@
+{
+  "kind": "scope",
+  "style": "uspto_patents",
+  "title": "TABLE 1",
+  "species": [
+    {"id": "1-1", "smiles": "C=CC(=O)N1CCN(CC1)c1snc2c(F)c(-c3cc(O)ccc3Br)c(Cl)cc12", "label": "1-1"}
+  ]
+}

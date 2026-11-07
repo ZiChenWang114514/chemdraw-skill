@@ -1,0 +1,14 @@
+{
+  "style": "org_lett",
+  "species": [
+    {"id": "alc", "smiles": "*CCO"},
+    {"id": "clsi", "smiles": "Cl[Si](*)(*)*"},
+    {"id": "ether", "smiles": "*CCO[Si](*)(*)*"},
+    {"id": "alksi", "smiles": "*CC[Si](*)(*)*"}
+  ],
+  "steps": [
+    {"substrates": ["alc", "clsi"], "products": ["ether"], "above": ["traditional alcohol protection", "established"]},
+    {"substrates": ["alc", "clsi"], "products": ["alksi"], "above": ["deoxygenative silylation", "unexplored"]}
+  ],
+  "max_width": 504
+}

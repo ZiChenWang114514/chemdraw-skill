@@ -1,0 +1,15 @@
+{
+  "style": "studer_group",
+  "species": [
+    {"id": "PPh3", "smiles": "P(c1ccccc1)(c1ccccc1)c1ccccc1"},
+    {"id": "OPPh3", "smiles": "O=P(c1ccccc1)(c1ccccc1)c1ccccc1"},
+    {"id": "H2", "smiles": "[H][H]"}
+  ],
+  "steps": [
+    {"substrates": ["PPh3"], "products": ["OPPh3", "H2"],
+     "above": ["PC1 (2 mol%), CH3CN (4.0 ml)"],
+     "below": ["H2O (0.15 ml), 455 nm (5 W), 30 h"],
+     "yield": "42%"}
+  ],
+  "max_width": 504
+}

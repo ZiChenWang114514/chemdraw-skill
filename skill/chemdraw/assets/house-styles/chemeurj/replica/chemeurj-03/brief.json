@@ -1,0 +1,17 @@
+{
+  "kind": "scope",
+  "style": "chemeurj",
+  "conditions": "(ArO)3PAuNTf2 (5 mol%), dry DCE, r.t., 2 h, 3 Å M.S.",
+  "fields": [{"key": "yield"}],
+  "footnotes": [],
+  "width_mm": 180,
+  "height_mm": 120,
+  "species": [
+    {"id": "2h", "label": "2h", "group": "R1 = Ph", "smiles": "CCCCC(=O)c1c(-c2ccccc2)[nH]c(N(CCCC)S(=O)(=O)c2ccc(C)cc2)c1N(CCCC)S(=O)(=O)c1ccc(C)cc1", "values": {"yield": "83%"}},
+    {"id": "2i", "label": "2i", "group": "R1 = Ph", "smiles": "O=C(C1CCCCC1)c1c(-c2ccccc2)[nH]c(N(CCCC)S(=O)(=O)c2ccc(C)cc2)c1N(CCCC)S(=O)(=O)c1ccc(C)cc1", "values": {"yield": "68%"}},
+    {"id": "2j", "label": "2j", "group": "R1 = Ph", "smiles": "O=C(C1=CCCCC1)c1c(-c2ccccc2)[nH]c(N(CCCC)S(=O)(=O)c2ccc(C)cc2)c1N(CCCC)S(=O)(=O)c1ccc(C)cc1", "values": {"yield": "59%[c]"}},
+    {"id": "2k", "label": "2k", "group": "R1 = Ph", "smiles": "O=C(c1ccc(F)cc1)c1c(-c2ccccc2)[nH]c(N(CCCC)S(=O)(=O)c2ccc(C)cc2)c1N(CCCC)S(=O)(=O)c1ccc(C)cc1", "values": {"yield": "68%[c]"}},
+    {"id": "2l", "label": "2l", "group": "R1 = Ph", "smiles": "N#Cc1ccc(cc1)C(=O)c1c(-c2ccccc2)[nH]c(N(CCCC)S(=O)(=O)c2ccc(C)cc2)c1N(CCCC)S(=O)(=O)c1ccc(C)cc1", "values": {"yield": "47%[c]"}},
+    {"id": "2m", "label": "2m", "group": "R1 = Ph", "smiles": "COc1ccc(cc1)C(=O)c1c(-c2ccccc2)[nH]c(N(CCCC)S(=O)(=O)c2ccc(C)cc2)c1N(CCCC)S(=O)(=O)c1ccc(C)cc1", "values": {"yield": "38%[a,c]"}}
+  ]
+}

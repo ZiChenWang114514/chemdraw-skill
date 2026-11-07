@@ -26,19 +26,29 @@ Reaction-scheme house style of the Lipshutz group (University of California, San
 - substrate_layout: inline_plus
 - abbreviate_groups: ['OMe', 'CF3', 'Boc', 'NO2', 'Ph', 't-Bu', 'Cbz']
 - aromatic_rings: kekule
-- new_bond_color: None (purple in crop 01, red in crop 03 (with the incoming fragment purple); not consistent)
+- new_bond_color: None (purple #7F07FF in crop 01; red in crop 03 with the incoming amine purple; the crops disagree, so the value stays null)
 - substrate_colors: None
-- highlight_fill: None (pale cyan ellipses #CCFCFC behind the changing group in crop 02 only)
+- highlight_fill: None (pale cyan ellipses #D5FFFE behind the changing group in crop 02 only; see the reaction_scheme figure type below)
 - reagent_text_color: #000000
 - arrow_style: plain
 - show_plus_sign: True
 
+Notes:
+
+- yield_format: the yield line carries a per-scheme prefix before the value (X = Br, 82% in crop 01; Savie: 95% in crop 03). The prefix is scheme text, not part of the template, so the format stays {value}%.
+- surfactant_spacing: 2 wt % with a space in crops 01 and 03; 2 wt% with no space in crop 02 (Scheme 8).
+
 ## Signature features
 
 - surfactant and water written below the arrow, e.g. 2 wt % Savie/H2O or 2 wt % TPGS-750-M / H2O [0.5 M]
-- purple #840CFC marks the new C-N bond or the incoming amine fragment
+- purple #7F07FF marks the new C-N bond in crop 01 or the incoming amine fragment in crop 03 (where the new bond is red)
 - yield line combines a condition and the yield, e.g. X = Br, 82% or Savie: 95%
 - bold italic blue section headers in scope figures
+
+## Figure types
+
+- reaction_scheme (crop 02): highlight_fill #D5FFFE, the flat-pixel mode of the cyan ellipses. Read from one crop, which is unambiguous for this figure type. Signature features: one-pot three-step sequence with reagent above and conditions below each arrow; pale cyan ellipses behind the changing group; yellow step ovals.
+- substrate_scope (crops 01 and 03): no convention values recorded, because the crops do not agree on a layout (crop 03 shows its products in one row). Signature features: yield line under each bold product number, prefixed by the condition or surfactant; bold italic blue section headers (crop 01 only); purple new C-N bond in crop 01, red new bond in crop 03 with the incoming amine purple.
 
 ## Evidence crops
 

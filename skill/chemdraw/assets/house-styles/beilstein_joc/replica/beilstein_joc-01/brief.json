@@ -1,0 +1,14 @@
+{
+  "style": "beilstein_joc",
+  "species": [
+    {"id": "1a", "smiles": "NNc1ccccc1", "label": "1a"},
+    {"id": "2b", "smiles": "Cc1ccc(Br)cc1", "label": "2b"},
+    {"id": "3b", "smiles": "Cc1ccc(/N=N/c2ccccc2)cc1", "label": "3b"}
+  ],
+  "steps": [
+    {"substrates": ["1a", "2b"], "products": ["3b"],
+     "above": ["[PdCl(allyl)]2 (1 mol %)", "t-BuXPhos (4 mol %)"],
+     "below": ["Cs2CO3 (2 equiv)", "H2O (2 equiv)", "DME, 90 °C, 15 h", "O2 (1 atm)"]}
+  ],
+  "max_width": 504
+}

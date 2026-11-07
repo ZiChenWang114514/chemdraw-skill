@@ -1,0 +1,85 @@
+{
+  "style": "list_group",
+  "layout": "catalytic-cycle",
+  "max_width": 504,
+  "species": [
+    {
+      "id": "ALK",
+      "smiles": "CCCCCC/C([13CH3])=C1\\CCCC1C",
+      "label": "1a′"
+    },
+    {
+      "id": "H",
+      "smiles": "[H+]"
+    },
+    {
+      "id": "I",
+      "smiles": "[13CH3][C+](CCCCCC)C1CCCC1C",
+      "label": "I"
+    },
+    {
+      "id": "II",
+      "smiles": "[13CH3]C1(CCCCCC)CCC[CH+]C1C",
+      "label": "II"
+    },
+    {
+      "id": "IV",
+      "smiles": "[13CH3][C+]1CCCCC1(C)CCCCCC",
+      "label": "IV"
+    },
+    {
+      "id": "PRD",
+      "smiles": "[13CH3]C1=CCCCC1(C)CCCCCC",
+      "label": "3a″"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "ALK",
+        "H"
+      ],
+      "products": [
+        "I"
+      ],
+      "above": [
+        "Protonation"
+      ]
+    },
+    {
+      "substrates": [
+        "I"
+      ],
+      "products": [
+        "II"
+      ],
+      "above": [
+        "Ring expansion"
+      ]
+    },
+    {
+      "substrates": [
+        "II"
+      ],
+      "products": [
+        "IV"
+      ],
+      "above": [
+        "[1,2]-n-Hexyl shift"
+      ],
+      "arrow": "reversible"
+    },
+    {
+      "substrates": [
+        "IV"
+      ],
+      "products": [
+        "PRD",
+        "H"
+      ],
+      "above": [
+        "Deprotonation"
+      ]
+    }
+  ]
+}

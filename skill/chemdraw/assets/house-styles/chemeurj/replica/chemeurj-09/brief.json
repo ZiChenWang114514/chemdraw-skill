@@ -1,0 +1,9 @@
+{
+  "style": "chemeurj",
+  "kind": "scope",
+  "title": "",
+  "species": [
+    {"id": "R2", "smiles": "COC(=O)C=[N+]=[N-]", "label": "R2", "group": "[3+2] addition with alpha-diazo ester"},
+    {"id": "N2", "smiles": "N#N", "label": "N2", "group": "Nitrogen extrusion / carbene formation"}
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "style": "natural_product_reports",
+  "species": [
+    {"id": "116", "smiles": "CN1C(=O)CN(C)C(=O)C1", "label": "116"},
+    {"id": "117", "smiles": "CN1C(=O)[C@@H](c2c[nH]c3cc(Br)ccc23)N(C)C(=O)[C@@H]1c1c[nH]c2cc(Br)ccc12", "label": "117"},
+    {"id": "111b", "smiles": "CN1C[C@@H](c2c[nH]c3cc(Br)ccc23)N(C)C[C@@H]1c1c[nH]c2cc(Br)ccc12", "label": "Dragmacidin B (111b)"}
+  ],
+  "steps": [
+    {"substrates": ["116"], "products": ["117"],
+     "above": ["1. NBS, AIBN, CCl4"],
+     "below": ["2. 6-bromoindole", "DMF"],
+     "yield": "57%"},
+    {"substrates": ["117"], "products": ["111b"],
+     "above": ["BH3•THF"],
+     "yield": "25%"}
+  ],
+  "max_width": 760
+}

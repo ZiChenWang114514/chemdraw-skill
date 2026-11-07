@@ -1,0 +1,13 @@
+{
+  "style": "nature_portfolio",
+  "species": [
+    {"id": "SM", "smiles": "O=C(C1CCCCC1)c1ccccc1"},
+    {"id": "P", "smiles": "O=C(c1ccccc1)c1cccc(O)c1"}
+  ],
+  "steps": [
+    {"substrates": ["SM"], "products": ["P"],
+     "above": ["CuI (10 mol%), AgOAc (9 mol%)"],
+     "below": ["TFA (10.0 equiv), H2O (11.1 equiv)", "DMSO, 90 °C, O2"]}
+  ],
+  "max_width": 504
+}

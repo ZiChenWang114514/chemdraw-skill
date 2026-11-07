@@ -1,0 +1,13 @@
+{
+  "style": "polymer_chemistry",
+  "title": "PI-RAFT reversible termination",
+  "species": [
+    {"id": "Pm_rad", "smiles": "COC(=O)[C](C)C"},
+    {"id": "Zrad", "smiles": "*SC(=S)[S]"},
+    {"id": "RAFT_Pm", "smiles": "*SC(=S)SC(C)(C)C(=O)OC"}
+  ],
+  "steps": [
+    {"substrates": ["Pm_rad", "Zrad"], "products": ["RAFT_Pm"], "arrow": "reversible"}
+  ],
+  "max_width": 504
+}

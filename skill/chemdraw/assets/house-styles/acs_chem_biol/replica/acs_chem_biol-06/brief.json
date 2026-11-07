@@ -1,0 +1,29 @@
+{
+  "style": "acs_chem_biol",
+  "species": [
+    {
+      "id": "PD",
+      "smiles": "C#CCOc1cccc(N2CCC(=O)NC2=O)c1C",
+      "label": "PD"
+    },
+    {
+      "id": "LIMKi3N3",
+      "smiles": "[N-]=[N+]=NCCC(=O)Nc1ncc(s1)-c1cc(C(F)F)nn1-c1c(Cl)cccc1Cl",
+      "label": "LIMKi3",
+      "abbreviate": ["N3"],
+      "bond_colors": [{"bonds": [[2, 3], [3, 4]], "color": "#EE3E77"}]
+    },
+    {
+      "id": "PDP",
+      "smiles": "C(c1cn(CCC(=O)Nc2ncc(s2)-c2cc(C(F)F)nn2-c2c(Cl)cccc2Cl)nn1)Oc1cccc(N2CCC(=O)NC2=O)c1C"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": ["PD", "LIMKi3N3"],
+      "products": ["PDP"],
+      "below": ["CuAAC – click reaction"]
+    }
+  ],
+  "max_width": 504
+}

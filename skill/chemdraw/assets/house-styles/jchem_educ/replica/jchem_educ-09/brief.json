@@ -1,0 +1,15 @@
+{
+  "kind": "scope",
+  "style": "jchem_educ",
+  "title": "",
+  "conditions": "",
+  "footnotes": [
+    "Bond polarization effects in neutral molecules are short range.",
+    "Charge stabilization longer range and best viewed as orbital effect."
+  ],
+  "fields": [{"key": "note", "label": ""}],
+  "species": [
+    {"id": "A", "smiles": "ClCCC", "values": {"note": "no meaningful polarization beyond one bond"}},
+    {"id": "B", "smiles": "ClCCCC(=O)[O-]", "values": {"note": "no evidence for bond dipoles attenuated by each bond"}}
+  ]
+}

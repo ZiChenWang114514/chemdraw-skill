@@ -1,0 +1,86 @@
+{
+  "style": "oprd_process",
+  "species": [
+    {
+      "id": "7",
+      "smiles": "O=[N+]([O-])c1c[nH]c(Br)n1",
+      "label": "7"
+    },
+    {
+      "id": "Ep1",
+      "smiles": "CC(C)(C)[Si](C)(C)OCC1CO1"
+    },
+    {
+      "id": "8",
+      "smiles": "CC(C)(C)[Si](C)(C)OC[C@@H](O)Cn1cc([N+](=O)[O-])nc1Br",
+      "label": "8"
+    },
+    {
+      "id": "9",
+      "smiles": "CC(C)(C)[Si](C)(C)OC[C@H](Cn1cc([N+](=O)[O-])nc1Br)OCc1ccc(OC(F)(F)F)cc1",
+      "label": "9"
+    },
+    {
+      "id": "10",
+      "smiles": "O=[N+]([O-])c1cn(C[C@@H](CO)OCc2ccc(OC(F)(F)F)cc2)c(Br)n1",
+      "label": "10"
+    },
+    {
+      "id": "1a",
+      "smiles": "O=[N+]([O-])c1cn2c(n1)OC[C@@H](OCc1ccc(OC(F)(F)F)cc1)C2",
+      "label": "1"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "7",
+        "Ep1"
+      ],
+      "products": [
+        "8"
+      ],
+      "above": [
+        "K2CO3, EtOH"
+      ],
+      "yield": "31%"
+    },
+    {
+      "substrates": [
+        "8"
+      ],
+      "products": [
+        "9"
+      ],
+      "above": [
+        "p-OCF3-BnBr, NaH, TBAI, DMF"
+      ],
+      "yield": "51%"
+    },
+    {
+      "substrates": [
+        "9"
+      ],
+      "products": [
+        "10"
+      ],
+      "above": [
+        "TBAF, THF"
+      ],
+      "yield": "84%"
+    },
+    {
+      "substrates": [
+        "10"
+      ],
+      "products": [
+        "1a"
+      ],
+      "above": [
+        "NaH, DMF"
+      ],
+      "yield": "73%"
+    }
+  ],
+  "max_width": 504
+}

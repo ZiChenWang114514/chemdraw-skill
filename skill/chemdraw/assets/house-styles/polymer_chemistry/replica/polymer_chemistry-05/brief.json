@@ -1,0 +1,11 @@
+{
+  "style": "polymer_chemistry",
+  "species": [
+    {"id": "D3", "smiles": "C[Si]1(C)O[Si](C)(C)O[Si](C)(C)O1", "label": "D₃"},
+    {"id": "D3V", "smiles": "C=C[Si]1(C)O[Si](C=C)(C)O[Si](C=C)(C)O1", "label": "D₃V"}
+  ],
+  "steps": [
+    {"substrates": ["D3"], "products": ["D3V"], "arrow": "solid"}
+  ],
+  "max_width": 504
+}

@@ -1,0 +1,50 @@
+{
+ "style": "uspto_patents",
+ "title": "Scheme I",
+ "species": [
+  {
+   "id": "SM",
+   "smiles": "OC(=O)C1(c2ccccc2)CCCC1"
+  },
+  {
+   "id": "AC",
+   "smiles": "O=C(Cl)C1(c2ccccc2)CCCC1"
+  },
+  {
+   "id": "I",
+   "smiles": "CN(C(=O)C1(c2ccccc2)CCCC1)c1ccccc1",
+   "label": "I"
+  }
+ ],
+ "steps": [
+  {
+   "substrates": [
+    "SM"
+   ],
+   "products": [
+    "AC"
+   ],
+   "above": [
+    "a"
+   ],
+   "below": [
+    "SOCl2, DMF (cat.), DCM"
+   ]
+  },
+  {
+   "substrates": [
+    "SM"
+   ],
+   "products": [
+    "I"
+   ],
+   "above": [
+    "c"
+   ],
+   "below": [
+    "HNRᴺAr¹, HATU, TEA, DCM/DMF"
+   ]
+  }
+ ],
+ "max_width": 504
+}

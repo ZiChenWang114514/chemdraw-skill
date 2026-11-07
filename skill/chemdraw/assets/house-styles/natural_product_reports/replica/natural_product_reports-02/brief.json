@@ -1,0 +1,10 @@
+{
+  "kind": "scope",
+  "style": "natural_product_reports",
+  "title": "Maleidride core structures",
+  "species": [
+    {"id": "hh", "smiles": "C1(CC)C(CC)C2=C(C(=O)OC2=O)CCC3=C1C(=O)OC3=O", "label": "head-to-head", "group": "Maleidrides (head-to-head)"},
+    {"id": "ht", "smiles": "O=C1OC(=O)C2=C1CC(CC)CC3=C(C(=O)OC3=O)C(CC)C2", "label": "head-to-tail", "group": "Nonadrides (head-to-tail)"},
+    {"id": "oct", "smiles": "O=C1OC(=O)C2=C1CC(CC)C3=C(C(=O)OC3=O)CC2CC", "label": "octadrides", "group": "Octadrides"}
+  ]
+}

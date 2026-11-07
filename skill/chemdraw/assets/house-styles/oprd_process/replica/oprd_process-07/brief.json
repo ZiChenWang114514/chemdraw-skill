@@ -1,0 +1,14 @@
+{
+  "style": "oprd_process",
+  "species": [
+    {"id": "lena", "smiles": "CC(C)(C#Cc1ccc(-c2cc(Cl)c3c(N)nn(CC(F)(F)F)c3c2)c([C@H](Cc2cc(F)cc(F)c2)NC(=O)Cn2nc(C(F)(F)F)c3c2C(F)(F)C2CC32)n1)S(C)(=O)=O", "label": "Lenacapavir"},
+    {"id": "fragC", "smiles": "O=C(O)Cn1nc(C(F)(F)F)c2c1C(F)(F)C1CC21", "label": "Frag C"},
+    {"id": "fragA", "smiles": "N[C@@H](Cc1cc(F)cc(F)c1)c1nc(Br)ccc1Br", "label": "Frag A"},
+    {"id": "fragB", "smiles": "CC1(C)OB(c2ccc(Cl)c3c(N)nn(CC(F)(F)F)c23)OC1(C)C", "label": "Frag B"},
+    {"id": "fragD", "smiles": "C#CC(C)(C)S(C)(=O)=O", "label": "Frag D (DMPS)"}
+  ],
+  "steps": [
+    {"substrates": ["lena"], "products": ["fragC", "fragA", "fragB", "fragD"], "arrow": "solid"}
+  ],
+  "max_width": 504
+}

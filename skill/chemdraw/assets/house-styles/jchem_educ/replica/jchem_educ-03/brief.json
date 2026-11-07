@@ -1,0 +1,33 @@
+{
+  "kind": "mechanism",
+  "style": "jchem_educ",
+  "species": [
+    {"id": "tfo", "smiles": "[O-]C(F)(F)F"},
+    {"id": "cof2", "smiles": "O=C(F)F.[F-]"},
+    {"id": "tfoh", "smiles": "OC(F)(F)F"},
+    {"id": "hcf2", "smiles": "[OH+]=C(F)F.[F-]"}
+  ],
+  "steps": [
+    {
+      "substrates": ["tfo"],
+      "products": ["cof2"],
+      "arrow": "resonance",
+      "below": ["negative hyperconjugation"],
+      "moves": [
+        {"from": {"species": "tfo", "atom": 0}, "to": {"species": "tfo", "bond": [0, 1]}},
+        {"from": {"species": "tfo", "bond": [1, 2]}, "to": {"species": "tfo", "atom": 2}}
+      ]
+    },
+    {
+      "substrates": ["tfoh"],
+      "products": ["hcf2"],
+      "arrow": "resonance",
+      "below": ["anomeric effect/negative", "hyperconjugation"],
+      "moves": [
+        {"from": {"species": "tfoh", "atom": 0}, "to": {"species": "tfoh", "bond": [0, 1]}},
+        {"from": {"species": "tfoh", "bond": [1, 2]}, "to": {"species": "tfoh", "atom": 2}}
+      ]
+    }
+  ],
+  "max_width": 504
+}

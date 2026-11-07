@@ -1,0 +1,13 @@
+{
+  "style": "openstax_chemistry",
+  "kind": "scheme",
+  "species": [
+    {"id": "ethene", "smiles": "C=C"},
+    {"id": "H2", "smiles": "[H][H]"},
+    {"id": "ethane", "smiles": "CC"}
+  ],
+  "steps": [
+    {"substrates": ["ethene", "H2"], "products": ["ethane"], "arrow": "solid"}
+  ],
+  "max_width": 504
+}

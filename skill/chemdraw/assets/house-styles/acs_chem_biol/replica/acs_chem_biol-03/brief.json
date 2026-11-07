@@ -1,0 +1,39 @@
+{
+  "kind": "scope",
+  "style": "acs_chem_biol",
+  "species": [
+    {
+      "id": "m1A",
+      "smiles": "OCC1OC(n2cnc3c(N)[n+](C)cnc32)C(O)C1O",
+      "label": "m¹A"
+    },
+    {
+      "id": "m6A",
+      "smiles": "OCC1OC(n2cnc3c(NC)ncnc32)C(O)C1O",
+      "label": "m⁶A"
+    },
+    {
+      "id": "i6A",
+      "smiles": "CC(C)=CCNc1ncnc2c1ncn2C1OC(CO)C(O)C1O",
+      "label": "i⁶A"
+    },
+    {
+      "id": "I",
+      "smiles": "OCC1OC(n2cnc3c(=O)[nH]cnc32)C(O)C1O",
+      "label": "I"
+    },
+    {
+      "id": "m66A",
+      "smiles": "OCC1OC(n2cnc3c(N(C)C)ncnc32)C(O)C1O",
+      "label": "m⁶,⁶A"
+    },
+    {
+      "id": "m7G",
+      "smiles": "Nc1nc2n(C3OC(CO)C(O)C3O)c[n+](C)c2c(=O)[nH]1",
+      "label": "m⁷G"
+    }
+  ],
+  "title": " ",
+  "width_mm": 400,
+  "height_mm": 80
+}

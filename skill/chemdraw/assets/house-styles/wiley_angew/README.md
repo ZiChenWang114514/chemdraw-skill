@@ -9,13 +9,21 @@ How reaction schemes are drawn in Angewandte Chemie, Chemistry - A European Jour
 
 ## Conventions
 
+Set on the card because the crops agree:
+
 - Compound numbers bold and black: 01, 02, 03
-- Yield as a bare percentage next to or under the compound number: 01, 03; position varies
-- Catalyst and reagents above the arrow; solvent, temperature and time below: 01, 02, 03
+- Catalyst and reagents above the arrow, solvent and temperature below: 01, 02 (crop 03 puts the base below the arrow)
 - Substrates side by side with a plus sign: 01, 02
 - Aromatic rings as Kekule structures: 01, 02, 03
-- Plain arrow (grey or black) and black condition text: 01, 02, 03
+- Plain arrow (grey or black; thin black in 03): 01, 02, 03
 - Sans-serif labels: 01, 02, 03
-- Heavier lines than ACS (about 0.09 of the bond); bond about 2.1 times the capital height; arrow about 8 bonds long: 01, 02, 03
+- Heavier lines than ACS (about 0.09 of the bond); bond about 2.1 times the capital height: 01, 02, 03
 
-Both papers use colour, but differently (whole substrates red and blue, or only the new bonds red), so no colour rule is set. Which groups are abbreviated also differs and is left open.
+Reaction schemes are listed as the `reaction_scheme` figure type with all three crops. It adds no figure-type-only convention.
+
+Not set, because the crops disagree (the reasons are in the card's `conventions.notes`):
+
+- Yield: placement differs (after the product label in 01, under it in 03); only 01 prints a percent sign.
+- Arrow length: 6 to 12 bond lengths across the crops (01 8.4, 02 6.2, 03 12.2). The card keeps the median, 8.4.
+- Colour: 01 and 02 colour whole substrates red and blue and print reagent names in purple; 03 keeps substrates black, colours only the new bonds red, and prints reagent text in black. No colour rule is set.
+- Abbreviations: Me is a label in 01 and 02 but drawn as lines in 03; NO2 and OMe appear only in 01. No group is set.

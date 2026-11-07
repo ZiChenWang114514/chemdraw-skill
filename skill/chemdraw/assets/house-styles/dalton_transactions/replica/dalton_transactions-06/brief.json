@@ -1,0 +1,15 @@
+{
+  "style": "dalton_transactions",
+  "species": [
+    {"id": "SM", "smiles": "CC(C)(C)OC(=O)Nc1ccncc1N"},
+    {"id": "1a", "smiles": "CC(C)(C)OC(=O)Nc1ccncc1NC(=O)c1ccccc1", "label": "1a"},
+    {"id": "2a", "smiles": "C[n+]1ccc(N)c(NC(=O)c2ccccc2)c1", "label": "2a"},
+    {"id": "3a", "smiles": "Cc1ccc(C(C)C)cc1.[Ru]1[NH]c2cc[n+](C)cc2[N]1C(=O)c1ccccc1", "label": "3a"}
+  ],
+  "steps": [
+    {"substrates": ["SM"], "products": ["1a"], "above": ["PhCOCl"]},
+    {"substrates": ["1a"], "products": ["2a"], "above": ["MeOTf"], "yield": "78%"},
+    {"substrates": ["2a"], "products": ["3a"], "above": ["[RuCl2(cym)]2"], "yield": "65%"}
+  ],
+  "max_width": 504
+}

@@ -1,0 +1,591 @@
+{
+ "_note": "House card houk_group; base preset acs1996; build path draws fixed ACS 1996 geometry and does not apply house conventions. Coordinates are points (y down) hand-read from evidence crop houk_group-05 at 3x zoom; skeletons simplified (see CASE.md).",
+ "objects": [
+  {
+   "type": "text",
+   "at": [
+    0,
+    8
+   ],
+   "text": "{b:a} Competitive rhodium carbenoid formation transition states",
+   "size": 10,
+   "align": "Left",
+   "bold": false
+  },
+  {
+   "type": "molecule",
+   "smiles": "[*:1]N(CC=C)C([*:2])C1CCC1",
+   "coords": [
+    [
+     20.14,
+     43.08
+    ],
+    [
+     29.4,
+     43.52
+    ],
+    [
+     38.95,
+     33.97
+    ],
+    [
+     46.01,
+     34.41
+    ],
+    [
+     55.86,
+     29.11
+    ],
+    [
+     30.87,
+     57.93
+    ],
+    [
+     24.99,
+     67.78
+    ],
+    [
+     43.36,
+     58.51
+    ],
+    [
+     56.59,
+     61.16
+    ],
+    [
+     58.8,
+     76.59
+    ],
+    [
+     47.04,
+     74.68
+    ]
+   ],
+   "at": [
+    39.47,
+    52.85
+   ],
+   "labels": {
+    "1": "Ts",
+    "2": "Ph"
+   },
+   "displays": {
+    "5": "WedgeBegin"
+   }
+  },
+  {
+   "type": "molecule",
+   "smiles": "[*:3][Rh]Cl",
+   "coords": [
+    [
+     64.68,
+     31.76
+    ],
+    [
+     55.12,
+     45.72
+    ],
+    [
+     66.15,
+     58.95
+    ]
+   ],
+   "at": [
+    60.635000000000005,
+    45.355000000000004
+   ],
+   "labels": {
+    "3": "L"
+   }
+  },
+  {
+   "type": "interaction",
+   "from": [
+    50.71,
+    32.05
+   ],
+   "to": [
+    55.12,
+    45.72
+   ],
+   "style": "solid",
+   "color": "#000000"
+  },
+  {
+   "type": "interaction",
+   "from": [
+    43.36,
+    58.51
+   ],
+   "to": [
+    55.12,
+    45.72
+   ],
+   "style": "dashed",
+   "color": "#000000"
+  },
+  {
+   "type": "ts_bracket",
+   "box": [
+    0.73,
+    25.59,
+    69.83,
+    79.53
+   ],
+   "superscript": "‡"
+  },
+  {
+   "type": "text",
+   "at": [
+    35.28,
+    89.09
+   ],
+   "text": "{b:TS5}",
+   "size": 10,
+   "align": "Center",
+   "bold": false
+  },
+  {
+   "type": "text",
+   "at": [
+    35.28,
+    97.91
+   ],
+   "text": "ΔΔ{i:G}{sup:‡} = 0.0 kcal mol{sup:−1}",
+   "size": 10,
+   "align": "Center",
+   "bold": false
+  },
+  {
+   "type": "molecule",
+   "smiles": "[*:1]N(CC=C)C([*:2])C1CC1",
+   "coords": [
+    [
+     141.6,
+     43.52
+    ],
+    [
+     154.84,
+     44.99
+    ],
+    [
+     164.39,
+     34.7
+    ],
+    [
+     171.45,
+     34.7
+    ],
+    [
+     178.35,
+     27.06
+    ],
+    [
+     156.75,
+     59.4
+    ],
+    [
+     150.87,
+     69.25
+    ],
+    [
+     167.04,
+     62.34
+    ],
+    [
+     180.27,
+     61.16
+    ],
+    [
+     185.7,
+     74.1
+    ]
+   ],
+   "at": [
+    163.64999999999998,
+    50.58
+   ],
+   "labels": {
+    "1": "Ts",
+    "2": "Ph"
+   },
+   "displays": {
+    "5": "WedgeBegin"
+   }
+  },
+  {
+   "type": "molecule",
+   "smiles": "[*:3][Rh]Cl",
+   "coords": [
+    [
+     191.58,
+     32.49
+    ],
+    [
+     185.7,
+     47.19
+    ],
+    [
+     197.91,
+     58.95
+    ]
+   ],
+   "at": [
+    191.805,
+    45.72
+   ],
+   "labels": {
+    "3": "L"
+   }
+  },
+  {
+   "type": "interaction",
+   "from": [
+    174.68,
+    31.47
+   ],
+   "to": [
+    185.7,
+    47.19
+   ],
+   "style": "solid",
+   "color": "#000000"
+  },
+  {
+   "type": "interaction",
+   "from": [
+    180.27,
+    61.16
+   ],
+   "to": [
+    185.7,
+    47.19
+   ],
+   "style": "dashed",
+   "color": "#000000"
+  },
+  {
+   "type": "ts_bracket",
+   "box": [
+    123.97,
+    26.61,
+    204.81,
+    79.53
+   ],
+   "superscript": "‡"
+  },
+  {
+   "type": "text",
+   "at": [
+    164.39,
+    89.09
+   ],
+   "text": "{b:TS5*}",
+   "size": 10,
+   "align": "Center",
+   "bold": false
+  },
+  {
+   "type": "text",
+   "at": [
+    164.39,
+    97.91
+   ],
+   "text": "ΔΔ{i:G}{sup:‡} = 2.9 kcal mol{sup:−1}",
+   "size": 10,
+   "align": "Center",
+   "bold": false
+  },
+  {
+   "type": "text",
+   "at": [
+    0,
+    125
+   ],
+   "text": "{b:b} Competitive olefin insertion transition states",
+   "size": 10,
+   "align": "Left",
+   "bold": false
+  },
+  {
+   "type": "molecule",
+   "smiles": "[*:1]N1CC2([H])CCC2(CC=C)C1[*:2]",
+   "coords": [
+    [
+     15.43,
+     198.06
+    ],
+    [
+     31.16,
+     198.06
+    ],
+    [
+     38.95,
+     188.51
+    ],
+    [
+     49.24,
+     192.19
+    ],
+    [
+     50.71,
+     181.89
+    ],
+    [
+     63.21,
+     192.19
+    ],
+    [
+     63.21,
+     206.15
+    ],
+    [
+     49.24,
+     206.15
+    ],
+    [
+     51.45,
+     216.44
+    ],
+    [
+     59.53,
+     220.12
+    ],
+    [
+     66.88,
+     215.7
+    ],
+    [
+     38.22,
+     209.09
+    ],
+    [
+     34.54,
+     217.91
+    ]
+   ],
+   "at": [
+    41.155,
+    201.005
+   ],
+   "labels": {
+    "1": "Ts",
+    "2": "Ph"
+   },
+   "displays": {
+    "3": "WedgeBegin",
+    "11": "WedgeBegin"
+   }
+  },
+  {
+   "type": "molecule",
+   "smiles": "[*:3][Rh]Cl",
+   "coords": [
+    [
+     80.11,
+     206.15
+    ],
+    [
+     87.46,
+     198.8
+    ],
+    [
+     84.52,
+     216.44
+    ]
+   ],
+   "at": [
+    83.785,
+    207.62
+   ],
+   "labels": {
+    "3": "L"
+   }
+  },
+  {
+   "type": "interaction",
+   "from": [
+    63.21,
+    206.15
+   ],
+   "to": [
+    80.11,
+    206.15
+   ],
+   "style": "dashed",
+   "color": "#000000"
+  },
+  {
+   "type": "ts_bracket",
+   "box": [
+    0.0,
+    174.54,
+    84.52,
+    222.32
+   ],
+   "superscript": "‡"
+  },
+  {
+   "type": "text",
+   "at": [
+    42.19,
+    229.67
+   ],
+   "text": "{b:TS8}",
+   "size": 10,
+   "align": "Center",
+   "bold": false
+  },
+  {
+   "type": "text",
+   "at": [
+    42.19,
+    237.75
+   ],
+   "text": "ΔΔ{i:G}{sup:‡} = 0.0 kcal mol{sup:−1}",
+   "size": 10,
+   "align": "Center",
+   "bold": false
+  },
+  {
+   "type": "molecule",
+   "smiles": "[*:1]N1CC2([H])CCC2(CC=C)C1[*:2]",
+   "coords": [
+    [
+     120.44,
+     198.06
+    ],
+    [
+     136.16,
+     198.06
+    ],
+    [
+     143.95,
+     188.51
+    ],
+    [
+     154.25,
+     192.19
+    ],
+    [
+     155.72,
+     181.89
+    ],
+    [
+     168.21,
+     192.19
+    ],
+    [
+     168.21,
+     206.15
+    ],
+    [
+     154.25,
+     206.15
+    ],
+    [
+     156.45,
+     216.44
+    ],
+    [
+     164.53,
+     220.12
+    ],
+    [
+     171.88,
+     215.7
+    ],
+    [
+     143.22,
+     209.09
+    ],
+    [
+     139.54,
+     217.91
+    ]
+   ],
+   "at": [
+    146.16,
+    201.005
+   ],
+   "labels": {
+    "1": "Ts",
+    "2": "Ph"
+   },
+   "displays": {
+    "3": "WedgeBegin",
+    "11": "WedgeBegin"
+   }
+  },
+  {
+   "type": "molecule",
+   "smiles": "[*:3][Rh]Cl",
+   "coords": [
+    [
+     185.12,
+     206.15
+    ],
+    [
+     192.46,
+     198.8
+    ],
+    [
+     189.52,
+     216.44
+    ]
+   ],
+   "at": [
+    188.79000000000002,
+    207.62
+   ],
+   "labels": {
+    "3": "L"
+   }
+  },
+  {
+   "type": "interaction",
+   "from": [
+    168.21,
+    206.15
+   ],
+   "to": [
+    185.12,
+    206.15
+   ],
+   "style": "dashed",
+   "color": "#000000"
+  },
+  {
+   "type": "ts_bracket",
+   "box": [
+    105.0,
+    174.54,
+    189.52,
+    222.32
+   ],
+   "superscript": "‡"
+  },
+  {
+   "type": "text",
+   "at": [
+    147.19,
+    229.67
+   ],
+   "text": "{b:TS8*}",
+   "size": 10,
+   "align": "Center",
+   "bold": false
+  },
+  {
+   "type": "text",
+   "at": [
+    147.19,
+    237.75
+   ],
+   "text": "ΔΔ{i:G}{sup:‡} = 1.2 kcal mol{sup:−1}",
+   "size": 10,
+   "align": "Center",
+   "bold": false
+  }
+ ]
+}

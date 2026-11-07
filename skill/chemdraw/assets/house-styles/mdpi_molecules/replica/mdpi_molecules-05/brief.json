@@ -1,0 +1,21 @@
+{
+  "kind": "scope",
+  "style": "mdpi_molecules",
+  "fields": [
+    {"key": "conc", "label": "Conc. test compd. (µM)"},
+    {"key": "kd", "label": "CK2α/CK2β interaction KD′ (nM)"},
+    {"key": "ki", "label": "Inhibition of CK2α/CK2β interaction Ki (µM)"}
+  ],
+  "species": [
+    {"id": "9a", "label": "(±)-9a [40]", "group": "9–17", "smiles": "CCOC(=O)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "100", "kd": "59 ± 25", "ki": "32ᵈ"}},
+    {"id": "9b", "label": "(±)-9b", "group": "9–17", "smiles": "CCOC(=O)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)N(C)C(=O)C12", "values": {"conc": "20", "kd": "14 ± 6ᵇ", "ki": "n.s."}},
+    {"id": "10", "label": "(±)-10 [40]", "group": "9–17", "smiles": "OC(=O)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "100", "kd": "758 ± 338", "ki": "1.9ᵈ"}},
+    {"id": "11", "label": "(±)-11", "group": "9–17", "smiles": "CNC(=O)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "50", "kd": "132 ± 43", "ki": "6.0"}},
+    {"id": "12", "label": "(±)-12", "group": "9–17", "smiles": "O=C(NCc1ccccc1)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "50", "kd": "62 ± 19", "ki": "14"}},
+    {"id": "13", "label": "(±)-13", "group": "9–17", "smiles": "O=C(NCc1ccc(Cl)cc1)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "50", "kd": "17 ± 3ᶜ", "ki": "n.s."}},
+    {"id": "14", "label": "(±)-14", "group": "9–17", "smiles": "O=C(NCCc1c[nH]c2ccccc12)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "50", "kd": "158 ± 17", "ki": "3.8"}},
+    {"id": "15", "label": "(±)-15", "group": "9–17", "smiles": "O=C(Nc1cccnc1)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "50", "kd": "89 ± 13", "ki": "7.4"}},
+    {"id": "16", "label": "(±)-16", "group": "9–17", "smiles": "O=C(N1CCCCC1)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "50", "kd": "72 ± 12", "ki": "9.7"}},
+    {"id": "17", "label": "(±)-17", "group": "9–17", "smiles": "O=C(Nc1nc2ccccc2[nH]1)C1c2[nH]c3ccccc3c2C(c2cc(OC)c(OC)c(OC)c2)C2C(=O)NC(=O)C12", "values": {"conc": "50", "kd": "93 ± 13", "ki": "7.1"}}
+  ]
+}

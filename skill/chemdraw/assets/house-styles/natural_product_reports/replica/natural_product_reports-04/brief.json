@@ -1,0 +1,12 @@
+{
+  "style": "natural_product_reports",
+  "title": "Enzymatic C5'-C6' dehydration to complete angustmycin A biosynthesis",
+  "species": [
+    {"id": "AC", "smiles": "OCC1OC(CO)(n2cnc3c(N)ncnc23)C(O)C1O", "label": "Angustmycin C (21)"},
+    {"id": "AA", "smiles": "C=C1OC(CO)(n2cnc3c(N)ncnc23)C(O)C1O", "label": "Angustmycin A (3)"}
+  ],
+  "steps": [
+    {"substrates": ["AC"], "products": ["AA"], "above": ["AgmF"], "below": ["H2O"]}
+  ],
+  "max_width": 504
+}

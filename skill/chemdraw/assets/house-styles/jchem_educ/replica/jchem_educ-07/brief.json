@@ -1,0 +1,9 @@
+{
+  "kind": "scope",
+  "style": "jchem_educ",
+  "species": [
+    {"id": "1-d", "smiles": "O=C1COc2cc(*)ccc2OC1", "label": "1-d"}
+  ],
+  "width_mm": 60,
+  "height_mm": 60
+}

@@ -1,0 +1,14 @@
+{
+  "style": "polymer_chemistry",
+  "title": "PI-RAFT RAFT equilibrium",
+  "species": [
+    {"id": "RAFT_Pn", "smiles": "*SC(=S)SC(C)(C)C(=O)OCC"},
+    {"id": "Pm_rad", "smiles": "COC(=O)[C](C)C"},
+    {"id": "RAFT_Pm", "smiles": "*SC(=S)SC(C)(C)C(=O)OC"},
+    {"id": "Pn_rad", "smiles": "CCOC(=O)[C](C)C"}
+  ],
+  "steps": [
+    {"substrates": ["RAFT_Pn", "Pm_rad"], "products": ["RAFT_Pm", "Pn_rad"], "arrow": "reversible"}
+  ],
+  "max_width": 504
+}

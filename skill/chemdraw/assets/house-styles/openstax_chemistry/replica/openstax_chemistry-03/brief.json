@@ -1,0 +1,15 @@
+{
+  "style": "openstax_chemistry",
+  "species": [
+    {"id": "NO2", "smiles": "[O]N=O"},
+    {"id": "CO", "smiles": "[C-]#[O+]"},
+    {"id": "TS", "smiles": "O=[C]ON=O"},
+    {"id": "NO", "smiles": "[N]=O"},
+    {"id": "CO2", "smiles": "O=C=O"}
+  ],
+  "steps": [
+    {"substrates": ["NO2", "CO"], "products": ["TS"]},
+    {"substrates": ["TS"], "products": ["NO", "CO2"]}
+  ],
+  "max_width": 1000
+}

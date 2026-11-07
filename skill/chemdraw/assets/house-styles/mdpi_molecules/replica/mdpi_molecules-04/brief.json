@@ -1,0 +1,26 @@
+{
+  "style": "mdpi_molecules",
+  "layout": "catalytic-cycle",
+  "species": [
+    {"id": "A", "smiles": "[Ni]", "label": "A"},
+    {"id": "ArX", "smiles": "Brc1ccccc1"},
+    {"id": "B", "smiles": "Br[Ni]c1ccccc1", "label": "B"},
+    {"id": "Zn1", "smiles": "[Zn]"},
+    {"id": "ZnBr1", "smiles": "Br[Zn]"},
+    {"id": "C", "smiles": "[Ni]c1ccccc1", "label": "C"},
+    {"id": "BrCN", "smiles": "BrC#N"},
+    {"id": "D", "smiles": "N#C[Ni](Br)c1ccccc1", "label": "D"},
+    {"id": "P2", "smiles": "N#Cc1ccccc1"},
+    {"id": "E", "smiles": "Br[Ni]", "label": "E"},
+    {"id": "Zn2", "smiles": "[Zn]"},
+    {"id": "ZnBr2", "smiles": "Br[Zn]"}
+  ],
+  "steps": [
+    {"substrates": ["A", "ArX"], "products": ["B"], "above": ["Ar–X (1)"]},
+    {"substrates": ["B", "Zn1"], "products": ["C", "ZnBr1"], "above": ["Zn"], "below": ["Zn(II)"]},
+    {"substrates": ["C", "BrCN"], "products": ["D"], "above": ["BrCN"]},
+    {"substrates": ["D"], "products": ["P2", "E"], "above": ["PhCN (2)"]},
+    {"substrates": ["E", "Zn2"], "products": ["A", "ZnBr2"], "above": ["Zn"], "below": ["Zn(II)"]}
+  ],
+  "max_width": 504
+}

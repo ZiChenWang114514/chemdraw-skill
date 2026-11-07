@@ -1,0 +1,39 @@
+{
+  "title": "Asymmetric cyclization of neral (Fig. 1b)",
+  "style": "list_group",
+  "species": [
+    {
+      "id": "neral",
+      "smiles": "CC(C)=CCC/C(C)=C\\C=O"
+    },
+    {
+      "id": "iso",
+      "smiles": "O[C@@H]1C=C(C)CC[C@H]1C(C)=C",
+      "ring_fills": [
+        {
+          "ring_index": 0,
+          "color": "#CCE6E6"
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "neral"
+      ],
+      "products": [
+        "iso"
+      ],
+      "above": [
+        "iIDP catalysis"
+      ],
+      "below": [
+        "d.r. > 20:1",
+        "e.r. = 99:1"
+      ],
+      "yield": "76%"
+    }
+  ],
+  "max_width": 504
+}

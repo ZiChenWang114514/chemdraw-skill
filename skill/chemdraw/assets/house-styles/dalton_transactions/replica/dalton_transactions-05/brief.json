@@ -1,0 +1,15 @@
+{
+  "style": "dalton_transactions",
+  "layout": "catalytic-cycle",
+  "species": [
+    {"id": "2", "smiles": "[Mn]%11%12%13=C1N(Cc2ccccc2O%11)C=CN1Cc3ccccc3O%12.O%13/C(C)=C\\C(C)=O", "label": "2"},
+    {"id": "C", "smiles": "O=[Mn]%11%12%13=C1N(Cc2ccccc2O%11)C=CN1Cc3ccccc3O%12.O%13/C(C)=C\\C(C)=O", "label": "C"},
+    {"id": "D", "smiles": "O[Mn]%11%12%13=C1N(Cc2ccccc2O%11)C=CN1Cc3ccccc3O%12.O%13/C(C)=C\\C(C)=O.[C](*)(*)O", "label": "D", "ts_bracket": {"superscript": "", "bracket_type": "Square"}}
+  ],
+  "steps": [
+    {"substrates": ["2"], "products": ["C"], "above": ["tBuOOH"], "below": ["tBuOH"]},
+    {"substrates": ["C"], "products": ["D"], "below": ["R-CH(OH)-R'"]},
+    {"substrates": ["D"], "products": ["2"], "above": ["R2C=O + H2O"]}
+  ],
+  "max_width": 504
+}

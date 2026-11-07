@@ -1,0 +1,18 @@
+{
+  "style": "acs_jacs",
+  "species": [
+    {"id": "ArBr", "smiles": "COc1cccc(Br)c1"},
+    {"id": "amine", "smiles": "Fc1ccc(cc1)C(c1ccc(F)cc1)N1CCNCC1"},
+    {"id": "p12", "smiles": "COc1cccc(c1)N1CCN(CC1)C(c1ccc(F)cc1)c1ccc(F)cc1", "label": "12"}
+  ],
+  "steps": [
+    {
+      "substrates": ["ArBr", "amine"],
+      "products": ["p12"],
+      "above": ["[Pd(crotyl)Cl]2 (0.25 mol %)", "BippyPhos (2 mol %)"],
+      "below": ["KOtBu (2 equiv)", "2 wt % Savie/ocean H2O (0.5 M)", "10 v/v % THF, 60 °C, 45 min"],
+      "yield": "91%"
+    }
+  ],
+  "max_width": 504
+}

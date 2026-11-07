@@ -1,0 +1,12 @@
+{
+  "kind": "scope",
+  "style": "dalton_transactions",
+  "fields": [
+    {"key": "tof", "label": "TOF", "unit": "h⁻¹"},
+    {"key": "ref", "label": "Ref."}
+  ],
+  "species": [
+    {"id": "nhc", "smiles": "CN1C=C[N+](C)=C1[Cu-]Cl", "group": "A: Copper(I) complexes used in CuAAC", "values": {"tof": "950", "ref": "Refs. 16-18"}}
+  ],
+  "footnotes": []
+}

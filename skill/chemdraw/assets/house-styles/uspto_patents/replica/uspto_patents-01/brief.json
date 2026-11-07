@@ -1,0 +1,12 @@
+{
+  "kind": "scope",
+  "style": "uspto_patents",
+  "title": " ",
+  "species": [
+    {"id": "I", "smiles": "O=C(N(*)*)C1(CC1)c1cccc(*)c1", "label": "I"},
+    {"id": "Ar1", "smiles": "*c1ccc2[nH]ccc2c1", "label": " ", "group": "Ar1 is:"}
+  ],
+  "conditions": "or a pharmaceutically acceptable salt thereof, wherein:",
+  "width_mm": 90,
+  "height_mm": 120
+}

@@ -1,0 +1,13 @@
+{
+  "style": "jchem_educ",
+  "title": "Figure 2 chemistry stand-in: H-Ar and [M]-Ar",
+  "species": [
+    {"id": "ArH", "smiles": "c1ccccc1"},
+    {"id": "ArM", "smiles": "[Pd]c1ccccc1"}
+  ],
+  "steps": [
+    {"substrates": ["ArH"], "products": ["ArM"], "arrow": "dashed",
+     "above": ["generic H-Ar / [M]-Ar (Ar, M generic in paper)"]}
+  ],
+  "max_width": 504
+}

@@ -1,0 +1,18 @@
+{
+  "style": "science_aaas",
+  "species": [
+    {"id": "1", "smiles": "CCOC(=O)C#C[Si](C(C)C)(C(C)C)C(C)C", "label": "1"},
+    {"id": "2ae", "smiles": "CC(C)(C)OC(=O)[C@H](CCCCN)NC(=O)OC(C)(C)C", "label": "2ae"},
+    {"id": "3ae", "smiles": "CC(C)(C)OC(=O)[C@H](CCCCNC(=O)C#C[Si](C(C)C)(C(C)C)C(C)C)NC(=O)OC(C)(C)C", "label": "3ae"}
+  ],
+  "steps": [
+    {
+      "substrates": ["1", "2ae"],
+      "products": ["3ae"],
+      "above": ["PBS buffer (pH = 7.0) / EtOH (4:1)"],
+      "below": ["40 °C, 48 hours"],
+      "yield": "88%"
+    }
+  ],
+  "max_width": 504
+}

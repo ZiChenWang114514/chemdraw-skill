@@ -1,0 +1,16 @@
+{
+  "style": "houk_group",
+  "species": [
+    {"id": "S6", "smiles": "CC1(C)CCCCC1", "label": "S6"},
+    {"id": "P6-O", "smiles": "CC1(C)CCCCC1=O", "label": "P6-O"},
+    {"id": "P6-O3", "smiles": "CC1(C)CCCC(=O)C1", "label": "P6-O3"},
+    {"id": "P6-O4", "smiles": "CC1(C)CCC(=O)CC1", "label": "P6-O4"}
+  ],
+  "steps": [
+    {"substrates": ["S6"],
+     "products": ["P6-O", "P6-O3", "P6-O4"],
+     "above": ["1. 3-ethyl-3-(trifluoromethyl)dioxirane", "48 hours"],
+     "below": ["2. H2CrO4, acetone"]}
+  ],
+  "max_width": 504
+}

@@ -1,0 +1,13 @@
+{
+  "style": "cell_press_chem",
+  "kind": "energy_profile",
+  "title": "Energy profile and transition state representations",
+  "species": [
+    {"id": "3A", "label": "3A"},
+    {"id": "3TS-I", "label": "3TS-I"},
+    {"id": "3B", "label": "3B"},
+    {"id": "1A", "label": "1A"}
+  ],
+  "steps": [],
+  "max_width": 504
+}

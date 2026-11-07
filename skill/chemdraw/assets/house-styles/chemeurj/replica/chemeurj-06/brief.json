@@ -1,0 +1,81 @@
+{
+ "style": "chemeurj",
+ "layout": "catalytic-cycle",
+ "species": [
+  {
+   "id": "Fe",
+   "smiles": "[Fe]"
+  },
+  {
+   "id": "ICN",
+   "smiles": "[C-]#[N+]C"
+  },
+  {
+   "id": "DZ",
+   "smiles": "COC(=O)C=[N+]=[N-]"
+  },
+  {
+   "id": "A",
+   "smiles": "[C-]#[N+]C->[Fe]",
+   "label": "A"
+  },
+  {
+   "id": "B",
+   "smiles": "COC(=O)C=[Fe]<-[C-]#[N+]C",
+   "label": "B"
+  },
+  {
+   "id": "C",
+   "smiles": "COC(=O)C=C(=NC)->[Fe]",
+   "label": "C"
+  },
+  {
+   "id": "P5",
+   "smiles": "COC(=O)C=C=NC",
+   "label": "5"
+  },
+  {
+   "id": "N2a",
+   "smiles": "N#N"
+  }
+ ],
+ "steps": [
+  {
+   "substrates": [
+    "Fe",
+    "ICN"
+   ],
+   "products": [
+    "A"
+   ]
+  },
+  {
+   "substrates": [
+    "A",
+    "DZ"
+   ],
+   "products": [
+    "B",
+    "N2a"
+   ]
+  },
+  {
+   "substrates": [
+    "B"
+   ],
+   "products": [
+    "C"
+   ]
+  },
+  {
+   "substrates": [
+    "C"
+   ],
+   "products": [
+    "Fe",
+    "P5"
+   ]
+  }
+ ],
+ "max_width": 504
+}

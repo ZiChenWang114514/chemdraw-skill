@@ -1,0 +1,18 @@
+{
+  "style": "org_lett",
+  "species": [
+    {"id": "alc", "smiles": "CCCCCCO"},
+    {"id": "int", "smiles": "CCCCCCBr", "ts_bracket": {"superscript": "", "bracket_type": "Square"}},
+    {"id": "prod", "smiles": "CCCCCC[Si](C)(C)C"}
+  ],
+  "steps": [
+    {"substrates": ["alc"], "products": ["int"],
+     "above": ["[(Ph3P)2O](OTf)2", "n-Bu4NBr", "Barton's base"],
+     "below": ["NMP", "r.t. for 1 h"]},
+    {"substrates": ["int"], "products": ["prod"],
+     "above": ["NiBr2·diglyme", "n-Bu2phen", "Cl–SiR3", "Mn"],
+     "below": ["NMP", "r.t. for 23 h"],
+     "yield": "48 examples, up to 98% yield"}
+  ],
+  "max_width": 760
+}

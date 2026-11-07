@@ -1,0 +1,12 @@
+{
+  "kind": "scope",
+  "style": "sarpong_group",
+  "title": "",
+  "species": [
+    {"id": "core", "smiles": "Cc1cc(C)c2c3c1CCC14C(=O)OC(CC1C)C(C2)C34", "label": "C18 & C19-benzenoids"},
+    {"id": "cephA", "smiles": "Cc1c(O)cc2c3c1C1OC4C5OC(=O)C(CC2)(C4C)C3C15", "label": "cephanolide A (1)"},
+    {"id": "cephH", "smiles": "CC1=C2C3OC4C5OC(=O)C6(CCC(=CC1=O)C2(O)C6C35)C4C", "label": "ceforalide H (2)"}
+  ],
+  "width_mm": 180,
+  "height_mm": 80
+}

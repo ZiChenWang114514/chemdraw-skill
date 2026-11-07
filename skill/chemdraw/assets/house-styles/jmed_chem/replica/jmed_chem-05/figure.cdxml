@@ -1,0 +1,873 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CDXML BondLength="14.4" LineWidth="1.0" BoldWidth="2" HashSpacing="2.5" MarginWidth="1.6" BondSpacing="18" LabelFont="1001" CaptionFont="1001" LabelSize="9.0" CaptionSize="9.0" LabelFace="96">
+  <fonttable>
+    <font id="3" charset="iso-8859-1" name="Arial" />
+    <font id="1001" charset="iso-8859-1" name="Arial" />
+  </fonttable>
+  <page id="1" BoundingBox="0 0 1000 1000">
+    <t id="1002" p="8.0 14.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="12.0" face="1" color="3">A</s>
+    </t>
+    <fragment id="1003" BoundingBox="-44.99 -13.18 83.82 76.54" Z="1004" color="3">
+      <n id="1005" p="-44.99 27.37" Z="1006" />
+      <n id="1007" p="-33.93 36.59" Z="1008" />
+      <n id="1009" p="-36.38 50.78" Z="1010" />
+      <n id="1011" p="-20.42 31.62" Z="1012" />
+      <n id="1013" p="-17.96 17.43" Z="1014" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1015" p="-21.21 20.95" BoundingBox="-20.96 9.91 -14.96 17.43" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1016" p="-9.35 40.83" Z="1017" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1018" p="-12.60 44.35" BoundingBox="-12.35 33.31 -6.35 40.83" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1019" p="4.16 35.86" Z="1020" />
+      <n id="1021" p="8.08 22.01" Z="1022" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1023" p="4.83 25.53" BoundingBox="5.08 14.49 11.08 22.01" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1024" p="22.47 21.46" Z="1025" />
+      <n id="1026" p="27.44 34.97" Z="1027" />
+      <n id="1028" p="16.13 43.87" Z="1029" Element="16" NumHydrogens="0" NeedsClean="yes">
+        <t id="1030" p="12.88 47.39" BoundingBox="13.13 36.35 19.13 43.87" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">S</s>
+        </t>
+      </n>
+      <n id="1031" p="41.30 38.89" Z="1032" />
+      <n id="1033" p="46.27 52.41" Z="1034" />
+      <n id="1035" p="60.66 51.85" Z="1036" />
+      <n id="1037" p="64.58 38.00" Z="1038" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1039" p="61.33 41.52" BoundingBox="61.58 30.48 67.58 38.00" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1040" p="52.62 29.99" Z="1041" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1042" p="49.37 33.51" BoundingBox="49.62 22.47 55.62 29.99" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1043" p="52.06 15.60" Z="1044" />
+      <n id="1045" p="39.33 8.88" Z="1046" />
+      <n id="1047" p="25.65 13.38" Z="1048" Element="17" NumHydrogens="0" NeedsClean="yes">
+        <t id="1049" p="22.40 16.90" BoundingBox="22.65 5.86 33.65 13.38" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">Cl</s>
+        </t>
+      </n>
+      <n id="1050" p="38.78 -5.51" Z="1051" />
+      <n id="1052" p="50.96 -13.18" Z="1053" />
+      <n id="1054" p="63.70 -6.47" Z="1055" />
+      <n id="1056" p="64.25 7.92" Z="1057" />
+      <n id="1058" p="76.99 14.64" Z="1059" Element="17" NumHydrogens="0" NeedsClean="yes">
+        <t id="1060" p="73.74 18.16" BoundingBox="73.99 7.12 84.99 14.64" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">Cl</s>
+        </t>
+      </n>
+      <n id="1061" p="69.57 63.17" Z="1062" />
+      <n id="1063" p="64.22 76.54" Z="1064" Element="9" NumHydrogens="0" NeedsClean="yes">
+        <t id="1065" p="60.97 80.06" BoundingBox="61.22 69.02 67.22 76.54" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">F</s>
+        </t>
+      </n>
+      <n id="1066" p="83.82 61.12" Z="1067" Element="9" NumHydrogens="0" NeedsClean="yes">
+        <t id="1068" p="80.57 64.64" BoundingBox="80.82 53.60 86.82 61.12" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">F</s>
+        </t>
+      </n>
+      <b id="1069" Z="1070" B="1005" E="1007" />
+      <b id="1071" Z="1072" B="1007" E="1009" />
+      <b id="1073" Z="1074" B="1007" E="1011" />
+      <b id="1075" Z="1076" B="1011" E="1013" Order="2" />
+      <b id="1077" Z="1078" B="1011" E="1016" />
+      <b id="1079" Z="1080" B="1016" E="1019" />
+      <b id="1081" Z="1082" B="1019" E="1021" Order="2" DoublePosition="Left" />
+      <b id="1083" Z="1084" B="1021" E="1024" />
+      <b id="1085" Z="1086" B="1024" E="1026" Order="2" DoublePosition="Left" />
+      <b id="1087" Z="1088" B="1026" E="1028" />
+      <b id="1089" Z="1090" B="1026" E="1031" />
+      <b id="1091" Z="1092" B="1031" E="1033" Order="2" DoublePosition="Right" />
+      <b id="1093" Z="1094" B="1033" E="1035" />
+      <b id="1095" Z="1096" B="1035" E="1037" Order="2" DoublePosition="Right" />
+      <b id="1097" Z="1098" B="1037" E="1040" />
+      <b id="1099" Z="1100" B="1040" E="1043" />
+      <b id="1101" Z="1102" B="1043" E="1045" Order="2" DoublePosition="Left" />
+      <b id="1103" Z="1104" B="1045" E="1047" />
+      <b id="1105" Z="1106" B="1045" E="1050" />
+      <b id="1107" Z="1108" B="1050" E="1052" Order="2" DoublePosition="Left" />
+      <b id="1109" Z="1110" B="1052" E="1054" />
+      <b id="1111" Z="1112" B="1054" E="1056" Order="2" DoublePosition="Left" />
+      <b id="1113" Z="1114" B="1056" E="1058" />
+      <b id="1115" Z="1116" B="1035" E="1061" />
+      <b id="1117" Z="1118" B="1061" E="1063" />
+      <b id="1119" Z="1120" B="1061" E="1066" />
+      <b id="1121" Z="1122" B="1028" E="1019" />
+      <b id="1123" Z="1124" B="1040" E="1031" />
+      <b id="1125" Z="1126" B="1056" E="1043" />
+    </fragment>
+    <t id="1126" p="30.0 205.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="9.0" face="0" color="3">LIMKi3 (BMS-5, </s>
+      <s font="1001" size="9.0" face="1" color="3">1</s>
+      <s font="1001" size="9.0" face="0" color="3">)</s>
+    </t>
+    <fragment id="1127" BoundingBox="126.00 -12.79 313.50 61.46" Z="1128" color="3">
+      <n id="1129" p="202.44 -12.79" Z="1130" />
+      <n id="1131" p="189.81 -5.87" Z="1132" />
+      <n id="1133" p="189.48 8.53" Z="1134" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1135" p="186.23 12.05" BoundingBox="186.48 1.01 192.48 8.53" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1136" p="176.85 15.44" Z="1137" />
+      <n id="1138" p="164.54 7.96" Z="1139" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1140" p="161.29 11.48" BoundingBox="161.54 0.44 167.54 7.96" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1141" p="176.52 29.84" Z="1142" />
+      <n id="1143" p="163.89 36.75" Z="1144" />
+      <n id="1145" p="151.59 29.27" Z="1146" />
+      <n id="1147" p="138.96 36.19" Z="1148" />
+      <n id="1149" p="138.63 50.58" Z="1150" />
+      <n id="1151" p="126.00 57.50" Z="1152" Element="17" NumHydrogens="0" NeedsClean="yes">
+        <t id="1153" p="122.75 61.02" BoundingBox="123.00 49.98 134.00 57.50" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">Cl</s>
+        </t>
+      </n>
+      <n id="1154" p="150.93 58.06" Z="1155" />
+      <n id="1156" p="163.57 51.15" Z="1157" />
+      <n id="1158" p="175.87 58.63" Z="1159" Element="17" NumHydrogens="0" NeedsClean="yes">
+        <t id="1160" p="172.62 62.15" BoundingBox="172.87 51.11 183.87 58.63" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">Cl</s>
+        </t>
+      </n>
+      <n id="1161" p="188.83 37.32" Z="1162" />
+      <n id="1163" p="201.46 30.40" Z="1164" />
+      <n id="1165" p="213.76 37.88" Z="1166" />
+      <n id="1167" p="226.39 30.97" Z="1168" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1169" p="223.14 34.49" BoundingBox="223.39 23.45 229.39 30.97" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1170" p="226.72 16.57" Z="1171" />
+      <n id="1172" p="239.35 9.66" Z="1173" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1174" p="236.10 13.18" BoundingBox="236.35 2.14 242.35 9.66" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1175" p="251.65 17.14" Z="1176" />
+      <n id="1177" p="251.33 31.53" Z="1178" />
+      <n id="1179" p="263.63 39.01" Z="1180" />
+      <n id="1181" p="276.26 32.10" Z="1182" />
+      <n id="1183" p="288.57 39.58" Z="1184" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1185" p="285.32 43.10" BoundingBox="285.57 32.06 291.57 39.58" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1186" p="288.24 53.98" Z="1187" />
+      <n id="1188" p="300.55 61.46" Z="1189" />
+      <n id="1190" p="313.18 54.54" Z="1191" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1192" p="309.93 58.06" BoundingBox="310.18 47.02 316.18 54.54" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1193" p="313.50 40.15" Z="1194" />
+      <n id="1195" p="301.20 32.66" Z="1196" />
+      <n id="1197" p="276.59 17.70" Z="1198" />
+      <n id="1199" p="289.22 10.79" Z="1200" Element="9" NumHydrogens="0" NeedsClean="yes">
+        <t id="1201" p="285.97 14.31" BoundingBox="286.22 3.27 292.22 10.79" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">F</s>
+        </t>
+      </n>
+      <n id="1202" p="264.29 10.22" Z="1203" />
+      <n id="1204" p="214.42 9.09" Z="1205" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1206" p="211.17 12.61" BoundingBox="211.42 1.57 217.42 9.09" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1207" p="201.78 16.01" Z="1208" />
+      <b id="1209" Z="1210" B="1129" E="1131" />
+      <b id="1211" Z="1212" B="1131" E="1133" />
+      <b id="1213" Z="1214" B="1133" E="1136" />
+      <b id="1215" Z="1216" B="1136" E="1138" Order="2" />
+      <b id="1217" Z="1218" B="1136" E="1141" />
+      <b id="1219" Z="1220" B="1141" E="1143" />
+      <b id="1221" Z="1222" B="1143" E="1145" />
+      <b id="1223" Z="1224" B="1145" E="1147" Order="2" DoublePosition="Right" />
+      <b id="1225" Z="1226" B="1147" E="1149" />
+      <b id="1227" Z="1228" B="1149" E="1151" />
+      <b id="1229" Z="1230" B="1149" E="1154" Order="2" DoublePosition="Right" />
+      <b id="1231" Z="1232" B="1154" E="1156" />
+      <b id="1233" Z="1234" B="1156" E="1158" />
+      <b id="1235" Z="1236" B="1141" E="1161" Order="2" DoublePosition="Right" />
+      <b id="1237" Z="1238" B="1161" E="1163" />
+      <b id="1239" Z="1240" B="1163" E="1165" />
+      <b id="1241" Z="1242" B="1165" E="1167" Order="2" DoublePosition="Right" />
+      <b id="1243" Z="1244" B="1167" E="1170" />
+      <b id="1245" Z="1246" B="1170" E="1172" />
+      <b id="1247" Z="1248" B="1172" E="1175" />
+      <b id="1249" Z="1250" B="1175" E="1177" />
+      <b id="1251" Z="1252" B="1177" E="1179" Order="2" DoublePosition="Right" />
+      <b id="1253" Z="1254" B="1179" E="1181" />
+      <b id="1255" Z="1256" B="1181" E="1183" />
+      <b id="1257" Z="1258" B="1183" E="1186" />
+      <b id="1259" Z="1260" B="1186" E="1188" />
+      <b id="1261" Z="1262" B="1188" E="1190" />
+      <b id="1263" Z="1264" B="1190" E="1193" />
+      <b id="1265" Z="1266" B="1193" E="1195" />
+      <b id="1267" Z="1268" B="1181" E="1197" Order="2" DoublePosition="Right" />
+      <b id="1269" Z="1270" B="1197" E="1199" />
+      <b id="1271" Z="1272" B="1197" E="1202" />
+      <b id="1273" Z="1274" B="1170" E="1204" Order="2" DoublePosition="Right" />
+      <b id="1275" Z="1276" B="1204" E="1207" />
+      <b id="1277" Z="1278" B="1207" E="1133" />
+      <b id="1279" Z="1280" B="1156" E="1143" Order="2" DoublePosition="Right" />
+      <b id="1281" Z="1282" B="1207" E="1163" Order="2" DoublePosition="Left" />
+      <b id="1283" Z="1284" B="1202" E="1175" Order="2" DoublePosition="Right" />
+      <b id="1285" Z="1286" B="1195" E="1183" />
+    </fragment>
+    <t id="1286" p="220.0 205.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="9.0" face="0" color="3">FRAX486 (</s>
+      <s font="1001" size="9.0" face="1" color="3">2</s>
+      <s font="1001" size="9.0" face="0" color="3">)</s>
+    </t>
+    <fragment id="1287" BoundingBox="338.81 -16.43 476.74 79.17" Z="1288" color="3">
+      <n id="1289" p="359.90 -16.43" Z="1290" />
+      <n id="1291" p="353.19 -3.69" Z="1292" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1293" p="349.94 -0.17" BoundingBox="350.19 -11.21 356.19 -3.69" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1294" p="338.81 -3.12" Z="1295" />
+      <n id="1296" p="360.88 8.49" Z="1297" />
+      <n id="1298" p="375.27 7.93" Z="1299" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1300" p="372.02 11.45" BoundingBox="372.27 0.41 378.27 7.93" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1301" p="354.17 21.23" Z="1302" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1303" p="350.92 24.75" BoundingBox="351.17 13.71 357.17 21.23" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1304" p="361.85 33.41" Z="1305" />
+      <n id="1306" p="355.15 46.16" Z="1307" />
+      <n id="1308" p="362.83 58.34" Z="1309" />
+      <n id="1310" p="377.22 57.77" Z="1311" />
+      <n id="1312" p="383.92 45.03" Z="1313" />
+      <n id="1314" p="398.31 44.47" Z="1315" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1316" p="395.06 47.99" BoundingBox="395.31 36.95 401.31 44.47" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1317" p="405.99 56.65" Z="1318" />
+      <n id="1319" p="399.29 69.39" Z="1320" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1321" p="396.04 72.91" BoundingBox="396.29 61.87 402.29 69.39" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1322" p="420.38 56.08" Z="1323" />
+      <n id="1324" p="418.44 70.35" Z="1325" />
+      <n id="1326" p="429.82 79.17" Z="1327" Element="7" NumHydrogens="2" NeedsClean="yes">
+        <t id="1328" p="426.57 82.69" BoundingBox="426.82 71.65 432.82 79.17" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH2</s>
+        </t>
+      </n>
+      <n id="1329" p="434.10 60.47" Z="1330" />
+      <n id="1331" p="444.76 50.79" Z="1332" />
+      <n id="1333" p="441.70 36.72" Z="1334" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1335" p="438.45 40.24" BoundingBox="438.70 29.20 444.70 36.72" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1336" p="427.99 32.33" Z="1337" />
+      <n id="1338" p="417.33 42.01" Z="1339" />
+      <n id="1340" p="452.37 27.04" Z="1341" />
+      <n id="1342" p="466.08 31.43" Z="1343" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1344" p="462.83 34.95" BoundingBox="463.08 23.91 469.08 31.43" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1345" p="476.74 21.75" Z="1346" />
+      <n id="1347" p="473.69 7.68" Z="1348" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1349" p="470.44 11.20" BoundingBox="470.69 0.16 476.69 7.68" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1350" p="459.97 3.29" Z="1351" />
+      <n id="1352" p="454.06 -9.84" Z="1353" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1354" p="450.81 -6.32" BoundingBox="451.06 -17.36 457.06 -9.84" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1355" p="439.75 -8.28" Z="1356" />
+      <n id="1357" p="436.81 5.82" Z="1358" />
+      <n id="1359" p="423.68 11.73" Z="1360" />
+      <n id="1361" p="449.31 12.97" Z="1362" />
+      <n id="1363" p="376.24 32.85" Z="1364" />
+      <b id="1365" Z="1366" B="1289" E="1291" />
+      <b id="1367" Z="1368" B="1291" E="1294" />
+      <b id="1369" Z="1370" B="1291" E="1296" />
+      <b id="1371" Z="1372" B="1296" E="1298" Order="2" />
+      <b id="1373" Z="1374" B="1296" E="1301" />
+      <b id="1375" Z="1376" B="1301" E="1304" />
+      <b id="1377" Z="1378" B="1304" E="1306" Order="2" DoublePosition="Right" />
+      <b id="1379" Z="1380" B="1306" E="1308" />
+      <b id="1381" Z="1382" B="1308" E="1310" Order="2" DoublePosition="Right" />
+      <b id="1383" Z="1384" B="1310" E="1312" />
+      <b id="1385" Z="1386" B="1312" E="1314" />
+      <b id="1387" Z="1388" B="1314" E="1317" />
+      <b id="1389" Z="1390" B="1317" E="1319" Order="2" />
+      <b id="1391" Z="1392" B="1317" E="1322" />
+      <b id="1393" Z="1394" B="1322" E="1324" />
+      <b id="1395" Z="1396" B="1324" E="1326" />
+      <b id="1397" Z="1398" B="1322" E="1329" />
+      <b id="1399" Z="1400" B="1329" E="1331" />
+      <b id="1401" Z="1402" B="1331" E="1333" />
+      <b id="1403" Z="1404" B="1333" E="1336" />
+      <b id="1405" Z="1406" B="1336" E="1338" />
+      <b id="1407" Z="1408" B="1333" E="1340" />
+      <b id="1409" Z="1410" B="1340" E="1342" />
+      <b id="1411" Z="1412" B="1342" E="1345" Order="2" DoublePosition="Right" />
+      <b id="1413" Z="1414" B="1345" E="1347" />
+      <b id="1415" Z="1416" B="1347" E="1350" Order="2" DoublePosition="Right" />
+      <b id="1417" Z="1418" B="1350" E="1352" />
+      <b id="1419" Z="1420" B="1352" E="1355" />
+      <b id="1421" Z="1422" B="1355" E="1357" Order="2" DoublePosition="Right" />
+      <b id="1423" Z="1424" B="1357" E="1359" />
+      <b id="1425" Z="1426" B="1357" E="1361" />
+      <b id="1427" Z="1428" B="1312" E="1363" Order="2" DoublePosition="Right" />
+      <b id="1429" Z="1430" B="1363" E="1304" />
+      <b id="1431" Z="1432" B="1338" E="1322" />
+      <b id="1433" Z="1434" B="1361" E="1340" Order="2" DoublePosition="Right" />
+      <b id="1435" Z="1436" B="1361" E="1350" />
+    </fragment>
+    <t id="1436" p="410.0 205.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="9.0" face="0" color="3">LX7101 (</s>
+      <s font="1001" size="9.0" face="1" color="3">3</s>
+      <s font="1001" size="9.0" face="0" color="3">)</s>
+    </t>
+    <fragment id="1437" BoundingBox="531.37 1.76 668.68 65.33" Z="1438" color="3">
+      <n id="1439" p="665.59 65.33" Z="1440" Element="8" NumHydrogens="1" NeedsClean="yes">
+        <t id="1441" p="662.34 68.85" BoundingBox="662.59 57.81 668.59 65.33" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">OH</s>
+        </t>
+      </n>
+      <n id="1442" p="659.18 52.44" Z="1443" />
+      <n id="1444" p="644.80 51.55" Z="1445" />
+      <n id="1446" p="638.39 38.66" Z="1447" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1448" p="635.14 42.18" BoundingBox="635.39 31.14 641.39 38.66" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1449" p="646.35 26.65" Z="1450" />
+      <n id="1451" p="660.72 27.55" Z="1452" />
+      <n id="1453" p="668.68 15.54" Z="1454" />
+      <n id="1455" p="662.26 2.65" Z="1456" />
+      <n id="1457" p="647.89 1.76" Z="1458" />
+      <n id="1459" p="639.93 13.76" Z="1460" />
+      <n id="1461" p="624.02 37.77" Z="1462" />
+      <n id="1463" p="616.06 49.77" Z="1464" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1465" p="612.81 53.29" BoundingBox="613.06 42.25 619.06 49.77" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1466" p="617.60 24.87" Z="1467" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1468" p="614.35 28.39" BoundingBox="614.60 17.35 620.60 24.87" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1469" p="603.23 23.98" Z="1470" />
+      <n id="1471" p="596.81 11.09" Z="1472" />
+      <n id="1473" p="582.44 10.20" Z="1474" />
+      <n id="1475" p="574.48 22.20" Z="1476" />
+      <n id="1477" p="580.90 35.09" Z="1478" />
+      <n id="1479" p="595.27 35.99" Z="1480" />
+      <n id="1481" p="560.11 21.31" Z="1482" />
+      <n id="1483" p="553.70 8.42" Z="1484" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1485" p="550.45 11.94" BoundingBox="550.70 0.90 556.70 8.42" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1486" p="539.32 7.53" Z="1487" />
+      <n id="1488" p="531.37 19.53" Z="1489" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1490" p="528.12 23.05" BoundingBox="528.37 12.01 534.37 19.53" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1491" p="537.78 32.42" Z="1492" />
+      <n id="1493" p="532.49 45.82" Z="1494" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1495" p="529.24 49.34" BoundingBox="529.49 38.30 535.49 45.82" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1496" p="543.60 54.99" Z="1497" />
+      <n id="1498" p="555.75 47.26" Z="1499" />
+      <n id="1500" p="569.14 52.55" Z="1501" />
+      <n id="1502" p="552.15 33.31" Z="1503" />
+      <b id="1504" Z="1505" B="1439" E="1442" />
+      <b id="1506" Z="1507" B="1442" E="1444" />
+      <b id="1508" Z="1509" B="1444" E="1446" />
+      <b id="1510" Z="1511" B="1446" E="1449" />
+      <b id="1512" Z="1513" B="1449" E="1451" Order="2" DoublePosition="Right" />
+      <b id="1514" Z="1515" B="1451" E="1453" />
+      <b id="1516" Z="1517" B="1453" E="1455" Order="2" DoublePosition="Right" />
+      <b id="1518" Z="1519" B="1455" E="1457" />
+      <b id="1520" Z="1521" B="1457" E="1459" Order="2" DoublePosition="Right" />
+      <b id="1522" Z="1523" B="1446" E="1461" />
+      <b id="1524" Z="1525" B="1461" E="1463" Order="2" />
+      <b id="1526" Z="1527" B="1461" E="1466" />
+      <b id="1528" Z="1529" B="1466" E="1469" />
+      <b id="1530" Z="1531" B="1469" E="1471" />
+      <b id="1532" Z="1533" B="1471" E="1473" Order="2" DoublePosition="Right" />
+      <b id="1534" Z="1535" B="1473" E="1475" />
+      <b id="1536" Z="1537" B="1475" E="1477" Order="2" DoublePosition="Right" />
+      <b id="1538" Z="1539" B="1477" E="1479" />
+      <b id="1540" Z="1541" B="1475" E="1481" />
+      <b id="1542" Z="1543" B="1481" E="1483" />
+      <b id="1544" Z="1545" B="1483" E="1486" Order="2" DoublePosition="Right" />
+      <b id="1546" Z="1547" B="1486" E="1488" />
+      <b id="1548" Z="1549" B="1488" E="1491" Order="2" DoublePosition="Right" />
+      <b id="1550" Z="1551" B="1491" E="1493" />
+      <b id="1552" Z="1553" B="1493" E="1496" />
+      <b id="1554" Z="1555" B="1496" E="1498" Order="2" DoublePosition="Right" />
+      <b id="1556" Z="1557" B="1498" E="1500" />
+      <b id="1558" Z="1559" B="1498" E="1502" />
+      <b id="1560" Z="1561" B="1459" E="1449" />
+      <b id="1562" Z="1563" B="1479" E="1469" Order="2" DoublePosition="Right" />
+      <b id="1564" Z="1565" B="1502" E="1481" Order="2" DoublePosition="Right" />
+      <b id="1566" Z="1567" B="1502" E="1491" />
+    </fragment>
+    <t id="1567" p="600.0 205.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="9.0" face="0" color="3">SR7826 (</s>
+      <s font="1001" size="9.0" face="1" color="3">4</s>
+      <s font="1001" size="9.0" face="0" color="3">)</s>
+    </t>
+    <fragment id="1568" BoundingBox="-40.06 232.16 112.28 287.03" Z="1569" color="3">
+      <n id="1570" p="13.73 236.36" Z="1571" />
+      <n id="1572" p="5.36 248.07" Z="1573" />
+      <n id="1574" p="-8.98 246.67" Z="1575" />
+      <n id="1576" p="-14.93 233.56" Z="1577" />
+      <n id="1578" p="-29.26 232.16" Z="1579" />
+      <n id="1580" p="-37.64 243.87" Z="1581" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1582" p="-40.89 247.39" BoundingBox="-40.64 236.35 -34.64 243.87" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1583" p="-31.68 256.99" Z="1584" />
+      <n id="1585" p="-40.06 268.70" Z="1586" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1587" p="-43.31 272.22" BoundingBox="-43.06 261.18 -37.06 268.70" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1588" p="-17.35 258.38" Z="1589" />
+      <n id="1590" p="-11.40 271.50" Z="1591" />
+      <n id="1592" p="-19.77 283.21" Z="1593" />
+      <n id="1594" p="2.93 272.89" Z="1595" />
+      <n id="1596" p="11.49 284.48" Z="1597" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1598" p="8.24 288.00" BoundingBox="8.49 276.96 14.49 284.48" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1599" p="25.15 279.93" Z="1600" />
+      <n id="1601" p="37.67 287.03" Z="1602" />
+      <n id="1603" p="50.09 279.74" Z="1604" />
+      <n id="1605" p="49.98 265.34" Z="1606" />
+      <n id="1607" p="62.40 258.05" Z="1608" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1609" p="59.15 261.57" BoundingBox="59.40 250.53 65.40 258.05" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1610" p="74.92 265.16" Z="1611" />
+      <n id="1612" p="75.03 279.56" Z="1613" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1614" p="71.78 283.08" BoundingBox="72.03 272.04 78.03 279.56" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1615" p="87.34 257.86" Z="1616" />
+      <n id="1617" p="99.86 264.97" Z="1618" />
+      <n id="1619" p="112.28 257.68" Z="1620" />
+      <n id="1621" p="112.17 243.28" Z="1622" />
+      <n id="1623" p="99.65 236.17" Z="1624" />
+      <n id="1625" p="87.23 243.46" Z="1626" />
+      <n id="1627" p="37.46 258.23" Z="1628" />
+      <n id="1629" p="25.04 265.53" Z="1630" />
+      <n id="1631" p="11.31 261.18" Z="1632" />
+      <b id="1633" Z="1634" B="1570" E="1572" />
+      <b id="1635" Z="1636" B="1572" E="1574" Order="2" DoublePosition="Right" />
+      <b id="1637" Z="1638" B="1574" E="1576" />
+      <b id="1639" Z="1640" B="1576" E="1578" Order="2" DoublePosition="Right" />
+      <b id="1641" Z="1642" B="1578" E="1580" />
+      <b id="1643" Z="1644" B="1580" E="1583" />
+      <b id="1645" Z="1646" B="1583" E="1585" Order="2" />
+      <b id="1647" Z="1648" B="1583" E="1588" />
+      <b id="1649" Z="1650" B="1588" E="1590" Order="2" DoublePosition="Right" />
+      <b id="1651" Z="1652" B="1590" E="1592" />
+      <b id="1653" Z="1654" B="1590" E="1594" />
+      <b id="1655" Z="1656" B="1594" E="1596" />
+      <b id="1657" Z="1658" B="1596" E="1599" />
+      <b id="1659" Z="1660" B="1599" E="1601" Order="2" DoublePosition="Right" />
+      <b id="1661" Z="1662" B="1601" E="1603" />
+      <b id="1663" Z="1664" B="1603" E="1605" Order="2" DoublePosition="Right" />
+      <b id="1665" Z="1666" B="1605" E="1607" />
+      <b id="1667" Z="1668" B="1607" E="1610" />
+      <b id="1669" Z="1670" B="1610" E="1612" Order="2" />
+      <b id="1671" Z="1672" B="1610" E="1615" />
+      <b id="1673" Z="1674" B="1615" E="1617" Order="2" DoublePosition="Right" />
+      <b id="1675" Z="1676" B="1617" E="1619" />
+      <b id="1677" Z="1678" B="1619" E="1621" Order="2" DoublePosition="Right" />
+      <b id="1679" Z="1680" B="1621" E="1623" />
+      <b id="1681" Z="1682" B="1623" E="1625" Order="2" DoublePosition="Right" />
+      <b id="1683" Z="1684" B="1605" E="1627" />
+      <b id="1685" Z="1686" B="1627" E="1629" Order="2" DoublePosition="Right" />
+      <b id="1687" Z="1688" B="1629" E="1631" />
+      <b id="1689" Z="1690" B="1631" E="1572" />
+      <b id="1691" Z="1692" B="1588" E="1574" />
+      <b id="1693" Z="1694" B="1631" E="1594" Order="2" DoublePosition="Right" />
+      <b id="1695" Z="1696" B="1629" E="1599" />
+      <b id="1697" Z="1698" B="1625" E="1615" />
+    </fragment>
+    <t id="1698" p="30.0 435.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="9.0" face="0" color="3">Pyr1 (</s>
+      <s font="1001" size="9.0" face="1" color="3">5</s>
+      <s font="1001" size="9.0" face="0" color="3">)</s>
+    </t>
+    <fragment id="1699" BoundingBox="142.32 231.44 298.08 290.33" Z="1700" color="3">
+      <n id="1701" p="202.29 286.90" Z="1702" />
+      <n id="1703" p="216.28 290.33" Z="1704" />
+      <n id="1705" p="226.24 279.93" Z="1706" />
+      <n id="1707" p="240.22 283.36" Z="1708" />
+      <n id="1709" p="250.18 272.96" Z="1710" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1711" p="246.93 276.48" BoundingBox="247.18 265.44 253.18 272.96" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1712" p="264.17 276.38" Z="1713" />
+      <n id="1714" p="274.13 265.98" Z="1715" />
+      <n id="1716" p="288.12 269.41" Z="1717" />
+      <n id="1718" p="298.08 259.01" Z="1719" />
+      <n id="1720" p="294.05 245.18" Z="1721" />
+      <n id="1722" p="280.06 241.76" Z="1723" />
+      <n id="1724" p="270.10 252.16" Z="1725" />
+      <n id="1726" p="246.16 259.13" Z="1727" />
+      <n id="1728" p="256.12 248.73" Z="1729" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1730" p="252.87 252.25" BoundingBox="253.12 241.21 259.12 248.73" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1731" p="232.17 255.70" Z="1732" />
+      <n id="1733" p="228.14 241.88" Z="1734" />
+      <n id="1735" p="214.16 238.45" Z="1736" />
+      <n id="1737" p="204.20 248.85" Z="1738" />
+      <n id="1739" p="208.22 262.68" Z="1740" />
+      <n id="1741" p="222.21 266.11" Z="1742" />
+      <n id="1743" p="190.21 245.43" Z="1744" Element="16" NumHydrogens="0" NeedsClean="yes">
+        <t id="1745" p="186.96 248.95" BoundingBox="187.21 237.91 193.21 245.43" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">S</s>
+        </t>
+      </n>
+      <n id="1746" p="193.64 231.44" Z="1747" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1748" p="190.39 234.96" BoundingBox="190.64 223.92 196.64 231.44" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1749" p="186.79 259.42" Z="1750" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1751" p="183.54 262.94" BoundingBox="183.79 251.90 189.79 259.42" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1752" p="176.22 242.00" Z="1753" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1754" p="172.97 245.52" BoundingBox="173.22 234.48 179.22 242.00" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1755" p="166.26 252.40" Z="1756" />
+      <n id="1757" p="152.28 248.98" Z="1758" />
+      <n id="1759" p="142.32 259.38" Z="1760" />
+      <n id="1761" p="146.34 273.20" Z="1762" />
+      <n id="1763" p="160.33 276.63" Z="1764" />
+      <n id="1765" p="170.29 266.23" Z="1766" />
+      <b id="1767" Z="1768" B="1701" E="1703" />
+      <b id="1769" Z="1770" B="1703" E="1705" />
+      <b id="1771" Z="1772" B="1705" E="1707" />
+      <b id="1773" Z="1774" B="1707" E="1709" />
+      <b id="1775" Z="1776" B="1709" E="1712" />
+      <b id="1777" Z="1778" B="1712" E="1714" />
+      <b id="1779" Z="1780" B="1714" E="1716" Order="2" DoublePosition="Right" />
+      <b id="1781" Z="1782" B="1716" E="1718" />
+      <b id="1783" Z="1784" B="1718" E="1720" Order="2" DoublePosition="Right" />
+      <b id="1785" Z="1786" B="1720" E="1722" />
+      <b id="1787" Z="1788" B="1722" E="1724" Order="2" DoublePosition="Right" />
+      <b id="1789" Z="1790" B="1709" E="1726" />
+      <b id="1791" Z="1792" B="1726" E="1728" Order="2" />
+      <b id="1793" Z="1794" B="1726" E="1731" />
+      <b id="1795" Z="1796" B="1731" E="1733" />
+      <b id="1797" Z="1798" B="1733" E="1735" Order="2" DoublePosition="Right" />
+      <b id="1799" Z="1800" B="1735" E="1737" />
+      <b id="1801" Z="1802" B="1737" E="1739" Order="2" DoublePosition="Right" />
+      <b id="1803" Z="1804" B="1739" E="1741" />
+      <b id="1805" Z="1806" B="1737" E="1743" />
+      <b id="1807" Z="1808" B="1743" E="1746" Order="2" />
+      <b id="1809" Z="1810" B="1743" E="1749" Order="2" />
+      <b id="1811" Z="1812" B="1743" E="1752" />
+      <b id="1813" Z="1814" B="1752" E="1755" />
+      <b id="1815" Z="1816" B="1755" E="1757" Order="2" DoublePosition="Right" />
+      <b id="1817" Z="1818" B="1757" E="1759" />
+      <b id="1819" Z="1820" B="1759" E="1761" Order="2" DoublePosition="Right" />
+      <b id="1821" Z="1822" B="1761" E="1763" />
+      <b id="1823" Z="1824" B="1763" E="1765" Order="2" DoublePosition="Right" />
+      <b id="1825" Z="1826" B="1724" E="1714" />
+      <b id="1827" Z="1828" B="1741" E="1731" Order="2" DoublePosition="Right" />
+      <b id="1829" Z="1830" B="1765" E="1755" />
+    </fragment>
+    <t id="1830" p="220.0 435.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="9.0" face="0" color="3">TH-257 (</s>
+      <s font="1001" size="9.0" face="1" color="3">6</s>
+      <s font="1001" size="9.0" face="0" color="3">)</s>
+    </t>
+    <fragment id="1831" BoundingBox="333.62 230.79 489.35 290.15" Z="1832" color="3">
+      <n id="1833" p="406.90 290.15" Z="1834" />
+      <n id="1835" p="417.08 279.97" Z="1836" />
+      <n id="1837" p="430.99 283.69" Z="1838" />
+      <n id="1839" p="441.17 273.51" Z="1840" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1841" p="437.92 277.03" BoundingBox="438.17 265.99 444.17 273.51" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1842" p="455.08 277.23" Z="1843" />
+      <n id="1844" p="465.26 267.05" Z="1845" />
+      <n id="1846" p="479.17 270.77" Z="1847" />
+      <n id="1848" p="489.35 260.58" Z="1849" />
+      <n id="1850" p="485.62 246.68" Z="1851" />
+      <n id="1852" p="471.71 242.95" Z="1853" />
+      <n id="1854" p="461.53 253.14" Z="1855" />
+      <n id="1856" p="437.44 259.60" Z="1857" />
+      <n id="1858" p="447.62 249.41" Z="1859" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1860" p="444.37 252.93" BoundingBox="444.62 241.89 450.62 249.41" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1861" p="423.53 255.87" Z="1862" />
+      <n id="1863" p="419.80 241.97" Z="1864" />
+      <n id="1865" p="405.89 238.24" Z="1866" />
+      <n id="1867" p="395.71 248.43" Z="1868" />
+      <n id="1869" p="399.44 262.34" Z="1870" />
+      <n id="1871" p="413.35 266.06" Z="1872" />
+      <n id="1873" p="381.80 244.70" Z="1874" Element="16" NumHydrogens="0" NeedsClean="yes">
+        <t id="1875" p="378.55 248.22" BoundingBox="378.80 237.18 384.80 244.70" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">S</s>
+        </t>
+      </n>
+      <n id="1876" p="385.52 230.79" Z="1877" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1878" p="382.27 234.31" BoundingBox="382.52 223.27 388.52 230.79" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1879" p="378.07 258.61" Z="1880" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1881" p="374.82 262.13" BoundingBox="375.07 251.09 381.07 258.61" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1882" p="367.89 240.98" Z="1883" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1884" p="364.64 244.50" BoundingBox="364.89 233.46 370.89 240.98" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1885" p="357.71 251.17" Z="1886" />
+      <n id="1887" p="343.80 247.44" Z="1888" />
+      <n id="1889" p="333.62 257.63" Z="1890" />
+      <n id="1891" p="337.35 271.54" Z="1892" />
+      <n id="1893" p="351.26 275.26" Z="1894" />
+      <n id="1895" p="354.99 289.17" Z="1896" Element="17" NumHydrogens="0" NeedsClean="yes">
+        <t id="1897" p="351.74 292.69" BoundingBox="351.99 281.65 362.99 289.17" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">Cl</s>
+        </t>
+      </n>
+      <n id="1898" p="361.44 265.07" Z="1899" />
+      <b id="1900" Z="1901" B="1833" E="1835" />
+      <b id="1902" Z="1903" B="1835" E="1837" />
+      <b id="1904" Z="1905" B="1837" E="1839" />
+      <b id="1906" Z="1907" B="1839" E="1842" />
+      <b id="1908" Z="1909" B="1842" E="1844" />
+      <b id="1910" Z="1911" B="1844" E="1846" Order="2" DoublePosition="Right" />
+      <b id="1912" Z="1913" B="1846" E="1848" />
+      <b id="1914" Z="1915" B="1848" E="1850" Order="2" DoublePosition="Right" />
+      <b id="1916" Z="1917" B="1850" E="1852" />
+      <b id="1918" Z="1919" B="1852" E="1854" Order="2" DoublePosition="Right" />
+      <b id="1920" Z="1921" B="1839" E="1856" />
+      <b id="1922" Z="1923" B="1856" E="1858" Order="2" />
+      <b id="1924" Z="1925" B="1856" E="1861" />
+      <b id="1926" Z="1927" B="1861" E="1863" />
+      <b id="1928" Z="1929" B="1863" E="1865" Order="2" DoublePosition="Right" />
+      <b id="1930" Z="1931" B="1865" E="1867" />
+      <b id="1932" Z="1933" B="1867" E="1869" Order="2" DoublePosition="Right" />
+      <b id="1934" Z="1935" B="1869" E="1871" />
+      <b id="1936" Z="1937" B="1867" E="1873" />
+      <b id="1938" Z="1939" B="1873" E="1876" Order="2" />
+      <b id="1940" Z="1941" B="1873" E="1879" Order="2" />
+      <b id="1942" Z="1943" B="1873" E="1882" />
+      <b id="1944" Z="1945" B="1882" E="1885" />
+      <b id="1946" Z="1947" B="1885" E="1887" Order="2" DoublePosition="Right" />
+      <b id="1948" Z="1949" B="1887" E="1889" />
+      <b id="1950" Z="1951" B="1889" E="1891" Order="2" DoublePosition="Right" />
+      <b id="1952" Z="1953" B="1891" E="1893" />
+      <b id="1954" Z="1955" B="1893" E="1895" />
+      <b id="1956" Z="1957" B="1893" E="1898" Order="2" DoublePosition="Right" />
+      <b id="1958" Z="1959" B="1854" E="1844" />
+      <b id="1960" Z="1961" B="1871" E="1861" Order="2" DoublePosition="Right" />
+      <b id="1962" Z="1963" B="1898" E="1885" />
+    </fragment>
+    <t id="1963" p="410.0 435.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="9.0" face="0" color="3">TH-300 (</s>
+      <s font="1001" size="9.0" face="1" color="3">7</s>
+      <s font="1001" size="9.0" face="0" color="3">)</s>
+    </t>
+    <fragment id="1964" BoundingBox="511.83 207.33 691.40 316.50" Z="1965" color="3">
+      <n id="1966" p="511.83 301.25" Z="1967" />
+      <n id="1968" p="526.10 303.18" Z="1969" />
+      <n id="1970" p="531.56 316.50" Z="1971" />
+      <n id="1972" p="534.91 291.79" Z="1973" />
+      <n id="1974" p="529.45 278.46" Z="1975" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1976" p="526.20 281.98" BoundingBox="526.45 270.94 532.45 278.46" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1977" p="549.18 293.72" Z="1978" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1979" p="545.93 297.24" BoundingBox="546.18 286.20 552.18 293.72" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="1980" p="557.99 282.33" Z="1981" />
+      <n id="1982" p="572.38 282.76" Z="1983" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="1984" p="569.13 286.28" BoundingBox="569.38 275.24 575.38 282.76" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="1985" p="577.24 269.20" Z="1986" />
+      <n id="1987" p="565.85 260.39" Z="1988" />
+      <n id="1989" p="553.95 268.50" Z="1990" Element="16" NumHydrogens="0" NeedsClean="yes">
+        <t id="1991" p="550.70 272.02" BoundingBox="550.95 260.98 556.95 268.50" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">S</s>
+        </t>
+      </n>
+      <n id="1992" p="591.06 265.16" Z="1993" />
+      <n id="1994" p="594.47 251.17" Z="1995" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="1996" p="591.22 254.69" BoundingBox="591.47 243.65 597.47 251.17" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="1997" p="601.47 275.11" Z="1998" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="1999" p="598.22 278.63" BoundingBox="598.47 267.59 604.47 275.11" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="2000" p="615.29 271.08" Z="2001" />
+      <n id="2002" p="625.70 281.03" Z="2003" />
+      <n id="2004" p="639.52 276.99" Z="2005" Element="7" NumHydrogens="0" NeedsClean="yes">
+        <t id="2006" p="636.27 280.51" BoundingBox="636.52 269.47 642.52 276.99" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">N</s>
+        </t>
+      </n>
+      <n id="2007" p="649.93 286.94" Z="2008" />
+      <n id="2009" p="663.75 282.90" Z="2010" />
+      <n id="2011" p="674.16 292.85" Z="2012" />
+      <n id="2013" p="687.98 288.81" Z="2014" />
+      <n id="2015" p="691.40 274.82" Z="2016" />
+      <n id="2017" p="680.99 264.87" Z="2018" />
+      <n id="2019" p="667.17 268.91" Z="2020" />
+      <n id="2021" p="642.94 263.00" Z="2022" />
+      <n id="2023" p="656.76 258.96" Z="2024" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="2025" p="653.51 262.48" BoundingBox="653.76 251.44 659.76 258.96" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="2026" p="632.53 253.05" Z="2027" />
+      <n id="2028" p="635.94 239.06" Z="2029" />
+      <n id="2030" p="625.53 229.11" Z="2031" />
+      <n id="2032" p="611.71 233.14" Z="2033" />
+      <n id="2034" p="608.30 247.13" Z="2035" />
+      <n id="2036" p="618.70 257.09" Z="2037" />
+      <n id="2038" p="601.30 223.19" Z="2039" Element="16" NumHydrogens="0" NeedsClean="yes">
+        <t id="2040" p="598.05 226.71" BoundingBox="598.30 215.67 604.30 223.19" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">S</s>
+        </t>
+      </n>
+      <n id="2041" p="611.25 212.79" Z="2042" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="2043" p="608.00 216.31" BoundingBox="608.25 205.27 614.25 212.79" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="2044" p="591.35 233.60" Z="2045" Element="8" NumHydrogens="0" NeedsClean="yes">
+        <t id="2046" p="588.10 237.12" BoundingBox="588.35 226.08 594.35 233.60" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">O</s>
+        </t>
+      </n>
+      <n id="2047" p="590.89 213.24" Z="2048" Element="7" NumHydrogens="1" NeedsClean="yes">
+        <t id="2049" p="587.64 216.76" BoundingBox="587.89 205.72 593.89 213.24" LabelJustification="Left">
+          <s font="1001" size="9.0" color="3" face="96">NH</s>
+        </t>
+      </n>
+      <n id="2050" p="577.07 217.28" Z="2051" />
+      <n id="2052" p="566.66 207.33" Z="2053" />
+      <n id="2054" p="552.84 211.37" Z="2055" />
+      <n id="2056" p="549.43 225.36" Z="2057" />
+      <n id="2058" p="559.83 235.31" Z="2059" />
+      <n id="2060" p="573.66 231.27" Z="2061" />
+      <b id="2062" Z="2063" B="1966" E="1968" />
+      <b id="2064" Z="2065" B="1968" E="1970" />
+      <b id="2066" Z="2067" B="1968" E="1972" />
+      <b id="2068" Z="2069" B="1972" E="1974" Order="2" />
+      <b id="2070" Z="2071" B="1972" E="1977" />
+      <b id="2072" Z="2073" B="1977" E="1980" />
+      <b id="2074" Z="2075" B="1980" E="1982" Order="2" DoublePosition="Right" />
+      <b id="2076" Z="2077" B="1982" E="1985" />
+      <b id="2078" Z="2079" B="1985" E="1987" Order="2" DoublePosition="Right" />
+      <b id="2080" Z="2081" B="1987" E="1989" />
+      <b id="2082" Z="2083" B="1985" E="1992" />
+      <b id="2084" Z="2085" B="1992" E="1994" Order="2" />
+      <b id="2086" Z="2087" B="1992" E="1997" />
+      <b id="2088" Z="2089" B="1997" E="2000" />
+      <b id="2090" Z="2091" B="2000" E="2002" />
+      <b id="2092" Z="2093" B="2002" E="2004" />
+      <b id="2094" Z="2095" B="2004" E="2007" />
+      <b id="2096" Z="2097" B="2007" E="2009" />
+      <b id="2098" Z="2099" B="2009" E="2011" Order="2" DoublePosition="Right" />
+      <b id="2100" Z="2101" B="2011" E="2013" />
+      <b id="2102" Z="2103" B="2013" E="2015" Order="2" DoublePosition="Right" />
+      <b id="2104" Z="2105" B="2015" E="2017" />
+      <b id="2106" Z="2107" B="2017" E="2019" Order="2" DoublePosition="Right" />
+      <b id="2108" Z="2109" B="2004" E="2021" />
+      <b id="2110" Z="2111" B="2021" E="2023" Order="2" />
+      <b id="2112" Z="2113" B="2021" E="2026" />
+      <b id="2114" Z="2115" B="2026" E="2028" />
+      <b id="2116" Z="2117" B="2028" E="2030" Order="2" DoublePosition="Right" />
+      <b id="2118" Z="2119" B="2030" E="2032" />
+      <b id="2120" Z="2121" B="2032" E="2034" Order="2" DoublePosition="Right" />
+      <b id="2122" Z="2123" B="2034" E="2036" />
+      <b id="2124" Z="2125" B="2032" E="2038" />
+      <b id="2126" Z="2127" B="2038" E="2041" Order="2" />
+      <b id="2128" Z="2129" B="2038" E="2044" Order="2" />
+      <b id="2130" Z="2131" B="2038" E="2047" />
+      <b id="2132" Z="2133" B="2047" E="2050" />
+      <b id="2134" Z="2135" B="2050" E="2052" Order="2" DoublePosition="Right" />
+      <b id="2136" Z="2137" B="2052" E="2054" />
+      <b id="2138" Z="2139" B="2054" E="2056" Order="2" DoublePosition="Right" />
+      <b id="2140" Z="2141" B="2056" E="2058" />
+      <b id="2142" Z="2143" B="2058" E="2060" Order="2" DoublePosition="Right" />
+      <b id="2144" Z="2145" B="1989" E="1980" />
+      <b id="2146" Z="2147" B="2019" E="2009" />
+      <b id="2148" Z="2149" B="2036" E="2026" Order="2" DoublePosition="Right" />
+      <b id="2150" Z="2151" B="2060" E="2050" />
+    </fragment>
+    <t id="2151" p="600.0 435.0" Justification="Left" InterpretChemically="no">
+      <s font="1001" size="9.0" face="0" color="3">TH-470 (</s>
+      <s font="1001" size="9.0" face="1" color="3">8</s>
+      <s font="1001" size="9.0" face="0" color="3">)</s>
+    </t>
+  </page>
+  <colortable>
+    <color r="1" g="1" b="1" />
+    <color r="0" g="0" b="0" />
+  </colortable>
+</CDXML>

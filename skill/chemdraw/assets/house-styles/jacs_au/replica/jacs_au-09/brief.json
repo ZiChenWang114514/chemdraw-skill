@@ -1,0 +1,20 @@
+{
+  "style": "jacs_au",
+  "species": [
+    {"id": "donor", "smiles": "*CCC(*)C=O",
+     "atom_halos": [
+       {"atoms": [0], "color": "#7CBEF0", "radius": 7.5},
+       {"atoms": [4], "color": "#FFAA73", "radius": 7.5},
+       {"atoms": [5], "color": "#26A83E", "radius": 8}
+     ]},
+    {"id": "rad", "smiles": "*CC[CH]*",
+     "atom_halos": [
+       {"atoms": [0], "color": "#7CBEF0", "radius": 7.5},
+       {"atoms": [4], "color": "#FFAA73", "radius": 7.5}
+     ]}
+  ],
+  "steps": [
+    {"substrates": ["donor"], "products": ["rad"], "above": ["HAT", "photocatalyst"], "arrow": "solid"}
+  ],
+  "max_width": 504
+}

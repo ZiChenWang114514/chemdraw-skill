@@ -1,0 +1,243 @@
+{
+ "version": 1,
+ "style": {
+  "font": "Arial",
+  "font_size": 9,
+  "bond_length": 14.4,
+  "line_width": 1.0
+ },
+ "grid": {
+  "columns": 4,
+  "cell_width": 190,
+  "row_height": 230,
+  "origin": [
+   30,
+   30
+  ]
+ },
+ "objects": [
+  {
+   "type": "text",
+   "id": "panelA",
+   "position": [
+    8,
+    14
+   ],
+   "runs": [
+    {
+     "text": "A",
+     "bold": true
+    }
+   ],
+   "size": 12
+  },
+  {
+   "type": "molecule",
+   "id": "m1",
+   "smiles": "CC(C)C(=O)Nc1ncc(s1)-c1cc(nn1-c1c(Cl)cccc1Cl)C(F)F"
+  },
+  {
+   "type": "text",
+   "id": "cap1",
+   "position": [
+    30,
+    205
+   ],
+   "runs": [
+    {
+     "text": "LIMKi3 (BMS-5, "
+    },
+    {
+     "text": "1",
+     "bold": true
+    },
+    {
+     "text": ")"
+    }
+   ],
+   "size": 9
+  },
+  {
+   "type": "molecule",
+   "id": "m2",
+   "smiles": "CCN1C(=O)C(c2ccc(Cl)cc2Cl)=CC2=CN=C(Nc3ccc(N4CCNCC4)c(F)c3)N=C21"
+  },
+  {
+   "type": "text",
+   "id": "cap2",
+   "position": [
+    220,
+    205
+   ],
+   "runs": [
+    {
+     "text": "FRAX486 ("
+    },
+    {
+     "text": "2",
+     "bold": true
+    },
+    {
+     "text": ")"
+    }
+   ],
+   "size": 9
+  },
+  {
+   "type": "molecule",
+   "id": "m3",
+   "smiles": "CN(C)C(=O)Oc1cccc(NC(=O)C2(CN)CCN(CC2)c2ncnc3[nH]cc(C)c23)c1"
+  },
+  {
+   "type": "text",
+   "id": "cap3",
+   "position": [
+    410,
+    205
+   ],
+   "runs": [
+    {
+     "text": "LX7101 ("
+    },
+    {
+     "text": "3",
+     "bold": true
+    },
+    {
+     "text": ")"
+    }
+   ],
+   "size": 9
+  },
+  {
+   "type": "molecule",
+   "id": "m4",
+   "smiles": "OCCN(c1ccccc1)C(=O)Nc1ccc(cc1)-c1ncnc2[nH]cc(C)c12"
+  },
+  {
+   "type": "text",
+   "id": "cap4",
+   "position": [
+    600,
+    205
+   ],
+   "runs": [
+    {
+     "text": "SR7826 ("
+    },
+    {
+     "text": "4",
+     "bold": true
+    },
+    {
+     "text": ")"
+    }
+   ],
+   "size": 9
+  },
+  {
+   "type": "molecule",
+   "id": "m5",
+   "smiles": "Cc1c2cc[nH]c(=O)c2c(C)c2[nH]c3ccc(OC(=O)c4ccccc4)cc3c12"
+  },
+  {
+   "type": "text",
+   "id": "cap5",
+   "position": [
+    30,
+    435
+   ],
+   "runs": [
+    {
+     "text": "Pyr1 ("
+    },
+    {
+     "text": "5",
+     "bold": true
+    },
+    {
+     "text": ")"
+    }
+   ],
+   "size": 9
+  },
+  {
+   "type": "molecule",
+   "id": "m6",
+   "smiles": "CCCCN(Cc1ccccc1)C(=O)c1ccc(cc1)S(=O)(=O)Nc1ccccc1"
+  },
+  {
+   "type": "text",
+   "id": "cap6",
+   "position": [
+    220,
+    435
+   ],
+   "runs": [
+    {
+     "text": "TH-257 ("
+    },
+    {
+     "text": "6",
+     "bold": true
+    },
+    {
+     "text": ")"
+    }
+   ],
+   "size": 9
+  },
+  {
+   "type": "molecule",
+   "id": "m7",
+   "smiles": "CCCN(Cc1ccccc1)C(=O)c1ccc(cc1)S(=O)(=O)Nc1cccc(Cl)c1"
+  },
+  {
+   "type": "text",
+   "id": "cap7",
+   "position": [
+    410,
+    435
+   ],
+   "runs": [
+    {
+     "text": "TH-300 ("
+    },
+    {
+     "text": "7",
+     "bold": true
+    },
+    {
+     "text": ")"
+    }
+   ],
+   "size": 9
+  },
+  {
+   "type": "molecule",
+   "id": "m8",
+   "smiles": "CC(C)C(=O)Nc1nc(cs1)C(=O)NCCN(Cc1ccccc1)C(=O)c1ccc(cc1)S(=O)(=O)Nc1ccccc1"
+  },
+  {
+   "type": "text",
+   "id": "cap8",
+   "position": [
+    600,
+    435
+   ],
+   "runs": [
+    {
+     "text": "TH-470 ("
+    },
+    {
+     "text": "8",
+     "bold": true
+    },
+    {
+     "text": ")"
+    }
+   ],
+   "size": 9
+  }
+ ]
+}

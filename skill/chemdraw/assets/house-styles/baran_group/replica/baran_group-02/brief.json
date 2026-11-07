@@ -1,0 +1,25 @@
+{
+  "style": "baran_group",
+  "title": "Facile synthesis of an emerging tuberculosis medicine",
+  "species": [
+    {"id": "29", "smiles": "Oc1ccc(Cl)c(I)c1", "label": "29"},
+    {"id": "BrEt", "smiles": "BrCCOCc1ccccc1"},
+    {"id": "12", "smiles": "C(c1ccccc1)OCCOc1ccc(Cl)c(I)c1", "label": "12"},
+    {"id": "30", "smiles": "CC(C)(C)C1OC(CN1C(=O)OC(C)(C)C)c1cc(OCCOCc2ccccc2)ccc1Cl", "label": "30"},
+    {"id": "31", "smiles": "CC(C)(C)OC(=O)NCC(O)c1cc(OCCOCc2ccccc2)ccc1Cl", "label": "31"},
+    {"id": "4", "smiles": "NCC1OB2OCCOc3ccc(Cl)c1c23", "label": "4"}
+  ],
+  "steps": [
+    {"substrates": ["29", "BrEt"], "products": ["12"],
+     "above": ["K2CO3"], "below": ["DMF"], "yield": "99%"},
+    {"substrates": ["12"], "products": ["30"],
+     "above": ["11 (cis) (1.5 eq)", "NiCl2·DME (20 mol%)", "bpy (20 mol%)", "AgNO3 (0.5 eq)", "nBu4NBF4 (0.05 M), DMA"],
+     "below": ["(+)Mg/(–)RVC, 4 F/mol"], "yield": "65% (dr > 20:1)"},
+    {"substrates": ["30"], "products": ["31"],
+     "above": ["TFA/DCM/H2O"], "below": ["then Boc2O"], "yield": "92%"},
+    {"substrates": ["31"], "products": ["4"],
+     "above": ["(1) nBuLi, B(OMe)3, toluene, 59%", "(2) Pd/C, H2", "(3) HCl (2 M), 95%"],
+     "yield": "33% overall (from 29)"}
+  ],
+  "max_width": 1100
+}

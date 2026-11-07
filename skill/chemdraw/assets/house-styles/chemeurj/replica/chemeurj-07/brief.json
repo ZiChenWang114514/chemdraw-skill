@@ -1,0 +1,113 @@
+{
+  "style": "chemeurj",
+  "layout": "catalytic-cycle",
+  "species": [
+    {
+      "id": "cat",
+      "smiles": "C[N]1(C)->[Au+]<-[P](c2ccccc21)(C23CC4CC(CC(C4)C2)C3)C56CC7CC(CC(C7)C5)C6"
+    },
+    {
+      "id": "PhI",
+      "smiles": "Ic1ccccc1"
+    },
+    {
+      "id": "OA",
+      "smiles": "C[N]1(C)->[Au+](I)(c3ccccc3)<-[P](c2ccccc21)(C23CC4CC(CC(C4)C2)C3)C56CC7CC(CC(C7)C5)C6"
+    },
+    {
+      "id": "AgX",
+      "smiles": "[Ag+]"
+    },
+    {
+      "id": "Int2",
+      "smiles": "C[N]1(C)->[Au+2](c3ccccc3)<-[P](c2ccccc21)(C23CC4CC(CC(C4)C2)C3)C56CC7CC(CC(C7)C5)C6",
+      "label": "2"
+    },
+    {
+      "id": "alk",
+      "smiles": "OCCCC=C"
+    },
+    {
+      "id": "Pi",
+      "smiles": "C[N]1(C)->[Au+2](c3ccccc3)(<-[CH](CCCO)=[CH2])<-[P](c2ccccc21)(C23CC4CC(CC(C4)C2)C3)C56CC7CC(CC(C7)C5)C6"
+    },
+    {
+      "id": "Cyc",
+      "smiles": "C[N]1(C)->[Au+](c3ccccc3)(C[CH]4CCCO4)<-[P](c2ccccc21)(C23CC4CC(CC(C4)C2)C3)C56CC7CC(CC(C7)C5)C6"
+    },
+    {
+      "id": "Prod",
+      "smiles": "c1ccc(cc1)CC1CCCO1"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "cat",
+        "PhI"
+      ],
+      "products": [
+        "OA"
+      ],
+      "above": [
+        "PhI",
+        "oxidative addition"
+      ]
+    },
+    {
+      "substrates": [
+        "OA",
+        "AgX"
+      ],
+      "products": [
+        "Int2"
+      ],
+      "above": [
+        "Ag+"
+      ]
+    },
+    {
+      "substrates": [
+        "Int2",
+        "alk"
+      ],
+      "products": [
+        "Pi"
+      ],
+      "above": [
+        "coordination"
+      ],
+      "below": [
+        "alkenol"
+      ]
+    },
+    {
+      "substrates": [
+        "Pi"
+      ],
+      "products": [
+        "Cyc"
+      ],
+      "above": [
+        "π-activation",
+        "anti-addition"
+      ]
+    },
+    {
+      "substrates": [
+        "Cyc"
+      ],
+      "products": [
+        "cat",
+        "Prod"
+      ],
+      "above": [
+        "reductive elimination"
+      ],
+      "below": [
+        "2-benzyltetrahydrofuran"
+      ]
+    }
+  ],
+  "max_width": 504
+}

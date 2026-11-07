@@ -1,0 +1,21 @@
+{
+  "style": "cell_press_chem",
+  "layout": "catalytic-cycle",
+  "title": "Catalytic cycle (simplified catalyst)",
+  "species": [
+    {"id": "Cat", "smiles": "[Au+]", "label": "[AuCu(6)]2+"},
+    {"id": "sub7", "smiles": "C#CC(C)(C)OC(=O)c1ccccc1", "label": "7"},
+    {"id": "sty8", "smiles": "C=Cc1ccccc1", "label": "8"},
+    {"id": "I", "smiles": "CC(C)(C#[C][Au])OC(=O)c1ccccc1", "label": "I"},
+    {"id": "II", "smiles": "CC(C)=C([CH]=[Au+])OC(=O)c1ccccc1", "label": "II"},
+    {"id": "III", "smiles": "CC(C)=C(OC(=O)c1ccccc1)[CH]([Au])C[CH+]c1ccccc1"},
+    {"id": "prod9", "smiles": "CC(C)=C(OC(=O)c1ccccc1)C1CC1c1ccccc1", "label": "9"}
+  ],
+  "steps": [
+    {"substrates": ["Cat", "sub7"], "products": ["I"]},
+    {"substrates": ["I"], "products": ["II"], "above": ["rearrangement"]},
+    {"substrates": ["II", "sty8"], "products": ["III"], "above": ["addition of styrene (TS1)"]},
+    {"substrates": ["III"], "products": ["Cat", "prod9"], "above": ["cyclisation (TS2)"]}
+  ],
+  "max_width": 504
+}

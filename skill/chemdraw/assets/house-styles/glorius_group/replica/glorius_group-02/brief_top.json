@@ -1,0 +1,54 @@
+{
+  "style": "glorius_group",
+  "species": [
+    {
+      "id": "ox",
+      "smiles": "O=C(ON=C(c1ccccc1)c1ccccc1)OC[Si](C)(C)C"
+    },
+    {
+      "id": "imr",
+      "smiles": "[N]=C(c1ccccc1)c1ccccc1"
+    },
+    {
+      "id": "co2",
+      "smiles": "O=C=O"
+    },
+    {
+      "id": "r2p",
+      "smiles": "[O]C[Si](C)(C)C"
+    },
+    {
+      "id": "r2pp",
+      "smiles": "[CH2]O[Si](C)(C)C"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "ox"
+      ],
+      "products": [
+        "imr",
+        "co2",
+        "r2p"
+      ],
+      "above": [
+        "hν, EnT"
+      ],
+      "arrow": "solid"
+    },
+    {
+      "substrates": [
+        "r2p"
+      ],
+      "products": [
+        "r2pp"
+      ],
+      "above": [
+        "Brook rearrangement"
+      ],
+      "arrow": "solid"
+    }
+  ],
+  "max_width": 504
+}

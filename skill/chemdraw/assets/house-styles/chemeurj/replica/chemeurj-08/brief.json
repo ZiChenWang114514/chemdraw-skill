@@ -1,0 +1,13 @@
+{
+  "style": "chemeurj",
+  "species": [
+    {"id": "SM", "smiles": "CN(*)C#CN(C(C)C)*"},
+    {"id": "Int1minor", "smiles": "C[N+](*)=C=C([Au][PH3])N(C(C)C)*", "label": "Int1minor"},
+    {"id": "Int1major", "smiles": "CN(*)C([Au][PH3])=C=[N+](C(C)C)*", "label": "Int1major"}
+  ],
+  "steps": [
+    {"substrates": ["SM"], "products": ["Int1minor"], "above": ["H3P-Au+"], "arrow": "solid"},
+    {"substrates": ["SM"], "products": ["Int1major"], "above": ["H3P-Au+"], "arrow": "solid"}
+  ],
+  "max_width": 504
+}

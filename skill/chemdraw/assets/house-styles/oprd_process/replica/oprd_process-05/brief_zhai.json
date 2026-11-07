@@ -1,0 +1,104 @@
+{
+  "style": "oprd_process",
+  "species": [
+    {
+      "id": "11",
+      "smiles": "O=[N+]([O-])c1c[nH]c(Cl)n1",
+      "label": "11"
+    },
+    {
+      "id": "Ep2",
+      "smiles": "ClCC1CO1"
+    },
+    {
+      "id": "12",
+      "smiles": "O=[N+]([O-])c1cn(C[C@H](O)CCl)c(Cl)n1",
+      "label": "12"
+    },
+    {
+      "id": "13",
+      "smiles": "O=[N+]([O-])c1cn(C[C@H](O)CO)c(Cl)n1",
+      "label": "13"
+    },
+    {
+      "id": "14",
+      "smiles": "CC(C)(C)[Si](C)(C)OC[C@@H](O)Cn1cc([N+](=O)[O-])nc1Cl",
+      "label": "14"
+    },
+    {
+      "id": "15",
+      "smiles": "CC(C)(C)[Si](C)(C)OC[C@H](Cn1cc([N+](=O)[O-])nc1Cl)OCc1ccc(OC(F)(F)F)cc1",
+      "label": "15"
+    },
+    {
+      "id": "1b",
+      "smiles": "O=[N+]([O-])c1cn2c(n1)OC[C@@H](OCc1ccc(OC(F)(F)F)cc1)C2",
+      "label": "1"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "11",
+        "Ep2"
+      ],
+      "products": [
+        "12"
+      ],
+      "above": [
+        "K2CO3"
+      ],
+      "yield": "73%"
+    },
+    {
+      "substrates": [
+        "12"
+      ],
+      "products": [
+        "13"
+      ],
+      "above": [
+        "2% NaOH aq."
+      ],
+      "yield": "92%"
+    },
+    {
+      "substrates": [
+        "13"
+      ],
+      "products": [
+        "14"
+      ],
+      "above": [
+        "imidazole, TBSCl"
+      ],
+      "yield": "71%"
+    },
+    {
+      "substrates": [
+        "14"
+      ],
+      "products": [
+        "15"
+      ],
+      "above": [
+        "p-OCF3-BnBr, NaH, TBAI, THF"
+      ],
+      "yield": "66%"
+    },
+    {
+      "substrates": [
+        "15"
+      ],
+      "products": [
+        "1b"
+      ],
+      "above": [
+        "1. TBAF, THF",
+        "2. NaH"
+      ],
+      "yield": "85%"
+    }
+  ],
+  "max_width": 504
+}

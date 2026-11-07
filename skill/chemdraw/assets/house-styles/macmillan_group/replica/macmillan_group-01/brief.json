@@ -1,0 +1,12 @@
+{
+  "style": "macmillan_group",
+  "species": [
+    {"id": "alk1", "smiles": "OCCCC=C"},
+    {"id": "btz1", "smiles": "Brc1nc2ccccc2s1"},
+    {"id": "p1", "smiles": "OCCCCCc1nc2ccccc2s1", "label": "1"}
+  ],
+  "steps": [
+    {"substrates": ["alk1", "btz1"], "products": ["p1"], "yield": "61%"}
+  ],
+  "max_width": 504
+}

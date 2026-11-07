@@ -1,0 +1,14 @@
+{
+  "style": "org_lett",
+  "species": [
+    {"id": "1a", "smiles": "O=C(OCCCO)c1ccc(cc1)S(=O)(=O)N(CCC)CCC", "label": "1a"},
+    {"id": "2a", "smiles": "C=C[Si](C)(C)Cl", "label": "2a"},
+    {"id": "3aa", "smiles": "O=C(OCCC[Si](C)(C)C=C)c1ccc(cc1)S(=O)(=O)N(CCC)CCC", "label": "3aa"}
+  ],
+  "steps": [
+    {"substrates": ["1a", "2a"], "products": ["3aa"],
+     "above": ["POP, TBAB, Barton's base", "NMP (0.1 M), r.t. for 1 h", "then"],
+     "below": ["NiBr2·diglyme, n-Bu2phen, Mn", "r.t. for 23 h"]}
+  ],
+  "max_width": 504
+}

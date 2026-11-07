@@ -1,0 +1,142 @@
+{
+  "style": "beilstein_joc",
+  "layout": "catalytic-cycle",
+  "species": [
+    {
+      "id": "PdX2",
+      "smiles": "O=[N+]([O-])O[Pd]O[N+](=O)[O-]",
+      "label": "7"
+    },
+    {
+      "id": "I8",
+      "smiles": "O=[N+]([O-])O[Pd](O[N+](=O)[O-])<-n1ccccc1N1c2ccccc2c2ccccc21",
+      "label": "8",
+      "ring_fills": [
+        {
+          "ring_index": 0,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 1,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 2,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 3,
+          "color": "#BEDAFF"
+        }
+      ]
+    },
+    {
+      "id": "I9",
+      "smiles": "O=[N+]([O-])O[Pd]1<-n2ccccc2N2c3ccccc3c3cccc1c32",
+      "label": "9",
+      "ring_fills": [
+        {
+          "ring_index": 0,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 1,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 2,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 3,
+          "color": "#BEDAFF"
+        }
+      ]
+    },
+    {
+      "id": "1a",
+      "smiles": "c1ccc2c(c1)c1ccccc1n2-c1ccccn1",
+      "label": "1a",
+      "ring_fills": [
+        {
+          "ring_index": 0,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 1,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 2,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 3,
+          "color": "#BEDAFF"
+        }
+      ]
+    },
+    {
+      "id": "2a",
+      "smiles": "O=[N+]([O-])c1cccc2c3ccccc3n(-c3ccccn3)c12",
+      "label": "2a",
+      "ring_fills": [
+        {
+          "ring_index": 0,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 1,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 2,
+          "color": "#BEDAFF"
+        },
+        {
+          "ring_index": 3,
+          "color": "#BEDAFF"
+        }
+      ]
+    },
+    {
+      "id": "HNO3_out",
+      "smiles": "O[N+](=O)[O-]"
+    },
+    {
+      "id": "HNO3_in",
+      "smiles": "O[N+](=O)[O-]"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "PdX2",
+        "1a"
+      ],
+      "products": [
+        "I8"
+      ]
+    },
+    {
+      "substrates": [
+        "I8"
+      ],
+      "products": [
+        "I9",
+        "HNO3_out"
+      ]
+    },
+    {
+      "substrates": [
+        "I9",
+        "HNO3_in"
+      ],
+      "products": [
+        "2a",
+        "PdX2"
+      ]
+    }
+  ],
+  "max_width": 504
+}

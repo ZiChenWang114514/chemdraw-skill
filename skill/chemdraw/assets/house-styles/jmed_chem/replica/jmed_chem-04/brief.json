@@ -1,0 +1,12 @@
+{
+  "kind": "scope",
+  "style": "jmed_chem",
+  "species": [
+    {"id": "AMG193", "smiles": "Nc1nc2cnc(C(=O)N3CCOC[C@@H]3c3ccc(C(F)(F)F)cc3)cc2c2c1COC2", "label": "AMG 193"},
+    {"id": "BMS986504", "smiles": "Cn1ncc(-c2ccc3c(=O)[nH]nc(CN)c3c2)c1-c1c(F)c(Cl)cc(OC2CC2)c1C#N", "label": "BMS-986504"},
+    {"id": "TNG908", "smiles": "Cc1cc(NC(=O)C(=O)N2C[C@@H](C)CC[C@@H]2c2ccc3scnc3c2)cnc1N", "label": "TNG908"},
+    {"id": "AZD3470", "smiles": "CC#CCN1CC[C@@]2(C1=O)c1ccc(F)cc1C(=O)N2Cc1cc2nc(N)c(F)cc2[nH]1", "label": "AZD3470"}
+  ],
+  "width_mm": 120,
+  "height_mm": 120
+}
