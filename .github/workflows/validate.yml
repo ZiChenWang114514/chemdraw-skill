@@ -1,12 +1,12 @@
 name: Validate
 
 on:
+  workflow_call:
   push:
     branches: [main]
   pull_request:
     # A change to the website alone runs site.yml instead; a merge runs this file again.
-    # Lightweight on purpose: the full operating-system and version matrix is in
-    # validate-full.yml, which runs weekly and by hand.
+    # Lightweight on purpose: one job per platform that matters.
     paths-ignore:
       - "site/**"
       - "assets/readme/gallery/**"
@@ -64,8 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The newest supported Python on Windows and 3.12 on Ubuntu; validate-full.yml
-        # adds the oldest Python and macOS.
+        # The newest supported Python on Windows and 3.12 on Ubuntu.
         include:
           - os: windows-latest
             python-version: "3.13"
@@ -106,7 +105,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # One combination per change; validate-full.yml runs the rest.
+        # One combination per change.
         os: [windows-latest]
         mcp-version: ["2.0.0"]
     runs-on: ${{ matrix.os }}
