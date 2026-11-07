@@ -12,7 +12,7 @@
 <h3 align="center">Editable ChemDraw chemistry for Claude Code, Codex and any AI coding agent</h3>
 
 <p align="center">
-  Draw structures, rebuild paper figures, build SAR panels from a spreadsheet and put live ChemDraw objects into Word and PowerPoint.
+  Draw in the house style of 28 journals, publishers and research groups (JACS, Angew, Nature, Science, Baran, MacMillan and more), rebuild paper figures, build SAR panels from a spreadsheet and put live ChemDraw objects into Word and PowerPoint.
   The same Skill also weighs out reactions, writes characterization paragraphs and maps atoms across a reaction.<br>
   It runs in Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and any agent that can run a shell command.
 </p>
@@ -34,6 +34,12 @@
 <br>
 
 <table>
+  <tr>
+    <td colspan="3" align="center">
+      <a href="#journal-and-group-house-styles"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="A published radical-probe scheme redrawn in the Studer group house style, new bonds in red"></a>
+      <br><b>28 journal and group house styles</b><br><sub>Measured from 179 published figures; 23 figure types, 47 literature replicas</sub>
+    </td>
+  </tr>
   <tr>
     <td width="25%" valign="top"><b>Structures with a source</b><br><sub>A structure comes from a database, OPSIN, ChemScript or DECIMER. The agent does not type SMILES from memory.</sub></td>
     <td width="25%" valign="top"><b>Editable output</b><br><sub>Results are CDXML. Atoms, bonds and text can be changed in ChemDraw afterwards.</sub></td>
@@ -99,13 +105,7 @@ Every card is a native ChemDraw render of an editable file in this repository. C
       <br><b>Predicted against measured NMR</b><br><sub>MagNET and NMRNet++ on a real spectrum</sub>
     </td>
   </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <a href="#journal-and-group-house-styles"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="A published radical-probe scheme redrawn in the Studer group house style, new bonds in red"></a>
-      <br><b>28 journal and group house styles</b><br><sub>Measured from 179 published figures; 23 figure types, 47 literature replicas</sub>
-    </td>
-  </tr>
-</table>
+  </table>
 
 ## Quick start
 
@@ -115,7 +115,10 @@ Every card is a native ChemDraw render of an editable file in this repository. C
 - **ChemDraw.** Native rendering, the PNG in step 3, CDX conversion and Word/PowerPoint objects need licensed desktop ChemDraw on Windows or macOS. Without it the Skill still builds, edits, checks and recognises structures and runs the calculators ([what changes](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)).
 - **Python.** A 64-bit Python 3.10–3.13 builds the runtime; the installer itself runs on 3.9+.
 - **Disk.** The default runtime is a virtual environment of about 760 MB. `--extras` with no names installs the core only, and `--extras publication office` adds just those groups.
-- **Optional tools.** Name-to-structure through OPSIN is not installed by default: add `--opsin`. OPSIN needs Java, which is fetched on first use on Windows and must be installed on macOS and Linux. Text recognition in the `image` extra needs the Tesseract program. `--mapping` adds the machine-learning atom-mapping backends (RXNMapper, LocalMapper), each in its own environment.
+- **Optional tools**, none installed by default:
+  - `--opsin` adds name-to-structure. OPSIN needs Java, which is fetched on first use on Windows and must be installed on macOS and Linux.
+  - Text recognition in the `image` extra needs the Tesseract program.
+  - `--mapping` adds the machine-learning atom-mapping backends (RXNMapper, LocalMapper), each in its own environment.
 
 **1. Install.** The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the toolkit runtime on its own (through the `py` launcher, `uv`-managed interpreters or `python3.x` on PATH).
 
@@ -180,40 +183,41 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 
 ## What it handles
 
+A request usually falls into one of five kinds of work. Each links to its section; the table after them lists every tool area.
+
+- **Draw a new figure** from a short brief: [one command](#one-command-figures), in the [house style](#journal-and-group-house-styles) of a journal or research group, or as [exam and lecture drawings](#exam-and-lecture-drawings-in-acs-document-1996-style).
+- **Rebuild an existing figure** from a paper image or PDF: [reproduce a paper figure](#reproduce-a-paper-figure).
+- **Do the arithmetic**: [stoichiometry, materials tables, characterization text and atom mapping](#reaction-calculator-and-chemistry-reports).
+- **Predict and read**: [structure recognition, routes, products, conditions and NMR shifts](#prediction-and-analysis-engines).
+- **Put it in a document**: editable ChemDraw objects in Word and PowerPoint.
+
+<details>
+<summary><b>Every tool area, in one table</b></summary>
+<br>
+
 | Area | What you get |
 | --- | --- |
-| **Structures and reactions** | Resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert and render CDXML or CDX documents, plus non-destructive live desktop ChemDraw window integration (`live_chemdraw_session`) and MCP `@mcp.resource` / `@mcp.prompt` protocol endpoints. |
-| **New figures from a request** | A reaction, a linear, convergent, divergent or catalytic-cycle (`catalytic-cycle`) route, a substrate-scope panel or a mechanism, drawn from a short brief or compact DSL (`compact_text`, including coordination/dative bonds, radicals, `ring_fills`, pharmacophore `atom_halos`, hapticity `multi_attachments`, `[...]` transition-state brackets, `<orbital>` lobes and 3D conformer templates) with the chemistry and layout checked in the same command. [Details below](#one-command-figures). |
-| **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec (`build_acs_figure`), with abbreviation nodes, rich text, Chinese notes, arrows, boxed compound codes, JACS/Angew ring-fill shading (`ring_fills`), pharmacophore halos, hapticity `MultiAttachment` bonds, transition-state brackets, orbital lobes and deterministic 3D conformer templates (chair cyclohexane, Newman, Haworth, Fischer, norbornane), plus vision and stereo audit tools (`depict_like` 16-orientation alignment, `read_wedges`, `edit_structure` atom-index and E/Z editor). |
-| **Data-driven figures** | Substrate-scope and SAR panels from CSV/XLSX that stay editable and updatable. |
-| **Journal and group styles** | Two layers named by one `style` key. Sixteen measurement presets read from ChemDraw's own stock style sheets (ACS Document 1996 by default; Wiley, RSC, Nature Research, Thieme Synthesis/Synlett and more) set bond length, line widths and fonts. 28 house styles for journals, publishers, patents, textbooks and research groups (JACS, Org. Lett., J. Med. Chem., Angew. Chem., Nature, Science, Chem. Sci., Dalton Trans., the Baran, MacMillan, Glorius, Houk, List, Sarpong and Studer groups and more), measured from 179 crops of openly licensed figures, add how each draws 23 kinds of figure: compound numbers, yield placement, condition layout, abbreviations, colour-coded new bonds, curved and cycle arrows, line width and arrow length. A brief can add titles, panel letters, captions, boxes and colours per figure. 47 published figures were redrawn in their own style to test the cards. `cdx.py styles` lists both. [Details below](#journal-and-group-house-styles). |
-| **Image recognition** | Candidate structures, confidence values and bounding boxes through the DECIMER API or, on request, local DECIMER models. |
-| **Engines and predictions** | Fifteen optional engines, installed only when you agree: six OCSR readers compared on one image, PDF structure extraction, precursors, routes, multi-engine route comparison sheets, products, reaction conditions and 1H/13C shifts (with `compare_nmr_shifts`), each case run against a known answer with GPU/CPU device reporting (`execution.device`). Batches and multi-step searches keep the model in a resident worker for the next call (`--accel auto\|on\|off`; `cdx.py stop-daemons` ends it): a second `predict products` call took 0.6 s instead of 13.7 s on this laptop. Every result is a labelled prediction. [Cases and install sizes](#prediction-and-analysis-engines). |
-| **Molecule comparison** | RDKit fingerprint similarity everywhere; exact-identity checks through ChemScript on Windows or ChemDraw for macOS. |
-| **Calculators and reports** | ChemDraw's own stoichiometry grid for amounts and yield, read back as data; SI materials tables with process mass intensity; HRMS lines and whole characterization paragraphs; reagent safety reminders from an expanded 116-entry GHS table and SMARTS functional-group alerts; overall yield of a route; atom mapping; property sheets, reaction balance and structure export. [Details below](#reaction-calculator-and-chemistry-reports). |
-| **TLC and apparatus** | Native TLC plates, lanes, spots and ChemDraw apparatus templates, with Rf calculation, automatic co-spot lanes (`auto_cospot`), stain palettes (KMnO4, ninhydrin, anisaldehyde, I2) and 2D TLC (`mode="2d"`), plus editable assembly. |
-| **Spectra and scientific plots** | Native 1D NMR loading via `nmrglue` (Bruker `1r` and raw `fid`, JCAMP-DX `.jdx`/`.dx`, JEOL `.jdf`, Varian/Agilent `.fid`) alongside CSV/FT, with peak picking, selected-region integration, automatic deuterated residual solvent flagging, multiplet splitting (*J*-couplings), zoom insets (`inset_region`), stacked multi-spectrum NMR (`stack_nmr`) and multi-series editable curves. |
-| **Patent Markush structures** | Generic structures from a patent image and claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing that follows the source layout. |
-| **Reaction mechanisms** | Curved arrows drawn from a list of electron moves, or reconstructed with explicit atom coordinates, charges and counterions. |
-| **Office documents** | Editable ChemDraw objects in desktop Word and PowerPoint documents, built with ChemDraw on Windows or macOS. |
-| **Experimental records** | File discovery and selected LCMS (Waters PDF, OpenLynx `.rpt`, Waters `.raw` with `_HEADER.TXT` metadata and chromatograms, Shimadzu `.daml`, Agilent ChemStation `report.txt`, and open `mzML` / `mzXML`) with Cl/Br `M+2` isotope-envelope verification, internal-standard (`IS`) normalization across timepoints and 24/96-well purity heatmaps (`lcms_plate`), plus SciFinder RDF and lab-book workflows. |
-| **ChemScript SDK** | Inspect the installed public catalog and run supported declarative calls in a separate worker process on Windows (macOS answers the ChemScript operations and an emulation of the core SDK classes with ChemDraw, OPSIN and RDKit). |
-| **ChemDraw interface coverage** | A catalog of the ChemScript SDK, ChemDraw COM objects, CDXML elements and menu commands in ChemDraw 22.2, each entry marked as having a dedicated tool, a checked recipe, or documentation only; plus tools for CDXML elements, COM calls and ChemDraw's own molecular properties. [Details](docs/guide.md#chemdraw-interface-coverage). |
-| **Remote workstation access** | Optionally expose a Windows native host through Streamable HTTP with health and Prometheus endpoints. |
+| **Structures and reactions** | Resolve names and identifiers; draw, edit, clean, merge, segment, convert and render CDXML or CDX documents. Work in a live ChemDraw window without disturbing the document you have open. |
+| **New figures from a request** | A reaction, a linear, convergent or divergent route, a catalytic cycle, a substrate-scope panel or a mechanism, drawn from a short brief. Chemistry and layout are checked in the same command. [Details](#one-command-figures). |
+| **Journal and group styles** | 28 house styles for journals, publishers, patents, textbooks and research groups, measured from 179 openly licensed figures, on top of 16 measurement presets read from ChemDraw's own style sheets. Each style records how that source sets compound numbers, yields, conditions, abbreviations, colours, line widths and arrows across 23 kinds of figure. [Details](#journal-and-group-house-styles). |
+| **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec: abbreviations, Chinese notes, boxed compound codes, ring shading, orbital lobes, transition-state brackets and 3D templates such as chair, Newman, Haworth and Fischer. |
+| **Data-driven figures** | Substrate-scope and SAR panels from CSV or XLSX that stay editable and can be updated. |
+| **Reaction mechanisms** | Curved arrows drawn from a list of electron moves, or rebuilt from explicit atom coordinates, charges and counterions. |
+| **Patent Markush structures** | Generic structures from a patent image and its claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing. |
+| **Image recognition** | Candidate structures with confidence values and bounding boxes, from the DECIMER API or local models. |
+| **Engines and predictions** | Fifteen optional engines, installed only when you agree: six image readers compared on one picture, structures from a PDF, precursors and routes, products, reaction conditions and 1H/13C shifts. Every result is a labelled prediction. [Cases and install sizes](#prediction-and-analysis-engines). |
+| **Calculators and reports** | ChemDraw's own stoichiometry grid read back as data; SI materials tables with process mass intensity; HRMS lines and characterization paragraphs; safety reminders from a 116-entry GHS table; route yield; atom mapping; property sheets and reaction balance. [Details](#reaction-calculator-and-chemistry-reports). |
+| **TLC and apparatus** | Native TLC plates with lanes, spots, Rf values, co-spot lanes, stain palettes and 2D plates, and apparatus built from ChemDraw templates. |
+| **Spectra and plots** | Processed 1D NMR from Bruker, JCAMP-DX, JEOL and Varian/Agilent files with peak picking, integration, residual solvent flags, multiplets, zoom insets and stacked spectra; numerical data as editable curves. |
+| **Experimental records** | LCMS reports (Waters, OpenLynx, Shimadzu, Agilent ChemStation, mzML and mzXML) with Cl/Br isotope checks, internal-standard normalization and 24/96-well purity heatmaps; SciFinder RDF and lab-book workflows. |
+| **Molecule comparison** | RDKit fingerprint similarity everywhere; exact identity checks through ChemScript on Windows or ChemDraw on macOS. |
+| **Office documents** | Editable ChemDraw objects in desktop Word and PowerPoint, built with ChemDraw on Windows or macOS. |
+| **ChemScript and ChemDraw interfaces** | The ChemScript SDK on Windows, and a catalog of ChemDraw 22.2's COM objects, CDXML elements and menu commands, each marked as having a tool, a checked recipe or documentation only. [Details](docs/guide.md#chemdraw-interface-coverage). |
+| **Remote workstation access** | Optionally expose a Windows host through Streamable HTTP with health and Prometheus endpoints. |
 
 The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited symbols of the bundled toolkit, separately from the registered tools (`cdx.py tools` prints the current count).
 
-### Exam and lecture drawings in ACS Document 1996 style
-
-Write the figure as a small JSON spec: SMILES with abbreviation nodes such as C10H21, conditions, arrows, bold compound codes and Chinese notes. You get editable ACS 1996 CDXML and a native ChemDraw PNG:
-
-```bash
-python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
-```
-
-<p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="ACS Document 1996 reaction drawn from a JSON spec: an alpha,beta-unsaturated ester with a C10H21 abbreviation is hydrogenated with H2 and Pd/C"></p>
-
-Abbreviations stay real `GenericNickname` nodes with correct subscripts and label direction. Chinese characters are set in a CJK font while Latin text, digits and symbols stay in Arial. See the [ACS 1996 drawing guide](skill/chemdraw/references/acs1996-drawings.md).
+</details>
 
 <a id="one-command-figures"></a>
 
@@ -308,6 +312,10 @@ A brief can also style one figure without touching the card: a `title` and a bol
   </tr>
 </table>
 
+<details>
+<summary><b>All 28 styles at a glance</b></summary>
+<br>
+
 **Publishers, patents and textbooks**
 
 | Style | Base preset | Draws like |
@@ -351,6 +359,8 @@ A brief can also style one figure without touching the card: a `title` and a bol
 | `sarpong_group` | `nature` | Sarpong (Berkeley): caged polycycles with bold front bonds, skeletal editing |
 | `studer_group` | `nature` | Studer (Münster): transferred H and new bonds in red, ratios after the yield |
 
+</details>
+
 The same Suzuki coupling drawn from one brief in six of the styles; the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md) shows all 28 and four presets:
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="One Suzuki coupling drawn in six house styles: acs_jacs, nature_portfolio, baran_group, macmillan_group, science_aaas and glorius_group"></p>
@@ -364,6 +374,79 @@ Each style has a folder beside the gallery with its evidence crops and a README 
 ### SAR and substrate-scope figures from CSV or Excel
 
 Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted structures. Stable compound IDs bind measurements to editable ChemDraw objects. Update data or replace a structure after native editing while preserving unrelated layout and annotations; ambiguous matches produce conflict drafts. See the [workflow and examples](skill/chemdraw/references/data-driven-figures.md). XLSX support requires the toolkit `publication` extra.
+
+### Exam and lecture drawings in ACS Document 1996 style
+
+Write the figure as a small JSON spec: SMILES with abbreviation nodes such as C10H21, conditions, arrows, bold compound codes and Chinese notes. You get editable ACS 1996 CDXML and a native ChemDraw PNG:
+
+```bash
+python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
+```
+
+<p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="ACS Document 1996 reaction drawn from a JSON spec: an alpha,beta-unsaturated ester with a C10H21 abbreviation is hydrogenated with H2 and Pd/C"></p>
+
+Abbreviations stay real `GenericNickname` nodes with correct subscripts and label direction. Chinese characters are set in a CJK font while Latin text, digits and symbols stay in Arial. See the [ACS 1996 drawing guide](skill/chemdraw/references/acs1996-drawings.md).
+
+## Reproduce a paper figure
+
+Start with the whole figure, then follow one route:
+
+<p align="center">
+  <code>Inspect</code> → <code>Crop structures</code> → <code>DECIMER</code> → <code>Match orientation</code> → <code>Side-by-side review</code> → <code>Correct chemistry</code> → <code>Assemble layout</code> → <code>Native preview</code>
+</p>
+
+```text
+Use the ChemDraw Skill to reproduce this paper figure. Read the whole scheme,
+crop each complete structure, and obtain DECIMER candidates. Match the original
+orientation, inspect actual side-by-side previews, and correct only the affected
+structures. Transcribe the conditions, then deliver editable CDXML and a
+native preview.
+```
+
+[Image reconstruction guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
+
+Three openly licensed schemes are rebuilt as worked cases, each with the reference crop, the brief in the journal's style and the native render:
+
+| Case | Journal style | Files |
+| --- | --- | --- |
+| Pd-catalysed amination in water, *JACS Au* 2024 | `lipshutz_group` | [CASE.md](skill/chemdraw/assets/paper-replica/jacs-au-pd-amination/CASE.md) |
+| DPDTC synthesis for amide coupling, *Chem. Sci.* 2023 | `rsc_journals` | [CASE.md](skill/chemdraw/assets/paper-replica/chem-sci-amide-coupling/CASE.md) |
+| Ni-catalysed electroreductive arylation, *Nat. Commun.* 2025 | `nature_portfolio` | [CASE.md](skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/CASE.md) |
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/reference.png" alt="Published Nat. Commun. scheme: 1a and 2a give 3a under nickel-catalysed electroreductive conditions"><br><sub>Published scheme (CC BY 4.0)</sub></td>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/rendered.png" alt="The same scheme drawn from a brief in the Nature Portfolio house style and rendered by ChemDraw"><br><sub>Drawn from <code>brief.json</code> with <code>"style": "nature_portfolio"</code></sub></td>
+  </tr>
+</table>
+
+| Need | Ready-to-use route |
+| --- | --- |
+| Crop and review an image | Crop/mask and comparison helpers that keep the region-to-result mapping |
+| Match a folded chain or bridged ring | Trace source coordinates, then check crossings and bond order |
+| Correct stereochemistry | Inspect atom indices, apply an explicit edit, and read back the final CDXML |
+| Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
+| Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
+
+For many more figures, the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas) shows 47 published figures redrawn in their journal or group style, each with its brief.
+
+Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored).
+
+<details>
+<summary><b>Rebuild the two complex schemes offline</b></summary>
+<br>
+
+Both schemes are built from real molecular objects (editable atoms, bonds and expandable abbreviations), together with text, brackets and electron arrows. The [atom-level comparison](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json) records component hashes and atom mappings.
+
+After installing the runtime, rebuild both layouts offline without repeating DECIMER recognition (use a new output directory):
+
+```bash
+python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
+```
+
+Native previews need desktop ChemDraw (Windows or macOS). See the [rebuild example](skill/chemdraw/assets/paper-reconstructions/README.md).
+
+</details>
 
 ## Reaction calculator and chemistry reports
 
@@ -394,7 +477,9 @@ After you have typed the amounts and saved, `cdx.py calc --read reaction-stoichi
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
 </p>
 
-For amounts without ChemDraw, `si_materials_tables` writes materials tables for up to 100 reactions with concentration, atom economy and process mass intensity (PMI; E-factor is PMI minus 1). With `reagent_safety` it adds GHS pictograms, H-statements, boiling and flash point for common solvents and reagents from a built-in table of 116 common solvents and bench reagents plus SMARTS structural alerts (azides, peroxides, organolithiums, acyl chlorides, hydrides). A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
+For amounts without ChemDraw, `si_materials_tables` writes materials tables for up to 100 reactions with concentration, atom economy and process mass intensity (PMI; E-factor is PMI minus 1).
+
+**Safety reminders.** With `reagent_safety`, the materials table also shows GHS pictograms, H-statements, boiling and flash point. They come from a built-in table of 116 common solvents and bench reagents, plus SMARTS alerts for azides, peroxides, organolithiums, acyl chlorides and hydrides. A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
 
 ### Characterization text
 
@@ -421,18 +506,18 @@ The full inputs and rules are in the [chemistry reports guide](skill/chemdraw/re
 
 Real paper images and data, with native previews, reference comparisons and editable downloads.
 
-| Case | What it demonstrates | Highlights |
-| --- | --- | --- |
-| [Twenty structures](#stereo-reconstruction-demo) | Resolving stereo disagreement between chemistry readers | 20/20 stereo agreement between ChemScript and RDKit |
-| [Paper reaction scheme](#paper-scheme-demo) | Five structures, conditions, yields and wavy bonds | Complete editable figure |
-| [Sceptrin mechanism](#mechanism-demo) | Eight structures, electron arrows, charges and conditions | Complete editable figure |
-| [Patent Markush structure](#markush-demo) | R groups, variable rings and a multicentre bond from a patent figure plus claim text | Structure matches the reference; CXSMILES and V3000 included |
-| [Native TLC](#tlc-demo) | Editable lanes, spots and Rf | Runnable example |
-| [Native apparatus](#apparatus-demo) | Assembly from native ChemDraw templates | Runnable example |
-| [Experimental NMR](#nmr-demo) | Real processed 1D data and an editable spectrum | Runnable example |
-| [Simulated reaction kinetics](#kinetics-demo) | Numerical data as editable curves | Runnable example |
-| [Complex synthesis: 101–112](#synthesis-101-demo) | Full native scheme and electron arrows | Every compound, condition and arrow |
-| [Complex synthesis: 113–122](#synthesis-113-demo) | Full native scheme and electron arrows | Every compound, condition and arrow |
+| Case | What it shows |
+| --- | --- |
+| [Twenty structures](#stereo-reconstruction-demo) | Resolving stereo disagreement between chemistry readers: 20 of 20 agree between ChemScript and RDKit |
+| [Paper reaction scheme](#paper-scheme-demo) | Five structures, conditions, yields and wavy bonds, rebuilt as an editable figure |
+| [Sceptrin mechanism](#mechanism-demo) | Eight structures, electron arrows, charges and conditions, rebuilt as an editable figure |
+| [Patent Markush structure](#markush-demo) | R groups, variable rings and a multicentre bond from a patent figure and its claim text; structure matches the reference, with CXSMILES and V3000 |
+| [Native TLC](#tlc-demo) | Editable lanes, spots and Rf values; runnable example |
+| [Native apparatus](#apparatus-demo) | Assembly from native ChemDraw templates; runnable example |
+| [Experimental NMR](#nmr-demo) | Real processed 1D data as an editable spectrum; runnable example |
+| [Simulated reaction kinetics](#kinetics-demo) | Numerical data as editable curves; runnable example |
+| [Complex synthesis: 101–112](#synthesis-101-demo) | Full native scheme with every compound, condition and arrow |
+| [Complex synthesis: 113–122](#synthesis-113-demo) | Full native scheme with every compound, condition and arrow |
 
 <a id="stereo-reconstruction-demo"></a>
 
@@ -575,9 +660,35 @@ A generic structure from a patent figure plus claim text: R groups and linkers, 
 
 Fifteen optional engines read structure images, find structures in a PDF, and predict precursors, products, reaction conditions and NMR shifts. Nothing is installed until you agree, each engine lives in its own environment, a local engine uploads nothing while it runs (the remote DECIMER service is the one engine that sends an image out), and every answer is labelled a model prediction. Disagreeing engines are shown side by side, never merged.
 
+### The fifteen engines
+
+| Engine | Does | Disk | Licence | GPU |
+| --- | --- | --- | --- | --- |
+| `decimer-api` | image to structure, remote service | none | MIT | no |
+| `decimer-local` | the same model on this computer | 2.4 GB | MIT | no (CPU) |
+| `molscribe` | image to structure | 4.7 GB | MIT | yes |
+| `molnextr` | image to structure | 4.8 GB | Apache-2.0 | yes |
+| `molparser` | image to structure, Markush | 3.4 GB | weights non-commercial | yes |
+| `molvec` | image to structure, rule-based | 2 MB | Apache-2.0 | no (Java) |
+| `decimer-segmentation` | find structures on a page | 2.1 GB | MIT | no |
+| `aizynthfinder` | retrosynthesis, routes | 1.7 GB | MIT | no |
+| `synplanner` | retrosynthesis, routes | 4.8 GB | MIT | yes |
+| `reactiont5-forward` | products | 3.9 GB | MIT | yes |
+| `reactiont5-retro` | single-step retrosynthesis | 3.9 GB | MIT | yes |
+| `retrochimera` | single-step retrosynthesis and routes | 8.5 GB | research use only | yes |
+| `magnet` | 1H and 13C shifts | 5.4 GB | MIT | yes |
+| `nmrnet-pp` | 1H and 13C shifts, second model | 2.8 GB | code MIT, weights CC BY 4.0 | yes |
+| `reacon` | catalyst, solvent and reagent sets | 1.9 GB | none stated by the authors | yes |
+
+Sizes are finished installs on Windows with the CUDA build of PyTorch; a CPU install is smaller. `CHEMDRAW_ENGINE_HOME` moves them to another disk. `cdx.py engines --recommend NEED` says what a task needs before anything is downloaded. The licence and registry details are in [engines.md](skill/chemdraw/references/engines.md).
+
 The cases below were run on one Windows laptop with an RTX 5090 GPU. Each is scored against a reviewed structure, a recorded experiment or a measured spectrum, and the misses are kept. They show how the engines behave on these inputs, not how accurate they are in general. Inputs, outputs, scoring and timings are in [`assets/readme/engines/`](assets/readme/engines/provenance.json). Cold one-shot times below include model loading. A one-off call is a clean process; batches and multi-step searches (or `--accel on`) keep a resident worker for the next call, which cut a repeated `predict products` call from 13.7 s to 0.6 s here (`cdx.py stop-daemons` ends the workers), and every engine reply records its actual `execution.device` (`cuda:0` or `cpu`).
 
-### Structure images and PDFs
+Open a case to see its images and results.
+
+<details>
+<summary><b>Structure images and PDFs</b></summary>
+<br>
 
 > **You say:** "Read this structure with every local engine and show me where they disagree." · "Pull every structure out of this PDF and read them."
 
@@ -609,7 +720,11 @@ A two-page PDF of the same scheme and a second published scheme went through DEC
 
 **Install:** `ocsr-standard` (MolScribe and MolVec, 4.7 GB), `ocsr-full` (adds MolNexTR and MolParser, 12.9 GB), `pdf` (segmenter, MolScribe, MolVec, 6.8 GB). MolParser's weights are non-commercial only. MolVec needs Java. [Details](skill/chemdraw/references/engines.md#reading-a-structure-image)
 
-### Routes, products and conditions
+</details>
+
+<details>
+<summary><b>Routes, products and conditions</b></summary>
+<br>
 
 > **You say:** "Find precursors for this target with the local retrosynthesis engines and draw the routes." · "What does this reaction give, and under what conditions?"
 
@@ -638,7 +753,11 @@ For KL-CC-002 no engine proposed the recorded last step. AiZynthFinder's top rou
 
 **Install:** `retro` (AiZynthFinder, 1.7 GB), `products` (3.9 GB), `conditions` (Reacon, 1.9 GB); SynPlanner and ReactionT5 retro by name; `retro-chimera` (8.5 GB, needs about 14 GB of free memory). RetroChimera is for research use only and Reacon's authors state no licence, so it is downloaded from their repository only when you ask. [Details](skill/chemdraw/references/engines.md#predictions)
 
-### NMR shifts against a measured spectrum
+</details>
+
+<details>
+<summary><b>NMR shifts against a measured spectrum</b></summary>
+<br>
 
 > **You say:** "Predict the 1H and 13C shifts of caffeine with both NMR models and compare them with the measured spectrum."
 
@@ -689,92 +808,17 @@ The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bms
 
 **Install:** `nmr` (MagNET, 5.4 GB) and `nmr-pp` (NMRNet++, 2.8 GB; its weights are CC BY 4.0, and it takes no solvent). [20-molecule benchmark JSON](assets/readme/engines/nmr/benchmark20.json) · [Caffeine chart and data](assets/readme/engines/nmr/caffeine/)
 
-### LCMS plates
+</details>
+
+<details>
+<summary><b>LCMS plates</b></summary>
+<br>
 
 > **You say:** "Check this OpenLynx report against the plate map and tell me which wells contain the expected product."
 
 No engine is needed. The 24-well Waters report and plate map from the PyParse example dataset (Apache-2.0) were parsed in 11 s. The expected product was found in 24 of 24 wells: 21 as [M+H]<sup>+</sup>, two Boc-protected piperazines (B3, B5) as the [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> fragment, and the carboxylic acid in B11 as [M−H]<sup>−</sup>. Against PyParse's own output the retention time and purity agree to 0.01 in 23 wells. The exception, B6, is a matching choice: the toolkit takes the peak carrying the intact [M+H]<sup>+</sup> (92.9%), PyParse the peak of the fragment (7.1%). [match_plate.py](assets/readme/engines/lcms/match_plate.py) shows the rule. Beyond plate reports, the LCMS tools parse OpenLynx `.rpt`, Waters PDF and `.raw` directories, Shimadzu `.daml`, Agilent `report.txt` and open `mzML`/`mzXML`, with Cl/Br `M+2` isotope-envelope verification and internal-standard (`IS`) ratio tracking across timepoints.
 
 <img src="assets/readme/engines/lcms/panel/page-001.png" alt="Four wells of the plate with their expected mass, found ion, retention time, purity and PyParse values">
-
-### The fifteen engines
-
-| Engine | Does | Disk | Licence | GPU |
-| --- | --- | --- | --- | --- |
-| `decimer-api` | image to structure, remote service | none | MIT | no |
-| `decimer-local` | the same model on this computer | 2.4 GB | MIT | no (CPU) |
-| `molscribe` | image to structure | 4.7 GB | MIT | yes |
-| `molnextr` | image to structure | 4.8 GB | Apache-2.0 | yes |
-| `molparser` | image to structure, Markush | 3.4 GB | weights non-commercial | yes |
-| `molvec` | image to structure, rule-based | 2 MB | Apache-2.0 | no (Java) |
-| `decimer-segmentation` | find structures on a page | 2.1 GB | MIT | no |
-| `aizynthfinder` | retrosynthesis, routes | 1.7 GB | MIT | no |
-| `synplanner` | retrosynthesis, routes | 4.8 GB | MIT | yes |
-| `reactiont5-forward` | products | 3.9 GB | MIT | yes |
-| `reactiont5-retro` | single-step retrosynthesis | 3.9 GB | MIT | yes |
-| `retrochimera` | single-step retrosynthesis and routes | 8.5 GB | research use only | yes |
-| `magnet` | 1H and 13C shifts | 5.4 GB | MIT | yes |
-| `nmrnet-pp` | 1H and 13C shifts, second model | 2.8 GB | code MIT, weights CC BY 4.0 | yes |
-| `reacon` | catalyst, solvent and reagent sets | 1.9 GB | none stated by the authors | yes |
-
-Sizes are finished installs on Windows with the CUDA build of PyTorch; a CPU install is smaller. `CHEMDRAW_ENGINE_HOME` moves them to another disk. `cdx.py engines --recommend NEED` says what a task needs before anything is downloaded. The licence and registry details are in [engines.md](skill/chemdraw/references/engines.md).
-
-## Reproduce a paper figure
-
-Start with the whole figure, then follow one route:
-
-<p align="center">
-  <code>Inspect</code> → <code>Crop structures</code> → <code>DECIMER</code> → <code>Match orientation</code> → <code>Side-by-side review</code> → <code>Correct chemistry</code> → <code>Assemble layout</code> → <code>Native preview</code>
-</p>
-
-```text
-Use the ChemDraw Skill to reproduce this paper figure. Read the whole scheme,
-crop each complete structure, and obtain DECIMER candidates. Match the original
-orientation, inspect actual side-by-side previews, and correct only the affected
-structures. Transcribe the conditions, then deliver editable CDXML and a
-native preview.
-```
-
-[Image reconstruction guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
-
-Three openly licensed schemes are rebuilt as worked cases, each with the reference crop, the brief in the journal's style and the native render:
-
-| Case | Journal style | Files |
-| --- | --- | --- |
-| Pd-catalysed amination in water, *JACS Au* 2024 | `lipshutz_group` | [CASE.md](skill/chemdraw/assets/paper-replica/jacs-au-pd-amination/CASE.md) |
-| DPDTC synthesis for amide coupling, *Chem. Sci.* 2023 | `rsc_journals` | [CASE.md](skill/chemdraw/assets/paper-replica/chem-sci-amide-coupling/CASE.md) |
-| Ni-catalysed electroreductive arylation, *Nat. Commun.* 2025 | `nature_portfolio` | [CASE.md](skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/CASE.md) |
-
-<table>
-  <tr>
-    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/reference.png" alt="Published Nat. Commun. scheme: 1a and 2a give 3a under nickel-catalysed electroreductive conditions"><br><sub>Published scheme (CC BY 4.0)</sub></td>
-    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/rendered.png" alt="The same scheme drawn from a brief in the Nature Portfolio house style and rendered by ChemDraw"><br><sub>Drawn from <code>brief.json</code> with <code>"style": "nature_portfolio"</code></sub></td>
-  </tr>
-</table>
-
-| Need | Ready-to-use route |
-| --- | --- |
-| Crop and review an image | Crop/mask and comparison helpers that keep the region-to-result mapping |
-| Match a folded chain or bridged ring | Trace source coordinates, then check crossings and bond order |
-| Correct stereochemistry | Inspect atom indices, apply an explicit edit, and read back the final CDXML |
-| Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
-| Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
-
-Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored).
-
-<details>
-<summary><b>Rebuild the two complex schemes offline</b></summary>
-<br>
-
-Both schemes are built from real molecular objects (editable atoms, bonds and expandable abbreviations), together with text, brackets and electron arrows. The [atom-level comparison](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json) records component hashes and atom mappings.
-
-After installing the runtime, rebuild both layouts offline without repeating DECIMER recognition (use a new output directory):
-
-```bash
-python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
-```
-
-Native previews need desktop ChemDraw (Windows or macOS). See the [rebuild example](skill/chemdraw/assets/paper-reconstructions/README.md).
 
 </details>
 
@@ -815,7 +859,7 @@ ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled
 
 ## Testing and security
 
-- Every pull request runs a small CI set: the distribution checks, the toolkit suite on Windows (Python 3.13) and Linux (3.12), the Skill tests on Windows and the package build. A weekly run, which also gates each release, covers the rest: the Skill tests on Linux and with MCP 1.28.1, the toolkit suite on Python 3.10 and macOS, both MCP SDK majors, and an end-to-end install on Windows, Linux and macOS. Native ChemDraw, ChemScript and Office features are tested by hand on a licensed Windows workstation. The macOS AppleScript path was tested on macOS 26.6 (Apple silicon) with ChemDraw 26.0.
+- Every pull request, merge and release runs one CI file (`validate.yml`): the distribution checks, the toolkit suite on Windows (Python 3.13) and Linux (3.12), the Skill tests on Windows and the package build. macOS and Python 3.10 are supported but not run in CI. Native ChemDraw, ChemScript and Office features are tested by hand on a licensed Windows workstation. The macOS AppleScript path was tested on macOS 26.6 (Apple silicon) with ChemDraw 26.0.
 - Tools write to a new output path and refuse to overwrite an existing file unless you ask.
 - Image recognition sends only the selected images to the DECIMER API. `cdx.py decimer --preflight` shows what would be sent, and an offline request is honored. The reports and the mappers run locally, and ChemDraw's stoichiometry grid is computed by ChemDraw on your machine. Only the reports look a name up online, when it is not in the built-in table; `CHEMDRAW_OFFLINE=1` turns that off.
 - Optional prediction engines run locally in separate environments and upload nothing; their downloads are checked against pinned hashes. Their answers are model predictions and are labelled as such.
@@ -836,6 +880,14 @@ Yes. An agent needs to read the Skill instructions and run shell commands; every
 <br>
 
 No. The command line covers every tool and keeps the same worker isolation, native ChemDraw lock and timeouts. MCP remains available for clients that want typed tool calls.
+
+</details>
+
+<details>
+<summary><b>Can it draw in the style of a particular journal or research group?</b></summary>
+<br>
+
+Yes, for 28 of them, from JACS, Angew. Chem., Nature and Science to the Baran, MacMillan, Glorius and Houk groups. A style records how that journal or group sets compound numbers, where it puts the yield, how it splits conditions around the arrow, which bonds it colours, and its line widths and arrow lengths, measured from openly licensed figures. Add `--style NAME` to a draw command; `cdx.py styles` lists them. A style follows the conventions seen in those figures. It is not a publisher template and does not copy any figure. See [journal and group house styles](#journal-and-group-house-styles) and the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md).
 
 </details>
 
