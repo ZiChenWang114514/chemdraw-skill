@@ -180,6 +180,18 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 
 ## What it handles
 
+A request usually falls into one of five kinds of work. Each links to its section; the table after them lists every tool area.
+
+- **Draw a new figure** from a short brief: [one command](#one-command-figures), in the [house style](#journal-and-group-house-styles) of a journal or research group, or as [exam and lecture drawings](#exam-and-lecture-drawings-in-acs-document-1996-style).
+- **Rebuild an existing figure** from a paper image or PDF: [reproduce a paper figure](#reproduce-a-paper-figure).
+- **Do the arithmetic**: [stoichiometry, materials tables, characterization text and atom mapping](#reaction-calculator-and-chemistry-reports).
+- **Predict and read**: [structure recognition, routes, products, conditions and NMR shifts](#prediction-and-analysis-engines).
+- **Put it in a document**: editable ChemDraw objects in Word and PowerPoint.
+
+<details>
+<summary><b>Every tool area, in one table</b></summary>
+<br>
+
 | Area | What you get |
 | --- | --- |
 | **Structures and reactions** | Resolve names and identifiers; draw, edit, clean, merge, polish, segment, convert and render CDXML or CDX documents, plus non-destructive live desktop ChemDraw window integration (`live_chemdraw_session`) and MCP `@mcp.resource` / `@mcp.prompt` protocol endpoints. |
@@ -203,17 +215,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # st
 
 The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited symbols of the bundled toolkit, separately from the registered tools (`cdx.py tools` prints the current count).
 
-### Exam and lecture drawings in ACS Document 1996 style
-
-Write the figure as a small JSON spec: SMILES with abbreviation nodes such as C10H21, conditions, arrows, bold compound codes and Chinese notes. You get editable ACS 1996 CDXML and a native ChemDraw PNG:
-
-```bash
-python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
-```
-
-<p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="ACS Document 1996 reaction drawn from a JSON spec: an alpha,beta-unsaturated ester with a C10H21 abbreviation is hydrogenated with H2 and Pd/C"></p>
-
-Abbreviations stay real `GenericNickname` nodes with correct subscripts and label direction. Chinese characters are set in a CJK font while Latin text, digits and symbols stay in Arial. See the [ACS 1996 drawing guide](skill/chemdraw/references/acs1996-drawings.md).
+</details>
 
 <a id="one-command-figures"></a>
 
@@ -308,6 +310,10 @@ A brief can also style one figure without touching the card: a `title` and a bol
   </tr>
 </table>
 
+<details>
+<summary><b>All 28 styles at a glance</b></summary>
+<br>
+
 **Publishers, patents and textbooks**
 
 | Style | Base preset | Draws like |
@@ -351,6 +357,8 @@ A brief can also style one figure without touching the card: a `title` and a bol
 | `sarpong_group` | `nature` | Sarpong (Berkeley): caged polycycles with bold front bonds, skeletal editing |
 | `studer_group` | `nature` | Studer (Münster): transferred H and new bonds in red, ratios after the yield |
 
+</details>
+
 The same Suzuki coupling drawn from one brief in six of the styles; the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md) shows all 28 and four presets:
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="One Suzuki coupling drawn in six house styles: acs_jacs, nature_portfolio, baran_group, macmillan_group, science_aaas and glorius_group"></p>
@@ -364,6 +372,77 @@ Each style has a folder beside the gallery with its evidence crops and a README 
 ### SAR and substrate-scope figures from CSV or Excel
 
 Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted structures. Stable compound IDs bind measurements to editable ChemDraw objects. Update data or replace a structure after native editing while preserving unrelated layout and annotations; ambiguous matches produce conflict drafts. See the [workflow and examples](skill/chemdraw/references/data-driven-figures.md). XLSX support requires the toolkit `publication` extra.
+
+### Exam and lecture drawings in ACS Document 1996 style
+
+Write the figure as a small JSON spec: SMILES with abbreviation nodes such as C10H21, conditions, arrows, bold compound codes and Chinese notes. You get editable ACS 1996 CDXML and a native ChemDraw PNG:
+
+```bash
+python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
+```
+
+<p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="ACS Document 1996 reaction drawn from a JSON spec: an alpha,beta-unsaturated ester with a C10H21 abbreviation is hydrogenated with H2 and Pd/C"></p>
+
+Abbreviations stay real `GenericNickname` nodes with correct subscripts and label direction. Chinese characters are set in a CJK font while Latin text, digits and symbols stay in Arial. See the [ACS 1996 drawing guide](skill/chemdraw/references/acs1996-drawings.md).
+
+## Reproduce a paper figure
+
+Start with the whole figure, then follow one route:
+
+<p align="center">
+  <code>Inspect</code> → <code>Crop structures</code> → <code>DECIMER</code> → <code>Match orientation</code> → <code>Side-by-side review</code> → <code>Correct chemistry</code> → <code>Assemble layout</code> → <code>Native preview</code>
+</p>
+
+```text
+Use the ChemDraw Skill to reproduce this paper figure. Read the whole scheme,
+crop each complete structure, and obtain DECIMER candidates. Match the original
+orientation, inspect actual side-by-side previews, and correct only the affected
+structures. Transcribe the conditions, then deliver editable CDXML and a
+native preview.
+```
+
+[Image reconstruction guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
+
+Three openly licensed schemes are rebuilt as worked cases, each with the reference crop, the brief in the journal's style and the native render:
+
+| Case | Journal style | Files |
+| --- | --- | --- |
+| Pd-catalysed amination in water, *JACS Au* 2024 | `lipshutz_group` | [CASE.md](skill/chemdraw/assets/paper-replica/jacs-au-pd-amination/CASE.md) |
+| DPDTC synthesis for amide coupling, *Chem. Sci.* 2023 | `rsc_journals` | [CASE.md](skill/chemdraw/assets/paper-replica/chem-sci-amide-coupling/CASE.md) |
+| Ni-catalysed electroreductive arylation, *Nat. Commun.* 2025 | `nature_portfolio` | [CASE.md](skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/CASE.md) |
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/reference.png" alt="Published Nat. Commun. scheme: 1a and 2a give 3a under nickel-catalysed electroreductive conditions"><br><sub>Published scheme (CC BY 4.0)</sub></td>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/rendered.png" alt="The same scheme drawn from a brief in the Nature Portfolio house style and rendered by ChemDraw"><br><sub>Drawn from <code>brief.json</code> with <code>"style": "nature_portfolio"</code></sub></td>
+  </tr>
+</table>
+
+| Need | Ready-to-use route |
+| --- | --- |
+| Crop and review an image | Crop/mask and comparison helpers that keep the region-to-result mapping |
+| Match a folded chain or bridged ring | Trace source coordinates, then check crossings and bond order |
+| Correct stereochemistry | Inspect atom indices, apply an explicit edit, and read back the final CDXML |
+| Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
+| Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
+
+Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored).
+
+<details>
+<summary><b>Rebuild the two complex schemes offline</b></summary>
+<br>
+
+Both schemes are built from real molecular objects (editable atoms, bonds and expandable abbreviations), together with text, brackets and electron arrows. The [atom-level comparison](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json) records component hashes and atom mappings.
+
+After installing the runtime, rebuild both layouts offline without repeating DECIMER recognition (use a new output directory):
+
+```bash
+python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
+```
+
+Native previews need desktop ChemDraw (Windows or macOS). See the [rebuild example](skill/chemdraw/assets/paper-reconstructions/README.md).
+
+</details>
 
 ## Reaction calculator and chemistry reports
 
@@ -718,65 +797,6 @@ No engine is needed. The 24-well Waters report and plate map from the PyParse ex
 | `reacon` | catalyst, solvent and reagent sets | 1.9 GB | none stated by the authors | yes |
 
 Sizes are finished installs on Windows with the CUDA build of PyTorch; a CPU install is smaller. `CHEMDRAW_ENGINE_HOME` moves them to another disk. `cdx.py engines --recommend NEED` says what a task needs before anything is downloaded. The licence and registry details are in [engines.md](skill/chemdraw/references/engines.md).
-
-## Reproduce a paper figure
-
-Start with the whole figure, then follow one route:
-
-<p align="center">
-  <code>Inspect</code> → <code>Crop structures</code> → <code>DECIMER</code> → <code>Match orientation</code> → <code>Side-by-side review</code> → <code>Correct chemistry</code> → <code>Assemble layout</code> → <code>Native preview</code>
-</p>
-
-```text
-Use the ChemDraw Skill to reproduce this paper figure. Read the whole scheme,
-crop each complete structure, and obtain DECIMER candidates. Match the original
-orientation, inspect actual side-by-side previews, and correct only the affected
-structures. Transcribe the conditions, then deliver editable CDXML and a
-native preview.
-```
-
-[Image reconstruction guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
-
-Three openly licensed schemes are rebuilt as worked cases, each with the reference crop, the brief in the journal's style and the native render:
-
-| Case | Journal style | Files |
-| --- | --- | --- |
-| Pd-catalysed amination in water, *JACS Au* 2024 | `lipshutz_group` | [CASE.md](skill/chemdraw/assets/paper-replica/jacs-au-pd-amination/CASE.md) |
-| DPDTC synthesis for amide coupling, *Chem. Sci.* 2023 | `rsc_journals` | [CASE.md](skill/chemdraw/assets/paper-replica/chem-sci-amide-coupling/CASE.md) |
-| Ni-catalysed electroreductive arylation, *Nat. Commun.* 2025 | `nature_portfolio` | [CASE.md](skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/CASE.md) |
-
-<table>
-  <tr>
-    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/reference.png" alt="Published Nat. Commun. scheme: 1a and 2a give 3a under nickel-catalysed electroreductive conditions"><br><sub>Published scheme (CC BY 4.0)</sub></td>
-    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/rendered.png" alt="The same scheme drawn from a brief in the Nature Portfolio house style and rendered by ChemDraw"><br><sub>Drawn from <code>brief.json</code> with <code>"style": "nature_portfolio"</code></sub></td>
-  </tr>
-</table>
-
-| Need | Ready-to-use route |
-| --- | --- |
-| Crop and review an image | Crop/mask and comparison helpers that keep the region-to-result mapping |
-| Match a folded chain or bridged ring | Trace source coordinates, then check crossings and bond order |
-| Correct stereochemistry | Inspect atom indices, apply an explicit edit, and read back the final CDXML |
-| Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
-| Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
-
-Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored).
-
-<details>
-<summary><b>Rebuild the two complex schemes offline</b></summary>
-<br>
-
-Both schemes are built from real molecular objects (editable atoms, bonds and expandable abbreviations), together with text, brackets and electron arrows. The [atom-level comparison](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json) records component hashes and atom mappings.
-
-After installing the runtime, rebuild both layouts offline without repeating DECIMER recognition (use a new output directory):
-
-```bash
-python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
-```
-
-Native previews need desktop ChemDraw (Windows or macOS). See the [rebuild example](skill/chemdraw/assets/paper-reconstructions/README.md).
-
-</details>
 
 ## Platform support
 

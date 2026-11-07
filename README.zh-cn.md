@@ -180,6 +180,18 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 
 ## 支持的工作
 
+需求大致分五类，每类都链接到对应章节；后面的表格列出全部工具领域。
+
+- **画新图**：[一句话生成](#one-command-figures)，按期刊或课题组的[画法风格](#期刊与课题组画法风格)画，或画[试卷与讲义插图](#acs1996-drawings)。
+- **复刻已有的图**：从论文图片或 PDF 出发，见[复刻论文反应图](#复刻论文反应图)。
+- **做计算**：[配料、材料表、表征文字和原子映射](#反应计算器与化学报告)。
+- **预测与识别**：[结构识别、路线、产物、条件和核磁位移](#预测与分析引擎)。
+- **放进文档**：Word 和 PowerPoint 里可编辑的 ChemDraw 对象。
+
+<details>
+<summary><b>全部工具领域一览</b></summary>
+<br>
+
 | 领域 | 能做什么 |
 | --- | --- |
 | **结构与反应** | 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档，并支持非破坏性地连接已打开的桌面 ChemDraw 活动窗口（`live_chemdraw_session`）与 MCP `@mcp.resource` / `@mcp.prompt` 协议端点。 |
@@ -203,19 +215,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 
 生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了内置工具包中已审计的公共符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。
 
-<a id="acs1996-drawings"></a>
-
-### 试卷与讲义插图：ACS Document 1996 格式
-
-用一个小 JSON 描述图：带 C10H21 等缩写节点的 SMILES、反应条件、箭头、加粗化合物代号和中文注释，即可得到可编辑的 ACS 1996 CDXML 与 ChemDraw 原生 PNG：
-
-```bash
-python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
-```
-
-<p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="由 JSON 描述生成的 ACS Document 1996 反应图：带 C10H21 缩写的 α,β-不饱和酯经 H2、Pd/C 氢化"></p>
-
-缩写基团保存为真实的 `GenericNickname` 节点，下标与标签方向自动处理。中文字符使用中文字体，同一段里的英文、数字和符号保持 Arial。详见 [ACS 1996 绘图指南](skill/chemdraw/references/acs1996-drawings.md)。
+</details>
 
 <a id="one-command-figures"></a>
 
@@ -310,6 +310,10 @@ python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_gr
   </tr>
 </table>
 
+<details>
+<summary><b>28 个风格一览</b></summary>
+<br>
+
 **出版社、专利与教材**
 
 | 风格 | 基础预设 | 画法 |
@@ -353,6 +357,8 @@ python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_gr
 | `sarpong_group` | `nature` | Sarpong（Berkeley）：笼状多环前侧键加粗，骨架编辑 |
 | `studer_group` | `nature` | Studer（Münster）：转移的 H 和新键红色，收率后接比例 |
 
+</details>
+
 同一份说明在其中六个风格下画出的同一个 Suzuki 偶联；[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)展示全部 28 个风格和 4 个预设：
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="同一个 Suzuki 偶联按六个画法风格画出：acs_jacs、nature_portfolio、baran_group、macmillan_group、science_aaas 和 glorius_group"></p>
@@ -366,6 +372,77 @@ python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_gr
 ### 从 CSV / Excel 生成 SAR 图和底物拓展图
 
 将 CSV/XLSX 与可信结构生成底物拓展图或完整结构 SAR 图。化合物 ID 绑定结构和实验指标；在 ChemDraw 手工编辑后更新数据或替换结构，保留无关布局与注释；无法唯一匹配时输出冲突草稿。详见[使用指南与示例](skill/chemdraw/references/data-driven-figures.md)。读取 XLSX 需要工具包的 `publication` 可选依赖。
+
+<a id="acs1996-drawings"></a>
+
+### 试卷与讲义插图：ACS Document 1996 格式
+
+用一个小 JSON 描述图：带 C10H21 等缩写节点的 SMILES、反应条件、箭头、加粗化合物代号和中文注释，即可得到可编辑的 ACS 1996 CDXML 与 ChemDraw 原生 PNG：
+
+```bash
+python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
+```
+
+<p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="由 JSON 描述生成的 ACS Document 1996 反应图：带 C10H21 缩写的 α,β-不饱和酯经 H2、Pd/C 氢化"></p>
+
+缩写基团保存为真实的 `GenericNickname` 节点，下标与标签方向自动处理。中文字符使用中文字体，同一段里的英文、数字和符号保持 Arial。详见 [ACS 1996 绘图指南](skill/chemdraw/references/acs1996-drawings.md)。
+
+## 复刻论文反应图
+
+先读整图，再沿一条路线执行：
+
+<p align="center">
+  <code>整图读图</code> → <code>裁切结构</code> → <code>DECIMER</code> → <code>匹配原图取向</code> → <code>左右对照</code> → <code>修正结构</code> → <code>组装版式</code> → <code>原生预览</code>
+</p>
+
+```text
+使用 ChemDraw Skill 复刻这张论文图。先读完整反应流程，再裁切各个完整结构，
+取得 DECIMER 识别候选。按原图取向重绘，实际查看左右对照并修正受影响结构；
+转录反应条件，最后交付可编辑 CDXML 和原生预览。
+```
+
+[图像复刻指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
+
+三张开放许可的反应式作为完整案例重建，每个都附参考截图、按期刊风格写的说明文件和原生渲染图：
+
+| 案例 | 期刊风格 | 文件 |
+| --- | --- | --- |
+| 水相钯催化胺化，*JACS Au* 2024 | `lipshutz_group` | [CASE.md](skill/chemdraw/assets/paper-replica/jacs-au-pd-amination/CASE.md) |
+| 用于酰胺偶联的 DPDTC 合成，*Chem. Sci.* 2023 | `rsc_journals` | [CASE.md](skill/chemdraw/assets/paper-replica/chem-sci-amide-coupling/CASE.md) |
+| 镍催化电还原芳基化，*Nat. Commun.* 2025 | `nature_portfolio` | [CASE.md](skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/CASE.md) |
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/reference.png" alt="已发表的 Nat. Commun. 反应式：1a 与 2a 在镍催化电还原条件下生成 3a"><br><sub>已发表的反应式（CC BY 4.0）</sub></td>
+    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/rendered.png" alt="同一反应式按 Nature Portfolio 风格从说明文件画出并由 ChemDraw 渲染"><br><sub>由 <code>brief.json</code> 以 <code>"style": "nature_portfolio"</code> 画出</sub></td>
+  </tr>
+</table>
+
+| 遇到的需求 | 现成处理路线 |
+| --- | --- |
+| 图像裁切与复核 | 裁切、遮罩和对照工具，保留区域与识别结果的对应关系 |
+| 折叠链条或桥环取向 | 追踪原图坐标，检查交叉关系和键级 |
+| 修正立体化学 | 查看原子编号，经接口明确修改，再读回最终 CDXML |
+| 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
+| 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
+
+识别时只把任务图片及其裁切图上传到 DECIMER API（`cdx.py decimer --preflight` 可先查看将要发送的内容；要求离线时不上传）。
+
+<details>
+<summary><b>离线重建两张复杂路线图</b></summary>
+<br>
+
+两张路线图都由真实的分子对象（可编辑的原子、键和可展开缩写）以及文字、括号和电子箭头组成。[逐原子检查记录](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json)给出组件哈希及原子对应关系。
+
+安装运行时后，可离线重建这两张布局，无需再次调用 DECIMER（请使用新的输出目录）：
+
+```bash
+python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
+```
+
+原生预览需要桌面版 ChemDraw（Windows 或 macOS）。详见[重建示例](skill/chemdraw/assets/paper-reconstructions/README.md)。
+
+</details>
 
 ## 反应计算器与化学报告
 
@@ -720,63 +797,6 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 | `reacon` | 催化剂、溶剂和试剂组合 | 1.9 GB | 作者未声明 | 是 |
 
 大小是 Windows 上装好后的实测值，含 CUDA 版 PyTorch，CPU 安装更小。`CHEMDRAW_ENGINE_HOME` 可把它们装到别的磁盘。`cdx.py engines --recommend 需求` 会在下载任何东西之前说明某项任务需要什么。许可和注册表细节见 [engines.md](skill/chemdraw/references/engines.md)。
-
-## 复刻论文反应图
-
-先读整图，再沿一条路线执行：
-
-<p align="center">
-  <code>整图读图</code> → <code>裁切结构</code> → <code>DECIMER</code> → <code>匹配原图取向</code> → <code>左右对照</code> → <code>修正结构</code> → <code>组装版式</code> → <code>原生预览</code>
-</p>
-
-```text
-使用 ChemDraw Skill 复刻这张论文图。先读完整反应流程，再裁切各个完整结构，
-取得 DECIMER 识别候选。按原图取向重绘，实际查看左右对照并修正受影响结构；
-转录反应条件，最后交付可编辑 CDXML 和原生预览。
-```
-
-[图像复刻指南](skill/chemdraw/references/image-visual-review.md) · [最小任务模板](skill/chemdraw/assets/paper-replica/task-template.json) · [绘图示例](skill/chemdraw/assets/paper-replica/example/CASE.md)
-
-三张开放许可的反应式作为完整案例重建，每个都附参考截图、按期刊风格写的说明文件和原生渲染图：
-
-| 案例 | 期刊风格 | 文件 |
-| --- | --- | --- |
-| 水相钯催化胺化，*JACS Au* 2024 | `lipshutz_group` | [CASE.md](skill/chemdraw/assets/paper-replica/jacs-au-pd-amination/CASE.md) |
-| 用于酰胺偶联的 DPDTC 合成，*Chem. Sci.* 2023 | `rsc_journals` | [CASE.md](skill/chemdraw/assets/paper-replica/chem-sci-amide-coupling/CASE.md) |
-| 镍催化电还原芳基化，*Nat. Commun.* 2025 | `nature_portfolio` | [CASE.md](skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/CASE.md) |
-
-<table>
-  <tr>
-    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/reference.png" alt="已发表的 Nat. Commun. 反应式：1a 与 2a 在镍催化电还原条件下生成 3a"><br><sub>已发表的反应式（CC BY 4.0）</sub></td>
-    <td width="50%" align="center" valign="top"><img src="skill/chemdraw/assets/paper-replica/nat-commun-ni-ereductive/rendered.png" alt="同一反应式按 Nature Portfolio 风格从说明文件画出并由 ChemDraw 渲染"><br><sub>由 <code>brief.json</code> 以 <code>"style": "nature_portfolio"</code> 画出</sub></td>
-  </tr>
-</table>
-
-| 遇到的需求 | 现成处理路线 |
-| --- | --- |
-| 图像裁切与复核 | 裁切、遮罩和对照工具，保留区域与识别结果的对应关系 |
-| 折叠链条或桥环取向 | 追踪原图坐标，检查交叉关系和键级 |
-| 修正立体化学 | 查看原子编号，经接口明确修改，再读回最终 CDXML |
-| 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
-| 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
-
-识别时只把任务图片及其裁切图上传到 DECIMER API（`cdx.py decimer --preflight` 可先查看将要发送的内容；要求离线时不上传）。
-
-<details>
-<summary><b>离线重建两张复杂路线图</b></summary>
-<br>
-
-两张路线图都由真实的分子对象（可编辑的原子、键和可展开缩写）以及文字、括号和电子箭头组成。[逐原子检查记录](skill/chemdraw/assets/paper-reconstructions/stereochemistry-check.json)给出组件哈希及原子对应关系。
-
-安装运行时后，可离线重建这两张布局，无需再次调用 DECIMER（请使用新的输出目录）：
-
-```bash
-python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructions/rebuild.py ./paper-figures-output
-```
-
-原生预览需要桌面版 ChemDraw（Windows 或 macOS）。详见[重建示例](skill/chemdraw/assets/paper-reconstructions/README.md)。
-
-</details>
 
 ## 平台支持
 
