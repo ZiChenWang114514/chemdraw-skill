@@ -49,11 +49,9 @@ class WorkflowTests(unittest.TestCase):
         self.assertRegex(texts["build.yml"], r"(?m)^  workflow_call:")
         builders = [name for name, text in texts.items() if "python -m build" in text]
         self.assertEqual(builders, ["build.yml"])
-        for caller in ("validate.yml", "release.yml"):
-            self.assertIn("uses: ./.github/workflows/build.yml", texts[caller], caller)
-        # The release also calls the full matrix; a second build there would upload a
-        # duplicate toolkit-dist artifact in the same run.
-        self.assertNotIn("build.yml", texts["validate-full.yml"])
+        # The release reaches build.yml through validate.yml, so the artifact is uploaded once.
+        self.assertIn("uses: ./.github/workflows/build.yml", texts["validate.yml"])
+        self.assertNotIn("build.yml", texts["release.yml"])
 
     def test_releases_are_created_from_version_tags_only(self) -> None:
         text = workflows()["release.yml"]
@@ -63,30 +61,24 @@ class WorkflowTests(unittest.TestCase):
         # Only the job that creates the release may write to the repository.
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read$")
         self.assertEqual(text.count("contents: write"), 1)
-        self.assertIn("uses: ./.github/workflows/validate-full.yml", text)
-        self.assertRegex(text, r"(?m)^    needs: \[build, validate\]$")
+        self.assertIn("uses: ./.github/workflows/validate.yml", text)
+        self.assertRegex(text, r"(?m)^    needs: \[validate\]$")
+        self.assertRegex(workflows()["validate.yml"], r"(?m)^  workflow_call:")
 
     def _toolkit_job(self, name: str) -> str:
         after = workflows()[name].split("  toolkit-tests:", 1)[1]
         return re.split(r"(?m)^  [a-z][\w-]*:$", after, maxsplit=1)[0]
 
-    def test_toolkit_suite_runs_on_every_supported_operating_system(self) -> None:
-        jobs = self._toolkit_job("validate.yml") + self._toolkit_job("validate-full.yml")
-        for runner in ("windows-latest", "ubuntu-latest", "macos-latest"):
-            self.assertIn(runner, jobs, runner)
-
-    def test_windows_covers_the_oldest_and_newest_supported_python(self) -> None:
-        # The newest runs on every change, the oldest in the full matrix; 3.12 runs on
-        # Ubuntu every change and on macOS in the full matrix.
+    def test_windows_runs_the_newest_supported_python(self) -> None:
         pyproject = (ROOT / "toolkit" / "pyproject.toml").read_text(encoding="utf-8")
-        oldest, ceiling = re.search(r'requires-python = ">=3\.(\d+),<3\.(\d+)"', pyproject).groups()
-        windows = r'- os: windows-latest\n\s+python-version: "3\.{}"'
+        ceiling = re.search(r'requires-python = ">=3\.(\d+),<3\.(\d+)"', pyproject).group(2)
+        windows = r'- os: windows-latest\s+python-version: "3\.{}"'
         self.assertRegex(self._toolkit_job("validate.yml"), windows.format(int(ceiling) - 1))
-        self.assertRegex(self._toolkit_job("validate-full.yml"), windows.format(oldest))
+        self.assertIn("ubuntu-latest", self._toolkit_job("validate.yml"))
 
     def test_pull_requests_run_a_small_set_of_jobs(self) -> None:
         # Every pull-request commit and every merge runs validate.yml, so it stays small;
-        # the rest of the matrix runs weekly, by hand and before a release.
+        # a release runs the same file.
         text = workflows()["validate.yml"]
         entries = len(re.findall(r"(?m)^          - os: ", text))
         plain = len(re.findall(r"(?m)^    runs-on: (?!\$)", text))
@@ -94,12 +86,6 @@ class WorkflowTests(unittest.TestCase):
         combos = len(portable.group(1).split(",")) * len(portable.group(2).split(","))
         self.assertLessEqual(entries + plain + combos + text.count("uses: ./.github/workflows/build.yml"), 5)
         self.assertNotIn("macos-latest", text)
-        full = workflows()["validate-full.yml"]
-        self.assertRegex(full, r"(?m)^  schedule:")
-        self.assertRegex(full, r"(?m)^  workflow_dispatch:")
-        self.assertRegex(full, r"(?m)^  workflow_call:")
-        for job in ("installer-end-to-end", "toolkit-mcp-compatibility", "full-portable-tests"):
-            self.assertIn(f"  {job}:", full, job)
 
     def test_generated_mcp_reference_is_checked_once(self) -> None:
         job = workflows()["validate.yml"].split("  toolkit-tests:", 1)[1].split("\n  toolkit-mcp-compatibility:", 1)[0]

@@ -78,7 +78,7 @@ python -m build
 python -m twine check dist/*
 ```
 
-Hosted CI runs these on Python 3.10–3.13 with MCP SDK 1.x and 2.x. Native ChemDraw, ChemScript, Word and PowerPoint checks run on a licensed Windows workstation (`.github/workflows/native-validate.yml` at the repository root). See the [contribution guide](../.github/contributing.md), the [security policy](../.github/SECURITY.md) and the [maintenance guide](docs/maintenance.md).
+Hosted CI runs Windows with Python 3.13 and Ubuntu with Python 3.12 on MCP SDK 2.x. Native ChemDraw, ChemScript, Word and PowerPoint checks run by hand on a licensed Windows workstation with `cdx.py doctor --native --office --chemscript`. See the [contribution guide](../.github/contributing.md), the [security policy](../.github/SECURITY.md) and the [maintenance guide](docs/maintenance.md).
 
 ## Provenance and license
 
