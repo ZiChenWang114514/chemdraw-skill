@@ -194,24 +194,23 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 
 | 领域 | 能做什么 |
 | --- | --- |
-| **结构与反应** | 解析名称和标识符；绘制、编辑、清理、合并、润色、拆分、转换和渲染 CDXML 或 CDX 文档，并支持非破坏性地连接已打开的桌面 ChemDraw 活动窗口（`live_chemdraw_session`）与 MCP `@mcp.resource` / `@mcp.prompt` 协议端点。 |
-| **按需求新画图** | 由简短的说明或紧凑语法（`compact_text`）画出单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或机理（支持配位键、自由基、`ring_fills` 环着色、药效团 `atom_halos`、多点连接配位键 `multi_attachments`、`[…]‡` 过渡态方括号、`<orbital>` 轨道瓣与三维构象模板），并在同一条命令里检查化学与版面。[详见下文](#one-command-figures)。 |
-| **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图（`build_acs_figure`），支持缩写节点、富文本、中文注释、箭头、带框化合物代号、JACS/Angew 环着色（`ring_fills`）、药效团光晕、多点连接配位键 `MultiAttachment`、过渡态方括号、分子轨道瓣与确定性三维构象模板（椅式环己烷、Newman、Haworth、Fischer、降冰片烷），并提供视觉与立体审计工具（`depict_like` 16 方向对齐、`read_wedges` 楔形键回读、`edit_structure` 原子索引与 E/Z 编辑器）。 |
-| **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
-| **期刊与课题组风格** | 同一个 `style` 键选择两层风格。16 个尺寸预设取自 ChemDraw 自带样式表（默认 ACS Document 1996，另有 Wiley、RSC、Nature Research、Thieme Synthesis/Synlett 等），设定键长、线宽和字体。28 个画法风格覆盖期刊、出版社、专利、教材和课题组（JACS、Org. Lett.、J. Med. Chem.、Angew. Chem.、Nature、Science、Chem. Sci.、Dalton Trans.，以及 Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer 等课题组），从 179 张开放许可图片截图中测得，写明每家怎么画 23 类图：化合物编号、收率位置、条件布局、缩写、新键着色、弯箭头和循环箭头、线宽和箭头长度。说明文件还能为单张图加标题、分图字母、说明文字、框和颜色。47 张已发表的图按各自风格重画，用来检验卡片。`cdx.py styles` 两层都列出。[详见下文](#期刊与课题组画法风格)。 |
-| **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
-| **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、PDF 结构抽取、前体、路线、多引擎路线并排对比图、产物、反应条件和 1H/13C 位移（含 `compare_nmr_shifts`），每个案例都对照已知答案运行并报告实际运行设备（`execution.device`）。批量输入和多步搜索会让模型常驻在工作进程中供下次调用使用（`--accel auto\|on\|off`；`cdx.py stop-daemons` 可随时结束）：在这台笔记本上，第二次 `predict products` 只用 0.6 秒，第一次为 13.7 秒。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
-| **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
-| **计算与报告** | ChemDraw 自带的化学计量表（用量、收率，可读回为数据）；含过程质量强度的 SI 原料表；HRMS 表征句与完整表征段落；基于扩展的 116 条 GHS 试剂安全表与 SMARTS 官能团结构警示的安全提示；多步路线总收率；原子映射；性质表、反应配平检查与结构导出。[详见下文](#反应计算器与化学报告)。 |
-| **TLC 与装置** | 原生 TLC 板、泳道、斑点及 ChemDraw 装置模板；支持 Rf 计算、自动共点泳道（`auto_cospot`）、显色剂配色（KMnO4、茚三酮、茴香醛、I2）与二维 TLC（`mode="2d"`），以及可编辑装置组装。 |
-| **谱图与科研绘图** | 通过 `nmrglue` 原生读取一维 NMR（Bruker `1r` 与原始 `fid`、JCAMP-DX `.jdx`/`.dx`、JEOL `.jdf`、Varian/Agilent `.fid`）及 CSV/FT 数据，支持寻峰、指定区间积分、氘代残留溶剂自动标注、多重峰裂分（*J* 耦合）、局部放大插图（`inset_region`）、多谱堆叠对比图（`stack_nmr`）以及多系列可编辑曲线。 |
-| **专利 Markush 通式** | 从专利图片和权利要求文本提取通式：R 基、可变环、多中心键与重复次数，保存为 CXSMILES、V3000 molfile 和沿用原图版式的可编辑绘图。 |
-| **反应机理** | 根据你列出的电子转移绘制弯箭头，或按明确的原子坐标复刻机理，包括电荷和抗衡离子。 |
-| **Office 文档** | 在桌面版 Word 和 PowerPoint 文档中嵌入可编辑的 ChemDraw 对象，可在 Windows 或 macOS 上用 ChemDraw 生成。 |
-| **实验记录** | 发现文件，并处理选定的 LCMS（Waters PDF、OpenLynx `.rpt`、含 `_HEADER.TXT` 元数据与色谱图的 Waters `.raw`、Shimadzu `.daml`、Agilent ChemStation `report.txt` 以及开放格式 `mzML` / `mzXML`），支持 Cl/Br `M+2` 同位素包络校验、跨时间点内标（`IS`）归一化与 24/96 孔板纯度热力图（`lcms_plate`），以及 SciFinder RDF 和实验记录工作流。 |
-| **ChemScript SDK** | 在 Windows 上检查已安装的公共目录，并在独立工作进程中执行受支持的声明式调用（macOS 上由 ChemDraw、OPSIN 和 RDKit 完成 ChemScript 操作，并模拟核心 SDK 类）。 |
-| **ChemDraw 接口覆盖** | 为 ChemDraw 22.2 的 ChemScript SDK、COM 对象、CDXML 元素和菜单命令建立目录，每一条标明是有专用工具、有已核对的配方，还是仅有文档；并提供操作 CDXML 元素、调用 COM 以及获取 ChemDraw 自身分子性质的工具。[详见](docs/guide.zh-cn.md#chemdraw-接口覆盖)。 |
-| **远程工作站访问** | 可选地通过 Streamable HTTP 对外提供 Windows 原生主机服务，带健康检查与 Prometheus 端点。 |
+| **结构与反应** | 解析名称和标识符；绘制、编辑、清理、合并、切分、转换并渲染 CDXML 或 CDX 文档。可在打开的 ChemDraw 窗口里工作，不干扰你正在编辑的文档。 |
+| **按一句话生成新图** | 单步反应、线性、汇聚或发散路线、催化循环、底物拓展图和机理图，由一份简短说明直接画出，同一条命令里检查化学和版面。[详见](#one-command-figures)。 |
+| **期刊与课题组风格** | 28 个画法风格覆盖期刊、出版社、专利、教材和课题组，从 179 张开放许可的图中测得，建立在 ChemDraw 自带样式表的 16 个尺寸预设之上。每个风格记录该来源在 23 类图里怎么写化合物编号、收率、条件、缩写、颜色、线宽和箭头。[详见](#期刊与课题组画法风格)。 |
+| **试卷、讲义与论文插图** | 由 JSON 说明生成 ACS Document 1996 图：缩写节点、中文注释、框住的化合物编号、环着色、轨道瓣、过渡态括号，以及椅式、Newman、Haworth、Fischer 等三维模板。 |
+| **数据驱动的图** | 从 CSV 或 XLSX 生成底物拓展图和 SAR 图，保持可编辑、可更新。 |
+| **反应机理** | 按电子转移列表画出弯箭头，或用明确的原子坐标、电荷和抗衡离子重建。 |
+| **专利 Markush 通式** | 由专利图片和权利要求文字得到通式：R 基团、可变环、多中心键和重复次数，保存为 CXSMILES、V3000 molfile 和可编辑图。 |
+| **图像识别** | 通过 DECIMER API 或本地模型得到候选结构、置信度和边框。 |
+| **引擎与预测** | 15 个可选引擎，经你同意才安装：同一张图用六个识别器对比、从 PDF 取结构、前体与路线、产物、反应条件和 1H/13C 位移。所有结果都标明是预测。[案例与安装大小](#预测与分析引擎)。 |
+| **计算器与报告** | ChemDraw 自带的化学计量表并读回数据；含过程质量强度的 SI 材料表；HRMS 行与表征段落；来自 116 条 GHS 表的安全提示；路线总收率；原子映射；性质表和反应配平检查。[详见](#反应计算器与化学报告)。 |
+| **TLC 与装置** | 原生 TLC 板：点样道、斑点、Rf、共点样道、显色剂配色和二维板；用 ChemDraw 模板搭装置。 |
+| **谱图与科研绘图** | 读取 Bruker、JCAMP-DX、JEOL、Varian/Agilent 的一维核磁，做峰检测、积分、残留溶剂标注、多重峰、放大插图和堆叠谱；数值数据画成可编辑曲线。 |
+| **实验记录** | LCMS 报告（Waters、OpenLynx、Shimadzu、Agilent ChemStation、mzML 和 mzXML），含 Cl/Br 同位素检验、内标归一化和 24/96 孔纯度热图；SciFinder RDF 与实验记录流程。 |
+| **分子比较** | 各平台都有 RDKit 指纹相似度；精确一致性检查在 Windows 用 ChemScript，在 macOS 用 ChemDraw。 |
+| **Office 文档** | 在桌面版 Word 和 PowerPoint 里放入可编辑的 ChemDraw 对象，由 Windows 或 macOS 上的 ChemDraw 生成。 |
+| **ChemScript 与 ChemDraw 接口** | Windows 上的 ChemScript SDK，以及 ChemDraw 22.2 的 COM 对象、CDXML 元素和菜单命令目录，每项标明有专用工具、已验证的做法或仅有文档。[详见](docs/guide.zh-cn.md#chemdraw-接口覆盖)。 |
+| **远程工作站访问** | 可选：通过 Streamable HTTP 暴露 Windows 主机，带健康检查和 Prometheus 指标。 |
 
 生成的[公共接口清单](skill/chemdraw/references/toolkit-public-inventory.md)记录了内置工具包中已审计的公共符号，与已注册工具分开统计（`cdx.py tools` 会打印当前数量）。
 
