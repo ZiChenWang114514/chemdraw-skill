@@ -12,7 +12,7 @@
 <h3 align="center">让 Claude Code、Codex 等任意 AI 编程 Agent 都能产出可编辑的 ChemDraw 化学图</h3>
 
 <p align="center">
-  画化学结构、复刻论文图、用表格数据生成 SAR 图，在 Word 和 PowerPoint 里放入可编辑的 ChemDraw 对象。
+  按 28 个期刊、出版社和课题组（JACS、Angew、Nature、Science、Baran、MacMillan 等）的画法风格画图，复刻论文图，用表格数据生成 SAR 图，在 Word 和 PowerPoint 里放入可编辑的 ChemDraw 对象。
   同一个 Skill 还能算反应的投料量、写表征段落、给反应做原子映射。<br>
   Claude Code、Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 以及任何能执行命令行的 Agent 都可以用。
 </p>
@@ -34,6 +34,12 @@
 <br>
 
 <table>
+  <tr>
+    <td colspan="3" align="center">
+      <a href="#期刊与课题组画法风格"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="按 Studer 课题组画法风格重画的已发表自由基探针反应式，新键为红色"></a>
+      <br><b>28 个期刊与课题组画法风格</b><br><sub>测自 179 张已发表的图；23 类图，47 个文献复现案例</sub>
+    </td>
+  </tr>
   <tr>
     <td width="25%" valign="top"><b>结构有来源</b><br><sub>结构来自数据库、OPSIN、ChemScript 或 DECIMER，Agent 不凭记忆写 SMILES。</sub></td>
     <td width="25%" valign="top"><b>输出可编辑</b><br><sub>结果是 CDXML，原子、键和文字之后仍能在 ChemDraw 里修改。</sub></td>
@@ -99,13 +105,7 @@
       <br><b>预测与实测核磁对比</b><br><sub>MagNET 与 NMRNet++ 对照真实谱图</sub>
     </td>
   </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <a href="#期刊与课题组画法风格"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="按 Studer 课题组画法风格重画的已发表自由基探针反应式，新键为红色"></a>
-      <br><b>28 个期刊与课题组画法风格</b><br><sub>测自 179 张已发表的图；23 类图，47 个文献复现案例</sub>
-    </td>
-  </tr>
-</table>
+  </table>
 
 ## 快速开始
 
@@ -425,6 +425,8 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 | 修正立体化学 | 查看原子编号，经接口明确修改，再读回最终 CDXML |
 | 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
 | 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
+
+更多例子见[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)：47 张已发表的图按各自期刊或课题组的画法重画，每张都附说明文件。
 
 识别时只把任务图片及其裁切图上传到 DECIMER API（`cdx.py decimer --preflight` 可先查看将要发送的内容；要求离线时不上传）。
 
@@ -835,7 +837,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 
 ## 测试与安全
 
-- 每个 PR 只跑一小组 CI：发布校验、Windows（Python 3.13）和 Linux（3.12）上的工具包测试、Windows 上的 Skill 测试和打包。其余部分每周跑一次，每次发版前也要先跑通：Linux 和 MCP 1.28.1 上的 Skill 测试、Python 3.10 和 macOS 上的工具包测试、两个 MCP SDK 大版本，以及 Windows、Linux 和 macOS 上的端到端安装测试。ChemDraw、ChemScript 和 Office 的原生功能在一台已授权的 Windows 工作站上手动测试；macOS 的 AppleScript 路径在 macOS 26.6（Apple 芯片）和 ChemDraw 26.0 上测试过。
+- 每次 PR、合并和发版都跑同一个 CI 文件（`validate.yml`）：发布校验、Windows（Python 3.13）和 Linux（3.12）上的工具包测试、Windows 上的 Skill 测试和打包。macOS 和 Python 3.10 受支持，但 CI 不跑。ChemDraw、ChemScript 和 Office 的原生功能在一台已授权的 Windows 工作站上手动测试；macOS 的 AppleScript 路径在 macOS 26.6（Apple 芯片）和 ChemDraw 26.0 上测试过。
 - 工具只写入新的输出路径，除非你明确要求，否则不会覆盖已有文件。
 - 图像识别只把选定的图片发送到 DECIMER API。`cdx.py decimer --preflight` 可以先看将要发送什么，要求离线时不上传。各类报告和映射器在本地运行，ChemDraw 的化学计量表由本机的 ChemDraw 计算；只有报告在名称不在内置表中时才会联网查询，设置 `CHEMDRAW_OFFLINE=1` 可关闭。
 - 可选的预测引擎在各自的独立环境中本地运行，不上传任何内容；下载内容按固定哈希校验。它们的结果是模型预测，并会如此标注。
@@ -856,6 +858,14 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <br>
 
 不需要。命令行覆盖全部工具，并保留同样的工作进程隔离、ChemDraw 原生锁和超时控制。需要类型化工具调用的客户端仍可使用 MCP。
+
+</details>
+
+<details>
+<summary><b>能按某个期刊或课题组的画法来画吗？</b></summary>
+<br>
+
+能，现有 28 个，从 JACS、Angew. Chem.、Nature、Science 到 Baran、MacMillan、Glorius、Houk 等课题组。风格记录了该期刊或课题组怎么写化合物编号、收率放在哪、条件怎样分布在箭头上下、哪些键上色，以及线宽和箭头长度，数据都量自开放许可的已发表图。画图命令加 `--style 名称` 即可，`cdx.py styles` 列出全部。风格只是按这些图里看到的习惯来画，不是出版社的官方模板，也不会复制任何一张图。详见[期刊与课题组画法风格](#期刊与课题组画法风格)和[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)。
 
 </details>
 

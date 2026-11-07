@@ -12,7 +12,7 @@
 <h3 align="center">Editable ChemDraw chemistry for Claude Code, Codex and any AI coding agent</h3>
 
 <p align="center">
-  Draw structures, rebuild paper figures, build SAR panels from a spreadsheet and put live ChemDraw objects into Word and PowerPoint.
+  Draw in the house style of 28 journals, publishers and research groups (JACS, Angew, Nature, Science, Baran, MacMillan and more), rebuild paper figures, build SAR panels from a spreadsheet and put live ChemDraw objects into Word and PowerPoint.
   The same Skill also weighs out reactions, writes characterization paragraphs and maps atoms across a reaction.<br>
   It runs in Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and any agent that can run a shell command.
 </p>
@@ -34,6 +34,12 @@
 <br>
 
 <table>
+  <tr>
+    <td colspan="3" align="center">
+      <a href="#journal-and-group-house-styles"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="A published radical-probe scheme redrawn in the Studer group house style, new bonds in red"></a>
+      <br><b>28 journal and group house styles</b><br><sub>Measured from 179 published figures; 23 figure types, 47 literature replicas</sub>
+    </td>
+  </tr>
   <tr>
     <td width="25%" valign="top"><b>Structures with a source</b><br><sub>A structure comes from a database, OPSIN, ChemScript or DECIMER. The agent does not type SMILES from memory.</sub></td>
     <td width="25%" valign="top"><b>Editable output</b><br><sub>Results are CDXML. Atoms, bonds and text can be changed in ChemDraw afterwards.</sub></td>
@@ -99,13 +105,7 @@ Every card is a native ChemDraw render of an editable file in this repository. C
       <br><b>Predicted against measured NMR</b><br><sub>MagNET and NMRNet++ on a real spectrum</sub>
     </td>
   </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <a href="#journal-and-group-house-styles"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="A published radical-probe scheme redrawn in the Studer group house style, new bonds in red"></a>
-      <br><b>28 journal and group house styles</b><br><sub>Measured from 179 published figures; 23 figure types, 47 literature replicas</sub>
-    </td>
-  </tr>
-</table>
+  </table>
 
 ## Quick start
 
@@ -425,6 +425,8 @@ Three openly licensed schemes are rebuilt as worked cases, each with the referen
 | Correct stereochemistry | Inspect atom indices, apply an explicit edit, and read back the final CDXML |
 | Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
 | Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
+
+For many more figures, the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas) shows 47 published figures redrawn in their journal or group style, each with its brief.
 
 Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored).
 
@@ -835,7 +837,7 @@ ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled
 
 ## Testing and security
 
-- Every pull request runs a small CI set: the distribution checks, the toolkit suite on Windows (Python 3.13) and Linux (3.12), the Skill tests on Windows and the package build. A weekly run, which also gates each release, covers the rest: the Skill tests on Linux and with MCP 1.28.1, the toolkit suite on Python 3.10 and macOS, both MCP SDK majors, and an end-to-end install on Windows, Linux and macOS. Native ChemDraw, ChemScript and Office features are tested by hand on a licensed Windows workstation. The macOS AppleScript path was tested on macOS 26.6 (Apple silicon) with ChemDraw 26.0.
+- Every pull request, merge and release runs one CI file (`validate.yml`): the distribution checks, the toolkit suite on Windows (Python 3.13) and Linux (3.12), the Skill tests on Windows and the package build. macOS and Python 3.10 are supported but not run in CI. Native ChemDraw, ChemScript and Office features are tested by hand on a licensed Windows workstation. The macOS AppleScript path was tested on macOS 26.6 (Apple silicon) with ChemDraw 26.0.
 - Tools write to a new output path and refuse to overwrite an existing file unless you ask.
 - Image recognition sends only the selected images to the DECIMER API. `cdx.py decimer --preflight` shows what would be sent, and an offline request is honored. The reports and the mappers run locally, and ChemDraw's stoichiometry grid is computed by ChemDraw on your machine. Only the reports look a name up online, when it is not in the built-in table; `CHEMDRAW_OFFLINE=1` turns that off.
 - Optional prediction engines run locally in separate environments and upload nothing; their downloads are checked against pinned hashes. Their answers are model predictions and are labelled as such.
@@ -856,6 +858,14 @@ Yes. An agent needs to read the Skill instructions and run shell commands; every
 <br>
 
 No. The command line covers every tool and keeps the same worker isolation, native ChemDraw lock and timeouts. MCP remains available for clients that want typed tool calls.
+
+</details>
+
+<details>
+<summary><b>Can it draw in the style of a particular journal or research group?</b></summary>
+<br>
+
+Yes, for 28 of them, from JACS, Angew. Chem., Nature and Science to the Baran, MacMillan, Glorius and Houk groups. A style records how that journal or group sets compound numbers, where it puts the yield, how it splits conditions around the arrow, which bonds it colours, and its line widths and arrow lengths, measured from openly licensed figures. Add `--style NAME` to a draw command; `cdx.py styles` lists them. A style follows the conventions seen in those figures. It is not a publisher template and does not copy any figure. See [journal and group house styles](#journal-and-group-house-styles) and the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md).
 
 </details>
 
