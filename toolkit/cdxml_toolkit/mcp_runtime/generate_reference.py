@@ -60,6 +60,8 @@ def render_markdown(profile: str = "full") -> str:
         "# MCP Tool Reference",
         "",
         "> Generated from the live community registry. Do not edit manually.",
+        "> Lookup table, not a guide. Fetch one tool with `python scripts/cdx.py sig NAME` "
+        "(several: `sig A B`; all names: `cdx.py tools`). Do not read this file end to end.",
         "",
         f"Distribution: `{data['distribution']} {data['version']}`",
         f"Profile: `{profile}`",
