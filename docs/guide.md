@@ -58,7 +58,7 @@ For confidential or offline work set `CHEMDRAW_OFFLINE=1`: PubChem lookups, the 
 
 ## Drawing styles
 
-Every figure takes a `style` name, in a draw, scope or mechanism brief, a compose manifest or a `cdx.py build` spec, or as `cdx.py draw --style NAME`. `cdx.py styles` lists the sixteen measurement presets read from ChemDraw's stock style sheets (bond length, line widths, fonts; `acs1996` by default) and the eight house styles that add a journal's or research group's scheme conventions on top of a preset; `cdx.py styles NAME` prints one card with its evidence, and MCP clients read it from `chemdraw://style-guide/{name}`. See [journal and group house styles](../README.md#journal-and-group-house-styles) and the [style gallery](../skill/chemdraw/assets/house-styles/gallery/README.md).
+Every figure takes a `style` name, in a draw, scope or mechanism brief, a compose manifest or a `cdx.py build` spec, or as `cdx.py draw --style NAME`. `cdx.py styles` lists the sixteen measurement presets read from ChemDraw's stock style sheets (bond length, line widths, fonts; `acs1996` by default) and the 28 house styles (journals, publishers, patents, textbooks and research groups) that add, on top of a preset, how each draws 23 kinds of figure, measured from 179 crops of openly licensed figures; a brief can also set a title, panel letter, captions, boxes and colours for one figure; `cdx.py styles NAME` prints one card with its evidence, and MCP clients read it from `chemdraw://style-guide/{name}`. See [journal and group house styles](../README.md#journal-and-group-house-styles) and the [style gallery](../skill/chemdraw/assets/house-styles/gallery/README.md), which also indexes 153 published figures redrawn in their own style.
 
 ## ChemDraw interface coverage
 
