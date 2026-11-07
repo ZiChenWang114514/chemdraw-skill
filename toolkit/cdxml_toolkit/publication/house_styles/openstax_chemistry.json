@@ -1,0 +1,303 @@
+{
+  "slug": "openstax_chemistry",
+  "kind": "publisher",
+  "display_name": "OpenStax Chemistry textbooks (CC BY editions)",
+  "applies_to": [
+    "OpenStax Chemistry and Chemistry: Atoms First (first editions, CC BY 4.0)",
+    "general-chemistry teaching figures"
+  ],
+  "base_preset": "chemdraw_slide",
+  "measured": {
+    "bond_length_over_cap_height": 3.2,
+    "line_width_over_bond_length": 0.049,
+    "bold_width_over_bond_length": 0.24,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 2.5
+  },
+  "conventions": {
+    "compound_label_face": null,
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": null,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": null,
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": null,
+    "aromatic_rings": null,
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "short plain arrows (about 2.5 bond lengths) with open V heads, not filled (crops 03, 09)",
+      "species never numbered (crops 03, 09); crop 03 gives no species names and crop 09 names only the groups and the process, in plain sans-serif words",
+      "atoms or groups that change drawn in dark red #901800 (crop 09); new bond in the product drawn in the same red",
+      "functional groups framed by dashed lime-green #7CE400 outline boxes with plain side labels (crop 09)",
+      "a curved arrow leaving the main arrow to show the lost by-product (H2O in red) (crop 09)"
+    ],
+    "notes": {
+      "compound_label_face": "no compound numbers in any crop; crop 03 has no species names and crop 09 names groups and the process, so no species-naming convention is established",
+      "aromatic_rings": "no aromatic ring in the reaction crops; pyridine elsewhere in the book is drawn Kekule with explicit C and H",
+      "new_bond_color": "null: the new peptide bond is dark red in crop 09 only; crop 03 has no coloured bonds, so the top-level value has one crop (the red is recorded under reaction_scheme)",
+      "measured": "bond_length_over_cap_height 3.2 is the value of crops 07 (38.4 px / 12 px) and 09 (51.2 px / 16 px); crop 04 gives 3.67 on its recorded 55 px / 15 px, so the spread is 3.2 to 3.67. line_width_over_bond_length 0.049 is the value of crops 07 (1.9 px / 38.4 px) and 09 (2.5 px / 51.2 px); crop 04 gives 0.036 (2 px / 55 px), not re-measured. bold_width_over_bond_length 0.24 is crop 04 only (13 px / 55 px). arrow_length_over_bond_length 2.5 is crop 09 only (138 px / 55 px on the recorded values; 126 px / 51.2 px on pixels, 2.46). Pixel measures use an 8-bit luminance threshold of 140 on the crop."
+    }
+  },
+  "evidence": [
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 12.7 Catalysis",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 12.21",
+      "crop": "evidence/openstax_chemistry-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "reaction-coordinate diagram with smooth curves: uncatalyzed path red #BC4428, catalyzed path light blue #8894C8; Ea shown as vertical double arrows, the catalysed one red and the uncatalysed one black; Transition state and Activation energy as plain text labels; Energy and Extent of Reaction bold axis titles; condensed formulas H2C=CH2 with H2 written beneath it at the start and H3C-CH3 at the end"
+    },
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 12.7 Catalysis",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 12.22",
+      "crop": "evidence/openstax_chemistry-02.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "smooth energy curves, uncatalyzed red #BC2404, catalyzed blue #4060F4 with two humps; labels Uncatalyzed pathway and Catalyzed pathway in plain Arial with thin leader lines, Reactants and Products in plain Arial without leader lines; axes with arrowheads, no numbers and no units"
+    },
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 12.6 Reaction Mechanisms",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 12.19",
+      "crop": "evidence/openstax_chemistry-03.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "mechanism drawn with space-filling ball models (O red, N blue, C dark grey, element letters in white); plain arrows and plus signs inline; Transition state as small plain text under the activated complex"
+    },
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 19.2 Coordination Chemistry of Transition Metals",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 19.21",
+      "crop": "evidence/openstax_chemistry-04.png",
+      "measurements_px": {
+        "bond_length": 55,
+        "cap_height": 15,
+        "line_width": 2,
+        "bold_width": 13,
+        "arrow_length": null
+      },
+      "observations": "octahedral cis and trans [Co(H2O)4Cl2]+ with plain lines on the vertical axis, hashed wedges behind and bold wedges in front; complex in square brackets with charge + top right; title above with cis/trans in italic"
+    },
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 19.2 Coordination Chemistry of Transition Metals",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 19.23",
+      "crop": "evidence/openstax_chemistry-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "the two enantiomers of [M(en)3] drawn as mirror images either side of a vertical dashed mirror line; en chelates written as condensed CH2 and NH2 labels; wedges and hashes on the octahedron"
+    },
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 19.2 Coordination Chemistry of Transition Metals",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 19.30",
+      "crop": "evidence/openstax_chemistry-06.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "EDTA-metal complex: metal M and the six metal-donor bonds in red-brown #983820 (plain lines axial, red bold and hashed wedges equatorial); ligand in black condensed CH2 labels; charges on O as plain superscript minus"
+    },
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 20.1 Hydrocarbons",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 20.3",
+      "crop": "evidence/openstax_chemistry-07.png",
+      "measurements_px": {
+        "bond_length": 38.4,
+        "cap_height": 12,
+        "line_width": 1.9,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "the same alkane as expanded formula (all C and H with 90 degree bonds), condensed formula and skeletal structure side by side, each named underneath in plain Arial"
+    },
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 20.1 Hydrocarbons",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 20.10",
+      "crop": "evidence/openstax_chemistry-08.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "three butene isomers in columns: structural formula on top (the CH3 groups that differ in red-brown #983820), ball-and-stick model below, space-filling model at the bottom; cis and trans in italic, a brace grouping the two 2-butenes"
+    },
+    {
+      "doi": null,
+      "citation": "Flowers, Theopold, Langley, Robinson et al., OpenStax Chemistry 2015, section 20.4 Amines and Amides",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 20.20",
+      "crop": "evidence/openstax_chemistry-09.png",
+      "measurements_px": {
+        "bond_length": 51.2,
+        "cap_height": 16,
+        "line_width": 2.5,
+        "bold_width": null,
+        "arrow_length": 126
+      },
+      "observations": "two amino acids joined by + over a vertical plain arrow; Condensation reaction written beside the arrow; curved arrow carrying H2O away in red #901800; reacting OH and H in red; dashed lime-green #7CE400 boxes around amino and carboxyl groups; peptide bond in red with an arrow and plain label"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": null,
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": "#901800"
+      },
+      "signature_features": [
+        "dashed lime-green #7CE400 outline boxes around functional groups, labels outside the box (crop 09)",
+        "reacting atoms (OH, H), lost H2O and the new peptide bond in dark red #901800 (crop 09)",
+        "process name (Condensation reaction) beside a vertical arrow (crop 09)"
+      ],
+      "crops": [
+        "evidence/openstax_chemistry-09.png"
+      ],
+      "notes": "rests on crop 09 alone and is unambiguous there: the changed atoms, the new bond and the lost H2O are all #901800; crop 03 is a mechanism with CPK ball models and is listed under mechanism"
+    },
+    "energy_profile": {
+      "conventions": {
+        "energy_unit": null,
+        "energy_label": null,
+        "level_style": "smooth_curve",
+        "pathway_colors": [
+          "#BC4428",
+          "#8894C8"
+        ],
+        "ts_marker": "none",
+        "intermediate_label_style": "none"
+      },
+      "signature_features": [
+        "smooth curves on unnumbered axes with arrowheads; axis titles Energy and Extent of reaction in bold Arial",
+        "uncatalyzed path red (#BC4428 in crop 01, #BC2404 in crop 02), catalyzed path blue (#8894C8 in crop 01, #4060F4 in crop 02)",
+        "Ea as vertical double-headed arrows (crop 01 only): the catalysed arrow is red and the uncatalysed arrow black",
+        "Reactants, Products and Transition state as plain text with no leader line; thin leader lines only on the Activation energy labels (crop 01) and on the Uncatalyzed pathway and Catalyzed pathway labels (crop 02)",
+        "a thin reference line at the reactant energy and a double-headed ΔH arrow labelled ΔH < 0 exothermic (crop 01 only)",
+        "the catalysed curve has darker blue (#4D68AF) flat ends at the reactant and product levels (crop 01 only)"
+      ],
+      "crops": [
+        "evidence/openstax_chemistry-01.png",
+        "evidence/openstax_chemistry-02.png"
+      ],
+      "notes": "no units or energy values on either crop; the red/blue pairing agrees but the exact shades differ between figures; Ea arrows and the Transition state label are in crop 01 only; top-level substrate_layout and show_plus_sign describe reaction schemes and are not applied here, since crop 01 stacks its reactant formulas (H2C=CH2 over H2) with no plus sign"
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": null,
+        "curved_arrow_weight": null,
+        "show_lone_pairs": null,
+        "formal_charge_style": null,
+        "intermediate_label_style": "none",
+        "ts_marker": "none",
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "elementary steps drawn with space-filling ball models in CPK colours (O red, N blue, C dark grey) with white element letters",
+        "activated complex labelled Transition state in small plain text, no brackets or double dagger"
+      ],
+      "crops": [
+        "evidence/openstax_chemistry-03.png"
+      ],
+      "notes": "rests on one crop; the CC BY Chemistry book has no curved-arrow mechanism figures (arrow pushing is in OpenStax Organic Chemistry, which is CC BY-NC-SA and was not used)"
+    },
+    "coordination_complex": {
+      "conventions": {
+        "dative_bond_style": "line",
+        "metal_color": null,
+        "highlight_fill": null,
+        "formal_charge_style": "plain"
+      },
+      "signature_features": [
+        "octahedra drawn with plain axial lines, bold wedges to the front and hashed wedges to the back",
+        "complex ion in square brackets with the charge as a plain superscript at the top right (crop 04); the neutral EDTA chelate in crop 06 has no brackets",
+        "in the EDTA figure the metal and its six donor bonds are red-brown #983820, ligand black"
+      ],
+      "crops": [
+        "evidence/openstax_chemistry-04.png",
+        "evidence/openstax_chemistry-06.png"
+      ],
+      "notes": "metal_color null: black in crop 04, red-brown in crop 06; the square-bracket rule is from crop 04 only"
+    },
+    "stereo_model": {
+      "conventions": {
+        "model_style": null,
+        "ts_marker": null,
+        "highlight_fill": null,
+        "variation_color": "#983820"
+      },
+      "signature_features": [
+        "flat wedge-and-hash projections of octahedra with no perspective (crops 04, 05)",
+        "enantiomers drawn as mirror images separated by a vertical dashed mirror line (crop 05)",
+        "cis/trans isomers side by side with cis and trans in italic (crops 04, 08)",
+        "line formula stacked over ball-and-stick and space-filling models of the same molecule (crop 08)",
+        "the groups whose arrangement differs coloured red-brown #983820 (crop 08)"
+      ],
+      "crops": [
+        "evidence/openstax_chemistry-04.png",
+        "evidence/openstax_chemistry-05.png",
+        "evidence/openstax_chemistry-08.png"
+      ],
+      "notes": "model_style null: crops 04 and 05 are flat projections with plain lines, bold and hashed wedges, which no listed style covers; only crop 08 shows ball-and-stick and space-filling models, so perspective_3d would rest on one crop against two. No chair or Newman projections in the CC BY editions' figures checked (chapters 12, 19, 20); variation_color from crop 08 only"
+    },
+    "structure_panel": {
+      "conventions": {
+        "highlight_fill": null,
+        "variation_color": null,
+        "intermediate_label_style": "none"
+      },
+      "signature_features": [
+        "one molecule shown in several notations side by side (expanded, condensed, skeletal), each captioned underneath in plain Arial (crop 07)",
+        "expanded formulas with every C and H written and bonds at 90 degrees (crop 07)"
+      ],
+      "crops": [
+        "evidence/openstax_chemistry-07.png"
+      ],
+      "notes": "rests on crop 07 alone. variation_color null: all black in crop 07. Crop 08 shows three different butenes (1-butene, cis- and trans-2-butene), so it is listed under stereo_model and not here"
+    }
+  }
+}

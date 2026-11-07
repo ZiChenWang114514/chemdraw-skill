@@ -1,0 +1,14 @@
+{
+  "style": "macmillan_group",
+  "species": [
+    {"id": "4", "smiles": "C=C1CCN(CC1)C(=O)OCc1ccccc1", "label": "4"},
+    {"id": "ArCO2H", "smiles": "COc1ccccc1C(=O)O"},
+    {"id": "MeCO2Phth", "smiles": "CC(=O)ON1C(=O)c2ccccc2C1=O"},
+    {"id": "5", "smiles": "COc1ccccc1C(=O)OCC1(C)CCN(CC1)C(=O)OCc1ccccc1", "label": "5"}
+  ],
+  "steps": [
+    {"substrates": ["4", "ArCO2H", "MeCO2Phth"], "products": ["5"],
+     "above": ["Ir, light, Ni"], "below": ["4 mmol scale"], "yield": "64%"}
+  ],
+  "max_width": 504
+}

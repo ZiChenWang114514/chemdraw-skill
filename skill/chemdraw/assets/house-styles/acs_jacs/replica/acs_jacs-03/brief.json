@@ -1,0 +1,12 @@
+{
+  "style": "acs_jacs",
+  "species": [
+    {"id": "1a", "smiles": "[C-]#[N+]c1ccc(Br)cc1", "label": "1a"},
+    {"id": "2", "smiles": "C[Si](C)(C)N=[N+]=[N-]", "label": "2"},
+    {"id": "3a18O", "smiles": "[18O]=C(N=[N+]=[N-])Nc1ccc(Br)cc1", "label": "[18O]-3a"}
+  ],
+  "steps": [
+    {"substrates": ["1a", "2"], "products": ["3a18O"], "above": ["H₂¹⁸O (2.0 equiv)"], "below": ["optimized conditions"], "yield": "68%"}
+  ],
+  "max_width": 504
+}

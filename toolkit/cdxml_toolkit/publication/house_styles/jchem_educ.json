@@ -1,0 +1,297 @@
+{
+  "slug": "jchem_educ",
+  "kind": "journal",
+  "display_name": "Journal of Chemical Education (ACS)",
+  "applies_to": [
+    "J. Chem. Educ. articles, laboratory experiments and teaching figures"
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.2,
+    "line_width_over_bond_length": 0.05,
+    "bold_width_over_bond_length": 0.24,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 9.2
+  },
+  "conventions": {
+    "compound_label_face": null,
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": null,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": null,
+    "substrate_layout": null,
+    "abbreviate_groups": null,
+    "aromatic_rings": null,
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": null,
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "signature_features": [
+      "thin plain line arrows, not bold (crops 01, 02); crop 02 uses paired equilibrium arrows for a reversible step",
+      "reaction name above the arrow in plain Arial (crop 02); reagents above the arrow with the ligand names in bold (crop 01)",
+      "ligand names in bold, coloured L1 teal #005474 and L2 orange #D87C5C (crop 01)",
+      "bold compound numbers with the isotopologue suffix in italic, as 1-dx and 2-dx (crop 01)",
+      "endo/exo prefixes in italic in the plain name labels under the structures (crop 02)"
+    ],
+    "notes": {
+      "compound_label_face": "Bold compound numbers appear in crop 01 only among the reaction-scheme crops. Crop 02 has names, not numbers. Crop 07 (an assignment panel, not a scheme) is also bold. Null under the two-crop rule for top-level conventions; a figure that numbers its compounds takes bold from the figure.",
+      "compound_label_italic_suffix": "The italic d suffix appears in crop 01 only among the reaction-scheme crops (1-dx, 2-dx). Crop 07 writes the same compound as bold 1-d with italic d. Null under the two-crop rule.",
+      "aromatic_rings": "Kekule rings in crop 01 only; crop 02 has no aromatic ring. Null under the two-crop rule.",
+      "reagent_text_color": "Ligand colours (L1 teal, L2 orange) appear in crop 01 only; Pd(OAc)2 is black in crop 01. Null under the two-crop rule.",
+      "arrow_style": "Plain means thin, not bold: crops 01 and 02 agree on this. Crop 02 is a reversible scheme drawn with equilibrium half-arrows rather than a single arrow.",
+      "yield_placement": "No crop shows a yield. The earlier 72% note was wrong: crop 07 shows per-position %D labels only, with no yield and no DTot values.",
+      "conditions_split": "Reagents above and HFIP and D2O below appear in crop 01 only; crop 02 writes the reaction name above. Null under the two-crop rule.",
+      "substrate_layout": "Inline plus appears in crop 02 only (cyclopentadiene + maleic anhydride); crop 01 has no plus sign. Null under the two-crop rule.",
+      "show_plus_sign": "Plus sign appears in crop 02 only. Null under the two-crop rule.",
+      "abbreviate_groups": "tBu (superscript t) and CF3 (in the HFIP structure) appear in crop 01 only. Null under the two-crop rule.",
+      "measured": {
+        "bond_length_over_cap_height": "Crops 01 (2.18 = 30.5/14), 03 (2.28 = 28/12.3) and 06 (2.14 = 60/28) agree on about 2.2; crop 02 gives 2.46 (32/13). Kept at 2.2 by majority; spread 2.1 to 2.5. Crop 04 is a perspective model with no measurements, and its pixel estimate of about 1.4 is indicative only and not used.",
+        "line_width_over_bond_length": "Crop 01 0.049 (1.5/30.5), crop 02 0.047 (1.5/32), crop 03 0.054 (1.5/28), crop 06 0.050 (3/60). Kept at 0.05.",
+        "bold_width_over_bond_length": "Crop 02 0.22 (7/32) and crop 03 0.25 (7/28). Spread 0.22 to 0.25; kept at 0.24. Two crops only.",
+        "arrow_length_over_bond_length": "No majority. Crop 01 single arrow 9.25 (282/30.5); crop 02 equilibrium pair 5.4 (173/32); crop 03 resonance arrow 1.6 (46/28, a mechanism figure). 9.2 is kept as the value of the single plain reaction arrow that arrow_style describes; the other values are recorded here, and a reversible scheme needs its own measure."
+      }
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/acs.jchemed.4c00270",
+      "citation": "Deufel, van Gemmeren et al., J. Chem. Educ. 2024 (Deuteration of arenes via Pd-catalyzed C-H activation: a lesson in nondirected C-H activation)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3 (reaction rows)",
+      "crop": "evidence/jchem_educ-01.png",
+      "measurements_px": {
+        "bond_length": 30.5,
+        "cap_height": 14,
+        "line_width": 1.5,
+        "bold_width": null,
+        "arrow_length": 282,
+        "compound_label_cap_height": 15
+      },
+      "observations": "two stacked reactions with long thin arrows; L1 teal and L2 orange in bold and Pd(OAc)2 in black above the arrow; HFIP structure drawn in light grey and bold D2O below; bold labels 1, 2, 1-dx with italic d; Kekule rings"
+    },
+    {
+      "doi": "10.1021/acs.jchemed.1c00661",
+      "citation": "Birchall, Clark, Biagini et al., J. Chem. Educ. 2021 (Himic anhydride: a retro Diels-Alder reaction for the organic laboratory and an accompanying NMR study)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/jchem_educ-02.png",
+      "measurements_px": {
+        "bond_length": 32,
+        "cap_height": 13,
+        "line_width": 1.5,
+        "bold_width": 7,
+        "arrow_length": 173,
+        "compound_label_cap_height": null
+      },
+      "observations": "equilibrium half-arrows with the reaction name above (Retro Diels-Alder, Diels-Alder); bold wedge and hashed bridgehead H; names under the structures, Endo and Exo in italic; plus sign between cyclopentadiene and maleic anhydride"
+    },
+    {
+      "doi": "10.1021/acs.jchemed.6c00708",
+      "citation": "Elliott et al., J. Chem. Educ. 2026 (Exploring the interface of hyperconjugation and polarizability)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 5",
+      "crop": "evidence/jchem_educ-03.png",
+      "measurements_px": {
+        "bond_length": 28,
+        "cap_height": 12.3,
+        "line_width": 1.5,
+        "bold_width": 7,
+        "arrow_length": 46
+      },
+      "observations": "five resonance pairs in square brackets with double-headed resonance arrows; thin black curved arrows with full heads, same weight as bonds; circled charges; no lone-pair dots; caption under each pair in blue #4C5C98 Arial"
+    },
+    {
+      "doi": "10.1021/acs.jchemed.6c00708",
+      "citation": "Elliott et al., J. Chem. Educ. 2026 (Exploring the interface of hyperconjugation and polarizability)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3",
+      "crop": "evidence/jchem_educ-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "perspective model of the tert-butyl cation: empty p orbital drawn as white outlined lobes on the cationic carbon, the C-H bond lobe shaded grey, wedge and hash bonds; thin leader lines to plain-text explanations"
+    },
+    {
+      "doi": "10.1021/acs.jchemed.6c00708",
+      "citation": "Elliott et al., J. Chem. Educ. 2026 (Exploring the interface of hyperconjugation and polarizability)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 15 (structure only)",
+      "crop": "evidence/jchem_educ-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "planar zigzag chain; each carbon of the chain carries one bold wedge H and one hashed H, and the left terminal carbon also has a plain H; X at the right end; bond labels a and b in orange-red beside the bonds; no text or leader lines"
+    },
+    {
+      "doi": "10.1021/acs.jchemed.6c00141",
+      "citation": "Elliott et al., J. Chem. Educ. 2026 (Rethinking the nature and extent of inductive effects in organic compounds)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4",
+      "crop": "evidence/jchem_educ-06.png",
+      "measurements_px": {
+        "bond_length": 60,
+        "cap_height": 28,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "13C shifts printed directly beside each skeletal carbon in orange #E43800 Arial, alternating above and below the zigzag; no atom numbers"
+    },
+    {
+      "doi": "10.1021/acs.jchemed.4c00270",
+      "citation": "Deufel, van Gemmeren et al., J. Chem. Educ. 2024 (Deuteration of arenes via Pd-catalyzed C-H activation)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4 (structure box)",
+      "crop": "evidence/jchem_educ-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "deuterium content per position (13%D, 30%D, 50%D) in bold teal #006C88 next to the ring H; structure on a light grey box #ECECEC; teal position letters X and A with a dot on carbon A; bold label 1-d with italic d; no yield and no DTot values"
+    },
+    {
+      "doi": "10.1021/acs.jchemed.4c00270",
+      "citation": "Deufel, van Gemmeren et al., J. Chem. Educ. 2024 (Deuteration of arenes via Pd-catalyzed C-H activation)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2",
+      "crop": "evidence/jchem_educ-08.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "More O'Ferrall-Jencks square with axis titles; mechanism names in ellipses with white text, AMLA / CMD in dark slate #2D3D3D and BIES / eCMD in navy #023554; red diagonal double arrow; legend boxes on the right in grey #C2CCCD, teal #80DADB and pink #F8C2CF, each with a bold title line whose colour differs by box"
+    },
+    {
+      "doi": "10.1021/acs.jchemed.6c00141",
+      "citation": "Elliott et al., J. Chem. Educ. 2026 (Rethinking the nature and extent of inductive effects in organic compounds)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 16",
+      "crop": "evidence/jchem_educ-09.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "two small structures side by side with black italic captions underneath; partial charges in red; bond-dipole arrows in blue, double-headed with crossing ticks; take-home statements in blue #0000FC plain text as footnote lines below the panel; too small to measure"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": null,
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "thin single-line arrow for reactions, about 9 bond lengths long in crop 01; equilibrium half-arrows for reversible steps, about 5 bond lengths long in crop 02",
+        "reaction name above the arrow in plain Arial (crop 02); reagents above and solvent below the arrow, with the ligand names in bold (crop 01)",
+        "ligand names in bold, coloured L1 teal #005474 and L2 orange #D87C5C, with Pd(OAc)2 in black (crop 01)",
+        "auxiliary structure (HFIP) drawn below the arrow in light grey, with D2O in bold (crop 01)"
+      ],
+      "crops": [
+        "evidence/jchem_educ-01.png",
+        "evidence/jchem_educ-02.png"
+      ],
+      "notes": "no yields on either crop's arrows; the solvent, ligand and HFIP features rest on crop 01 alone; the arrow length spread (5.4 to 9.2 bond lengths) is recorded under the top-level measured notes"
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": "#000000",
+        "curved_arrow_weight": "bond",
+        "show_lone_pairs": false,
+        "formal_charge_style": "circled",
+        "intermediate_label_style": "none",
+        "ts_marker": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "each resonance or hyperconjugation pair enclosed in square brackets joined by a double-headed arrow",
+        "curved arrows black, same weight as bonds, full arrowheads, starting on the bond being broken",
+        "charges as circled + and - signs; lone pairs not drawn",
+        "a coloured caption under each pair naming the effect, blue #4C5C98 Arial"
+      ],
+      "crops": [
+        "evidence/jchem_educ-03.png"
+      ],
+      "notes": "rests on one crop; the circled charge also appears in crop 04. No transition states drawn"
+    },
+    "stereo_model": {
+      "conventions": {
+        "model_style": "perspective_3d",
+        "ts_marker": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "orbitals drawn as outlined lobes on the skeletal model; the interacting bond lobe shaded grey (crop 04)",
+        "each sp3 carbon of the chain carries one bold wedge H and one hashed H, and the left terminal carbon also has a plain H; bonds of interest labelled a and b in orange-red (crop 05)",
+        "explanations as plain text joined to the model by thin leader lines (crop 04 only)"
+      ],
+      "crops": [
+        "evidence/jchem_educ-04.png",
+        "evidence/jchem_educ-05.png"
+      ],
+      "notes": "model_style and the leader-line feature rest on crop 04 alone. Crop 05 is a planar zigzag with wedge and hash bonds, not a perspective model, and has no text or leader lines. No CC BY J. Chem. Educ. article found in Europe PMC with a chair, Newman, Fischer, Zimmerman-Traxler or Felkin-Anh drawing; only perspective wedge/hash models are evidenced"
+    },
+    "assignment_panel": {
+      "conventions": {
+        "numbering_style": "none",
+        "shift_color": "#E43800",
+        "highlight_fill": "#ECECEC"
+      },
+      "signature_features": [
+        "chemical shifts written straight onto the skeleton next to each carbon in orange #E43800, no atom numbers (crop 06)",
+        "deuterium percentages per position in bold teal #006C88, structure on a light grey #ECECEC box (crop 07)",
+        "position letters X and A in teal with a teal dot on carbon A (crop 07)"
+      ],
+      "crops": [
+        "evidence/jchem_educ-06.png",
+        "evidence/jchem_educ-07.png"
+      ],
+      "notes": "shift_color from crop 06; crop 07 uses teal for %D values, so the colour varies by article. highlight_fill #ECECEC rests on crop 07 alone (the grey box behind the structure). Crop 07 shows no yield and no DTot values, and its lack of atom numbers agrees with numbering_style none"
+    },
+    "concept_panel": {
+      "conventions": {
+        "panel_label_style": "none",
+        "comparison_layout": null,
+        "this_work_color": null,
+        "background_fill": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "diagram with colour-filled legend boxes: grey #C2CCCD, teal #80DADB, pink #F8C2CF, each with a bold title line whose colour differs by box (crop 08)",
+        "category names in white text on ellipses: AMLA / CMD in dark slate #2D3D3D, BIES / eCMD in navy #023554 (crop 08)",
+        "small structures with black italic captions underneath (crop 09)",
+        "partial charges written in red (δ−, δ+, δδ+) on the structures, and bond-dipole arrows in blue, double-headed with crossing ticks (crop 09)",
+        "take-home statements in blue #0000FC plain text as footnote lines below the panel (crop 09)"
+      ],
+      "crops": [
+        "evidence/jchem_educ-08.png",
+        "evidence/jchem_educ-09.png"
+      ],
+      "notes": "neither crop has panel letters; layouts differ (square diagram vs side-by-side pair). The legend title lines are dark slate, navy and red in crop 08, one per box"
+    }
+  }
+}

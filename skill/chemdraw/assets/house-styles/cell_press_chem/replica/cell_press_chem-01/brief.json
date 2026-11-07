@@ -1,0 +1,12 @@
+{
+  "style": "cell_press_chem",
+  "species": [
+    {"id": "1", "smiles": "CC(C)OC(=O)[C@H](Cc1ccccc1)N=[N+]=[N-]", "label": "(S)-1"},
+    {"id": "2", "smiles": "C#CC[P+]([BH3-])(c1ccccc1)c1ccccc1", "label": "2"},
+    {"id": "4m", "smiles": "[BH3-][P+](Cc1cn([C@H](Cc2ccccc2)C(=O)OC(C)C)nn1)(c1ccccc1)c1ccccc1", "label": "4 (model)"}
+  ],
+  "steps": [
+    {"substrates": ["1", "2"], "products": ["4m"], "above": ["1. AT-CuAAC"], "yield": "71%"}
+  ],
+  "max_width": 504
+}

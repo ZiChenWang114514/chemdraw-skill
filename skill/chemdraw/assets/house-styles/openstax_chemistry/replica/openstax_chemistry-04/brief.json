@@ -1,0 +1,10 @@
+{
+  "kind": "scope",
+  "style": "openstax_chemistry",
+  "title": "Isomers of [Co(H2O)4Cl2]+",
+  "species": [
+    {"id": "complex", "smiles": "[OH2]->[Co+](<-[OH2])(<-[OH2])(<-[OH2])([Cl])[Cl]", "label": "cis or trans, stereo not drawn"}
+  ],
+  "width_mm": 120,
+  "height_mm": 80
+}

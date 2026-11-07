@@ -332,13 +332,13 @@
 
 ## `mcp_runtime.figure_draw`
 
-- **function**, line 605: `bold_arrows(cdxml: Any, slug: str) -> Any` - Arrows at 1.5 times the preset's line width.
-- **function**, line 573: `brief_house(brief: dict) -> HouseStyle | None` - The brief's house style, or None when ``style`` is a measurement preset or absent.
-- **function**, line 581: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug (a house style's base preset) and the factor from ACS geometry to it.
-- **function**, line 697: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
-- **function**, line 562: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is neither a built-in preset nor a house style, else None.
-- **function**, line 597: `style_report(slug: str, house: HouseStyle | None = None, applied: list[str] | None = None, skipped: list[str] | None = None) -> dict` - No public docstring in the audited version.
-- **function**, line 588: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
+- **function**, line 618: `bold_arrows(cdxml: Any, slug: str) -> Any` - Arrows at 1.5 times the document's line width (the preset's unless a house style measured it).
+- **function**, line 584: `brief_house(brief: dict) -> HouseStyle | None` - The brief's house style, or None when ``style`` is a measurement preset or absent.
+- **function**, line 592: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug (a house style's base preset) and the factor from ACS geometry to it.
+- **function**, line 734: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 573: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is neither a built-in preset nor a house style, else None.
+- **function**, line 608: `style_report(slug: str, house: HouseStyle | None = None, applied: list[str] | None = None, skipped: list[str] | None = None) -> dict` - No public docstring in the audited version.
+- **function**, line 599: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
 
 ## `mcp_runtime.figure_editing`
 
@@ -347,12 +347,23 @@
 
 ## `mcp_runtime.figure_house`
 
-- **function**, line 73: `add_highlight_fills(brief: dict, grounded: list[dict], house: HouseStyle | None) -> str | None` - Ask the ring_fills decoration for the largest ring of each final product.
-- **function**, line 192: `apply_house_conventions(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle) -> tuple[Any, list[str], list[str], list[str]]` - Edit the drawn scheme; returns (cdxml, applied, skipped reasons, warnings).
-- **function**, line 63: `final_products(brief: Mapping) -> list[str]` - No public docstring in the audited version.
-- **function**, line 34: `format_yield(text: str, template: str | None) -> str` - ``template`` filled with the number of a yield such as "85%"; other text is kept.
-- **function**, line 54: `split_conditions(above: list[str], below: list[str], house: HouseStyle | None) -> tuple[list, list]` - No public docstring in the audited version.
-- **function**, line 42: `step_yield(step: Mapping, house: HouseStyle | None) -> str | None` - The yield text drawn under the arrow, or None when the house style moves it.
+- **function**, line 76: `add_highlight_fills(brief: dict, grounded: list[dict], house: HouseStyle | None) -> str | None` - Ask the ring_fills decoration for the largest ring of each final product.
+- **function**, line 768: `apply_captions_and_title(cdxml: Any, brief: Mapping, grounded: list[dict]) -> tuple[Any, list[str], list[str]]` - Captions under species, then the panel label and title above the whole figure.
+- **function**, line 265: `apply_figure_type_conventions(cdxml: Any, house: HouseStyle, figure_type: str, slug: str) -> tuple[Any, list[str], list[str]]` - Apply a card's ``figure_types`` section to a styled drawing; (cdxml, applied, skipped).
+- **function**, line 316: `apply_house_conventions(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle) -> tuple[Any, list[str], list[str], list[str]]` - Edit the drawn scheme; returns (cdxml, applied, skipped reasons, warnings).
+- **function**, line 210: `apply_measured_geometry(cdxml: Any, house: HouseStyle, slug: str) -> tuple[Any, list[str], list[str]]` - Line width, bold width and atom-label size from the card's ``measured`` ratios.
+- **function**, line 856: `apply_scope_conventions(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle | None, slug: str) -> tuple[Any, list[str], list[str], list[str]]` - A scope page already in its preset: compound-number face and colour, the brief's species colours and abbreviations (the card's abbreviate_groups too), then the measured geometry.
+- **function**, line 809: `apply_species_boxes(cdxml: Any, brief: Mapping, grounded: list[dict]) -> tuple[Any, list[str]]` - A frame (solid, dashed or rounded) and/or a fill behind each species that asks for one.
+- **function**, line 581: `apply_species_styling(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle | None = None) -> tuple[Any, list[str], list[str]]` - The brief's own colours, abbreviations and condition-text runs; returns (cdxml, applied, warnings).
+- **function**, line 502: `condition_line_errors(line: Any, where: str) -> list[str]` - A condition line is text, a run {text, color?, bold?, italic?} or a list of runs.
+- **function**, line 521: `condition_text(line: Any) -> str` - The plain text of a condition line.
+- **function**, line 66: `final_products(brief: Mapping) -> list[str]` - No public docstring in the audited version.
+- **function**, line 37: `format_yield(text: str, template: str | None) -> str` - ``template`` filled with the number of a yield such as "85%"; other text is kept.
+- **function**, line 202: `measured_arrow_bonds(house: HouseStyle | None) -> float | None` - The shortest arrow in bond lengths from the card's measurements, or None.
+- **function**, line 689: `panel_errors(brief: Mapping) -> list[str]` - Problems with the title, panel label, captions and boxes of a brief.
+- **function**, line 467: `species_style_errors(entry: Mapping) -> list[str]` - Problems with a species' colour and abbreviation keys, for the brief check.
+- **function**, line 57: `split_conditions(above: list[str], below: list[str], house: HouseStyle | None) -> tuple[list, list]` - No public docstring in the audited version.
+- **function**, line 45: `step_yield(step: Mapping, house: HouseStyle | None) -> str | None` - The yield text drawn under the arrow, or None when the house style moves it.
 
 ## `mcp_runtime.figure_lint`
 
@@ -364,7 +375,7 @@
 
 ## `mcp_runtime.figure_scope`
 
-- **function**, line 168: `draw_scope(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a scope panel; called by draw_figure for ``kind: scope``.
+- **function**, line 175: `draw_scope(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a scope panel; called by draw_figure for ``kind: scope``.
 
 ## `mcp_runtime.figure_tools`
 
@@ -596,16 +607,17 @@
 
 ## `publication.house_styles`
 
-- **function**, line 81: `group_name(name: str) -> str` - The table name of an abbreviation, resolving accepted spellings.
-- **function**, line 222: `house_style(name: str, directory: str | Path | None = None) -> HouseStyle` - One house style by slug or display name (any case).
-- **function**, line 250: `house_style_summary(style: HouseStyle) -> dict` - The fields ``cdx.py styles`` lists.
-- **class**, line 90: `HouseStyle` - No public docstring in the audited version.
-- **method**, line 104: `HouseStyle.as_dict() -> dict` - No public docstring in the audited version.
-- **method**, line 100: `HouseStyle.convention(key: str, default: Any = None) -> Any` - No public docstring in the audited version.
-- **function**, line 218: `list_house_styles(directory: str | Path | None = None) -> list[HouseStyle]` - No public docstring in the audited version.
-- **function**, line 194: `load_house_styles(directory: str | Path | None = None) -> dict[str, HouseStyle]` - Every card in the data folder (or ``directory``), validated, by slug.
-- **function**, line 232: `resolve_style(name: str, directory: str | Path | None = None) -> tuple[str, Any]` - ("preset", preset dict) for a measurement preset, ("house", HouseStyle) for a house style.
-- **function**, line 113: `validate_card(card: Any, *, source: str = 'card') -> HouseStyle` - A :class:`HouseStyle` from one card; ValueError listing every problem otherwise.
+- **function**, line 198: `group_name(name: str) -> str` - The table name of an abbreviation, resolving accepted spellings.
+- **function**, line 402: `house_style(name: str, directory: str | Path | None = None) -> HouseStyle` - One house style by slug or display name (any case).
+- **function**, line 430: `house_style_summary(style: HouseStyle) -> dict` - The fields ``cdx.py styles`` lists.
+- **class**, line 207: `HouseStyle` - No public docstring in the audited version.
+- **method**, line 228: `HouseStyle.as_dict() -> dict` - No public docstring in the audited version.
+- **method**, line 218: `HouseStyle.convention(key: str, default: Any = None) -> Any` - No public docstring in the audited version.
+- **method**, line 222: `HouseStyle.figure_convention(figure_type: str, key: str, default: Any = None) -> Any` - A convention of one figure type (``mechanism``, ``catalytic_cycle`` ...), or ``default``.
+- **function**, line 398: `list_house_styles(directory: str | Path | None = None) -> list[HouseStyle]` - No public docstring in the audited version.
+- **function**, line 374: `load_house_styles(directory: str | Path | None = None) -> dict[str, HouseStyle]` - Every card in the data folder (or ``directory``), validated, by slug.
+- **function**, line 412: `resolve_style(name: str, directory: str | Path | None = None) -> tuple[str, Any]` - ("preset", preset dict) for a measurement preset, ("house", HouseStyle) for a house style.
+- **function**, line 238: `validate_card(card: Any, *, source: str = 'card') -> HouseStyle` - A :class:`HouseStyle` from one card; ValueError listing every problem otherwise.
 
 ## `publication.layout`
 

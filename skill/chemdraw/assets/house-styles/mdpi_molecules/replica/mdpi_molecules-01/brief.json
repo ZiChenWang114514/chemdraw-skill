@@ -1,0 +1,36 @@
+{
+  "style": "mdpi_molecules",
+  "species": [
+    {
+      "id": "ArI",
+      "smiles": "Cc1ccc(I)cc1"
+    },
+    {
+      "id": "BrCN",
+      "smiles": "BrC#N"
+    },
+    {
+      "id": "ArCN",
+      "smiles": "Cc1ccc(C#N)cc1"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "ArI",
+        "BrCN"
+      ],
+      "products": [
+        "ArCN"
+      ],
+      "above": [
+        "Ni"
+      ],
+      "below": [
+        "Zn or Mn"
+      ],
+      "arrow": "solid"
+    }
+  ],
+  "max_width": 504
+}

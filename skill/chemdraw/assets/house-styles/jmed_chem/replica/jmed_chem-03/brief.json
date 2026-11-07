@@ -1,0 +1,13 @@
+{
+  "style": "jmed_chem",
+  "title": "Final fragment coupling (Scheme 8 last row)",
+  "species": [
+    {"id": "88", "smiles": "CCc1cc(NC(=O)C(=O)O)cnc1N(C(=O)OC(C)(C)C)C(=O)OC(C)(C)C", "label": "88"},
+    {"id": "92", "smiles": "CC1CCC(c2ccc3sc(C4CCN(C)CC4)nc3c2)NC1", "label": "92"},
+    {"id": "TNG462", "smiles": "Nc1ncc(NC(=O)C(=O)N2CC(C)CCC2c2ccc3sc(C4CCN(C)CC4)nc3c2)cc1CC", "label": "TNG462"}
+  ],
+  "steps": [
+    {"substrates": ["88", "92"], "products": ["TNG462"], "above": ["m, n"]}
+  ],
+  "max_width": 544
+}

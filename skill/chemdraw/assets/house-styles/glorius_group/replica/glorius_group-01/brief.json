@@ -1,0 +1,17 @@
+{
+  "style": "glorius_group",
+  "species": [
+    {"id": "S1", "smiles": "ClC[Si](C)(C)[*]", "label": "S1"},
+    {"id": "S3", "smiles": "OC[Si](C)(C)[*]", "label": "S3"},
+    {"id": "2", "smiles": "c1ccc(cc1)C(=NOC(=O)OC[Si](C)(C)[*])c1ccccc1", "label": "2"}
+  ],
+  "steps": [
+    {"substrates": ["S1"], "products": ["S3"],
+     "above": ["(i) NaOAc (1.4 equiv.), NaI (0.5 mol%), DMF (1.0 M), reflux, 12 h"],
+     "below": ["(ii) LiAlH4 (1.0 equiv.), Et2O, reflux, 1 h"]},
+    {"substrates": ["S3"], "products": ["2"],
+     "above": ["(i) triphosgene (1.5 equiv.), Na2CO3 (4.5 equiv.), CH2Cl2, 0 °C–rt, 12 h"],
+     "below": ["(ii) S5 (1.0 equiv.), pyridine (1.1 equiv.), CH2Cl2 (0.3 M), 0 °C–rt, 12 h"]}
+  ],
+  "max_width": 440
+}

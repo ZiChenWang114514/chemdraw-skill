@@ -1,0 +1,14 @@
+{
+  "style": "wiley_angew",
+  "species": [
+    {"id": "S", "smiles": "C=Cc1ccccc1"},
+    {"id": "P", "smiles": "CCc1ccccc1", "label": "3a"}
+  ],
+  "steps": [
+    {"substrates": ["S"], "products": ["P"],
+     "above": ["2 (0.25 - 0.5 mol%)"],
+     "below": ["2.5 - 5 mol% KOtBu", "toluene, 100 °C, 20 bar H2, 18 h"],
+     "yield": ">99%"}
+  ],
+  "max_width": 504
+}

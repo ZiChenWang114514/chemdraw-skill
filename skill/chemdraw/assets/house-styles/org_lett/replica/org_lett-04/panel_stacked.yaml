@@ -1,0 +1,36 @@
+layout: stacked-rows
+structures:
+  ImA: {smiles: "FC(F)(F)C1=NCCc2c1[nH]c1ccccc21"}
+  IndA: {smiles: "c1ccc2[nH]ccc2c1"}
+  PA: {smiles: "FC(F)(F)[C@@]1(c2c[nH]c3ccccc23)NCCc2c1[nH]c1ccccc21"}
+  TrpB: {smiles: "NCCc1c[nH]c2ccccc12"}
+  KetB: {smiles: "CCOC(=O)C(=O)C(F)(F)F"}
+  PB: {smiles: "CCOC(=O)[C@]1(C(F)(F)F)NCCc2c1[nH]c1ccccc21"}
+  TrpC: {smiles: "NCCc1c[nH]c2ccccc12"}
+  KetC: {smiles: "O=C(C(F)(F)F)C#C[Si](C(C)C)(C(C)C)C(C)C"}
+  PC: {smiles: "CC(C)[Si](C#C[C@@]1(C(F)(F)F)NCCc2c1[nH]c1ccccc21)(C(C)C)C(C)C"}
+sections:
+  - steps:
+      - substrates: [ImA, IndA]
+        products: [PA]
+        above_arrow:
+          text: ["(S)-CPA I (5 mol%)"]
+        below_arrow:
+          text: ["toluene, 0 °C"]
+        yield: "81%, 86% ee"
+  - steps:
+      - substrates: [TrpB, KetB]
+        products: [PB]
+        above_arrow:
+          text: ["(R)-CPA II (10 mol%)", "MS4A"]
+        below_arrow:
+          text: ["CHCl3", "40 to 60 °C"]
+        yield: "92%, 18% ee"
+  - steps:
+      - substrates: [TrpC, KetC]
+        products: [PC]
+        above_arrow:
+          text: ["(R)-CPA III (5 mol%)", "MS4A (100 wt%)"]
+        below_arrow:
+          text: ["DCM (0.2 M)", "40 °C, 22–120 h"]
+        yield: "92%, 91% ee"

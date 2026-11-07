@@ -21,8 +21,8 @@
     "compound_label_italic_suffix": false,
     "yield_placement": null,
     "yield_format": "{value}%",
-    "conditions_split": "reagents_above_solvent_below",
-    "substrate_layout": "inline_plus",
+    "conditions_split": null,
+    "substrate_layout": null,
     "abbreviate_groups": [
       "CO2Me",
       "OBn",
@@ -33,23 +33,26 @@
       "OMe"
     ],
     "aromatic_rings": "kekule",
-    "new_bond_color": "#8B1A1A",
+    "new_bond_color": "#8A0108",
     "substrate_colors": null,
-    "highlight_fill": "#BBF6F4",
+    "highlight_fill": null,
     "reagent_text_color": "#000000",
     "arrow_style": "plain",
-    "show_plus_sign": true,
+    "show_plus_sign": null,
     "signature_features": [
-      "light grey panel background #EDEDEF behind every scheme panel",
-      "navy title bar #0C0C84 with white bold panel title",
-      "blue circle with white lightning bolt on the arrow for electrolysis",
-      "scale and comparison notes in bold blue #0C0CFC",
-      "compound labels bold and large, close to atom-label size"
+      "light grey panel background #EDEDEF behind the reaction schemes (crops 01 and 02); the product panel (crop 03) is on white",
+      "thin navy top edge #00007E on the grey panel (crop 01 only); no navy title bar and no white panel title in any crop",
+      "blue circle with white lightning bolt on the arrow for electrolysis (crops 01 and 02; circle #0B17FF)",
+      "scale and comparison notes in bold blue #0B17FF (crop 02); the blue 'Chiral auxiliary' note in crop 01 is regular weight",
+      "compound labels bold and large, close to atom-label size (crops 01 and 02; crop 01 compound cap height 31 px against 36 px for atom labels)"
     ],
     "notes": {
-      "yield_placement": "under the arrow for multistep sequences (crop 02), under the product label (crop 03), or as \"27: 76%\" after the label in Figure 3 top row; no single placement",
-      "new_bond_color": "dark red in both JACS crops (01, 02); the Nature figure (crop 03) uses purple, redrawn to journal style",
-      "highlight_fill": "teal boxes behind target molecules in crop 02 and in the top row of the same figure"
+      "yield_placement": "null: crop 02 puts the multistep yields under the arrow; crop 03 (a product panel, not a reaction scheme) puts its yield under the product label; crop 01 shows no yield. Only one scheme crop shows a placement, so there is no top-level value. The product-panel placement is recorded under figure_types.substrate_scope.",
+      "conditions_split": "null: crop 01 puts NMP below the arrow with the electrodes and current; crop 02 puts nBu4NBF4 and DMA above the arrow with the other reagents. The two reaction-scheme crops disagree.",
+      "substrate_layout": "null: only crop 01 shows a plus between two substrates. Crop 02 writes its bromide as a reagent above the arrow and has no plus sign.",
+      "show_plus_sign": "null: same evidence as substrate_layout; only crop 01 shows a plus sign.",
+      "new_bond_color": "dark red in both reaction-scheme crops: crop 01 flat sample #8A0108 (the Ar wedge); crop 02 hashed bond #880000 to #8A0108. The Nature product panel (crop 03) uses purple; its bonds are one pixel wide, so no flat sample was taken. The top-level value describes reaction schemes only.",
+      "highlight_fill": "null: the teal #BBF6F4 box behind the target appears in crop 02 only (68856 pixels, flat). Crops 01 and 03 show no teal. Kept as a one-crop value under figure_types.reaction_scheme."
     }
   },
   "evidence": [
@@ -67,7 +70,7 @@
         "arrow_length": 473,
         "compound_label_cap_height": 31
       },
-      "observations": "grey panel, navy title bar, blue lightning electrode icon on arrow, dark red bold wedge for the new C-C bond, blue dots for the auxiliary, bold label 5 with plain (1 eq), reagents above and solvent, electrodes and current below"
+      "observations": "grey panel, thin navy top edge, blue lightning electrode icon on arrow, dark red bold wedge for the new C-C bond, blue dots for the auxiliary, bold label 5 with plain (1 eq), reagents above and solvent, electrodes and current below"
     },
     {
       "doi": "10.1021/jacs.3c14119",
@@ -99,5 +102,28 @@
       },
       "observations": "purple new C-C bond, bold labels, yield under label as 88% (b:a > 19:1, from ArI); low-resolution web figure"
     }
-  ]
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": "{value}%",
+        "highlight_fill": "#BBF6F4"
+      },
+      "crops": [
+        "evidence/baran_group-01.png",
+        "evidence/baran_group-02.png"
+      ],
+      "notes": "Read from crops 01 and 02. yield_format matches crop 02 (99%, 92%, 65% under the arrow). highlight_fill rests on crop 02 alone: the teal box sits behind the target product 4, and crop 01 has none. Crop 01 shows no yields."
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "yield_format": "{value}%"
+      },
+      "crops": [
+        "evidence/baran_group-03.png"
+      ],
+      "notes": "One crop (03), a grid of approved-drug and candidate structures sharing a glucose core, each with its yield under the product label (88%, with a beta:alpha note). Read from one crop. The yield format matches crop 02. No teal box and no grey panel in this crop."
+    }
+  }
 }

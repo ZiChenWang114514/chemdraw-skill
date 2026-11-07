@@ -14,31 +14,36 @@ Reaction-scheme house style of the Baran group (Scripps Research), measured from
 - Bold wedge width / bond length: 0.2
 - Arrow length / bond length: 5.7
 
-## Conventions
+## Conventions (top-level, reaction schemes)
 
 - compound_label_face: bold
 - compound_label_color: #000000
 - compound_label_italic_suffix: False
-- yield_placement: None (under the arrow for multistep sequences (crop 02), under the product label (crop 03), or as "27: 76%" after the label in Figure 3 top row; no single placement)
+- yield_placement: None. Crop 02 puts the multistep yields under the arrow; crop 03, a product panel, puts its yield under the product label; crop 01 shows no yield.
 - yield_format: {value}%
-- conditions_split: reagents_above_solvent_below
-- substrate_layout: inline_plus
-- abbreviate_groups: ['CO2Me', 'OBn', 'Boc', 'Cbz', 'tBu', 'PhthN', 'Ar', 'OMe']
+- conditions_split: None. Crop 01 puts NMP below the arrow; crop 02 puts DMA above it.
+- substrate_layout: None. Only crop 01 shows a plus between two substrates.
+- abbreviate_groups: CO2Me, OBn, Boc, Cbz, tBu, PhthN, OMe
 - aromatic_rings: kekule
-- new_bond_color: #8B1A1A (dark red in both JACS crops (01, 02); the Nature figure (crop 03) uses purple, redrawn to journal style)
+- new_bond_color: #8A0108 (dark red in both reaction-scheme crops, 01 and 02). The Nature product panel (crop 03) uses purple.
 - substrate_colors: None
-- highlight_fill: #BBF6F4 (teal boxes behind target molecules in crop 02 and in the top row of the same figure)
+- highlight_fill: None (the teal box in crop 02 is recorded under reaction_scheme)
 - reagent_text_color: #000000
 - arrow_style: plain
-- show_plus_sign: True
+- show_plus_sign: None (only crop 01 shows a plus)
+
+## Figure types
+
+- reaction_scheme (crops 01 and 02): yield_format {value}%; highlight_fill #BBF6F4. The highlight rests on crop 02 alone: a teal box behind the target product 4.
+- substrate_scope (crop 03): scope_layout grid; yield_format {value}%. One crop: a grid of approved-drug structures, each with its yield under the product label.
 
 ## Signature features
 
-- light grey panel background #EDEDEF behind every scheme panel
-- navy title bar #0C0C84 with white bold panel title
-- blue circle with white lightning bolt on the arrow for electrolysis
-- scale and comparison notes in bold blue #0C0CFC
-- compound labels bold and large, close to atom-label size
+- light grey panel background #EDEDEF behind the reaction schemes (crops 01 and 02); the product panel (crop 03) is on white
+- thin navy top edge #00007E on the grey panel (crop 01 only); no navy title bar and no white panel title in any crop
+- blue circle with white lightning bolt on the arrow for electrolysis (crops 01 and 02; circle #0B17FF)
+- scale and comparison notes in bold blue #0B17FF (crop 02); the blue "Chiral auxiliary" note in crop 01 is regular weight
+- compound labels bold and large, close to atom-label size (crops 01 and 02; crop 01 compound cap height 31 px against 36 px for atom labels)
 
 ## Evidence crops
 

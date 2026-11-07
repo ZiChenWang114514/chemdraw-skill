@@ -2,7 +2,11 @@
   "slug": "wiley_angew",
   "kind": "publisher",
   "display_name": "Wiley-VCH chemistry journals (Angewandte Chemie, Chemistry - A European Journal)",
-  "applies_to": ["Angew. Chem. Int. Ed.", "Chem. Eur. J.", "Adv. Synth. Catal."],
+  "applies_to": [
+    "Angew. Chem. Int. Ed.",
+    "Chem. Eur. J.",
+    "Adv. Synth. Catal."
+  ],
   "base_preset": "wiley",
   "measured": {
     "bond_length_over_cap_height": 2.1,
@@ -25,9 +29,20 @@
     "new_bond_color": null,
     "substrate_colors": null,
     "highlight_fill": null,
-    "reagent_text_color": "#000000",
+    "reagent_text_color": null,
     "arrow_style": "plain",
-    "show_plus_sign": true
+    "show_plus_sign": true,
+    "notes": {
+      "yield_placement": "Crop 01 sets the yield after the product label on the same line (3c 79%); crop 03 sets it on the line below (>99 (89)). The crops disagree, so no placement is set.",
+      "yield_format": "The percent sign appears in crop 01 only (79%, 78%). Crop 03 prints bare yields in parentheses and crop 02 shows no yield, so the template rests on one crop.",
+      "conditions_split": "Crops 01 and 02 put reagents above the arrow and solvent and temperature below. Crop 03 puts the base below the arrow, so the split is supported by two crops and contradicted by one.",
+      "abbreviate_groups": "Me is a label in crops 01 and 02 but is drawn as lines in crop 03 (3e, 3k); NO2 and OMe are labels in crop 01 only. The crops disagree, so no group is set.",
+      "substrate_colors": "Crops 01 and 02 colour whole substrates red (#CB1C01) and blue (#031993). Crop 03 leaves its substrates black and colours only the new bonds red. The crops disagree, so no colour is set.",
+      "reagent_text_color": "Reagent names are purple in crops 01 (I2) and 02 (Halogenation reagent X); reagent text in crop 03 is black. The crops disagree, so no colour is set.",
+      "new_bond_color": "Only crop 03 colours new bonds red (the hydrogenated bonds). One crop is not enough, so no colour is set.",
+      "arrow_style": "Plain: in crop 01 the grey arrow shaft is about 3 px of ink against 4 px bond lines, so it is not heavier than the bonds; crop 02 is similar and crop 03 is thin black.",
+      "arrow_length_over_bond_length": "Crop 01 gives 8.4 (360 / 43 px), crop 02 gives 6.2 (260 / 42 px) and crop 03 gives 12.2 (560 / 46 px). No value has a majority, so the median 8.4 is kept; the spread is 6 to 12 bond lengths."
+    }
   },
   "evidence": [
     {
@@ -36,7 +51,13 @@
       "licence": "CC BY 4.0",
       "figure": "Figure 3 (scope)",
       "crop": "evidence/wiley_angew-01.png",
-      "measurements_px": {"bond_length": 43, "cap_height": 21, "line_width": 4, "bold_width": null, "arrow_length": 360},
+      "measurements_px": {
+        "bond_length": 43,
+        "cap_height": 21,
+        "line_width": 4,
+        "bold_width": null,
+        "arrow_length": 360
+      },
       "observations": "300 dpi render. Bold labels with the yield after a space (3c 79%), label beside or below the structure; I2 and DBU above a grey filled arrow, solvent and temperature below; light grey plus sign; ketone part red #CB1C01 and alcohol part blue #031993 throughout; NO2, OMe and Me as labels; I2 in purple."
     },
     {
@@ -45,7 +66,13 @@
       "licence": "CC BY 4.0",
       "figure": "Figure 2B scheme",
       "crop": "evidence/wiley_angew-02.png",
-      "measurements_px": {"bond_length": 42, "cap_height": 21, "line_width": 4, "bold_width": null, "arrow_length": 260},
+      "measurements_px": {
+        "bond_length": 42,
+        "cap_height": 21,
+        "line_width": 4,
+        "bold_width": null,
+        "arrow_length": 260
+      },
       "observations": "300 dpi render. Same red and blue substrate colouring; bold labels 1a, 2a, 3a below the structures; reagent and base above the arrow, solvent and temperature below; Me as label."
     },
     {
@@ -54,8 +81,24 @@
       "licence": "CC BY 4.0",
       "figure": "Table 2 scheme and first scope rows",
       "crop": "evidence/wiley_angew-03.png",
-      "measurements_px": {"bond_length": 46, "cap_height": 21, "line_width": 4, "bold_width": null, "arrow_length": 560},
+      "measurements_px": {
+        "bond_length": 46,
+        "cap_height": 21,
+        "line_width": 4,
+        "bold_width": null,
+        "arrow_length": 560
+      },
       "observations": "300 dpi render. Black structures with the hydrogenated bonds in red; catalyst above a black arrow, base, solvent and conditions below; bold labels with the yield on the line below (>99 (89)); methyl groups drawn as lines, NH2 as label."
     }
-  ]
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "crops": [
+        "evidence/wiley_angew-01.png",
+        "evidence/wiley_angew-02.png",
+        "evidence/wiley_angew-03.png"
+      ],
+      "notes": "All three crops are reaction schemes. The top-level conventions are the reaction_scheme reading; this section adds no figure-type-only convention."
+    }
+  }
 }

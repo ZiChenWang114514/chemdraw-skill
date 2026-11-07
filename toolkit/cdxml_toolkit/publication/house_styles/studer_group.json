@@ -1,0 +1,245 @@
+{
+  "slug": "studer_group",
+  "kind": "group",
+  "display_name": "Studer group (University of Münster)",
+  "applies_to": [
+    "Studer group papers on radical chemistry",
+    "Nature",
+    "Nat. Commun."
+  ],
+  "base_preset": "nature",
+  "measured": {
+    "bond_length_over_cap_height": 2.5,
+    "line_width_over_bond_length": 0.05,
+    "bold_width_over_bond_length": null,
+    "label_font": "Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 6.9
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "after_product_label",
+    "yield_separator": ", ",
+    "yield_format": "{value}%",
+    "conditions_split": null,
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": [
+      "Ph",
+      "OMe",
+      "CO2Et",
+      "Ts",
+      "Boc",
+      "PhthN",
+      "OTBS",
+      "OAc"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": "#FF0000",
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "transferred hydrogen atom in pure red #FF0000, with its new C-H bond red in crops 03, 04 and 06 (black in crop 02); the newly introduced X group and its bond in pure blue #0000FF",
+      "thin lines and Helvetica labels; catalyst codes such as PC1 in bold inside the conditions (crop 01), catalyst formulas such as Fe(acac)3 in plain text (crop 06)",
+      "yields as 11, 49% (cis:trans = 9.1:1) with bold label, comma and the ratio in parentheses, italic cis/trans",
+      "panel headings as plain text A. Trapping of ... or bold lowercase Nature panel letters"
+    ],
+    "notes": {
+      "conditions_split": "crop 06 has reagents above and solvent, temperature and time below; crop 01 puts the solvent CH3CN above and water and light below; not determined",
+      "new_bond_color": "red #FF0000 for the new C-H bond in crops 03, 04 and 06; crop 02 colours only the transferred H labels red (its new C-H bonds are black); the new C-S bond in crop 05 is black; crop 01 has no colour",
+      "bold_width_over_bond_length": "wedge in crop 02 is 7 px wide but no bond in that crop could be measured cleanly",
+      "measurement": "bond/cap 2.7 (crop 04), 2.5 (crops 03 and 06), 2.25 (crop 05, 45 px over 20 px); 2.5 is the value most crops support; Nature Portfolio figures measured on the 1000 to 2100 px Springer full-size PNGs",
+      "arrow_length_over_bond_length": "6.9 rests on crop 06: arrow 218 px over a bond of about 31 px on the 900 px crop (about 7.0). The px values logged for crop 06 (329 over 48) must be at a larger scale; the ratio is the same. Crop 01 gives about 10 when its bond is inferred from cap height (no bond measured there), so the arrow ratio is approximate",
+      "line_width_over_bond_length": "0.05 is the centre of the spread: 0.042 (crop 03), 0.044 (crop 05), about 0.048 (crop 01, bond inferred), 0.054 (crop 04), 0.06 (crop 06); spread 0.04 to 0.06",
+      "yield_placement": "after_product_label in crops 04 and 06; crop 01 has no compound label and sets its yield under the structure",
+      "abbreviate_groups": "Me is labelled only in the mechanism crop 03; the scheme crop 06 draws the two methyls of 2a as bare bonds, so Me is left out. Boc, PhthN and OAc are not drawn in any evidence crop and are unverified",
+      "reagent_text_color": "black in schemes 01 and 06 and mechanism 02; the navy catalyst name in cycle crop 05 is recorded under catalytic_cycle"
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1038/s41586-023-06141-1",
+      "citation": "Studer et al., Nature 2023 (Photocatalytic phosphine-mediated water activation for radical hydrogenation)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 2a",
+      "crop": "evidence/studer_group-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": 17,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": 460,
+        "compound_label_cap_height": null
+      },
+      "observations": "Ph3P with hashed and bold wedges, PC1 bold within the condition line above the arrow, H2O and 455 nm below, plus H2 and an upward gas arrow, yield 42% under product without label"
+    },
+    {
+      "doi": "10.1038/s41586-023-06141-1",
+      "citation": "Studer et al., Nature 2023 (Photocatalytic phosphine-mediated water activation for radical hydrogenation)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 2b",
+      "crop": "evidence/studer_group-02.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": 17,
+        "line_width": 2,
+        "bold_width": 7,
+        "arrow_length": 126,
+        "compound_label_cap_height": null
+      },
+      "observations": "radical chain: thin black curved arrow over a straight arrow for IrIII/IrII electron transfer, radical cation drawn with +. above P, H2O and transferred H in red #FF0000, closed HAT cycle between ArSH and ArS. drawn with curved arrows"
+    },
+    {
+      "doi": "10.1038/s41467-024-51706-x",
+      "citation": "Studer et al., Nat. Commun. 2024 (Iron-catalyzed radical Markovnikov hydrohalogenation and hydroazidation of alkenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 3D",
+      "crop": "evidence/studer_group-03.png",
+      "measurements_px": {
+        "bond_length": 48,
+        "cap_height": 19,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "Fe hydride cycle: loop of black curved arrows, step names HAT and CPET in grey #8E8E8E, bold letters A, B, C for intermediates, new H in red #FF0000 and X in blue #0000FF, bold compound numbers 2a or 2e"
+    },
+    {
+      "doi": "10.1038/s41467-024-51706-x",
+      "citation": "Studer et al., Nat. Commun. 2024 (Iron-catalyzed radical Markovnikov hydrohalogenation and hydroazidation of alkenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 2 top",
+      "crop": "evidence/studer_group-04.png",
+      "measurements_px": {
+        "bond_length": 46,
+        "cap_height": 17,
+        "line_width": 2.5,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 18
+      },
+      "observations": "scope grid under centred section titles reaction from secondary radical between thin rules; each structure followed by up to four lines 3a, 80% (X = Br); red new C-H bond and H #FF0000, blue new C-X bond and X #0000FF"
+    },
+    {
+      "doi": "10.1038/s41467-022-31617-5",
+      "citation": "Studer et al., Nat. Commun. 2022 (Decatungstate-catalyzed radical disulfuration through direct C-H functionalization)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 3",
+      "crop": "evidence/studer_group-05.png",
+      "measurements_px": {
+        "bond_length": 45,
+        "cap_height": 20,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 21
+      },
+      "observations": "decatungstate cycle: two large black arcs, HAT/SET/radical substitution/homo coupling in bold italic navy #000080, R in orange #FF8000 discs, S atoms dark red #800000, reacting C-H marked with a lavender #8383DF halo, orange #FF9C38 lightning bolt for light"
+    },
+    {
+      "doi": "10.1038/s41467-024-51706-x",
+      "citation": "Studer et al., Nat. Commun. 2024 (Iron-catalyzed radical Markovnikov hydrohalogenation and hydroazidation of alkenes)",
+      "licence": "CC BY 4.0",
+      "figure": "Fig. 3B",
+      "crop": "evidence/studer_group-06.png",
+      "measurements_px": {
+        "bond_length": 48,
+        "cap_height": 19,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": 329,
+        "compound_label_cap_height": 19
+      },
+      "observations": "radical probe: inline plus, reagents above and solvent, temperature, time below the arrow, new H-C bond red and C-X bond blue, label 11, 49% (cis:trans = 9.1:1)"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": "{value}%",
+        "variation_color": "#0000FF",
+        "highlight_fill": null,
+        "selectivity_format": null
+      },
+      "signature_features": [
+        "new X group and its bond in blue #0000FF, transferred H in red #FF0000",
+        "catalyst code PC1 in bold inside the conditions (crop 01); catalyst formula Fe(acac)3 in plain text (crop 06)",
+        "gas evolution shown as + H2 followed by an upward arrow (crop 01)"
+      ],
+      "crops": [
+        "evidence/studer_group-01.png",
+        "evidence/studer_group-06.png"
+      ],
+      "notes": "blue variation colour and the blue X / red H signatures rest on crop 06 (the only scheme with coloured bonds) and the scope crop 04; crop 01 is greyscale, so it supports only the scheme type, the catalyst code, the yield and the gas features"
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "variation_color": "#0000FF",
+        "yield_format": "{value}%",
+        "selectivity_format": "dr = {value}",
+        "conditions_position": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "centred plain section titles (reaction from secondary radical) set between thin black horizontal rules",
+        "one structure with a generic X stands for several products, listed below it as up to four lines, one per X (3a, 80% (X = Br); 5a, 72% (X = I); 7a, 62% (X = Cl); 8a, 48% (X = N3))",
+        "new C-H bond and H in pure red #FF0000, new C-X bond and X in pure blue #0000FF on every product"
+      ],
+      "crops": [
+        "evidence/studer_group-04.png"
+      ],
+      "notes": "one crop; conditions are in the figure caption, not drawn; no bold blue wedge is drawn (the only blue pixels are the X letters and thin C-X bonds) and no X-ray row is shown"
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": "#000000",
+        "curved_arrow_weight": "bond",
+        "show_lone_pairs": false,
+        "formal_charge_style": "plain",
+        "intermediate_label_style": "bold_letter",
+        "ts_marker": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "electron transfer to the photocatalyst as a thin black curved arrow riding over a straight reaction arrow (IrIII to IrII)",
+        "radical cations written with a plain + and a dot above the atom",
+        "radicals as a single dot on the carbon; transferred H in red #FF0000",
+        "intermediates labelled with bold capital letters A, B, C"
+      ],
+      "crops": [
+        "evidence/studer_group-02.png",
+        "evidence/studer_group-03.png"
+      ],
+      "notes": "curved arrows are black and as thin as bonds in both crops; bold letters A, B, C in crop 03 only, crop 02 has no intermediate letters, so the letter style rests on one crop (unambiguous)"
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": "circle",
+        "cycle_arrow_color": "#000000",
+        "catalyst_color": null,
+        "center_label": false,
+        "step_names": true,
+        "curved_arrow_color": "#000000",
+        "intermediate_label_style": null,
+        "highlight_fill": "#8383DF"
+      },
+      "signature_features": [
+        "cycle drawn as large black arcs with reagents entering and by-products leaving on smaller curved arrows",
+        "step names beside the arcs: grey #8E8E8E plain (HAT, CPET) in crop 03, bold italic navy #000080 (HAT, SET) in crop 05",
+        "photoexcitation as an orange lightning bolt #FF9C38 with a wavy arrow (crop 05)",
+        "substituent R inside orange #FF8000 discs and sulfur atoms in dark red #800000 (crop 05)"
+      ],
+      "crops": [
+        "evidence/studer_group-03.png",
+        "evidence/studer_group-05.png"
+      ],
+      "notes": "step-name colour differs between the two papers; intermediates bold letters in crop 03, bold numbers in crop 05, so the label style is not set; catalyst_color is not set because crop 03 draws the Fe catalyst black and crop 05 draws the photocatalyst label *[W10O32]4- and 1* navy bold while H[W10O32]4- is black; highlight_fill comes from the lavender halo on the reacting C-H of 2a and on the ring carbon of 4 in crop 05 only"
+    }
+  }
+}

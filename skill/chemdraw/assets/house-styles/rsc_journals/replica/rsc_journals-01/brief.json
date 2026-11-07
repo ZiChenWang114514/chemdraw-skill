@@ -1,0 +1,14 @@
+{
+  "style": "rsc_journals",
+  "species": [
+    {"id": "1", "smiles": "OC(=O)c1ccccc1C(=C)c1ccccc1", "label": "1"},
+    {"id": "2", "smiles": "C#Cc1ccccc1", "label": "2"},
+    {"id": "3a", "smiles": "c1(-c2ccccc2)cc(-c2ccccc2)cc2ccccc12", "label": "3a, 77% (84%)"}
+  ],
+  "steps": [
+    {"substrates": ["1", "2"], "products": ["3a"],
+     "above": ["PdCl2 (5 mol%), Piv2O (1.4 equiv)", "DMAP (1.0 equiv), TFP (10 mol%)", "LiBr (0.5 equiv)"],
+     "below": ["Dioxane, 160 °C"]}
+  ],
+  "max_width": 504
+}

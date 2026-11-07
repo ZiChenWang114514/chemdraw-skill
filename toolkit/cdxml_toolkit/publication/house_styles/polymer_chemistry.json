@@ -1,0 +1,245 @@
+{
+  "slug": "polymer_chemistry",
+  "kind": "journal",
+  "display_name": "Polymer Chemistry (RSC)",
+  "applies_to": [
+    "Polymer Chemistry",
+    "RSC polymer papers"
+  ],
+  "base_preset": "rsc",
+  "measured": {
+    "bond_length_over_cap_height": 2.2,
+    "line_width_over_bond_length": 0.10,
+    "bold_width_over_bond_length": null,
+    "label_font": "Arial",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 7.0
+  },
+  "conventions": {
+    "compound_label_face": null,
+    "compound_label_color": null,
+    "compound_label_italic_suffix": null,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": [
+      "CF3"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "organocatalysts drawn as full structures above the arrow, with the initiator BnOH, solvent and temperature as text below (crop 01); the Au catalyst drawn above the arrow with AgSbF6 and solvent as text below (crop 06)",
+      "polymers drawn as one repeat unit in round brackets with a plain subscript n (m and n in the block copolymers) or the degree of polymerisation (30, 60) at the lower right (crops 01, 03, 05, 06)",
+      "variable side chains given as an R = list of wavy-bond fragments under the product (crops 01, 06; boxed in 06)",
+      "monomers and the matching segments of the product coloured the same in block-copolymer schemes (crop 03)",
+      "compound names such as OxP with subscript Boc written as plain text, not bold numbers (crop 02)"
+    ],
+    "notes": {
+      "scope": "top-level conventions describe reaction schemes: crops 01, 02, 03, 05 and 06. The mechanism (crop 04) and the concept panel (crop 07) are outside them",
+      "compound_label_face": "plain subscripted names in crop 02, bold black names (VEMA-block-AA) in crop 03; most polymer schemes carry no compound numbers",
+      "yield_placement": "polymerisation schemes give no yields; the only yields are in the caption of crop 02",
+      "conditions_split": "reagents above and solvent below in crops 01, 02 and 06. Crop 01 puts the initiator BnOH below the arrow with the solvent. Crop 03 puts only time and temperature below the arrow, with no solvent in any row; rows B and C put AIBN and 65 °C above the arrow and 12 hours below",
+      "substrate_layout": "inline plus between substrates in crops 03 and 05. Crop 06 places the monomer and the Au reagent above the arrows as reagents, not as a substrate pair",
+      "show_plus_sign": "plus signs in crops 03 and 05. Crop 06 has no plus because its monomer sits above the arrow; crops 01 and 02 have one substrate per arrow",
+      "abbreviate_groups": "CF3 in crops 01 and 02. Boc appears only in crop 02 (N-Boc), so it is not in the top-level list, which needs two crops",
+      "substrate_colors": "monomer colour coding only in crop 03",
+      "measured": "Bond length over cap height: crop 01 about 1.6 (23 px bond over a 14 px cap), crop 02 2.5 (25 over 10), crop 06 2.2 (22 over 10); median 2.2. Line width over bond length: crop 01 0.11 (2.5 over 23), crop 02 0.10 (2.5 over 25), crop 06 0.07 (1.5 over 22); median 0.10. Arrow length: crop 01 19 (440 over 23), crop 02 4.3 (107 over 25), crop 06 7.0 (155 over 22); median 7.0. The short step arrows in crop 05 and the concept arrow in crop 07 are not reaction-arrow measurements and are not in the medians"
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1039/d5py00522a",
+      "citation": "Besenius et al., Polym. Chem. 2025 (1,4-Oxazepan-7-one trifluoroacetate: a modular monomer precursor for functional and biodegradable poly(amino esters))",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/polymer_chemistry-01.png",
+      "measurements_px": {
+        "bond_length": 23,
+        "cap_height": 14,
+        "line_width": 2.5,
+        "bold_width": null,
+        "arrow_length": 440
+      },
+      "observations": "organocatalytic ROP: bicyclic amidine and thiourea drawn above the arrow separated by a slash, BnOH, DCM, RT below; poly(amino ester) in round brackets with subscript n and benzyloxy and OH end groups; R = list of wavy-bond fragments"
+    },
+    {
+      "doi": "10.1039/d5py00522a",
+      "citation": "Besenius et al., Polym. Chem. 2025 (1,4-Oxazepan-7-one trifluoroacetate: a modular monomer precursor for functional and biodegradable poly(amino esters))",
+      "licence": "CC BY 3.0",
+      "figure": "Figure 1",
+      "crop": "evidence/polymer_chemistry-02.png",
+      "measurements_px": {
+        "bond_length": 25,
+        "cap_height": 10,
+        "line_width": 2.5,
+        "bold_width": null,
+        "arrow_length": 107,
+        "compound_label_cap_height": 10
+      },
+      "observations": "monomer synthesis in two rows a) b) with bold panel letters; step numbers [1], [2] in brackets left of the reagents; split curved arrows for alternative oxidations; plain subscripted compound names; ammonium with circled plus and circled minus charges"
+    },
+    {
+      "doi": "10.1039/d5py00767d",
+      "citation": "Konkolewicz et al., Polym. Chem. 2026 (Vinyl ether maleic acid block copolymers for tunable lipid nanodiscs)",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/polymer_chemistry-03.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "RAFT copolymerisation, rows A-C with bold uppercase letters; CTA olive #98A030, maleic anhydride blue #1010F8, vinyl ether red #F80000, n-butyl acrylate magenta #F810F8, colours kept in the polymer; bold + signs; product labels bold black"
+    },
+    {
+      "doi": "10.1039/d5py00300h",
+      "citation": "Zuhorn et al., Polym. Chem. 2025 (Solvent and temperature effects in photoiniferter RAFT polymerisation of PEG methacrylate)",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/polymer_chemistry-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 1.5,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "PI-RAFT mechanism split into three rounded boxes: (a) Photoactivation blue #4068A8 outline and title, (b) RAFT equilibrium orange #F89040, (c) Reversible termination green dashed; equilibrium half arrows, radical dots, curved propagation arrow with M; Z and Pm placeholders"
+    },
+    {
+      "doi": "10.1039/d2py00841f",
+      "citation": "Kodger et al., Polym. Chem. 2022 (Linear-bottlebrush-linear triblock copolymer towards architecturally tunable soft materials)",
+      "licence": "CC BY 3.0",
+      "figure": "Figure 1",
+      "crop": "evidence/polymer_chemistry-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "anionic synthesis of PS-b-bbPDMS-b-PS: repeat units in round brackets with DP subscripts 30, 60, 4, 172; cartoon chains PS red #C80000, PDMS blue #0050D0, vinyl pendants magenta #F800F8 dots; steps grouped by vertical brackets (1)-(3); elbow arrows; bold + sign"
+    },
+    {
+      "doi": "10.1039/d6py00714g",
+      "citation": "Maynard et al., Polym. Chem. 2026 (Biomolecule-polymer conjugates by organometallic bioconjugation and ATRP)",
+      "licence": "CC BY 3.0",
+      "figure": "Figure 2a",
+      "crop": "evidence/polymer_chemistry-06.png",
+      "measurements_px": {
+        "bond_length": 22,
+        "cap_height": 10,
+        "line_width": 1.5,
+        "bold_width": null,
+        "arrow_length": 155
+      },
+      "observations": "ATRP from an aryl iodide initiator: monomer drawn above the arrow with CuCl, Bpy; MeOH, 25 °C, 20 min below; polymer in round brackets with n and Br end group; R options boxed under the product; saved crop scaled 0.56"
+    },
+    {
+      "doi": "10.1039/d6py00714g",
+      "citation": "Maynard et al., Polym. Chem. 2026 (Biomolecule-polymer conjugates by organometallic bioconjugation and ATRP)",
+      "licence": "CC BY 3.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/polymer_chemistry-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "concept figure: bold italic navy #004880 headers a) Previous work and b) This work stacked; PEG as a green rounded pill, ATRP Polymer as a blue pill, Biomolecule as a grey pill; green italic claim text #2A9068; circled plus and minus charges"
+    }
+  ],
+  "figure_types": {
+    "polymer": {
+      "conventions": {
+        "repeat_bracket": "round",
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "repeat unit in round brackets crossing the backbone bonds, with n (m and n in block copolymers) or the DP as a subscript at the lower right of the closing bracket (crops 01, 03, 05, 06)",
+        "end groups drawn explicitly on both sides (BnO and OH, n-Bu and SiMe2H, initiator and Br) (crops 01, 05, 06)",
+        "block copolymer cartoons: PS blocks red #C80000, PDMS grafts and the end-capped pre-polymer blue #0050D0 wavy chains, the soft PDMS backbone black, functional pendants as magenta #F800F8 dots (crop 05)",
+        "monomer colours carried into the polymer segments: maleic anhydride blue #1010F8, vinyl ether red #F80000, butyl acrylate magenta #F810F8, RAFT end group olive #98A030 (crop 03)"
+      ],
+      "crops": [
+        "evidence/polymer_chemistry-01.png",
+        "evidence/polymer_chemistry-03.png",
+        "evidence/polymer_chemistry-05.png",
+        "evidence/polymer_chemistry-06.png"
+      ],
+      "notes": "variation_color left null: colour coding marks blocks, not substrate variation"
+    },
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": null,
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "organocatalysts drawn as structures above the arrow, two catalysts separated by a slash (crop 01)",
+        "bracketed step numbers [1], [2] to the left of the reagent stack (crop 02)",
+        "rows marked with bold panel letters a) b) (crop 02) or A B C (crop 03)",
+        "substituent options listed as R = with wavy-bond fragments, boxed in crop 06"
+      ],
+      "crops": [
+        "evidence/polymer_chemistry-01.png",
+        "evidence/polymer_chemistry-02.png",
+        "evidence/polymer_chemistry-03.png",
+        "evidence/polymer_chemistry-06.png"
+      ],
+      "notes": "no yields on polymerisation schemes"
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": null,
+        "curved_arrow_weight": null,
+        "show_lone_pairs": false,
+        "formal_charge_style": null,
+        "intermediate_label_style": "none",
+        "ts_marker": "none",
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "each mechanistic step in its own rounded rectangle with a coloured outline and a matching coloured title above: blue #4068A8, orange #F89040, green dashed (crop 04)",
+        "equilibria drawn with long half-headed double arrows; radicals as dots; monomer addition as a curved arrow labelled M (crop 04)",
+        "chains abbreviated as Pm and Pn, the RAFT agent Z group as Z (crop 04)"
+      ],
+      "crops": [
+        "evidence/polymer_chemistry-04.png"
+      ],
+      "notes": "one crop; the propagation step carries one curved arrow from the radical to M, and the equilibria are half-headed arrows"
+    },
+    "concept_panel": {
+      "conventions": {
+        "panel_label_style": "bold_lowercase",
+        "comparison_layout": "stacked_rows",
+        "this_work_color": "#004880",
+        "background_fill": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "a) Previous work and b) This work as bold italic navy #004880 headers, stacked (crop 07)",
+        "macromolecules and biomolecules as rounded pills: PEG green, ATRP Polymer blue, Biomolecule grey, each with a gradient (crop 07)",
+        "claim text in green italics #2A9068 between converging graft-from and graft-to lines (crop 07)"
+      ],
+      "crops": [
+        "evidence/polymer_chemistry-07.png"
+      ],
+      "notes": "one crop"
+    }
+  }
+}

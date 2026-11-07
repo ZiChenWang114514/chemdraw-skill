@@ -1,0 +1,160 @@
+{
+  "slug": "jmed_chem",
+  "kind": "journal",
+  "display_name": "Journal of Medicinal Chemistry (ACS)",
+  "applies_to": [
+    "J. Med. Chem.",
+    "ACS medicinal chemistry papers"
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.25,
+    "line_width_over_bond_length": 0.07,
+    "bold_width_over_bond_length": null,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 3.0
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": null,
+    "substrate_layout": "inline_plus",
+    "abbreviate_groups": null,
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": true,
+    "signature_features": [
+      "only a lower-case step letter (a, b, c; pairs such as b,c or i,j) above each arrow; reagents, conditions and yields are not drawn on the scheme",
+      "short arrows, about three bond lengths, with a filled triangular head",
+      "bold compound numbers centred under each structure; series given as bold number plus R-group definitions, e.g. 87a: R1 = H, A = C",
+      "multistep routes laid out in rows, branching with vertical and diagonal arrows that also carry only a letter",
+      "black only; no colour, boxes or shading on synthetic schemes"
+    ],
+    "notes": {
+      "compound_label_face": "bold applies to the compound numbers under reaction-scheme structures (crops 01, 02, 03); structure-panel captions are plain names with an optional bold number (crops 04, 05), described under figure_types.structure_panel",
+      "yield_placement": "no yields are drawn on the scheme in crops 01, 02 or 03; the footnote text that could carry them lies outside every crop, so the placement is not verified",
+      "yield_format": "not on the drawing",
+      "conditions_split": "no crop draws reagents or conditions above or below an arrow (crops 01 to 03 show only step letters), so the split is not determined; the footnote lies outside every crop",
+      "abbreviate_groups": "null under the two-scheme-crop rule: Boc appears only in scheme crop 03; the nitrile written CN appears in scheme crop 02 only (and as NC on BMS-986504 in structure-panel crop 04); CF3 appears only in structure-panel crop 04. Methyl groups are drawn as plain line ends",
+      "arrow_length": "2.7 bond lengths in crop 01, 3.0 in crop 02, 4.8 in crop 03 (small bond, 22 px); median 3.0 used",
+      "bond_length_over_cap_height": "seven crops give 2.14 (crop 06) to 2.35 (crop 04), median 2.27; 2.25 kept",
+      "line_width_over_bond_length": "seven crops give 0.055 (crop 03) to 0.071 (crops 02 and 05), median 0.067; 0.07 kept"
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/acs.jmedchem.4c02694",
+      "citation": "Baldwin, Ward et al., J. Med. Chem. 2025 (Discovery of MDI-114215: a potent and selective LIMK inhibitor to treat fragile X syndrome)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/jmed_chem-01.png",
+      "measurements_px": {"bond_length": 86, "cap_height": 38, "line_width": 6, "bold_width": null, "arrow_length": 230, "compound_label_cap_height": 45},
+      "observations": "measured on the 4183 px original; letters a, b, c above plain arrows, nothing below; bold labels 11, 12, 13, 9 on the upper branch and 14, 10 on the lower branch; branch with a vertical arrow from 12 to 14; Kekule rings, Arial-like labels"
+    },
+    {
+      "doi": "10.1021/acs.jmedchem.4c02694",
+      "citation": "Baldwin, Ward et al., J. Med. Chem. 2025 (Discovery of MDI-114215: a potent and selective LIMK inhibitor to treat fragile X syndrome)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 5, top two rows",
+      "crop": "evidence/jmed_chem-02.png",
+      "measurements_px": {"bond_length": 85, "cap_height": 37, "line_width": 6, "bold_width": null, "arrow_length": 252, "compound_label_cap_height": 44},
+      "observations": "measured on the 4183 px original (saved crop scaled 0.22); generic structures with A and R1 to R3, series listed under each structure with bold numbers; letters a, b, e above arrows; nitrile on compound 92 written CN"
+    },
+    {
+      "doi": "10.1021/acs.jmedchem.4c03067",
+      "citation": "Cottrell et al., J. Med. Chem. 2025 (Discovery of TNG462: a highly potent and selective MTA-cooperative PRMT5 inhibitor)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 8 (synthesis of TNG462)",
+      "crop": "evidence/jmed_chem-03.png",
+      "measurements_px": {"bond_length": 22, "cap_height": 10, "line_width": 1.2, "bold_width": 5, "arrow_length": 105, "compound_label_cap_height": 10},
+      "observations": "convergent route over five rows; letter pairs b,c / i, j / m, n above arrows; plus sign between partners; Boc and BF3K as text; bold labels 86 to 92 and TNG462; greyscale throughout, fragment 88 black like the rest of the scheme"
+    },
+    {
+      "doi": "10.1021/acs.jmedchem.4c03067",
+      "citation": "Cottrell et al., J. Med. Chem. 2025 (Discovery of TNG462: a highly potent and selective MTA-cooperative PRMT5 inhibitor)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1",
+      "crop": "evidence/jmed_chem-04.png",
+      "measurements_px": {"bond_length": 40, "cap_height": 17, "line_width": 2.5, "bold_width": 8, "arrow_length": null, "compound_label_cap_height": 22},
+      "observations": "2 x 2 grid of clinical compounds, each named below in plain (not bold) Helvetica larger than atom labels: AMG 193, BMS-986504, TNG908, AZD3470; CF3 on AMG 193 and nitrile written NC on BMS-986504; no colour"
+    },
+    {
+      "doi": "10.1021/acs.jmedchem.4c02694",
+      "citation": "Baldwin, Ward et al., J. Med. Chem. 2025 (Discovery of MDI-114215: a potent and selective LIMK inhibitor to treat fragile X syndrome)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1A",
+      "crop": "evidence/jmed_chem-05.png",
+      "measurements_px": {"bond_length": 14, "cap_height": 6, "line_width": 1, "bold_width": null, "arrow_length": null, "compound_label_cap_height": 6},
+      "observations": "two rows of literature inhibitors; row 1 captioned name (number) with only the number bold, e.g. FRAX486 (2); row 2 captions lie below the crop; bold panel letter A top left; black only"
+    },
+    {
+      "doi": "10.1021/acs.jmedchem.4c02694",
+      "citation": "Baldwin, Ward et al., J. Med. Chem. 2025 (Discovery of MDI-114215: a potent and selective LIMK inhibitor to treat fragile X syndrome)",
+      "licence": "CC BY 4.0",
+      "figure": "Table 1 (image version, upper part)",
+      "crop": "evidence/jmed_chem-06.png",
+      "measurements_px": {"bond_length": 60, "cap_height": 28, "line_width": 4, "bold_width": null, "arrow_length": null, "compound_label_cap_height": 30},
+      "observations": "full grid table with black rules on every cell; bold header row (Compound, R, A, cLogD, Enzymatic pIC50 with LIMK1 and LIMK2 subcolumns); bold compound numbers; R groups drawn as fragments with a dashed attachment bond (compounds 73 to 75); activities as mean ± SD to two decimals; Rapid and nd mixed with numbers"
+    },
+    {
+      "doi": "10.1021/acs.jmedchem.4c02694",
+      "citation": "Baldwin, Ward et al., J. Med. Chem. 2025 (Discovery of MDI-114215: a potent and selective LIMK inhibitor to treat fragile X syndrome)",
+      "licence": "CC BY 4.0",
+      "figure": "Table 1 core structure",
+      "crop": "evidence/jmed_chem-07.png",
+      "measurements_px": {"bond_length": 50, "cap_height": 22, "line_width": 3, "bold_width": null, "arrow_length": null, "compound_label_cap_height": null},
+      "observations": "core drawn with the variable positions as plain R and A labels, no colour or highlighting; the crop shows the core only (no grid, no values)"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {"yield_format": null, "selectivity_format": null, "highlight_fill": null, "variation_color": null},
+      "signature_features": [
+        "lower-case letter above the arrow; no reagent, condition or yield text on the drawing",
+        "bold compound number under each structure; series written as 87a: R1 = H, A = C under the generic structure",
+        "black only"
+      ],
+      "crops": ["evidence/jmed_chem-01.png", "evidence/jmed_chem-02.png"],
+      "notes": "crops 01 and 02 carry no yields or conditions on the drawing; the footnote text that could carry them lies outside both crops and is not verified. Crop 01 has bold numbers on both branches (14 and 10 on the lower branch)."
+    },
+    "total_synthesis": {
+      "conventions": {"step_label_style": "letter_above_arrow", "step_count_shown": false, "yield_format": null, "highlight_fill": null, "variation_color": null},
+      "signature_features": [
+        "convergent route stacked in rows, each arrow carrying only letters (single a, or pairs b,c and i,j) above it",
+        "reagents and yields not drawn on the scheme",
+        "final compound labelled with its code name in bold (TNG462)"
+      ],
+      "crops": ["evidence/jmed_chem-03.png"],
+      "notes": "one crop, greyscale throughout; fragment 88 is black like the rest of the scheme, so no variation colour is shown and the earlier navy #1F1F5C value is withdrawn. Step letters sit above the arrows, as in crops 01 and 02; the footnote key lies outside the crop."
+    },
+    "structure_panel": {
+      "conventions": {"highlight_fill": null, "variation_color": null, "intermediate_label_style": null},
+      "signature_features": [
+        "drugs and leads in a grid, black only, no highlighted changes",
+        "caption under each structure as plain name, with the compound number bold in parentheses, e.g. LX7101 (3)",
+        "clinical compounds named in plain text larger than atom labels (AMG 193, TNG908)"
+      ],
+      "crops": ["evidence/jmed_chem-04.png", "evidence/jmed_chem-05.png"],
+      "notes": "neither panel highlights the changed region. Crop 04 captions carry no compound numbers; the bold numbers come from crop 05, where only the first row of captions is inside the crop (row 2 captions lie below it). Crop 04 writes CF3 on AMG 193 and the nitrile of BMS-986504 as NC. intermediate_label_style null because labels are names with an optional bold number."
+    },
+    "sar_table": {
+      "conventions": {"table_style": "grid", "activity_format": "pIC50 mean ± SD, two decimals (7.48 ± 0.18)", "variation_color": null, "highlight_fill": null},
+      "signature_features": [
+        "core structure with R and A drawn above the table",
+        "full black grid on every cell, bold header with merged group headers (Enzymatic pIC50 over LIMK1 and LIMK2)",
+        "bold compound numbers in the first column; R groups drawn as small fragments with a dashed attachment bond",
+        "text values such as Rapid and nd mixed with numbers"
+      ],
+      "crops": ["evidence/jmed_chem-06.png", "evidence/jmed_chem-07.png"],
+      "notes": "one paper; in PMC most J. Med. Chem. tables are HTML text and only the core is an image (as in the TNG462 paper). The core with its R and A labels is in crop 07 only (crop 06 shows the table alone). The grid style and the pIC50 format rest on crop 06 alone, since crop 07 shows only the core."
+    }
+  }
+}

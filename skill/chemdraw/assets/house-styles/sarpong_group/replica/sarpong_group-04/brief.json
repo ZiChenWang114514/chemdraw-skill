@@ -1,0 +1,15 @@
+{
+  "style": "sarpong_group",
+  "layout": "catalytic-cycle",
+  "species": [
+    {"id": "2A", "smiles": "CC1=CC2=C(C=C1C)N(*)C3=NC(=O)NC(=O)C3=N2", "label": "2.A"},
+    {"id": "2Bs", "smiles": "CC1=CC2=C(C=C1C)N(*)C3=C(C(=O)NC(=O)[N]3)[N]2", "label": "2.B*"},
+    {"id": "2C", "smiles": "CC1=CC2=C(C=C1C)N(*)C3=C(C(=O)NC(=O)[N-]3)[N]2", "label": "2.C"}
+  ],
+  "steps": [
+    {"substrates": ["2A"], "products": ["2Bs"], "arrow": "solid"},
+    {"substrates": ["2Bs"], "products": ["2C"], "above": ["+ 1a"], "below": ["− 1a_ox"]},
+    {"substrates": ["2C"], "products": ["2A"], "above": ["+ S2O8²⁻"], "below": ["− SO4²⁻ + SO4•⁻"]}
+  ],
+  "max_width": 504
+}

@@ -1,0 +1,299 @@
+{
+  "slug": "cell_press_chem",
+  "kind": "publisher",
+  "display_name": "Cell Press chemistry journals (Chem, Chem Catalysis)",
+  "applies_to": [
+    "Chem (Cell Press)",
+    "Chem Catalysis (Cell Press)"
+  ],
+  "base_preset": "wiley",
+  "measured": {
+    "bond_length_over_cap_height": 2.12,
+    "line_width_over_bond_length": 0.08,
+    "bold_width_over_bond_length": 0.17,
+    "label_font": "Arial",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 7.5
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": "under_arrow",
+    "yield_separator": null,
+    "yield_format": "{value}%",
+    "conditions_split": null,
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "Ph"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "signature_features": [
+      "panels lettered with a bold sans capital A, B, C (no parentheses) at the top left (crops 02, 05, 06, 07, 08); a plain-weight panel title follows the letter in crops 05, 06 and 08",
+      "compound labels bold with stereo or isomer prefixes in italics, e.g. cis-9, syn-1D, (S)-1 (crops 01, 04, 05)",
+      "warm grey #F0EDE8 fills the small step boxes (ISC, EnT) in crops 05 and 06",
+      "dark red #780001 for mechanistic step names and curved arrows (crop 05); crop 08 uses a dark red panel bullet (about #760809) and a dark red new bond (core #890011), the same family",
+      "sans-serif (Arial or Helvetica) text throughout"
+    ],
+    "notes": {
+      "crop_rule": "Top-level conventions are counted over the reaction-type crops 01 to 04 (schemes and the substrate grid). Mechanism, cycle and energy crops 05 to 08 are read in their figure_types sections only.",
+      "yield_placement": "under the arrow in crops 01 and 02 (in crop 02 the 78 % sits in the conditions block below the arrow). Crop 04 puts the yield under the product label (a substrate grid, not a scheme). Crop 03 shows no yield.",
+      "yield_format": "{value}% : crops 01 (71%) and 04 (86%) have no space; crop 02 writes 78 % with a space. The majority form is kept.",
+      "conditions_split": "crop 02 puts the reagent above and rt, solvent and yield below (matches reagents_above_solvent_below); crop 03 puts catalyst and solvent above and light and time below; crop 01 has no conditions line. The crops disagree, so null.",
+      "substrate_layout": "crop 01 stacks reagents 1 and 2 in a column with no plus sign. That matches neither inline_plus nor stacked_plus (stacked_plus draws a plus), so null. Crop 03 puts a plus between its two products; that is a product plus, not a substrate layout.",
+      "arrow_style": "plain: crops 02 and 03 draw thin arrows. Crop 01 draws a heavier shaft (about 3 px) with a large filled head; it is the one exception.",
+      "compound_label_italic_suffix": "false. The schema key covers an italic suffix such as d and x in 1-dx. The italic part in this house style is a prefix before the bold number: the stereodescriptor in (S,Rmp)-4 (crop 01), cis in cis-9 (crop 04), and syn and anti in syn-1E and anti-1D (crop 05). The schema has no prefix key, so the prefix is recorded here only.",
+      "abbreviate_groups": "Ph only. Ph is contracted in two journal-published crops: crop 01 (the benzyl and P-phenyl labels) and crop 04 (the benzoate and cyclopropyl phenyl labels). Crop 03, an author-manuscript figure, draws its N-benzyl phenyl in full. OMe, tBu and CF3 appear as labels only in crop 04 (one crop), so they are not listed at top level. CN is not drawn in any crop. BzO (crop 07) has no entry in house_styles.ABBREVIATIONS and cannot be added.",
+      "aromatic_rings": "kekule, as recorded for the rings in these crops.",
+      "substrate_colors": "null. Crop 01 colours each component by origin (red #CB181B, green, blue #4068AD) and crop 04 colours the benzoate green and the cyclopropyl aryl blue. These are colours of fragments inside one molecule. substrate_colors is a list matched to substrates in order, so no list fits. The origin colouring is recorded in the reaction_scheme and substrate_scope signature features.",
+      "new_bond_color": "null. Only crop 08 (a mechanism figure) draws a new bond in dark red; its core pixels are about #890011, not #97192E. One crop only.",
+      "show_plus_sign": "null. A plus sign appears between products in crop 03 only.",
+      "measured_spread": "bond_length_over_cap_height 2.12: crop 03 gives 26.5 / 12.5 = 2.12 and crop 04 gives 19 / 9 = 2.11. line_width_over_bond_length 0.08: crop 03 gives 2 / 26.5 = 0.075 and crop 04 gives 1.6 / 19 = 0.084. bold_width_over_bond_length 0.17: crop 03 only. arrow_length_over_bond_length 7.5: crop 03 gives 200 / 26.5 = 7.5; crop 01 gives 103 px over a 10 px cap, about 10.3 cap heights, which is about 4.9 bond lengths at 2.12, but crop 01 has no measurable bond. The two crops disagree by about 1.5 times. The crop 03 value is kept because it is the only one measured on a bond in the same figure; the spread is recorded here.",
+      "base_preset": "wiley fixes the bond length (17 pt), the Arial label font and the label size. The measured ratios then override the preset's own widths at draw time: the wiley line of 0.75 pt is 0.044 of its bond, against the measured 0.08, and its bold width 2.6 pt is 0.15, against the measured 0.17. No preset value was checked against the arrow ratio, because presets carry no arrow length.",
+      "figure_sources": "crops 03, 05, 06 and 08 come from the PMC author manuscript of the Chem Catalysis paper (NIHMS figures), which keep the authors' artwork; crops 01, 02, 04 and 07 are the journal-published Chem figures."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1016/j.chempr.2020.02.006",
+      "citation": "Goldup et al., Chem 2020 (Synthesis of a mechanically planar chiral rotaxane ligand for enantioselective catalysis)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1",
+      "crop": "evidence/cell_press_chem-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": 10,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": 103
+      },
+      "observations": "multistep scheme with numbered steps (1. AT-CuAAC above, 71% under the arrow); starting materials 1 and 2 stacked in a column with no plus signs; components coloured by origin: red #CB181B (azide 1, alkyne 2, alkyl chain), green #386D11 (P-aryl and pyridyl parts) and blue #4069AB (bipyridine); heavy arrows with large filled heads; bold labels with an italic stereodescriptor before the bold number, (S,Rmp)-4; low-resolution web image, bond length not measurable"
+    },
+    {
+      "doi": "10.1016/j.chempr.2021.05.002",
+      "citation": "Greb et al., Chem 2021 (An isolable, crystalline complex of square-planar silicon(IV))",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2A",
+      "crop": "evidence/cell_press_chem-02.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "bold panel letter A; one reagent above the arrow (1 eq. Na[B(C6F5)4]); rt, CH2Cl2, 78 % (with a space) and by-products below the arrow; thin arrow; the Si label alone is magenta, while its Si-N and Si-Cl bonds are black; bold label 2 and [PPh4][1] with the 1 in bold"
+    },
+    {
+      "doi": "10.1016/j.checat.2025.101493",
+      "citation": "Smith et al., Chem Catal. 2025 (Photocatalysis as a mechanistic probe for the Staudinger beta-lactam synthesis)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3 top",
+      "crop": "evidence/cell_press_chem-03.png",
+      "measurements_px": {
+        "bond_length": 26.5,
+        "cap_height": 12.5,
+        "line_width": 2,
+        "bold_width": 4.5,
+        "arrow_length": 200,
+        "compound_label_cap_height": 13
+      },
+      "observations": "measured on the 1500 px original (saved crop scaled 0.6); catalyst and solvent above the arrow, light source and time below; no yield or selectivity shown; varied group as a teal dot #529DBD; bold range labels 1b-1j, 2b-2j and 7b-7j; the N-benzyl phenyl is drawn as a full ring; full-width black rule under the scheme"
+    },
+    {
+      "doi": "10.1016/j.chempr.2020.02.006",
+      "citation": "Goldup et al., Chem 2020 (Synthesis of a mechanically planar chiral rotaxane ligand for enantioselective catalysis)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 3",
+      "crop": "evidence/cell_press_chem-04.png",
+      "measurements_px": {
+        "bond_length": 19,
+        "cap_height": 9,
+        "line_width": 1.6,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 9.4
+      },
+      "observations": "product grid without a scheme (conditions in the caption); the benzoate and enol-ester part is green (#386D11 by pixel mode, #336510 in crop 07), the aryl group on the cyclopropane is blue #4068AD (the hashed bond to Ph and the ring bond from the aryl-bearing carbon to the lower CH2 are blue; the rest of the cyclopropane is black); label cis-9 with italic cis and bold number; yield and selectivity under the label as 86% (88% de, 57% ee) with italic de and ee; the abbreviations Ph, CF3, OMe and tBu are drawn as labels"
+    },
+    {
+      "doi": "10.1016/j.checat.2025.101493",
+      "citation": "Smith et al., Chem Catal. 2025 (Photocatalysis as a mechanistic probe for the Staudinger beta-lactam synthesis)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4A",
+      "crop": "evidence/cell_press_chem-05.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "mechanistic overview: photocatalyst cycle drawn as two black arcs with EnT in a warm grey box #F0EDE8 and ISC in a second warm grey box; step names (1,5-HAT, C-N rotation, cyclization) in dark red #780001 above arrows; TS names (3TS-I, 3TS-II, 1TS-III, 1TS-IV, 1TS-V) in bold as plain text with no bracket and no double dagger; dark red curved arrows; dashed arrows for minor paths; species labelled with spin superscripts and bold letters, 3A, 3B, 3C, 1A (1I), 1C; syn-1E and anti-1D labels with italic syn and anti"
+    },
+    {
+      "doi": "10.1016/j.checat.2025.101493",
+      "citation": "Smith et al., Chem Catal. 2025 (Photocatalysis as a mechanistic probe for the Staudinger beta-lactam synthesis)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4B",
+      "crop": "evidence/cell_press_chem-06.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "energy profile with short blue bars #116FAF joined by smooth black curves; values in parentheses after bold state names, e.g. 3TS-I (8.7); y axis G_rel (kcal mol-1), a relative Gibbs energy with 3A at 0.0; boxed plot with ticks on the left and right edges only (top and bottom edges have none); competing path in dark red; 1TS-IV and 1TS-V curves in pure blue #0000FE; a small EnT box in warm grey #F0EDE8 beside the vertical EnT arrow; no 3D structures in this crop"
+    },
+    {
+      "doi": "10.1016/j.chempr.2020.02.006",
+      "citation": "Goldup et al., Chem 2020 (Synthesis of a mechanically planar chiral rotaxane ligand for enantioselective catalysis)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4A",
+      "crop": "evidence/cell_press_chem-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "catalytic cycle: four states on a circle joined by thick black curved arrows; step names in red italics #CB181B beside three of the four arrows (rearrangement, addition of styrene (TS1), cyclisation (TS2)); none beside the arrow from 7 into I; intermediates I and II labelled with bold Roman numerals, the third intermediate unlabelled and the [AuCu(6)]2+ state in brackets; substrates 7 and 8 enter on short arrows with bold coloured numbers; BzO on the enol ester; Au in orange-brown"
+    },
+    {
+      "doi": "10.1016/j.checat.2025.101493",
+      "citation": "Smith et al., Chem Catal. 2025 (Photocatalysis as a mechanistic probe for the Staudinger beta-lactam synthesis)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1C",
+      "crop": "evidence/cell_press_chem-08.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null
+      },
+      "observations": "panel title preceded by a dark red square bullet (about #760809) and bold letter C; the bracket around intermediate 3 carries a double dagger and the spin multiplicity 3 outside it, while the brackets around 4 and 5 carry no mark; dark red curved arrows; substituents as coloured dots, teal #509CBC and green #C2D9A3 (no dark red dots); bold number labels followed by a period and a plain description; new bold ring bond dark red (core about #890011) in product 2; the caption under structure 5 is enclosed by a blue #336E90 outline box (the box does not enclose the structure)"
+    }
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": "{value}%",
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "bold panel letter at the top left of each scheme panel (crop 02)",
+        "multistep schemes number the steps (1. AT-CuAAC) with the yield under the arrow (crop 01)",
+        "components colour coded by origin (red #CB181B, green, blue #4068AD) and kept in those colours through the scheme (crop 01)"
+      ],
+      "crops": [
+        "evidence/cell_press_chem-01.png",
+        "evidence/cell_press_chem-02.png",
+        "evidence/cell_press_chem-03.png"
+      ],
+      "notes": "conditions placement differs between the three crops (see conventions.notes.conditions_split). The yield format is a tie in this section (crop 01 has no space, crop 02 has one); the top-level no-space form is kept. Crop 03 shows no yield."
+    },
+    "substrate_scope": {
+      "conventions": {
+        "scope_layout": "grid",
+        "variation_color": null,
+        "yield_format": "{value}%",
+        "selectivity_format": "({de} de, {ee} ee)",
+        "conditions_position": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "bold compound label, then the yield and selectivity below it as 86% (88% de, 57% ee) with italic de and ee (crop 04)",
+        "bold range labels 1b-1j, 2b-2j and 7b-7j under the structures of a single scheme (crop 03)",
+        "fragment colour coding by origin: green ester and enol-ester part #336510, blue aryl group on the cyclopropane #4068AD (crop 04)",
+        "varied position marked by a teal dot #529DBD on the general structure (crop 03)"
+      ],
+      "crops": [
+        "evidence/cell_press_chem-03.png",
+        "evidence/cell_press_chem-04.png"
+      ],
+      "notes": "selectivity_format rests on crop 04 alone (one crop, unambiguous; the placeholders are the de and ee values). Crop 03 shows no yield or selectivity; the >20:1 d.r. quoted for this family is written in crop 08, a mechanism figure, not in crop 03. scope_layout grid rests on crop 04; crop 03 is a single linear scheme with a range label, which no scope_layout value describes. conditions_position is null: crop 03 puts catalyst and solvent above the arrow and light and time below, while crop 04 gives conditions only in the caption."
+    },
+    "mechanism": {
+      "conventions": {
+        "curved_arrow_color": "#780001",
+        "curved_arrow_weight": "thin",
+        "show_lone_pairs": false,
+        "formal_charge_style": "plain",
+        "intermediate_label_style": null,
+        "ts_marker": null,
+        "highlight_fill": "#F0EDE8"
+      },
+      "signature_features": [
+        "dark red curved arrows, thinner than bonds (crops 05, 08)",
+        "step names in dark red #780001 above the arrows and TS names in bold below (crop 05)",
+        "transition state 3 in square brackets with a double dagger and spin multiplicity 3 outside the bracket; intermediates 4 and 5 in square brackets with no mark (crop 08)",
+        "small step boxes (ISC, EnT) filled warm grey #F0EDE8 (crop 05)",
+        "the caption of intermediate 5 is enclosed by a blue #336E90 outline box (crop 08)"
+      ],
+      "crops": [
+        "evidence/cell_press_chem-05.png",
+        "evidence/cell_press_chem-08.png"
+      ],
+      "notes": "both crops are from one Chem Catalysis paper. ts_marker and intermediate_label_style are null because the crops disagree: crop 05 writes TS names as plain bold text with no bracket or dagger, and letters its species (3A, 3B, 3C); crop 08 brackets its species, puts the dagger on the bracket of 3 only, and numbers them (3, 4, 5). highlight_fill #F0EDE8 rests on crop 05 alone, where it fills the ISC and EnT boxes (577 px). Crop 08 highlights with a blue outline instead; the schema has no key for an outline."
+    },
+    "catalytic_cycle": {
+      "conventions": {
+        "cycle_shape": "circle",
+        "cycle_arrow_color": "#000000",
+        "catalyst_color": null,
+        "center_label": false,
+        "step_names": true,
+        "intermediate_label_style": "bold_roman",
+        "curved_arrow_color": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "intermediates placed on a circle and joined by thick black curved arrows (crop 07)",
+        "step names in red italics #CB181B beside three of the four arrows (none on the arrow from 7 into I); transition states named in bold, e.g. (TS1) (crop 07)",
+        "intermediates I and II labelled with bold Roman numerals; the third intermediate is unlabelled; empty centre (crop 07)",
+        "photocatalyst cycles drawn as a small side loop of black arcs with the excited states as text labels (crop 05)"
+      ],
+      "crops": [
+        "evidence/cell_press_chem-07.png",
+        "evidence/cell_press_chem-05.png"
+      ],
+      "notes": "the full cycle rests on crop 07; crop 05 only shows a small photocatalyst loop. The bold_roman style applies to the labelled intermediates I and II in crop 07."
+    },
+    "energy_profile": {
+      "conventions": {
+        "energy_unit": "kcal/mol",
+        "energy_label": null,
+        "level_style": "smooth_curve",
+        "pathway_colors": [
+          "#000000",
+          "#7A0000",
+          "#0000FE"
+        ],
+        "ts_marker": "none",
+        "intermediate_label_style": "bold_letter"
+      },
+      "signature_features": [
+        "short blue #116FAF bars at each state joined by smooth black curves; the competing path as a dark red curve",
+        "labels as bold species name with the energy in parentheses, e.g. 3B (-10.4)",
+        "boxed plot with ticks on the left and right edges only (top and bottom edges have none), y axis G_rel (kcal mol-1)",
+        "small EnT box filled warm grey #F0EDE8 beside the vertical EnT arrow",
+        "1TS-IV and 1TS-V paths drawn as blue #0000FE curves"
+      ],
+      "crops": [
+        "evidence/cell_press_chem-06.png"
+      ],
+      "notes": "rests on one crop. energy_label is null: the axis reads G_rel (relative Gibbs energy, 3A = 0.0), and the schema has no relative-G value; delta_G would misstate the axis. Pathway colours are the black main path, the dark red anti-3TS-I path (darkest pixels #7A0000, antialiased; mode #7C0000) and the blue #0000FE curves (66 exact pixels). Units are written kcal mol-1 (mapped to kcal/mol)."
+    }
+  }
+}

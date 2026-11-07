@@ -1,0 +1,220 @@
+{
+  "slug": "acs_chem_biol",
+  "kind": "journal",
+  "display_name": "ACS Chemical Biology",
+  "applies_to": [
+    "ACS Chemical Biology articles"
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.0,
+    "line_width_over_bond_length": 0.05,
+    "bold_width_over_bond_length": 0.18,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 3.0
+  },
+  "conventions": {
+    "compound_label_face": null,
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": null,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": null,
+    "substrate_layout": null,
+    "abbreviate_groups": null,
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "signature_features": [
+      "chemistry embedded in multi-panel figures with bold uppercase or lowercase panel letters (crops 02, 03)",
+      "the installed group drawn as a filled coloured circle defined in a key instead of an atom label: grey-purple halogen dot (crops 01, 05), magenta aryl dot (crop 01)",
+      "grey title bars with bold black text separate scheme rows (crop 05)",
+      "step names in italic over a thin grey rule above the arrow (crop 01)"
+    ],
+    "notes": {
+      "compound_label_face": "molecules are named (LIMKi3, VH032, 4V) rather than numbered in the crops. Crop 06 (a scheme) sets its names in bold, but it is the only scheme crop that names compounds; the structure panels (crops 03, 04) set names in plain type. With no two scheme crops agreeing, the value stays null.",
+      "yield_placement": "only crop 01 gives yields (44% isolated yield under the product), so the two-crop rule keeps this null. The reaction_scheme section carries yield_format from crop 01.",
+      "conditions_split": "crop 01 puts reagents above and time and temperature below for one step and everything above for the next, so the crop does not agree with itself; no other crop shows a split. Kept null.",
+      "arrow_style": "plain in crops 01 and 05; crop 06 uses a thick tapered block arrow. Two of three scheme crops agree, so plain stands with crop 06 as the exception.",
+      "arrow_length_over_bond_length": "spread across crops: crop 05 shaft about 79 px over a bond of about 25 px (about 3.2); crop 01 shaft about 35 px over a bond of about 13 px (about 2.6). The earlier 4.2 came from a 105 px arrow that crop 05 does not show. Recorded as 3.0, the mean of the two."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/acschembio.6c00269",
+      "citation": "Bridge et al., ACS Chem. Biol. 2026 (Enzymatic bromination of native peptides for late-stage structural diversification via Suzuki-Miyaura coupling)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 4b",
+      "crop": "evidence/acs_chem_biol-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "peptide (RW)3 as one-letter beads: grey R, cyan #7FD0D4 W; enzymatic bromination then Suzuki-Miyaura coupling; Br shown as a grey-purple dot, aryl as a magenta #D2107A dot; italic step titles over grey rules; 44% and 81% isolated yield under the products"
+    },
+    {
+      "doi": "10.1021/acschembio.6c00137",
+      "citation": "Azeez et al., ACS Chem. Biol. 2026 (Discovery and development of a potent LIMK2 isoform-specific degrader)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 2A",
+      "crop": "evidence/acs_chem_biol-02.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "data table: bold column groups (LIMK1, LIMK2, E3 ligase), thin horizontal rules only, series headings bold underlined (VHL-C3), merged E3 ligand cells bold, values plain"
+    },
+    {
+      "doi": "10.1021/acschembio.5c00656",
+      "citation": "Sun et al., ACS Chem. Biol. 2026 (Metabolism of epigenetic ribonucleosides leads to nucleolar stress and cytotoxicity)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1B",
+      "crop": "evidence/acs_chem_biol-03.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "grid of modified nucleosides, ribose as a small flat furanose; the modification and the core atoms or bonds it changes drawn in blue #4C6BFD (N1 of m1A, N7 of m7G, C6 oxygen of I, ring bonds of Psi and D); names (m1A, i6A) under each"
+    },
+    {
+      "doi": "10.1021/acschembio.5c00656",
+      "citation": "Sun et al., ACS Chem. Biol. 2026 (Metabolism of epigenetic ribonucleosides leads to nucleolar stress and cytotoxicity)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1D",
+      "crop": "evidence/acs_chem_biol-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "adenosine core with R in blue #4C6BFD on N6; R groups listed in a grey-outlined box, each in blue with its name below"
+    },
+    {
+      "doi": "10.1021/acschembio.6c00269",
+      "citation": "Bridge et al., ACS Chem. Biol. 2026 (Enzymatic bromination of native peptides for late-stage structural diversification via Suzuki-Miyaura coupling)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1",
+      "crop": "evidence/acs_chem_biol-05.png",
+      "measurements_px": {
+        "bond_length": 25,
+        "cap_height": 12.5,
+        "line_width": 1.3,
+        "bold_width": 4.5,
+        "arrow_length": 79,
+        "compound_label_cap_height": null
+      },
+      "observations": "three rows under grey bars with bold titles; RebH above the arrow; grey-purple dot = Cl or Br; literature citations written as Yeh, et al. 2005 under structures; peptide backbone cartoon with unlabelled grey beads"
+    },
+    {
+      "doi": "10.1021/acschembio.6c00137",
+      "citation": "Azeez et al., ACS Chem. Biol. 2026 (Discovery and development of a potent LIMK2 isoform-specific degrader)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1C",
+      "crop": "evidence/acs_chem_biol-06.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": null,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "click PROTAC assembly: ligands (PD, Thal, VH032, LIMKi3) in bold, alkyne and azide linkers with (CH2)n in pink #EE3E77, CuAAC click reaction under a thick arrow, components named in light-blue boxes"
+    }
+  ],
+  "figure_types": {
+    "biomolecule": {
+      "conventions": {
+        "sugar_projection": null,
+        "peptide_style": null,
+        "highlight_fill": null,
+        "variation_color": "#4C6BFD"
+      },
+      "signature_features": [
+        "peptides as rows of circles: in crop 01 the residues carry one-letter codes, grey R and cyan #7FD0D4 W; in crop 05 the beads are unlabelled grey circles; the modified Trp carries a coloured dot (crop 01)",
+        "PROTAC linkers drawn with the variable (CH2)n segment in pink #EE3E77, the two ligands in black (crop 06)",
+        "nucleoside modifications in blue #4C6BFD on a mostly black core (crops 03, 04); in crop 03 the core atoms or bonds a modification changes are blue too (N1 of m1A, N7 of m7G, C6 oxygen of I, ring bonds of Psi and D)"
+      ],
+      "crops": [
+        "evidence/acs_chem_biol-01.png",
+        "evidence/acs_chem_biol-03.png",
+        "evidence/acs_chem_biol-04.png",
+        "evidence/acs_chem_biol-05.png",
+        "evidence/acs_chem_biol-06.png"
+      ],
+      "notes": "peptide_style is null because the crops disagree: crop 01 (Figure 4b) labels the beads with one-letter codes, while crop 05 (Figure 1, same paper) draws unlabelled beads. Ribose drawn as a flat furanose rather than Haworth or chair, so sugar_projection null. variation_color #4C6BFD rests on crops 03 and 04, which agree; crop 01 (magenta dot) and crop 06 (pink linker) use other colours for their variable groups."
+    },
+    "structure_panel": {
+      "conventions": {
+        "highlight_fill": null,
+        "variation_color": "#4C6BFD",
+        "intermediate_label_style": "none"
+      },
+      "signature_features": [
+        "same core repeated in a grid with a short name under each; the varied group is coloured blue, and where a modification changes the core, the affected core atoms or bonds are blue too (crop 03)",
+        "R-group key in a thin grey rectangle: R = followed by blue fragments with names (crop 04)"
+      ],
+      "crops": [
+        "evidence/acs_chem_biol-03.png",
+        "evidence/acs_chem_biol-04.png"
+      ],
+      "notes": "both crops from one paper; the R-group key is in crop 04 only"
+    },
+    "sar_table": {
+      "conventions": {
+        "table_style": "horizontal_rules",
+        "activity_format": "{value}",
+        "variation_color": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "no structures in the table; compound IDs (21a, 23d) in the first column, series headings bold underlined (VHL-C3)",
+        "two-level bold header with grouped targets (LIMK1, LIMK2) above unit-bearing columns such as SPR KD (nM)",
+        "thin horizontal rules at the header and section breaks, no vertical rules"
+      ],
+      "crops": [
+        "evidence/acs_chem_biol-02.png"
+      ],
+      "notes": "one crop; activities as bare numbers with units in the header"
+    },
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": "{value}% isolated yield",
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "on-peptide reactions shown on bead peptides (crop 01); the new substituent drawn as a coloured dot defined beside the arrow, magenta for an aryl group and grey-purple for a halogen (crops 01, 05)",
+        "enzyme or catalyst name above the arrow, concentrations stacked (10 uM 4V, 10 mM NaBr) (crop 01)",
+        "step titles in italic above a thin grey rule over each arrow (crop 01)"
+      ],
+      "crops": [
+        "evidence/acs_chem_biol-01.png",
+        "evidence/acs_chem_biol-05.png",
+        "evidence/acs_chem_biol-06.png"
+      ],
+      "notes": "yield_format from crop 01 only, the only scheme with yields. variation_color is null because the three scheme crops use three colours for their variable groups: magenta aryl dot in crop 01 (flat pixels about #D21579), grey-purple halogen dot in crops 01 and 05, and pink linker in crop 06 (about #F64883). No two crops agree on one colour."
+    }
+  }
+}

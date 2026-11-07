@@ -10,24 +10,37 @@
     "bold_width_over_bond_length": null,
     "label_font": "Arial|Helvetica",
     "atom_label_size_pt_estimate": null,
-    "arrow_length_over_bond_length": 7.0
+    "arrow_length_over_bond_length": 11.1
   },
   "conventions": {
     "compound_label_face": "bold",
     "compound_label_color": "#000000",
     "compound_label_italic_suffix": false,
-    "yield_placement": null,
+    "yield_placement": "after_product_label",
+    "yield_separator": ", ",
     "yield_format": "{value}%",
     "conditions_split": "reagents_above_solvent_below",
     "substrate_layout": "inline_plus",
-    "abbreviate_groups": ["OMe"],
+    "abbreviate_groups": null,
     "aromatic_rings": "kekule",
     "new_bond_color": null,
-    "substrate_colors": null,
+    "substrate_colors": ["#800000", "#004080"],
     "highlight_fill": null,
     "reagent_text_color": "#000000",
     "arrow_style": "plain",
-    "show_plus_sign": true
+    "show_plus_sign": true,
+    "notes": "Yield placement: after_product_label from crops 02 and 03 (7e, 73%; [18O]-3a, 68%). Crop 04 puts the yield on a line under the bold label (X = Br, 91%, 45 min), so placement is not uniform across the four crops. Arrow length over bond length: crop 02 gives 410/37 px (11.1) and crop 04 gives 300/27 px (11.1); crop 01 gives 255/36 px (7.1) and crop 03 gives 230/39 px (5.9). The card keeps the 11.1 value of the two crops that agree; the spread is 5.9 to 11.1. Crop 04 is a web figure image of unknown print scale, so its ratio is approximate. abbreviate_groups null: no group is drawn as a label in two crops. Crop 02 draws OTMS, Me, Ph, CO2Me, CN and NO2 labels; crop 04 draws OMe; crop 02 mentions MeO only inside substituent names in the text. TMS-N3 in crops 02 and 03 is a reagent formula in running text, not a drawn label. Substrate colours: flat #800000 and #004080 fills in crop 02 (about 13,400 and 20,200 pixels) and the same blue cluster in crop 03; crop 01 colours the aryl reagent 2a in pure blue #0000FF instead and crop 04 has no substrate colouring. new_bond_color null: purple in crop 04 only; new bonds are black in crops 01 and 03. reagent_text_color #000000: reagent and condition text is black in all four crops; the blue-grey italic section headers in crops 02 and 03 and the single blue word ocean in crop 04 are annotations, not reagent text. conditions_split: catalyst or oxidant above the arrow and solvent, temperature and time below in all four crops; base sits below the arrow in crops 01 (DIPEA) and 04 (KOtBu)."
+  },
+  "figure_types": {
+    "reaction_scheme": {
+      "crops": [
+        "evidence/acs_jacs-01.png",
+        "evidence/acs_jacs-02.png",
+        "evidence/acs_jacs-03.png",
+        "evidence/acs_jacs-04.png"
+      ],
+      "notes": "All four crops are reaction schemes. The values are the top-level conventions, so this section sets no override."
+    }
   },
   "evidence": [
     {

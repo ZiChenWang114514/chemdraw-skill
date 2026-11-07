@@ -101,8 +101,8 @@
   </tr>
   <tr>
     <td colspan="3" align="center">
-      <a href="#期刊与课题组画法风格"><img src="skill/chemdraw/assets/house-styles/gallery/house-baran_group.png" width="60%" alt="按 Baran 课题组画法绘制的 Suzuki 偶联，新键为深红色"></a>
-      <br><b>期刊与课题组画法风格</b><br><sub>同一份说明，按 ACS、Wiley、Nature、Science、RSC 或 Baran、MacMillan、Lipshutz 课题组的习惯画出</sub>
+      <a href="#期刊与课题组画法风格"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="按 Studer 课题组画法风格重画的已发表自由基探针反应式，新键为红色"></a>
+      <br><b>28 个期刊与课题组画法风格</b><br><sub>测自 179 张已发表的图；23 类图，47 个文献复现案例</sub>
     </td>
   </tr>
 </table>
@@ -186,7 +186,7 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 | **按需求新画图** | 由简短的说明或紧凑语法（`compact_text`）画出单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或机理（支持配位键、自由基、`ring_fills` 环着色、药效团 `atom_halos`、多点连接配位键 `multi_attachments`、`[…]‡` 过渡态方括号、`<orbital>` 轨道瓣与三维构象模板），并在同一条命令里检查化学与版面。[详见下文](#one-command-figures)。 |
 | **试卷、讲义与论文插图** | 由 JSON 描述生成 ACS Document 1996 格式插图（`build_acs_figure`），支持缩写节点、富文本、中文注释、箭头、带框化合物代号、JACS/Angew 环着色（`ring_fills`）、药效团光晕、多点连接配位键 `MultiAttachment`、过渡态方括号、分子轨道瓣与确定性三维构象模板（椅式环己烷、Newman、Haworth、Fischer、降冰片烷），并提供视觉与立体审计工具（`depict_like` 16 方向对齐、`read_wedges` 楔形键回读、`edit_structure` 原子索引与 E/Z 编辑器）。 |
 | **数据驱动绘图** | 由 CSV/XLSX 生成可编辑、可持续更新的底物拓展图和 SAR 图。 |
-| **期刊与课题组风格** | 同一个 `style` 键选择两层风格。16 个尺寸预设取自 ChemDraw 自带样式表（默认 ACS Document 1996，另有 Wiley、RSC、Nature Research、Thieme Synthesis/Synlett 等），为反应式、底物拓展图、机理图和图形清单设定键长、线宽和字体。8 个画法风格（ACS、Wiley、Nature Portfolio、Science、RSC，以及 Baran、MacMillan、Lipshutz 课题组）从开放许可的已发表图中测得，加入该期刊或课题组画反应式的习惯：化合物编号加粗、收率位置、底物上下排列、基团缩写、新键着色。`cdx.py styles` 两层都列出。[详见下文](#期刊与课题组画法风格)。 |
+| **期刊与课题组风格** | 同一个 `style` 键选择两层风格。16 个尺寸预设取自 ChemDraw 自带样式表（默认 ACS Document 1996，另有 Wiley、RSC、Nature Research、Thieme Synthesis/Synlett 等），设定键长、线宽和字体。28 个画法风格覆盖期刊、出版社、专利、教材和课题组（JACS、Org. Lett.、J. Med. Chem.、Angew. Chem.、Nature、Science、Chem. Sci.、Dalton Trans.，以及 Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer 等课题组），从 179 张开放许可图片截图中测得，写明每家怎么画 23 类图：化合物编号、收率位置、条件布局、缩写、新键着色、弯箭头和循环箭头、线宽和箭头长度。说明文件还能为单张图加标题、分图字母、说明文字、框和颜色。47 张已发表的图按各自风格重画，用来检验卡片。`cdx.py styles` 两层都列出。[详见下文](#期刊与课题组画法风格)。 |
 | **图像识别** | 通过 DECIMER API（或按要求使用本地 DECIMER 模型）提取候选结构、置信度和外接矩形。 |
 | **引擎与预测** | 十五个可选引擎，经你同意才安装：六个 OCSR 引擎对同一张图的比对、PDF 结构抽取、前体、路线、多引擎路线并排对比图、产物、反应条件和 1H/13C 位移（含 `compare_nmr_shifts`），每个案例都对照已知答案运行并报告实际运行设备（`execution.device`）。批量输入和多步搜索会让模型常驻在工作进程中供下次调用使用（`--accel auto\|on\|off`；`cdx.py stop-daemons` 可随时结束）：在这台笔记本上，第二次 `predict products` 只用 0.6 秒，第一次为 13.7 秒。每个结果都标注为预测。[案例与安装大小](#预测与分析引擎)。 |
 | **分子比较** | 各平台均可使用 RDKit 指纹相似度；精确身份检查在 Windows 上通过 ChemScript，在 macOS 上通过 ChemDraw for macOS。 |
@@ -273,48 +273,93 @@ python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 
 ### 期刊与课题组画法风格
 
-图可以分两层跟随某个期刊或课题组，两层都用同一个 `style` 名称选择。**尺寸预设**是从 ChemDraw 自带样式文件读出的 16 个样式表之一（默认 `acs1996`，另有 `wiley`、`rsc`、`nature`、`synthesis` 等），只规定键长、线宽和字体。
+一张图可以分两层跟随某个期刊或课题组，两层都用同一个 `style` 名称选择。**尺寸预设**是从 ChemDraw 自带样式文件读出的 16 个样式表之一（默认 `acs1996`，另有 `wiley`、`rsc`、`nature`、`synthesis` 等），只确定键长、线宽和字体。
 
-**画法风格**以其中一个预设为基础，再加上该期刊或课题组已发表反应式中的习惯：化合物编号怎么写、收率放在哪里、底物并排还是上下排列、哪些基团写成缩写，以及新键、底物或目标分子是否着色。每条习惯都从至少两篇开放许可论文的三到四张反应式截图中测得，截图一致才设定；不一致的留空，保持默认画法。
+**画法风格**是一张风格卡片：以其中一个预设为基础，再写明该期刊或课题组在版面上的做法，包括化合物编号怎么写、收率放在哪里、条件在箭头上下怎么分、哪些基团写成缩写、哪些键或片段着色、从其图中量出的线宽和箭头长度，以及每类图怎么画。共有 **28 张卡片**（13 个期刊，7 个出版社、专利与教材，8 个课题组），读自 **81 篇开放许可论文和教材中的 179 张图片截图**。两张截图一致才设定一条习惯；不一致时卡片留空并在注释中说明原因，保持默认画法。
 
-把名称写进说明文件（draw、scope 和 mechanism 说明、compose 清单和 `cdx.py build` 规格都接受），或在命令行覆盖：
+每张卡片按**图的类型**分节，共 23 类：反应式、底物拓展、机理、催化循环、能量剖面、全合成、逆合成、结构面板、SAR 表和条件优化表、概念图、图形摘要、立体化学模型、衍生化、生物合成、生物分子、配位化合物、聚合物、Markush 通式、工艺路线、光物理图、谱图归属图和装置图。工具会把反应式习惯、编号样式、缩写和测得的几何尺寸用于反应式和底物拓展图，把弯箭头的颜色和粗细用于机理图，把箭头颜色用于催化循环；其余各类图的习惯作为完成图时的指导返回。
+
+把名称写进说明文件（draw、scope 和 mechanism 说明、compose 清单以及 `cdx.py build` 规格都接受），或在命令行覆盖：
 
 ```json
 {
-  "style": "nature_portfolio",
-  "species": [ ... ],
-  "steps": [ ... ]
+  "style": "studer_group",
+  "species": [
+    {"id": "10", "smiles": "C=CCC(CC=C)(C(=O)OCC)C(=O)OCC", "label": "10"},
+    {"id": "2a", "smiles": "COC(=O)C(C)(C)Br", "label": "2a (1.2 eq.)"},
+    {"id": "11", "smiles": "CCOC(=O)C1(C(=O)OCC)CC(C)C(CBr)C1", "label": "11"}
+  ],
+  "steps": [{"substrates": ["10", "2a"], "products": ["11"],
+             "above": ["Fe(acac)3 (10 mol%)", "PhSiH3 (1.0 eq.)"], "below": ["MeOH", "rt, 48 h"],
+             "yield": "49% (cis:trans = 9.1:1)"}]
 }
 ```
 
 ```bash
 python skill/chemdraw/scripts/cdx.py styles                 # 预设与画法风格
-python skill/chemdraw/scripts/cdx.py styles baran_group     # 单个风格卡片及其证据
-python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style baran_group --render
+python skill/chemdraw/scripts/cdx.py styles studer_group    # 单个风格卡片及其证据
+python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_group --render
 ```
 
-| 风格 | 类别 | 基础预设 | 主要特点 |
-| --- | --- | --- | --- |
-| `acs_jacs` | 期刊 | `acs1996` | 化合物编号黑色加粗，底物并排加号相连，Kekulé 式芳环，不设颜色规则 |
-| `wiley_angew` | 出版社 | `wiley` | 编号加粗，线条比 ACS 粗，试剂在箭头上方、溶剂在下方 |
-| `nature_portfolio` | 出版社 | `nature` | 编号加粗，收率写在编号同一行（`3a, 85%`），底物骨架为青蓝色 |
-| `science_aaas` | 出版社 | `nature` | 收率写在编号同一行，引入的组分为蓝色 |
-| `rsc_journals` | 出版社 | `rsc` | 编号加粗、Kekulé 式芳环；收率格式和颜色在论文间不一致，未设定 |
-| `baran_group` | 课题组 | `acs1996` | 新键深红色，目标分子后衬青绿色底框，缩写基团多 |
-| `macmillan_group` | 课题组 | `acs1996` | 新键深蓝色，收率写成加粗编号后的 `6, 76% yield` |
-| `lipshutz_group` | 课题组 | `acs1996` | 收率在产物编号下方，表面活性剂与水写在箭头下方 |
-
-同一个 Suzuki 偶联，用一份说明画出，由桌面版 ChemDraw 渲染：
+说明文件也可以只为这一张图设定样式，不改卡片：`title` 标题和加粗的 `panel_label` 分图字母；每个物种的 `color`、`atom_colors`、`bond_colors`、`abbreviate`、`orientation`（镜像或旋转结构）、编号下方的 `caption` 说明和 `box` 框（边框或底色，可虚线或圆角）；条件行可写成分段文字，每段单独设颜色、粗体或斜体。缩写覆盖常用基团（CO2Me、OBn、Boc、Cbz、Ts、Tf、OTf、Ms、Bpin、TMS、OTBS、TIPS、Bz、Piv、PhthN、NMe2 等）。
 
 <table>
   <tr>
-    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-baran_group.png" alt="Baran 课题组风格的 Suzuki 偶联：新键深红色，产物衬青绿色底框"><br><sub><code>baran_group</code></sub></td>
-    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-nature_portfolio.png" alt="Nature Portfolio 风格的 Suzuki 偶联：加粗编号与收率同行，底物骨架青蓝色"><br><sub><code>nature_portfolio</code></sub></td>
-    <td width="33%" align="center" valign="top"><img src="skill/chemdraw/assets/house-styles/gallery/house-macmillan_group.png" alt="MacMillan 课题组风格的 Suzuki 偶联：新键深蓝色，收率写在编号之后"><br><sub><code>macmillan_group</code></sub></td>
+    <td width="50%" align="center" valign="top"><img src="assets/readme/gallery/house-style-original.png" alt="Studer 课题组发表于 Nature Communications 的自由基探针反应式：二烯 10 与溴代物 2a 生成环戊烷 11，收率 49%"><br><sub>已发表的反应式（Studer 课题组，<i>Nat. Commun.</i> 2024，CC BY 4.0）</sub></td>
+    <td width="50%" align="center" valign="top"><img src="assets/readme/gallery/house-style-chemdraw.png" alt="同一反应式按 studer_group 画法风格从说明文件画出并由 ChemDraw 渲染，新键为红色"><br><sub>用 <code>"style": "studer_group"</code> 画出并由 ChemDraw 渲染</sub></td>
   </tr>
 </table>
 
-每个风格在[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)旁边都有一个目录，存放证据截图和列出来源的 README；截图按其 CC BY 许可转载，每张风格卡片都列出 DOI。报告会说明哪些习惯已应用、哪些被跳过及原因；底物拓展图和机理图只采用基础预设。已知限制：写在母体左侧的缩写基团位置正确，但桌面版 ChemDraw 在运行 Clean Up Structure 之前会按向右的方向拼写（写成 CO2Me 而不是 MeO2C）。图库展示全部 8 个风格和 4 个预设；完整的习惯列表见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)。MCP 客户端可从 `chemdraw://style-guide/{name}` 读取风格卡片。
+**出版社、专利与教材**
+
+| 风格 | 基础预设 | 画法 |
+| --- | --- | --- |
+| `nature_portfolio` | `nature` | Nature、Nat. Chem.：编号加粗，收率与编号同行（`3a, 85%`），新键红色，底物青蓝与蓝色 |
+| `science_aaas` | `nature` | Science、Sci. Adv.：收率写在编号行，新键红色，引入的组分蓝色 |
+| `wiley_angew` | `wiley` | Angew. Chem.、Chem. Eur. J.：编号加粗，试剂在上、溶剂在下，底物并排 |
+| `rsc_journals` | `rsc` | Chem. Sci.、Chem. Commun.：编号加粗，收率加括号写在编号后 |
+| `cell_press_chem` | `wiley` | Chem、Chem Catalysis：编号加粗，收率在箭头下方，分图带字母 |
+| `openstax_chemistry` | `chemdraw_slide` | 教材插图：物种不编号，短开口箭头，变化的原子深红色 |
+| `uspto_patents` | `j_mol_mod` | 美国专利：黑色线稿，Times 字体标签，编号不加粗，Markush 通式 |
+
+**期刊**
+
+| 风格 | 基础预设 | 画法 |
+| --- | --- | --- |
+| `acs_jacs` | `acs1996` | JACS、Org. Lett.、J. Org. Chem.：编号加粗，收率在编号后，底物褐红与藏青 |
+| `org_lett` | `acs1996` | Org. Lett.：收率在产物编号下方，底物拓展网格，条件优化表 |
+| `jmed_chem` | `acs1996` | J. Med. Chem.：每个箭头上只写步骤字母，短箭头，SAR 表 |
+| `acs_chem_biol` | `acs1996` | ACS Chem. Biol.：多分图，PROTAC 连接链粉色，结构面板 |
+| `jacs_au` | `acs1996` | JACS Au：概念图、光物理图、流动装置 |
+| `oprd_process` | `acs1996` | Org. Process Res. Dev.：当量与体积，收率在箭头下方，标明规模 |
+| `jchem_educ` | `acs1996` | J. Chem. Educ.：教学机理、谱图归属、细直箭头 |
+| `mdpi_molecules` | `acs1996` | Molecules：新键加粗红色，引入的基团蓝色 |
+| `beilstein_joc` | `nature` | Beilstein J. Org. Chem.：通式反应在上、产物网格在下，`2a: 69%` |
+| `chemeurj` | `wiley` | Chem. Eur. J.：ChemDraw 调色板颜色，产物衬灰框 |
+| `dalton_transactions` | `rsc` | Dalton Trans.：金属前体写成化学式，杂原子按元素着色 |
+| `natural_product_reports` | `rsc` | Nat. Prod. Rep.：收率加粗写在箭头下方，目标分子名称放在圆角框中 |
+| `polymer_chemistry` | `rsc` | Polymer Chem.：重复单元加括号和下标 n，催化剂写在箭头上方 |
+
+**课题组**
+
+| 风格 | 基础预设 | 画法 |
+| --- | --- | --- |
+| `baran_group` | `acs1996` | Baran（Scripps）：新键深红色，大量基团缩写 |
+| `macmillan_group` | `acs1996` | MacMillan（Princeton）：新键深蓝色，灰色高亮，`6, 76% yield`，不画加号 |
+| `lipshutz_group` | `acs1996` | Lipshutz（UCSB）：收率在编号下方，表面活性剂和水写在箭头下方 |
+| `glorius_group` | `acs1996` | Glorius（Münster）：试剂片段分色，光催化概念图 |
+| `houk_group` | `acs1996` | Houk（UCLA）：自由能剖面、过渡态面板、反应路径图 |
+| `list_group` | `nature` | List（MPI Mülheim）：收率与 e.r. 上下叠在产物下方，IDPi 催化剂 |
+| `sarpong_group` | `nature` | Sarpong（Berkeley）：笼状多环前侧键加粗，骨架编辑 |
+| `studer_group` | `nature` | Studer（Münster）：转移的 H 和新键红色，收率后接比例 |
+
+同一份说明在其中六个风格下画出的同一个 Suzuki 偶联；[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)展示全部 28 个风格和 4 个预设：
+
+<p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="同一个 Suzuki 偶联按六个画法风格画出：acs_jacs、nature_portfolio、baran_group、macmillan_group、science_aaas 和 glorius_group"></p>
+
+**文献复现。**卡片用它们自己的证据图检验过，这里精选了 47 张已发表的图，从单步反应式到催化循环、底物拓展网格和全合成，都按该风格从说明文件重新画出，各自保存为一个案例，包括参考截图、说明文件、ChemDraw 渲染图和 `CASE.md`。案例列出卡片对这类图声明的每条习惯，说明复现是否符合，并写明工具还做不到什么。[复现索引](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)列出全部案例。
+
+每个风格在图库旁边都有一个目录，存放证据截图和列出来源的 README；截图按其 CC BY 许可转载，每张卡片都列出 DOI。绘图报告会说明哪些习惯已应用、哪些被跳过及原因。已知限制：写在母体左侧的缩写基团位置正确，但桌面版 ChemDraw 在运行 Clean Up Structure 之前会把其中一些按向右的方向拼写（写成 CO2Me 而不是 MeO2C）。完整的习惯和说明选项见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)。MCP 客户端可从 `chemdraw://style-guide/{name}` 读取风格卡片。
 
 <a id="从数据生成可持续修改的论文图"></a>
 

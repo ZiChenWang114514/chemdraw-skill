@@ -208,11 +208,13 @@ Discover and classify files belonging to one experiment.
 Draw a reaction scheme from a brief and check it, in one call.
 
 brief is an object (or its JSON text) the caller writes from the user's request:
-species [{id, smiles or name, label?, ring_fills?, atom_halos?, ts_bracket?}],
+species [{id, smiles or name, label?, ring_fills?, atom_halos?, ts_bracket?, color?,
+atom_colors?, bond_colors?, abbreviate?, orientation?, caption?, box?}],
 steps [{substrates [ids], products [ids], above [lines], below [lines], yield,
 arrow solid|dashed|failed|reversible|resonance, ts_bracket? (a species id)}], optional layout
 (e.g. "catalytic-cycle"), max_width (points, default 504, the width of a double-column
-ACS page) and title; kind defaults to "scheme". style names a built-in journal preset
+ACS page), title and panel_label (a bold letter before the title, e.g. "a"), both drawn
+above the figure at its left edge; kind defaults to "scheme". style names a built-in journal preset
 from ChemDraw's stock style sheets (default "acs1996"; others include "wiley", "rsc",
 "nature"; chemdraw://style-guide/{preset} lists its settings): the scheme is laid out at
 ACS geometry and then rescaled to the preset's bond length, and max_width is the width
@@ -220,7 +222,9 @@ of the styled figure. style may instead name a house style (`cdx.py styles` list
 its drawing conventions (bold compound numbers, yield placement, stacked substrates,
 abbreviated groups, substrate and new-bond colours, bold arrows) are applied to the
 scheme and then its base preset; the report's style lists what was applied and skipped.
-Scope panels and mechanisms take only the house style's base preset. The steps may
+Scope panels take the base preset, the compound-number face and colour, the card's
+abbreviations and its measured geometry; mechanisms and catalytic cycles also
+take the card's figure_types colours and arrow weights. The steps may
 form a linear route, a convergent route (arms that merge), one starting material with
 several products (divergent), or a closed catalytic-cycle (a loop of >= 3 steps or
 layout="catalytic-cycle"), in any order; the report names the layout used, and steps
@@ -229,7 +233,18 @@ decorations: ring_fills ([{ring_index, color, style, inset}]), atom_halos ([{ato
 color, radius}]), or ts_bracket (true or {superscript, bracket_type, lip_size}) to
 wrap the species fragment in a [...] transition-state bracket with a top-right double
 dagger; a step's ts_bracket names the bracketed species id (true is refused). Atom and
-ring indices are RDKit indices of the species SMILES. Only the conditions in the brief are drawn; a
+ring indices are RDKit indices of the species SMILES. A species may also be painted:
+color (hex) for the whole structure, atom_colors [{atoms [i...], color}] (a bond between
+two listed atoms takes the colour too) and bond_colors [{bonds [[i, j]...], color}];
+abbreviate lists groups to contract (e.g. ["OTf", "Bpin"]; it replaces the house style's
+list for that species, and [] keeps it unabbreviated); orientation flip_horizontal,
+flip_vertical or rotate_180 mirrors or turns the structure about its centre, wedges kept
+correct. A condition line may be text, a run {text, color?, bold?, italic?} or a list of
+runs that make one line, so a catalyst can be coloured or a reagent set in italics; the
+title and a species' caption (a line under its compound number) take the same forms. A
+species' box (true, or {color, fill, style solid|dashed, rounded}) frames the structure
+and its number, with an optional fill drawn behind it.
+Only the conditions in the brief are drawn; a
 step without any is reported, never filled in. Structures given as SMILES are used
 as they are; names go through the curated reagent table and, when the network is
 allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked
@@ -242,7 +257,8 @@ file is never written over an existing one: without output_path a fresh name is 
 in the temp directory, and an existing output_path is refused.
 
 kind "scope" draws a substrate-scope panel instead: species [{id, smiles or name,
-label?, group?, values {field: text}}], optional fields [{key, label?, unit?}] (default:
+label?, group?, values {field: text}, color?, atom_colors?, bond_colors?, abbreviate?}],
+optional fields [{key, label?, unit?}] (default:
 the keys used in values), conditions, footnotes, title, width_mm and height_mm. The
 structures are packed onto as many editable pages as needed, grouped in first-seen
 order, each label and value bound to its structure; a missing value is drawn as a

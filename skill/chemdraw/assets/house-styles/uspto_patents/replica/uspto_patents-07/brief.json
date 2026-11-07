@@ -1,0 +1,18 @@
+{
+  "style": "uspto_patents",
+  "kind": "scheme",
+  "species": [
+    {"id": "I1", "smiles": "Nc1snc2cc(*)c(*)cc12"},
+    {"id": "I2", "smiles": "[*]c1snc2cc(*)c(*)cc12"},
+    {"id": "I3", "smiles": "[*]c1snc2cc(*)c(*)cc12"},
+    {"id": "I4", "smiles": "[*]c1snc2cc(*)c([*])cc12"},
+    {"id": "I5", "smiles": "O=C([*])c1snc2cc(*)c([*])cc12"}
+  ],
+  "steps": [
+    {"substrates": ["I1"], "products": ["I2"], "above": ["activating agent"], "below": ["Step 5"]},
+    {"substrates": ["I2"], "products": ["I3"], "above": ["R4(PG) reagent"], "below": ["Step 6"]},
+    {"substrates": ["I3"], "products": ["I4"], "above": ["R2(PG) reagent,", "cross-coupling catalyst"], "below": ["Step 7"]},
+    {"substrates": ["I4"], "products": ["I5"], "above": ["(1) R4 deprotection", "(2) acylating agent", "(3) R2 deprotection"], "below": ["Step 8"]}
+  ],
+  "max_width": 504
+}

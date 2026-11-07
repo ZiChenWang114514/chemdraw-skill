@@ -1,0 +1,278 @@
+{
+  "slug": "uspto_patents",
+  "kind": "publisher",
+  "display_name": "US patents and published applications (USPTO)",
+  "applies_to": [
+    "US patents (B1/B2)",
+    "US published applications (A1)",
+    "pharmaceutical and chemical patent drawings"
+  ],
+  "base_preset": "j_mol_mod",
+  "measured": {
+    "bond_length_over_cap_height": 3.6,
+    "line_width_over_bond_length": 0.047,
+    "bold_width_over_bond_length": 0.2,
+    "label_font": "Times New Roman",
+    "atom_label_size_pt_estimate": 7.5,
+    "arrow_length_over_bond_length": 4.0
+  },
+  "conventions": {
+    "compound_label_face": "plain",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": false,
+    "yield_placement": null,
+    "yield_format": null,
+    "conditions_split": null,
+    "substrate_layout": null,
+    "abbreviate_groups": null,
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": null,
+    "signature_features": [
+      "drawings are black line art on a white page scan, Times serif atom labels, no colour or shading anywhere",
+      "scheme titles centred and underlined (Scheme I, Method 1); a “-continued” heading is centred and plain (crop 07); table captions (TABLE 1, TABLE 5) are centred and plain, not underlined (crops 03, 08)",
+      "general formulas labelled with a plain Roman numeral, I or (I), flush right in the text column at the level of the top of the drawing, not bold",
+      "variable groups as R with superscript numbers (R2, R3) or italic superscript letters (RN, RX); ring atoms E1, E2 and G1 to G4 as bare letters at ring vertices; unspecified rings A and B drawn as an open loop, a circle or a hexagon with the letter inside",
+      "each structure sits in justified two-column body text with line numbers 5, 10, 15 in the gutter"
+    ],
+    "notes": {
+      "compound_label_face": "plain Roman I in crops 01 and 05; example numbers 1-1 plain in crop 03",
+      "conditions_split": "letters keyed to a footnote in crop 05; reagent class above and Step n below in crop 06 (all four steps) and crop 07 (step 6 wholly above; steps 5, 7 and 8 have reagent words on both sides of the arrow); no single rule",
+      "yield_placement": "no yields on any drawing seen; patents give yields in the example text",
+      "abbreviate_groups": "Me and iPr written as text only in crop 09; not enough agreement",
+      "arrow_length": "long reagent arrows: crop 06 4.1 to 4.7 bond lengths (mean 4.4; 242, 211 and 225 px on a 52 px bond); crop 07 2.1 to 4.3 (mean 3.3; 107 to 220 px on a 51 px bond); 4.0 is kept as the value between the two; crop 05 short lettered arrows are 1.2 to 2.0 bond lengths (mean 1.5; arrow c 81 px on a 54 px bond), a different arrow type that does not set this value",
+      "bond_length_over_cap_height": "ring bond over flat capital height, measured on the evidence crops: crop 01 3.8, 02 4.1, 03 3.5, 05 3.9, 06 2.7, 07 3.4; crop 04 and 09 not measured; median about 3.6; the earlier value 3.0 sat below the median and was closest to crop 06",
+      "atom_label_size_pt_estimate": "7.5 pt was derived from the earlier 3.0 ratio and has not been re-derived, because the crops carry no point scale",
+      "line_width_over_bond_length": "strokes 2 to 3 px wide on ring bonds of 51 to 61 px (0.04 to 0.06); 0.047 kept as the middle of the range",
+      "bold_width_over_bond_length": "one wedge measured in crop 09 (13 px at the wide end on the card's 64 px bond, 0.2); the bold ring bonds in crop 09 are thinner, about 0.07 to 0.12 of the bond, so 0.2 describes wedges only"
+    }
+  },
+  "evidence": [
+    {
+      "doi": "US 9,732,080 B2",
+      "citation": "Hadida-Ruah et al. (Vertex), US 9,732,080 B2, 2017 (Modulators of ATP-binding cassette transporters)",
+      "licence": "public domain (US patent)",
+      "figure": "col. 6, formula I and Ar1 definition",
+      "crop": "evidence/uspto_patents-01.png",
+      "measurements_px": {
+        "bond_length": 53,
+        "cap_height": 14,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": 20
+      },
+      "observations": "px measured on the evidence crop; generic formula with the plain Roman label I set flush right in the text column, above and beyond the right end of the drawing; variable groups written (RXX)x and RN with italic superscripts, Ar1 with superscript 1; ring A drawn as an open loop with the letter inside, ring B as a hexagon with the letter inside; ring-atom placeholders G1 to G4 as bare letters at vertices, small locants 2 and 3; Ar1 fragment shown with a wavy attachment line and a variable bond crossing the ring; Times serif labels, black only"
+    },
+    {
+      "doi": "US 10,519,146 B2",
+      "citation": "Lanman et al. (Amgen), US 10,519,146 B2, 2019 (KRAS G12C inhibitors and methods of using the same)",
+      "licence": "public domain (US patent)",
+      "figure": "col. 57, formula (I) and definitions",
+      "crop": "evidence/uspto_patents-02.png",
+      "measurements_px": {
+        "bond_length": 57,
+        "cap_height": 14,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "formula label (I) in parentheses at the right margin, beside line 5 and level with the top of the structure; R2, R3, R4 with superscript numbers and E1, E2 with subscript numbers, E1 and E2 as bare letters at vertices; definitions follow as justified running text; R4 options drawn as fragments with wavy lines, ring A as a circle with A inside, L as a text linker"
+    },
+    {
+      "doi": "US 10,519,146 B2",
+      "citation": "Lanman et al. (Amgen), US 10,519,146 B2, 2019 (KRAS G12C inhibitors and methods of using the same)",
+      "licence": "public domain (US patent)",
+      "figure": "Table 1, entry 1-1",
+      "crop": "evidence/uspto_patents-03.png",
+      "measurements_px": {
+        "bond_length": 60,
+        "cap_height": 17,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "TABLE 1 caption in capitals, centred and plain (not underlined), above a two-column table with thick horizontal rules above and below the header (Ex. #, Chemical Structure); example number 1-1 plain, top-left of its row; one structure per row, Kekule rings, Times labels; cap height of the table text about 17 px"
+    },
+    {
+      "doi": "US 9,732,080 B2",
+      "citation": "Hadida-Ruah et al. (Vertex), US 9,732,080 B2, 2017 (Modulators of ATP-binding cassette transporters)",
+      "licence": "public domain (US patent)",
+      "figure": "Table 1, compounds 1 to 5 (fragment; no caption or header on this crop)",
+      "crop": "evidence/uspto_patents-04.png",
+      "measurements_px": {
+        "bond_length": 61,
+        "cap_height": 21,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "example compounds 1 to 5 stacked in one column with plain numbers at the right margin; a single thick rule at the top, no rules between rows; no highlighting of the varied ring"
+    },
+    {
+      "doi": "US 9,732,080 B2",
+      "citation": "Hadida-Ruah et al. (Vertex), US 9,732,080 B2, 2017 (Modulators of ATP-binding cassette transporters)",
+      "licence": "public domain (US patent)",
+      "figure": "Scheme I",
+      "crop": "evidence/uspto_patents-05.png",
+      "measurements_px": {
+        "bond_length": 54,
+        "cap_height": 14,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": 81,
+        "compound_label_cap_height": 20
+      },
+      "observations": "underlined title Scheme I centred above; lower-case letters a, b, c next to short arrows (vertical, diagonal and horizontal), the horizontal arrow about 1.5 bond lengths; reagents in a footnote line a) SOCl2, DMF (cat.), DCM; b) HNRNAr1, pyr.; c) HNRNAr1, HATU, TEA, DCM/DMF; final product labelled with plain Roman I below it; no yields"
+    },
+    {
+      "doi": "US 10,519,146 B2",
+      "citation": "Lanman et al. (Amgen), US 10,519,146 B2, 2019 (KRAS G12C inhibitors and methods of using the same)",
+      "licence": "public domain (US patent)",
+      "figure": "Method 1, steps 1 to 4",
+      "crop": "evidence/uspto_patents-06.png",
+      "measurements_px": {
+        "bond_length": 52,
+        "cap_height": 19,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": 256,
+        "compound_label_cap_height": null
+      },
+      "observations": "underlined title Method 1; generic reagent class in words above each arrow (halogenating agent, amidating agent, sulfurizing agent, oxidant) and Step n below; intermediates unlabelled; route snakes down the column with each product starting the next row"
+    },
+    {
+      "doi": "US 10,519,146 B2",
+      "citation": "Lanman et al. (Amgen), US 10,519,146 B2, 2019 (KRAS G12C inhibitors and methods of using the same)",
+      "licence": "public domain (US patent)",
+      "figure": "Method 1, steps 5 to 8 (continued)",
+      "crop": "evidence/uspto_patents-07.png",
+      "measurements_px": {
+        "bond_length": 51,
+        "cap_height": 15,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "a plain, centred “-continued” heading; continued route with (PG) and (acyl) annotations on variable groups; reagent words straddle the arrow in steps 5, 7 and 8 (step 6 wholly above); step 8 conditions numbered (1) R4 deprotection above the arrow, (2) acylating agent and (3) R2 deprotection below it, then Step 8; generic group definitions drawn as equations R4(PG) = ..."
+    },
+    {
+      "doi": "US 9,732,080 B2",
+      "citation": "Hadida-Ruah et al. (Vertex), US 9,732,080 B2, 2017 (Modulators of ATP-binding cassette transporters)",
+      "licence": "public domain (US patent)",
+      "figure": "Table 5",
+      "crop": "evidence/uspto_patents-08.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 3,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "TABLE 5 caption centred and plain; a thick top rule, then two binning legend lines under the caption (IC50/EC50 Bins: +++ <= 2.0 < ++ <= 5.0 < +; PercentActivity Bins: + <= 25.0 < ++ <= 100.0 < +++), a rule under the legend block and a heavier rule under the column header row; centred columns Compd. No., Binned EC50, Binned Max Efficacy; activities only as +, ++, +++"
+    },
+    {
+      "doi": "US 11,236,091 B2",
+      "citation": "Chaves et al. (Amgen), US 11,236,091 B2, 2022 (Solid state forms)",
+      "licence": "public domain (US patent)",
+      "figure": "col. 5, Compound 1 atropisomer P",
+      "crop": "evidence/uspto_patents-09.png",
+      "measurements_px": {
+        "bond_length": 64,
+        "cap_height": 21,
+        "line_width": 3,
+        "bold_width": 13,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "single drug structure in body text, with no table, caption or example number; bold wedge bonds for the methyl stereocentre and a bold ring bond, the atropisomeric axis drawn thin; italic (S) and P stereodescriptors in small type next to the stereo elements; Me and iPr written as text"
+    }
+  ],
+  "figure_types": {
+    "markush": {
+      "conventions": {
+        "r_group_style": "superscript_number",
+        "variation_color": null,
+        "table_style": "none"
+      },
+      "signature_features": [
+        "formula label (I) or I flush right in the text column, at the level of the top of the drawing and beyond its right end, plain type",
+        "R groups as R with superscript numbers (R2, R3, R4) or italic superscript letters (RN, RX); ring atoms as E1, E2 or G1 to G4 with subscript numbers, bare letters at ring vertices",
+        "unspecified rings drawn as an open loop with the letter inside (ring A, crop 01), a circle with the letter inside (ring A, crop 02) or a hexagon with the letter inside (ring B, crop 01); substituent position left open by a bond crossing the ring",
+        "attachment points shown by a wavy line across the bond",
+        "variable definitions as running justified text beginning wherein ..., not a table"
+      ],
+      "crops": [
+        "evidence/uspto_patents-01.png",
+        "evidence/uspto_patents-02.png"
+      ],
+      "notes": "two patents agree on all of these; black only. Ring shape varies within the two crops (loop, circle, hexagon), so all three forms are listed"
+    },
+    "structure_panel": {
+      "conventions": {
+        "highlight_fill": null,
+        "variation_color": null,
+        "intermediate_label_style": null
+      },
+      "signature_features": [
+        "table caption in capitals centred above the table, plain type (TABLE 1, crop 03); the first table page has thick black horizontal rules above and below the header Ex. # / Chemical Structure (crop 03)",
+        "a table fragment with no header shows a single thick rule at its top and no caption (crop 04)",
+        "one example compound per row, example number (1-1, 2, 3) plain at the row start (crop 03) or at the margin (crop 04)",
+        "single structure in body text with no table, caption or example number (crop 09)",
+        "no highlighting of varied substituents; stereo shown by bold wedges with small italic (S) and P descriptors (crop 09)"
+      ],
+      "crops": [
+        "evidence/uspto_patents-03.png",
+        "evidence/uspto_patents-04.png",
+        "evidence/uspto_patents-09.png"
+      ],
+      "notes": "labels are example numbers, so intermediate_label_style is left null. The table caption and header rules rest on crop 03 alone; crop 04 is a fragment from another patent and shows only the top rule; crop 09 has no table, so the table features do not apply to it"
+    },
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": null,
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "underlined centred title for a scheme (Scheme I, Method 1); a centred, plain “-continued” heading on a continuation page (crop 07)",
+        "generic intermediates with R groups and ring placeholders, ring-atom letters bare at vertices (crops 06, 07); the final generic product of Scheme I is labelled with a plain Roman numeral I (crop 05); Method 1 products (crops 06, 07) carry no numeral",
+        "either lower-case letters beside the arrow keyed to a footnote line a) SOCl2, DMF (cat.), DCM; b) ... or reagent words above the arrow with Step n below (the words may straddle the arrow, crop 07)",
+        "no yields, no colour"
+      ],
+      "crops": [
+        "evidence/uspto_patents-05.png",
+        "evidence/uspto_patents-06.png",
+        "evidence/uspto_patents-07.png"
+      ],
+      "notes": "Roman-numeral labelling seen only for the final formula I in crop 05; intermediates in crops 06 and 07 are unlabelled. The arrow-length spread is recorded in conventions.notes.arrow_length"
+    },
+    "sar_table": {
+      "conventions": {
+        "table_style": "horizontal_rules",
+        "activity_format": "binned symbols +, ++, +++ with the bin limits stated under the caption on two legend lines (IC50/EC50 Bins and PercentActivity Bins)",
+        "variation_color": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "TABLE 5 caption centred and plain, a thick top rule, then two legend lines: IC50/EC50 Bins: +++ <= 2.0 < ++ <= 5.0 < + and PercentActivity Bins: + <= 25.0 < ++ <= 100.0 < +++",
+        "a rule under the legend block and a heavier rule under the column header row",
+        "centred columns Compd. No., Binned EC50, Binned Max Efficacy; no structures in the table"
+      ],
+      "crops": [
+        "evidence/uspto_patents-08.png"
+      ],
+      "notes": "one crop; the second legend line sets the bins for Binned Max Efficacy"
+    }
+  }
+}

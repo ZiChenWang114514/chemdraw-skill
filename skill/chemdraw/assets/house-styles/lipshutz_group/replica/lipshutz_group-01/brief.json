@@ -1,0 +1,18 @@
+{
+  "style": "lipshutz_group",
+  "species": [
+    {"id": "ArBr", "smiles": "Brc1ccc(OC(F)(F)F)cc1"},
+    {"id": "amine", "smiles": "CCCCN"},
+    {"id": "P3", "smiles": "CCCCNc1ccc(OC(F)(F)F)cc1", "label": "3"}
+  ],
+  "steps": [
+    {
+      "substrates": ["ArBr", "amine"],
+      "products": ["P3"],
+      "above": ["[Pd(crotyl)Cl]2 (0.25 mol %)", "L1 (2 mol %)", "KOtBu (2 equiv)"],
+      "below": ["2 wt % Savie/H2O (0.5 M)", "10 v/v % THF, 60 °C"],
+      "yield": "86%"
+    }
+  ],
+  "max_width": 504
+}

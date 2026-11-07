@@ -1,0 +1,14 @@
+{
+  "style": "science_aaas",
+  "species": [
+    {"id": "1", "smiles": "CCOC(=O)C#C[Si](C(C)C)(C(C)C)C(C)C", "label": "1"},
+    {"id": "2", "smiles": "NCc1ccccc1", "label": "2"},
+    {"id": "3", "smiles": "O=C(NCc1ccccc1)C#C[Si](C(C)C)(C(C)C)C(C)C", "label": "3"}
+  ],
+  "steps": [
+    {"substrates": ["1", "2"], "products": ["3"],
+     "above": ["PBS buffer (pH 7.0) / EtOH (4:1)"],
+     "below": ["40 °C, 48 hours"]}
+  ],
+  "max_width": 504
+}

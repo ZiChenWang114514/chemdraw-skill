@@ -1,0 +1,284 @@
+{
+  "slug": "oprd_process",
+  "kind": "journal",
+  "display_name": "Organic Process Research & Development (ACS)",
+  "applies_to": [
+    "Org. Process Res. Dev.",
+    "process chemistry and scale-up papers"
+  ],
+  "base_preset": "acs1996",
+  "measured": {
+    "bond_length_over_cap_height": 2.0,
+    "line_width_over_bond_length": 0.085,
+    "bold_width_over_bond_length": null,
+    "label_font": "Arial|Helvetica",
+    "atom_label_size_pt_estimate": null,
+    "arrow_length_over_bond_length": 8.0
+  },
+  "conventions": {
+    "compound_label_face": "bold",
+    "compound_label_color": "#000000",
+    "compound_label_italic_suffix": null,
+    "yield_placement": "under_arrow",
+    "yield_format": "{value}%",
+    "conditions_split": "reagents_above_solvent_below",
+    "substrate_layout": null,
+    "abbreviate_groups": [
+      "Boc",
+      "CF3",
+      "Me",
+      "NO2",
+      "OCF3"
+    ],
+    "aromatic_rings": "kekule",
+    "new_bond_color": null,
+    "substrate_colors": null,
+    "highlight_fill": null,
+    "reagent_text_color": "#000000",
+    "arrow_style": "plain",
+    "show_plus_sign": false,
+    "signature_features": [
+      "reagent amounts as equivalents and solvent amounts as volumes (2 V, 4 V HOAc) or mL, temperature and time on the last line under the arrow",
+      "non-isolated intermediates drawn in square brackets, sometimes captioned not isolated",
+      "scale stated on the drawing (50 g scale, 1 kg scale, 5 (100mg) in italics after the bold number)",
+      "yield and purity written as text at the end of a route (Yield 66% Purity 99.3%)",
+      "long arrows, about eight bond lengths, carrying several lines of conditions"
+    ],
+    "notes": {
+      "yield_placement": "Under the arrow in crops 01, 03 and 05. Crop 04 puts endpoint yields as a text block beside the final product (process_route), and crop 08 puts an inset yield table under product 1.",
+      "conditions_split": "Reagents above with solvent and temperature below in crop 01 (panel b), crop 03, crop 04 and crop 06. Crops 05 and 08 put all conditions above the arrow.",
+      "abbreviate_groups": "Boc, CF3, Me and NO2 are written as labels in at least two reaction-scheme crops: Boc, CF3 and Me in crops 01, 02 and 03; NO2 in crops 04, 05 and 08; OCF3 in crops 05 and 08. OTBS is written in crop 05 only, so it is removed. SO2Me is written as text in crops 01, 02, 03 and 07 but has no entry in the abbreviation table, so the card cannot name it.",
+      "yield_format": "Spread: crop 01 writes '{value} % yield' (space before the percent sign); crop 03 writes 'A%: ~40 %' and 'IY: 52 %' (label and space); crop 08 writes 'PMBz: 40%' (label). Crops 02, 04, 05 and 08 write '{value}%' without a space, so that form is kept.",
+      "arrow_length_over_bond_length": "Spread: crop 03 measures 622 / 85 = 7.3 and crop 05 measures 720 / 80 = 9.0 (mean 8.2). The card keeps 8.0 between them.",
+      "measurements": "Bond and cap height are measured on crops 03 and 05 only: bond / cap 2.1 (crop 03) and 1.9 (crop 05). Line width / bond: 0.082 (crop 03) and 0.088 (crop 05). Other crops are low-resolution web images where only line width was read.",
+      "substrate_colors": "Null: crop 02 (graphical abstract) and crop 07 (retrosynthesis) colour building blocks, but no reaction-scheme crop does, so the two-crop rule for top-level conventions is not met.",
+      "new_bond_color": "Null: no reaction-scheme crop colours formed bonds. Crop 02 colours whole building blocks, not new bonds.",
+      "compound_label_italic_suffix": "Null, not false: an italic scale after the bold number (5 (100mg)) appears in crop 03 only. Crop 04 writes its scales as plain-text route headers.",
+      "show_plus_sign": "False: no plus sign between co-reactants in crops 01 (panel b), 03, 04, 05, 06 and 08. Crop 07 (a retrosynthesis) puts plus signs between fragments; it is not a reaction scheme.",
+      "substrate_layout": "Reagents are written over the arrow; no two-partner layout seen twice."
+    }
+  },
+  "evidence": [
+    {
+      "doi": "10.1021/acs.oprd.5c00443",
+      "citation": "Guthrie, Gupton et al., Org. Process Res. Dev. 2026 (A concise process to lenacapavir sodium: one-pot sequential Heck/Suzuki-Miyaura couplings)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 1 (previous Gilead route vs this work)",
+      "crop": "evidence/oprd_process-01.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 5,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "measured on the 4183 px original (line width only); panel a) Previous work: Gilead scale-up process (2024) and b) This work: our new streamlined process separated by a dashed rule; reagents with equivalents above and solvent, temperature, time below each arrow; step n under the arrow; non-isolated intermediate in square brackets; overall yield written as text (70 % overall yield from Frag A)"
+    },
+    {
+      "doi": "10.1021/acs.oprd.5c00443",
+      "citation": "Guthrie, Gupton et al., Org. Process Res. Dev. 2026 (A concise process to lenacapavir sodium: one-pot sequential Heck/Suzuki-Miyaura couplings)",
+      "licence": "CC BY 4.0",
+      "figure": "Graphical abstract",
+      "crop": "evidence/oprd_process-02.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "route summary 1 step / 2 steps in bold above the arrows; fragments coloured blue, green and red (flat sampled colours #060AFB, #63A267 and #A82433; a dark teal #074C50 also appears) so each building block can be followed into lenacapavir sodium; boxed bullet list (3-Step synthesis, 55% overall yield, No chromatography, Residual Pd < 4.2 ppm)"
+    },
+    {
+      "doi": "10.1021/acs.oprd.5c00443",
+      "citation": "Guthrie, Gupton et al., Org. Process Res. Dev. 2026 (A concise process to lenacapavir sodium: one-pot sequential Heck/Suzuki-Miyaura couplings)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3 (Suzuki coupling test)",
+      "crop": "evidence/oprd_process-03.png",
+      "measurements_px": {
+        "bond_length": 85,
+        "cap_height": 40,
+        "line_width": 7,
+        "bold_width": null,
+        "arrow_length": 622,
+        "compound_label_cap_height": 31
+      },
+      "observations": "measured on the 3359 px original; Arial labels; reagents with mol % and eq above the arrow, solvent volumes in mL, time and temperature below; compound number bold with scale in italic parentheses, 5 (100mg); Boc and SO2Me written as text"
+    },
+    {
+      "doi": "10.1021/acs.oprd.3c00187",
+      "citation": "Lucas, Opatz et al., Org. Process Res. Dev. 2023 (Short and efficient synthesis of the antituberculosis agent pretomanid from (R)-glycidol)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3 (synthesis of 2-bromo-4-nitroimidazole)",
+      "crop": "evidence/oprd_process-04.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "Route A at 50 g scale and Route B at 1 kg scale on branching arrows from 7a; each route ends with Yield and Purity text (Route B: Yield 66% (Overall:57%) Purity 99.3%); solvent volumes in V (4 V HOAc, 2 V DMF); non-isolated dibromide in square brackets labelled not isolated"
+    },
+    {
+      "doi": "10.1021/acs.oprd.3c00187",
+      "citation": "Lucas, Opatz et al., Org. Process Res. Dev. 2023 (Short and efficient synthesis of the antituberculosis agent pretomanid from (R)-glycidol)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 2 (literature routes to pretomanid)",
+      "crop": "evidence/oprd_process-05.png",
+      "measurements_px": {
+        "bond_length": 80,
+        "cap_height": 42,
+        "line_width": 7,
+        "bold_width": null,
+        "arrow_length": 720,
+        "compound_label_cap_height": 45
+      },
+      "observations": "measured on the 4175 px original; two literature routes headed in bold (Read & Fairlamb:, Zhai et al.:); reagents above, yield alone below each arrow (31%, 51%, 84%); bold compound numbers under each structure; OTBS, Ar as text"
+    },
+    {
+      "doi": "10.1021/acs.oprd.3c00205",
+      "citation": "Gohain, Malan et al., Org. Process Res. Dev. 2023 (Process development for the manufacture of the antimalarial amodiaquine dihydrochloride dihydrate)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 3 (amodiaquine process)",
+      "crop": "evidence/oprd_process-06.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "three-step telescoped process drawn in a U shape; numbered reagents 1) Paraformaldehyde 2) Diethylamine above, Solvent below; non-isolated aminophenol 15 in square brackets; salt shown as 2HCl 2H2O text beside the structure; bold numbers 13, 14, 15, 3; no yields on the drawing"
+    },
+    {
+      "doi": "10.1021/acs.oprd.5c00443",
+      "citation": "Guthrie, Gupton et al., Org. Process Res. Dev. 2026 (A concise process to lenacapavir sodium: one-pot sequential Heck/Suzuki-Miyaura couplings)",
+      "licence": "CC BY 4.0",
+      "figure": "Figure 1 (retrosynthesis of lenacapavir)",
+      "crop": "evidence/oprd_process-07.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 9,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "disconnected bonds marked with black dashed lines and red stubs at the cut bonds, the disconnection named in bold text (Amide formation, Suzuki-Miyaura coupling, Sonogashira coupling or Heck alkynylation); fragments coloured red and blue on both sides of a single-headed open arrow (red #FB0000 and blue #0000FC sampled; Frag C red and Frag A blue on the right); fragments named Frag A to Frag D in bold"
+    },
+    {
+      "doi": "10.1021/acs.oprd.3c00187",
+      "citation": "Lucas, Opatz et al., Org. Process Res. Dev. 2023 (Short and efficient synthesis of the antituberculosis agent pretomanid from (R)-glycidol)",
+      "licence": "CC BY 4.0",
+      "figure": "Scheme 7 (optimised three-step route, IY table)",
+      "crop": "evidence/oprd_process-08.png",
+      "measurements_px": {
+        "bond_length": null,
+        "cap_height": null,
+        "line_width": 2,
+        "bold_width": null,
+        "arrow_length": null,
+        "compound_label_cap_height": null
+      },
+      "observations": "three-step route ending in a small inset table IY over 3 steps with yields per protecting group (PMBz 40%, Tr 36%, Bz 34%, TBS 31%); deprotection and cyclisation numbered (1) and (2) over one arrow"
+    }
+  ],
+  "figure_types": {
+    "process_route": {
+      "conventions": {
+        "step_label_style": null,
+        "step_count_shown": null,
+        "yield_format": "{value}% yield",
+        "scale_shown": null,
+        "highlight_fill": null
+      },
+      "signature_features": [
+        "step count at the arrows, '1 step' and '2 steps' in bold (crop 02), with a boxed '3-Step synthesis' summary there",
+        "step labels 'step 1' to 'step 4' under the arrows in panel a of crop 01 (panel b is unlabelled)",
+        "scale on the drawing as plain-text route headers: 50 g scale and 1 kg scale (crop 04 only)",
+        "telescoped intermediates in square brackets, usually numbered in bold (crops 01 and 06); crop 04 adds a 'not isolated' caption",
+        "route endpoints carry yield text: '> 75 % yield' under the final arrow (crop 01), or a text block beside the final product with 'Yield 42%' and 'Purity 98.2%' (crop 04)",
+        "overall yields as '(Overall:57%)' (crop 04) or '70 % overall yield from Frag A' (crop 01)",
+        "old and new process stacked as panels a) Previous work and b) This work separated by a dashed rule (crop 01 only)"
+      ],
+      "crops": [
+        "evidence/oprd_process-01.png",
+        "evidence/oprd_process-02.png",
+        "evidence/oprd_process-04.png",
+        "evidence/oprd_process-06.png"
+      ],
+      "notes": "Step labels are numbered only in panel a of crop 01, so the value is null. Crop 02 gives step counts, not numbers; crop 04 numbers its reagent lines (1. 2.) inside one arrow; crop 06 numbers reagents (1) 2)) and has no step labels. The step count is shown in crop 02 only, and the scale in crop 04 only. Yield format: '{value}% yield' follows crops 01 and 02 (with or without a space before the percent sign). Crop 04 writes 'Yield {value}% Purity {purity}%' and is the only crop with purity. Crop 06 has no yield text. Crops 01 and 06 number telescoped intermediates in bold; crop 04 captions its bracket 'not isolated'."
+    },
+    "reaction_scheme": {
+      "conventions": {
+        "yield_format": "{value}%",
+        "selectivity_format": null,
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "reagents with mol % and eq above the arrow; solvent with volumes, time and temperature below",
+        "bold compound number followed by the scale in italics, 5 (100mg)",
+        "inset yield table under the product (IY over 3 steps, one line per protecting group)"
+      ],
+      "crops": [
+        "evidence/oprd_process-03.png",
+        "evidence/oprd_process-08.png"
+      ],
+      "notes": "Each signature rests on one crop: conditions and scale on crop 03, the inset yield table on crop 08. Crop 08 writes its conditions as text above the arrow with no equivalents, volumes, times or temperatures. Crop 03 gives IY labels at the arrow, not a table. Black text in both."
+    },
+    "total_synthesis": {
+      "conventions": {
+        "step_label_style": "none",
+        "step_count_shown": false,
+        "yield_format": "{value}%",
+        "highlight_fill": null,
+        "variation_color": null
+      },
+      "signature_features": [
+        "literature routes headed by authors in bold (Read & Fairlamb:, Zhai et al.:)",
+        "yield alone under each arrow, reagents above",
+        "rows wrap with downward arrows at the right edge"
+      ],
+      "crops": [
+        "evidence/oprd_process-05.png"
+      ],
+      "notes": "one crop, unambiguous"
+    },
+    "retrosynthesis": {
+      "conventions": {
+        "retro_arrow": null,
+        "disconnection_mark": "dashed_line",
+        "disconnection_color": "#FF0000",
+        "highlight_fill": null,
+        "step_count_shown": false
+      },
+      "signature_features": [
+        "disconnected bonds crossed by black dashed lines with red stubs, each named in bold black text (Amide formation, Suzuki-Miyaura coupling, Sonogashira coupling or Heck alkynylation)",
+        "fragments coloured red and blue on both sides of the arrow (red #FF0000 for Frag C, blue #0000FF for Frag A)",
+        "fragments named Frag A to Frag D in bold"
+      ],
+      "crops": [
+        "evidence/oprd_process-07.png"
+      ],
+      "notes": "One crop (07). The disconnection colour is the red of the thick stubs on the cut bonds (Suzuki-Miyaura and Sonogashira cuts); the dashed lines are black. The crop samples red at #FB0000, within rounding of #FF0000. The retro arrow is a single-headed open block arrow; the schema offers only open_double and none, so the value is null until the schema gains a single open arrow."
+    },
+    "graphical_abstract": {
+      "conventions": {},
+      "signature_features": [
+        "route summary with '1 step' and '2 steps' in bold above the arrows",
+        "boxed bullet list under the route (3-Step synthesis, 55% overall yield, No chromatography, Residual Pd < 4.2 ppm)",
+        "building blocks coloured blue, green and red so each can be followed into the product"
+      ],
+      "crops": [
+        "evidence/oprd_process-02.png"
+      ],
+      "notes": "One crop, unambiguous. No schema convention is shown clearly enough to add a value. Flat sampled colours are listed in the crop 02 evidence entry."
+    }
+  }
+}

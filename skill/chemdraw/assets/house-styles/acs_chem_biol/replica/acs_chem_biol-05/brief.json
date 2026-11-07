@@ -1,0 +1,12 @@
+{
+  "style": "acs_chem_biol",
+  "species": [
+    {"id": "pep_trp", "smiles": "CN[C@@H](Cc1c[nH]c2ccccc12)C(=O)NC"},
+    {"id": "pep_7br", "smiles": "CN[C@@H](Cc1c[nH]c2c(Br)cccc12)C(=O)NC",
+     "atom_halos": [{"atoms": [9], "color": "#B0A0BA", "radius": 9.0}]}
+  ],
+  "steps": [
+    {"substrates": ["pep_trp"], "products": ["pep_7br"], "above": ["4V"]}
+  ],
+  "max_width": 504
+}

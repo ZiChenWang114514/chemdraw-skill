@@ -1,0 +1,11 @@
+{
+  "style": "polymer_chemistry",
+  "species": [
+    {"id": "M", "smiles": "CC(=O)N1CCOC(=O)CC1"},
+    {"id": "P3", "smiles": "c1ccccc1COC(=O)CCN(C(C)=O)CCOC(=O)CCN(C(C)=O)CCOC(=O)CCN(C(C)=O)CCO"}
+  ],
+  "steps": [
+    {"substrates": ["M"], "products": ["P3"], "above": ["DBU / thiourea"], "below": ["BnOH, DCM, RT"]}
+  ],
+  "max_width": 504
+}

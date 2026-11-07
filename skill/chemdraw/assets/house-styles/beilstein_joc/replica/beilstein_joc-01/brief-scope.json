@@ -1,0 +1,63 @@
+{
+ "kind": "scope",
+ "style": "beilstein_joc",
+ "conditions": "[PdCl(allyl)]2 (1 mol %), t-BuXPhos (4 mol %), Cs2CO3 (2 equiv), H2O (2 equiv), DME, 90 °C, 15 h, O2 (1 atm)",
+ "fields": [
+  {
+   "key": "yield",
+   "label": ""
+  }
+ ],
+ "species": [
+  {
+   "id": "3b",
+   "smiles": "Cc1ccc(/N=N/c2ccccc2)cc1",
+   "label": "3b",
+   "values": {
+    "yield": "50%"
+   }
+  },
+  {
+   "id": "3h",
+   "smiles": "COC(=O)c1ccc(/N=N/c2ccccc2)cc1",
+   "label": "3h",
+   "values": {
+    "yield": "74%"
+   }
+  },
+  {
+   "id": "3j",
+   "smiles": "O=[N+]([O-])c1ccc(/N=N/c2ccccc2)cc1",
+   "label": "3j",
+   "values": {
+    "yield": "35%"
+   }
+  },
+  {
+   "id": "3c",
+   "smiles": "FC(F)(F)Oc1ccccc1/N=N/c1ccccc1",
+   "label": "3c",
+   "values": {
+    "yield": "69%"
+   }
+  },
+  {
+   "id": "3d",
+   "smiles": "COc1ccccc1/N=N/c1ccccc1",
+   "label": "3d",
+   "values": {
+    "yield": "77%"
+   }
+  },
+  {
+   "id": "3f",
+   "smiles": "Fc1ccccc1/N=N/c1ccccc1",
+   "label": "3f",
+   "values": {
+    "yield": "86%"
+   }
+  }
+ ],
+ "width_mm": 180,
+ "height_mm": 240
+}

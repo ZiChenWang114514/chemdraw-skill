@@ -1,0 +1,86 @@
+{
+ "style": "oprd_process",
+ "species": [
+  {
+   "id": "13",
+   "smiles": "CC(=O)Nc1ccc(O)cc1",
+   "label": "13"
+  },
+  {
+   "id": "14",
+   "smiles": "CC(=O)Nc1ccc(O)c(CN(CC)CC)c1",
+   "label": "14"
+  },
+  {
+   "id": "15",
+   "smiles": "Nc1ccc(O)c(CN(CC)CC)c1",
+   "label": "15",
+   "ts_bracket": {
+    "superscript": "",
+    "bracket_type": "SquarePair",
+    "lip_size": 4
+   }
+  },
+  {
+   "id": "3a",
+   "smiles": "CCN(CC)Cc1cc(Nc2ccnc3cc(Cl)ccc23)ccc1O",
+   "label": "3"
+  },
+  {
+   "id": "3b",
+   "smiles": "CCN(CC)Cc1cc(Nc2ccnc3cc(Cl)ccc23)ccc1O",
+   "label": "3"
+  }
+ ],
+ "steps": [
+  {
+   "substrates": [
+    "13"
+   ],
+   "products": [
+    "14"
+   ],
+   "above": [
+    "1) Paraformaldehyde",
+    "2) Diethylamine"
+   ],
+   "below": [
+    "Solvent"
+   ]
+  },
+  {
+   "substrates": [
+    "14"
+   ],
+   "products": [
+    "15"
+   ],
+   "above": [
+    "Aq. HCl"
+   ]
+  },
+  {
+   "substrates": [
+    "15"
+   ],
+   "products": [
+    "3a"
+   ],
+   "above": [
+    "5 (4,7-dichloroquinoline)"
+   ]
+  },
+  {
+   "substrates": [
+    "3a"
+   ],
+   "products": [
+    "3b"
+   ],
+   "above": [
+    "EtOH:HCl"
+   ]
+  }
+ ],
+ "max_width": 504
+}

@@ -1,0 +1,41 @@
+{
+ "style": "studer_group",
+ "species": [
+  {
+   "id": "10",
+   "smiles": "CCOC(=O)C(CC=C)(CC=C)C(=O)OCC",
+   "label": "10"
+  },
+  {
+   "id": "2a",
+   "smiles": "COC(=O)C(C)(C)Br",
+   "label": "2a (1.2 eq.)"
+  },
+  {
+   "id": "11",
+   "smiles": "CCOC(=O)C1(C(=O)OCC)CC(C)C(CBr)C1",
+   "label": "11"
+  }
+ ],
+ "steps": [
+  {
+   "substrates": [
+    "10",
+    "2a"
+   ],
+   "products": [
+    "11"
+   ],
+   "above": [
+    "Fe(acac)3 (10 mol%)",
+    "PhSiH3 (1.0 eq.)"
+   ],
+   "below": [
+    "MeOH",
+    "rt, 48 h"
+   ],
+   "yield": "49% (cis:trans = 9.1:1)"
+  }
+ ],
+ "max_width": 504
+}

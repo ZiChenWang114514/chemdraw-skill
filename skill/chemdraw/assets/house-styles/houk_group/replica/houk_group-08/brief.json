@@ -1,0 +1,12 @@
+{
+  "style": "houk_group",
+  "species": [
+    {"id": "1", "smiles": "O=S(=O)(c1ccc(C)cc1)N(CC=C)C(c1ccccc1)C12CC1C2", "label": "1"},
+    {"id": "2", "smiles": "C=CC[C@]12C[C@H]1CN(S(=O)(=O)c1ccc(C)cc1)[C@@H]2c1ccccc1", "label": "2"},
+    {"id": "3", "smiles": "C=C1C[C@@H]2C[C@@H]2CN(S(=O)(=O)c2ccc(C)cc2)[C@@H]1c1ccccc1", "label": "3"}
+  ],
+  "steps": [
+    {"substrates": ["1"], "products": ["2", "3"], "above": ["cat, L"], "below": ["PhMe, 110 °C"], "yield": "2 87%, 3 8%"}
+  ],
+  "max_width": 504
+}

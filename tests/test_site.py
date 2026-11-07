@@ -781,7 +781,7 @@ class InteractionMarkupTests(unittest.TestCase):
                 for marker in ('data-tool-action="clean"', 'data-export="smiles"', 'data-export="cdxml"', 'class="progress"',
                                'class="challenge"', 'data-challenge-open', 'data-run'):
                     self.assertIn(marker, html)
-                self.assertEqual(html.count("data-zoom"), 7)
+                self.assertEqual(html.count("data-zoom"), 9)
 
 
 class LabPageTests(unittest.TestCase):
@@ -1338,7 +1338,7 @@ class GalleryImageTests(unittest.TestCase):
 
     GALLERY = ROOT / "assets" / "readme" / "gallery"
     PAGES = ("index.html", "en/index.html")
-    BUDGET = 330_000  # bytes of all the copies together; the PNGs are 1.19 MB
+    BUDGET = 420_000  # bytes of all the copies together; the PNGs are 1.78 MB
 
     def shown(self) -> set:
         found = set()
@@ -1349,7 +1349,7 @@ class GalleryImageTests(unittest.TestCase):
     def test_the_pages_show_only_webp(self) -> None:
         names = self.shown()
         self.assertEqual({n for n in names if not n.endswith(".webp")}, set())
-        self.assertEqual(len(names), 11)
+        self.assertEqual(len(names), 15)
 
     def test_every_copy_exists_and_stays_small(self) -> None:
         copies = sorted(self.GALLERY.glob("*.webp"))

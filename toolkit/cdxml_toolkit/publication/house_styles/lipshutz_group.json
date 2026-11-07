@@ -40,13 +40,15 @@
     "show_plus_sign": true,
     "signature_features": [
       "surfactant and water written below the arrow, e.g. 2 wt % Savie/H2O or 2 wt % TPGS-750-M / H2O [0.5 M]",
-      "purple #840CFC marks the new C-N bond or the incoming amine fragment",
+      "purple #7F07FF marks the new C-N bond in crop 01 or the incoming amine fragment in crop 03 (where the new bond is red)",
       "yield line combines a condition and the yield, e.g. X = Br, 82% or Savie: 95%",
       "bold italic blue section headers in scope figures"
     ],
     "notes": {
-      "new_bond_color": "purple in crop 01, red in crop 03 (with the incoming fragment purple); not consistent",
-      "highlight_fill": "pale cyan ellipses #CCFCFC behind the changing group in crop 02 only"
+      "new_bond_color": "purple #7F07FF in crop 01 (flat-pixel mode of the new C-N bond); red in crop 03 (thin red new bond with a purple incoming amine fragment, checked on a 3x zoom). The two crops disagree, so the top-level value stays null.",
+      "highlight_fill": "pale cyan ellipses #D5FFFE (flat-pixel mode) behind the changing group in crop 02 only; the top-level value stays null and the figure-type value is in figure_types.reaction_scheme.",
+      "yield_format": "the yield line carries a per-scheme prefix before the value (X = Br, 82% in crop 01; Savie: 95% in crop 03). The prefix is scheme text, not part of the template, so yield_format stays {value}%.",
+      "surfactant_spacing": "2 wt % with a space in crops 01 and 03; 2 wt% with no space in crop 02 (Scheme 8)."
     }
   },
   "evidence": [
@@ -95,5 +97,34 @@
       },
       "observations": "inline plus, catalyst and base above, 2 wt % surfactant/H2O below, red new bond, purple amine fragment, Savie: 95% under bold label"
     }
-  ]
+  ],
+  "figure_types": {
+    "reaction_scheme": {
+      "conventions": {
+        "highlight_fill": "#D5FFFE"
+      },
+      "signature_features": [
+        "one-pot three-step sequence, reagent above and conditions below each arrow",
+        "pale cyan ellipses behind the changing group",
+        "yellow step ovals"
+      ],
+      "crops": [
+        "evidence/lipshutz_group-02.png"
+      ],
+      "notes": "Read from one crop (Scheme 8, Chem. Sci. 2023), which is unambiguous for this figure type. highlight_fill is the flat-pixel mode of the cyan ellipses."
+    },
+    "substrate_scope": {
+      "conventions": {},
+      "signature_features": [
+        "yield line under each bold product number, prefixed by the condition or surfactant (X = Br, 82%; Savie: 95%)",
+        "bold italic blue section headers such as primary amines and benzylic amines",
+        "purple new C-N bond in crop 01; red new bond in crop 03 with the incoming amine purple"
+      ],
+      "crops": [
+        "evidence/lipshutz_group-01.png",
+        "evidence/lipshutz_group-03.png"
+      ],
+      "notes": "Crop 01 (Figure 3) and crop 03 (Figure 5B) are both amination scope figures. The section headers appear in crop 01 only. Crop 03 shows its products in one row, so no scope_layout is recorded."
+    }
+  }
 }

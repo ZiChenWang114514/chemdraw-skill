@@ -1,0 +1,17 @@
+{
+  "style": "jacs_au",
+  "species": [
+    {"id": "ald", "smiles": "CC(C)(C)C=O"},
+    {"id": "alk", "smiles": "Cc1ccc(cc1)C#C"},
+    {"id": "p1", "smiles": "CC(C)(C)/C=C/c1ccc(C)cc1"},
+    {"id": "acr", "smiles": "C=C(C)C(=O)Nc1ccccc1"},
+    {"id": "p2", "smiles": "CC(C)(C)CC(C)C(=O)Nc1ccccc1"}
+  ],
+  "steps": [
+    {"substrates": ["ald", "alk"], "products": ["p1"],
+     "above": ["DTBP (2 equiv.)"], "below": ["MeCN, 110 °C, 12 h"]},
+    {"substrates": ["ald", "acr"], "products": ["p2"],
+     "above": ["4CzIPN", "NaBr"], "below": ["(CH3)2CO, H2O", "18 h, ambient temp."]}
+  ],
+  "max_width": 504
+}

@@ -1,0 +1,15 @@
+{
+  "style": "org_lett",
+  "species": [
+    {"id": "7", "smiles": "FC(F)(F)[C@]1(C#C)NCCc2c1[nH]c1ccccc21", "label": "7"},
+    {"id": "9", "smiles": "FC(F)(F)[C@]1(C#Cc2ccccc2)NCCc2c1[nH]c1ccccc21", "label": "9"},
+    {"id": "8", "smiles": "FC(F)(F)[C@]1(C=C)NCCc2c1[nH]c1ccccc21", "label": "8"},
+    {"id": "10", "smiles": "FC(F)(F)[C@]1(CC)NCCc2c1[nH]c1ccccc21", "label": "10"}
+  ],
+  "steps": [
+    {"substrates": ["7"], "products": ["9"], "above": ["CuI, Et3N", "PdCl2(PPh3)2"], "below": ["Ph-I"], "yield": "87%, 91% ee"},
+    {"substrates": ["7"], "products": ["8"], "above": ["H2", "Lindlar cat."], "yield": "84%, 90% ee"},
+    {"substrates": ["7"], "products": ["10"], "above": ["H2", "Pd/C"], "yield": "93%, 91% ee"}
+  ],
+  "max_width": 400
+}

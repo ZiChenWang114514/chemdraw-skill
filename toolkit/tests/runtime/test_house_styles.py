@@ -258,3 +258,163 @@ def test_ome_abbreviation_leaves_methyl_esters_alone():
     patt = Chem.MolFromSmarts(ABBREVIATIONS["OMe"][0])
     assert Chem.MolFromSmiles("COc1ccccc1").HasSubstructMatch(patt)
     assert not Chem.MolFromSmiles("COC(=O)c1ccccc1").HasSubstructMatch(patt)
+
+
+# --- figure types ----------------------------------------------------------------
+
+FIGURES = {
+    "mechanism": {"conventions": {"curved_arrow_color": "#E3001B", "curved_arrow_weight": "thin",
+                                  "show_lone_pairs": True},
+                  "signature_features": ["red curved arrows"], "crops": ["evidence/x-01.png"]},
+    "catalytic_cycle": {"conventions": {"cycle_arrow_color": "#1F4E9E", "center_label": True},
+                        "signature_features": ["blue cycle arrows"], "crops": ["evidence/x-01.png"]},
+}
+
+
+def _figure_card(tmp_path, monkeypatch, figure_types=None):
+    card = copy.deepcopy(EXAMPLE)
+    card["evidence"][0]["crop"] = "evidence/x-01.png"
+    card["figure_types"] = copy.deepcopy(FIGURES if figure_types is None else figure_types)
+    (tmp_path / "cards").mkdir(exist_ok=True)
+    (tmp_path / "cards" / "_example.json").write_text(json.dumps(card), encoding="utf-8")
+    monkeypatch.setattr(house_styles, "DATA_DIR", tmp_path / "cards")
+    return card
+
+
+def test_figure_type_sections_load(tmp_path, monkeypatch):
+    _figure_card(tmp_path, monkeypatch)
+    style = house_style("_example")
+    assert style.figure_convention("mechanism", "curved_arrow_color") == "#E3001B"
+    assert style.figure_convention("energy_profile", "energy_unit", "kcal/mol") == "kcal/mol"
+    assert style.as_dict()["figure_types"]["catalytic_cycle"]["conventions"]["center_label"] is True
+
+
+@pytest.mark.parametrize("figure_types, message", [
+    ({"poster": {"crops": ["evidence/x-01.png"]}}, "unknown figure type"),
+    ({"mechanism": {"conventions": {"energy_unit": "eV"}, "crops": ["evidence/x-01.png"]}}, "does not apply"),
+    ({"mechanism": {"conventions": {"curved_arrow_weight": "huge"}, "crops": ["evidence/x-01.png"]}}, "must be one of"),
+    ({"mechanism": {"conventions": {"curved_arrow_color": "red"}, "crops": ["evidence/x-01.png"]}}, "colour"),
+    ({"mechanism": {"conventions": {}, "crops": ["evidence/other.png"]}}, "not crops of the evidence"),
+    ({"mechanism": {"conventions": {}}}, "crops must list"),
+    ({"energy_profile": {"conventions": {"pathway_colors": []}, "crops": ["evidence/x-01.png"]}}, "list of"),
+])
+def test_invalid_figure_type_sections_are_rejected(figure_types, message):
+    card = copy.deepcopy(EXAMPLE)
+    card["evidence"][0]["crop"] = "evidence/x-01.png"
+    card["figure_types"] = figure_types
+    with pytest.raises(ValueError, match=message):
+        validate_card(card)
+
+
+def test_mechanism_arrows_take_the_card_colour_and_weight(tmp_path, monkeypatch):
+    _figure_card(tmp_path, monkeypatch)
+    from cdxml_toolkit.chemdraw.style_presets import style_preset
+    brief = {
+        "kind": "mechanism", "style": "_example",
+        "species": [{"id": "ald", "smiles": "CC=O", "label": "1"}, {"id": "hyd", "smiles": "[OH-]"},
+                    {"id": "alk", "smiles": "CC([O-])O", "label": "2"}],
+        "steps": [{"substrates": ["ald", "hyd"], "products": ["alk"], "moves": [
+            {"from": {"species": "hyd", "atom": 0}, "to": {"species": "ald", "atom": 1}},
+            {"from": {"species": "ald", "bond": [1, 2]}, "to": {"species": "ald", "atom": 2}}]}],
+    }
+    report = draw_figure(brief, str(tmp_path / "mech.cdxml"))
+    assert report["ok"], report
+    assert "mechanism.curved_arrow_color=#E3001B" in report["style"]["applied"]
+    assert any("show_lone_pairs" in s and "guidance" in s for s in report["style"]["skipped"])
+    root = ET.parse(report["output_path"]).getroot()
+    rgb = [tuple(float(c.get(k)) for k in "rgb") for c in root.find("colortable").findall("color")]
+    curves = list(root.iter("curve"))
+    assert len(curves) == 2
+    width = 0.75 * float(style_preset("nature")["attributes"]["LineWidth"])
+    for curve in curves:
+        r, g, b = rgb[int(curve.get("color")) - 2]
+        assert (round(r * 255), round(g * 255), round(b * 255)) == (0xE3, 0x00, 0x1B)
+        assert float(curve.get("LineWidth")) == pytest.approx(width)
+
+
+def test_catalytic_cycle_arrows_take_the_card_colour(tmp_path, monkeypatch):
+    _figure_card(tmp_path, monkeypatch)
+    brief = {
+        "layout": "catalytic-cycle",
+        "species": [{"id": "A", "smiles": "CCO", "label": "A"}, {"id": "B", "smiles": "CC=O", "label": "B"},
+                    {"id": "C", "smiles": "CC(=O)O", "label": "C"}],
+        "steps": [{"substrates": ["A"], "products": ["B"]}, {"substrates": ["B"], "products": ["C"]},
+                  {"substrates": ["C"], "products": ["A"]}],
+    }
+    report, root = _draw(tmp_path, brief)
+    assert report["layout"] == "catalytic-cycle"
+    assert "catalytic_cycle.cycle_arrow_color=#1F4E9E" in report["style"]["applied"]
+    arrows = list(root.iter("arrow"))
+    assert arrows and all(a.get("color") == arrows[0].get("color") != "0" for a in arrows)
+
+
+def test_a_card_without_the_figure_type_says_so(tmp_path, monkeypatch):
+    _figure_card(tmp_path, monkeypatch, figure_types={})
+    from cdxml_toolkit.mcp_runtime import figure_house
+    _, applied, skipped = figure_house.apply_figure_type_conventions(
+        '<?xml version="1.0" ?><CDXML><page/></CDXML>', house_style("_example"), "mechanism", "nature")
+    assert applied == [] and "describes no mechanism figures" in skipped[0]
+
+
+def test_every_figure_type_lists_known_conventions():
+    assert set(house_styles.FIGURE_TYPES) == set(house_styles.FIGURE_TYPE_CONVENTIONS)
+    for keys in house_styles.FIGURE_TYPE_CONVENTIONS.values():
+        assert all(key in house_styles.FIGURE_CONVENTIONS for key in keys)
+    for figure_type, keys in house_styles.APPLIED_FIGURE_CONVENTIONS.items():
+        assert set(keys) <= set(house_styles.FIGURE_TYPE_CONVENTIONS[figure_type])
+
+
+# --- measured geometry -------------------------------------------------------------
+
+def _measured_card(tmp_path, monkeypatch, measured):
+    card = copy.deepcopy(EXAMPLE)
+    card["measured"] = measured
+    (tmp_path / "cards").mkdir(exist_ok=True)
+    (tmp_path / "cards" / "_example.json").write_text(json.dumps(card), encoding="utf-8")
+    monkeypatch.setattr(house_styles, "DATA_DIR", tmp_path / "cards")
+
+
+def test_measured_ratios_set_line_width_bold_width_and_label_size(tmp_path, monkeypatch):
+    _measured_card(tmp_path, monkeypatch, {"line_width_over_bond_length": 0.05,
+                                           "bold_width_over_bond_length": 0.15,
+                                           "bond_length_over_cap_height": 2.0})
+    report, root = _draw(tmp_path, SUZUKI)
+    bond = float(root.get("BondLength"))
+    assert float(root.get("LineWidth")) == pytest.approx(0.05 * bond, rel=0.01)
+    assert float(root.get("BoldWidth")) == pytest.approx(0.15 * bond, rel=0.01)
+    size = float(root.get("LabelSize"))
+    assert size == pytest.approx(bond / 2.0 / 0.716, rel=0.01)
+    br = next(n for n in root.iter("n") if n.get("Element") == "35")
+    assert float(next(br.iter("s")).get("size")) == pytest.approx(size, rel=0.01)
+    applied = " ".join(report["style"]["applied"])
+    assert "measured.line_width" in applied and "measured.atom_label_size" in applied
+
+
+def test_measured_values_are_clamped(tmp_path, monkeypatch):
+    _measured_card(tmp_path, monkeypatch, {"line_width_over_bond_length": 5.0,
+                                           "bond_length_over_cap_height": 0.01})
+    _, root = _draw(tmp_path, SUZUKI)
+    assert float(root.get("LineWidth")) == pytest.approx(3.0)
+    assert float(root.get("LabelSize")) == pytest.approx(14.0)
+
+
+def _arrow_length(root) -> float:
+    arrow = next(root.iter("arrow"))
+    head = [float(v) for v in arrow.get("Head3D").split()[:2]]
+    tail = [float(v) for v in arrow.get("Tail3D").split()[:2]]
+    return ((head[0] - tail[0]) ** 2 + (head[1] - tail[1]) ** 2) ** 0.5
+
+
+def test_measured_arrow_length_raises_the_shortest_arrow(tmp_path, monkeypatch):
+    from cdxml_toolkit.render import renderer
+    short = {"species": SUZUKI["species"][:1] + SUZUKI["species"][2:],
+             "steps": [{"substrates": ["ArBr"], "products": ["P"], "above": ["a"]}]}
+    _measured_card(tmp_path, monkeypatch, {})
+    _, plain = _draw(tmp_path, short)
+    (tmp_path / "out.cdxml").unlink()
+    _measured_card(tmp_path, monkeypatch, {"arrow_length_over_bond_length": 9.0})
+    report, long = _draw(tmp_path, short)
+    assert _arrow_length(long) > _arrow_length(plain) * 1.4
+    assert _arrow_length(long) >= 9.0 * float(long.get("BondLength")) * 0.95
+    assert renderer.MIN_ARROW_BONDS == 5.0
+    assert any(a.startswith("measured.arrow_length") for a in report["style"]["applied"])

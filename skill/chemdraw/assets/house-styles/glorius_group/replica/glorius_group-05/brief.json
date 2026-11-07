@@ -1,0 +1,71 @@
+{
+  "style": "glorius_group",
+  "layout": "catalytic-cycle",
+  "species": [
+    {
+      "id": "A",
+      "smiles": "O=S1c2ccccc2N(c2ccccc2)c2ccccc21",
+      "label": "PTH-O"
+    },
+    {
+      "id": "B",
+      "smiles": "O=S1c2ccccc2N(c2ccccc2)c2ccccc21",
+      "label": "PTH-O*"
+    },
+    {
+      "id": "C",
+      "smiles": "O=S1c2ccccc2N(c2ccccc2)c2ccccc21",
+      "label": "PTH-O•+"
+    },
+    {
+      "id": "R",
+      "smiles": "O=C1OOC(=O)C12CCC2",
+      "label": "2a"
+    }
+  ],
+  "steps": [
+    {
+      "substrates": [
+        "A"
+      ],
+      "products": [
+        "B"
+      ],
+      "above": [
+        "hv"
+      ],
+      "arrow": "reversible"
+    },
+    {
+      "substrates": [
+        "B",
+        "R"
+      ],
+      "products": [
+        "C"
+      ],
+      "above": [
+        "2a",
+        "SET"
+      ],
+      "below": [
+        "E1/2 = 0.80 V"
+      ]
+    },
+    {
+      "substrates": [
+        "C"
+      ],
+      "products": [
+        "A"
+      ],
+      "above": [
+        "SET"
+      ],
+      "below": [
+        "E1/2 = -0.19 V"
+      ]
+    }
+  ],
+  "max_width": 504
+}

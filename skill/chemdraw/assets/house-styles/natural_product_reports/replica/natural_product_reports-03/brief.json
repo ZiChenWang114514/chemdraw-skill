@@ -1,0 +1,12 @@
+{
+  "style": "natural_product_reports",
+  "title": "3'-O-Glucosyl metabolites within nucleocidin biosynthesis",
+  "species": [
+    {"id": "44", "smiles": "NS(=O)(=O)OCC1(F)OC(n2cnc3c(N)ncnc32)C(O)C1OC1OC(CO)C(O)C(O)C1O", "label": "44"},
+    {"id": "45", "smiles": "NS(=O)(=O)OCC1(F)OC(n2cnc3c(N)ncnc32)C(O)C1O", "label": "45"}
+  ],
+  "steps": [
+    {"substrates": ["44"], "products": ["45"], "above": ["NucGS"]}
+  ],
+  "max_width": 504
+}

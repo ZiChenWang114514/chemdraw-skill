@@ -1,0 +1,13 @@
+{
+  "style": "org_lett",
+  "species": [
+    {"id": "TrpC", "smiles": "NCCc1c[nH]c2ccccc12"},
+    {"id": "KetC", "smiles": "O=C(C(F)(F)F)C#C[Si](C(C)C)(C(C)C)C(C)C"},
+    {"id": "PC", "smiles": "CC(C)[Si](C#C[C@@]1(C(F)(F)F)NCCc2c1[nH]c1ccccc21)(C(C)C)C(C)C"}
+  ],
+  "steps": [
+    {"substrates": ["TrpC", "KetC"], "products": ["PC"],
+     "above": ["(R)-CPA III (5 mol%)", "MS4A (100 wt%)"], "below": ["DCM (0.2 M)", "40 °C, 22–120 h"], "yield": "92%, 91% ee"}
+  ],
+  "max_width": 504
+}

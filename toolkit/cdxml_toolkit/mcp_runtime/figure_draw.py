@@ -40,7 +40,7 @@ RELAYOUT_GAP_SCALE = 1.4
 RELAYOUT_WIDTH_FACTOR = 0.75
 RELAYOUT_MIN_LINE_CHARS = 16
 ARROWS = ("solid", "dashed", "failed", "reversible", "resonance")
-BRIEF_KEYS = {"kind", "species", "steps", "max_width", "title", "style", "layout"}
+BRIEF_KEYS = {"kind", "species", "steps", "max_width", "title", "panel_label", "style", "layout"}
 
 JACS_PALETTE = {
     "pastel_blue": "#D6EAF8",
@@ -88,6 +88,7 @@ def _validate(brief: dict) -> list[str]:
     width = brief.get("max_width")
     if width is not None and not (isinstance(width, (int, float)) and width > 0):
         errors.append("max_width must be a positive number of points.")
+    errors += figure_house.panel_errors(brief)
 
     species = brief.get("species")
     ids: set[str] = set()
@@ -104,6 +105,9 @@ def _validate(brief: dict) -> list[str]:
         ids.add(ident)
         if not entry.get("smiles") and not entry.get("name"):
             errors.append(f"Species {ident} needs a smiles or a name.")
+        if entry.get("orientation") not in (None, *renderer.ORIENTATIONS):
+            errors.append(f"Species {ident}: orientation must be one of {list(renderer.ORIENTATIONS)}.")
+        errors += figure_house.species_style_errors(entry)
 
     steps = brief.get("steps")
     if not isinstance(steps, list) or not steps:
@@ -122,6 +126,9 @@ def _validate(brief: dict) -> list[str]:
                     errors.append(f"Step {number} names {member!r} in {side}, which is not in species.")
         if step.get("arrow", "solid") not in ARROWS:
             errors.append(f"Step {number}: arrow must be one of {list(ARROWS)}.")
+        for side in ("above", "below"):
+            for line in _as_list(step.get(side)):
+                errors += figure_house.condition_line_errors(line, f"Step {number} {side}")
     if steps and not errors:
         try:
             _route_layout(_step_descriptors(brief), brief.get("layout"))
@@ -193,8 +200,11 @@ def _check_balance(brief: dict, smiles: dict[str, str]) -> tuple[list[dict], lis
 
 def _scheme(brief: dict, grounded: list[dict], max_width: float | None, gap_scale: float,
             line_chars: int | None = None, house: HouseStyle | None = None) -> SchemeDescriptor:
+    orientation = {str(sp.get("id")): sp.get("orientation") for sp in brief.get("species") or []
+                   if isinstance(sp, dict) and sp.get("orientation")}
     structures = {
-        g["id"]: StructureRef(id=g["id"], smiles=g["smiles"], label=(str(g["label"]) if g["label"] else None))
+        g["id"]: StructureRef(id=g["id"], smiles=g["smiles"], label=(str(g["label"]) if g["label"] else None),
+                              orientation=orientation.get(g["id"]))
         for g in grounded
     }
     steps = _step_descriptors(brief, line_chars, house)
@@ -235,7 +245,8 @@ def _step_descriptors(brief: dict, line_chars: int | None = None,
     steps = []
     for number, step in enumerate(brief["steps"], 1):
         above, below = figure_house.split_conditions(
-            [str(t) for t in _as_list(step.get("above"))], [str(t) for t in _as_list(step.get("below"))], house)
+            [figure_house.condition_text(t) for t in _as_list(step.get("above"))],
+            [figure_house.condition_text(t) for t in _as_list(step.get("below"))], house)
         above = _broken_lines(above, line_chars)
         below = _broken_lines(below, line_chars)
         yield_text = figure_house.step_yield(step, house)
@@ -599,13 +610,15 @@ def style_report(slug: str, house: HouseStyle | None = None, applied: list[str] 
     report = {"preset": slug, "bond_length": style_preset_bond_length(slug)}
     if house is not None:
         report.update({"house": house.slug, "applied": list(applied or []), "skipped": list(skipped or [])})
+    elif applied:
+        report["applied"] = list(applied)
     return report
 
 
 def bold_arrows(cdxml: Any, slug: str) -> Any:
-    """Arrows at 1.5 times the preset's line width."""
-    width = 1.5 * float(style_preset(slug)["attributes"]["LineWidth"])
-    root = ET.fromstring(str(cdxml))
+    """Arrows at 1.5 times the document's line width (the preset's unless a house style measured it)."""
+    root = ET.fromstring(str(cdxml).split("?>", 1)[-1])
+    width = 1.5 * float(root.get("LineWidth") or style_preset(slug)["attributes"]["LineWidth"])
     for arrow in root.iter("arrow"):
         arrow.set("LineWidth", f"{width:g}")
     wrapped = renderer._ValidatedCDXML('<?xml version="1.0" encoding="UTF-8" ?>\n'
@@ -623,17 +636,41 @@ def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: flo
     """
     slug, scale = brief_style(brief)
     house = brief_house(brief)
-    cdxml = renderer.render(_scheme(brief, grounded, layout_width / scale, gap_scale, line_chars, house))
+    arrow_bonds = figure_house.measured_arrow_bonds(house)
+    saved = renderer.MIN_ARROW_BONDS
+    try:
+        if arrow_bonds:
+            renderer.MIN_ARROW_BONDS = arrow_bonds
+        cdxml = renderer.render(_scheme(brief, grounded, layout_width / scale, gap_scale, line_chars, house))
+    finally:
+        renderer.MIN_ARROW_BONDS = saved
     cdxml = _apply_decorations(cdxml, brief, grounded)
     record: dict = {"applied": [], "skipped": [], "warnings": []}
     if house is not None:
         cdxml, record["applied"], record["skipped"], record["warnings"] = figure_house.apply_house_conventions(
             cdxml, brief, grounded, house)
+    cdxml, applied, warnings = figure_house.apply_species_styling(cdxml, brief, grounded, house)
+    record["applied"] += applied
+    record["warnings"] += warnings
+    cdxml, applied, warnings = figure_house.apply_captions_and_title(cdxml, brief, grounded)
+    record["applied"] += applied
+    record["warnings"] += warnings
     issues = figure_lint.lint_cdxml(cdxml, max_width=budget / scale)
+    # Frames go on after the overlap check: a frame is meant to surround its structure.
+    cdxml, applied = figure_house.apply_species_boxes(cdxml, brief, grounded)
+    record["applied"] += applied
     cdxml = styled(cdxml, slug)
+    if house is not None:
+        cdxml, applied, skipped = figure_house.apply_measured_geometry(cdxml, house, slug)
+        record["applied"] += applied
+        record["skipped"] += skipped
     if house is not None and house.convention("arrow_style") == "bold":
         cdxml = bold_arrows(cdxml, slug)
         record["applied"].append("arrow_style=bold")
+    if house is not None and _route_layout(_step_descriptors(brief), brief.get("layout"))[0] == "catalytic-cycle":
+        cdxml, applied, skipped = figure_house.apply_figure_type_conventions(cdxml, house, "catalytic_cycle", slug)
+        record["applied"] += applied
+        record["skipped"] += skipped
     return cdxml, issues, record
 
 
@@ -698,11 +735,13 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     """Draw a reaction scheme from a brief and check it, in one call.
 
     brief is an object (or its JSON text) the caller writes from the user's request:
-    species [{id, smiles or name, label?, ring_fills?, atom_halos?, ts_bracket?}],
+    species [{id, smiles or name, label?, ring_fills?, atom_halos?, ts_bracket?, color?,
+    atom_colors?, bond_colors?, abbreviate?, orientation?, caption?, box?}],
     steps [{substrates [ids], products [ids], above [lines], below [lines], yield,
     arrow solid|dashed|failed|reversible|resonance, ts_bracket? (a species id)}], optional layout
     (e.g. "catalytic-cycle"), max_width (points, default 504, the width of a double-column
-    ACS page) and title; kind defaults to "scheme". style names a built-in journal preset
+    ACS page), title and panel_label (a bold letter before the title, e.g. "a"), both drawn
+    above the figure at its left edge; kind defaults to "scheme". style names a built-in journal preset
     from ChemDraw's stock style sheets (default "acs1996"; others include "wiley", "rsc",
     "nature"; chemdraw://style-guide/{preset} lists its settings): the scheme is laid out at
     ACS geometry and then rescaled to the preset's bond length, and max_width is the width
@@ -710,7 +749,9 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     its drawing conventions (bold compound numbers, yield placement, stacked substrates,
     abbreviated groups, substrate and new-bond colours, bold arrows) are applied to the
     scheme and then its base preset; the report's style lists what was applied and skipped.
-    Scope panels and mechanisms take only the house style's base preset. The steps may
+    Scope panels take the base preset, the compound-number face and colour, the card's
+    abbreviations and its measured geometry; mechanisms and catalytic cycles also
+    take the card's figure_types colours and arrow weights. The steps may
     form a linear route, a convergent route (arms that merge), one starting material with
     several products (divergent), or a closed catalytic-cycle (a loop of >= 3 steps or
     layout="catalytic-cycle"), in any order; the report names the layout used, and steps
@@ -719,7 +760,18 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     color, radius}]), or ts_bracket (true or {superscript, bracket_type, lip_size}) to
     wrap the species fragment in a [...] transition-state bracket with a top-right double
     dagger; a step's ts_bracket names the bracketed species id (true is refused). Atom and
-    ring indices are RDKit indices of the species SMILES. Only the conditions in the brief are drawn; a
+    ring indices are RDKit indices of the species SMILES. A species may also be painted:
+    color (hex) for the whole structure, atom_colors [{atoms [i...], color}] (a bond between
+    two listed atoms takes the colour too) and bond_colors [{bonds [[i, j]...], color}];
+    abbreviate lists groups to contract (e.g. ["OTf", "Bpin"]; it replaces the house style's
+    list for that species, and [] keeps it unabbreviated); orientation flip_horizontal,
+    flip_vertical or rotate_180 mirrors or turns the structure about its centre, wedges kept
+    correct. A condition line may be text, a run {text, color?, bold?, italic?} or a list of
+    runs that make one line, so a catalyst can be coloured or a reagent set in italics; the
+    title and a species' caption (a line under its compound number) take the same forms. A
+    species' box (true, or {color, fill, style solid|dashed, rounded}) frames the structure
+    and its number, with an optional fill drawn behind it.
+    Only the conditions in the brief are drawn; a
     step without any is reported, never filled in. Structures given as SMILES are used
     as they are; names go through the curated reagent table and, when the network is
     allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked
@@ -732,7 +784,8 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     in the temp directory, and an existing output_path is refused.
 
     kind "scope" draws a substrate-scope panel instead: species [{id, smiles or name,
-    label?, group?, values {field: text}}], optional fields [{key, label?, unit?}] (default:
+    label?, group?, values {field: text}, color?, atom_colors?, bond_colors?, abbreviate?}],
+    optional fields [{key, label?, unit?}] (default:
     the keys used in values), conditions, footnotes, title, width_mm and height_mm. The
     structures are packed onto as many editable pages as needed, grouped in first-seen
     order, each label and value bound to its structure; a missing value is drawn as a
