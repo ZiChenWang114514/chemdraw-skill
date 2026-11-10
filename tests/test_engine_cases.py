@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "assets" / "readme" / "engines"
 READMES = {"en": ROOT / "README.md", "zh": ROOT / "README.zh-cn.md"}
 SECTION = {"en": "## Prediction and analysis engines", "zh": "## \u9884\u6d4b\u4e0e\u5206\u6790\u5f15\u64ce"}
-NEXT_SECTION = {"en": "## Reproduce a paper figure", "zh": "## \u590d\u523b\u8bba\u6587\u53cd\u5e94\u56fe"}
+NEXT_SECTION = {"en": "## Platform support", "zh": "## \u5e73\u53f0\u652f\u6301"}
 CASE_LIMIT = 1_000_000  # bytes per case folder (one folder per molecule for the NMR cases)
 
 
