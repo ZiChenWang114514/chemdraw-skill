@@ -60,7 +60,7 @@
 
 ## `catalog.render`
 
-- **function**, line 341: `render_all(catalogs: dict[str, dict[str, Any]] | None = None, recipes: list[dict[str, Any]] | None = None, classification: dict[str, Any] | None = None) -> dict[str, str]` - No public docstring in the audited version.
+- **function**, line 345: `render_all(catalogs: dict[str, dict[str, Any]] | None = None, recipes: list[dict[str, Any]] | None = None, classification: dict[str, Any] | None = None) -> dict[str, str]` - No public docstring in the audited version.
 
 ## `characterization`
 
@@ -394,7 +394,7 @@
 
 - **function**, line 32: `manifest(profile: str = 'full') -> dict` - No public docstring in the audited version.
 - **function**, line 57: `render_markdown(profile: str = 'full') -> str` - No public docstring in the audited version.
-- **function**, line 90: `render_reference(profile: str = 'full') -> str` - Signature reference used by the Skill's catalog checks.
+- **function**, line 92: `render_reference(profile: str = 'full') -> str` - Signature reference used by the Skill's catalog checks.
 
 ## `mcp_runtime.install_decimer_models`
 
