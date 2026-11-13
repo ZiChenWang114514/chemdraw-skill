@@ -95,6 +95,9 @@ globalThis.ChemWords = {
   "count": "{n} found",
   "link": "Copy a link to this question"
  },
+ "caps": {
+  "count": "Showing {n} of {total}"
+ },
  "running": "Running…",
  "rerun": "Run it again",
  "copyAsk": "Copy",

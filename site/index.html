@@ -99,14 +99,27 @@
     </a>
     <nav class="nav" aria-label="主导航">
       <a class="hide-sm" href="#gallery">作品</a>
-      <a href="lab/">实验室</a>
-      <a class="hide-sm" href="#calculator">计算器</a>
       <a class="hide-sm" href="#capabilities">能做什么</a>
       <a href="#start">快速开始</a>
+      <a class="hide-sm" href="#calculator">计算器</a>
+      <a href="lab/">实验室</a>
       <a class="hide-sm" href="#faq">常见问题</a>
       <a href="en/" hreflang="en" lang="en">EN</a>
       <a class="gh" href="https://github.com/ZiChenWang114514/chemdraw-skill"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
       <button class="theme" type="button" hidden aria-label="深色模式" aria-pressed="false"><svg class="moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 11.7A7 7 0 0 1 8.3 3.5a7 7 0 1 0 8.2 8.2z"/></svg><svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 2.4v2M10 15.6v2M2.4 10h2M15.6 10h2M4.6 4.6l1.4 1.4M14 14l1.4 1.4M4.6 15.4L6 14M14 6l1.4-1.4"/></svg></button>
+      <button class="btn sm ghost menu-btn" type="button" popovertarget="mobile-nav" aria-label="打开导航菜单"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 6h13M3.5 10h13M3.5 14h13"/></svg></button>
+    </nav>
+    <nav class="mobile-nav" id="mobile-nav" popover="auto" aria-label="移动导航">
+      <a href="#gallery">作品与风格</a>
+      <a href="#how">四步核验</a>
+      <a href="#capabilities">能做什么</a>
+      <a href="#start">快速开始</a>
+      <a href="#calculator">反应计算器</a>
+      <a href="lab/">分子实验室</a>
+      <a href="#faq">常见问题</a>
+      <hr>
+      <a href="en/" hreflang="en" lang="en">English</a>
+      <a class="gh" href="https://github.com/ZiChenWang114514/chemdraw-skill">GitHub</a>
     </nav>
   </div>
   <div class="progress" aria-hidden="true"></div>
@@ -116,15 +129,23 @@
 <div class="hero">
   <div class="wrap">
     <div>
+      <p class="eyebrow"><span>CDXML · ChemScript · RDKit</span> 面向科研绘图的 AI Skill</p>
       <h1>让 AI 画出可编辑的 ChemDraw 结构式</h1>
-      <p class="lede">ChemDraw Skill 让 AI 编程 Agent 能直接做出 ChemDraw 文件。你说要画哪个分子或哪张图，Agent 先查证结构，再写出 CDXML，让 ChemDraw 渲染，并把文件读回来核对。打开来就是一份普通的 ChemDraw 文档，原子和键都能接着改。同一个 Skill 还能算反应周围的数字：试剂用量、收率、表征文字和原子映射。</p>
+      <p class="lede">说出分子名称、反应式或文献截图，Agent 先查证化学结构，再写出原生 CDXML、交由 ChemDraw 渲染并双读取器回读核对。打开来就是一份普通的 ChemDraw 文档，原子、化学键与化学计量表随时可以接着改。</p>
+      <dl class="proof">
+        <div><dt>期刊与课题组风格</dt><dd>28</dd></div>
+        <div><dt>官方尺寸预设</dt><dd>16</dd></div>
+        <div><dt>化学与文档工作流</dt><dd>19</dd></div>
+        <div><dt>双读取器回读核对</dt><dd>100%</dd></div>
+      </dl>
       <div class="install">
         <code id="clone" tabindex="0">git clone https://github.com/ZiChenWang114514/chemdraw-skill.git</code>
         <button class="copy" type="button" data-done-label="已复制" data-copy="#clone">复制</button>
       </div>
       <div class="actions">
         <a class="btn primary" href="#start">三步安装</a>
-        <a class="btn" href="https://github.com/ZiChenWang114514/chemdraw-skill">在 GitHub 上查看源码</a>
+        <a class="btn" href="#gallery">浏览作品与风格</a>
+        <a class="btn" href="https://github.com/ZiChenWang114514/chemdraw-skill">GitHub 源码</a>
       </div>
       <p class="agents">适用于 <b>Claude Code</b>、<b>Codex</b>、<b>Gemini CLI</b>、<b>GitHub Copilot</b>、<b>Cursor</b>、<b>OpenCode</b>，以及任何能执行命令行的 Agent。</p>
     </div>
@@ -248,35 +269,35 @@
     <div class="works">
       <figure class="lg">
         <div class="plate"><img decoding="async" data-zoom src="gallery/house-styles.webp" width="1440" height="900" loading="lazy" alt="同一个 Suzuki 偶联按 acs_jacs、nature_portfolio、baran_group、macmillan_group、science_aaas 和 glorius_group 六个画法风格画出"></div>
-        <figcaption><b>28 个画法风格。</b>同一份说明，按 JACS、Nature、Baran、MacMillan、Science、Glorius 等的习惯画出，见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>。</figcaption>
+        <figcaption><span class="work-tag">样式系统</span><b>28 个画法风格。</b>同一份说明，按 JACS、Nature、Baran、MacMillan、Science、Glorius 等的习惯画出，见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>。</figcaption>
       </figure>
       <figure class="lg">
         <div class="plate"><img decoding="async" data-zoom src="gallery/house-style-replicas.webp" width="1440" height="900" loading="lazy" alt="两张已发表的图与按各自画法风格重画的 ChemDraw 文档并排对比：Nat. Prod. Rep. 的 Dragmacidin B 合成和 Houk 课题组的铑催化反应"></div>
-        <figcaption><b>47 个文献复现。</b>每张图按自己的风格重画，案例逐条列出符合与不符合的习惯，以及工具还做不到的地方。</figcaption>
+        <figcaption><span class="work-tag">文献复现</span><b>47 个文献复现。</b>每张图按原刊风格重画，案例逐条列出符合与未覆盖的习惯，以及工具目前的边界。</figcaption>
       </figure>
       <figure class="lg">
         <div class="plate"><img decoding="async" data-zoom src="gallery/complex-synthesis.webp" width="720" height="450" loading="lazy" alt="在 ChemDraw 中复刻的复杂多步合成路线"></div>
-        <figcaption><b>复杂合成路线。</b>完整多步路线，全部化合物、条件与机理箭头。</figcaption>
+        <figcaption><span class="work-tag">多步合成</span><b>复杂合成路线。</b>完整多步路线，全部化合物、条件与机理箭头均可编辑。</figcaption>
       </figure>
       <figure class="lg">
         <div class="plate"><img decoding="async" data-zoom src="gallery/mechanism.webp" width="720" height="450" loading="lazy" alt="反应机理的 ChemDraw 原生重绘"></div>
-        <figcaption><b>反应机理。</b>八个结构、电子箭头、电荷与抗衡离子。</figcaption>
+        <figcaption><span class="work-tag">电子转移</span><b>反应机理。</b>八个结构、弯箭头电子转移、形式电荷与抗衡离子。</figcaption>
       </figure>
       <figure>
         <div class="plate"><img decoding="async" data-zoom src="gallery/twenty-structures.webp" width="720" height="450" loading="lazy" alt="20 个结构的合成路线 ChemDraw 复刻"></div>
-        <figcaption><b>20 个结构的路线。</b>ChemScript 与 RDKit 读取的立体信息 20/20 一致。</figcaption>
+        <figcaption><span class="work-tag">立体核对</span><b>20 个结构的路线。</b>ChemScript 与 RDKit 读取的立体信息 20/20 一致。</figcaption>
       </figure>
       <figure>
         <div class="plate"><img decoding="async" data-zoom src="gallery/acs1996.webp" width="720" height="450" loading="lazy" alt="由 JSON 描述生成的 ACS Document 1996 氢化反应图"></div>
-        <figcaption><b>试卷与讲义插图。</b>一小段 JSON 生成 ACS Document 1996 格式，支持 C<sub>10</sub>H<sub>21</sub> 缩写和中文注释。</figcaption>
+        <figcaption><span class="work-tag">ACS 1996</span><b>试卷与讲义插图。</b>简短 JSON 生成标准插图，支持 C<sub>10</sub>H<sub>21</sub> 缩写与中文注释。</figcaption>
       </figure>
       <figure>
         <div class="plate"><img decoding="async" data-zoom src="gallery/tlc-apparatus.webp" width="720" height="450" loading="lazy" alt="原生 TLC 板与回流装置"></div>
-        <figcaption><b>TLC 与装置图。</b>原生 TLC 板、泳道、斑点与 Rf，以及 ChemDraw 装置模板。</figcaption>
+        <figcaption><span class="work-tag">实验板与装置</span><b>TLC 与装置图。</b>原生 TLC 板、泳道、斑点与 Rf，以及 ChemDraw 装置模板。</figcaption>
       </figure>
       <figure>
         <div class="plate"><img decoding="async" data-zoom src="gallery/nmr.webp" width="720" height="450" loading="lazy" alt="可编辑的实验 NMR 谱图"></div>
-        <figcaption><b>谱图与科研绘图。</b>对一维 NMR 数据寻峰、积分，数值数据输出为可编辑曲线。</figcaption>
+        <figcaption><span class="work-tag">实验谱图</span><b>谱图与科研绘图。</b>一维 NMR 寻峰、区间积分，数值数据输出为可编辑曲线。</figcaption>
       </figure>
     </div>
   </div>
@@ -339,69 +360,42 @@ Bonds:   13</code></pre></details></div>
   </div>
 </section>
 
-<section id="calculator">
-  <div class="wrap how">
-    <div class="head">
-      <h2><span class="nb">反应用量、</span><span class="nb">收率和相关数字</span></h2>
-      <p>对你以 SMILES 或 ChemDraw 文件给出的反应，<code>cdx.py calc</code> 会运行 ChemDraw 自带的 Structure &gt; Analyze Stoichiometry，并在 ChemDraw 里打开结果。在表里填一个用量，其余数值由 ChemDraw 算出。</p>
-    </div>
-    <div class="calc-body">
-      <figure class="calc-shot">
-        <img decoding="async" src="gallery/stoichiometry-grid.webp" data-zoom width="1245" height="693" loading="lazy" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
-        <figcaption>苯甲醇与乙酰氯的 ChemDraw 化学计量表，由 ChemDraw 渲染。粗斜体的质量是填入的用量，物质的量由 ChemDraw 算出。</figcaption>
-      </figure>
-      <ul>
-        <li>每个反应物和试剂的当量、样品质量、摩尔浓度、密度、体积和物质的量；产物的预期质量、实测质量、纯度和收率。</li>
-        <li><code>cdx.py calc --read</code> 把保存后的计量表以数据返回，智能体引用的是 ChemDraw 的数值，而不是它自己算的。读回不需要 ChemDraw；生成计量表需要桌面版 ChemDraw。</li>
-        <li>源文件不会被改动：计量表写进一个新副本。</li>
-        <li>没有 ChemDraw 时，SI 原料表可为最多 100 个反应给出用量、浓度、原子经济性和过程质量强度（PMI），默认值都会标出，并附内置表提供的安全提示；表里没有的显示“未收录”。它只是提醒，不能代替 SDS。</li>
-        <li>旁边还有：按 ACS 顺序的表征段落（核磁峰数会核对）、多步路线的总收率和 PMI、带反应类型标注的原子映射。</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<section id="lab">
-  <div class="wrap lab-teaser">
-    <div class="head">
-      <h2>分子实验室</h2>
-      <p>一边玩，一边看结构是怎么被检查的。这些题目用的都是网页里的编辑器，判定只看结构本身。</p>
-      <p class="daily-line" data-daily>每天换一道新题。</p>
-      <a class="btn primary" href="lab/">进入实验室</a>
-    </div>
-    <ul><li><b>今日分子</b>每天一题，记录连续天数。</li><li><b>路线图</b>20 关，从五个常见分子改造出新化合物。</li><li><b>找错</b>当一回 readback，点出 Agent 图里的错误。</li><li><b>异构体</b>从空白画布画出一个分子式的全部异构体。</li></ul>
-  </div>
-</section>
-
 <section id="capabilities">
   <div class="wrap caps-layout">
     <div class="head">
       <h2>能做什么</h2>
-      <p>十九类工作：绘图，以及随之而来的计算。</p>
-      <p class="try-note">每一类都附了一句可以直接对 Agent 说的话。原生渲染和 Office 嵌入需要桌面版 ChemDraw，见<a href="#start">运行前提</a>。</p>
+      <p>十九类工作：从化学绘图、论文图复刻到反应计算与谱图核对。</p>
+      <p class="try-note">每一类都附有一句可直接发给 Agent 的提示词。原生渲染与 Office 嵌入需要桌面版 ChemDraw，见<a href="#start">运行前提</a>。</p>
+      <div class="cap-tools" hidden>
+        <search class="cap-search"><input type="search" placeholder="搜索功能、命令或场景…" aria-label="搜索功能" autocomplete="off"></search>
+        <p class="cap-count" role="status"></p>
+      </div>
       <div class="filters" role="group" aria-label="按类别筛选" hidden><button type="button" data-filter="all" aria-pressed="true">全部<span>19</span></button><button type="button" data-filter="draw" aria-pressed="false">绘图<span>6</span></button><button type="button" data-filter="read" aria-pressed="false">读图复刻<span>3</span></button><button type="button" data-filter="data" aria-pressed="false">数据与文档<span>5</span></button><button type="button" data-filter="calc" aria-pressed="false">计算<span>5</span></button></div>
     </div>
-    <dl class="caps">
-      <div data-kind="draw"><dt>结构与反应</dt><dd>用 <code>cdx.py resolve</code> 解析名称和标识符；绘制、编辑、清理、检查（<code>cdx.py inspect</code>）、合并、拆分、转换和渲染 CDXML / CDX，并可非破坏性地连接已打开的桌面 ChemDraw 活动窗口与 MCP 资源/提示词端点。<details class="try"><summary>试着这样说</summary><p class="ask">把这个 CDX 文件转成 CDXML，清理结构后用 ChemDraw 渲染成 PNG。</p></details></dd></div>
-      <div data-kind="read"><dt>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对、修正化学，并用 16 方向模板对齐（depict_like）、楔形键回读（read_wedges）和原子索引/E/Z 编辑器（edit_structure）组装条件与版面。<details class="try"><summary>试着这样说</summary><p class="ask">把这张论文截图里的反应路线复刻成可编辑的 ChemDraw 文件，并和原图并排对比。</p></details></dd></div>
-      <div data-kind="read"><dt>专利 Markush</dt><dd>从专利图和权利要求提取通式，输出 CXSMILES、V3000 molfile 和可编辑 CDXML。<details class="try"><summary>试着这样说</summary><p class="ask">从这张专利图和权利要求里提取 Markush 通式，给我 CXSMILES、V3000 molfile 和 CDXML。</p></details></dd></div>
-      <div data-kind="draw"><dt>按需求新画图</dt><dd>从一句话或反应 SMILES（<code>cdx.py draw --reaction ...</code>、<code>--compact</code>）到成图：单步反应、线性/收敛/发散或催化循环路线、底物拓展图和机理（支持配位键与自由基），用一条命令画出并检查。条件只取自你给的内容，缺的不补，机理只按你列出的电子转移绘制。<details class="try"><summary>试着这样说</summary><p class="ask">画苯甲醇被 PCC 氧化成苯甲醛的反应，条件写 PCC、CH<sub>2</sub>Cl<sub>2</sub>、室温，渲染后检查一遍。</p></details></dd></div>
-      <div data-kind="draw"><dt>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、富文本、中文注释、带框编号、JACS/Angew 环着色与药效团光晕、η<sup>n</sup> 多点连接配位键、[…]‡ 过渡态方括号、分子轨道瓣及三维构象模板（椅式环己烷、Newman、Haworth、Fischer、降冰片烷）。<details class="try"><summary>试着这样说</summary><p class="ask">按 ACS Document 1996 画一道题：环己烯加氢生成环己烷，产物下面放一个带框的编号。</p></details></dd></div>
-      <div data-kind="draw"><dt>按期刊和课题组的习惯画图</dt><dd>两层样式：<code>cdx.py styles</code> 列出取自 ChemDraw 自带样式表的 16 个尺寸预设（键长、线宽、字号）；28 个画法风格覆盖期刊（JACS、Org. Lett.、J. Med. Chem.、Dalton Trans. 等）、出版社（Nature、Science、Wiley、RSC、Cell Press）、美国专利、OpenStax 教材和 Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer、Lipshutz 课题组，从 179 张 CC BY 论文图里量出编号、收率、条件布局、缩写、新键和底物配色、线宽和箭头长度，并按反应式、底物拓展、机理、催化循环等 23 类图分节。说明文件还能为单张图加标题、分图字母、说明文字、框和颜色。用 <code>cdx.py draw brief.json out.cdxml --style studer_group --render</code> 出图，见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>，其中列出按原风格重画的 47 张已发表的图。<details class="try"><summary>试着这样说</summary><p class="ask">按 Studer 课题组的习惯画这个反应，新键标红、收率写在编号后面，渲染后给我看。</p></details></dd></div>
-      <div data-kind="data"><dt>SAR 与底物拓展</dt><dd>由 CSV / Excel 生成可持续更新的 SAR 图和底物拓展图，保留手工排版。<details class="try"><summary>试着这样说</summary><p class="ask">用 scope.xlsx 里的结构和收率生成底物拓展图，每个化合物下面标编号和收率。</p></details></dd></div>
-      <div data-kind="calc"><dt>比较与性质</dt><dd>相似度与精确身份比较；用 <code>cdx.py report</code> 一步输出含 MS 加合物、HRMS 写法与 logP 的性质表；反应配平检查，指出缺失的副产物；把文件中的全部结构导出为 SMILES 和 InChI；ChemDraw 生成的名称会读回核对。<details class="try"><summary>试着这样说</summary><p class="ask">这两个 SMILES 是同一个化合物吗？再列出它们的分子量、logP 和 [M+H]<sup>+</sup>。</p></details></dd></div>
-      <div data-kind="calc"><dt>反应计算器</dt><dd>反应下方 ChemDraw 自带的化学计量表，数值可读回为数据；最多 100 个反应的 SI 原料表，含浓度、原子经济性、PMI 以及基于 116 条试剂安全表和 SMARTS 结构警示的安全提示。<details class="try"><summary>试着这样说</summary><p class="ask">给苯甲醇和乙酰氯的乙酰化反应打开 ChemDraw 化学计量表，苯甲醇用 1.08 g。</p></details></dd></div>
-      <div data-kind="data"><dt>表征文字</dt><dd>HRMS 表征句和按 ACS 顺序排列的整段文字：外观、Rf、熔点、比旋光度、IR、核磁、HRMS。峰数按结构核对，不一致只提示，不改数据。<details class="try"><summary>试着这样说</summary><p class="ask">把这份核磁和 HRMS 数据整理成按 ACS 顺序的表征段落，并按结构核对峰数。</p></details></dd></div>
-      <div data-kind="calc"><dt>路线收率与 PMI</dt><dd>线性或汇聚路线的总收率和累计 PMI。缺少的数字保持为空并给出提示。<details class="try"><summary>试着这样说</summary><p class="ask">这条四步线性路线每步收率是 85%、72%、90%、64%，投料在 materials.xlsx 里，算总收率和累计 PMI。</p></details></dd></div>
-      <div data-kind="calc"><dt>原子映射</dt><dd>内置方法遇到歧义会如实报告；也可一条命令安装 RXNMapper 与 LocalMapper。给出键变化、反应中心 SMARTS、仅凭结构判断的反应类型，并把映射编号写进图的副本。<details class="try"><summary>试着这样说</summary><p class="ask">给这个反应做原子映射，告诉我哪些键断了、哪些键生成了，并把映射编号写进图的副本。</p></details></dd></div>
-      <div data-kind="draw"><dt>反应机理</dt><dd>按你列出的电子转移绘制弯箭头，或按原子坐标复刻电子箭头、电荷和抗衡离子。<details class="try"><summary>试着这样说</summary><p class="ask">按我列的电子转移画酯的碱性水解机理：OH<sup>−</sup> 进攻羰基碳，C=O 的 π 电子移到氧上，再回推并离去烷氧基。</p></details></dd></div>
-      <div data-kind="draw"><dt>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点与 Rf 计算，支持自动共点（auto_cospot）、显色剂配色（KMnO<sub>4</sub>、茚三酮、茴香醛、I<sub>2</sub> 等）和二维 TLC（2D TLC）；ChemDraw 装置模板组装。<details class="try"><summary>试着这样说</summary><p class="ask">画一块 TLC 板：三条泳道依次是原料、共点和反应液，斑点 Rf 分别是 0.62 和 0.35。</p></details></dd></div>
-      <div data-kind="data"><dt>谱图与实验记录</dt><dd>一维 NMR（Bruker 1r/fid、JCAMP-DX、JEOL、Varian 与 CSV/FT）寻峰、区间积分、多重峰/残留溶剂分析、局部放大插图与多谱堆叠对比图（stack_nmr），数值数据输出为多系列可编辑曲线；处理 LCMS（Waters PDF、OpenLynx .rpt、Waters .raw、Shimadzu .daml、Agilent report.txt 与 mzML/mzXML，含 Cl/Br 同位素核对与内标归一化）、SciFinder RDF 和实验记录。<details class="try"><summary>试着这样说</summary><p class="ask">对这份 <sup>1</sup>H NMR 数据寻峰，积分 6.8–7.4 ppm 区间，输出可编辑的 ChemDraw 谱图。</p></details></dd></div>
-      <div data-kind="data"><dt>Word 与 PPT</dt><dd>在 Word、PowerPoint 文档中嵌入可编辑的 ChemDraw 对象（Windows 或 macOS 上生成）。<details class="try"><summary>试着这样说</summary><p class="ask">把 route.cdxml 作为可编辑的 ChemDraw 对象放进一页 PowerPoint 幻灯片。</p></details></dd></div>
-      <div data-kind="read"><dt>结构图识别与 PDF 抽取</dt><dd>可选引擎，经你同意才安装：用 MolScribe、MolNexTR、MolParser、MolVec 和 DECIMER 读同一张结构图并并排比对，支持 PDF 与多图批量识别、生成联系表供核对，并有常驻工作进程加快重复调用。对已发表的图，读对的比例有高有低，两个引擎一致只是个提示。<details class="try"><summary>试着这样说</summary><p class="ask">用本地所有引擎读这张结构图，告诉我它们哪里不一致，再把这份 PDF 里的结构都抽出来。</p></details></dd></div>
-      <div data-kind="calc"><dt>反应与路线预测</dt><dd>AiZynthFinder、SynPlanner、RetroChimera 和 ReactionT5 给出前体、多步路线与多引擎并排对照表，ReactionT5 预测产物，Reacon 给出催化剂和溶剂组合。拿实验记录对照时，产物排第一，前体和条件有对有错。结果都标注为预测，也不上传任何内容。<details class="try"><summary>试着这样说</summary><p class="ask">用本地逆合成引擎给这个目标分子找前体和两条路线，画成 ChemDraw 路线图，并标明是预测。</p></details></dd></div>
-      <div data-kind="data"><dt>核磁预测与 LCMS 板</dt><dd>玻尔兹曼加权的 MagNET（含 Karplus 耦合）与 NMRNet++ 预测 1H 和 13C 位移，支持与实测谱图做匈牙利候选归属对照；整块 OpenLynx 板的报告对照板图，找出各孔的预期产物并输出 24/96 孔板纯度热力图（lcms_plate）。预测值只作对照，不写进实验表征。<details class="try"><summary>试着这样说</summary><p class="ask">预测咖啡因的 1H 和 13C 位移并和这份实测谱图对比，再检查这份 OpenLynx 报告里每个孔有没有预期产物。</p></details></dd></div>
-    </dl>
+    <div>
+      <dl class="caps">
+        <div data-kind="draw"><dt><span class="cap-tag">绘图</span>结构与反应</dt><dd>用 <code>cdx.py resolve</code> 解析名称与标识符；绘制、编辑、清理、检查（<code>cdx.py inspect</code>）、合并、拆分与渲染 CDXML / CDX，并可非破坏性连接桌面 ChemDraw 活动窗口与 MCP 端点。<details class="try"><summary>试着这样说</summary><p class="ask">把这个 CDX 文件转成 CDXML，清理结构后用 ChemDraw 渲染成 PNG。</p></details></dd></div>
+        <div data-kind="read"><dt><span class="cap-tag">读图复刻</span>论文图复刻</dt><dd>裁剪原图、DECIMER 识别、并排比对，结合 16 方向模板对齐（depict_like）、楔形键回读（read_wedges）与原子索引/E/Z 编辑（edit_structure）还原版式。<details class="try"><summary>试着这样说</summary><p class="ask">把这张论文截图里的反应路线复刻成可编辑的 ChemDraw 文件，并和原图并排对比。</p></details></dd></div>
+        <div data-kind="read"><dt><span class="cap-tag">读图复刻</span>专利 Markush</dt><dd>从专利附图与权利要求提取通式结构，同步输出 CXSMILES、V3000 molfile 和可编辑 CDXML。<details class="try"><summary>试着这样说</summary><p class="ask">从这张专利图和权利要求里提取 Markush 通式，给我 CXSMILES、V3000 molfile 和 CDXML。</p></details></dd></div>
+        <div data-kind="draw"><dt><span class="cap-tag">绘图</span>按需求新画图</dt><dd>从一句话或反应 SMILES（<code>cdx.py draw --reaction ...</code>、<code>--compact</code>）绘制单步反应、线性/汇聚/发散或催化循环路线与底物拓展图。条件只取自你的输入，缺项不补。<details class="try"><summary>试着这样说</summary><p class="ask">画苯甲醇被 PCC 氧化成苯甲醛的反应，条件写 PCC、CH<sub>2</sub>Cl<sub>2</sub>、室温，渲染后检查一遍。</p></details></dd></div>
+        <div data-kind="draw"><dt><span class="cap-tag">绘图</span>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、中文注释、带框编号、环着色与药效团光晕、η<sup>n</sup> 多点配位键、[…]‡ 过渡态方括号、轨道瓣及椅式/Newman/Haworth/Fischer 构象模板。<details class="try"><summary>试着这样说</summary><p class="ask">按 ACS Document 1996 画一道题：环己烯加氢生成环己烷，产物下面放一个带框的编号。</p></details></dd></div>
+        <div data-kind="draw"><dt><span class="cap-tag">绘图</span>期刊与课题组画法</dt><dd>内置 16 个 ChemDraw 尺寸预设（<code>cdx.py styles</code>）与测自 179 张论文图的 28 个期刊、专利、教材及课题组画法风格（覆盖 JACS、Nature、Science、Baran、MacMillan、Studer 等 23 类图）。详见含 47 张重绘对比的<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>。<details class="try"><summary>试着这样说</summary><p class="ask">按 Studer 课题组的习惯画这个反应，新键标红、收率写在编号后面，渲染后给我看。</p></details></dd></div>
+        <div data-kind="data"><dt><span class="cap-tag">数据与文档</span>SAR 与底物拓展</dt><dd>将可信结构绑定 CSV / Excel 实验数据，生成可持续更新的构效关系（SAR）图与底物拓展图，刷新数据时保留手工排版。<details class="try"><summary>试着这样说</summary><p class="ask">用 scope.xlsx 里的结构和收率生成底物拓展图，每个化合物下面标编号和收率。</p></details></dd></div>
+        <div data-kind="calc"><dt><span class="cap-tag">计算</span>比较与性质</dt><dd>精确身份与相似度比较；<code>cdx.py report</code> 一步输出含 MS 加合物、HRMS 写法与 logP 的性质表；反应配平检查并指出缺失副产物；ChemDraw 命名自动回读核对。<details class="try"><summary>试着这样说</summary><p class="ask">这两个 SMILES 是同一个化合物吗？再列出它们的分子量、logP 和 [M+H]<sup>+</sup>。</p></details></dd></div>
+        <div data-kind="calc"><dt><span class="cap-tag">计算</span>反应计算器</dt><dd>调用 ChemDraw 原生化学计量表并将结果读回为结构化数据；无 ChemDraw 时可生成最多 100 个反应的 SI 原料表，含浓度、原子经济性、PMI 及 116 条试剂安全提示。<details class="try"><summary>试着这样说</summary><p class="ask">给苯甲醇和乙酰氯的乙酰化反应打开 ChemDraw 化学计量表，苯甲醇用 1.08 g。</p></details></dd></div>
+        <div data-kind="data"><dt><span class="cap-tag">数据与文档</span>表征文字</dt><dd>生成 HRMS 表征句与按 ACS 顺序排列的完整实验表征段落（外观、Rf、熔点、旋光、IR、核磁、HRMS），按结构核对峰数，异常只提醒不篡改。<details class="try"><summary>试着这样说</summary><p class="ask">把这份核磁和 HRMS 数据整理成按 ACS 顺序的表征段落，并按结构核对峰数。</p></details></dd></div>
+        <div data-kind="calc"><dt><span class="cap-tag">计算</span>路线收率与 PMI</dt><dd>计算线性或汇聚多步合成路线的总收率与累计过程质量强度（PMI），缺失步骤保持留空并明确提示。<details class="try"><summary>试着这样说</summary><p class="ask">这条四步线性路线每步收率是 85%、72%、90%、64%，投料在 materials.xlsx 里，算总收率和累计 PMI。</p></details></dd></div>
+        <div data-kind="calc"><dt><span class="cap-tag">计算</span>原子映射</dt><dd>内置方法对歧义如实报告，也可一键安装 RXNMapper 与 LocalMapper；输出断键/成键、反应中心 SMARTS 与反应类型，并将映射编号写入副本。<details class="try"><summary>试着这样说</summary><p class="ask">给这个反应做原子映射，告诉我哪些键断了、哪些键生成了，并把映射编号写进图的副本。</p></details></dd></div>
+        <div data-kind="draw"><dt><span class="cap-tag">绘图</span>反应机理</dt><dd>严格按你列出的电子转移步骤绘制弯箭头，或依据显式原子坐标复刻电子转移箭头、形式电荷与抗衡离子。<details class="try"><summary>试着这样说</summary><p class="ask">按我列的电子转移画酯的碱性水解机理：OH<sup>−</sup> 进攻羰基碳，C=O 的 π 电子移到氧上，再回推并离去烷氧基。</p></details></dd></div>
+        <div data-kind="draw"><dt><span class="cap-tag">绘图</span>TLC 与装置</dt><dd>原生 TLC 板、泳道、斑点与 Rf 计算，支持自动共点（auto_cospot）、KMnO<sub>4</sub>/茚三酮/茴香醛/I<sub>2</sub> 显色配色与二维 TLC，以及 ChemDraw 装置模板组装。<details class="try"><summary>试着这样说</summary><p class="ask">画一块 TLC 板：三条泳道依次是原料、共点和反应液，斑点 Rf 分别是 0.62 和 0.35。</p></details></dd></div>
+        <div data-kind="data"><dt><span class="cap-tag">数据与文档</span>谱图与实验记录</dt><dd>一维 NMR（Bruker、JCAMP-DX、JEOL、Varian、CSV）寻峰、积分、局部放大与多谱堆叠（stack_nmr）；解析 Waters/Shimadzu/Agilent/mzML LCMS（含 Cl/Br 同位素核对）与 SciFinder RDF。<details class="try"><summary>试着这样说</summary><p class="ask">对这份 <sup>1</sup>H NMR 数据寻峰，积分 6.8–7.4 ppm 区间，输出可编辑的 ChemDraw 谱图。</p></details></dd></div>
+        <div data-kind="data"><dt><span class="cap-tag">数据与文档</span>Word 与 PPT</dt><dd>在 Windows 或 macOS 上将结构式与反应路线作为可双击编辑的原生 ChemDraw 对象嵌入 Word 与 PowerPoint 文档。<details class="try"><summary>试着这样说</summary><p class="ask">把 route.cdxml 作为可编辑的 ChemDraw 对象放进一页 PowerPoint 幻灯片。</p></details></dd></div>
+        <div data-kind="read"><dt><span class="cap-tag">读图复刻</span>多引擎识图与 PDF 抽取</dt><dd>经你同意后按需安装：用 MolScribe、MolNexTR、MolParser、MolVec 与 DECIMER 并排比对同一张图，批量抽取 PDF 结构并生成核对联系表，常驻工作进程加速重复调用。<details class="try"><summary>试着这样说</summary><p class="ask">用本地所有引擎读这张结构图，告诉我它们哪里不一致，再把这份 PDF 里的结构都抽出来。</p></details></dd></div>
+        <div data-kind="calc"><dt><span class="cap-tag">计算</span>反应与路线预测</dt><dd>本地运行 AiZynthFinder、SynPlanner、RetroChimera、ReactionT5 与 Reacon 给出前体、多步路线、产物和催化溶剂候选，结果全程离线且显式标明为“预测”。<details class="try"><summary>试着这样说</summary><p class="ask">用本地逆合成引擎给这个目标分子找前体和两条路线，画成 ChemDraw 路线图，并标明是预测。</p></details></dd></div>
+        <div data-kind="data"><dt><span class="cap-tag">数据与文档</span>核磁预测与 LCMS 板</dt><dd>玻尔兹曼加权 MagNET 与 NMRNet++ 预测 <sup>1</sup>H / <sup>13</sup>C 位移并与实测谱做候选归属比对；对照孔板图核查整块 OpenLynx 报告并输出 24/96 孔板纯度热力图（lcms_plate）。<details class="try"><summary>试着这样说</summary><p class="ask">预测咖啡因的 1H 和 13C 位移并和这份实测谱图对比，再检查这份 OpenLynx 报告里每个孔有没有预期产物。</p></details></dd></div>
+      </dl>
+      <p class="cap-empty" hidden>没有匹配的工作流。试试切换上方的类别标签或换个关键词。</p>
+    </div>
   </div>
 </section>
 
@@ -413,10 +407,10 @@ Bonds:   13</code></pre></details></div>
     </div>
     <div>
       <ul class="prereq">
-        <li><b>ChemDraw。</b>原生渲染、第 3 步的 PNG 和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。没有它时，Skill 仍可构建、编辑、检查和识别结构，也能使用各类计算器。</li>
-        <li><b>Python。</b>安装脚本需要 Python 3.9 以上，会自动找到 64 位 Python 3.10–3.13 作为运行时，Windows、macOS、Linux 都能装。</li>
-        <li><b>磁盘。</b>默认运行时约占 760 MB。<code>--extras</code> 后不跟名称时只安装核心部分。</li>
-        <li><b>可选。</b>加 <code>--opsin</code> 可用 OPSIN 把名称转成结构，它需要 Java（Windows 上自动下载，其他系统需自行安装）。<code>image</code> 依赖组的文字识别需要 Tesseract。</li>
+        <li><b>ChemDraw</b>原生渲染、第 3 步的 PNG 和 Office 嵌入需要 Windows 或 macOS 上已授权的桌面版 ChemDraw；无桌面版时仍可构建、检查结构并使用计算器。</li>
+        <li><b>Python</b>安装脚本需要 Python 3.9+，会自动定位 64 位 Python 3.10–3.13 创建独立运行时，支持 Windows、macOS 与 Linux。</li>
+        <li><b>磁盘空间</b>默认完整运行时约占 760 MB；传入不带名称的 <code>--extras</code> 可仅安装轻量核心依赖。</li>
+        <li><b>可选工具</b>加 <code>--opsin</code> 启用 OPSIN 名称转结构（需 Java，Windows 自动下载）；<code>image</code> 依赖组的文字识别需 Tesseract。</li>
       </ul>
       <div class="choose" hidden>
         <fieldset>
@@ -454,10 +448,52 @@ cd chemdraw-skill
         </li>
         <li>
           <h3>直接对 Agent 说</h3>
-          <p class="say">用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，用 ChemDraw 原生渲染并给我看 PNG。</p>
+          <div class="say-wrap">
+            <p class="say" id="q3">用 ChemDraw Skill 把阿司匹林画成可编辑 CDXML，用 ChemDraw 原生渲染并给我看 PNG。</p>
+            <button class="btn sm" type="button" data-done-label="已复制" data-copy="#q3">复制提示词</button>
+          </div>
         </li>
       </ol>
     </div>
+  </div>
+</section>
+
+<section id="calculator">
+  <div class="wrap how">
+    <div class="head">
+      <h2><span class="nb">反应用量、</span><span class="nb">收率和相关数字</span></h2>
+      <p>对你以 SMILES 或 ChemDraw 文件给出的反应，<code>cdx.py calc</code> 会运行 ChemDraw 自带的 Structure &gt; Analyze Stoichiometry，并在 ChemDraw 里打开结果。在表里填一个用量，其余数值由 ChemDraw 算出。</p>
+    </div>
+    <div class="calc-body">
+      <figure class="calc-shot">
+        <img decoding="async" src="gallery/stoichiometry-grid.webp" data-zoom width="1245" height="693" loading="lazy" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
+        <figcaption>苯甲醇与乙酰氯的 ChemDraw 化学计量表，由 ChemDraw 渲染。粗斜体的质量是填入的用量，物质的量由 ChemDraw 算出。</figcaption>
+      </figure>
+      <ul>
+        <li><b>完整化学计量字段</b>自动核算反应物与试剂的当量、质量、摩尔浓度、密度、体积和物质的量，以及产物的理论产量、实测质量、纯度与收率。</li>
+        <li><b>真实回读，拒绝心算</b><code>cdx.py calc --read</code> 将保存后的计量表作为结构化数据读回（读回无需 ChemDraw，生成需桌面版），确保 Agent 直接引用 ChemDraw 数值。</li>
+        <li><b>非破坏性写入</b>始终将化学计量表写入新副本，绝不覆盖或污染原始反应文件。</li>
+        <li><b>无 ChemDraw 时的 SI 原料表</b>可为最多 100 个反应计算投料、浓度、原子经济性与 PMI（默认值均显式标注），并附内置试剂安全提示（未收录物质绝不标为安全，请以 SDS 为准）。</li>
+        <li><b>实验报告全套工具</b>同步支持按 ACS 顺序排列并核对核磁峰数的表征段落、多步路线总收率与累计 PMI，以及带反应类型标注的原子映射。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="lab">
+  <div class="wrap lab-teaser">
+    <div class="head">
+      <h2>分子实验室</h2>
+      <p>一边玩，一边看结构是怎么被检查的。这些题目用的都是网页里的编辑器，判定只看结构本身。</p>
+      <p class="daily-line" data-daily>每天换一道新题。</p>
+      <a class="btn primary" href="lab/">进入实验室</a>
+    </div>
+    <ul>
+      <li><a href="lab/#daily"><b>今日分子</b>每天一题，从常见骨架出发改造目标分子并记录连续天数。</a></li>
+      <li><a href="lab/#levels"><b>路线图</b>20 道进阶关卡，把五个基础分子一步步改造成新化合物。</a></li>
+      <li><a href="lab/#hunt"><b>找错</b>当一回 readback，对照真值揪出 Agent 结构图里的唯一错误。</a></li>
+      <li><a href="lab/#isomers"><b>异构体</b>从空白画布出发，不重不漏地画出给定分子式的全部构造异构体。</a></li>
+    </ul>
   </div>
 </section>
 
@@ -466,7 +502,7 @@ cd chemdraw-skill
     <div class="head">
       <h2>常见问题</h2>
       <div class="faq-tools" hidden>
-        <label class="faq-search"><input type="search" placeholder="搜索问题" aria-label="搜索问题" aria-controls="faq-list" autocomplete="off"></label>
+        <search class="faq-search"><input type="search" placeholder="搜索问题" aria-label="搜索问题" aria-controls="faq-list" autocomplete="off"></search>
         <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all aria-expanded="false">全部展开</button></div>
       </div>
     </div>

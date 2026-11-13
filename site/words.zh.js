@@ -95,6 +95,9 @@ globalThis.ChemWords = {
   "count": "{n} 个结果",
   "link": "复制这个问题的链接"
  },
+ "caps": {
+  "count": "显示 {n} / {total} 项"
+ },
  "running": "运行中…",
  "rerun": "再运行一遍",
  "copyAsk": "复制",
