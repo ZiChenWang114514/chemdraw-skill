@@ -473,11 +473,14 @@
       return;
     }
     const clear = () => { delete document.documentElement.dataset.slide; };
-    document.startViewTransition(() => {
+    const dir = modes.indexOf(openTab()) < modes.indexOf(before) ? "back" : "next";
+    const vt = document.startViewTransition(() => {
       route();
-      document.documentElement.dataset.slide = modes.indexOf(openTab()) < modes.indexOf(before) ? "back" : "next";
+      document.documentElement.dataset.slide = dir;
       settle(before);
-    }).finished.then(clear, clear);
+    });
+    vt?.types?.add(dir);
+    vt.finished.then(clear, clear);
   });
   addEventListener("resize", markTab);
 

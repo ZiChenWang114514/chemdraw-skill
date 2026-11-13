@@ -26,9 +26,10 @@
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t;document.querySelector('meta[name="color-scheme"]').content=t}}catch(e){}</script>
 <link rel="preload" href="fonts/skill-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/noto-serif-sc-heading.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="expect" href="#hero-doc" blocking="render">
 <link rel="stylesheet" href="styles.css">
 <script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 <script type="application/ld+json">
@@ -128,7 +129,7 @@
       <p class="agents">适用于 <b>Claude Code</b>、<b>Codex</b>、<b>Gemini CLI</b>、<b>GitHub Copilot</b>、<b>Cursor</b>、<b>OpenCode</b>，以及任何能执行命令行的 Agent。</p>
     </div>
 
-    <figure class="doc" aria-label="示例：一个小型结构式编辑器。Agent 画好的阿司匹林，你可以接着改">
+    <figure class="doc" id="hero-doc" aria-label="示例：一个小型结构式编辑器。Agent 画好的阿司匹林，你可以接着改">
       <div class="doc-bar"><i></i><i></i><i></i><span class="fname">aspirin.cdxml</span>
         <div class="doc-tabs" role="tablist" aria-label="打开的文档" hidden>
           <button type="button" role="tab" data-mol="aspirin" aria-selected="true" aria-controls="doc-canvas">aspirin</button>
@@ -216,28 +217,28 @@
     <div class="panel" id="p-scheme" role="tabpanel" aria-labelledby="t-scheme">
       <p>左边是论文里的原图，右边是复刻出的 ChemDraw 文档。五个结构、反应条件、产率和化合物编号都能编辑。</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="gallery/paper-scheme-original.webp" width="1600" height="275" alt="论文中的原始反应路线图">
-        <div class="after"><img decoding="async" src="gallery/paper-scheme-chemdraw.webp" width="1600" height="274" alt="同一路线复刻为可编辑的 ChemDraw 文档"></div>
+        <img decoding="async" fetchpriority="high" src="gallery/paper-scheme-original.webp" width="1600" height="275" alt="论文中的原始反应路线图">
+        <div class="after"><img decoding="async" fetchpriority="high" src="gallery/paper-scheme-chemdraw.webp" width="1600" height="274" alt="同一路线复刻为可编辑的 ChemDraw 文档"></div>
         <input type="range" min="0" max="100" value="50" aria-label="调整原图与 ChemDraw 复刻的对比位置">
         <span class="seam"></span>
       </div>
       <div class="compare-legend"><span><b>论文原图</b>（图片）</span><span><b>ChemDraw 复刻</b>（CDXML）</span></div>
     </div>
-    <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden>
+    <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden="until-found">
       <p>专利图中的通式结构：R 基、两个可变环、可连在三个环位置之一的基团以及重复次数。整个提取由一个只拿到 Skill、图片和权利要求文本的 Agent 完成，结构同时保存为 CXSMILES 和 V3000 molfile。</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="gallery/markush-original.webp" width="1200" height="900" loading="lazy" alt="专利中的 Markush 通式原图">
-        <div class="after"><img decoding="async" src="gallery/markush-chemdraw.webp" width="1200" height="900" loading="lazy" alt="同一通式复刻为可编辑的 ChemDraw 文档"></div>
+        <img decoding="async" fetchpriority="low" src="gallery/markush-original.webp" width="1200" height="900" loading="lazy" alt="专利中的 Markush 通式原图">
+        <div class="after"><img decoding="async" fetchpriority="low" src="gallery/markush-chemdraw.webp" width="1200" height="900" loading="lazy" alt="同一通式复刻为可编辑的 ChemDraw 文档"></div>
         <input type="range" min="0" max="100" value="50" aria-label="调整专利原图与 ChemDraw 复刻的对比位置">
         <span class="seam"></span>
       </div>
       <div class="compare-legend"><span><b>专利原图</b>（图片）</span><span><b>ChemDraw 复刻</b>（CDXML）</span></div>
     </div>
-    <div class="panel" id="p-style" role="tabpanel" aria-labelledby="t-style" hidden>
+    <div class="panel" id="p-style" role="tabpanel" aria-labelledby="t-style" hidden="until-found">
       <p>左边是 Studer 课题组发表在 Nature Communications 上的反应式，右边是写明 <code>"style": "studer_group"</code> 的说明文件画出的 ChemDraw 文档。编号加粗、收率接在编号后、试剂在上溶剂在下、新键标红，都来自这个课题组的风格卡片。</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="gallery/house-style-original.webp" width="1600" height="356" loading="lazy" alt="Studer 课题组论文中的自由基探针反应式原图">
-        <div class="after"><img decoding="async" src="gallery/house-style-chemdraw.webp" width="1600" height="356" loading="lazy" alt="同一反应式按 studer_group 画法风格画出的 ChemDraw 文档"></div>
+        <img decoding="async" fetchpriority="low" src="gallery/house-style-original.webp" width="1600" height="356" loading="lazy" alt="Studer 课题组论文中的自由基探针反应式原图">
+        <div class="after"><img decoding="async" fetchpriority="low" src="gallery/house-style-chemdraw.webp" width="1600" height="356" loading="lazy" alt="同一反应式按 studer_group 画法风格画出的 ChemDraw 文档"></div>
         <input type="range" min="0" max="100" value="50" aria-label="调整论文原图与按风格画出的 ChemDraw 文档的对比位置">
         <span class="seam"></span>
       </div>
@@ -466,7 +467,7 @@ cd chemdraw-skill
       <h2>常见问题</h2>
       <div class="faq-tools" hidden>
         <label class="faq-search"><input type="search" placeholder="搜索问题" aria-label="搜索问题" aria-controls="faq-list" autocomplete="off"></label>
-        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all>全部展开</button></div>
+        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all aria-expanded="false">全部展开</button></div>
       </div>
     </div>
     <div>

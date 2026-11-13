@@ -92,10 +92,13 @@ document.querySelectorAll(".tabs[role=tablist]").forEach((list) => {
       const on = t === tab;
       t.setAttribute("aria-selected", on);
       t.tabIndex = on ? 0 : -1;
-      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = on ? false : "until-found";
     });
+    tab.scrollIntoView?.({ block: "nearest", inline: "nearest", container: "nearest" });
   };
   tabs.forEach((tab, i) => {
+    const panel = document.getElementById(tab.getAttribute("aria-controls"));
+    if (panel) panel.addEventListener("beforematch", () => select(tab));
     tab.addEventListener("click", () => select(tab));
     tab.addEventListener("keydown", (e) => {
       const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
@@ -121,8 +124,15 @@ if (themeBtn) {
     if (schemeMeta) schemeMeta.content = root.dataset.theme ? current : "light dark";
   };
   themeBtn.addEventListener("click", () => {
-    root.dataset.theme = mode() === "dark" ? "light" : "dark";
-    try { localStorage.setItem("theme", root.dataset.theme); } catch { /* private mode: the choice just isn't kept */ }
+    const next = mode() === "dark" ? "light" : "dark";
+    const sys = system.matches ? "dark" : "light";
+    if (next === sys) {
+      delete root.dataset.theme;
+      try { localStorage.removeItem("theme"); } catch { /* private mode: nothing saved */ }
+    } else {
+      root.dataset.theme = next;
+      try { localStorage.setItem("theme", next); } catch { /* private mode: the choice just isn't kept */ }
+    }
     paint();
   });
   window.addEventListener("storage", (event) => {
@@ -349,7 +359,9 @@ if (faq && words) {
 
   const paintAll = () => {
     const shown = items.filter((d) => !d.hidden);
-    all.textContent = shown.length && shown.every((d) => d.open) ? L.collapse : L.expand;
+    const open = shown.length > 0 && shown.every((d) => d.open);
+    all.textContent = open ? L.collapse : L.expand;
+    all.setAttribute("aria-expanded", String(open));
     all.hidden = !shown.length;
   };
   const unmark = () => faq.querySelectorAll("mark").forEach((m) => {
@@ -462,10 +474,11 @@ if (shots.length && words && typeof HTMLDialogElement === "function") {
   const box = document.createElement("dialog");
   box.className = "lightbox";
   box.setAttribute("closedby", "closerequest");
+  box.setAttribute("aria-labelledby", "lb-cap");
   box.innerHTML = `
     <div class="lb-stage"><img alt="" draggable="false"></div>
     <div class="lb-bar">
-      <p class="lb-cap"></p>
+      <p class="lb-cap" id="lb-cap"></p>
       <span class="lb-count"></span>
       <div class="lb-tools">
         <button type="button" data-lb="prev" aria-label="${L.prev}" title="${L.prev} (←)">${icon("M12.5 4.5L7 10l5.5 5.5")}</button>
@@ -473,7 +486,7 @@ if (shots.length && words && typeof HTMLDialogElement === "function") {
         <button type="button" data-lb="out" aria-label="${L.zoomOut}" title="${L.zoomOut} (−)">${icon("M5 10h10")}</button>
         <button type="button" data-lb="fit" aria-label="${L.fit}" title="${L.fit} (0)">${icon("M4 8V4h4M16 8V4h-4M4 12v4h4M16 12v4h-4")}</button>
         <button type="button" data-lb="in" aria-label="${L.zoomIn}" title="${L.zoomIn} (+)">${icon("M5 10h10M10 5v10")}</button>
-        <button type="button" data-lb="close" aria-label="${L.close}" title="${L.close} (Esc)">${icon("M5 5l10 10M15 5L5 15")}</button>
+        <button type="button" data-lb="close" autofocus aria-label="${L.close}" title="${L.close} (Esc)">${icon("M5 5l10 10M15 5L5 15")}</button>
       </div>
     </div>
     <p class="lb-hint">${L.hint}</p>`;
@@ -524,12 +537,29 @@ if (shots.length && words && typeof HTMLDialogElement === "function") {
     target.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
   });
 
-  box.addEventListener("close", () => { if (opener) opener.focus(); });
+  const canTransitionDisplay = CSS.supports("transition-behavior", "allow-discrete") && !/Firefox\//.test(navigator.userAgent);
+  const closeBox = () => {
+    if (!box.open) return;
+    if (!canTransitionDisplay || box.dataset.closing !== undefined) { delete box.dataset.closing; box.close(); return; }
+    box.dataset.closing = "";
+    const finish = () => {
+      clearTimeout(timer);
+      if (box.dataset.closing !== undefined) { delete box.dataset.closing; if (box.open) box.close(); }
+    };
+    box.addEventListener("transitionend", (e) => { if (e.target === box && e.propertyName === "opacity") finish(); }, { once: true });
+    const timer = setTimeout(finish, 300);
+  };
+  box.addEventListener("cancel", (e) => {
+    if (!canTransitionDisplay) return;
+    e.preventDefault();
+    closeBox();
+  });
+  box.addEventListener("close", () => { delete box.dataset.closing; if (opener) opener.focus(); });
   box.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-lb]");
     if (btn) {
       const act = btn.dataset.lb;
-      if (act === "close") box.close();
+      if (act === "close") closeBox();
       else if (act === "prev") show(at - 1);
       else if (act === "next") show(at + 1);
       else if (act === "in") zoom(s * 1.6);
@@ -537,8 +567,8 @@ if (shots.length && words && typeof HTMLDialogElement === "function") {
       else if (act === "fit") zoom(1);
       return;
     }
-    // A click on the dark surround closes, as long as it was not the end of a drag.
-    if ((e.target === box || e.target === stage) && !box.dataset.dragged) box.close();
+    // A click on the dark stage surround closes, as long as it was not the end of a drag.
+    if (e.target === stage && !box.dataset.dragged) closeBox();
   });
   box.addEventListener("keydown", (e) => {
     const act = { ArrowLeft: () => show(at - 1), ArrowRight: () => show(at + 1), "+": () => zoom(s * 1.6), "=": () => zoom(s * 1.6), "-": () => zoom(s / 1.6), "0": () => zoom(1) }[e.key];

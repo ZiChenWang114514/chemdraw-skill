@@ -1061,7 +1061,18 @@ class PageMotionTests(unittest.TestCase):
             with self.subTest(page=path.name):
                 html = path.read_text(encoding="utf-8")
                 self.assertIn('<meta name="color-scheme" content="light dark">', html)
+                self.assertIn('meta[name="color-scheme"]', html)
                 self.assertLess(html.index('name="color-scheme"'), html.index('rel="stylesheet"'))
+        for path in PAGES.values():
+            with self.subTest(page=path.name):
+                html = path.read_text(encoding="utf-8")
+                self.assertIn('<link rel="expect" href="#hero-doc" blocking="render">', html)
+                self.assertIn('id="hero-doc"', html)
+        for path in LAB_PAGES.values():
+            with self.subTest(page=path.name):
+                html = path.read_text(encoding="utf-8")
+                self.assertIn('<link rel="expect" href="#lab-window" blocking="render">', html)
+                self.assertIn('id="lab-window"', html)
 
     def test_every_page_prefetches_only_its_own_site(self) -> None:
         for path in (*PAGES.values(), *LAB_PAGES.values()):
@@ -1075,7 +1086,11 @@ class PageMotionTests(unittest.TestCase):
 
     def test_images_decode_off_the_main_thread(self) -> None:
         for path in PAGES.values():
-            for tag in re.findall(r"<img\b[^>]*>", path.read_text(encoding="utf-8")):
+            html = path.read_text(encoding="utf-8")
+            self.assertIn('fetchpriority="high"', html)
+            self.assertIn('hidden="until-found"', html)
+            self.assertIn('fetchpriority="low"', html)
+            for tag in re.findall(r"<img\b[^>]*>", html):
                 with self.subTest(tag=tag[:80]):
                     self.assertIn('decoding="async"', tag)
 
@@ -1091,12 +1106,16 @@ class PageMotionTests(unittest.TestCase):
     def test_404_and_lightbox_follow_color_scheme_and_modal_guards(self) -> None:
         not_found = (SITE / "404.html").read_text(encoding="utf-8")
         self.assertIn('<meta name="color-scheme" content="light dark">', not_found)
+        self.assertIn('meta[name="color-scheme"]', not_found)
         self.assertLess(not_found.index('name="color-scheme"'), not_found.index('rel="stylesheet"'))
         self.assertNotIn(" style=", not_found)
         self.assertIn(".lightbox:modal { overscroll-behavior: contain;", self.css)
         self.assertIn("overscroll-behavior: contain;", self.css.split(".lightbox::backdrop", 1)[1].split("}", 1)[0])
+        self.assertIn("@starting-style", self.css)
+        self.assertIn("transition-behavior: allow-discrete;", self.css)
         app_js = (SITE / "app.js").read_text(encoding="utf-8")
         self.assertIn('box.setAttribute("closedby", "closerequest")', app_js)
+        self.assertIn('box.setAttribute("aria-labelledby", "lb-cap")', app_js)
 
 
 class DesignSystemTests(unittest.TestCase):

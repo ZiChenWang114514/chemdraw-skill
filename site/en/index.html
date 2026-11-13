@@ -25,8 +25,9 @@
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t;document.querySelector('meta[name="color-scheme"]').content=t}}catch(e){}</script>
 <link rel="preload" href="../fonts/skill-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="expect" href="#hero-doc" blocking="render">
 <link rel="stylesheet" href="../styles.css">
 <script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 <script type="application/ld+json">
@@ -125,7 +126,7 @@
       <p class="agents">Works with <b>Claude Code</b>, <b>Codex</b>, <b>Gemini CLI</b>, <b>GitHub Copilot</b>, <b>Cursor</b>, <b>OpenCode</b> and any agent that can run a shell command.</p>
     </div>
 
-    <figure class="doc" aria-label="Example: a small structure editor. An agent's drawing of aspirin that you can change">
+    <figure class="doc" id="hero-doc" aria-label="Example: a small structure editor. An agent's drawing of aspirin that you can change">
       <div class="doc-bar"><i></i><i></i><i></i><span class="fname">aspirin.cdxml</span>
         <div class="doc-tabs" role="tablist" aria-label="Open documents" hidden>
           <button type="button" role="tab" data-mol="aspirin" aria-selected="true" aria-controls="doc-canvas">aspirin</button>
@@ -213,28 +214,28 @@
     <div class="panel" id="p-scheme" role="tabpanel" aria-labelledby="t-scheme">
       <p>The left side is the original image from the paper; the right side is the ChemDraw rebuild. Five structures, conditions, yields and compound numbers are all editable.</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="../gallery/paper-scheme-original.webp" width="1600" height="275" alt="Original reaction scheme from a paper">
-        <div class="after"><img decoding="async" src="../gallery/paper-scheme-chemdraw.webp" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
+        <img decoding="async" fetchpriority="high" src="../gallery/paper-scheme-original.webp" width="1600" height="275" alt="Original reaction scheme from a paper">
+        <div class="after"><img decoding="async" fetchpriority="high" src="../gallery/paper-scheme-chemdraw.webp" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the original and the ChemDraw rebuild">
         <span class="seam"></span>
       </div>
       <div class="compare-legend"><span><b>Paper figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
     </div>
-    <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden>
+    <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden="until-found">
       <p>A generic structure from a patent figure: R groups, two variable rings, a group that can sit on three ring positions, and repeat counts. An agent given only the Skill, the image and the claim text ran the whole extraction; the structure is also saved as CXSMILES and a V3000 molfile.</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="../gallery/markush-original.webp" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
-        <div class="after"><img decoding="async" src="../gallery/markush-chemdraw.webp" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
+        <img decoding="async" fetchpriority="low" src="../gallery/markush-original.webp" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
+        <div class="after"><img decoding="async" fetchpriority="low" src="../gallery/markush-chemdraw.webp" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the patent figure and the ChemDraw rebuild">
         <span class="seam"></span>
       </div>
       <div class="compare-legend"><span><b>Patent figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
     </div>
-    <div class="panel" id="p-style" role="tabpanel" aria-labelledby="t-style" hidden>
+    <div class="panel" id="p-style" role="tabpanel" aria-labelledby="t-style" hidden="until-found">
       <p>The left side is a scheme the Studer group published in Nature Communications; the right side is the ChemDraw document drawn from a brief that says <code>"style": "studer_group"</code>. Bold numbers, the yield after the number, reagents above and solvent below, and the new bonds in red all come from the group's style card.</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="../gallery/house-style-original.webp" width="1600" height="356" loading="lazy" alt="Radical-probe scheme from a Studer group paper">
-        <div class="after"><img decoding="async" src="../gallery/house-style-chemdraw.webp" width="1600" height="356" loading="lazy" alt="The same scheme drawn as a ChemDraw document in the studer_group house style"></div>
+        <img decoding="async" fetchpriority="low" src="../gallery/house-style-original.webp" width="1600" height="356" loading="lazy" alt="Radical-probe scheme from a Studer group paper">
+        <div class="after"><img decoding="async" fetchpriority="low" src="../gallery/house-style-chemdraw.webp" width="1600" height="356" loading="lazy" alt="The same scheme drawn as a ChemDraw document in the studer_group house style"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the paper figure and the styled ChemDraw document">
         <span class="seam"></span>
       </div>
@@ -463,7 +464,7 @@ cd chemdraw-skill
       <h2>Common questions</h2>
       <div class="faq-tools" hidden>
         <label class="faq-search"><input type="search" placeholder="Search questions" aria-label="Search questions" aria-controls="faq-list" autocomplete="off"></label>
-        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all>Expand all</button></div>
+        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all aria-expanded="false">Expand all</button></div>
       </div>
     </div>
     <div>

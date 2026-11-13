@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="/chemdraw-skill/favicon.svg" type="image/svg+xml">
-<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t;document.querySelector('meta[name="color-scheme"]').content=t}}catch(e){}</script>
 <link rel="preload" href="/chemdraw-skill/fonts/skill-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/chemdraw-skill/fonts/noto-serif-sc-heading.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/chemdraw-skill/styles.css">
