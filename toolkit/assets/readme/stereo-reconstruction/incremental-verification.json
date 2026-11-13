@@ -74,5 +74,5 @@
     "ChemScript": "22.0.0.0",
     "RDKit": "2026.03.3"
   },
-  "rights": "Third-party-derived artwork and embedded source X-ray excluded from MIT license; see CASE.md."
+  "rights": "Third-party-derived artwork and embedded source X-ray excluded from the repository licenses; see CASE.md."
 }

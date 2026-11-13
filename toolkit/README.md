@@ -86,6 +86,6 @@ The package started as Hiu Fung Kevin Lee's [`cdxml-toolkit`](https://github.com
 
 - Original author: Hiu Fung Kevin Lee ([@leehiufung911](https://github.com/leehiufung911))
 - Maintainer: [ZiChenWang114514](https://github.com/ZiChenWang114514)
-- License: [MIT](LICENSE), with third-party data notices in [NOTICE.md](NOTICE.md)
+- License: upstream code under [MIT](LICENSE); community additions by ZiChenWang114514 under [PolyForm Strict 1.0.0](LICENSE-POLYFORM-STRICT.txt); third-party data notices in [NOTICE.md](NOTICE.md)
 
 The original project was directed by Hiu Fung Kevin Lee, a PhD organic chemist, and documented as built and tested with Claude Code (Opus 4.6).

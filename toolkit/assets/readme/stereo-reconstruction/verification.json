@@ -190,7 +190,7 @@
     "warping": false
   },
   "visible_change": "Compound 1 uses explicit wedge/hashed-wedge stereobonds; other 19 structures retain source-oriented bond styles.",
-  "rights": "Reconstructed scientific figure and embedded source X-ray crop are third-party-derived material, excluded from the repository MIT license. Consult the original publisher/rightsholder for reuse rights.",
+  "rights": "Reconstructed scientific figure and embedded source X-ray crop are third-party-derived material, excluded from the repository licenses. Consult the original publisher/rightsholder for reuse rights.",
   "usage": {
     "scope": "Stereo interoperability repair only; excludes later calls and final reply",
     "elapsed_seconds": 1544.747,

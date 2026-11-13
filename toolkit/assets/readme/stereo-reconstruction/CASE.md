@@ -65,4 +65,4 @@ The controller never caches final acceptance. Source/crop bytes, definitions, tr
 
 ## Source and rights
 
-The linked files are reconstructed, third-party-derived scientific artwork. The embedded X-ray crop originates in the supplied published figure. **The repository MIT license does not license the paper artwork or embedded X-ray image.** Consult the publisher/rightsholder for permission and reuse terms. The original screenshot, machine paths, session logs and proprietary software are not redistributed. Verification.json records the checks and the exact hashes of the downloadable files.
+The linked files are reconstructed, third-party-derived scientific artwork. The embedded X-ray crop originates in the supplied published figure. **The repository licenses do not cover the paper artwork or embedded X-ray image.** Consult the publisher/rightsholder for permission and reuse terms. The original screenshot, machine paths, session logs and proprietary software are not redistributed. Verification.json records the checks and the exact hashes of the downloadable files.
