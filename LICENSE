@@ -1,21 +1,137 @@
-MIT License
+ChemDraw Skill - Noncommercial Source-Available Licensing
+Copyright (c) 2026 ZiChenWang114514
 
-Copyright (c) 2026 chemdraw-skill contributors
+This repository is NOT open-source software in its entirety. Original
+repository code, scripts, prompts, style cards, documentation, and website
+content authored by ZiChenWang114514 are released strictly for noncommercial use
+under the dual-layer terms below.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+For commercial licensing inquiries regarding ZiChenWang114514's contributions,
+open an inquiry via https://github.com/ZiChenWang114514/chemdraw-skill.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+===============================================================================
+Part I - Original Code and Scripts (PolyForm Strict License 1.0.0)
+===============================================================================
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Applies to:
+  - skill/chemdraw/scripts/
+  - skill/chemdraw/tests/
+  - scripts/
+  - site/*.js
+  - tests/
+  - Community-authored additions and modifications in toolkit/ (see also
+    toolkit/LICENSE-POLYFORM-STRICT.txt)
+
+Copyright (c) 2026 ZiChenWang114514
+
+PolyForm Strict License 1.0.0
+https://polyformproject.org/licenses/strict/1.0.0
+
+Acceptance
+
+In order to get any license under these terms, you must agree to them as both strict obligations and conditions to all your licenses.
+
+Copyright License
+
+The licensor grants you a copyright license for the software to do everything you might do with the software that would otherwise infringe the licensor's copyright in it for any permitted purpose, other than distributing the software or making changes or new works based on the software.
+
+Patent License
+
+The licensor grants you a patent license for the software that covers patent claims the licensor can license, or becomes able to license, that you would infringe by using the software.
+
+Noncommercial Purposes
+
+Any noncommercial purpose is a permitted purpose.
+
+Personal Uses
+
+Personal use for research, experiment, and testing for the benefit of public knowledge, personal study, private entertainment, hobby projects, amateur pursuits, or religious observance, without any anticipated commercial application, is use for a permitted purpose.
+
+Noncommercial Organizations
+
+Use by any charitable organization, educational institution, public research organization, public safety or health organization, environmental protection organization, or government institution is use for a permitted purpose regardless of the source of funding or obligations resulting from the funding.
+
+Fair Use
+
+You may have "fair use" rights for the software under the law. These terms do not limit them.
+
+No Other Rights
+
+These terms do not allow you to sublicense or transfer any of your licenses to anyone else, or prevent the licensor from granting licenses to anyone else.  These terms do not imply any other licenses.
+
+Patent Defense
+
+If you make any written claim that the software infringes or contributes to infringement of any patent, your patent license for the software granted under these terms ends immediately. If your company makes such a claim, your patent license ends immediately for work on behalf of your company.
+
+Violations
+
+The first time you are notified in writing that you have violated any of these terms, or done anything with the software not covered by your licenses, your licenses can nonetheless continue if you come into full compliance with these terms, and take practical steps to correct past violations, within 32 days of receiving notice.  Otherwise, all your licenses end immediately.
+
+No Liability
+
+As far as the law allows, the software comes as is, without any warranty or condition, and the licensor will not be liable to you for any damages arising out of these terms or the use or nature of the software, under any kind of legal claim.
+
+Definitions
+
+The licensor is the individual or entity offering these terms, and the software is the software the licensor makes available under these terms.
+
+You refers to the individual or entity agreeing to these terms.
+
+Your company is any legal entity, sole proprietorship, or other kind of organization that you work for, plus all organizations that have control over, are under the control of, or are under common control with that organization.  Control means ownership of substantially all the assets of an entity, or the power to direct its management and policies by vote, contract, or otherwise.  Control can be direct or indirect.
+
+Your licenses are all the licenses granted to you for the software under these terms.
+
+Use means anything you do with the software requiring one of your licenses.
+
+===============================================================================
+Part II - Prompts, Style Cards, Documentation, and Website Content
+          (Creative Commons Attribution-NonCommercial-NoDerivatives 4.0)
+===============================================================================
+
+Applies to:
+  - skill/chemdraw/SKILL.md
+  - skill/chemdraw/references/
+  - skill/chemdraw/assets/house-styles/ (style cards and style documentation)
+  - docs/
+  - README.md and README.zh-cn.md
+  - site/*.html and site/*.css
+
+Copyright (c) 2026 ZiChenWang114514
+
+Licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
+International License (CC BY-NC-ND 4.0).
+
+Human-readable summary:
+  - Attribution: You must give appropriate credit, provide a link to the license,
+    and indicate if changes were made (if any are otherwise permitted). You may
+    do so in any reasonable manner, but not in any way that suggests the
+    licensor endorses you or your use.
+  - NonCommercial: You may not use the material for commercial purposes.
+  - NoDerivatives: If you remix, transform, or build upon the material, you may
+    not distribute the modified material.
+  - No additional restrictions: You may not apply legal terms or technological
+    measures that legally restrict others from doing anything the license
+    permits.
+
+Canonical deed and full legal code:
+  https://creativecommons.org/licenses/by-nc-nd/4.0/
+  https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
+
+===============================================================================
+Part III - Upstream and Third-Party Material
+===============================================================================
+
+- Upstream cdxml-toolkit code in toolkit/ by Hiu Fung Kevin Lee retains its
+  original MIT License in toolkit/LICENSE.
+- Third-party data sources, chemical lookup services, and optional external
+  prediction/recognition engines retain their own licenses as documented in
+  toolkit/NOTICE.md.
+- Published paper figure excerpts and reconstructed scientific artwork linked
+  from README/docs/assets remain subject to their original publishers' or
+  rightsholders' terms (such as CC BY 4.0 where explicitly attributed, or
+  excluded third-party material as noted in provenance files).
+- Web font subsets in site/fonts/ are licensed under the SIL Open Font License
+  1.1 (see site/fonts/OFL-source-serif-4.txt and
+  site/fonts/OFL-noto-serif-sc.txt).
+- ChemDraw, Microsoft Office, MCP Python SDK, RDKit, and other external
+  software remain governed by their own licenses and terms of use.

@@ -95,4 +95,4 @@ python skill/chemdraw/scripts/cdx.py regen-signatures             # toolkit 改�
 cd toolkit; python -m pytest -m "not network" -q                 # toolkit 测试（使用运行时 Python）
 ```
 
-请把最终结构回读与视觉比对分开验证。只阅读相关的[工作流](../skill/chemdraw/references/workflow-router.md)；精确接口以[生成的签名](../skill/chemdraw/references/mcp-signatures.md)为准。不要把化学数据、源文件和凭据写进日志或公开仓库。仓库内容采用 [MIT](../LICENSE) 许可；依赖与桌面软件保留各自的条款。
+请把最终结构回读与视觉比对分开验证。只阅读相关的[工作流](../skill/chemdraw/references/workflow-router.md)；精确接口以[生成的签名](../skill/chemdraw/references/mcp-signatures.md)为准。不要把化学数据、源文件和凭据写进日志或公开仓库。仓库内容采用非商业许可（[PolyForm Strict 1.0.0 与 CC BY-NC-ND 4.0](../LICENSE)，上游工具包代码保留 [MIT](../toolkit/LICENSE)）；依赖与桌面软件保留各自的条款。
