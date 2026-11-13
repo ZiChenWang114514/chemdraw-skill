@@ -97,36 +97,38 @@ def _find_chemdraw_root() -> Optional[str]:
     except OSError:
         return None
 
-    # Step 2: CLSID → executable path (try 32-bit and 64-bit registry views)
-    exe_path = None
+    # Step 2: CLSID → executable paths across 64-bit and 32-bit registry views
     subkey = f"SOFTWARE\\Classes\\CLSID\\{clsid}\\LocalServer32"
-    for access in [winreg.KEY_READ | winreg.KEY_WOW64_32KEY,
-                   winreg.KEY_READ | winreg.KEY_WOW64_64KEY,
+    program_files = {"program files", "program files (x86)"}
+    roots: List[str] = []
+    for access in [winreg.KEY_READ | getattr(winreg, "KEY_WOW64_64KEY", 0),
+                   winreg.KEY_READ | getattr(winreg, "KEY_WOW64_32KEY", 0),
                    winreg.KEY_READ]:
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, subkey, 0, access)
             raw = winreg.QueryValue(key, "")
             winreg.CloseKey(key)
-            # Strip /Automation flags and quotes
-            exe_path = raw.split("/")[0].strip().strip('"')
-            break
         except OSError:
             continue
+        # Strip /Automation flags and quotes
+        exe_path = raw.split("/")[0].strip().strip('"')
+        if not exe_path or not os.path.isfile(exe_path):
+            continue
+        path = os.path.dirname(exe_path)
+        while path:
+            parent = os.path.dirname(path)
+            if os.path.basename(parent).lower() in program_files:
+                if path not in roots:
+                    roots.append(path)
+                break
+            if parent == path:
+                break
+            path = parent
 
-    if not exe_path or not os.path.isfile(exe_path):
-        return None
-
-    # Step 3: walk up to the vendor root (child of Program Files)
-    path = os.path.dirname(exe_path)
-    program_files = {p.lower() for p in ["program files", "program files (x86)"]}
-    while path:
-        parent = os.path.dirname(path)
-        if os.path.basename(parent).lower() in program_files:
-            return path
-        if parent == path:
-            break
-        path = parent
-    return None
+    for candidate in roots:
+        if _find_chemscript_dlls(candidate) is not None:
+            return candidate
+    return roots[0] if roots else None
 
 
 def _find_chemscript_dlls(root: str) -> Optional[Dict[str, str]]:
@@ -314,9 +316,19 @@ class ChemScriptBridge:
             self._mac = chemscript_mac.shared()
             return
         cfg = _load_config()
+        orig_cfg = dict(cfg)
+        if not cfg.get("dll_dir") or not os.path.isdir(str(cfg.get("dll_dir", ""))) or cfg.get("bitness") is None:
+            root = _find_chemdraw_root() if sys.platform == "win32" else None
+            dll_info = _find_chemscript_dlls(root) if root else None
+            if dll_info:
+                cfg["dll_dir"] = dll_info["dll_dir"]
+                cfg["assembly"] = dll_info["assembly"]
+                cfg["bitness"] = dll_info["bitness"]
         bitness = cfg.get("bitness")
+        saved_py = cfg.get("python32")
+        valid_saved_py = saved_py if (saved_py and os.path.isfile(saved_py)) else None
         self._python32 = (python32_path
-                          or cfg.get("python32")
+                          or valid_saved_py
                           or _find_python_for_chemscript(bitness))
         if self._python32 is None:
             raise RuntimeError(
@@ -324,9 +336,8 @@ class ChemScriptBridge:
                 "Run 'cdxml-doctor' for setup instructions,\n"
                 "or specify the path: ChemScriptBridge(python32_path=r'C:\\...\\python.exe')"
             )
-        # Save for next time
-        if cfg.get("python32") != self._python32:
-            cfg["python32"] = self._python32
+        cfg["python32"] = self._python32
+        if cfg != orig_cfg:
             _save_config(cfg)
 
         self._server_script = str(
