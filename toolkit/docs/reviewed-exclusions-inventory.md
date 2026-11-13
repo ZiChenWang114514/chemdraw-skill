@@ -192,24 +192,24 @@
 
 ## `mcp_runtime.artifact_safety`
 
-- **function**, line 148: `apply_default_mode(path: str | Path) -> None` - Give a staged file the mode a plain open() would: mkstemp() files are 0600.
-- **function**, line 262: `artifact_record(path: str | Path) -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 275: `artifact_records(paths: Iterable[str | Path]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 160: `apply_default_mode(path: str | Path) -> None` - Give a staged file the mode a plain open() would: mkstemp() files are 0600.
+- **function**, line 274: `artifact_record(path: str | Path) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 287: `artifact_records(paths: Iterable[str | Path]) -> list[dict[str, Any]]` - No public docstring in the audited version.
 - **class**, line 18: `OutputExistsError` - An output already exists and the tool will not replace it.
 - **property**, line 28: `OutputExistsError.public_message` - No public docstring in the audited version.
-- **function**, line 287: `paths_from_value(value: Any) -> list[Path]` - No public docstring in the audited version.
-- **function**, line 233: `publish_directory(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 179: `publish_file(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 217: `publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None` - No public docstring in the audited version.
-- **function**, line 58: `resolve_destination(*, source: str | Path | None, output_path: str | Path | None, tag: str, suffix: str, base_dir: str | Path | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 90: `resolve_directory_destination(*, source: str | Path, output_dir: str | Path | None, tag: str) -> Path` - No public docstring in the audited version.
-- **function**, line 313: `rewrite_paths(value: Any, old_root: str | Path, new_root: str | Path) -> Any` - No public docstring in the audited version.
-- **function**, line 332: `stage_validate_publish(destination: str | Path, writer: Callable[[Path], Any], *, validator: Callable[[Path], Any] = validate_artifact) -> tuple[Any, Path]` - No public docstring in the audited version.
-- **function**, line 168: `staging_directory(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 158: `staging_file(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 112: `validate_artifact(path: str | Path) -> Path` - No public docstring in the audited version.
+- **function**, line 299: `paths_from_value(value: Any) -> list[Path]` - No public docstring in the audited version.
+- **function**, line 245: `publish_directory(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 191: `publish_file(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 229: `publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None` - No public docstring in the audited version.
+- **function**, line 69: `resolve_destination(*, source: str | Path | None, output_path: str | Path | None, tag: str, suffix: str, base_dir: str | Path | None = None) -> Path` - No public docstring in the audited version.
+- **function**, line 104: `resolve_directory_destination(*, source: str | Path, output_dir: str | Path | None, tag: str) -> Path` - No public docstring in the audited version.
+- **function**, line 325: `rewrite_paths(value: Any, old_root: str | Path, new_root: str | Path) -> Any` - No public docstring in the audited version.
+- **function**, line 344: `stage_validate_publish(destination: str | Path, writer: Callable[[Path], Any], *, validator: Callable[[Path], Any] = validate_artifact) -> tuple[Any, Path]` - No public docstring in the audited version.
+- **function**, line 180: `staging_directory(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 170: `staging_file(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 124: `validate_artifact(path: str | Path) -> Path` - No public docstring in the audited version.
 - **function**, line 32: `validate_input_file(path: str | Path, *, suffixes: tuple[str, ...] | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 305: `with_artifacts(result: dict[str, Any], paths: Iterable[str | Path]) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 317: `with_artifacts(result: dict[str, Any], paths: Iterable[str | Path]) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.capabilities`
 
@@ -347,21 +347,21 @@
 
 ## `mcp_runtime.figure_house`
 
-- **function**, line 76: `add_highlight_fills(brief: dict, grounded: list[dict], house: HouseStyle | None) -> str | None` - Ask the ring_fills decoration for the largest ring of each final product.
-- **function**, line 768: `apply_captions_and_title(cdxml: Any, brief: Mapping, grounded: list[dict]) -> tuple[Any, list[str], list[str]]` - Captions under species, then the panel label and title above the whole figure.
-- **function**, line 265: `apply_figure_type_conventions(cdxml: Any, house: HouseStyle, figure_type: str, slug: str) -> tuple[Any, list[str], list[str]]` - Apply a card's ``figure_types`` section to a styled drawing; (cdxml, applied, skipped).
-- **function**, line 316: `apply_house_conventions(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle) -> tuple[Any, list[str], list[str], list[str]]` - Edit the drawn scheme; returns (cdxml, applied, skipped reasons, warnings).
-- **function**, line 210: `apply_measured_geometry(cdxml: Any, house: HouseStyle, slug: str) -> tuple[Any, list[str], list[str]]` - Line width, bold width and atom-label size from the card's ``measured`` ratios.
-- **function**, line 856: `apply_scope_conventions(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle | None, slug: str) -> tuple[Any, list[str], list[str], list[str]]` - A scope page already in its preset: compound-number face and colour, the brief's species colours and abbreviations (the card's abbreviate_groups too), then the measured geometry.
-- **function**, line 809: `apply_species_boxes(cdxml: Any, brief: Mapping, grounded: list[dict]) -> tuple[Any, list[str]]` - A frame (solid, dashed or rounded) and/or a fill behind each species that asks for one.
-- **function**, line 581: `apply_species_styling(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle | None = None) -> tuple[Any, list[str], list[str]]` - The brief's own colours, abbreviations and condition-text runs; returns (cdxml, applied, warnings).
-- **function**, line 502: `condition_line_errors(line: Any, where: str) -> list[str]` - A condition line is text, a run {text, color?, bold?, italic?} or a list of runs.
-- **function**, line 521: `condition_text(line: Any) -> str` - The plain text of a condition line.
+- **function**, line 79: `add_highlight_fills(brief: dict, grounded: list[dict], house: HouseStyle | None) -> str | None` - Ask the ring_fills decoration for the largest ring of each final product.
+- **function**, line 771: `apply_captions_and_title(cdxml: Any, brief: Mapping, grounded: list[dict]) -> tuple[Any, list[str], list[str]]` - Captions under species, then the panel label and title above the whole figure.
+- **function**, line 268: `apply_figure_type_conventions(cdxml: Any, house: HouseStyle, figure_type: str, slug: str) -> tuple[Any, list[str], list[str]]` - Apply a card's ``figure_types`` section to a styled drawing; (cdxml, applied, skipped).
+- **function**, line 319: `apply_house_conventions(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle) -> tuple[Any, list[str], list[str], list[str]]` - Edit the drawn scheme; returns (cdxml, applied, skipped reasons, warnings).
+- **function**, line 213: `apply_measured_geometry(cdxml: Any, house: HouseStyle, slug: str) -> tuple[Any, list[str], list[str]]` - Line width, bold width and atom-label size from the card's ``measured`` ratios.
+- **function**, line 859: `apply_scope_conventions(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle | None, slug: str) -> tuple[Any, list[str], list[str], list[str]]` - A scope page already in its preset: compound-number face and colour, the brief's species colours and abbreviations (the card's abbreviate_groups too), then the measured geometry.
+- **function**, line 812: `apply_species_boxes(cdxml: Any, brief: Mapping, grounded: list[dict]) -> tuple[Any, list[str]]` - A frame (solid, dashed or rounded) and/or a fill behind each species that asks for one.
+- **function**, line 584: `apply_species_styling(cdxml: Any, brief: Mapping, grounded: list[dict], house: HouseStyle | None = None) -> tuple[Any, list[str], list[str]]` - The brief's own colours, abbreviations and condition-text runs; returns (cdxml, applied, warnings).
+- **function**, line 505: `condition_line_errors(line: Any, where: str) -> list[str]` - A condition line is text, a run {text, color?, bold?, italic?} or a list of runs.
+- **function**, line 524: `condition_text(line: Any) -> str` - The plain text of a condition line.
 - **function**, line 66: `final_products(brief: Mapping) -> list[str]` - No public docstring in the audited version.
 - **function**, line 37: `format_yield(text: str, template: str | None) -> str` - ``template`` filled with the number of a yield such as "85%"; other text is kept.
-- **function**, line 202: `measured_arrow_bonds(house: HouseStyle | None) -> float | None` - The shortest arrow in bond lengths from the card's measurements, or None.
-- **function**, line 689: `panel_errors(brief: Mapping) -> list[str]` - Problems with the title, panel label, captions and boxes of a brief.
-- **function**, line 467: `species_style_errors(entry: Mapping) -> list[str]` - Problems with a species' colour and abbreviation keys, for the brief check.
+- **function**, line 205: `measured_arrow_bonds(house: HouseStyle | None) -> float | None` - The shortest arrow in bond lengths from the card's measurements, or None.
+- **function**, line 692: `panel_errors(brief: Mapping) -> list[str]` - Problems with the title, panel label, captions and boxes of a brief.
+- **function**, line 470: `species_style_errors(entry: Mapping) -> list[str]` - Problems with a species' colour and abbreviation keys, for the brief check.
 - **function**, line 57: `split_conditions(above: list[str], below: list[str], house: HouseStyle | None) -> tuple[list, list]` - No public docstring in the audited version.
 - **function**, line 45: `step_yield(step: Mapping, house: HouseStyle | None) -> str | None` - The yield text drawn under the arrow, or None when the house style moves it.
 
@@ -372,6 +372,10 @@
 ## `mcp_runtime.figure_mechanism`
 
 - **function**, line 645: `draw_mechanism(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a mechanism; called by draw_figure for ``kind: mechanism``.
+
+## `mcp_runtime.figure_molecule`
+
+- **function**, line 496: `draw_molecule_figure(brief: dict, output_path: str | None, render: bool) -> dict` - Draw one molecule or a grid of structures; called by draw_figure for ``kind: molecule``.
 
 ## `mcp_runtime.figure_scope`
 
@@ -573,7 +577,7 @@
 
 ## `mcp_runtime.tool_worker`
 
-- **function**, line 30: `worker_log_dir() -> Path` - Folder of ``worker-<id>.log`` files (``cdx.py doctor --paths`` prints it).
+- **function**, line 31: `worker_log_dir() -> Path` - Folder of ``worker-<id>.log`` files (``cdx.py doctor --paths`` prints it).
 
 ## `model.document`
 
@@ -607,17 +611,17 @@
 
 ## `publication.house_styles`
 
-- **function**, line 198: `group_name(name: str) -> str` - The table name of an abbreviation, resolving accepted spellings.
-- **function**, line 402: `house_style(name: str, directory: str | Path | None = None) -> HouseStyle` - One house style by slug or display name (any case).
-- **function**, line 430: `house_style_summary(style: HouseStyle) -> dict` - The fields ``cdx.py styles`` lists.
-- **class**, line 207: `HouseStyle` - No public docstring in the audited version.
-- **method**, line 228: `HouseStyle.as_dict() -> dict` - No public docstring in the audited version.
-- **method**, line 218: `HouseStyle.convention(key: str, default: Any = None) -> Any` - No public docstring in the audited version.
-- **method**, line 222: `HouseStyle.figure_convention(figure_type: str, key: str, default: Any = None) -> Any` - A convention of one figure type (``mechanism``, ``catalytic_cycle`` ...), or ``default``.
-- **function**, line 398: `list_house_styles(directory: str | Path | None = None) -> list[HouseStyle]` - No public docstring in the audited version.
-- **function**, line 374: `load_house_styles(directory: str | Path | None = None) -> dict[str, HouseStyle]` - Every card in the data folder (or ``directory``), validated, by slug.
-- **function**, line 412: `resolve_style(name: str, directory: str | Path | None = None) -> tuple[str, Any]` - ("preset", preset dict) for a measurement preset, ("house", HouseStyle) for a house style.
-- **function**, line 238: `validate_card(card: Any, *, source: str = 'card') -> HouseStyle` - A :class:`HouseStyle` from one card; ValueError listing every problem otherwise.
+- **function**, line 200: `group_name(name: str) -> str` - The table name of an abbreviation, resolving accepted spellings.
+- **function**, line 421: `house_style(name: str, directory: str | Path | None = None) -> HouseStyle` - One house style by slug or display name (any case).
+- **function**, line 457: `house_style_summary(style: HouseStyle) -> dict` - The fields ``cdx.py styles`` lists.
+- **class**, line 209: `HouseStyle` - No public docstring in the audited version.
+- **method**, line 230: `HouseStyle.as_dict() -> dict` - No public docstring in the audited version.
+- **method**, line 220: `HouseStyle.convention(key: str, default: Any = None) -> Any` - No public docstring in the audited version.
+- **method**, line 224: `HouseStyle.figure_convention(figure_type: str, key: str, default: Any = None) -> Any` - A convention of one figure type (``mechanism``, ``catalytic_cycle`` ...), or ``default``.
+- **function**, line 400: `list_house_styles(directory: str | Path | None = None) -> list[HouseStyle]` - No public docstring in the audited version.
+- **function**, line 376: `load_house_styles(directory: str | Path | None = None) -> dict[str, HouseStyle]` - Every card in the data folder (or ``directory``), validated, by slug.
+- **function**, line 432: `resolve_style(name: str, directory: str | Path | None = None) -> tuple[str, Any]` - ("preset", preset dict) for a measurement preset, ("house", HouseStyle) for a house style.
+- **function**, line 240: `validate_card(card: Any, *, source: str = 'card') -> HouseStyle` - A :class:`HouseStyle` from one card; ValueError listing every problem otherwise.
 
 ## `publication.layout`
 

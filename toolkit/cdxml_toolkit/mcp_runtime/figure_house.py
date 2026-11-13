@@ -64,9 +64,12 @@ def split_conditions(above: list[str], below: list[str], house: HouseStyle | Non
 
 
 def final_products(brief: Mapping) -> list[str]:
-    substrates = {s for step in brief["steps"] for s in _as_list(step.get("substrates"))}
+    steps = brief.get("steps") or []
+    if not steps:
+        return [str(sp["id"]) for sp in brief.get("species") or [] if isinstance(sp, Mapping) and sp.get("id")]
+    substrates = {s for step in steps for s in _as_list(step.get("substrates"))}
     out: list[str] = []
-    for step in brief["steps"]:
+    for step in steps:
         for p in _as_list(step.get("products")):
             if p not in substrates and p not in out:
                 out.append(p)

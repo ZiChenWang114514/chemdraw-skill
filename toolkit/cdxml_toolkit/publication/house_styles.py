@@ -13,11 +13,12 @@ never silently skipped.
 """
 from __future__ import annotations
 
+import difflib
 import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 from ..chemdraw.style_presets import STYLE_PRESETS, style_preset, style_preset_slug
 
@@ -141,6 +142,7 @@ FIGURE_TYPE_CONVENTIONS: Mapping[str, tuple[str, ...]] = {
 APPLIED_FIGURE_CONVENTIONS: Mapping[str, tuple[str, ...]] = {
     "mechanism": ("curved_arrow_color", "curved_arrow_weight"),
     "catalytic_cycle": ("cycle_arrow_color",),
+    "structure_panel": ("highlight_fill", "variation_color", "intermediate_label_style"),
 }
 
 # Groups that can be contracted to a label: name -> (SMARTS with the attachment atom first,
@@ -399,6 +401,23 @@ def list_house_styles(directory: str | Path | None = None) -> list[HouseStyle]:
     return list(load_house_styles(directory).values())
 
 
+def _style_suggestions(name: str, choices: Iterable[str]) -> str:
+    options = [str(c) for c in choices if str(c).strip()]
+    needle = str(name or "").strip().lower()
+    if not options or not needle:
+        return ""
+    sub_hits = [c for c in options if needle in c.lower() or c.lower() in needle]
+    lower_map: dict[str, str] = {}
+    for opt in options:
+        lower_map.setdefault(opt.lower(), opt)
+    close_hits = [
+        lower_map[m]
+        for m in difflib.get_close_matches(needle, list(lower_map), n=4, cutoff=0.5)
+    ]
+    suggestions = list(dict.fromkeys([*sub_hits, *close_hits]))[:5]
+    return f" Did you mean: {', '.join(suggestions)}?" if suggestions else ""
+
+
 def house_style(name: str, directory: str | Path | None = None) -> HouseStyle:
     """One house style by slug or display name (any case)."""
     key = _normalise(name)
@@ -406,7 +425,8 @@ def house_style(name: str, directory: str | Path | None = None) -> HouseStyle:
     for slug, style in styles.items():
         if key and key in {_normalise(slug), _normalise(style.display_name)}:
             return style
-    raise ValueError(f"Unknown house style {name!r}; available: {', '.join(styles) or 'none'}")
+    hint = _style_suggestions(name, styles)
+    raise ValueError(f"Unknown house style {name!r}; available: {', '.join(styles) or 'none'}.{hint}")
 
 
 def resolve_style(name: str, directory: str | Path | None = None) -> tuple[str, Any]:
@@ -416,15 +436,22 @@ def resolve_style(name: str, directory: str | Path | None = None) -> tuple[str, 
     except ValueError:
         pass
     try:
-        houses = ", ".join(load_house_styles(directory)) or "none"
+        house_dict = load_house_styles(directory)
+        houses = ", ".join(house_dict) or "none"
     except ValueError as exc:  # a broken card must not hide the measurement presets
-        raise ValueError(f"Unknown style {name!r}; measurement presets: {', '.join(STYLE_PRESETS)}; "
-                         f"house styles could not be loaded ({exc})") from None
+        hint = _style_suggestions(name, STYLE_PRESETS)
+        raise ValueError(
+            f"Unknown style {name!r}; measurement presets: {', '.join(STYLE_PRESETS)}; "
+            f"house styles could not be loaded ({exc}).{hint}"
+        ) from None
     try:
         return "house", house_style(name, directory)
     except ValueError:
-        raise ValueError(f"Unknown style {name!r}; measurement presets: {', '.join(STYLE_PRESETS)}; "
-                         f"house styles: {houses}") from None
+        hint = _style_suggestions(name, [*STYLE_PRESETS, *house_dict])
+        raise ValueError(
+            f"Unknown style {name!r}; measurement presets: {', '.join(STYLE_PRESETS)}; "
+            f"house styles: {houses}.{hint}"
+        ) from None
 
 
 def house_style_summary(style: HouseStyle) -> dict:

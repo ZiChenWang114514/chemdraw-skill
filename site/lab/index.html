@@ -24,9 +24,10 @@
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t;document.querySelector('meta[name="color-scheme"]').content=t}}catch(e){}</script>
 <link rel="preload" href="../fonts/skill-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/noto-serif-sc-heading.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="expect" href="#lab-window" blocking="render">
 <link rel="stylesheet" href="../styles.css">
 <script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 </head>
@@ -65,7 +66,7 @@
     <div class="progress stars" role="progressbar" aria-valuemin="0"></div>
   </div>
   <noscript><p class="wrap">实验室的玩法需要 JavaScript。其余内容都在<a href="../">主页</a>上。</p></noscript>
-  <div class="wrap lab-window">
+  <div class="wrap lab-window" id="lab-window">
     <nav class="modes" aria-label="实验室模式"><a data-mode="daily" href="#daily">今日分子</a><a data-mode="levels" href="#levels">路线图</a><a data-mode="hunt" href="#hunt">找错</a><a data-mode="isomers" href="#isomers">异构体</a><a data-mode="dex" href="#dex">图鉴</a><a data-mode="free" href="#free">画板</a><i class="tab-mark" aria-hidden="true"></i></nav>
     <p class="lab-status" aria-live="polite"></p>
     <div class="lab-body">
@@ -88,7 +89,7 @@
         <i class="snap" hidden aria-hidden="true"></i>
         <div class="foot">
           <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>恢复原样</button>
-            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">复制 SMILES</button><button class="btn sm" type="button" data-export="cdxml">下载 .cdxml</button><button class="btn sm" type="button" data-export="link">复制分享链接</button></div></div>
+            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">复制 SMILES</button><button class="btn sm" type="button" data-export="cli">复制命令</button><button class="btn sm" type="button" data-export="cdxml">下载 .cdxml</button><button class="btn sm" type="button" data-export="link">复制分享链接</button></div></div>
           <div class="analysis">
             <div>Chemical Formula: <span data-a="formula"></span></div>
             <div>Exact Mass: <span data-a="exact"></span></div>

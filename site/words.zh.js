@@ -114,6 +114,8 @@ globalThis.ChemWords = {
  "cleaned": "已整理：键长和键角已摆正。",
  "smiles": "SMILES：{smiles}",
  "copied": "已复制 SMILES：{smiles}",
+ "cli": "命令：{cmd}",
+ "cliCopied": "已复制命令：{cmd}",
  "noSmiles": "有原子超出常见价态，先修正再导出 SMILES。",
  "download": "已保存 {file}，可以直接用 ChemDraw 打开。",
  "keys": "小技巧：鼠标停在原子上按 C、N、O、S、F 或 L（Cl）换元素，停在键上按 1、2、3 换键级，按 Delete 删除。",

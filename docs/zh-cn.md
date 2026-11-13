@@ -9,7 +9,10 @@
 - **ChemDraw。** 原生渲染、第 3 步里的 PNG、CDX 转换和 Word/PowerPoint 对象，都需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。没有它时，Skill 仍然可以生成、编辑、检查和识别结构，也能运行各个计算工具（[有哪些差别](../skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)）。
 - **Python。** 运行时要用 64 位 Python 3.10–3.13 来构建；安装脚本本身在 3.9 及以上版本就能运行。打包的 toolkit 还不支持 Python 3.14 及更新版本：如果机器上只有这些版本，先装一个 3.12（例如 `uv python install 3.12`），或者用 `--python <解释器>` 指定。
 - **磁盘。** 默认运行时是一个约 760 MB 的虚拟环境。`--extras` 不带名字只装核心部分，`--extras publication office` 只加这两组。
-- **可选工具。** 通过 OPSIN 把名称转成结构，默认不安装，需要加 `--opsin`。OPSIN 依赖 Java：Windows 上第一次使用时会自动下载，macOS 和 Linux 上需要自己安装。`image` 扩展里的文字识别需要 Tesseract 程序。
+- **可选工具**，默认都不安装：
+  - 加 `--opsin` 得到名称转结构。OPSIN 依赖 Java：Windows 上第一次使用时自动下载，macOS 和 Linux 上需自行安装。
+  - `image` 扩展里的文字识别需要 Tesseract 程序。
+  - 加 `--mapping` 会装上机器学习原子映射后端（RXNMapper、LocalMapper），各自在独立环境中。
 
 ## 安装
 
@@ -44,7 +47,7 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 使用 ChemDraw Skill 解析阿司匹林并生成可编辑的 CDXML。如果有原生 ChemDraw，请渲染并查看 PNG。报告结构回读结果和输出路径。
 ```
 
-结构已知、图还不存在时，把需求说成一句话，agent 会写出简短的说明文件，再用 `cdx.py draw` 一次画出并检查单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或带弯箭头的机理，见[绘制新反应图](../skill/chemdraw/references/scheme-drawing.md)。条件只取自你给的内容。`cdx.py styles` 列出期刊尺寸预设和期刊、课题组画法风格，在说明里写 `"style": "nature_portfolio"` 或加 `--style baran_group` 即可按该风格出图。科研与实验记录工作流还支持原生读取一维 NMR（Bruker `1r`/`fid`、JCAMP-DX、JEOL、Varian 与 CSV/FT）以及解析 LCMS（Waters PDF、OpenLynx `.rpt`、Waters `.raw`、Shimadzu `.daml`、Agilent `report.txt` 与 `mzML`/`mzXML`）。
+结构已知、图还不存在时，既可以用 `cdx.py resolve` 解析名称或 `cdx.py draw --name` / `--smiles` / `--reaction` 直接画单分子、编号网格与单步反应，也可以把需求说成一句话，agent 会写出简短的说明文件，再用 `cdx.py draw` 一次画出并检查单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或带弯箭头的机理，随后可用 `cdx.py inspect` 检查成品文件或 `cdx.py report` 输出性质、配平与 HRMS 报告，见[绘制新反应图](../skill/chemdraw/references/scheme-drawing.md)。条件只取自你给的内容。`cdx.py styles` 列出期刊尺寸预设和期刊、课题组画法风格，在说明里写 `"style": "nature_portfolio"` 或加 `--style baran_group` 即可按该风格出图。科研与实验记录工作流还支持原生读取一维 NMR（Bruker `1r`/`fid`、JCAMP-DX、JEOL、Varian 与 CSV/FT）以及解析 LCMS（Waters PDF、OpenLynx `.rpt`、Waters `.raw`、Shimadzu `.daml`、Agilent `report.txt` 与 `mzML`/`mzXML`）。
 
 考试或讲义图（含 C10H21 之类的缩写、化合物代号、中文批注）走 [ACS 1996 绘图器](../skill/chemdraw/references/acs1996-drawings.md)。论文图片走[重建指南](../skill/chemdraw/references/image-visual-review.md)：通读整图、裁剪、用 DECIMER API 识别、对齐方向、并排比对、修正化学、组装条件与版面、原生渲染。
 

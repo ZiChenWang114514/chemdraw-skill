@@ -75,6 +75,7 @@ EXTRA_AGENT_DIRS = {
     'pi': ('.pi',),
     'opencode': ('.config/opencode', '.opencode'),
 }
+LEGACY_SKILL_DIRS = ('.codex/skills', '.kimi/skills', '.windsurf/skills')
 # Never copied into an installation; runtime.local.json is written per installation.
 IGNORED = ('__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', '*.pyc', '*.pyo',
            'manifest.json', 'runtime.local.json', 'tests')
@@ -182,18 +183,53 @@ def resolve_agents(agents, base, scope=0):
     return out
 
 
+def _is_link_to_source(target, source_resolved=None):
+    """True when `target` is a distinct path (symlink/junction) that resolves to `SOURCE`."""
+    source_resolved = source_resolved or SOURCE.resolve()
+    lexical = Path(os.path.abspath(target))
+    try:
+        return lexical != source_resolved and target.exists() and target.resolve() == source_resolved
+    except OSError:
+        return False
+
+
 def destinations(ns):
     if ns.destination:
-        return [Path(d).expanduser().resolve() for d in ns.destination]
-    base = Path(ns.project).expanduser().resolve() if ns.project else Path.home()
+        return [Path(os.path.abspath(Path(d).expanduser())) for d in ns.destination]
+    base = (Path(ns.project).expanduser() if ns.project else Path.home()).resolve()
     scope = 1 if ns.project else 0
     seen, out = set(), []
     for agent in resolve_agents(ns.agent, base, scope):
-        target = (base / ALL_AGENTS[agent][scope] / SKILL_NAME).resolve()
+        target = Path(os.path.abspath(base / ALL_AGENTS[agent][scope] / SKILL_NAME))
         if target not in seen:
             seen.add(target)
             out.append(target)
     return out
+
+
+def legacy_shadow_warnings(base, targets, source_print):
+    """Warn when an older legacy user-scope Skill copy (e.g. ~/.codex/skills/chemdraw) may shadow targets."""
+    base = Path(base)
+    target_set = {Path(os.path.abspath(t)) for t in targets}
+    source_resolved = SOURCE.resolve()
+    warnings = []
+    for rel in LEGACY_SKILL_DIRS:
+        folder = Path(os.path.abspath(base / rel / SKILL_NAME))
+        if folder in target_set or not (folder / 'SKILL.md').is_file():
+            continue
+        try:
+            if folder.resolve() == source_resolved:
+                continue
+            other_print = fingerprint(folder)
+        except OSError:
+            other_print = 'unreadable'
+        if other_print != source_print:
+            warnings.append(
+                f'Legacy Skill copy at {folder} differs from current source and may shadow newer '
+                f'agent Skill folders; update it with '
+                f'`python scripts/install.py --destination "{folder}" --apply` or remove it.'
+            )
+    return warnings
 
 
 def venv_python(venv):
@@ -217,8 +253,8 @@ def supported(info):
     return bool(info) and info[2] == 64 and (3, 10) <= info[:2] <= (3, 13)
 
 
-def base_python(requested):
-    """First command that runs a 64-bit Python 3.10-3.13 (the toolkit's supported range)."""
+def probe_candidates(requested):
+    """Return (first supported 64-bit Python 3.10-3.13 command, rejected [(command, info), ...])."""
     if requested:
         found = shutil.which(requested) or (requested if Path(requested).is_file() else None)
         if not found:
@@ -233,10 +269,23 @@ def base_python(requested):
         for name in ('python3.12', 'python3.13', 'python3.11', 'python3.10', 'python3', 'python'):
             if shutil.which(name):
                 commands.append([shutil.which(name)])
+    rejected = []
+    seen = set()
     for command in commands:
-        if supported(probe_python(command)):
-            return command
-    return None
+        info = probe_python(command)
+        if supported(info):
+            return command, rejected
+        if info is not None:
+            key = (command[0], info)
+            if key not in seen:
+                seen.add(key)
+                rejected.append((command, info))
+    return None, rejected
+
+
+def base_python(requested):
+    """First command that runs a 64-bit Python 3.10-3.13 (the toolkit's supported range)."""
+    return probe_candidates(requested)[0]
 
 
 def runtime_plan(ns, targets):
@@ -250,12 +299,19 @@ def runtime_plan(ns, targets):
     action = 'reuse' if venv_python(venv).is_file() else 'create'
     base = None
     if action == 'create':
-        base = base_python(ns.python)
+        base, rejected = probe_candidates(ns.python)
         if base is None:
-            raise SystemExit('The runtime needs a 64-bit Python 3.10-3.13 and none was found '
-                             '(Python 3.14 and newer are not supported by the toolkit yet). '
-                             'Install one, e.g. `uv python install 3.12` or the python.org 3.12 '
-                             'installer, then pass --python <interpreter> if it is still not found.')
+            detail = ', '.join(
+                f'Python {maj}.{mn} ({bits}-bit) at {" ".join(cmd)}'
+                for cmd, (maj, mn, bits) in rejected[:3]
+            )
+            found_clause = f'Found unsupported {detail}; ' if detail else ''
+            raise SystemExit(
+                'The runtime needs a 64-bit Python 3.10-3.13 and none was found. '
+                f'{found_clause}Python 3.14 and newer are not supported by the toolkit yet. '
+                'Install Python 3.12 — e.g. `uv python install 3.12` (then `--python "<interpreter>"`) '
+                'or the python.org 64-bit 3.12 installer (Windows: `py -3.12`) — and re-run.'
+            )
     extras = ns.extras if ns.extras is not None else default_extras()
     # base_python stays a command list: interpreter paths may contain spaces ("Program Files").
     return {'action': action, 'venv': str(venv), 'python': str(venv_python(venv)),
@@ -381,28 +437,58 @@ def main(argv=None):
         ns.runtime = True
     targets = [] if ns.runtime_only else destinations(ns)
     backups = backup_root(ns)
+    source_resolved = SOURCE.resolve()
     for target in targets:
-        if target == SOURCE.resolve() or SOURCE.resolve() in target.parents:
+        resolved_target = target.resolve() if target.exists() else None
+        if target == source_resolved or source_resolved in target.parents or (
+            resolved_target is not None and source_resolved in resolved_target.parents
+        ):
             raise SystemExit(f'Destination must lie outside the repository Skill source: {target}')
         if target in backups.parents or backups == target:
             raise SystemExit('The backup folder must not be inside an installed Skill.')
     source_print = fingerprint(SOURCE)
+    installations = [
+        {
+            'destination': str(t),
+            'existing': t.exists(),
+            **({'linked_to_source': True} if _is_link_to_source(t, source_resolved) else {}),
+        }
+        for t in targets
+    ]
+    warnings = [] if (ns.project or ns.destination or ns.runtime_only) else legacy_shadow_warnings(
+        Path.home().resolve(), targets, source_print
+    )
     record = {
         'apply': ns.apply, 'source': str(SOURCE), 'source_fingerprint': source_print,
         'backup_root': str(backups),
-        'installations': [{'destination': str(t), 'existing': t.exists()} for t in targets],
+        'installations': installations,
         'runtime': runtime_plan(ns, targets),
         'opsin': opsin_plan(ns),
         'mapping': {'backends': mapping_backends(ns)},
+        **({'warnings': warnings} if warnings else {}),
         'status': 'proposal',
     }
     if not ns.apply:
+        base_root = Path(ns.project).expanduser().resolve() if ns.project else Path.home()
+        detected = detect_agents(base_root, 1 if ns.project else 0)
+        record['detected_agents'] = detected
+        if not ns.runtime_only and not ns.destination and ns.agent == ['claude'] and not ns.runtime:
+            hint = ('Dry-run proposal only (nothing written). Add --apply to install, '
+                    'or run: python scripts/install.py --agent auto --runtime --apply')
+        else:
+            hint = 'Dry-run proposal only (nothing written). Re-run with --apply to perform this installation.'
+        record['apply_hint'] = hint
+        if sys.stderr.isatty():
+            log(hint)
         print(json.dumps(record, indent=2))
         return 0
 
     for item, target in zip(record['installations'], targets):
-        backup = install_one(target, source_print, backups)
-        item.update(backup=str(backup) if backup else None, installed_fingerprint=fingerprint(target))
+        if _is_link_to_source(target, source_resolved):
+            item.update(backup=None, installed_fingerprint=source_print)
+        else:
+            backup = install_one(target, source_print, backups)
+            item.update(backup=str(backup) if backup else None, installed_fingerprint=fingerprint(target))
     record['status'] = 'installed'
 
     # A failed runtime install leaves usable Skill copies (docs, diagnostics) and is reported.
@@ -417,7 +503,8 @@ def main(argv=None):
             record['status'] = 'installed_runtime_failed'
             code = 1
     if ns.runtime and runtime.get('status') == 'installed':
-        recorded = record_runtime([*targets, SOURCE], runtime['python'])
+        non_linked = [t for t in targets if not _is_link_to_source(t, source_resolved)]
+        recorded = record_runtime([*non_linked, SOURCE], runtime['python'])
         runtime['local_config'] = [str(p) for p in recorded['written']]
         runtime['local_config_removed'] = [str(p) for p in recorded['removed']]
         explicit = os.environ.get('CHEMDRAW_MCP_PYTHON')
@@ -440,6 +527,8 @@ def main(argv=None):
             opsin.update(status='failed', error=str(exc))
             code = 1
     for target in targets:
+        if _is_link_to_source(target, source_resolved):
+            continue
         # Record the installed state so check_installation.py / cdx.py doctor detect later drift.
         check_installation.write_manifest(target)
     print(json.dumps(record, indent=2))

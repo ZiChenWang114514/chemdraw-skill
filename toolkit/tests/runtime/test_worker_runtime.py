@@ -476,6 +476,17 @@ class WorkerRuntimeTests(unittest.TestCase):
             self.assertEqual(Path(result["output"]), office.resolve())
             self.assertTrue(office.is_file())
 
+    def test_bind_or_explain_suggests_valid_parameters_and_close_matches(self):
+        def sample_tool(query: str, use_network: bool = True):
+            return {"query": query, "use_network": use_network}
+
+        with self.assertRaises(TypeError) as exc:
+            tool_worker._bind_or_explain("sample_tool", sample_tool, [], {"qurey": "aspirin"})
+        msg = str(exc.exception)
+        self.assertIn("valid parameters: query, use_network", msg)
+        self.assertIn("Did you mean 'query' for 'qurey'?", msg)
+        self.assertIn("cdx.py sig sample_tool", msg)
+
 
 if __name__ == "__main__":
     unittest.main()

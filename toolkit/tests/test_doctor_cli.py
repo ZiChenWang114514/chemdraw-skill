@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from unittest import mock
 
 from cdxml_toolkit import doctor
@@ -94,3 +95,80 @@ def test_a_hung_chemscript_install_ends_with_a_message(tmp_path, capsys):
     save = _setup_64bit(run, tmp_path)
     save.assert_not_called()
     assert "timed out" in capsys.readouterr().out
+
+
+def test_find_chemdraw_root_prefers_registry_view_with_chemscript_dlls(tmp_path):
+    import sys
+    import types
+    from cdxml_toolkit.chemdraw import chemscript_bridge
+
+    x86_root = tmp_path / "Program Files (x86)" / "Vendor"
+    x64_root = tmp_path / "Program Files" / "Vendor"
+    x86_exe = x86_root / "ChemOffice" / "ChemDraw" / "ChemDraw.exe"
+    x64_exe = x64_root / "ChemOffice" / "ChemDraw" / "ChemDraw.exe"
+    x86_exe.parent.mkdir(parents=True)
+    x64_exe.parent.mkdir(parents=True)
+    x86_exe.write_bytes(b"exe")
+    x64_exe.write_bytes(b"exe")
+
+    cs_net = x64_root / "ChemOffice" / "ChemScript" / "Lib" / "Net"
+    cs_net.mkdir(parents=True)
+    (cs_net / "CambridgeSoft.ChemScript.dll").write_bytes(b"managed" * 10)
+    (cs_net.parent / "ChemScript.dll").write_bytes(b"native" * 100)
+
+    fake_winreg = types.SimpleNamespace(
+        HKEY_CLASSES_ROOT=1,
+        HKEY_LOCAL_MACHINE=2,
+        KEY_READ=1,
+        KEY_WOW64_64KEY=256,
+        KEY_WOW64_32KEY=512,
+        OpenKey=lambda root, subkey, _zero=0, access=1: (root, subkey, access),
+        QueryValue=lambda key, _name="": (
+            "{FAKE-CLSID}" if key[0] == 1
+            else (f'"{x64_exe}" /Automation' if (key[2] & 256) else f'"{x86_exe}" /Automation')
+        ),
+        CloseKey=lambda _key: None,
+    )
+    with mock.patch.dict(sys.modules, {"winreg": fake_winreg}), mock.patch.object(
+        chemscript_bridge, "_dll_bitness", return_value=64
+    ):
+        assert chemscript_bridge._find_chemdraw_root() == str(x64_root)
+
+    fake_posix_winreg = types.SimpleNamespace(
+        HKEY_CLASSES_ROOT=1,
+        HKEY_LOCAL_MACHINE=2,
+        KEY_READ=1,
+        KEY_WOW64_64KEY=256,
+        KEY_WOW64_32KEY=512,
+        OpenKey=lambda root, subkey, _zero=0, access=1: (root, subkey, access),
+        QueryValue=lambda key, _name="": (
+            "{FAKE-CLSID}" if key[0] == 1
+            else (f'"{x64_exe.as_posix()}" /Automation' if (key[2] & 256) else f'{x86_exe.as_posix()} /Automation')
+        ),
+        CloseKey=lambda _key: None,
+    )
+    with mock.patch.dict(sys.modules, {"winreg": fake_posix_winreg}), mock.patch.object(
+        chemscript_bridge, "_dll_bitness", return_value=64
+    ):
+        assert os.path.normpath(chemscript_bridge._find_chemdraw_root()) == os.path.normpath(str(x64_root))
+
+
+def test_chemscript_bridge_self_heals_stale_python_path_in_config(tmp_path):
+    import sys
+    from cdxml_toolkit.chemdraw import chemscript_bridge
+
+    saved = []
+    stale_cfg = {
+        "python32": str(tmp_path / "deleted" / "python.exe"),
+        "bitness": 64,
+        "dll_dir": str(tmp_path),
+        "assembly": "CambridgeSoft.ChemScript",
+    }
+    with mock.patch.object(chemscript_bridge.mac_automation, "is_macos", return_value=False), mock.patch.object(
+        chemscript_bridge, "_load_config", return_value=stale_cfg
+    ), mock.patch.object(
+        chemscript_bridge, "_save_config", side_effect=lambda cfg: saved.append(dict(cfg))
+    ):
+        bridge = chemscript_bridge.ChemScriptBridge()
+    assert bridge._python32 == sys.executable
+    assert saved and saved[-1]["python32"] == sys.executable

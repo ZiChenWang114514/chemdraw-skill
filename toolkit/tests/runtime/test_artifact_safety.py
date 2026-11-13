@@ -288,6 +288,28 @@ class OfficialArtifactAdapterTests(unittest.TestCase):
         self.assertIn("conversion failed", result["error"])
         self.assertFalse(destination.exists())
 
+    def test_overwrite_refusal_suggests_next_available_path_and_directory(self):
+        existing_file = self.root / "scheme.cdxml"
+        existing_file.write_text(MINIMAL_CDXML, encoding="utf-8")
+        with self.assertRaises(artifact_safety.OutputExistsError) as file_exc:
+            artifact_safety.resolve_destination(
+                source=None,
+                output_path=str(existing_file),
+                tag="scheme",
+                suffix=".cdxml",
+            )
+        self.assertIn("scheme_2.cdxml", str(file_exc.exception))
+
+        existing_dir = self.root / "scope_out"
+        existing_dir.mkdir()
+        with self.assertRaises(artifact_safety.OutputExistsError) as dir_exc:
+            artifact_safety.resolve_directory_destination(
+                source=existing_file,
+                output_dir=str(existing_dir),
+                tag="scope",
+            )
+        self.assertIn("scope_out_2", str(dir_exc.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

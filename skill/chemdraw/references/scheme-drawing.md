@@ -6,7 +6,7 @@ Use this when the structures are known and the figure does not exist yet: a reac
 
 | Need | Use |
 | --- | --- |
-| A reaction, route, substrate-scope panel or mechanism from a request, drawn and checked in one call | `draw_figure` / `cdx.py draw` (next sections) |
+| A molecule, structure grid, reaction, route, substrate-scope panel or mechanism from a request, drawn and checked in one call | `draw_figure` / `cdx.py draw` (next sections) |
 | Reactants, reagents, products, conditions and yields laid out by hand-written compact text | `render_scheme` (below) |
 | Exam or lecture drawing with abbreviations (C10H21), Chinese notes, boxed compound codes, hand-placed objects | [ACS 1996 drawings](acs1996-drawings.md), `cdx.py build` |
 | Exact coordinates, hand-placed curved arrows, grids | [Figure manifest](publication-figures.md), `compose_chemical_figure` |
@@ -14,7 +14,14 @@ Use this when the structures are known and the figure does not exist yet: a reac
 
 ## One call: draw_figure
 
-Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products. A substrate-scope panel and a mechanism each have their own brief, described after the report table below.
+For simple reactions or multi-step schemes without writing a JSON file, pass `--reaction` directly (repeatable for multi-step linear/convergent/divergent routes):
+
+```bash
+cdx.py draw --reaction "CC(=O)O.CCO>O=S(=O)(O)O>CCOC(C)=O" --below "rt, 2 h" --yield "85%" rxn.cdxml --render
+cdx.py draw --compact scheme.dsl scheme.cdxml --render   # Compact Scheme DSL via render_scheme
+```
+
+For full styling (runs, highlights, boxes, atom colours, scope panels, mechanisms), turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products. A substrate-scope panel, a mechanism, and a standalone molecule or structure grid (kind: "molecule" / "structure_panel") each have their own brief, described after the report table below.
 
 ```json
 {
@@ -53,7 +60,7 @@ Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --rend
 
   A null convention leaves today's drawing. The report's `style` gives `house`, `preset`, `applied` and `skipped` (with the reason); `compound_label_italic_suffix`, `aromatic_rings: "circle"` and `conditions_split: "reagents_above_solvent_below"` (the brief's own above/below split is kept) are not applied yet.
 
-  A card may also carry `figure_types`: one section per kind of figure the journal or group draws (`reaction_scheme`, `substrate_scope`, `mechanism`, `catalytic_cycle`, `energy_profile`, `total_synthesis`, `retrosynthesis`, `structure_panel`, `sar_table`, `optimization_table`, `concept_panel`, `graphical_abstract`, `stereo_model`, `derivatization`, `biosynthesis`, `biomolecule`, `coordination_complex`, `polymer`, `markush`, `process_route`, `photophysical_diagram`, `assignment_panel`, `setup_diagram`), each with its own conventions, signature features and the evidence crops it was read from (`cdx.py styles NAME` prints them). The tools apply `mechanism.curved_arrow_color` and `mechanism.curved_arrow_weight` (`thin`, `bond` or `bold`, relative to the preset's bond width) to the curved arrows of a `kind: "mechanism"` brief, and `catalytic_cycle.cycle_arrow_color` to the arrows of a catalytic-cycle layout. The other figure-type conventions (lone pairs, circled charges, intermediate numbering, energy units, disconnection marks, SAR table rules and so on) are listed under `skipped` as guidance: follow them when finishing the figure by hand or with `cdx.py build`. A `kind: "scope"` panel takes the base preset, `compound_label_face`, `compound_label_color`, `abbreviate_groups` and the measured geometry; its species accept `color`, `atom_colors`, `bond_colors` and `abbreviate` as in a scheme, and the `substrate_scope` conventions are listed under `skipped` as guidance.
+  A card may also carry `figure_types`: one section per kind of figure the journal or group draws (`reaction_scheme`, `substrate_scope`, `mechanism`, `catalytic_cycle`, `energy_profile`, `total_synthesis`, `retrosynthesis`, `structure_panel`, `sar_table`, `optimization_table`, `concept_panel`, `graphical_abstract`, `stereo_model`, `derivatization`, `biosynthesis`, `biomolecule`, `coordination_complex`, `polymer`, `markush`, `process_route`, `photophysical_diagram`, `assignment_panel`, `setup_diagram`), each with its own conventions, signature features and the evidence crops it was read from (`cdx.py styles NAME` prints them). The tools apply `mechanism.curved_arrow_color` and `mechanism.curved_arrow_weight` (`thin`, `bond` or `bold`, relative to the preset's bond width) to the curved arrows of a `kind: "mechanism"` brief, `catalytic_cycle.cycle_arrow_color` to the arrows of a catalytic-cycle layout, and `structure_panel.variation_color`, `structure_panel.highlight_fill` and `structure_panel.intermediate_label_style` to `kind: "molecule"` / `"structure_panel"` panels. The other figure-type conventions (lone pairs, circled charges, intermediate numbering, energy units, disconnection marks, SAR table rules and so on) are listed under `skipped` as guidance: follow them when finishing the figure by hand or with `cdx.py build`. A `kind: "scope"` panel takes the base preset, `compound_label_face`, `compound_label_color`, `abbreviate_groups` and the measured geometry; its species accept `color`, `atom_colors`, `bond_colors` and `abbreviate` as in a scheme, and the `substrate_scope` conventions are listed under `skipped` as guidance.
 
 - The brief itself can style what a figure needs beyond the house style, with or without one:
   - a species' `color` paints the whole structure; `atom_colors` `[{"atoms": [0, 1], "color": "#0072B2"}]` paints atoms (a bond between two listed atoms too) and `bond_colors` `[{"bonds": [[7, 8]], "color": "#D55E00"}]` paints bonds, with atoms numbered from 0 in SMILES order;
@@ -131,6 +138,13 @@ Read the report before you answer:
 - Atoms are numbered from 0 in the order of the SMILES you gave, hydrogens not counted. The report lists them per species (`species[].atoms`, for example `0 C, 1 C, 2 O`). Set `show_atom_numbers: true` to print them on a draft and check the moves by eye, then draw again without it.
 - The report adds `moves` (what each arrow connects and its `checks`) and `arrows` (`crossings`, the atoms an arrow runs through, and `relayout` when one automatic retry changed the gaps and loop height). A two-electron arrow that starts on an atom with no lone pair or negative charge is drawn and flagged in `moves[].checks` and `warnings`; atom and charge balance is checked per step as for schemes.
 - Limits: arrows are drawn as given; the tool does not judge whether the mechanism is chemically right. A long arrow can still run close to a label, so open the PNG.
+
+### Standalone molecules and structure grids
+
+`"kind": "molecule"` (also `"structures"` or `"structure_panel"`) draws one molecule or a multi-row grid of structures without reaction arrows, using the same grounding, styling, abbreviations, boxes, captions, decorations, lint checks, read-back and optional native PNG rendering as schemes:
+
+- From the CLI without writing a brief file: `cdx.py draw --name aspirin aspirin.cdxml --render`, or multiple entries such as `cdx.py draw --smiles "CCO" --name caffeine --number roman --properties --columns 2 --style sarpong_group panel.cdxml --render`.
+- In a brief JSON: pass `"kind": "molecule"` (or `"structure_panel"`), `species` (`id` is optional and defaults to `s1`, `s2`, ... when omitted), optional `columns` (structures per row), `numbering` (`"arabic"`, `"roman"`, `"letter"`, `"plain_roman"`, `"int_number"`, etc., filling missing `label` values), `properties` (`true` for `"formula"` and `"mw"`, or a list from `["formula", "mw", "exact_mass"]` for species lacking a custom `caption`), `max_width`, `title`, `panel_label` and `style` (preset or house style). When the house style defines `structure_panel` conventions (`variation_color`, `highlight_fill`, `intermediate_label_style`), multi-structure panels highlight varied substituents against the shared core, tint ring interiors and auto-number unlabelled entries automatically.
 
 ## render_scheme
 

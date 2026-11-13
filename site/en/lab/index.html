@@ -24,8 +24,9 @@
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
-<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t;document.querySelector('meta[name="color-scheme"]').content=t}}catch(e){}</script>
 <link rel="preload" href="../../fonts/skill-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="expect" href="#lab-window" blocking="render">
 <link rel="stylesheet" href="../../styles.css">
 <script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 </head>
@@ -64,7 +65,7 @@
     <div class="progress stars" role="progressbar" aria-valuemin="0"></div>
   </div>
   <noscript><p class="wrap">The Lab’s games need JavaScript. Everything else is on the <a href="../">home page</a>.</p></noscript>
-  <div class="wrap lab-window">
+  <div class="wrap lab-window" id="lab-window">
     <nav class="modes" aria-label="Lab modes"><a data-mode="daily" href="#daily">Daily</a><a data-mode="levels" href="#levels">Route map</a><a data-mode="hunt" href="#hunt">Spot the error</a><a data-mode="isomers" href="#isomers">Isomers</a><a data-mode="dex" href="#dex">Collection</a><a data-mode="free" href="#free">Sketchpad</a><i class="tab-mark" aria-hidden="true"></i></nav>
     <p class="lab-status" aria-live="polite"></p>
     <div class="lab-body">
@@ -87,7 +88,7 @@
         <i class="snap" hidden aria-hidden="true"></i>
         <div class="foot">
           <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>Reset</button>
-            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">Copy SMILES</button><button class="btn sm" type="button" data-export="cdxml">Save .cdxml</button><button class="btn sm" type="button" data-export="link">Copy share link</button></div></div>
+            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">Copy SMILES</button><button class="btn sm" type="button" data-export="cli">Copy CLI</button><button class="btn sm" type="button" data-export="cdxml">Save .cdxml</button><button class="btn sm" type="button" data-export="link">Copy share link</button></div></div>
           <div class="analysis">
             <div>Chemical Formula: <span data-a="formula"></span></div>
             <div>Exact Mass: <span data-a="exact"></span></div>

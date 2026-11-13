@@ -25,8 +25,9 @@
 <meta name="theme-color" content="#007c83">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t;document.querySelector('meta[name="color-scheme"]').content=t}}catch(e){}</script>
 <link rel="preload" href="../fonts/skill-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="expect" href="#hero-doc" blocking="render">
 <link rel="stylesheet" href="../styles.css">
 <script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".nav a:not(.gh):not([href^='#']), .lab-teaser a"},"eagerness":"moderate"}]}</script>
 <script type="application/ld+json">
@@ -71,7 +72,7 @@
         { "@type": "Question", "name": "Can it work out how much of each reagent to weigh?",
           "acceptedAnswer": { "@type": "Answer", "text": "Yes, with ChemDraw's own calculator. cdx.py calc runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw. Type a mass, volume or equivalents in the grid, and ChemDraw computes the rest. cdx.py calc --read reads the saved numbers back. Without ChemDraw, SI materials tables give amounts in which every default is marked as assumed. See the chemistry reports guide." } },
         { "@type": "Question", "name": "How far can I trust the safety information?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Treat it as a reminder, and check the SDS of the product you actually use. It comes from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as \"not listed\", never as safe." } },
+          "acceptedAnswer": { "@type": "Answer", "text": "Treat it as a reminder, and check the SDS of the product you actually use. It comes from a built-in table of 116 common solvents and bench reagents plus SMARTS structural alerts: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as \"not listed\", never as safe." } },
         { "@type": "Question", "name": "Can it turn a structure image from a paper into an editable ChemDraw file?",
           "acceptedAnswer": { "@type": "Answer", "text": "Yes, as editable CDXML with a native ChemDraw preview. The reconstruction workflow combines DECIMER recognition, structure checks, layout rebuilding and native visual review. See the reconstruction guide. When an image may not be uploaded, or a second reading is wanted, optional local engines read it as well. Their answers are compared, never merged." } },
         { "@type": "Question", "name": "What do the prediction engines need, and how far can I trust them?",
@@ -125,7 +126,7 @@
       <p class="agents">Works with <b>Claude Code</b>, <b>Codex</b>, <b>Gemini CLI</b>, <b>GitHub Copilot</b>, <b>Cursor</b>, <b>OpenCode</b> and any agent that can run a shell command.</p>
     </div>
 
-    <figure class="doc" aria-label="Example: a small structure editor. An agent's drawing of aspirin that you can change">
+    <figure class="doc" id="hero-doc" aria-label="Example: a small structure editor. An agent's drawing of aspirin that you can change">
       <div class="doc-bar"><i></i><i></i><i></i><span class="fname">aspirin.cdxml</span>
         <div class="doc-tabs" role="tablist" aria-label="Open documents" hidden>
           <button type="button" role="tab" data-mol="aspirin" aria-selected="true" aria-controls="doc-canvas">aspirin</button>
@@ -180,7 +181,7 @@
         <i class="snap" hidden aria-hidden="true"></i>
         <div class="foot">
           <div class="side"><p class="status" aria-live="polite"></p><button class="reset" type="button" hidden>Reset</button>
-            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">Copy SMILES</button><button class="btn sm" type="button" data-export="cdxml">Save .cdxml</button><button class="btn sm" type="button" data-export="link">Copy share link</button><button class="btn sm challenge-open" type="button" data-challenge-open aria-expanded="false" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1.8h4M6.6 1.8v4L2.9 12.6a1.1 1.1 0 0 0 1 1.6h8.2a1.1 1.1 0 0 0 1-1.6L9.4 5.8v-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M4.6 10h6.8" stroke="currentColor" stroke-width="1.4"/></svg>Daily molecule</button></div></div>
+            <div class="export" hidden><button class="btn sm" type="button" data-export="smiles">Copy SMILES</button><button class="btn sm" type="button" data-export="cli">Copy CLI</button><button class="btn sm" type="button" data-export="cdxml">Save .cdxml</button><button class="btn sm" type="button" data-export="link">Copy share link</button><button class="btn sm challenge-open" type="button" data-challenge-open aria-expanded="false" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1.8h4M6.6 1.8v4L2.9 12.6a1.1 1.1 0 0 0 1 1.6h8.2a1.1 1.1 0 0 0 1-1.6L9.4 5.8v-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M4.6 10h6.8" stroke="currentColor" stroke-width="1.4"/></svg>Daily molecule</button></div></div>
           <div class="analysis">
             <div>Chemical Formula: <span data-a="formula">C<sub>9</sub>H<sub>8</sub>O<sub>4</sub></span></div>
             <div>Exact Mass: <span data-a="exact">180.04</span></div>
@@ -213,28 +214,28 @@
     <div class="panel" id="p-scheme" role="tabpanel" aria-labelledby="t-scheme">
       <p>The left side is the original image from the paper; the right side is the ChemDraw rebuild. Five structures, conditions, yields and compound numbers are all editable.</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="../gallery/paper-scheme-original.webp" width="1600" height="275" alt="Original reaction scheme from a paper">
-        <div class="after"><img decoding="async" src="../gallery/paper-scheme-chemdraw.webp" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
+        <img decoding="async" fetchpriority="high" src="../gallery/paper-scheme-original.webp" width="1600" height="275" alt="Original reaction scheme from a paper">
+        <div class="after"><img decoding="async" fetchpriority="high" src="../gallery/paper-scheme-chemdraw.webp" width="1600" height="274" alt="The same scheme rebuilt as an editable ChemDraw document"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the original and the ChemDraw rebuild">
         <span class="seam"></span>
       </div>
       <div class="compare-legend"><span><b>Paper figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
     </div>
-    <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden>
+    <div class="panel narrow" id="p-markush" role="tabpanel" aria-labelledby="t-markush" hidden="until-found">
       <p>A generic structure from a patent figure: R groups, two variable rings, a group that can sit on three ring positions, and repeat counts. An agent given only the Skill, the image and the claim text ran the whole extraction; the structure is also saved as CXSMILES and a V3000 molfile.</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="../gallery/markush-original.webp" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
-        <div class="after"><img decoding="async" src="../gallery/markush-chemdraw.webp" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
+        <img decoding="async" fetchpriority="low" src="../gallery/markush-original.webp" width="1200" height="900" loading="lazy" alt="Patent Markush figure">
+        <div class="after"><img decoding="async" fetchpriority="low" src="../gallery/markush-chemdraw.webp" width="1200" height="900" loading="lazy" alt="The same Markush structure rebuilt as an editable ChemDraw document"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the patent figure and the ChemDraw rebuild">
         <span class="seam"></span>
       </div>
       <div class="compare-legend"><span><b>Patent figure</b> (image)</span><span><b>ChemDraw rebuild</b> (CDXML)</span></div>
     </div>
-    <div class="panel" id="p-style" role="tabpanel" aria-labelledby="t-style" hidden>
+    <div class="panel" id="p-style" role="tabpanel" aria-labelledby="t-style" hidden="until-found">
       <p>The left side is a scheme the Studer group published in Nature Communications; the right side is the ChemDraw document drawn from a brief that says <code>"style": "studer_group"</code>. Bold numbers, the yield after the number, reagents above and solvent below, and the new bonds in red all come from the group's style card.</p>
       <div class="compare" style="--cut:50%">
-        <img decoding="async" src="../gallery/house-style-original.webp" width="1600" height="356" loading="lazy" alt="Radical-probe scheme from a Studer group paper">
-        <div class="after"><img decoding="async" src="../gallery/house-style-chemdraw.webp" width="1600" height="356" loading="lazy" alt="The same scheme drawn as a ChemDraw document in the studer_group house style"></div>
+        <img decoding="async" fetchpriority="low" src="../gallery/house-style-original.webp" width="1600" height="356" loading="lazy" alt="Radical-probe scheme from a Studer group paper">
+        <div class="after"><img decoding="async" fetchpriority="low" src="../gallery/house-style-chemdraw.webp" width="1600" height="356" loading="lazy" alt="The same scheme drawn as a ChemDraw document in the studer_group house style"></div>
         <input type="range" min="0" max="100" value="50" aria-label="Move the comparison between the paper figure and the styled ChemDraw document">
         <span class="seam"></span>
       </div>
@@ -378,14 +379,14 @@ Bonds:   13</code></pre></details></div>
       <div class="filters" role="group" aria-label="Filter by kind" hidden><button type="button" data-filter="all" aria-pressed="true">All<span>19</span></button><button type="button" data-filter="draw" aria-pressed="false">Drawing<span>6</span></button><button type="button" data-filter="read" aria-pressed="false">Reading figures<span>3</span></button><button type="button" data-filter="data" aria-pressed="false">Data and documents<span>5</span></button><button type="button" data-filter="calc" aria-pressed="false">Calculations<span>5</span></button></div>
     </div>
     <dl class="caps">
-      <div data-kind="draw"><dt>Structures and reactions</dt><dd>Resolve names and identifiers; draw, edit, clean, merge, split, convert and render CDXML or CDX, plus connect non-destructively to an open desktop ChemDraw window and MCP resource/prompt endpoints.<details class="try"><summary>Try asking</summary><p class="ask">Convert this CDX file to CDXML, clean up the structures and render a PNG with ChemDraw.</p></details></dd></div>
+      <div data-kind="draw"><dt>Structures and reactions</dt><dd>Resolve names and identifiers with <code>cdx.py resolve</code>; draw, edit, clean, inspect (<code>cdx.py inspect</code>), merge, split, convert and render CDXML or CDX, plus connect non-destructively to an open desktop ChemDraw window and MCP resource/prompt endpoints.<details class="try"><summary>Try asking</summary><p class="ask">Convert this CDX file to CDXML, clean up the structures and render a PNG with ChemDraw.</p></details></dd></div>
       <div data-kind="read"><dt>Paper figures</dt><dd>Crop the source, read it with DECIMER, compare side by side, fix the chemistry with 16-orientation reference alignment (depict_like), wedge/dash readback (read_wedges) and atom-index / E/Z editing (edit_structure), and assemble the layout.<details class="try"><summary>Try asking</summary><p class="ask">Rebuild the reaction scheme in this paper screenshot as an editable ChemDraw file and show it next to the original.</p></details></dd></div>
       <div data-kind="read"><dt>Patent Markush</dt><dd>Extract a generic structure from a patent figure and its claims as CXSMILES, a V3000 molfile and editable CDXML.<details class="try"><summary>Try asking</summary><p class="ask">Extract the Markush structure from this patent figure and its claims as CXSMILES, a V3000 molfile and CDXML.</p></details></dd></div>
-      <div data-kind="draw"><dt>New figures from a request</dt><dd>From a sentence to a finished figure: a reaction, a linear, convergent, divergent or catalytic-cycle scheme, a substrate-scope panel or a mechanism (with dative bonds and radicals), drawn and checked by one command. Conditions come only from you, and mechanisms are drawn from the electron moves you list.<details class="try"><summary>Try asking</summary><p class="ask">Draw the PCC oxidation of benzyl alcohol to benzaldehyde with PCC, CH<sub>2</sub>Cl<sub>2</sub>, rt as conditions, then check the render.</p></details></dd></div>
+      <div data-kind="draw"><dt>New figures from a request</dt><dd>From a sentence or reaction SMILES (<code>cdx.py draw --reaction ...</code>, <code>--compact</code>) to a finished figure: a reaction, a linear, convergent, divergent or catalytic-cycle scheme, a substrate-scope panel or a mechanism (with dative bonds and radicals), drawn and checked by one command. Conditions come only from you, and mechanisms are drawn from the electron moves you list.<details class="try"><summary>Try asking</summary><p class="ask">Draw the PCC oxidation of benzyl alcohol to benzaldehyde with PCC, CH<sub>2</sub>Cl<sub>2</sub>, rt as conditions, then check the render.</p></details></dd></div>
       <div data-kind="draw"><dt>Exams and lectures</dt><dd>ACS 1996 drawings from JSON with abbreviation nodes, rich text, annotations, boxed labels, JACS/Angew ring fills and pharmacophore halos, hapticity MultiAttachment bonds, [...] transition-state brackets, orbital lobes and 3D conformer templates (chair cyclohexane, Newman, Haworth, Fischer, norbornane).<details class="try"><summary>Try asking</summary><p class="ask">Draw an exam question in ACS Document 1996: hydrogenation of cyclohexene to cyclohexane, with a boxed number under the product.</p></details></dd></div>
       <div data-kind="draw"><dt>Draw the way a journal or group draws</dt><dd>Two layers: <code>cdx.py styles</code> lists 16 measurement presets (bond length, line width, font size) taken from ChemDraw's own style sheets; 28 house styles for journals (JACS, Org. Lett., J. Med. Chem., Dalton Trans. and more), publishers (Nature, Science, Wiley, RSC, Cell Press), US patents, the OpenStax textbooks and the Baran, MacMillan, Glorius, Houk, List, Sarpong, Studer and Lipshutz groups add what 179 CC BY paper figures show: compound numbers, yields, condition layout, abbreviations, new-bond and substrate colours, line width and arrow length, split into 23 figure types such as schemes, scope, mechanisms and catalytic cycles. A brief can add a title, panel letter, captions, boxes and colours for one figure. Run <code>cdx.py draw brief.json out.cdxml --style studer_group --render</code>; the <a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">style gallery</a> also lists 47 published figures redrawn in their own style.<details class="try"><summary>Try asking</summary><p class="ask">Draw this reaction the way the Studer group draws, with the new bonds in red and the yield after the number, and show me the render.</p></details></dd></div>
       <div data-kind="data"><dt>SAR and substrate scope</dt><dd>Updatable figures from CSV or Excel that keep your manual layout edits.<details class="try"><summary>Try asking</summary><p class="ask">Build a substrate-scope figure from the structures and yields in scope.xlsx, with the compound number and yield under each.</p></details></dd></div>
-      <div data-kind="calc"><dt>Comparison and properties</dt><dd>Similarity and exact identity; property sheets with MS adducts and logP; reaction balance with the missing by-product; every structure of a file as SMILES and InChI; names from ChemDraw, parsed back to check them.<details class="try"><summary>Try asking</summary><p class="ask">Are these two SMILES the same compound? Then list their molecular weight, logP and [M+H]<sup>+</sup>.</p></details></dd></div>
+      <div data-kind="calc"><dt>Comparison and properties</dt><dd>Similarity and exact identity; one-shot <code>cdx.py report</code> property sheets with MS adducts, HRMS lines, and logP; reaction balance with the missing by-product; every structure of a file as SMILES and InChI; names from ChemDraw, parsed back to check them.<details class="try"><summary>Try asking</summary><p class="ask">Are these two SMILES the same compound? Then list their molecular weight, logP and [M+H]<sup>+</sup>.</p></details></dd></div>
       <div data-kind="calc"><dt>Reaction calculator</dt><dd>ChemDraw's own stoichiometry grid under a reaction, with its numbers read back as data; SI materials tables for up to 100 reactions with concentration, atom economy, PMI and safety reminders from a 116-entry reagent safety table plus SMARTS structural alerts.<details class="try"><summary>Try asking</summary><p class="ask">Open ChemDraw's stoichiometry grid for the acetylation of benzyl alcohol with acetyl chloride, using 1.08 g of benzyl alcohol.</p></details></dd></div>
       <div data-kind="data"><dt>Characterization text</dt><dd>HRMS lines and whole paragraphs in ACS order: appearance, Rf, mp, rotation, IR, NMR, HRMS. Peak counts are checked against the structure and flagged, never changed.<details class="try"><summary>Try asking</summary><p class="ask">Turn these NMR and HRMS data into an ACS-order characterization paragraph and check the peak counts against the structure.</p></details></dd></div>
       <div data-kind="calc"><dt>Route yield and PMI</dt><dd>Overall yield and cumulative PMI of a linear or convergent route. A missing number stays empty and is reported.<details class="try"><summary>Try asking</summary><p class="ask">This four-step linear route has step yields of 85%, 72%, 90% and 64%, with the charges in materials.xlsx. Give me the overall yield and cumulative PMI.</p></details></dd></div>
@@ -463,7 +464,7 @@ cd chemdraw-skill
       <h2>Common questions</h2>
       <div class="faq-tools" hidden>
         <label class="faq-search"><input type="search" placeholder="Search questions" aria-label="Search questions" aria-controls="faq-list" autocomplete="off"></label>
-        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all>Expand all</button></div>
+        <div class="faq-line"><p class="faq-count" role="status"></p><button class="btn sm ghost" type="button" data-faq-all aria-expanded="false">Expand all</button></div>
       </div>
     </div>
     <div>
@@ -534,7 +535,7 @@ cd chemdraw-skill
         <summary>How far can I trust the safety information?</summary>
         <div class="answer">
           <p class="lead">Treat it as a reminder, and check the SDS of the product you actually use.</p>
-          <p>It comes from a built-in table of about fifty common solvents and reagents: GHS pictograms, H-statements, boiling and flash point.</p>
+          <p>It comes from a built-in table of 116 common solvents and bench reagents plus SMARTS structural alerts: GHS pictograms, H-statements, boiling and flash point.</p>
           <p>A substance that is not in the table is shown as "not listed", never as safe.</p>
         </div>
       </details>

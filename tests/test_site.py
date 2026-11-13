@@ -765,11 +765,21 @@ class InteractionMarkupTests(unittest.TestCase):
         out = run_editor('console.log(JSON.stringify(["aceticAcid", "aspirin", "phenylAcetate", "wintergreen-edited"].map(E.fileName)))')
         self.assertEqual(out, ["acetic-acid", "aspirin", "phenyl-acetate", "wintergreen-edited"])
 
+    def test_cli_export_builds_a_portable_draw_command(self) -> None:
+        out = run_editor('console.log(JSON.stringify([E.cliCommand("CC(=O)Oc1ccccc1C(=O)O", "aspirin"), E.cliCommand("CCO", "aceticAcid")]))')
+        self.assertEqual(
+            out,
+            [
+                'cdx.py draw --smiles "CC(=O)Oc1ccccc1C(=O)O" aspirin.cdxml --render',
+                'cdx.py draw --smiles "CCO" acetic-acid.cdxml --render',
+            ],
+        )
+
     def test_both_pages_carry_the_same_interface_words(self) -> None:
         tables = {language: words(language) for language in PAGES}
         for language, table in tables.items():
             with self.subTest(page=language):
-                for key in ("cleaned", "smiles", "copied", "download", "noSmiles", "keys", "copyAsk", "copiedAsk", "run", "running", "rerun"):
+                for key in ("cleaned", "smiles", "copied", "cli", "cliCopied", "download", "noSmiles", "keys", "copyAsk", "copiedAsk", "run", "running", "rerun"):
                     self.assertIn(key, table)
                 for key in ("open", "close", "prev", "next", "zoomIn", "zoomOut", "fit", "count", "hint"):
                     self.assertIn(key, table["lightbox"])
@@ -778,7 +788,7 @@ class InteractionMarkupTests(unittest.TestCase):
     def test_editor_exposes_clean_up_and_export_controls(self) -> None:
         for language, html in self.pages().items():
             with self.subTest(page=language):
-                for marker in ('data-tool-action="clean"', 'data-export="smiles"', 'data-export="cdxml"', 'class="progress"',
+                for marker in ('data-tool-action="clean"', 'data-export="smiles"', 'data-export="cli"', 'data-export="cdxml"', 'class="progress"',
                                'class="challenge"', 'data-challenge-open', 'data-run'):
                     self.assertIn(marker, html)
                 self.assertEqual(html.count("data-zoom"), 9)
@@ -1051,7 +1061,18 @@ class PageMotionTests(unittest.TestCase):
             with self.subTest(page=path.name):
                 html = path.read_text(encoding="utf-8")
                 self.assertIn('<meta name="color-scheme" content="light dark">', html)
+                self.assertIn('meta[name="color-scheme"]', html)
                 self.assertLess(html.index('name="color-scheme"'), html.index('rel="stylesheet"'))
+        for path in PAGES.values():
+            with self.subTest(page=path.name):
+                html = path.read_text(encoding="utf-8")
+                self.assertIn('<link rel="expect" href="#hero-doc" blocking="render">', html)
+                self.assertIn('id="hero-doc"', html)
+        for path in LAB_PAGES.values():
+            with self.subTest(page=path.name):
+                html = path.read_text(encoding="utf-8")
+                self.assertIn('<link rel="expect" href="#lab-window" blocking="render">', html)
+                self.assertIn('id="lab-window"', html)
 
     def test_every_page_prefetches_only_its_own_site(self) -> None:
         for path in (*PAGES.values(), *LAB_PAGES.values()):
@@ -1065,7 +1086,11 @@ class PageMotionTests(unittest.TestCase):
 
     def test_images_decode_off_the_main_thread(self) -> None:
         for path in PAGES.values():
-            for tag in re.findall(r"<img\b[^>]*>", path.read_text(encoding="utf-8")):
+            html = path.read_text(encoding="utf-8")
+            self.assertIn('fetchpriority="high"', html)
+            self.assertIn('hidden="until-found"', html)
+            self.assertIn('fetchpriority="low"', html)
+            for tag in re.findall(r"<img\b[^>]*>", html):
                 with self.subTest(tag=tag[:80]):
                     self.assertIn('decoding="async"', tag)
 
@@ -1077,6 +1102,20 @@ class PageMotionTests(unittest.TestCase):
         guarded = re.search(r"@media \(prefers-reduced-motion: no-preference\) \{\s*@view-transition", self.css)
         self.assertTrue(guarded)
         self.assertEqual(self.css.count("@view-transition"), 1)
+
+    def test_404_and_lightbox_follow_color_scheme_and_modal_guards(self) -> None:
+        not_found = (SITE / "404.html").read_text(encoding="utf-8")
+        self.assertIn('<meta name="color-scheme" content="light dark">', not_found)
+        self.assertIn('meta[name="color-scheme"]', not_found)
+        self.assertLess(not_found.index('name="color-scheme"'), not_found.index('rel="stylesheet"'))
+        self.assertNotIn(" style=", not_found)
+        self.assertIn(".lightbox:modal { overscroll-behavior: contain;", self.css)
+        self.assertIn("overscroll-behavior: contain;", self.css.split(".lightbox::backdrop", 1)[1].split("}", 1)[0])
+        self.assertIn("@starting-style", self.css)
+        self.assertIn("transition-behavior: allow-discrete;", self.css)
+        app_js = (SITE / "app.js").read_text(encoding="utf-8")
+        self.assertIn('box.setAttribute("closedby", "closerequest")', app_js)
+        self.assertIn('box.setAttribute("aria-labelledby", "lb-cap")', app_js)
 
 
 class DesignSystemTests(unittest.TestCase):

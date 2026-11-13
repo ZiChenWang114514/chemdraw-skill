@@ -35,7 +35,7 @@
 
 <table>
   <tr>
-    <td colspan="3" align="center">
+    <td colspan="4" align="center">
       <a href="#期刊与课题组画法风格"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="按 Studer 课题组画法风格重画的已发表自由基探针反应式，新键为红色"></a>
       <br><b>28 个期刊与课题组画法风格</b><br><sub>测自 179 张已发表的图；23 类图，47 个文献复现案例</sub>
     </td>
@@ -95,6 +95,9 @@
       <br><b>谱图与科研绘图</b><br><sub>已处理的一维 NMR 与数值曲线</sub>
     </td>
   </tr>
+</table>
+
+<table>
   <tr>
     <td width="50%" align="center" valign="top">
       <a href="#预测与分析引擎"><img src="assets/readme/engines/retro/route-aizynthfinder.png" alt="在 ChemDraw 中绘制的两步预测路线"></a>
@@ -105,7 +108,7 @@
       <br><b>预测与实测核磁对比</b><br><sub>MagNET 与 NMRNet++ 对照真实谱图</sub>
     </td>
   </tr>
-  </table>
+</table>
 
 ## 快速开始
 
@@ -149,6 +152,26 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 想先试 ChemDraw 自带的反应计算器而不是画图，可以运行 `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"`（[说明](#反应计算器与化学报告)）。
 
 <details>
+<summary><b>日常高频 <code>cdx.py</code> 命令速查（画图、风格、计算、Office）</b></summary>
+<br>
+
+```bash
+python <skill>/scripts/cdx.py resolve aspirin                             # 解析为 SMILES、分子式、分子量（支持 --smiles）
+python <skill>/scripts/cdx.py draw --name aspirin aspirin.cdxml --style acs_jacs --render
+python <skill>/scripts/cdx.py draw --smiles "c1ccccc1,CC(=O)O" grid.cdxml --columns 2 --number --properties mw,formula --render
+python <skill>/scripts/cdx.py draw --reaction "CC(=O)O.CCO>O=S(=O)(O)O>CCOC(C)=O" --yield "88%" rxn.cdxml --render
+python <skill>/scripts/cdx.py inspect rxn.cdxml                          # 检查结构、分子式、分子量与反应拓扑
+python <skill>/scripts/cdx.py report "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1" --balance
+python <skill>/scripts/cdx.py styles                                    # 列出 16 个预设 + 28 个画法风格
+python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
+python <skill>/scripts/cdx.py ocsr figure_crop.png                    # 结构识别（或 decimer）
+python <skill>/scripts/cdx.py office-edit deck.pptx                    # 嵌入或更新可编辑 ChemDraw 对象
+python scripts/install.py --runtime-only --apply                       # 仅升级共享运行时
+```
+
+</details>
+
+<details>
 <summary><b>选择 Agent 与安装位置</b></summary>
 <br>
 
@@ -174,9 +197,12 @@ Agent 通过同一个入口调用所有功能；任何 Python 都能启动它，
 
 ```bash
 python <skill>/scripts/cdx.py tools                                         # 列出已注册的工具
-python <skill>/scripts/cdx.py call resolve_name --args query.json           # query.json: {"query": "aspirin"}
+python <skill>/scripts/cdx.py resolve aspirin                               # 一步解析名称/SMILES/CAS
+python <skill>/scripts/cdx.py draw --name aspirin aspirin.cdxml --render    # 单分子一步出图与渲染
+python <skill>/scripts/cdx.py call resolve_name -a query=aspirin            # 直接内联 key=value 传参
 python <skill>/scripts/cdx.py render figure.cdxml                           # 原生 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png                              # 结构识别
+python <skill>/scripts/cdx.py doctor --text                                 # 能力检查与最近运行日志（--log latest）
 ```
 
 </details>
@@ -229,6 +255,8 @@ python <skill>/scripts/cdx.py decimer crop.png                              # �
 python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 ```
 
+对于单步反应，也可以跳过 JSON 文件，直接运行 `cdx.py draw --reaction "A.B>试剂>C" out.cdxml`（加 `--compact` 可启用紧凑多步或窄栏排版）。
+
 ```json
 {
   "species": [
@@ -245,13 +273,14 @@ python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 
 <p align="center"><img src="assets/readme/draw/scheme.png" width="85%" alt="水杨酸与乙酸酐在催化量硫酸、室温下反应 2 小时，以 85% 收率得到阿司匹林"></p>
 
-同一条命令可以画三种图：
+同一条命令可以画四种图：
 
 | 图的类型 | 说明里要列出的内容 | 得到什么 |
 | --- | --- | --- |
 | **反应或路线** | 物种、步骤、条件、收率 | 单步反应、线性路线、两条支线汇合的收敛路线、一个原料生成多个产物的发散路线，或催化循环（`catalytic-cycle`）。长路线自动换行；支持 `reversible`（平衡）和 `resonance`（共振）箭头、配位键与自由基。 |
 | **底物拓展** | 带编号、分组的化合物和你测得的数值 | 按需要排成多页可编辑版面，每个编号和数值都紧跟自己的结构。你没给的数值显示为短横线，绝不写成 0。 |
 | **反应机理** | 物种、步骤和每一次电子转移 | 根据已绘制的坐标放置弯箭头，区分全箭头和半箭头，并绕开原子和标签。 |
+| **单分子或结构面板** | 一个或多个结构，可选自动编号与性质项 | 单分子图或多列结构网格（`kind: "molecule"` / `"structure_panel"`），支持自动编号、分子式/分子量题注、环内底色填充与按公共母核对齐的取代基变体高亮。 |
 
 <table>
   <tr>
@@ -279,7 +308,7 @@ python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 
 **画法风格**是一张风格卡片：以其中一个预设为基础，再写明该期刊或课题组在版面上的做法，包括化合物编号怎么写、收率放在哪里、条件在箭头上下怎么分、哪些基团写成缩写、哪些键或片段着色、从其图中量出的线宽和箭头长度，以及每类图怎么画。共有 **28 张卡片**（13 个期刊，7 个出版社、专利与教材，8 个课题组），读自 **81 篇开放许可论文和教材中的 179 张图片截图**。两张截图一致才设定一条习惯；不一致时卡片留空并在注释中说明原因，保持默认画法。
 
-每张卡片按**图的类型**分节，共 23 类：反应式、底物拓展、机理、催化循环、能量剖面、全合成、逆合成、结构面板、SAR 表和条件优化表、概念图、图形摘要、立体化学模型、衍生化、生物合成、生物分子、配位化合物、聚合物、Markush 通式、工艺路线、光物理图、谱图归属图和装置图。工具会把反应式习惯、编号样式、缩写和测得的几何尺寸用于反应式和底物拓展图，把弯箭头的颜色和粗细用于机理图，把箭头颜色用于催化循环；其余各类图的习惯作为完成图时的指导返回。
+每张卡片按**图的类型**分节，共 23 类：反应式、底物拓展、机理、催化循环、能量剖面、全合成、逆合成、结构面板、SAR 表和条件优化表、概念图、图形摘要、立体化学模型、衍生化、生物合成、生物分子、配位化合物、聚合物、Markush 通式、工艺路线、光物理图、谱图归属图和装置图。工具会把反应式习惯、编号样式、缩写和测得的几何尺寸用于反应式和底物拓展图，把弯箭头的颜色和粗细用于机理图，把箭头颜色用于催化循环，把环内填充、母核对齐的取代基变体着色和自动编号用于结构面板；其余各类图的习惯作为完成图时的指导返回。
 
 把名称写进说明文件（draw、scope 和 mechanism 说明、compose 清单以及 `cdx.py build` 规格都接受），或在命令行覆盖：
 
@@ -456,12 +485,12 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 | --- | --- | --- |
 | 每种试剂和溶剂该称多少 | `cdx.py calc`、`stoichiometry_grid` | 反应下方 ChemDraw 自带的化学计量表，及其 JSON 数值 |
 | 一批反应的 SI 原料表 | `si_materials_tables` | Markdown、CSV、可打印 HTML 或 JSON，最多 100 个反应 |
-| HRMS 与表征文字 | `hrms_line`、`characterization_text` | `HRMS (ESI) m/z calcd for ...` 与按 ACS 顺序排列的段落 |
+| HRMS 与表征文字 | `cdx.py report --hrms`、`hrms_line`、`characterization_text` | `HRMS (ESI) m/z calcd for ...` 与按 ACS 顺序排列的段落 |
 | 多步路线的总收率和 PMI | `route_summary` | 线性或汇聚路线的一张表 |
-| 哪个原子变成哪个原子 | `map_reaction_atoms` | 原子映射、键变化、反应中心 SMARTS、反应类型 |
-| 分子式、质量、加合物、logP | `molecule_report` | 性质表 |
-| 反应是否配平 | `check_reaction_balance` | 缺失的副产物与建议系数 |
-| 文件里的全部结构 | `export_structures` | SMILES、InChI、CSV 或 SDF |
+| 哪个原子变成哪个原子 | `cdx.py report --map`、`map_reaction_atoms` | 原子映射、键变化、反应中心 SMARTS、反应类型 |
+| 分子式、质量、加合物、logP | `cdx.py report`、`molecule_report` | 性质表 |
+| 反应是否配平 | `cdx.py report --balance`、`check_reaction_balance` | 缺失的副产物与建议系数 |
+| 文件里的全部结构 | `cdx.py inspect`、`export_structures` | 结构清单、分子式、分子量、反应拓扑、SMILES、InChI、CSV 或 SDF |
 
 ### ChemDraw 自带的反应计算器
 
@@ -761,7 +790,9 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 
 > **你可以说：**“用两个核磁模型预测咖啡因的 1H 和 13C 位移，并和实测谱图对比。”
 
-下图把 BMRB 的咖啡因 D<sub>2</sub>O 处理后谱图（`bmse000206`）画成可编辑的 ChemDraw 曲线，每个预测位移画一条竖线，实测峰画成刻度。`MagNET` 对玻尔兹曼加权三维构象系综（298.15 K）取位移平均并提供 Karplus <sup>3</sup><i>J</i><sub>HH</sub> 耦合常数估算，`nmr.compare_shifts` 则提供一对一匈牙利候选峰匹配（`model_assisted_candidate_assignment`）与离群值警告。为了系统衡量误差，我们用 `nmrshiftdb2` 中同时具备原始 Bruker <sup>1</sup>H 和 <sup>13</sup>C 谱且已完成原子归属的 **20 个有机分子与天然产物**（13 个 CDCl<sub>3</sub>、7 个 DMSO-<i>d</i><sub>6</sub>；共 215 个非活泼 C–H <sup>1</sup>H 拓扑等价组和 323 个 <sup>13</sup>C 拓扑等价组；两侧均剔除活泼 OH、NH、SH 质子，姜黄素按快速互变的简并酮-烯醇对称性归并）跑完两个模型。下表为按分子平均的绝对误差（MAE，单位 ppm）。
+下图把 BMRB 的咖啡因 D<sub>2</sub>O 处理后谱图（`bmse000206`）画成可编辑的 ChemDraw 曲线，每个预测位移画一条竖线，实测峰画成刻度。`MagNET` 对玻尔兹曼加权三维构象系综（298.15 K）取位移平均并提供 Karplus <sup>3</sup><i>J</i><sub>HH</sub> 耦合常数估算，`nmr.compare_shifts` 则提供一对一匈牙利候选峰匹配（`model_assisted_candidate_assignment`）与离群值警告。
+
+为了系统衡量误差，我们用 `nmrshiftdb2` 中同时具备原始 Bruker <sup>1</sup>H 和 <sup>13</sup>C 谱且已完成原子归属的 **20 个有机分子与天然产物**（13 个 CDCl<sub>3</sub>、7 个 DMSO-<i>d</i><sub>6</sub>；共 215 个非活泼 C–H <sup>1</sup>H 拓扑等价组和 323 个 <sup>13</sup>C 拓扑等价组；两侧均剔除活泼 OH、NH、SH 质子，姜黄素按快速互变的简并酮-烯醇对称性归并）跑完两个模型。下表为按分子平均的绝对误差（MAE，单位 ppm）。
 
 <img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="咖啡因的 1H 和 13C 谱图，标出 MagNET 与 NMRNet++ 的预测值">
 
@@ -804,7 +835,9 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 
 </details>
 
-**训练集重合说明。** 这 20 条记录全部来自 `nmrshiftdb2`，而 `nmrshiftdb2` 本身属于 NMRNet++ 五折交叉验证的监督训练语料（第 0 折训练集覆盖其中约 80%），其中 7 个分子还进入了它的 ShiftDB-Lit 子集（这 7 个分子的 <sup>13</sup>C MAE 仅 0.68 ppm，其余 13 个为 1.39 ppm）。相比之下，MagNET 完全在 AIMNet2/GIAO DFT 计算屏蔽常数上训练，训练过程中未见过任何实验核磁谱图，因此它的 0.21 ppm（<sup>1</sup>H）和 2.89 ppm（<sup>13</sup>C）是严格的库外实测表现，而 NMRNet++ 的 0.11 和 1.14 ppm 含有训练语料重合，应视为库内上限。GPU 上单分子耗时：MagNET 为 22 到 60 秒（平均 29 秒），NMRNet++ 为 24 到 62 秒（平均 33 秒）。预测值绝不写进实验表征句。
+**训练集重合说明。** 这 20 条记录全部来自 `nmrshiftdb2`，而 `nmrshiftdb2` 本身属于 NMRNet++ 五折交叉验证的监督训练语料（第 0 折训练集覆盖其中约 80%），其中 7 个分子还进入了它的 ShiftDB-Lit 子集（这 7 个分子的 <sup>13</sup>C MAE 仅 0.68 ppm，其余 13 个为 1.39 ppm）。
+
+相比之下，MagNET 完全在 AIMNet2/GIAO DFT 计算屏蔽常数上训练，训练过程中未见过任何实验核磁谱图，因此它的 0.21 ppm（<sup>1</sup>H）和 2.89 ppm（<sup>13</sup>C）是严格的库外实测表现，而 NMRNet++ 的 0.11 和 1.14 ppm 含有训练语料重合，应视为库内上限。GPU 上单分子耗时：MagNET 为 22 到 60 秒（平均 29 秒），NMRNet++ 为 24 到 62 秒（平均 33 秒）。预测值绝不写进实验表征句。
 
 **安装：** `nmr`（MagNET，5.4 GB）和 `nmr-pp`（NMRNet++，2.8 GB；权重为 CC BY 4.0，且不接受溶剂参数）。[20 个分子的实测对比 JSON](assets/readme/engines/nmr/benchmark20.json) · [咖啡因谱图与数据](assets/readme/engines/nmr/caffeine/)
 
@@ -816,7 +849,9 @@ KL-CC-002 上没有任何引擎给出记录的最后一步。AiZynthFinder 的�
 
 > **你可以说：**“把这份 OpenLynx 报告和板图对一下，告诉我哪些孔里有预期的产物。”
 
-这一项不需要引擎。PyParse 示例数据集（Apache-2.0）里的 24 孔 Waters 报告和板图，解析用了 11 秒。24 个孔都找到了预期产物：21 个是 [M+H]<sup>+</sup>，两个 Boc 保护的哌嗪（B3、B5）是 [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> 碎片，B11 的羧酸是 [M−H]<sup>−</sup>。与 PyParse 自己的输出相比，23 个孔的保留时间和纯度相差不超过 0.01。例外是 B6，它是匹配规则的取舍：工具箱取带完整 [M+H]<sup>+</sup> 的峰（92.9%），PyParse 取碎片峰（7.1%）。规则见 [match_plate.py](assets/readme/engines/lcms/match_plate.py)。除孔板报告外，LCMS 工具还支持解析 OpenLynx `.rpt`、Waters PDF 与 `.raw` 目录、Shimadzu `.daml`、Agilent `report.txt` 以及开放格式 `mzML`/`mzXML`，并提供 Cl/Br `M+2` 同位素包络校验与跨时间点内标（`IS`）比值追踪。
+这一项不需要引擎。PyParse 示例数据集（Apache-2.0）里的 24 孔 Waters 报告和板图，解析用了 11 秒。24 个孔都找到了预期产物：21 个是 [M+H]<sup>+</sup>，两个 Boc 保护的哌嗪（B3、B5）是 [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> 碎片，B11 的羧酸是 [M−H]<sup>−</sup>。
+
+与 PyParse 自己的输出相比，23 个孔的保留时间和纯度相差不超过 0.01。例外是 B6，它是匹配规则的取舍：工具箱取带完整 [M+H]<sup>+</sup> 的峰（92.9%），PyParse 取碎片峰（7.1%），规则见 [match_plate.py](assets/readme/engines/lcms/match_plate.py)。除孔板报告外，LCMS 工具还支持解析 OpenLynx `.rpt`、Waters PDF 与 `.raw` 目录、Shimadzu `.daml`、Agilent `report.txt` 以及开放格式 `mzML`/`mzXML`，并提供 Cl/Br `M+2` 同位素包络校验与跨时间点内标（`IS`）比值追踪。
 
 <img src="assets/readme/engines/lcms/panel/page-001.png" alt="板上四个孔的预期质量、检出离子、保留时间、纯度和 PyParse 数值">
 

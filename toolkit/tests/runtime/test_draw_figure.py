@@ -420,3 +420,131 @@ def test_the_tool_is_registered():
     from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
 
     assert "draw_figure" in build_registry()
+
+
+def test_kind_molecule_draws_and_reads_back_a_single_molecule(tmp_path):
+    brief = {
+        "kind": "molecule",
+        "title": "Aspirin",
+        "species": [
+            {
+                "name": "aspirin",
+                "label": "1",
+                "caption": "analgesic",
+                "box": {"rounded": True},
+            }
+        ],
+    }
+
+    report = draw_figure(brief, output_path=str(tmp_path / "aspirin.cdxml"))
+
+    assert report["ok"] is True
+    assert report["kind"] == "molecule"
+    assert report["layout"] == "molecule"
+    assert report["checks_passed"] is True
+    assert report["readback"]["status"] == "matched"
+    assert report["readback"]["fragment_roundtrip"] == "preserved"
+    assert report["species"][0]["id"] == "s1"
+    root = _cdxml(report)
+    text = " ".join("".join(t.itertext()) for t in root.iter("t"))
+    assert "Aspirin" in text and "analgesic" in text and "1" in text
+
+
+def test_kind_molecule_packs_a_grid_with_columns_and_house_style(tmp_path):
+    brief = {
+        "kind": "molecule",
+        "columns": 2,
+        "style": "nature",
+        "species": [
+            {"id": "m1", "smiles": "COc1ccccc1", "label": "1a", "abbreviate": ["OMe"]},
+            {"id": "m2", "smiles": "c1ccccc1C(F)(F)F", "label": "1b"},
+            {"id": "m3", "smiles": "CC(=O)Oc1ccccc1C(=O)O", "label": "1c"},
+        ],
+    }
+
+    report = draw_figure(brief, output_path=str(tmp_path / "panel.cdxml"))
+
+    assert report["ok"] is True
+    assert report["layout"] == "grid"
+    assert report["checks_passed"] is True
+    assert report["style"]["preset"] == "nature"
+    assert len(report["species"]) == 3
+    root = _cdxml(report)
+    assert root.get("BondLength") == "10.8"
+
+
+@pytest.mark.parametrize(
+    "bad_brief, fragment",
+    [
+        ({"kind": "molecule", "species": []}, "species"),
+        ({"kind": "molecule", "columns": 0, "species": [{"smiles": "C"}]}, "columns"),
+        ({"kind": "molecule", "numbering": "bogus", "species": [{"smiles": "C"}]}, "numbering"),
+        ({"kind": "molecule", "properties": ["bogus"], "species": [{"smiles": "C"}]}, "properties"),
+        ({"kind": "molecule", "species": [{"id": " ", "smiles": "C"}]}, "id"),
+    ],
+)
+def test_kind_molecule_rejects_invalid_briefs(tmp_path, bad_brief, fragment):
+    report = draw_figure(bad_brief, output_path=str(tmp_path / "bad.cdxml"))
+
+    assert report["ok"] is False
+    assert fragment in " ".join(report["errors"])
+    assert not (tmp_path / "bad.cdxml").exists()
+
+
+def test_kind_molecule_numbering_and_properties(tmp_path):
+    brief = {
+        "kind": "molecule",
+        "columns": 2,
+        "numbering": "roman",
+        "properties": True,
+        "species": [
+            {"smiles": "CCO"},
+            {"smiles": "c1ccccc1", "caption": "solvent"},
+            {"smiles": "CC(=O)O", "label": "AcOH"},
+        ],
+    }
+
+    report = draw_figure(brief, output_path=str(tmp_path / "numbered.cdxml"))
+
+    assert report["ok"] is True
+    assert report["checks_passed"] is True
+    assert [sp["label"] for sp in report["species"]] == ["I", "II", "AcOH"]
+    assert "numbering=roman" in report["style"]["applied"]
+    assert "properties=formula,mw" in report["style"]["applied"]
+    text = " ".join("".join(t.itertext()) for t in _cdxml(report).iter("t"))
+    assert "C2H6O, MW 46.07" in text
+    assert "solvent" in text and "C6H6" not in text
+    assert "C2H4O2, MW 60.05" in text
+
+
+def test_kind_molecule_applies_structure_panel_house_conventions(tmp_path):
+    brief = {
+        "kind": "structure_panel",
+        "style": "sarpong_group",
+        "columns": 3,
+        "species": [
+            {"smiles": "c1ccccc1O"},
+            {"smiles": "COc1ccccc1"},
+            {"smiles": "CC(=O)Oc1ccccc1C(=O)O"},
+        ],
+    }
+
+    report = draw_figure(brief, output_path=str(tmp_path / "sarpong.cdxml"))
+
+    assert report["ok"] is True
+    assert report["checks_passed"] is True
+    assert [sp["label"] for sp in report["species"]] == ["1", "2", "3"]
+    applied = report["style"]["applied"]
+    assert "structure_panel.intermediate_label_style=bold_number" in applied
+    assert "structure_panel.highlight_fill=#CCCCCC" in applied
+    assert "structure_panel.variation_color=#800000" in applied
+
+
+def test_kind_molecule_avoids_spurious_structure_panel_skipped_note_for_scheme_cards(tmp_path):
+    report = draw_figure(
+        {"kind": "molecule", "style": "acs_jacs", "species": [{"smiles": "c1ccccc1"}]},
+        output_path=str(tmp_path / "mol.cdxml"),
+    )
+
+    assert report["ok"] is True
+    assert all("describes no structure_panel figures" not in item for item in report["style"]["skipped"])

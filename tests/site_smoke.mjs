@@ -10,8 +10,25 @@ import { createRequire } from "node:module";
 
 const base = process.argv[2];
 const host = new URL(base).host;
-const browser = process.env.CHROME || (process.platform === "darwin"
-  ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" : "google-chrome");
+function findBrowser() {
+  if (process.env.CHROME) return process.env.CHROME;
+  if (process.platform === "darwin") return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+  if (process.platform === "win32") {
+    const roots = [process.env.PROGRAMFILES, process.env["PROGRAMFILES(X86)"], process.env.LOCALAPPDATA].filter(Boolean);
+    const rels = [
+      ["Google", "Chrome", "Application", "chrome.exe"],
+      ["Microsoft", "Edge", "Application", "msedge.exe"],
+    ];
+    for (const rel of rels) {
+      for (const root of roots) {
+        const candidate = join(root, ...rel);
+        if (existsSync(candidate)) return candidate;
+      }
+    }
+  }
+  return "google-chrome";
+}
+const browser = findBrowser();
 const folder = mkdtempSync(join(tmpdir(), "site-smoke-"));
 const port = 9400 + Math.floor(Math.random() * 500);
 const chrome = spawn(browser, [
@@ -505,6 +522,11 @@ async function main() {
   check("the tick keeps the button's size", await run(`document.querySelector('${smilesButton}').offsetWidth === ${await run(`document.querySelector('${smilesButton}').offsetWidth`)}`));
   await sleep(1600);
   check("the tick goes away", !(await run(`document.querySelector('${smilesButton}').hasAttribute("data-done")`)));
+  await click('[data-export="cli"]');
+  await sleep(80);
+  const cli = await run(`navigator.clipboard.readText()`);
+  check("CLI command copied", cli.startsWith('cdx.py draw --smiles "') && cli.endsWith('aspirin.cdxml --render'), cli);
+  check("CLI copy shows the tick", await run(`document.querySelector('[data-export="cli"]').hasAttribute("data-done")`));
   await click('[data-export="link"]');
   await sleep(80);
   const link = await run(`navigator.clipboard.readText()`);

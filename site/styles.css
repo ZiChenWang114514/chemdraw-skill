@@ -100,9 +100,9 @@
   --fs-xl: 1.375rem;
   --fs-2xl: 1.75rem;
   --fs-code: .9em;
-  --fs-hero: clamp(2.3rem, 4.9vw, 4rem);
-  --fs-title: clamp(2rem, 4vw, 3rem);
-  --fs-section: clamp(1.75rem, 3.1vw, 2.5rem);
+  --fs-hero: clamp(2.25rem, 4.2vw + 1rem, 4rem);
+  --fs-title: clamp(1.95rem, 3.2vw + 0.9rem, 3rem);
+  --fs-section: clamp(1.7rem, 2.4vw + 0.9rem, 2.5rem);
 
   /* Motion: hover, opening and switching, anything that travels */
   --t-fast: 120ms;
@@ -122,12 +122,14 @@
   --measure: 36rem;
   --gutter: clamp(16px, 4vw, 40px);
   --wide: 1180px;
-  color-scheme: light;
+  color-scheme: light dark;
+  accent-color: var(--teal);
 }
+:root:where([data-theme="light"], :has(> head > meta[name="color-scheme"][content="light"])) { color-scheme: light; }
 
 /* Dark follows the system unless the visitor chose a theme with the header button */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]):not(:has(> head > meta[name="color-scheme"][content="light"])) {
     --ink: #e7eef0;
     --ink-2: #b8c6cb;
     --mute: #8b9da4;
@@ -152,7 +154,7 @@
     color-scheme: dark;
   }
 }
-:root[data-theme="dark"] {
+:root:where([data-theme="dark"], :has(> head > meta[name="color-scheme"][content="dark"])) {
   --ink: #e7eef0;
   --ink-2: #b8c6cb;
   --mute: #8b9da4;
@@ -178,7 +180,7 @@
 }
 
 * { box-sizing: border-box; }
-html:lang(en) { --fs-hero: clamp(2.2rem, 4.3vw, 3.45rem); }
+html:lang(en) { --fs-hero: clamp(2.1rem, 3.6vw + 0.9rem, 3.45rem); }
 /* In Chinese the Chinese face goes first: it takes the hanzi and the punctuation it carries and
    leaves every Latin letter and digit to the face beside it. */
 html:lang(zh) {
@@ -517,8 +519,8 @@ kbd { padding: 0 4px; border: 1px solid var(--rule); border-radius: var(--r-xs);
   .hero .doc { grid-template-columns: 36px minmax(0, 1fr); }
   .hero .palette[hidden] { display: flex; visibility: hidden; }
   .hero .doc-bar { min-height: 43px; }
-  .hero .foot { min-height: 107px; }
-  html:lang(en) .hero .foot { min-height: 124px; }
+  .hero .foot { min-height: 145px; }
+  html:lang(en) .hero .foot { min-height: 163px; }
 }
 @media (scripting: enabled) and (max-width: 520px) {
   .hero .doc { grid-template-columns: 30px minmax(0, 1fr); }
@@ -621,6 +623,7 @@ section { padding: clamp(64px, 9vw, 112px) 0; }
 section + section { border-top: 1px solid var(--grid); }
 .head { max-width: var(--measure); margin-bottom: clamp(28px, 4vw, 44px); }
 h1 { font-family: var(--display); font-weight: 600; font-synthesis: none; letter-spacing: var(--track); }
+.lab-head h1, .not-found h1 { text-wrap: balance; }
 h2 {
   font-family: var(--display); font-weight: 600; font-synthesis: none;
   font-size: var(--fs-section); line-height: 1.25; letter-spacing: var(--track);
@@ -629,6 +632,7 @@ h2 {
 h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing: -.005em; }
 .head p { margin: 0; color: var(--ink-2); font-size: var(--fs-md); }
 .head p + p { margin-top: 12px; }
+:is(.hero-line, .head p, .panel > p, .step p, .cap-body > p, .calc-body li, .calc-shot figcaption, .answer > p, .answer li, .not-found p, footer p) { text-wrap: pretty; }
 
 /* Pinned titles. Every section keeps its title in view while its content scrolls past.
    Beside the content (split layouts) the title waits in its column. Where the content needs the
@@ -654,17 +658,19 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 }
 
 /* Before / after viewer: two comparisons behind tabs */
-.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 16px; border-bottom: 1px solid var(--rule); }
+.tabs { display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; scroll-snap-type: inline proximity; margin: 0 0 16px; background: linear-gradient(var(--rule), var(--rule)) bottom / 100% 1px no-repeat; }
+.tabs::-webkit-scrollbar { display: none; }
 .tabs button {
+  flex: none; white-space: nowrap; scroll-snap-align: start;
   border: 0; background: none; cursor: pointer;
-  padding: 10px 14px 11px; margin-bottom: -1px;
+  padding: 10px 14px 11px; margin: 0;
   color: var(--mute); font-weight: 600; font-size: var(--fs-md);
   border-bottom: 2px solid transparent;
 }
 .tabs button:hover { color: var(--ink); }
 .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--teal); }
 .panel > p { margin: 0 0 16px; max-width: 46rem; color: var(--ink-2); }
-.panel[hidden] { display: none; }
+.panel[hidden]:not([hidden="until-found"]) { display: none; }
 .panel.narrow .compare, .panel.narrow .compare-legend { max-width: 720px; }
 
 .compare {
@@ -873,10 +879,31 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 .lightbox {
   width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
   background: rgb(8 14 17 / .985); color: #e7eef0;
-  display: none; grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  opacity: 0;
+  transition-property: opacity, overlay, display;
+  transition-duration: var(--t-med);
+  transition-timing-function: var(--ease);
+  transition-behavior: allow-discrete;
 }
 .lightbox[open] { display: grid; }
-.lightbox::backdrop { background: transparent; }
+.lightbox[open]:where(:not([data-closing])) { opacity: 1; }
+.lightbox[data-closing] { opacity: 0; }
+.lightbox:modal { overscroll-behavior: contain; }
+.lightbox::backdrop {
+  background: rgb(8 14 17 / 0); overflow: hidden; overscroll-behavior: contain;
+  transition-property: background-color, overlay, display;
+  transition-duration: var(--t-med);
+  transition-timing-function: var(--ease);
+  transition-behavior: allow-discrete;
+}
+.lightbox[open]::backdrop { background: rgb(8 14 17 / .72); }
+.lightbox[data-closing]::backdrop { background: rgb(8 14 17 / 0); }
+@starting-style {
+  .lightbox[open] { opacity: 0; }
+  .lightbox[open]::backdrop { background: rgb(8 14 17 / 0); }
+  .lightbox[open] .lb-stage img { opacity: 0; scale: .96; }
+}
 .lb-stage {
   position: relative; overflow: hidden; display: grid; place-items: center;
   padding: clamp(16px, 4vw, 48px); touch-action: none; cursor: zoom-in;
@@ -905,10 +932,11 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 .lb-hint { margin: 0; padding: 0 clamp(16px, 4vw, 40px) 12px; font-size: var(--fs-xs); color: #7f949b; }
 @media (pointer: coarse) { .lb-hint { display: none; } }
 @media (prefers-reduced-motion: no-preference) {
-  .lightbox[open] { animation: show .18s ease-out; }
-  .lightbox[open] .lb-stage img { animation: lb-in .28s cubic-bezier(.3, .7, .2, 1); }
+  .lightbox[open] .lb-stage img { transition: opacity var(--t-med) var(--ease), scale .28s cubic-bezier(.3, .7, .2, 1); }
 }
-@keyframes lb-in { from { opacity: 0; scale: .96; } }
+@media (prefers-reduced-motion: reduce) {
+  .lightbox, .lightbox::backdrop { transition-duration: 100ms; }
+}
 
 /* Calculator: the title waits on the left, ChemDraw's rendered grid and the notes under it
    scroll on the right (the layout of .how) */
@@ -1023,9 +1051,13 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
 @media (hover: none) { details[open] + .faq-link { opacity: 1; } }
 @media (prefers-reduced-motion: no-preference) {
   @supports selector(::details-content) {
-    .faq details { interpolate-size: allow-keywords; }
-    .faq details::details-content { height: 0; overflow: clip; transition: height var(--t-med) var(--ease), content-visibility var(--t-med) allow-discrete; }
-    .faq details[open]::details-content { height: auto; }
+    :is(.faq details, .cmd, .try) { interpolate-size: allow-keywords; }
+    :is(.faq details, .cmd, .try)::details-content {
+      block-size: 0; overflow: clip; contain: layout;
+      transition: block-size var(--t-med) var(--ease), content-visibility var(--t-med);
+      transition-behavior: allow-discrete;
+    }
+    :is(.faq details, .cmd, .try)[open]::details-content { block-size: auto; }
   }
 }
 
@@ -1262,6 +1294,11 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 }
 .toast[data-on] { opacity: 1; translate: -50% 0; pointer-events: auto; }
 .toast a { margin-left: 8px; color: inherit; font-weight: 600; }
+.not-found { padding: 64px 0 48px; max-width: 40rem; }
+.not-found h1 { font-size: var(--fs-xl); margin: 0 0 12px; }
+.not-found p { color: var(--ink-2); margin: 0 0 16px; }
+.not-found-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
+.not-found-meta { color: var(--mute); font-size: var(--fs-sm); }
 @media (prefers-reduced-motion: no-preference) { .toast { transition: opacity var(--t-med) var(--ease), translate var(--t-med) var(--ease); } }
 
 @media (max-width: 860px) {
@@ -1289,12 +1326,12 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
   ::view-transition-new(top) { animation: none; }
   ::view-transition-old(root) { animation: fade-out var(--t-fast) var(--ease) both; }
   ::view-transition-new(root) { animation: rise 160ms var(--ease) both; }
-  html[data-slide]::view-transition-old(root) { display: none; }
-  html[data-slide]::view-transition-new(root) { animation: none; }
+  :is(html[data-slide], :active-view-transition-type(next, back))::view-transition-old(root) { display: none; }
+  :is(html[data-slide], :active-view-transition-type(next, back))::view-transition-new(root) { animation: none; }
   ::view-transition-group(lab-body) { animation: none; }
   ::view-transition-old(lab-body) { animation: fade-out 90ms var(--ease) both; }
   ::view-transition-new(lab-body) { animation: slide-in 180ms var(--ease) both; }
-  html[data-slide="back"]::view-transition-new(lab-body) { --from: -12px; }
+  :is(html[data-slide="back"], :active-view-transition-type(back))::view-transition-new(lab-body) { --from: -12px; }
 }
 @keyframes fade-out { to { opacity: 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
