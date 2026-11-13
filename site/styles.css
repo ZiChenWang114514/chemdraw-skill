@@ -517,8 +517,8 @@ kbd { padding: 0 4px; border: 1px solid var(--rule); border-radius: var(--r-xs);
   .hero .doc { grid-template-columns: 36px minmax(0, 1fr); }
   .hero .palette[hidden] { display: flex; visibility: hidden; }
   .hero .doc-bar { min-height: 43px; }
-  .hero .foot { min-height: 107px; }
-  html:lang(en) .hero .foot { min-height: 124px; }
+  .hero .foot { min-height: 145px; }
+  html:lang(en) .hero .foot { min-height: 163px; }
 }
 @media (scripting: enabled) and (max-width: 520px) {
   .hero .doc { grid-template-columns: 30px minmax(0, 1fr); }
@@ -876,7 +876,8 @@ h3 { font-size: var(--fs-lg); line-height: 1.4; margin: 0 0 4px; letter-spacing:
   display: none; grid-template-rows: minmax(0, 1fr) auto auto;
 }
 .lightbox[open] { display: grid; }
-.lightbox::backdrop { background: transparent; }
+.lightbox:modal { overscroll-behavior: contain; }
+.lightbox::backdrop { background: transparent; overflow: hidden; overscroll-behavior: contain; }
 .lb-stage {
   position: relative; overflow: hidden; display: grid; place-items: center;
   padding: clamp(16px, 4vw, 48px); touch-action: none; cursor: zoom-in;
@@ -1262,6 +1263,11 @@ footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
 }
 .toast[data-on] { opacity: 1; translate: -50% 0; pointer-events: auto; }
 .toast a { margin-left: 8px; color: inherit; font-weight: 600; }
+.not-found { padding: 64px 0 48px; max-width: 40rem; }
+.not-found h1 { font-size: var(--fs-xl); margin: 0 0 12px; }
+.not-found p { color: var(--ink-2); margin: 0 0 16px; }
+.not-found-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
+.not-found-meta { color: var(--mute); font-size: var(--fs-sm); }
 @media (prefers-reduced-motion: no-preference) { .toast { transition: opacity var(--t-med) var(--ease), translate var(--t-med) var(--ease); } }
 
 @media (max-width: 860px) {

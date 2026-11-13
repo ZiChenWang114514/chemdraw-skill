@@ -16,7 +16,7 @@ These tools answer the questions people ask after a structure is drawn: what are
 | What is the name of this structure? | `structure_to_name` (needs ChemScript or ChemDraw for macOS) |
 | What does ChemDraw give for formula, masses, elemental analysis, logP and molar refractivity? | `chemdraw_chemical_properties` (needs ChemScript on Windows or ChemDraw for macOS, which gives no logP or molar refractivity; no RDKit substitute) |
 
-All of them accept `output_path` (never overwritten) and return their data inline, so a small result needs no file. Run one as `cdx.py call TOOL --args args.json`.
+All of them accept `output_path` (never overwritten) and return their data inline, so a small result needs no file. Use the zero-JSON shortcut `cdx.py report` for properties (`cdx.py report aspirin a.cdxml`), HRMS (`cdx.py report aspirin --hrms --adduct "[M+Na]+"`), reaction balance (`cdx.py report --balance "CCO.CC(=O)O>>CCOC(C)=O"`), or atom mapping (`cdx.py report --map rxn.cdxml`), `cdx.py inspect FILE` to read structures out of a file, or `cdx.py call TOOL -a key=val` / `--args args.json` for batch options.
 
 ## Property sheet and MS peaks
 

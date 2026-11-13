@@ -14,7 +14,7 @@ python scripts/install.py --agent claude agents --runtime            # preview
 python scripts/install.py --agent claude agents --runtime --apply    # install Skill copies + shared runtime
 ```
 
-`--agent` takes `auto` (detects which agent folders already exist on the machine), one or more of the primary targets `claude`, `agents` (the shared `~/.agents/skills` folder read by most agents), `gemini`, `copilot`, `cursor`, `opencode`, `kimi` and `pi`, or the CLI aliases `codex`, `antigravity` and `windsurf`; `--project <repo>` installs project-scoped copies instead, and `--destination <folder>` installs anywhere. `--python <interpreter>` picks the base interpreter when auto-detection finds none, `--extras` chooses toolkit extras (default: every extra that applies to the OS), and `--runtime-dir` moves the shared venv.
+`--agent` takes `auto` (detects which agent folders already exist on the machine), one or more of the primary targets `claude`, `agents` (the shared `~/.agents/skills` folder read by most agents), `gemini`, `copilot`, `cursor`, `opencode`, `kimi` and `pi`, or the CLI aliases `codex`, `antigravity` and `windsurf`; `--project <repo>` installs project-scoped copies instead, `--destination <folder>` installs anywhere, and `--runtime-only --apply` upgrades the shared runtime from this checkout without copying Skill folders. `--python <interpreter>` picks the base interpreter when auto-detection finds none, `--extras` chooses toolkit extras (default: every extra that applies to the OS), and `--runtime-dir` moves the shared venv.
 
 The installer stages and verifies each copy, moves an existing installation to the shared backup folder (outside every Skill folder), restores it on failure, installs the runtime once for all copies, and writes `manifest.json` so later drift can be detected. Re-running it upgrades the Skill and reuses the venv. When `cdx.py` would not pick this venv by itself (it sits in a custom location, or an older `chemdraw-venv` beside the Skill folder comes first), the installer writes `runtime.local.json` into each copy and into the repository checkout (ignored by Git), so `cdx.py` also uses it from the checkout; a leftover `runtime.local.json` that is no longer needed is removed.
 
@@ -42,8 +42,10 @@ export CHEMDRAW_MCP_PYTHON=<venv>/bin/python      # only if <venv> is not a loca
 
 ```bash
 python <skill>/scripts/cdx.py doctor              # versions, extras, drift, capability matrix
+python <skill>/scripts/cdx.py doctor --text       # readable checklist + recent run log summary
 python <skill>/scripts/cdx.py doctor --native     # + ChemScript ping and a native PNG render
 python <skill>/scripts/cdx.py doctor --office     # + PPTX/DOCX ChemDraw-OLE probes
+python <skill>/scripts/cdx.py doctor --log latest # inspect details of the latest cdx.py run
 ```
 
 Any Python can start `cdx.py`; it re-launches itself in the runtime and skips a candidate whose interpreter no longer starts. Skipped probes are not verified features. See [operations](../skill/chemdraw/references/operations.md) for bitness, timeouts, DECIMER and failure codes.
@@ -58,7 +60,7 @@ For confidential or offline work set `CHEMDRAW_OFFLINE=1`: PubChem lookups, the 
 
 ## Drawing styles
 
-Every figure takes a `style` name, in a draw, scope or mechanism brief, a compose manifest or a `cdx.py build` spec, or as `cdx.py draw --style NAME`. `cdx.py styles` lists the sixteen measurement presets read from ChemDraw's stock style sheets (bond length, line widths, fonts; `acs1996` by default) and the 28 house styles (journals, publishers, patents, textbooks and research groups) that add, on top of a preset, how each draws 23 kinds of figure, measured from 179 crops of openly licensed figures; a brief can also set a title, panel letter, captions, boxes and colours for one figure; `cdx.py styles NAME` prints one card with its evidence, and MCP clients read it from `chemdraw://style-guide/{name}`. See [journal and group house styles](../README.md#journal-and-group-house-styles) and the [style gallery](../skill/chemdraw/assets/house-styles/gallery/README.md), which also indexes 47 published figures redrawn in their own style.
+Every figure takes a `style` name, in a draw, scope or mechanism brief, a compose manifest or a `cdx.py build` spec, or as `cdx.py draw --style NAME` (including direct single-molecule, reaction-SMILES, or grid flags such as `cdx.py draw --name aspirin out.cdxml --style acs_jacs --render`, `cdx.py draw --reaction ... --compact`, or `--number --properties mw,formula`). `cdx.py styles` lists the sixteen measurement presets read from ChemDraw's stock style sheets (bond length, line widths, fonts; `acs1996` by default) and the 28 house styles (journals, publishers, patents, textbooks and research groups) that add, on top of a preset, how each draws 23 kinds of figure, measured from 179 crops of openly licensed figures; a brief can also set a title, panel letter, captions, boxes and colours for one figure; `cdx.py styles NAME` prints one card with its evidence, and MCP clients read it from `chemdraw://style-guide/{name}`. See [journal and group house styles](../README.md#journal-and-group-house-styles) and the [style gallery](../skill/chemdraw/assets/house-styles/gallery/README.md), which also indexes 47 published figures redrawn in their own style.
 
 ## ChemDraw interface coverage
 
@@ -89,7 +91,7 @@ The command line covers every tool, so no server is required. Clients that prefe
 python scripts/validate_distribution.py                           # repository checks and installer tests
 python skill/chemdraw/scripts/cdx.py py -m pip install pytest
 python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
-python skill/chemdraw/scripts/cdx.py regen-signatures             # after a toolkit change
+python skill/chemdraw/scripts/cdx.py regen-signatures             # after a toolkit change (syncs signatures, schema, inventories & runtime.json; --check verifies)
 cd toolkit; python -m pytest -m "not network" -q                 # toolkit tests (runtime Python)
 ```
 

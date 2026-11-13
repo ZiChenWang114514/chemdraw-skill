@@ -84,15 +84,18 @@ Command-line registration, for example `claude mcp add --scope user cdxml-toolki
 ```text
 cdx.py tools [QUERY] [--detail summary]   list tools, timeouts and native-lock use
 cdx.py sig TOOL...                        print one or more generated signatures
-cdx.py call TOOL --json '{...}' | --args FILE [--out NEW.json] [--accel auto|on|off]
+cdx.py resolve QUERY... [--offline] [--out FILE] [--full|--summary]   resolve names, CAS numbers or formulas to SMILES
+cdx.py inspect FILE [--objects] [--out FILE] [--full|--summary]       inspect structures, objects or peaks in CDXML/CDX/SDF/Office/LCMS
+cdx.py report [TARGET...] [--smiles S] [--name N] [--balance RXN] [--hrms] [--map RXN] [--output FILE] [--out FILE] [--full|--summary]   property sheet, HRMS, balance or atom mapping
+cdx.py call TOOL [-a KEY=VAL ...] [--json '{...}' | --args FILE] [--out NEW.json] [--full|--summary] [--accel auto|on|off]
 cdx.py render A.cdxml [B.cdxml ...] [--out-dir DIR] [--replace]
 cdx.py build SPEC.json NEW.cdxml [--render] [--allow-draft]
 cdx.py scientific nmr|plot|tlc|apparatus|mechanism|stack_nmr|lcms_plate SPEC.json OUTPUT [--render]
-cdx.py draw BRIEF.json [OUTPUT] [--render] [--style PRESET] [--out NEW.json]   checked scheme, scope panel or mechanism from a brief
+cdx.py draw [BRIEF.json|--name NAME|--smiles SMILES|--reaction RXN|--compact DSL] [OUTPUT] [--above TEXT] [--below TEXT] [--yield Y] [--arrow STYLE] [--layout L] [--label L] [--title T] [--abbreviate G] [--columns N] [--number [STYLE]] [--properties] [--render] [--style PRESET] [--out NEW.json] [--full|--summary]   checked molecule, scheme, scope panel or mechanism
 cdx.py styles [PRESET] [--json]          built-in journal style presets (ChemDraw stock style sheets)
 cdx.py decimer IMAGE [--hand-drawn] [--preflight] [--timeout S] [--out NEW.json]
 cdx.py ocsr IMAGE [--engines a,b|all] [--hand-drawn] [--preflight] [--no-upload] [--timeout S] [--out NEW.json] [--accel MODE]   several OCSR engines, compared (`decimer` is `ocsr IMAGE --engines decimer-api`)
-cdx.py predict products|retro|nmr|conditions SMILES [--products P] [--engine NAME] [--json ARGS] [--args FILE] [--out FILE] [--accel MODE]   model predictions (see engines.md)
+cdx.py predict products|retro|nmr|conditions SMILES [--products P] [--engine NAME] [-a KEY=VAL ...] [--json ARGS] [--args FILE] [--out FILE] [--accel MODE]   model predictions (see engines.md)
 cdx.py engines [--sizes] [--recommend NEED]   which optional engines are installed, their disk use; what to install for a need
 cdx.py stop-daemons                       end the resident engine workers that --accel started
 cdx.py install-engines NAME... [--bundle B] [--task T] [--dry-run] [--status]   optional engines, each in its own environment
@@ -103,15 +106,15 @@ cdx.py office-edit DOCUMENT|EDIT_DIR --finish [--output NEW] [--wait S] [--pdf]
 cdx.py calc REACTION|FILE.cdxml [--output NEW.cdxml] [--no-open]   ChemDraw's own stoichiometry grid, opened in ChemDraw
 cdx.py calc --read SAVED.cdxml            read the grid's numbers back as JSON (no ChemDraw needed)
 cdx.py install-mappers [rxnmapper] [localmapper] [--dry-run] [--status]   optional atom-mapping backends
-cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full]
+cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full] [--text] [--log ID|latest]
 cdx.py py ARGS...                         run the runtime Python (helper scripts, -m modules, tests)
 ```
 
-`call` prints results up to about 6 KB directly; larger results go to a new file under the temp folder's `chemdraw-cdx` directory (or `--out`) and a short summary with the path is printed. `ok` means the tool ran without error. Existing result files are never overwritten.
+`call` deduplicates matching top-level `outputs` on stdout and prints results up to about 6 KB directly (pass `--full` to print any size, or `--summary` to force a compact summary); larger results go to a new file under the temp folder's `chemdraw-cdx` directory (or `--out`) and print an enriched summary with `output_path`, `png_path`, `checks_passed`, `readback`, warnings preview and the evidence path. `ok` means the tool ran without error. Existing result files are never overwritten (refusals include `(next available: ...)`).
 
-`render` writes to a temporary name and publishes the PNG only after a successful render, so a failed render keeps the previous image. It replaces an existing PNG only when it rendered that exact file before; any other PNG of the same name is refused with its path unless `--replace` is given, and two inputs that would share one PNG are refused. `build` never replaces an existing CDXML. `draw` runs the `draw_figure` tool from a brief file and never replaces an existing output ([scheme drawing](scheme-drawing.md)). `markush` and `office-edit` are described in [Markush structures](markush.md) and [operations](operations.md#macos).
+`render` writes to a temporary name and publishes the PNG only after a successful render, so a failed render keeps the previous image. It replaces an existing PNG only when it rendered that exact file before; any other PNG of the same name is refused with its path unless `--replace` is given, and two inputs that would share one PNG are refused. `build` never replaces an existing CDXML. `draw` runs `draw_figure` (or `render_scheme` with `--compact`) and never replaces an existing output ([scheme drawing](scheme-drawing.md)). `markush` and `office-edit` are described in [Markush structures](markush.md) and [operations](operations.md#macos).
 
-On a shell that does not pass JSON quotes through intact (Windows PowerShell 5, `cmd.exe`), write the arguments to a file and use `--args`.
+On PowerShell or `cmd.exe`, prefer `cdx.py resolve`, `cdx.py inspect`, `cdx.py report`, `cdx.py draw --reaction`, or `-a KEY=VALUE` on `cdx.py call` to avoid JSON quoting; for complex nested dicts, put them in a file and pass `--args`.
 
 ## Subagents
 

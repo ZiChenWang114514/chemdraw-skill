@@ -1,11 +1,12 @@
 # Workflow Router
 
-Load one section matching the user's intent. Exact signatures live only in [mcp-signatures.md](mcp-signatures.md); `cdx.py sig TOOL` prints one. Run a tool named below as `python <skill>/scripts/cdx.py call TOOL --args ARGS.json` (a file holding the arguments as a JSON object; `--json '{...}'` also works in bash). `cdx.py render` and `cdx.py draw` are shortcuts for rendering and for `draw_figure`.
+Load one section matching the user's intent. Exact signatures live only in [mcp-signatures.md](mcp-signatures.md); `cdx.py sig TOOL` prints one. High-frequency zero-JSON entry points: `cdx.py resolve`, `cdx.py inspect`, `cdx.py report`, `cdx.py draw` (`--name`, `--smiles`, `--reaction`, `--compact`), and `cdx.py render`. For any other tool run `python <skill>/scripts/cdx.py call TOOL -a key=val` or `--args ARGS.json` (`--json '{...}'` also works in bash).
 
 ## Draw Or Modify A Molecule
 
-For exam or lecture figures with abbreviations, Chinese notes or compound codes, use [ACS 1996 drawings](acs1996-drawings.md) instead.
+For a quick checked single molecule or small multi-structure panel with any style preset, house style, abbreviations or highlights, you can run `cdx.py draw --name "aspirin" out.cdxml --render` or `cdx.py draw --smiles "CCO" out.cdxml --style acs_jacs --render` directly (`draw_figure` with `kind: "molecule"`). Use `cdx.py resolve QUERY...` when you only need verified SMILES/MW/formula first. For exam or lecture figures with abbreviated R-groups (C10H21), Chinese notes or compound codes, use [ACS 1996 drawings](acs1996-drawings.md) instead.
 
+When using explicit lower-level steps:
 
 1. Resolve a name with `resolve_name`, or accept user-supplied trusted SMILES.
 2. Verify identity, formula, molecular weight, and ambiguity.

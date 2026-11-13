@@ -14,7 +14,7 @@ python scripts/install.py --agent claude agents --runtime            # 预览
 python scripts/install.py --agent claude agents --runtime --apply    # 安装 Skill 副本 + 共享运行时
 ```
 
-`--agent` 可以指定 `auto`（自动检测本机已存在的 agent 目录），或同时指定主目标 `claude`、`agents`（大多数 agent 都会读取的共享目录 `~/.agents/skills`）、`gemini`、`copilot`、`cursor`、`opencode`、`kimi` 和 `pi` 以及命令行别名 `codex`、`antigravity`、`windsurf` 中的一个或多个；`--project <仓库>` 改为安装项目级副本，`--destination <目录>` 可安装到任意位置。自动检测找不到合适解释器时用 `--python <解释器>` 指定基础解释器，`--extras` 选择 toolkit 的可选依赖组（默认安装适用于当前操作系统的全部依赖组），`--runtime-dir` 可改变共享 venv 的位置。
+`--agent` 可以指定 `auto`（自动检测本机已存在的 agent 目录），或同时指定主目标 `claude`、`agents`（大多数 agent 都会读取的共享目录 `~/.agents/skills`）、`gemini`、`copilot`、`cursor`、`opencode`、`kimi` 和 `pi` 以及命令行别名 `codex`、`antigravity`、`windsurf` 中的一个或多个；`--project <仓库>` 改为安装项目级副本，`--destination <目录>` 可安装到任意位置，而 `--runtime-only --apply` 只从当前仓库更新共享运行时而不复制 Skill 目录。自动检测找不到合适解释器时用 `--python <解释器>` 指定基础解释器，`--extras` 选择 toolkit 的可选依赖组（默认安装适用于当前操作系统的全部依赖组），`--runtime-dir` 可改变共享 venv 的位置。
 
 安装器会先暂存并校验每一份副本，把已有安装移到共享备份目录（位于所有 Skill 目录之外），失败时自动还原，然后为所有副本安装一次运行时，并写入 `manifest.json` 以便日后检测漂移。重复运行即升级 Skill 并复用 venv。当 `cdx.py` 自己不会选中这个 venv 时（它放在自定义位置，或者 Skill 目录旁边还有一个会优先被选中的旧版 `chemdraw-venv`），安装器会把 `runtime.local.json` 写入每份副本和当前仓库检出目录（该文件已被 Git 忽略），因此在仓库里直接运行 `cdx.py` 也会用上它；不再需要的旧 `runtime.local.json` 会被删除。
 
@@ -42,8 +42,10 @@ export CHEMDRAW_MCP_PYTHON=<venv>/bin/python      # 仅当 <venv> 不在 cdx.py 
 
 ```bash
 python <skill>/scripts/cdx.py doctor              # 版本、可选依赖、漂移、能力矩阵
+python <skill>/scripts/cdx.py doctor --text       # 可读诊断清单与最近运行日志摘要
 python <skill>/scripts/cdx.py doctor --native     # 额外执行 ChemScript ping 和一次原生 PNG 渲染
 python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemDraw-OLE 探测
+python <skill>/scripts/cdx.py doctor --log latest # 查看最近一次 cdx.py 调用的完整日志
 ```
 
 任何 Python 都可以启动 `cdx.py`，它会自行切换到运行时解释器；无法启动的候选解释器会被跳过。被跳过的探测不算已验证的能力。位数、超时、DECIMER 和故障代码见[运维说明](../skill/chemdraw/references/operations.md)。
@@ -58,7 +60,7 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 
 ## 绘图风格
 
-每张图都接受一个 `style` 名称，可写在 draw、scope 或 mechanism 说明、compose 清单或 `cdx.py build` 规格里，也可用 `cdx.py draw --style NAME` 指定。`cdx.py styles` 列出从 ChemDraw 自带样式表读出的 16 个尺寸预设（键长、线宽、字体；默认 `acs1996`），以及 28 个画法风格（期刊、出版社、专利、教材和课题组），它们在预设之上写明每家怎么画 23 类图，测自 179 张开放许可图片截图；说明文件还能为单张图设定标题、分图字母、说明文字、框和颜色；`cdx.py styles NAME` 打印单个风格卡片及其证据，MCP 客户端可从 `chemdraw://style-guide/{name}` 读取。详见[期刊与课题组画法风格](../README.zh-cn.md#期刊与课题组画法风格)和[风格图库](../skill/chemdraw/assets/house-styles/gallery/README.md)，图库还列出按各自风格重画的 47 张已发表的图。
+每张图都接受一个 `style` 名称，可写在 draw、scope 或 mechanism 说明、compose 清单或 `cdx.py build` 规格里，也可用 `cdx.py draw --style NAME` 指定（也支持 `cdx.py draw --name aspirin out.cdxml --style acs_jacs --render`、`cdx.py draw --reaction ... --compact` 或 `--number --properties mw,formula` 等零 JSON 快捷参数）。`cdx.py styles` 列出从 ChemDraw 自带样式表读出的 16 个尺寸预设（键长、线宽、字体；默认 `acs1996`），以及 28 个画法风格（期刊、出版社、专利、教材和课题组），它们在预设之上写明每家怎么画 23 类图，测自 179 张开放许可图片截图；说明文件还能为单张图设定标题、分图字母、说明文字、框和颜色；`cdx.py styles NAME` 打印单个风格卡片及其证据，MCP 客户端可从 `chemdraw://style-guide/{name}` 读取。详见[期刊与课题组画法风格](../README.zh-cn.md#期刊与课题组画法风格)和[风格图库](../skill/chemdraw/assets/house-styles/gallery/README.md)，图库还列出按各自风格重画的 47 张已发表的图。
 
 ## ChemDraw 接口覆盖
 
@@ -89,7 +91,7 @@ python <skill>/scripts/cdx.py doctor --office     # 额外执行 PPTX/DOCX ChemD
 python scripts/validate_distribution.py                           # 仓库检查与安装器测试
 python skill/chemdraw/scripts/cdx.py py -m pip install pytest
 python skill/chemdraw/scripts/cdx.py py -m pytest skill/chemdraw/tests -q
-python skill/chemdraw/scripts/cdx.py regen-signatures             # toolkit 改动后执行
+python skill/chemdraw/scripts/cdx.py regen-signatures             # toolkit 改动后执行（一键同步签名、schema、接口清单与 runtime.json；--check 仅检查）
 cd toolkit; python -m pytest -m "not network" -q                 # toolkit 测试（使用运行时 Python）
 ```
 

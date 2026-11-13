@@ -217,8 +217,8 @@ def supported(info):
     return bool(info) and info[2] == 64 and (3, 10) <= info[:2] <= (3, 13)
 
 
-def base_python(requested):
-    """First command that runs a 64-bit Python 3.10-3.13 (the toolkit's supported range)."""
+def probe_candidates(requested):
+    """Return (first supported 64-bit Python 3.10-3.13 command, rejected [(command, info), ...])."""
     if requested:
         found = shutil.which(requested) or (requested if Path(requested).is_file() else None)
         if not found:
@@ -233,10 +233,23 @@ def base_python(requested):
         for name in ('python3.12', 'python3.13', 'python3.11', 'python3.10', 'python3', 'python'):
             if shutil.which(name):
                 commands.append([shutil.which(name)])
+    rejected = []
+    seen = set()
     for command in commands:
-        if supported(probe_python(command)):
-            return command
-    return None
+        info = probe_python(command)
+        if supported(info):
+            return command, rejected
+        if info is not None:
+            key = (command[0], info)
+            if key not in seen:
+                seen.add(key)
+                rejected.append((command, info))
+    return None, rejected
+
+
+def base_python(requested):
+    """First command that runs a 64-bit Python 3.10-3.13 (the toolkit's supported range)."""
+    return probe_candidates(requested)[0]
 
 
 def runtime_plan(ns, targets):
@@ -250,12 +263,19 @@ def runtime_plan(ns, targets):
     action = 'reuse' if venv_python(venv).is_file() else 'create'
     base = None
     if action == 'create':
-        base = base_python(ns.python)
+        base, rejected = probe_candidates(ns.python)
         if base is None:
-            raise SystemExit('The runtime needs a 64-bit Python 3.10-3.13 and none was found '
-                             '(Python 3.14 and newer are not supported by the toolkit yet). '
-                             'Install one, e.g. `uv python install 3.12` or the python.org 3.12 '
-                             'installer, then pass --python <interpreter> if it is still not found.')
+            detail = ', '.join(
+                f'Python {maj}.{mn} ({bits}-bit) at {" ".join(cmd)}'
+                for cmd, (maj, mn, bits) in rejected[:3]
+            )
+            found_clause = f'Found unsupported {detail}; ' if detail else ''
+            raise SystemExit(
+                'The runtime needs a 64-bit Python 3.10-3.13 and none was found. '
+                f'{found_clause}Python 3.14 and newer are not supported by the toolkit yet. '
+                'Install Python 3.12 — e.g. `uv python install 3.12` (then `--python "<interpreter>"`) '
+                'or the python.org 64-bit 3.12 installer (Windows: `py -3.12`) — and re-run.'
+            )
     extras = ns.extras if ns.extras is not None else default_extras()
     # base_python stays a command list: interpreter paths may contain spaces ("Program Files").
     return {'action': action, 'venv': str(venv), 'python': str(venv_python(venv)),
@@ -397,6 +417,17 @@ def main(argv=None):
         'status': 'proposal',
     }
     if not ns.apply:
+        base_root = Path(ns.project).expanduser().resolve() if ns.project else Path.home()
+        detected = detect_agents(base_root, 1 if ns.project else 0)
+        record['detected_agents'] = detected
+        if not ns.runtime_only and not ns.destination and ns.agent == ['claude'] and not ns.runtime:
+            hint = ('Dry-run proposal only (nothing written). Add --apply to install, '
+                    'or run: python scripts/install.py --agent auto --runtime --apply')
+        else:
+            hint = 'Dry-run proposal only (nothing written). Re-run with --apply to perform this installation.'
+        record['apply_hint'] = hint
+        if sys.stderr.isatty():
+            log(hint)
         print(json.dumps(record, indent=2))
         return 0
 

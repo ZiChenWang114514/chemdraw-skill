@@ -505,6 +505,11 @@ async function main() {
   check("the tick keeps the button's size", await run(`document.querySelector('${smilesButton}').offsetWidth === ${await run(`document.querySelector('${smilesButton}').offsetWidth`)}`));
   await sleep(1600);
   check("the tick goes away", !(await run(`document.querySelector('${smilesButton}').hasAttribute("data-done")`)));
+  await click('[data-export="cli"]');
+  await sleep(80);
+  const cli = await run(`navigator.clipboard.readText()`);
+  check("CLI command copied", cli.startsWith('cdx.py draw --smiles "') && cli.endsWith('aspirin.cdxml --render'), cli);
+  check("CLI copy shows the tick", await run(`document.querySelector('[data-export="cli"]').hasAttribute("data-done")`));
   await click('[data-export="link"]');
   await sleep(80);
   const link = await run(`navigator.clipboard.readText()`);

@@ -14,7 +14,14 @@ Use this when the structures are known and the figure does not exist yet: a reac
 
 ## One call: draw_figure
 
-Turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products. A substrate-scope panel and a mechanism each have their own brief, described after the report table below.
+For simple reactions or multi-step schemes without writing a JSON file, pass `--reaction` directly (repeatable for multi-step linear/convergent/divergent routes):
+
+```bash
+cdx.py draw --reaction "CC(=O)O.CCO>O=S(=O)(O)O>CCOC(C)=O" --below "rt, 2 h" --yield "85%" rxn.cdxml --render
+cdx.py draw --compact scheme.dsl scheme.cdxml --render   # Compact Scheme DSL via render_scheme
+```
+
+For full styling (runs, highlights, boxes, atom colours, scope panels, mechanisms), turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products. A substrate-scope panel and a mechanism each have their own brief, described after the report table below.
 
 ```json
 {
@@ -131,6 +138,13 @@ Read the report before you answer:
 - Atoms are numbered from 0 in the order of the SMILES you gave, hydrogens not counted. The report lists them per species (`species[].atoms`, for example `0 C, 1 C, 2 O`). Set `show_atom_numbers: true` to print them on a draft and check the moves by eye, then draw again without it.
 - The report adds `moves` (what each arrow connects and its `checks`) and `arrows` (`crossings`, the atoms an arrow runs through, and `relayout` when one automatic retry changed the gaps and loop height). A two-electron arrow that starts on an atom with no lone pair or negative charge is drawn and flagged in `moves[].checks` and `warnings`; atom and charge balance is checked per step as for schemes.
 - Limits: arrows are drawn as given; the tool does not judge whether the mechanism is chemically right. A long arrow can still run close to a label, so open the PNG.
+
+### Standalone molecules and structure grids
+
+`"kind": "molecule"` (also `"structures"` or `"structure_panel"`) draws one molecule or a multi-row grid of structures without reaction arrows, using the same grounding, styling, abbreviations, boxes, captions, decorations, lint checks, read-back and optional native PNG rendering as schemes:
+
+- From the CLI without writing a brief file: `cdx.py draw --name aspirin aspirin.cdxml --render`, or multiple entries such as `cdx.py draw --smiles "CCO" --name caffeine --number roman --properties --columns 2 --style sarpong_group panel.cdxml --render`.
+- In a brief JSON: pass `"kind": "molecule"` (or `"structure_panel"`), `species` (`id` is optional and defaults to `s1`, `s2`, ... when omitted), optional `columns` (structures per row), `numbering` (`"arabic"`, `"roman"`, `"letter"`, `"plain_roman"`, `"int_number"`, etc., filling missing `label` values), `properties` (`true` for `"formula"` and `"mw"`, or a list from `["formula", "mw", "exact_mass"]` for species lacking a custom `caption`), `max_width`, `title`, `panel_label` and `style` (preset or house style). When the house style defines `structure_panel` conventions (`variation_color`, `highlight_fill`, `intermediate_label_style`), multi-structure panels highlight varied substituents against the shared core, tint ring interiors and auto-number unlabelled entries automatically.
 
 ## render_scheme
 

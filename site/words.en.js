@@ -114,6 +114,8 @@ globalThis.ChemWords = {
  "cleaned": "Cleaned up: bond lengths and angles evened out.",
  "smiles": "SMILES: {smiles}",
  "copied": "SMILES copied: {smiles}",
+ "cli": "Command: {cmd}",
+ "cliCopied": "Copied command: {cmd}",
  "noSmiles": "An atom is over its usual valence. Fix it before exporting SMILES.",
  "download": "Saved {file}. It opens in ChemDraw.",
  "keys": "Tip: rest the pointer on an atom and type C, N, O, S, F or L (Cl) to change it; on a bond, type 1, 2 or 3. Delete removes it.",

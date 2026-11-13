@@ -12,16 +12,17 @@ Editable chemistry via bundled `cdxml_toolkit` and licensed native ChemDraw (COM
 `<skill>` is this folder; `python` is any host Python 3.9+ (`python3` on macOS/Linux, `python` or `py` on Windows). `cdx.py` re-launches inside the toolkit runtime (Python 3.10–3.13); below, `cdx.py` means `python <skill>/scripts/cdx.py`.
 
 ```bash
-cdx.py doctor                              # check host capabilities first
-cdx.py tools                               # list registered tools
-cdx.py sig TOOL                            # inspect one tool signature
-cdx.py call TOOL --args args.json          # run any tool with JSON object args
-cdx.py draw brief.json out.cdxml --render  # checked scheme, scope panel or mechanism
-cdx.py build spec.json out.cdxml --render  # ACS 1996 drawing from a spec
-cdx.py render a.cdxml                      # native 300 dpi PNG beside it
+cdx.py doctor --text                       # check host capabilities
+cdx.py resolve aspirin Cs2CO3 --offline    # names/CAS -> SMILES
+cdx.py draw --name aspirin out.cdxml --render        # molecule (no JSON)
+cdx.py draw --reaction "CCO>>CC=O" out.cdxml --render # scheme (--compact for DSL)
+cdx.py draw brief.json out.cdxml --render  # scheme, scope panel or mechanism
+cdx.py inspect FILE.cdxml                  # read CDXML/CDX/SDF/Office/LCMS
+cdx.py report aspirin --hrms               # properties, --hrms, --balance, --map
+cdx.py call TOOL -a query=aspirin          # any tool (-a k=v or --args args.json)
 ```
 
-Write `tool(arg=value)` calls as `cdx.py call tool --args args.json` (`--json '{"arg": value}'` works in bash; `--args` avoids Windows quoting issues; `--out new.json` saves long output). Run scripts/modules via `cdx.py py <skill>/scripts/NAME.py ...` or `cdx.py py -m cdxml_toolkit.scientific ...` without an MCP server. Setup and allowlisting: [agent integration](references/agent-integration.md).
+Use `cdx.py tools` / `cdx.py sig TOOL` for signatures, `cdx.py render a.cdxml` for PNGs, and `cdx.py build spec.json out.cdxml --render` for ACS 1996 specs. `-a key=value` avoids shell quoting; `--args args.json` handles nested dicts (`--out file.json` saves long output). Helper scripts: `cdx.py py <skill>/scripts/NAME.py`. Setup: [agent integration](references/agent-integration.md).
 
 ## Core Rules
 

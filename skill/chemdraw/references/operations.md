@@ -8,6 +8,7 @@ Load for installation, upgrade, worker timeout, ChemDraw COM, ChemDraw for macOS
 
 ```bash
 cdx.py doctor                 # Skill/toolkit/Python versions, missing extras, signature drift, installation manifest, capability matrix
+cdx.py doctor --text          # human-readable health summary (add --log latest or --log ERROR_ID to read worker logs)
 cdx.py doctor --paths         # also worker-log folder, native lock (mutex on Windows, lock file elsewhere), native temp root, ChemScript path
 cdx.py doctor --native        # + ChemScript ping and a temporary CDXML -> PNG render through ChemDraw (COM or macOS)
 cdx.py doctor --office        # + PPTX and DOCX ChemDraw-OLE embedding probes (packages built and validated; Office is not opened)

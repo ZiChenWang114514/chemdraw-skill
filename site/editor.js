@@ -6,7 +6,7 @@
 // and all words come from words.<language>.js. The home page reads completely without this file.
 
 (() => {
-  const { fileName, MOLS, STARTERS, W, H, EL, fmt, load, analyse, bondLength, remove, inside, toSmiles, toCdxml, cleanUp, drawMarkup,
+  const { fileName, cliCommand, MOLS, STARTERS, W, H, EL, fmt, load, analyse, bondLength, remove, inside, toSmiles, toCdxml, cleanUp, drawMarkup,
     graphKey, targetOf, stars, localDate, dailyNumber, dailyPick, nextStreak, dailyShare, encodeDrawing, decodeDrawing, emptyStore, parseStore,
     record, isLevel, earned, STORE_KEY, applyTool, previewMarkup } = globalThis.Chem;
 
@@ -78,6 +78,7 @@
     const listeners = { change: [], win: [], export: [] };
     const emit = (kind, value) => listeners[kind].forEach((fn) => fn(value));
     let tool = "bond";
+    let lastStatus = "";
     let st;
     let drag = null, link = null, ghost = null, swallowClick = false;
     let aim = null, byKeyboard = false, tipped = false;
@@ -154,10 +155,15 @@
       const badAtom = info.over.indexOf(true);
       if (badAtom >= 0) {
         const a = st.g.atoms[badAtom];
-        status.textContent = fmt(T.valence, { sym: a.s, n: info.used[badAtom], v: EL[a.s].v });
+        const warnText = fmt(T.valence, { sym: a.s, n: info.used[badAtom], v: EL[a.s].v });
+        lastStatus = warnText;
+        status.textContent = warnText;
         status.dataset.state = "warn";
       } else {
-        status.textContent = message || T.hint[tool];
+        let next = message || T.hint[tool];
+        if (message && next === lastStatus) next += "\u00A0";
+        lastStatus = next;
+        status.textContent = next;
         delete status.dataset.state;
       }
 
@@ -595,6 +601,13 @@
       const smiles = toSmiles(st.g);
       if (smiles === null) return update(T.noSmiles);
       copy(smiles, fmt(T.copied, { smiles }), fmt(T.smiles, { smiles }), e.currentTarget);
+    });
+    exportBar.querySelector('[data-export="cli"]')?.addEventListener("click", (e) => {
+      const smiles = toSmiles(st.g);
+      if (smiles === null) return update(T.noSmiles);
+      const dirty = JSON.stringify(st.g) !== st.original;
+      const cmd = cliCommand(smiles, `${st.name}${dirty ? "-edited" : ""}`);
+      copy(cmd, fmt(T.cliCopied, { cmd }), fmt(T.cli, { cmd }), e.currentTarget);
     });
     exportBar.querySelector('[data-export="cdxml"]').addEventListener("click", () => {
       const dirty = JSON.stringify(st.g) !== st.original;

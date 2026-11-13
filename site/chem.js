@@ -49,6 +49,7 @@
   const f1 = (n) => n.toFixed(1);
   // What a person sees of an id such as aceticAcid: in a file name, or in the agent's log.
   const fileName = (id) => id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+  const cliCommand = (smiles, base) => `cdx.py draw --smiles "${smiles}" ${fileName(base)}.cdxml --render`;
 
   function load(name) {
     const m = MOLS[name] || STARTERS[name];
@@ -942,7 +943,7 @@
   }
 
   const api = {
-    applyTool, previewMarkup, fileName, MOLS, STARTERS, W, H, EL, CYCLE, CHALLENGES, DAILIES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
+    applyTool, previewMarkup, fileName, cliCommand, MOLS, STARTERS, W, H, EL, CYCLE, CHALLENGES, DAILIES, CHAPTERS, XANTHINES, ISOMERS, BADGES, ROUNDS, STORE_KEY,
     fmt, load, analyse, dbeOf, bondLength, neighbours, remove, inside, freeAngle, place, toSmiles, toCdxml, cleanUp, drawMarkup, thumb,
     applyMoves, graphKey, targetOf, challengeKey, formulaDelta, stars,
     localDate, dailyNumber, dailyPick, isLevel, nextStreak, dailyShare,

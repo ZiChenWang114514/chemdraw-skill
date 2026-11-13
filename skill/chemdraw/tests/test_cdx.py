@@ -974,3 +974,311 @@ def test_build_applies_a_style_preset(tmp_path):
     assert root.get('BondLength') == '10.8'
     with pytest.raises(ValueError, match='acs1996'):
         acs_builder.build_from_spec({**spec, 'style': 'no-such-journal'})
+
+
+def test_draw_supports_name_and_smiles_shorthand_without_a_brief_file(tmp_path):
+    out = str(tmp_path / 'aspirin.cdxml')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['draw', '--name', 'aspirin', out, '--style', 'nature', '--render']) == 0
+    assert worker.call_args.args == ('draw_figure', {
+        'brief': {'kind': 'molecule', 'species': [{'id': 's1', 'name': 'aspirin'}], 'style': 'nature'},
+        'render': True,
+        'output_path': out,
+    })
+
+    # Output path before --name also works, as does repeating --smiles/--label/--abbreviate/--columns.
+    out2 = str(tmp_path / 'grid.cdxml')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main([
+            'draw', out2, '--smiles', 'COc1ccccc1', '--name', 'benzene',
+            '--label', '1', '--label', '2', '--abbreviate', 'OMe,OTBS', '--columns', '2', '--title', 'Panel',
+        ]) == 0
+    assert worker.call_args.args[1]['brief'] == {
+        'kind': 'molecule',
+        'species': [
+            {'id': 's1', 'smiles': 'COc1ccccc1', 'label': '1', 'abbreviate': ['OMe', 'OTBS']},
+            {'id': 's2', 'name': 'benzene', 'label': '2', 'abbreviate': ['OMe', 'OTBS']},
+        ],
+        'title': 'Panel',
+        'columns': 2,
+    }
+    assert worker.call_args.args[1]['output_path'] == out2
+
+
+def test_draw_shorthand_validation_errors(tmp_path, capsys):
+    assert 'brief JSON file' in _message(capsys, 'draw')
+    brief = tmp_path / 'b.json'
+    brief.write_text('{}', encoding='utf-8')
+    assert 'cannot combine' in _message(capsys, 'draw', str(brief), str(tmp_path / 'o.cdxml'), '--name', 'aspirin')
+    assert 'cannot combine' in _message(capsys, 'draw', str(brief), '--name', 'aspirin')
+    assert '--label' in _message(capsys, 'draw', '--smiles', 'CCO', '--label', '1', '--label', '2')
+    assert 'shorthand' in _message(capsys, 'draw', str(brief), '--label', '1')
+
+
+def test_draw_number_and_properties_flags_and_arg_order(tmp_path, capsys):
+    out = str(tmp_path / 'panel.cdxml')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['draw', '--smiles', 'CCO', '--smiles', 'c1ccccc1', '--number', out, '--properties']) == 0
+    assert worker.call_args.args[1]['brief'] == {
+        'kind': 'molecule',
+        'species': [{'id': 's1', 'smiles': 'CCO'}, {'id': 's2', 'smiles': 'c1ccccc1'}],
+        'numbering': 'arabic',
+        'properties': True,
+    }
+    assert worker.call_args.args[1]['output_path'] == out
+
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['draw', '--smiles', 'CCO', out, '--number', 'roman']) == 0
+    assert worker.call_args.args[1]['brief']['numbering'] == 'roman'
+
+    brief = tmp_path / 'scheme.json'
+    brief.write_text('{"kind": "scheme", "species": [], "steps": []}', encoding='utf-8')
+    assert '--number' in _message(capsys, 'draw', str(brief), '--number')
+
+
+def test_regen_signatures_check_reports_clean_and_stale_states(monkeypatch, capsys):
+    monkeypatch.setattr(cdx, 'expected_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, 'signatures_stale', lambda: [])
+    assert cdx.main(['regen-signatures', '--check']) == 0
+    assert json.loads(capsys.readouterr().out) == {'signatures_current': True, 'stale': []}
+
+    monkeypatch.setattr(cdx, 'signatures_stale', lambda: ['references/mcp-signatures.md'])
+    assert cdx.main(['regen-signatures', '--check']) == 1
+    assert json.loads(capsys.readouterr().out) == {
+        'signatures_current': False,
+        'stale': ['references/mcp-signatures.md'],
+    }
+
+
+def test_call_arg_key_value_pairs_and_value_coercion(tmp_path):
+    base = tmp_path / 'base.json'
+    base.write_text('{"timeout_seconds": 30, "query": "old"}', encoding='utf-8')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker:
+        assert cdx.main([
+            'call', 'resolve_name', '--args', str(base),
+            '-a', 'query=534-17-8',
+            '-a', 'use_network=false',
+            '-a', 'retries=3',
+            '-a', 'ratio=0.75',
+            '-a', 'tags=["a","b"]',
+        ]) == 0
+    assert worker.call_args.args == ('resolve_name', {
+        'timeout_seconds': 30,
+        'query': '534-17-8',
+        'use_network': False,
+        'retries': 3,
+        'ratio': 0.75,
+        'tags': ['a', 'b'],
+    })
+
+    with mock.patch.object(cdx, '_worker') as worker, pytest.raises(SystemExit) as bad:
+        cdx.main(['call', 'resolve_name', '-a', 'missing_equals'])
+    assert 'KEY=VALUE' in str(bad.value) and not worker.called
+
+
+def test_emit_deduplicates_inline_outputs_and_enriches_large_summary(tmp_path, capsys):
+    inner = {
+        'ok': True,
+        'output_path': '/tmp/rxn.cdxml',
+        'native': {'status': 'rendered', 'png_path': '/tmp/rxn.png'},
+        'checks_passed': True,
+        'readback': {'status': 'matched'},
+        'warnings': ['Step 1 has no conditions'],
+    }
+    inline_env = {'ok': True, 'result': inner, 'outputs': dict(inner)}
+    with mock.patch.object(cdx, '_worker', return_value=inline_env):
+        assert cdx.main(['call', 'draw_figure', '--json', '{}']) == 0
+    shown = json.loads(capsys.readouterr().out)
+    assert 'outputs' not in shown and shown['result'] == inner
+
+    large = {
+        'ok': True,
+        'result': {**inner, 'raw_response': 'x' * 20000},
+        'outputs': {**inner, 'raw_response': 'x' * 20000},
+    }
+    ev = tmp_path / 'large.json'
+    with mock.patch.object(cdx, '_worker', return_value=large):
+        assert cdx.main(['call', 'draw_figure', '--json', '{}', '--out', str(ev)]) == 0
+    summary = json.loads(capsys.readouterr().out)
+    assert summary['ok'] is True
+    assert summary['output_path'] == '/tmp/rxn.cdxml'
+    assert summary['png_path'] == '/tmp/rxn.png'
+    assert summary['checks_passed'] is True
+    assert summary['readback'] == 'matched'
+    assert summary['warnings_preview'] == ['Step 1 has no conditions']
+    assert 'raw_response' not in json.dumps(summary)
+    assert json.loads(ev.read_text(encoding='utf-8')) == large
+
+    # --summary forces compact summary even when inline payload is small; --full forces full inline output.
+    with mock.patch.object(cdx, '_worker', return_value=inline_env):
+        assert cdx.main(['call', 'draw_figure', '--json', '{}', '--summary']) == 0
+    compact = json.loads(capsys.readouterr().out)
+    assert compact['output_path'] == '/tmp/rxn.cdxml' and 'result' not in compact
+
+    with mock.patch.object(cdx, '_worker', return_value=large):
+        assert cdx.main(['call', 'draw_figure', '--json', '{}', '--full']) == 0
+    full_out = json.loads(capsys.readouterr().out)
+    assert full_out['result']['raw_response'] == 'x' * 20000
+
+
+def test_draw_reaction_and_compact_shorthands(tmp_path):
+    out = str(tmp_path / 'route.cdxml')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main([
+            'draw',
+            '--reaction', 'CC(=O)O.CCO>O=S(=O)(O)O>CCOC(C)=O',
+            '--reaction', 'CCOC(C)=O>NaOH>CC(=O)O',
+            '--above', 'rt, 2 h', '--above', 'H2O, reflux; then H+',
+            '--yield', '88%', '--yield', '95%',
+            '--layout', 'sequential', '--style', 'rsc',
+            out,
+        ]) == 0
+    tool, kwargs = worker.call_args.args
+    assert tool == 'draw_figure'
+    assert kwargs['output_path'] == out
+    brief = kwargs['brief']
+    assert brief['kind'] == 'scheme' and brief['layout'] == 'sequential' and brief['style'] == 'rsc'
+    # Species are deduplicated across the two steps (CC(=O)O, CCO, CCOC(C)=O, NaOH? Wait: NaOH is agent, 3 unique species).
+    assert len(brief['species']) == 3
+    assert brief['steps'][0]['substrates'] == ['s1', 's2']
+    assert brief['steps'][0]['products'] == ['s3']
+    assert brief['steps'][0]['above'] == ['H2SO4', 'rt, 2 h']
+    assert brief['steps'][0]['yield'] == '88%'
+    assert brief['steps'][1]['substrates'] == ['s3']
+    assert brief['steps'][1]['products'] == ['s1']
+    assert brief['steps'][1]['above'] == ['NaOH', 'H2O, reflux', 'then H+']
+    assert brief['steps'][1]['yield'] == '95%'
+
+    # Dative bonds (`->`) inside SMILES do not break reaction arrow splitting.
+    dative_out = str(tmp_path / 'dative.cdxml')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['draw', '--reaction', '[NH3]->[BH3]>>[NH3+][BH3-]', dative_out]) == 0
+    assert worker.call_args.args[1]['brief']['species'][0]['smiles'] == '[NH3]->[BH3]'
+
+    # --compact routes to render_scheme and reads a DSL file if given.
+    dsl = tmp_path / 'scheme.dsl'
+    dsl.write_text('A: {CCO}\nB: {CC=O}\nA --> B\n', encoding='utf-8')
+    compact_out = str(tmp_path / 'compact.cdxml')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['draw', '--compact', str(dsl), compact_out]) == 0
+    assert worker.call_args.args == ('render_scheme', {
+        'compact_text': 'A: {CCO}\nB: {CC=O}\nA --> B\n',
+        'output_path': compact_out,
+    })
+
+
+def test_resolve_inspect_and_report_shortcuts(tmp_path, capsys):
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'smiles': 'CCO'}}) as worker:
+        assert cdx.main(['resolve', 'ethanol', '--offline']) == 0
+    assert worker.call_args.args == ('resolve_name', {'query': 'ethanol', 'use_network': False})
+    capsys.readouterr()
+
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'smiles': 'CCO'}}) as worker:
+        assert cdx.main(['resolve', 'ethanol', 'methanol']) == 0
+    batch = json.loads(capsys.readouterr().out)
+    assert batch['ok'] is True and batch['count'] == 2 and len(batch['results']) == 2
+
+    cdxml = tmp_path / 'rxn.cdxml'
+    cdxml.write_text('<CDXML><page><scheme><step/></scheme></page></CDXML>', encoding='utf-8')
+    def fake_inspect(tool, kwargs, *rest):
+        if tool == 'export_structures':
+            return {'ok': True, 'result': {'ok': True, 'structures': [{'smiles': 'CCO'}]}}
+        if tool == 'parse_scheme':
+            assert 'output_path' in kwargs and not str(kwargs['output_path']).startswith(str(tmp_path))
+            Path(kwargs['output_path']).write_text(
+                json.dumps({'ok': True, 'topology': 'linear', 'steps': [{'id': '1'}]}),
+                encoding='utf-8',
+            )
+            return {'ok': True, 'result': {'ok': True, 'output_path': kwargs['output_path'], 'size': 42}}
+        if tool == 'parse_analysis_file':
+            assert 'output_path' in kwargs and not str(kwargs['output_path']).startswith(str(tmp_path))
+            Path(kwargs['output_path']).write_text(
+                json.dumps({'ok': True, 'source_format': 'pdf', 'peaks': [{'rt': 1.02}]}),
+                encoding='utf-8',
+            )
+            return {'ok': True, 'result': {'ok': True, 'output_path': kwargs['output_path'], 'size': 42}}
+        raise AssertionError(tool)
+    with mock.patch.object(cdx, '_worker', side_effect=fake_inspect):
+        assert cdx.main(['inspect', str(cdxml)]) == 0
+    insp = json.loads(capsys.readouterr().out)
+    assert insp['result']['scheme']['topology'] == 'linear'
+    assert not list(tmp_path.glob('*_parsed.json'))
+
+    pdf_file = tmp_path / 'lcms.pdf'
+    pdf_file.write_bytes(b'%PDF-1.4\n')
+    with mock.patch.object(cdx, '_worker', side_effect=fake_inspect):
+        assert cdx.main(['inspect', str(pdf_file)]) == 0
+    pdf_insp = json.loads(capsys.readouterr().out)
+    assert pdf_insp['result']['source_format'] == 'pdf'
+    assert pdf_insp['result']['peaks'] == [{'rt': 1.02}]
+    assert not list(tmp_path.glob('*_parsed.json'))
+
+    with pytest.raises(SystemExit, match='does not exist'):
+        cdx.main(['inspect', str(tmp_path / 'missing.cdxml')])
+
+    # report --balance & --hrms & --map
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'balanced': True}}) as worker:
+        assert cdx.main(['report', '--balance', 'CCO.CC(=O)O>>CCOC(C)=O', '--scale-mmol', '2.5']) == 0
+    assert worker.call_args.args == ('check_reaction_balance', {
+        'reaction': 'CCO.CC(=O)O>>CCOC(C)=O',
+        'options': {'scale_mmol': 2.5},
+    })
+
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['report', 'CCO', '--hrms', '--adduct', '[M+Na]+', '--found', '69.0311']) == 0
+    assert worker.call_args.args == ('hrms_line', {
+        'molecules': [{'smiles': 'CCO', 'adduct': '[M+Na]+', 'found_mz': 69.0311}],
+    })
+
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True}}) as worker:
+        assert cdx.main(['report', '--map', str(cdxml), '--method', 'mcs', '--classify']) == 0
+    assert worker.call_args.args == ('map_reaction_atoms', {
+        'reaction': {'cdxml': str(cdxml.resolve())},
+        'options': {'method': 'mcs', 'classify': True},
+    })
+
+
+def test_fuzzy_suggestions_next_free_path_and_doctor_log_and_text(tmp_path, monkeypatch, capsys):
+    # Unknown style prints 1-line SystemExit with suggestions instead of a traceback.
+    style_msg = _message(capsys, 'styles', 'acs1995')
+    assert 'Did you mean:' in style_msg and 'acs1996' in style_msg
+
+    # Unknown tool keeps doctor hint and adds close matches when available.
+    tool_msg = _message(capsys, 'call', 'draw_figur')
+    assert 'doctor' in tool_msg and 'draw_figure' in tool_msg
+
+    # Overwrite refusal reports the next available file path.
+    existing = tmp_path / 'out.json'
+    existing.write_text('{}', encoding='utf-8')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}):
+        ev_msg = _message(capsys, 'call', 'modify_molecule', '--json', '{}', '--out', str(existing))
+    assert 'out_2.json' in ev_msg
+
+    # doctor --log finds the requested log id and `latest`.
+    from cdxml_toolkit.mcp_runtime import tool_worker
+    log_dir = tmp_path / 'logs'
+    log_dir.mkdir()
+    older = log_dir / 'worker-abc111.log'
+    newer = log_dir / 'worker-def222.log'
+    older.write_text('old failure traceback\n', encoding='utf-8')
+    newer.write_text('newest failure traceback\n', encoding='utf-8')
+    os.utime(older, (1000, 1000))
+    os.utime(newer, (2000, 2000))
+    monkeypatch.setattr(tool_worker, 'worker_log_dir', lambda: log_dir)
+    monkeypatch.setenv('LOCALAPPDATA', str(tmp_path))
+
+    assert cdx.main(['doctor', '--log', 'abc111']) == 0
+    assert 'old failure traceback' in capsys.readouterr().out
+    assert cdx.main(['doctor', '--log', 'latest']) == 0
+    assert 'newest failure traceback' in capsys.readouterr().out
+
+    # doctor --text prints a readable summary.
+    monkeypatch.setattr(cdx, 'expected_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, '_signatures_current', lambda: True)
+    monkeypatch.setattr(cdx, 'catalog_stale', lambda: [])
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True, 'result': {'ok': True, 'outputs': {'capabilities': {'chemdraw': {'status': 'available'}}}}}):
+        assert cdx.main(['doctor', '--text']) == 0
+    txt = capsys.readouterr().out
+    assert 'ChemDraw Skill' in txt and 'healthy=True' in txt and 'chemdraw=available' in txt

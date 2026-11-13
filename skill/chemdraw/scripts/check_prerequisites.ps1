@@ -229,7 +229,32 @@ if ($Python) {
         $pythonProblem = "The explicit Python path does not exist: $candidate"
     }
 } else {
-    $pythonPath = Get-CommandPath 'python'
+    $skillRoot = Split-Path $PSScriptRoot -Parent
+    $runtimeCandidates = [Collections.Generic.List[string]]::new()
+    if ($env:CHEMDRAW_MCP_PYTHON) {
+        $runtimeCandidates.Add($env:CHEMDRAW_MCP_PYTHON)
+    }
+    $localConfig = Join-Path $skillRoot 'runtime.local.json'
+    if (Test-Path -LiteralPath $localConfig -PathType Leaf) {
+        try {
+            $localPython = [string](Get-Content -LiteralPath $localConfig -Raw | ConvertFrom-Json).runtime_python
+            if ($localPython) { $runtimeCandidates.Add($localPython) }
+        } catch { }
+    }
+    $runtimeCandidates.Add((Join-Path (Split-Path $skillRoot -Parent) 'chemdraw-venv\Scripts\python.exe'))
+    $localApp = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { [Environment]::GetFolderPath('LocalApplicationData') }
+    if ($localApp) {
+        $runtimeCandidates.Add((Join-Path $localApp 'chemdraw-skill\venv\Scripts\python.exe'))
+    }
+    foreach ($candidate in $runtimeCandidates) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+            $pythonPath = [IO.Path]::GetFullPath($candidate)
+            break
+        }
+    }
+    if (-not $pythonPath) {
+        $pythonPath = Get-CommandPath 'python'
+    }
     if (-not $pythonPath) {
         $pythonProblem = 'Python was not found. Pass -Python with the cdxml environment python.exe.'
     }

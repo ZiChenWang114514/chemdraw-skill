@@ -35,7 +35,7 @@
 
 <table>
   <tr>
-    <td colspan="3" align="center">
+    <td colspan="4" align="center">
       <a href="#journal-and-group-house-styles"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="A published radical-probe scheme redrawn in the Studer group house style, new bonds in red"></a>
       <br><b>28 journal and group house styles</b><br><sub>Measured from 179 published figures; 23 figure types, 47 literature replicas</sub>
     </td>
@@ -95,6 +95,9 @@ Every card is a native ChemDraw render of an editable file in this repository. C
       <br><b>Spectra and plots</b><br><sub>Processed 1D NMR and numerical data as curves</sub>
     </td>
   </tr>
+</table>
+
+<table>
   <tr>
     <td width="50%" align="center" valign="top">
       <a href="#prediction-and-analysis-engines"><img src="assets/readme/engines/retro/route-aizynthfinder.png" alt="A predicted two-step route drawn in ChemDraw"></a>
@@ -105,7 +108,7 @@ Every card is a native ChemDraw render of an editable file in this repository. C
       <br><b>Predicted against measured NMR</b><br><sub>MagNET and NMRNet++ on a real spectrum</sub>
     </td>
   </tr>
-  </table>
+</table>
 
 ## Quick start
 
@@ -149,6 +152,26 @@ Use the ChemDraw Skill to draw aspirin as editable CDXML, render it natively and
 To try ChemDraw's own reaction calculator instead of a drawing, run `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"` ([details](#reaction-calculator-and-chemistry-reports)).
 
 <details>
+<summary><b>Everyday <code>cdx.py</code> commands (draw, style, calc, Office)</b></summary>
+<br>
+
+```bash
+python <skill>/scripts/cdx.py resolve aspirin                             # resolve to SMILES, formula, MW (or --smiles)
+python <skill>/scripts/cdx.py draw --name aspirin aspirin.cdxml --style acs_jacs --render
+python <skill>/scripts/cdx.py draw --smiles "c1ccccc1,CC(=O)O" grid.cdxml --columns 2 --number --properties mw,formula --render
+python <skill>/scripts/cdx.py draw --reaction "CC(=O)O.CCO>O=S(=O)(O)O>CCOC(C)=O" --yield "88%" rxn.cdxml --render
+python <skill>/scripts/cdx.py inspect rxn.cdxml                          # list structures, formulas, MW, scheme topology
+python <skill>/scripts/cdx.py report "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1" --balance
+python <skill>/scripts/cdx.py styles                                    # list 16 presets + 28 house styles
+python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
+python <skill>/scripts/cdx.py ocsr figure_crop.png                    # structure recognition (or decimer)
+python <skill>/scripts/cdx.py office-edit deck.pptx                    # embed/update live ChemDraw OLE
+python scripts/install.py --runtime-only --apply                       # upgrade shared runtime only
+```
+
+</details>
+
+<details>
 <summary><b>Choose agents and install locations</b></summary>
 <br>
 
@@ -174,9 +197,12 @@ Agents call one entry point, which any Python can start; it re-launches itself i
 
 ```bash
 python <skill>/scripts/cdx.py tools                                         # the registered tools
-python <skill>/scripts/cdx.py call resolve_name --args query.json           # query.json: {"query": "aspirin"}
+python <skill>/scripts/cdx.py resolve aspirin                               # resolve a name/SMILES/CAS in one shot
+python <skill>/scripts/cdx.py draw --name aspirin aspirin.cdxml --render    # single molecule in one command
+python <skill>/scripts/cdx.py call resolve_name -a query=aspirin            # inline key=value tool arguments
 python <skill>/scripts/cdx.py render figure.cdxml                           # native 300 dpi PNG
 python <skill>/scripts/cdx.py decimer crop.png                              # structure recognition
+python <skill>/scripts/cdx.py doctor --text                                 # capability check + recent run log (--log latest)
 ```
 
 </details>
@@ -228,6 +254,8 @@ When the structures are known and the figure does not exist yet, ask for it in a
 ```bash
 python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 ```
+
+For quick single-step schemes, you can skip the JSON file altogether with `cdx.py draw --reaction "A.B>reagent>C" out.cdxml` (add `--compact` for tight multi-step or narrow-column layouts).
 
 ```json
 {
@@ -456,12 +484,12 @@ These tools start from structures you supply (SMILES, MOL or SDF, CDXML) and do 
 | --- | --- | --- |
 | How much of each reagent and solvent to weigh | `cdx.py calc`, `stoichiometry_grid` | ChemDraw's own stoichiometry grid under the reaction, and its numbers as JSON |
 | An SI materials table for many reactions | `si_materials_tables` | Markdown, CSV, printable HTML or JSON, up to 100 reactions |
-| HRMS and characterization text | `hrms_line`, `characterization_text` | `HRMS (ESI) m/z calcd for ...` and ACS-order paragraphs |
+| HRMS and characterization text | `cdx.py report --hrms`, `hrms_line`, `characterization_text` | `HRMS (ESI) m/z calcd for ...` and ACS-order paragraphs |
 | Overall yield and PMI of a route | `route_summary` | One table for a linear or convergent route |
-| Which atom becomes which | `map_reaction_atoms` | Atom maps, bond changes, reaction-centre SMARTS, reaction type |
-| Formula, mass, adducts, logP | `molecule_report` | A property sheet |
-| Does the reaction balance? | `check_reaction_balance` | The missing by-product and suggested coefficients |
-| Every structure in a file | `export_structures` | SMILES, InChI, CSV or SDF |
+| Which atom becomes which | `cdx.py report --map`, `map_reaction_atoms` | Atom maps, bond changes, reaction-centre SMARTS, reaction type |
+| Formula, mass, adducts, logP | `cdx.py report`, `molecule_report` | A property sheet |
+| Does the reaction balance? | `cdx.py report --balance`, `check_reaction_balance` | The missing by-product and suggested coefficients |
+| Every structure in a file | `cdx.py inspect`, `export_structures` | Structures, formulas, MW, scheme topology, SMILES, InChI, CSV or SDF |
 
 ### ChemDraw's reaction calculator
 
@@ -761,7 +789,9 @@ For KL-CC-002 no engine proposed the recorded last step. AiZynthFinder's top rou
 
 > **You say:** "Predict the 1H and 13C shifts of caffeine with both NMR models and compare them with the measured spectrum."
 
-The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bmse000206`) as an editable ChemDraw curve with each predicted shift drawn as a line and the measured peaks as ticks. `MagNET` averages shifts across a Boltzmann-weighted 3D conformer ensemble (298.15 K) with Karplus <sup>3</sup><i>J</i><sub>HH</sub> coupling estimation, and `nmr.compare_shifts` provides Hungarian 1-to-1 candidate peak matching (`model_assisted_candidate_assignment`) with outlier warnings. To measure accuracy systematically, both engines were run on **20 assigned organic molecules and natural products** from `nmrshiftdb2` with paired raw <sup>1</sup>H and <sup>13</sup>C Bruker spectra (13 in CDCl<sub>3</sub>, 7 in DMSO-<i>d</i><sub>6</sub>; 215 non-exchangeable C–H <sup>1</sup>H topological groups and 323 <sup>13</sup>C topological groups; exchangeable OH, NH and SH protons excluded on both sides, and degenerate keto–enol tautomer symmetry applied on curcumin). Values below are per-molecule macro mean absolute errors in ppm.
+The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bmse000206`) as an editable ChemDraw curve with each predicted shift drawn as a line and the measured peaks as ticks. `MagNET` averages shifts across a Boltzmann-weighted 3D conformer ensemble (298.15 K) with Karplus <sup>3</sup><i>J</i><sub>HH</sub> coupling estimation, and `nmr.compare_shifts` provides Hungarian 1-to-1 candidate peak matching (`model_assisted_candidate_assignment`) with outlier warnings.
+
+To measure accuracy systematically, both engines were run on **20 assigned organic molecules and natural products** from `nmrshiftdb2` with paired raw <sup>1</sup>H and <sup>13</sup>C Bruker spectra (13 in CDCl<sub>3</sub>, 7 in DMSO-<i>d</i><sub>6</sub>; 215 non-exchangeable C–H <sup>1</sup>H topological groups and 323 <sup>13</sup>C topological groups; exchangeable OH, NH and SH protons excluded on both sides, and degenerate keto–enol tautomer symmetry applied on curcumin). Values below are per-molecule macro mean absolute errors in ppm.
 
 <img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="Caffeine 1H and 13C spectra with MagNET and NMRNet++ predictions marked">
 
@@ -804,7 +834,9 @@ The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bms
 
 </details>
 
-**Training-set overlap note.** All 20 records originate from `nmrshiftdb2`, which forms part of NMRNet++'s supervised 5-fold cross-validation training corpus (~80% in fold 0's training split), and 7 of the 20 also pass its ShiftDB-Lit filter (where NMRNet++ averages 0.68 ppm on <sup>13</sup>C vs 1.39 ppm on the remaining 13 molecules). MagNET was trained strictly on synthetic AIMNet2/GIAO DFT shieldings with zero experimental NMR spectra in training, so its 0.21 ppm (<sup>1</sup>H) and 2.89 ppm (<sup>13</sup>C) errors represent a genuine out-of-training experimental test, whereas NMRNet++'s 0.11 and 1.14 ppm reflect training-corpus overlap and should be read as an in-corpus ceiling. Runs took 22 to 60 s per molecule (mean 29 s) for MagNET and 24 to 62 s (mean 33 s) for NMRNet++ on GPU. Predicted values never go into an experimental characterization line.
+**Training-set overlap note.** All 20 records originate from `nmrshiftdb2`, which forms part of NMRNet++'s supervised 5-fold cross-validation training corpus (~80% in fold 0's training split), and 7 of the 20 also pass its ShiftDB-Lit filter (where NMRNet++ averages 0.68 ppm on <sup>13</sup>C vs 1.39 ppm on the remaining 13 molecules).
+
+MagNET was trained strictly on synthetic AIMNet2/GIAO DFT shieldings with zero experimental NMR spectra in training, so its 0.21 ppm (<sup>1</sup>H) and 2.89 ppm (<sup>13</sup>C) errors represent a genuine out-of-training experimental test, whereas NMRNet++'s 0.11 and 1.14 ppm reflect training-corpus overlap and should be read as an in-corpus ceiling. Runs took 22 to 60 s per molecule (mean 29 s) for MagNET and 24 to 62 s (mean 33 s) for NMRNet++ on GPU. Predicted values never go into an experimental characterization line.
 
 **Install:** `nmr` (MagNET, 5.4 GB) and `nmr-pp` (NMRNet++, 2.8 GB; its weights are CC BY 4.0, and it takes no solvent). [20-molecule benchmark JSON](assets/readme/engines/nmr/benchmark20.json) · [Caffeine chart and data](assets/readme/engines/nmr/caffeine/)
 
@@ -816,7 +848,9 @@ The chart below plots BMRB's processed caffeine spectrum in D<sub>2</sub>O (`bms
 
 > **You say:** "Check this OpenLynx report against the plate map and tell me which wells contain the expected product."
 
-No engine is needed. The 24-well Waters report and plate map from the PyParse example dataset (Apache-2.0) were parsed in 11 s. The expected product was found in 24 of 24 wells: 21 as [M+H]<sup>+</sup>, two Boc-protected piperazines (B3, B5) as the [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> fragment, and the carboxylic acid in B11 as [M−H]<sup>−</sup>. Against PyParse's own output the retention time and purity agree to 0.01 in 23 wells. The exception, B6, is a matching choice: the toolkit takes the peak carrying the intact [M+H]<sup>+</sup> (92.9%), PyParse the peak of the fragment (7.1%). [match_plate.py](assets/readme/engines/lcms/match_plate.py) shows the rule. Beyond plate reports, the LCMS tools parse OpenLynx `.rpt`, Waters PDF and `.raw` directories, Shimadzu `.daml`, Agilent `report.txt` and open `mzML`/`mzXML`, with Cl/Br `M+2` isotope-envelope verification and internal-standard (`IS`) ratio tracking across timepoints.
+No engine is needed. The 24-well Waters report and plate map from the PyParse example dataset (Apache-2.0) were parsed in 11 s, finding the expected product in 24 of 24 wells: 21 as [M+H]<sup>+</sup>, two Boc-protected piperazines (B3, B5) as the [M+H−C<sub>4</sub>H<sub>8</sub>]<sup>+</sup> fragment, and the carboxylic acid in B11 as [M−H]<sup>−</sup>.
+
+Against PyParse's own output, retention time and purity agree to 0.01 in 23 wells. The exception, B6, is a matching choice: the toolkit takes the peak carrying the intact [M+H]<sup>+</sup> (92.9%), while PyParse takes the fragment peak (7.1%); [match_plate.py](assets/readme/engines/lcms/match_plate.py) shows the rule. Beyond plate reports, the LCMS tools parse OpenLynx `.rpt`, Waters PDF and `.raw` directories, Shimadzu `.daml`, Agilent `report.txt` and open `mzML`/`mzXML`, with Cl/Br `M+2` isotope-envelope verification and internal-standard (`IS`) ratio tracking across timepoints.
 
 <img src="assets/readme/engines/lcms/panel/page-001.png" alt="Four wells of the plate with their expected mass, found ion, retention time, purity and PyParse values">
 

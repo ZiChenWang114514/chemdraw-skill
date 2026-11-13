@@ -111,15 +111,27 @@ document.querySelectorAll(".tabs[role=tablist]").forEach((list) => {
 const themeBtn = document.querySelector(".theme");
 if (themeBtn) {
   const root = document.documentElement;
+  const schemeMeta = document.querySelector('meta[name="color-scheme"]');
   const system = matchMedia("(prefers-color-scheme: dark)");
   const mode = () => root.dataset.theme || (system.matches ? "dark" : "light");
   const paint = () => {
-    themeBtn.dataset.mode = mode();
-    themeBtn.setAttribute("aria-pressed", mode() === "dark");
+    const current = mode();
+    themeBtn.dataset.mode = current;
+    themeBtn.setAttribute("aria-pressed", current === "dark");
+    if (schemeMeta) schemeMeta.content = root.dataset.theme ? current : "light dark";
   };
   themeBtn.addEventListener("click", () => {
     root.dataset.theme = mode() === "dark" ? "light" : "dark";
     try { localStorage.setItem("theme", root.dataset.theme); } catch { /* private mode: the choice just isn't kept */ }
+    paint();
+  });
+  window.addEventListener("storage", (event) => {
+    if (event.key !== "theme") return;
+    if (event.newValue === "dark" || event.newValue === "light") {
+      root.dataset.theme = event.newValue;
+    } else {
+      delete root.dataset.theme;
+    }
     paint();
   });
   system.addEventListener("change", paint);
@@ -449,6 +461,7 @@ if (shots.length && words && typeof HTMLDialogElement === "function") {
   const icon = (d) => `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${d}"/></svg>`;
   const box = document.createElement("dialog");
   box.className = "lightbox";
+  box.setAttribute("closedby", "closerequest");
   box.innerHTML = `
     <div class="lb-stage"><img alt="" draggable="false"></div>
     <div class="lb-bar">

@@ -130,8 +130,8 @@ def install_help():
     python = 'Scripts\\python.exe' if os.name == 'nt' else 'bin/python'
     venv = default_runtime_dir()
     return [
-        'Repository checkout: python scripts/install.py --runtime --apply '
-        '(add --agent/--destination to choose where the Skill is installed).',
+        'Repository checkout: python scripts/install.py --runtime-only --apply '
+        '(or add --agent auto --runtime --apply to also install or update Skill copies).',
         f'Skill folder only: python -m venv "{venv}", then '
         f'"{venv / python}" "{Path(__file__).resolve().parent / "install_runtime.py"}" '
         '--extras publication scientific office analysis image chemscript',
@@ -193,12 +193,42 @@ def _chemscript_env(env=None):
     return env
 
 
+def _suggest(name, choices):
+    """Case-insensitive substring + fuzzy suggestions (up to 6 unique names)."""
+    options = [str(c) for c in choices if str(c).strip()]
+    needle = str(name or '').strip().lower()
+    if not options or not needle:
+        return []
+    sub_hits = [c for c in options if needle in c.lower() or c.lower() in needle]
+    lower_map = {}
+    for opt in options:
+        lower_map.setdefault(opt.lower(), opt)
+    close_hits = [lower_map[m] for m in difflib.get_close_matches(needle, list(lower_map), n=5, cutoff=0.5)]
+    return list(dict.fromkeys([*sub_hits, *close_hits]))[:6]
+
+
+def _next_free_path(path):
+    """Return the first non-existing candidate next to an existing file or directory."""
+    candidate = Path(path)
+    if not candidate.exists():
+        return candidate
+    index = 2
+    while True:
+        alt = candidate.with_name(f'{candidate.stem}_{index}{candidate.suffix}')
+        if not alt.exists():
+            return alt
+        index += 1
+
+
 def _worker(tool, kwargs, args=()):
     from cdxml_toolkit.mcp_runtime.mcp_server import _run_worker
     from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
-    spec = build_registry().get(tool)
+    reg = build_registry()
+    spec = reg.get(tool)
     if spec is None:
-        raise SystemExit(f'Unknown tool {tool!r}; run `cdx.py tools`. If the Skill documents it, the runtime '
+        hits = _suggest(tool, sorted(reg))
+        hint = f' Did you mean: {", ".join(hits)}?' if hits else ''
+        raise SystemExit(f'Unknown tool {tool!r};{hint} run `cdx.py tools`. If the Skill documents it, the runtime '
                          'may be older than the Skill: `cdx.py doctor` reports runtime_matches_skill.')
     return _run_worker(tool, list(args), kwargs, timeout_seconds=spec.timeout_seconds)
 
@@ -219,55 +249,167 @@ def _layers(result):
 
 
 def _error_id(result):
-    """{'error_id': ...} when the worker logged the failure (read worker-<id>.log, see `doctor --paths`)."""
+    """{'error_id': ..., 'log_hint': ...} when the worker logged the failure."""
     for layer in _layers(result):
         error, meta = layer.get('error'), layer.get('metadata')
         found = (error.get('id') if isinstance(error, dict) else None) or \
             (meta.get('error_id') if isinstance(meta, dict) else None)
         if found:
-            return {'error_id': found}
+            return {'error_id': found, 'log_hint': f'cdx.py doctor --log {found}'}
     return {}
+
+
+def _scalar_str(val, limit=300):
+    return isinstance(val, str) and len(val) <= limit
 
 
 def _summary(tool, result, path=None):
     layers = _layers(result)
-    failed = any(x.get('ok') is False or x.get('error') for x in layers)
+    failed = any(x.get('ok') is False or x.get('error') or x.get('errors') for x in layers)
     errors = [x.get('error') for x in layers if x.get('error')]
-    warnings = sum(len(x['warnings']) if isinstance(x.get('warnings'), list) else int(bool(x.get('warnings')))
-                   for x in layers)
+    if not errors:
+        flat_errs = []
+        for layer in layers:
+            errs = layer.get('errors')
+            if isinstance(errs, (list, tuple)) and errs:
+                flat_errs.extend(str(e) for e in errs)
+        if flat_errs:
+            errors = ['; '.join(flat_errs[:3])]
+    warning_texts = []
+    warnings = 0
+    for layer in layers:
+        w = layer.get('warnings')
+        if isinstance(w, list):
+            warnings += len(w)
+            for item in w:
+                s = str(item)
+                if s not in warning_texts:
+                    warning_texts.append(s)
+        elif w:
+            warnings += 1
+            s = str(w)
+            if s not in warning_texts:
+                warning_texts.append(s)
     out = {'ok': bool(layers) and layers[0].get('ok') is True and not failed, 'tool': tool,
            'warning_count': warnings}
     if errors:
         out['error'] = errors[-1]
+    if layers:
+        inner = layers[-1]
+        payload = inner.get('outputs') if isinstance(inner.get('outputs'), dict) else inner
+        for key in ('output_path', 'output_dir'):
+            if _scalar_str(payload.get(key)):
+                out[key] = payload[key]
+        if 'output_path' not in out:
+            for alt in ('output', 'cdxml'):
+                v = payload.get(alt)
+                if _scalar_str(v) and not v.lstrip().startswith('<'):
+                    out['output_path'] = v
+                    break
+        png_path = payload.get('png_path')
+        if not _scalar_str(png_path) and isinstance(payload.get('native'), dict):
+            png_path = payload['native'].get('png_path')
+        if _scalar_str(png_path):
+            out['png_path'] = png_path
+        if isinstance(payload.get('pages'), list):
+            out['page_count'] = len(payload['pages'])
+        if 'checks_passed' in payload:
+            out['checks_passed'] = payload['checks_passed']
+        if isinstance(payload.get('readback'), dict) and 'status' in payload['readback']:
+            out['readback'] = payload['readback']['status']
+        if _scalar_str(payload.get('smiles')):
+            out['smiles'] = payload['smiles']
+        if isinstance(payload.get('comparison'), dict) and _scalar_str(payload['comparison'].get('agreed_smiles')):
+            out['agreed_smiles'] = payload['comparison']['agreed_smiles']
+        for key in ('formula', 'mw', 'balanced'):
+            v = payload.get(key)
+            if isinstance(v, (bool, int, float)) or _scalar_str(v, 80):
+                out[key] = v
+        if isinstance(payload.get('structures'), list):
+            out['structure_count'] = len(payload['structures'])
+    if warning_texts:
+        out['warnings_preview'] = [w[:200] for w in warning_texts[:5]]
     out.update(_error_id(result))
     if path:
         out['evidence'] = str(path)
     return out
 
 
-def _emit(tool, result, out_path=None):
-    text = json.dumps(result, ensure_ascii=False, indent=2)
-    if out_path is None and len(text) <= SUMMARY_LIMIT:
-        print(text)
+def _inline_payload(result):
+    """Drop redundant top-level `outputs` copy when printing inline to stdout."""
+    if not isinstance(result, dict) or 'result' not in result or 'outputs' not in result:
+        return result
+    res_val = result.get('result')
+    out_val = result.get('outputs')
+    dup = (out_val == res_val)
+    if not dup and isinstance(res_val, str):
+        try:
+            dup = (json.loads(res_val) == out_val)
+        except ValueError:
+            dup = False
+    if dup:
+        return {k: v for k, v in result.items() if k != 'outputs'}
+    return result
+
+
+def _emit(tool, result, out_path=None, *, full=False, summary_only=False):
+    full_text = json.dumps(result, ensure_ascii=False, indent=2)
+    inline_text = json.dumps(_inline_payload(result), ensure_ascii=False, indent=2)
+    if out_path is not None:
+        target = Path(out_path).resolve()
+        if target.exists():
+            raise SystemExit(f'Refusing to overwrite existing evidence file {target} '
+                             f'(next available: {_next_free_path(target)})')
+        target.write_text(full_text, encoding='utf-8')
+        if full:
+            print(inline_text)
+            return 0 if _summary(tool, result)['ok'] else 1
+        summary = _summary(tool, result, target)
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0 if summary['ok'] else 1
+    if not summary_only and (full or len(inline_text) <= SUMMARY_LIMIT):
+        print(inline_text)
         return 0 if _summary(tool, result)['ok'] else 1
-    if out_path is None:
+    evidence = None
+    if len(inline_text) > SUMMARY_LIMIT:
         root = Path(tempfile.gettempdir()) / 'chemdraw-cdx'
         root.mkdir(exist_ok=True)
-        out_path = root / f'{tool}-{time.strftime("%Y%m%d-%H%M%S")}-{os.getpid()}.json'
-    target = Path(out_path).resolve()
-    if target.exists():
-        raise SystemExit(f'Refusing to overwrite existing evidence file {target}')
-    target.write_text(text, encoding='utf-8')
-    summary = _summary(tool, result, target)
+        evidence = (root / f'{tool}-{time.strftime("%Y%m%d-%H%M%S")}-{os.getpid()}.json').resolve()
+        if evidence.exists():
+            evidence = _next_free_path(evidence)
+        evidence.write_text(full_text, encoding='utf-8')
+    summary = _summary(tool, result, evidence)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0 if summary['ok'] else 1
 
 
+def _parse_cli_value(raw):
+    """Coerce --arg VALUE without corrupting SMILES, formulas, or CAS numbers."""
+    s = raw.strip()
+    if s == 'true':
+        return True
+    if s == 'false':
+        return False
+    if s == 'null':
+        return None
+    if re.fullmatch(r'-?(?:0|[1-9]\d*)', s):
+        return int(s)
+    if re.fullmatch(r'-?(?:0|[1-9]\d*)\.\d+', s):
+        return float(s)
+    if (s.startswith('{') and s.endswith('}')) or (s.startswith('[') and s.endswith(']')) \
+            or (s.startswith('"') and s.endswith('"')):
+        try:
+            return json.loads(s)
+        except ValueError as exc:
+            raise SystemExit(f'Invalid JSON in --arg value {raw!r}: {exc}') from None
+    return raw
+
+
 def _load_args(ns):
-    if ns.json and ns.args:
+    if getattr(ns, 'json', None) and getattr(ns, 'args', None):
         raise SystemExit('Use either --json or --args, not both')
     # Either flag takes inline JSON, '-' for stdin, or a JSON file; agents mix them up and the intent is never unclear.
-    given = (ns.args or ns.json or '{}').lstrip('\ufeff').strip()
+    given = (getattr(ns, 'args', None) or getattr(ns, 'json', None) or '{}').lstrip('\ufeff').strip()
     if given == '-':
         text = sys.stdin.read().lstrip('\ufeff')
     elif given.startswith(('{', '[')):
@@ -283,6 +425,11 @@ def _load_args(ns):
         raise SystemExit(f'{given!r} is not valid JSON: {exc}') from None
     if not isinstance(value, dict):
         raise SystemExit('Tool arguments must be a JSON object')
+    for pair in getattr(ns, 'arg', None) or ():
+        if '=' not in pair or not pair.split('=', 1)[0].strip():
+            raise SystemExit(f'Invalid --arg {pair!r}; expected KEY=VALUE (e.g. -a query=aspirin)')
+        key, raw_val = pair.split('=', 1)
+        value[key.strip()] = _parse_cli_value(raw_val)
     return value
 
 
@@ -316,10 +463,7 @@ def cmd_sig(ns):
     for name in tools:
         m = re.search(rf'^### `{re.escape(name)}\(.*?(?=^### |^## |\Z)', text, re.S | re.M)
         if not m:
-            needle = name.lower()
-            sub_hits = [t for t in all_tools if needle in t.lower() or t.lower() in needle]
-            close_hits = difflib.get_close_matches(name, all_tools, n=5, cutoff=0.5)
-            suggestions = list(dict.fromkeys([*sub_hits, *close_hits]))[:6]
+            suggestions = _suggest(name, all_tools)
             hint = f' Did you mean: {", ".join(suggestions)}?' if suggestions else ''
             raise SystemExit(f'No signature for {name!r};{hint} Run `cdx.py tools`.')
         blocks.append(m.group(0).rstrip())
@@ -334,7 +478,8 @@ def _apply_accel_flags(ns):
 
 def cmd_call(ns):
     _apply_accel_flags(ns)
-    return _emit(ns.tool, _worker(ns.tool, _load_args(ns)), ns.out)
+    return _emit(ns.tool, _worker(ns.tool, _load_args(ns)), ns.out,
+                 full=getattr(ns, 'full', False), summary_only=getattr(ns, 'summary', False))
 
 
 def render_log_path():
@@ -411,7 +556,9 @@ def cmd_build(ns):
     sys.path.insert(0, str(Path(__file__).parent))
     import acs_builder
     if Path(ns.output).exists():
-        raise SystemExit(f'Refusing to overwrite existing {Path(ns.output).resolve()}; choose a new output name')
+        resolved = Path(ns.output).resolve()
+        raise SystemExit(f'Refusing to overwrite existing {resolved} '
+                         f'(next available: {_next_free_path(resolved)}); choose a new output name')
     try:
         out = acs_builder.build_from_spec(ns.spec, ns.output)
     except ValueError as exc:
@@ -461,21 +608,480 @@ def cmd_scientific(ns):
     return 0
 
 
-def cmd_draw(ns):
-    """Brief (JSON file or '-' for stdin) -> checked CDXML through the draw_figure tool."""
-    text = sys.stdin.read().lstrip('\ufeff') if ns.brief == '-' else Path(ns.brief).read_text(encoding='utf-8-sig')
+DRAW_NUMBER_STYLES = (
+    'arabic', 'roman', 'letter',
+    'bold_number', 'bold_roman', 'plain_roman', 'bold_letter', 'int_number', 'none',
+)
+
+
+def _rdkit_mol(token):
     try:
-        brief = json.loads(text)
-    except ValueError as exc:
-        raise SystemExit(f'The brief is not valid JSON: {exc}')
+        from rdkit import Chem
+    except ImportError:
+        return None if ' ' in token else True
+    mol = Chem.MolFromSmiles(token)
+    if mol is None and ('->' in token or '<-' in token):
+        mol = Chem.MolFromSmiles(token, sanitize=False)
+    return mol
+
+
+def _split_reaction_side(text):
+    side = text.strip()
+    if not side:
+        return []
+    parts = re.split(r'\s+\+\s+', side) if ' + ' in side else side.split('.')
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _format_inline_agents(mid):
+    raw = (mid or '').strip()
+    if not raw:
+        return []
+    if ' ' in raw and ' + ' not in raw and '>' not in raw:
+        return [raw]
+    tokens = _split_reaction_side(raw)
+    if not tokens:
+        return []
+    db = None
+    try:
+        from cdxml_toolkit.resolve.reagent_db import get_reagent_db
+        db = get_reagent_db()
+    except Exception:
+        db = None
+    labels = []
+    for tok in tokens:
+        shown = None
+        if db is not None:
+            shown = db.display_for_name(tok)
+            if not shown:
+                try:
+                    shown = db.display_for_smiles(tok)
+                except Exception:
+                    shown = None
+        labels.append(shown or tok)
+    return [', '.join(labels)]
+
+
+def _step_annotations(values, step_count, flag_name):
+    items = list(values or [])
+    if not items:
+        return [[] for _ in range(step_count)]
+    if step_count == 1:
+        return [items]
+    if len(items) != step_count:
+        raise SystemExit(f'draw: got {len(items)} {flag_name} value(s) for {step_count} --reaction steps; '
+                         f'pass one {flag_name} per step (separate multiple lines with "; ")')
+    return [[p.strip() for p in item.split(';') if p.strip()] for item in items]
+
+
+def _reaction_brief(reactions, above_vals, below_vals, yield_vals, arrow_style, layout, labels, abbrev):
+    species = []
+    seen = {}
+    steps = []
+
+    def add_token(tok):
+        mol = _rdkit_mol(tok)
+        is_smiles = mol is not None
+        key = ('smiles', tok) if is_smiles else ('name', tok.lower())
+        if key in seen:
+            return seen[key]
+        sid = f's{len(species) + 1}'
+        entry = {'id': sid, ('smiles' if is_smiles else 'name'): tok}
+        idx = len(species) + 1
+        if idx <= len(labels):
+            entry['label'] = labels[idx - 1]
+        if abbrev is not None:
+            entry['abbreviate'] = abbrev
+        species.append(entry)
+        seen[key] = sid
+        return sid
+
+    aboves = _step_annotations(above_vals, len(reactions), '--above')
+    belows = _step_annotations(below_vals, len(reactions), '--below')
+    yields = list(yield_vals or [])
+    if len(yields) > len(reactions):
+        raise SystemExit(f'draw: got {len(yields)} --yield values for {len(reactions)} --reaction step(s)')
+
+    for step_idx, rxn in enumerate(reactions):
+        # Split on '>' not preceded by '-' so RDKit dative bonds (`->`) inside SMILES stay intact.
+        parts = re.split(r'(?<!-)>', rxn.strip())
+        if len(parts) == 2:
+            lhs, mid, rhs = parts[0], '', parts[1]
+        elif len(parts) == 3:
+            lhs, mid, rhs = parts
+        else:
+            raise SystemExit(f'draw: invalid --reaction {rxn!r}; expected "reactants>>products" or "reactants>agents>products"')
+        substrates = [add_token(tok) for tok in _split_reaction_side(lhs)]
+        products = [add_token(tok) for tok in _split_reaction_side(rhs)]
+        if not substrates or not products:
+            raise SystemExit(f'draw: --reaction {rxn!r} needs at least one reactant and one product')
+        step = {'substrates': substrates, 'products': products}
+        step_above = _format_inline_agents(mid) + aboves[step_idx]
+        if step_above:
+            step['above'] = step_above
+        if belows[step_idx]:
+            step['below'] = belows[step_idx]
+        if step_idx < len(yields) and yields[step_idx]:
+            step['yield'] = yields[step_idx]
+        if arrow_style:
+            step['arrow'] = arrow_style
+        steps.append(step)
+
+    if len(labels) > len(species):
+        raise SystemExit(f'draw: got {len(labels)} --label values for {len(species)} unique species')
+    brief = {'kind': 'scheme', 'species': species, 'steps': steps}
+    if layout:
+        brief['layout'] = layout
+    return brief
+
+
+def cmd_draw(ns):
+    """Brief (JSON file or '-'), --name/--smiles, --reaction, or --compact -> checked CDXML."""
+    smiles_list = list(getattr(ns, 'smiles', None) or [])
+    name_list = list(getattr(ns, 'name', None) or [])
+    reaction_list = list(getattr(ns, 'reaction', None) or [])
+    compact_arg = getattr(ns, 'compact', None)
+    labels = list(getattr(ns, 'label', None) or [])
+    title = getattr(ns, 'title', None)
+    abbreviate = getattr(ns, 'abbreviate', None)
+    columns = getattr(ns, 'columns', None)
+    number = getattr(ns, 'number', None)
+    properties = bool(getattr(ns, 'properties', False))
+    above_list = list(getattr(ns, 'above', None) or [])
+    below_list = list(getattr(ns, 'below', None) or [])
+    yield_list = list(getattr(ns, 'yield_pct', None) or [])
+    arrow_style = getattr(ns, 'arrow', None)
+    layout = getattr(ns, 'layout', None)
+    full = getattr(ns, 'full', False)
+    summary_only = getattr(ns, 'summary', False)
+    brief_arg = ns.brief
+    if number is not None and number not in DRAW_NUMBER_STYLES:
+        if (number.lower().endswith('.cdxml') or '/' in number or '\\' in number) and brief_arg is None and ns.output is None:
+            brief_arg = number
+            number = 'arabic'
+        else:
+            raise SystemExit(f"draw: --number must be one of {', '.join(DRAW_NUMBER_STYLES)}")
+
+    if compact_arg is not None:
+        if any((smiles_list, name_list, reaction_list)) or (brief_arg and ns.output is not None) or \
+                (brief_arg and brief_arg.lower().endswith('.json') and Path(brief_arg).is_file()):
+            raise SystemExit('draw: cannot combine --compact with a brief file, --name, --smiles, or --reaction')
+        compact_path = Path(compact_arg)
+        compact_text = compact_path.read_text(encoding='utf-8-sig') if compact_path.is_file() else compact_arg
+        out_target = ns.output if ns.output is not None else brief_arg
+        if not out_target:
+            root = Path(tempfile.gettempdir()) / 'chemdraw-cdx'
+            root.mkdir(exist_ok=True)
+            out_target = str(_next_free_path(root / f'scheme-{time.strftime("%Y%m%d-%H%M%S")}-{os.getpid()}.cdxml'))
+        res = _worker('render_scheme', {'compact_text': compact_text, 'output_path': str(out_target)})
+        if ns.render and _summary('render_scheme', res)['ok']:
+            render_rc = cmd_render(argparse.Namespace(files=[str(out_target)], out_dir=None, replace=False))
+            emit_rc = _emit('render_scheme', res, ns.out, full=full, summary_only=summary_only)
+            return emit_rc or render_rc
+        return _emit('render_scheme', res, ns.out, full=full, summary_only=summary_only)
+
+    if reaction_list:
+        if smiles_list or name_list:
+            raise SystemExit('draw: cannot combine --reaction with --name or --smiles')
+        if (brief_arg is not None and ns.output is not None) or \
+                (brief_arg and brief_arg.lower().endswith('.json') and Path(brief_arg).is_file()):
+            raise SystemExit('draw: cannot combine a brief JSON file with --reaction')
+        abbrev = None
+        if abbreviate is not None:
+            abbrev = [] if abbreviate.strip().lower() == 'none' else [
+                g.strip() for g in abbreviate.split(',') if g.strip()]
+        brief = _reaction_brief(reaction_list, above_list, below_list, yield_list, arrow_style, layout, labels, abbrev)
+        if title is not None:
+            brief['title'] = title
+        output_path = ns.output if ns.output is not None else brief_arg
+    elif smiles_list or name_list:
+        if brief_arg is not None and ns.output is not None:
+            raise SystemExit('draw: cannot combine a brief JSON file with --name or --smiles')
+        if brief_arg and brief_arg.lower().endswith('.json') and Path(brief_arg).is_file():
+            raise SystemExit('draw: cannot combine a brief JSON file with --name or --smiles')
+        if above_list or below_list or yield_list or arrow_style or layout:
+            raise SystemExit('draw: --above, --below, --yield, --arrow, and --layout are for --reaction shorthand')
+        entries = [('smiles', s) for s in smiles_list] + [('name', n) for n in name_list]
+        if len(labels) > len(entries):
+            raise SystemExit(f'draw: got {len(labels)} --label values for {len(entries)} structure(s)')
+        abbrev = None
+        if abbreviate is not None:
+            abbrev = [] if abbreviate.strip().lower() == 'none' else [
+                g.strip() for g in abbreviate.split(',') if g.strip()]
+        species = []
+        for idx, (kind_key, value) in enumerate(entries, 1):
+            item = {'id': f's{idx}', kind_key: value}
+            if idx <= len(labels):
+                item['label'] = labels[idx - 1]
+            if abbrev is not None:
+                item['abbreviate'] = abbrev
+            species.append(item)
+        brief = {'kind': 'molecule', 'species': species}
+        if title is not None:
+            brief['title'] = title
+        if columns is not None:
+            brief['columns'] = columns
+        if number is not None:
+            brief['numbering'] = number
+        if properties:
+            brief['properties'] = True
+        output_path = ns.output if ns.output is not None else brief_arg
+    else:
+        if brief_arg is None:
+            raise SystemExit('draw: give a brief JSON file (or "-"), --name/--smiles, --reaction, or --compact, '
+                             'e.g. cdx.py draw --name aspirin aspirin.cdxml --render')
+        if labels or abbreviate is not None or columns is not None or above_list or below_list or yield_list or arrow_style:
+            raise SystemExit('draw: --label, --abbreviate, --columns and --above/--below/--yield are for shorthand; '
+                             'put them in the JSON brief instead')
+        text = sys.stdin.read().lstrip('\ufeff') if brief_arg == '-' else Path(brief_arg).read_text(encoding='utf-8-sig')
+        try:
+            brief = json.loads(text)
+        except ValueError as exc:
+            raise SystemExit(f'The brief is not valid JSON: {exc}')
+        if title is not None:
+            if not isinstance(brief, dict):
+                raise SystemExit('--title needs a brief that is a JSON object')
+            brief['title'] = title
+        if layout is not None:
+            if not isinstance(brief, dict):
+                raise SystemExit('--layout needs a brief that is a JSON object')
+            brief['layout'] = layout
+        if number is not None or properties:
+            if not isinstance(brief, dict) or brief.get('kind') not in ('molecule', 'structures', 'structure_panel'):
+                raise SystemExit('--number and --properties only apply to molecule / structure_panel briefs')
+            if number is not None:
+                brief['numbering'] = number
+            if properties:
+                brief['properties'] = True
+        output_path = ns.output
     if getattr(ns, 'style', None):
         if not isinstance(brief, dict):
             raise SystemExit('--style needs a brief that is a JSON object')
         brief['style'] = ns.style
     kwargs = {'brief': brief, 'render': ns.render}
-    if ns.output:
-        kwargs['output_path'] = ns.output
-    return _emit('draw_figure', _worker('draw_figure', kwargs), ns.out)
+    if output_path:
+        kwargs['output_path'] = output_path
+    return _emit('draw_figure', _worker('draw_figure', kwargs), ns.out, full=full, summary_only=summary_only)
+
+
+def _unwrap_worker(result):
+    layers = _layers(result)
+    return layers[-1] if layers else result
+
+
+def cmd_resolve(ns):
+    """Resolve one or more chemical names, abbreviations, formulas, or CAS numbers."""
+    queries = list(ns.queries or [])
+    use_network = not getattr(ns, 'offline', False)
+    full = getattr(ns, 'full', False)
+    summary_only = getattr(ns, 'summary', False)
+    if len(queries) == 1:
+        return _emit('resolve_name', _worker('resolve_name', {'query': queries[0], 'use_network': use_network}),
+                     ns.out, full=full, summary_only=summary_only)
+    results = []
+    for q in queries:
+        inner = _unwrap_worker(_worker('resolve_name', {'query': q, 'use_network': use_network}))
+        if isinstance(inner, dict):
+            results.append({'query': q, **inner})
+        else:
+            results.append({'query': q, 'ok': False, 'error': str(inner)})
+    combined = {'ok': all(item.get('ok') is True for item in results), 'count': len(results), 'results': results}
+    return _emit('resolve_name', combined, ns.out, full=full, summary_only=summary_only)
+
+
+def _inspect_cdxml(cdxml_path, objects=False, display_source=None):
+    if objects:
+        return 'chemdraw_object', _worker('chemdraw_object', {'op': 'list', 'input_path': str(cdxml_path)})
+    res = _worker('export_structures', {'source': str(cdxml_path)})
+    inner = _unwrap_worker(res)
+    changed = False
+    if isinstance(inner, dict):
+        inner = dict(inner)
+        if display_source and 'source_file' in inner:
+            inner['source_file'] = str(display_source)
+            changed = True
+        xml_text = Path(cdxml_path).read_text(encoding='utf-8', errors='ignore')
+        if '<step' in xml_text or 'GraphicType="Arrow"' in xml_text or 'ArrowType=' in xml_text:
+            with tempfile.TemporaryDirectory(prefix='cdx-inspect-scheme-') as scratch:
+                staged_json = Path(scratch) / 'scheme_parsed.json'
+                scheme_res = _worker('parse_scheme', {'cdxml_path': str(cdxml_path), 'output_path': str(staged_json)})
+                scheme_inner = json.loads(staged_json.read_text(encoding='utf-8')) if staged_json.is_file() \
+                    else _unwrap_worker(scheme_res)
+            if isinstance(scheme_inner, dict) and scheme_inner.get('ok') is not False:
+                scheme_payload = scheme_inner.get('outputs') if isinstance(scheme_inner.get('outputs'), dict) \
+                    else scheme_inner
+                scheme_summary = {k: scheme_payload[k] for k in ('topology', 'steps', 'narrative', 'content_type')
+                                  if k in scheme_payload}
+                if scheme_summary:
+                    inner['scheme'] = scheme_summary
+                    changed = True
+    if changed:
+        return 'export_structures', {'ok': res.get('ok', True), 'result': inner}
+    return 'export_structures', res
+
+
+def cmd_inspect(ns):
+    """Read-only inspection of CDXML, CDX, MOL/SDF/SMI, Office, or LCMS/NMR files."""
+    target = Path(ns.path).expanduser().resolve()
+    if not target.exists():
+        raise SystemExit(f'Input path does not exist: {target}')
+    ext = target.suffix.lower()
+    full = getattr(ns, 'full', False)
+    summary_only = getattr(ns, 'summary', False)
+    if ext == '.cdxml':
+        tool, res = _inspect_cdxml(target, objects=getattr(ns, 'objects', False))
+        return _emit(tool, res, ns.out, full=full, summary_only=summary_only)
+    if ext in ('.mol', '.sdf', '.smi'):
+        return _emit('export_structures', _worker('export_structures', {'source': str(target)}),
+                     ns.out, full=full, summary_only=summary_only)
+    if ext == '.cdx':
+        with tempfile.TemporaryDirectory(prefix='cdx-inspect-') as scratch:
+            tmp_cdxml = Path(scratch) / f'{target.stem}.cdxml'
+            conv = _worker('convert_cdx_cdxml', {'input_path': str(target), 'output_path': str(tmp_cdxml)})
+            if not _summary('convert_cdx_cdxml', conv)['ok'] or not tmp_cdxml.is_file():
+                return _emit('convert_cdx_cdxml', conv, ns.out, full=full, summary_only=summary_only)
+            tool, res = _inspect_cdxml(tmp_cdxml, objects=getattr(ns, 'objects', False), display_source=target)
+            return _emit(tool, res, ns.out, full=full, summary_only=summary_only)
+    if ext in ('.pptx', '.docx', '.xlsx', '.xls'):
+        with tempfile.TemporaryDirectory(prefix='cdx-inspect-office-') as scratch:
+            inspection = Path(scratch) / 'inspection'
+            res = _worker('inspect_chemdraw_objects_in_office',
+                          {'input_path': str(target), 'output_dir': str(inspection), 'render_previews': False})
+            if not _summary('inspect_chemdraw_objects_in_office', res)['ok']:
+                return _emit('inspect_chemdraw_objects_in_office', res, ns.out, full=full, summary_only=summary_only)
+            manifest = json.loads((inspection / 'manifest.json').read_text(encoding='utf-8'))
+            objects = manifest.get('objects', [])
+            payload = {
+                'ok': True,
+                'result': {
+                    'ok': True,
+                    'input_path': str(target),
+                    'source_sha256': manifest.get('source_sha256'),
+                    'object_count': len(objects),
+                    'objects': objects,
+                },
+            }
+            return _emit('inspect_chemdraw_objects_in_office', payload, ns.out, full=full, summary_only=summary_only)
+    if ext in ('.pdf', '.rpt', '.daml', '.txt', '.mzml', '.mzxml', '.raw') or \
+            (target.is_dir() and ext == '.raw'):
+        with tempfile.TemporaryDirectory(prefix='cdx-inspect-analysis-') as scratch:
+            staged_json = Path(scratch) / 'analysis_parsed.json'
+            res = _worker('parse_analysis_file', {'pdf_path': str(target), 'output_path': str(staged_json)})
+            if _summary('parse_analysis_file', res)['ok'] and staged_json.is_file():
+                parsed = json.loads(staged_json.read_text(encoding='utf-8'))
+                return _emit('parse_analysis_file', {'ok': True, 'result': parsed},
+                             ns.out, full=full, summary_only=summary_only)
+            return _emit('parse_analysis_file', res, ns.out, full=full, summary_only=summary_only)
+    raise SystemExit(f'inspect: unsupported file type {ext or target.name}; supported: '
+                     '.cdxml, .cdx, .mol, .sdf, .smi, .pptx, .docx, .xlsx, .xls, .pdf, .rpt, .daml, .mzML, .mzXML, .raw')
+
+
+_STRUCTURE_FILE_EXTS = {'.cdxml', '.mol', '.sdf', '.smi'}
+
+
+def _report_molecules(ns):
+    records = []
+    for raw in getattr(ns, 'targets', None) or ():
+        p = Path(raw)
+        if p.is_file() or p.suffix.lower() in _STRUCTURE_FILE_EXTS:
+            if not p.is_file():
+                raise SystemExit(f'report: structure file not found: {p}')
+            rec = {'file': str(p.resolve())}
+            if p.suffix.lower() in ('.cdxml', '.sdf'):
+                rec['all_fragments'] = True
+            records.append(rec)
+        elif _rdkit_mol(raw) is not None:
+            records.append({'smiles': raw})
+        else:
+            res = _unwrap_worker(_worker('resolve_name', {'query': raw, 'use_network': not getattr(ns, 'offline', False)}))
+            if not isinstance(res, dict) or not res.get('smiles'):
+                raise SystemExit(f'report: could not resolve structure {raw!r}')
+            records.append({'smiles': res['smiles'], 'label': raw})
+    for smi in getattr(ns, 'smiles', None) or ():
+        records.append({'smiles': smi})
+    for name in getattr(ns, 'name', None) or ():
+        res = _unwrap_worker(_worker('resolve_name', {'query': name, 'use_network': not getattr(ns, 'offline', False)}))
+        if not isinstance(res, dict) or not res.get('smiles'):
+            raise SystemExit(f'report: could not resolve name {name!r}')
+        records.append({'smiles': res['smiles'], 'label': name})
+    return records
+
+
+def cmd_report(ns):
+    """Zero-JSON chemistry reports: properties, HRMS, reaction balance, atom mapping."""
+    balance = getattr(ns, 'balance', None)
+    rxn_map = getattr(ns, 'map', None)
+    hrms = bool(getattr(ns, 'hrms', False))
+    chemdraw_props = bool(getattr(ns, 'chemdraw', False))
+    modes = sum([bool(balance), bool(rxn_map), hrms, chemdraw_props])
+    if modes > 1:
+        raise SystemExit('report: choose only one of --balance, --map, --hrms, or --chemdraw')
+    full = getattr(ns, 'full', False)
+    summary_only = getattr(ns, 'summary', False)
+    out_file = str(Path(ns.output).resolve()) if getattr(ns, 'output', None) else None
+
+    if balance:
+        p = Path(balance)
+        rxn_arg = {'cdxml': str(p.resolve())} if p.suffix.lower() == '.cdxml' and p.is_file() else balance
+        kwargs = {'reaction': rxn_arg}
+        if getattr(ns, 'scale_mmol', None) is not None:
+            kwargs['options'] = {'scale_mmol': ns.scale_mmol}
+        if out_file:
+            kwargs['output_path'] = out_file
+        return _emit('check_reaction_balance', _worker('check_reaction_balance', kwargs),
+                     ns.out, full=full, summary_only=summary_only)
+
+    if rxn_map:
+        p = Path(rxn_map)
+        rxn_arg = {'cdxml': str(p.resolve())} if p.suffix.lower() == '.cdxml' and p.is_file() else rxn_map
+        opts = {}
+        if getattr(ns, 'method', None):
+            opts['method'] = ns.method
+        if getattr(ns, 'classify', False):
+            opts['classify'] = True
+        if getattr(ns, 'compare', False):
+            opts['compare'] = True
+        kwargs = {'reaction': rxn_arg}
+        if opts:
+            kwargs['options'] = opts
+        if out_file:
+            kwargs['output_path'] = out_file
+        return _emit('map_reaction_atoms', _worker('map_reaction_atoms', kwargs),
+                     ns.out, full=full, summary_only=summary_only)
+
+    molecules = _report_molecules(ns)
+    if not molecules:
+        raise SystemExit('report: give structures, --smiles, --name, --balance RXN, or --map RXN, '
+                         'e.g. cdx.py report aspirin --hrms')
+
+    if hrms:
+        if getattr(ns, 'adduct', None):
+            molecules[0]['adduct'] = ns.adduct
+        if getattr(ns, 'found', None) is not None:
+            molecules[0]['found_mz'] = ns.found
+        opts = {}
+        if getattr(ns, 'mode', None):
+            opts['mode'] = ns.mode
+        if getattr(ns, 'ionization', None):
+            opts['ionization'] = ns.ionization
+        kwargs = {'molecules': molecules}
+        if opts:
+            kwargs['options'] = opts
+        if out_file:
+            kwargs['output_path'] = out_file
+        return _emit('hrms_line', _worker('hrms_line', kwargs), ns.out, full=full, summary_only=summary_only)
+
+    if chemdraw_props:
+        kwargs = {'molecules': molecules}
+        if out_file:
+            kwargs['output_path'] = out_file
+        return _emit('chemdraw_chemical_properties', _worker('chemdraw_chemical_properties', kwargs),
+                     ns.out, full=full, summary_only=summary_only)
+
+    kwargs = {'molecules': molecules}
+    if out_file:
+        kwargs['output_path'] = out_file
+    return _emit('molecule_report', _worker('molecule_report', kwargs), ns.out, full=full, summary_only=summary_only)
 
 
 def cmd_styles(ns):
@@ -483,7 +1089,10 @@ def cmd_styles(ns):
     from cdxml_toolkit.chemdraw.style_presets import list_style_presets
     from cdxml_toolkit.publication.house_styles import house_style_summary, list_house_styles, resolve_style
     if ns.preset:
-        kind, value = resolve_style(ns.preset)
+        try:
+            kind, value = resolve_style(ns.preset)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from None
         print(json.dumps(value.as_dict() if kind == 'house' else value, indent=2, ensure_ascii=False))
         return 0
     presets, houses = list_style_presets(), list_house_styles()
@@ -640,18 +1249,102 @@ def normalize_signatures(text):
     return '\n'.join(line.strip() for line in text.splitlines() if line.strip())
 
 
+def _audit_interfaces():
+    sys.path.insert(0, str(Path(__file__).parent))
+    import audit_toolkit_interfaces
+    return audit_toolkit_interfaces
+
+
+def _engine_tables_current():
+    from cdxml_toolkit.engines import table
+    text = ENGINES_REFERENCE.read_text(encoding='utf-8').replace('\r\n', '\n')
+    return text == table.render(text)
+
+
+def signatures_stale():
+    """Generated reference, schema, inventory, and baseline files that differ from the toolkit."""
+    stale = []
+    if not _signatures_current():
+        stale.append('references/mcp-signatures.md')
+    if not _engine_tables_current():
+        stale.append('references/engines.md')
+    package = checkout_toolkit()
+    if package is not None:
+        from cdxml_toolkit import __version__ as version
+        from cdxml_toolkit.mcp_runtime import generate_reference
+
+        repo = package.parent.parent
+        docs_dir = package.parent / 'docs'
+        if _baseline().get('toolkit_fingerprint') != expected_fingerprint():
+            stale.append('runtime.json')
+        md_path = docs_dir / 'mcp-tools.md'
+        expected_md = generate_reference.render_markdown().replace('\r\n', '\n')
+        if not md_path.is_file() or md_path.read_text(encoding='utf-8').replace('\r\n', '\n') != expected_md:
+            stale.append(md_path.relative_to(repo).as_posix())
+        json_path = docs_dir / 'mcp-schema.json'
+        expected_json = json.dumps(generate_reference.manifest(), indent=2, ensure_ascii=False) + '\n'
+        if not json_path.is_file() or json_path.read_text(encoding='utf-8').replace('\r\n', '\n') != expected_json:
+            stale.append(json_path.relative_to(repo).as_posix())
+        audit = _audit_interfaces()
+        index, shards = audit.render_inventory_shards(version, audit.scan_package(package))
+        expected = audit._targets(REFERENCES, docs_dir, index, shards)
+        for path, text in expected.items():
+            if not path.is_file() or path.read_text(encoding='utf-8').replace('\r\n', '\n') != text:
+                stale.append(path.relative_to(repo).as_posix())
+        shard_dir = REFERENCES / 'inventory'
+        kept = {path.name for path in expected if path.parent == shard_dir}
+        if shard_dir.is_dir():
+            for name in sorted(audit._generated_shards(shard_dir) - kept):
+                stale.append(f'skill/chemdraw/references/inventory/{name} (stale)')
+    return stale
+
+
+def write_checkout_artifacts(package):
+    """Regenerate toolkit docs, public inventory shards, and runtime.json in a repository checkout."""
+    from cdxml_toolkit import __version__ as version
+    from cdxml_toolkit.mcp_runtime import generate_reference
+
+    written = []
+    baseline = _baseline()
+    baseline['toolkit_fingerprint'] = expected_fingerprint()
+    BASELINE.write_bytes((json.dumps(baseline, indent=2) + '\n').encode('utf-8'))
+    written.append(BASELINE)
+
+    docs_dir = package.parent / 'docs'
+    md_path = docs_dir / 'mcp-tools.md'
+    json_path = docs_dir / 'mcp-schema.json'
+    generate_reference.main(['--markdown', str(md_path), '--json', str(json_path)])
+    written.extend([md_path, json_path])
+
+    audit = _audit_interfaces()
+    shard_dir = REFERENCES / 'inventory'
+    shard_dir.mkdir(parents=True, exist_ok=True)
+    index, shards = audit.render_inventory_shards(version, audit.scan_package(package))
+    files = audit._targets(REFERENCES, docs_dir, index, shards)
+    kept = {path.name for path in files if path.parent == shard_dir}
+    for name in sorted(audit._generated_shards(shard_dir) - kept):
+        (shard_dir / name).unlink()
+    for path, text in files.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(text.encode('utf-8'))
+    written.extend([REFERENCES / 'toolkit-public-inventory.md', docs_dir / audit.EXCLUSIONS_FILE])
+    return written
+
+
 def cmd_regen_signatures(ns):
     # Regenerating from a stale runtime would roll the committed reference back to its tool set.
     if runtime_fingerprint() != expected_fingerprint():
         raise SystemExit('cdx.py: refusing to regenerate signatures. ' + runtime_hint())
+    if getattr(ns, 'check', False):
+        stale = signatures_stale()
+        print(json.dumps({'signatures_current': not stale, 'stale': stale}, indent=2))
+        return 1 if stale else 0
     write_signatures()
     print(SIGNATURES)
     package = checkout_toolkit()
-    if package:  # keep runtime.json's fingerprint in step with the toolkit source it pins
-        baseline = _baseline()
-        baseline['toolkit_fingerprint'] = expected_fingerprint()
-        BASELINE.write_bytes((json.dumps(baseline, indent=2) + '\n').encode('utf-8'))
-        print(BASELINE)
+    if package:  # keep runtime.json, toolkit docs, and inventory shards in step with toolkit/
+        for path in write_checkout_artifacts(package):
+            print(path)
     return 0
 
 
@@ -748,7 +1441,76 @@ def _probe_healthy(ns, layers, inner, caps):
     return True
 
 
+def _worker_log_dirs():
+    raw = runtime_paths().get('worker_logs')
+    dirs = []
+    if isinstance(raw, list):
+        dirs.extend(Path(p) for p in raw)
+    elif isinstance(raw, str) and raw:
+        dirs.append(Path(raw.split(' (', 1)[0]))
+    try:
+        from cdxml_toolkit.mcp_runtime import tool_worker
+        d = Path(tool_worker.worker_log_dir())
+        if d not in dirs:
+            dirs.insert(0, d)
+    except Exception:
+        pass
+    return dirs
+
+
+def _read_worker_log(spec):
+    dirs = _worker_log_dirs()
+    existing = [d for d in dirs if d.is_dir()]
+    if spec == 'latest':
+        candidates = [f for d in existing for f in d.glob('worker-*.log') if f.is_file()]
+        if not candidates:
+            searched = ', '.join(str(d) for d in dirs)
+            raise SystemExit(f'No worker logs found in: {searched}')
+        chosen = max(candidates, key=lambda p: p.stat().st_mtime)
+        return chosen.read_text(encoding='utf-8', errors='replace')
+    clean = str(spec).strip()
+    if clean.startswith('worker-'):
+        clean = clean[len('worker-'):]
+    if clean.endswith('.log'):
+        clean = clean[:-4]
+    filename = f'worker-{clean}.log'
+    for d in existing:
+        target = d / filename
+        if target.is_file():
+            return target.read_text(encoding='utf-8', errors='replace')
+    searched = ', '.join(str(d) for d in dirs)
+    raise SystemExit(f'Worker log {filename} not found in: {searched}')
+
+
+def _format_doctor_text(report, healthy):
+    lines = [
+        f"ChemDraw Skill v{report.get('skill_version')} | toolkit {report.get('toolkit')} | "
+        f"Python {report.get('python')} | healthy={healthy}",
+        f"Runtime: {report.get('runtime')}",
+        f"Checks: runtime_matches_skill={report.get('runtime_matches_skill')}, "
+        f"signatures_current={report.get('signatures_current')}, "
+        f"catalog_current={report.get('catalog_current')}, installation={report.get('installation')!r}",
+    ]
+    missing_extras = {k: v for k, v in (report.get('extras') or {}).items() if v != 'ok'}
+    lines.append(
+        'Extras: ' + (', '.join(f'{k} (missing: {", ".join(v)})' for k, v in missing_extras.items())
+                      if missing_extras else 'all installed extras ok')
+    )
+    caps = report.get('capabilities') or {}
+    if caps:
+        lines.append('Capabilities: ' + ', '.join(f'{k}={v}' for k, v in caps.items()))
+    for w in report.get('warnings') or ():
+        lines.append(f'Warning: {w}')
+    if report.get('runtime_hint'):
+        lines.append('Next: ' + report['runtime_hint'])
+    return '\n'.join(lines)
+
+
 def cmd_doctor(ns):
+    if getattr(ns, 'log', None):
+        text = _read_worker_log(ns.log)
+        sys.stdout.write(text if text.endswith('\n') else text + '\n')
+        return 0
     import importlib.metadata as md
     import importlib.util
     baseline = _baseline()
@@ -784,11 +1546,14 @@ def cmd_doctor(ns):
     report['warnings'] = inner.get('warnings') or []
     if ns.full:
         report['diagnose_runtime'] = inner
-    print(json.dumps(report, ensure_ascii=False, indent=2))
     healthy = report['signatures_current'] and report['catalog_current'] \
         and not isinstance(report['installation'], dict) \
         and report['runtime_matches_skill'] is not False \
         and _probe_healthy(ns, layers, inner, caps)
+    if getattr(ns, 'text', False):
+        print(_format_doctor_text(report, healthy))
+    else:
+        print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if healthy else 1
 
 
@@ -811,7 +1576,8 @@ def _office_edit_start(ns):
     document = Path(ns.target).resolve()
     workdir = Path(ns.workdir or document.with_name(document.stem + '_chemdraw_edit')).resolve()
     if workdir.exists():
-        raise SystemExit(f'Refusing to reuse existing edit folder {workdir}; pass --workdir')
+        raise SystemExit(f'Refusing to reuse existing edit folder {workdir} '
+                         f'(next available: {_next_free_path(workdir)}); pass --workdir')
     # Inspect into a scratch folder: the edit folder is made only once an object is chosen,
     # so listing the objects or a wrong --object leaves nothing that blocks the rerun.
     with tempfile.TemporaryDirectory(prefix='cdx-office-edit-') as scratch:
@@ -1021,6 +1787,14 @@ def cmd_predict(ns):
     return _emit(tool, _worker(tool, kwargs), getattr(ns, 'out', None))
 
 
+def _add_output_mode_flags(parser):
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--full', action='store_true',
+                       help='print full JSON to stdout without truncating at the 6 KB summary threshold')
+    group.add_argument('--summary', action='store_true',
+                       help='print a compact summary JSON to stdout instead of full output')
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     # `sig` reads a generated reference and help is static: both work before a runtime exists.
@@ -1049,7 +1823,10 @@ def main(argv=None):
     s.add_argument('tool')
     s.add_argument('--json', help='keyword arguments as a JSON object string')
     s.add_argument('--args', help='keyword arguments in a JSON file (or - for stdin)')
+    s.add_argument('-a', '--arg', action='append', metavar='KEY=VALUE',
+                   help='pass a tool argument directly without JSON quoting (repeatable)')
     s.add_argument('--out', help='new evidence file for the full result')
+    _add_output_mode_flags(s)
     s.add_argument('--accel', choices=['auto', 'on', 'off'],
                    help='warm resident engine workers: auto (default; batches and multi-step searches), on, off')
     s.set_defaults(fn=cmd_call)
@@ -1073,16 +1850,80 @@ def main(argv=None):
     s.add_argument('--spec', dest='spec_opt')
     s.add_argument('--output', dest='output_opt')
     s.set_defaults(fn=cmd_scientific)
-    s = sub.add_parser('draw', help='checked reaction scheme, scope panel or mechanism from a brief (JSON file or -): '
-                                    'cdx.py draw BRIEF [OUTPUT] [--render]')
-    s.add_argument('brief')
+    s = sub.add_parser('draw', help='checked molecule, scheme, scope panel or mechanism (JSON brief or --name/--smiles/--reaction): '
+                                    'cdx.py draw [BRIEF|--name NAME|--smiles SMILES|--reaction RXN|--compact DSL] [OUTPUT] [--render]')
+    s.add_argument('brief', nargs='?', help='JSON brief file, or - for stdin (omit when using --name/--smiles/--reaction)')
     s.add_argument('output', nargs='?', help='new .cdxml path, or a new folder for kind "scope" '
                                               '(default: a fresh name in the temp folder)')
+    s.add_argument('--name', action='append', metavar='NAME',
+                   help='compound name to resolve and draw without a brief file (repeatable)')
+    s.add_argument('--smiles', action='append', metavar='SMILES',
+                   help='SMILES to draw without a brief file (repeatable)')
+    s.add_argument('--reaction', action='append', metavar='RXN',
+                   help='reaction string "R1.R2>agents>P" or "R1>>P" without a brief file (repeatable)')
+    s.add_argument('--above', action='append', metavar='TEXT',
+                   help='condition line above arrow for --reaction (repeatable; use "; " per step for multi-step)')
+    s.add_argument('--below', action='append', metavar='TEXT',
+                   help='condition line below arrow for --reaction (repeatable; use "; " per step for multi-step)')
+    s.add_argument('--yield', dest='yield_pct', action='append', metavar='YIELD',
+                   help='step yield for --reaction, e.g. "88%%" (repeatable)')
+    s.add_argument('--arrow', choices=['solid', 'dashed', 'failed', 'reversible', 'resonance'],
+                   help='arrow style for --reaction steps')
+    s.add_argument('--layout', metavar='LAYOUT',
+                   help='scheme layout override (linear, sequential, convergent, divergent, catalytic-cycle)')
+    s.add_argument('--compact', metavar='DSL_OR_FILE',
+                   help='Compact Scheme DSL string or file path rendered via render_scheme')
+    s.add_argument('--label', action='append', metavar='LABEL',
+                   help='compound label paired with --name/--smiles/--reaction species (repeatable)')
+    s.add_argument('--title', help='figure title drawn above the structure or scheme')
+    s.add_argument('--abbreviate', metavar='GROUPS',
+                   help='comma-separated groups to contract (e.g. Boc,OTBS), or none')
+    s.add_argument('--columns', type=int, metavar='N',
+                   help='structures per row when drawing multiple molecules')
+    s.add_argument('--number', nargs='?', const='arabic', metavar='STYLE',
+                   help='number structures automatically (arabic, roman, letter, plain_roman, int_number, none)')
+    s.add_argument('--properties', action='store_true',
+                   help='add chemical formula and molecular weight captions under structures')
     s.add_argument('--render', action='store_true', help='also render a native PNG')
     s.add_argument('--style', metavar='STYLE', help='measurement preset or house style '
                                                    '(overrides the brief; see cdx.py styles)')
     s.add_argument('--out', help='new evidence file for the full report')
+    _add_output_mode_flags(s)
     s.set_defaults(fn=cmd_draw)
+    s = sub.add_parser('resolve', help='resolve one or more chemical names, abbreviations, formulas or CAS numbers')
+    s.add_argument('queries', nargs='+', metavar='QUERY')
+    s.add_argument('--offline', action='store_true', help='disable PubChem network lookup')
+    s.add_argument('--out', help='new evidence file for the full result')
+    _add_output_mode_flags(s)
+    s.set_defaults(fn=cmd_resolve)
+    s = sub.add_parser('inspect', help='inspect structures, objects or peaks in a CDXML, CDX, MOL/SDF/SMI, Office or LCMS/NMR file')
+    s.add_argument('path', metavar='FILE')
+    s.add_argument('--objects', action='store_true', help='for .cdxml/.cdx: list raw CDXML objects instead of exporting structures')
+    s.add_argument('--out', help='new evidence file for the full result')
+    _add_output_mode_flags(s)
+    s.set_defaults(fn=cmd_inspect)
+    s = sub.add_parser('report', help='property sheet, HRMS line, reaction balance or atom mapping without writing JSON')
+    s.add_argument('targets', nargs='*', metavar='TARGET',
+                   help='structure files (.cdxml/.mol/.sdf/.smi), SMILES strings or compound names')
+    s.add_argument('--smiles', action='append', metavar='SMILES', help='add a SMILES structure (repeatable)')
+    s.add_argument('--name', action='append', metavar='NAME', help='resolve and add a compound name (repeatable)')
+    s.add_argument('--offline', action='store_true', help='disable PubChem network lookup when resolving names')
+    s.add_argument('--chemdraw', action='store_true', help='use ChemDraw engine for formula/mass/ClogP instead of RDKit')
+    s.add_argument('--balance', metavar='RXN_OR_CDXML', help='check reaction balance for a reaction SMILES or .cdxml file')
+    s.add_argument('--scale-mmol', type=float, metavar='MMOL', help='with --balance: compute stoichiometry table at scale (mmol)')
+    s.add_argument('--hrms', action='store_true', help='format calculated HRMS characterization lines')
+    s.add_argument('--adduct', metavar='ADDUCT', help='with --hrms: adduct ion such as [M+Na]+ or [M-H]-')
+    s.add_argument('--found', type=float, metavar='MZ', help='with --hrms: measured m/z for ppm error check')
+    s.add_argument('--mode', choices=['positive', 'negative'], help='with --hrms: ionization polarity')
+    s.add_argument('--ionization', metavar='ION', help='with --hrms: ionization label (ESI, APCI, EI, ...)')
+    s.add_argument('--map', metavar='RXN_OR_CDXML', help='map product atoms back to reactant atoms')
+    s.add_argument('--method', choices=['auto', 'mcs', 'rxnmapper', 'localmapper'], help='with --map: atom-mapping method')
+    s.add_argument('--classify', action='store_true', help='with --map: identify matching reaction template class')
+    s.add_argument('--compare', action='store_true', help='with --map: compare all installed mapping methods')
+    s.add_argument('--output', metavar='FILE', help='write report file (.json, .csv, .md, .txt, .smi or .svg)')
+    s.add_argument('--out', help='new evidence file for the full JSON envelope')
+    _add_output_mode_flags(s)
+    s.set_defaults(fn=cmd_report)
     s = sub.add_parser('styles', help='list the measurement presets (ChemDraw stock style sheets) and the '
                                     'house styles of journals and research groups')
     s.add_argument('preset', nargs='?', help='print one preset or house-style card as JSON')
@@ -1126,6 +1967,8 @@ def main(argv=None):
     s.add_argument('--output-csv', help='with nmr: output CSV path for the simulated spectrum')
     s.add_argument('--json', help='further tool arguments as a JSON object or file (steps, count, nucleus, solvent, ...)')
     s.add_argument('--args', help='further tool arguments in a JSON file (or - for stdin)')
+    s.add_argument('-a', '--arg', action='append', metavar='KEY=VALUE',
+                   help='pass an extra tool argument as KEY=VALUE (repeatable)')
     s.add_argument('--out', help='new evidence file for the full result')
     s.add_argument('--accel', choices=['auto', 'on', 'off'],
                    help='warm resident engine workers: auto (default; batches and multi-step searches), on, off')
@@ -1169,6 +2012,8 @@ def main(argv=None):
     s.add_argument('--office', action='store_true', help='run the Word/PowerPoint OLE probes')
     s.add_argument('--chemscript', action='store_true', help='run the ChemScript bridge ping')
     s.add_argument('--full', action='store_true', help='include the complete diagnose_runtime result')
+    s.add_argument('--text', action='store_true', help='print a concise human-readable summary instead of JSON')
+    s.add_argument('--log', metavar='ID_OR_LATEST', help='print worker-<id>.log (or "latest") and exit')
     s.set_defaults(fn=cmd_doctor)
     s = sub.add_parser('office-edit', help='edit one ChemDraw object of a PPTX/DOCX in ChemDraw, then --finish')
     s.add_argument('target', help='the PPTX/DOCX, or with --finish the edit folder')
@@ -1192,7 +2037,8 @@ def main(argv=None):
                                                '[--dry-run] [--status] (map_reaction_atoms works without them)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_install_mappers)
-    s = sub.add_parser('regen-signatures')  # maintainer: rewrite mcp-signatures.md and the runtime.json fingerprint
+    s = sub.add_parser('regen-signatures')  # maintainer: sync toolkit-derived references, inventories and runtime.json
+    s.add_argument('--check', action='store_true', help='report stale generated files and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_signatures)
     s = sub.add_parser('regen-catalog')  # maintainer: rewrite the generated interface pages; --check only reports
     s.add_argument('--check', action='store_true', help='report stale pages and exit 1 instead of writing')

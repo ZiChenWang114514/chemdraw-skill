@@ -279,6 +279,15 @@ continues the same row with the intermediate drawn once; any other step starts a
 row, with its substrates drawn again. show_atom_numbers=true prints the atom numbers on a
 draft so the moves can be checked.
 
+kind "molecule" (also "structures" or "structure_panel") draws a single molecule or a
+multi-structure grid without reaction arrows: species [{id?, smiles or name, label?,
+caption?, orientation?, ring_fills?, atom_halos?, ts_bracket?, box?, color?,
+atom_colors?, bond_colors?, abbreviate?}], optional columns (structures per row),
+numbering ("arabic", "roman", "letter", "plain_roman", "int_number", etc.),
+properties (true or ["formula", "mw", "exact_mass"]), max_width, title, panel_label
+and style, with the same grounding, house styles, structure_panel conventions, lint,
+semantic read-back and optional native rendering as a scheme.
+
 ### `execute_chemscript_sdk(program: list[dict[str, typing.Any]], allow_file_io: bool = False, allow_overwrite: bool = False, allow_unsafe_interop: bool = False, max_items: int = 100) -> dict[str, typing.Any]`
 
 Execute a declarative ChemScript SDK program in an isolated Python.NET process.
