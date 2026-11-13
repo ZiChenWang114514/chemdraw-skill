@@ -1482,6 +1482,40 @@ def _read_worker_log(spec):
     raise SystemExit(f'Worker log {filename} not found in: {searched}')
 
 
+def _stale_skill_warnings():
+    home = Path(os.environ.get('USERPROFILE') or os.environ.get('HOME') or Path.home())
+    curr = _baseline()
+    curr_id = curr.get('toolkit_fingerprint') or curr.get('commit')
+    if not curr_id or not home.is_dir():
+        return []
+    try:
+        dot_dirs = sorted(p for p in home.iterdir() if p.name.startswith('.') and p.is_dir())
+    except OSError:
+        return []
+    warnings = []
+    skill_resolved = SKILL_ROOT.resolve()
+    curr_short = (curr.get('commit') or curr_id)[:12]
+    for dot in dot_dirs:
+        for rel in ('skills/chemdraw', 'agent/skills/chemdraw'):
+            cand = dot / rel
+            if not ((cand / 'SKILL.md').is_file() and (cand / 'runtime.json').is_file()):
+                continue
+            try:
+                if cand.resolve() == skill_resolved:
+                    continue
+                other = json.loads((cand / 'runtime.json').read_text(encoding='utf-8'))
+            except (OSError, ValueError):
+                continue
+            other_id = other.get('toolkit_fingerprint') or other.get('commit')
+            if other_id and other_id != curr_id:
+                other_short = (other.get('commit') or other_id)[:12]
+                warnings.append(
+                    f'Stale Skill copy at {cand} (revision {other_short} != current {curr_short}); '
+                    'update or remove it so agents do not load an older copy.'
+                )
+    return warnings
+
+
 def _format_doctor_text(report, healthy):
     lines = [
         f"ChemDraw Skill v{report.get('skill_version')} | toolkit {report.get('toolkit')} | "
@@ -1503,6 +1537,8 @@ def _format_doctor_text(report, healthy):
         lines.append(f'Warning: {w}')
     if report.get('runtime_hint'):
         lines.append('Next: ' + report['runtime_hint'])
+    if report.get('chemscript_hint'):
+        lines.append('Next: ' + report['chemscript_hint'])
     return '\n'.join(lines)
 
 
@@ -1543,7 +1579,13 @@ def cmd_doctor(ns):
     report['capabilities'] = {k: (v.get('status') if isinstance(v, dict) else v) for k, v in caps.items()}
     if isinstance(outputs.get('passive_capabilities'), dict):  # the runtime's own reading, never guessed here
         report['passive_capabilities'] = outputs['passive_capabilities']
-    report['warnings'] = inner.get('warnings') or []
+    report['warnings'] = [*(inner.get('warnings') or []), *_stale_skill_warnings()]
+    if (report['capabilities'].get('chemscript_probe') == 'missing'
+            and (report.get('passive_capabilities') or {}).get('chemscript_dll') == 'available'):
+        report['chemscript_hint'] = (
+            f'python "{SKILL_ROOT / "scripts" / "cdx.py"}" py -m cdxml_toolkit.doctor '
+            '--no-tests --configure-chemscript'
+        )
     if ns.full:
         report['diagnose_runtime'] = inner
     healthy = report['signatures_current'] and report['catalog_current'] \

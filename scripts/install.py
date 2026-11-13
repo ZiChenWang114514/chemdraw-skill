@@ -75,6 +75,7 @@ EXTRA_AGENT_DIRS = {
     'pi': ('.pi',),
     'opencode': ('.config/opencode', '.opencode'),
 }
+LEGACY_SKILL_DIRS = ('.codex/skills', '.kimi/skills', '.windsurf/skills')
 # Never copied into an installation; runtime.local.json is written per installation.
 IGNORED = ('__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', '*.pyc', '*.pyo',
            'manifest.json', 'runtime.local.json', 'tests')
@@ -182,18 +183,53 @@ def resolve_agents(agents, base, scope=0):
     return out
 
 
+def _is_link_to_source(target, source_resolved=None):
+    """True when `target` is a distinct path (symlink/junction) that resolves to `SOURCE`."""
+    source_resolved = source_resolved or SOURCE.resolve()
+    lexical = Path(os.path.abspath(target))
+    try:
+        return lexical != source_resolved and target.exists() and target.resolve() == source_resolved
+    except OSError:
+        return False
+
+
 def destinations(ns):
     if ns.destination:
-        return [Path(d).expanduser().resolve() for d in ns.destination]
-    base = Path(ns.project).expanduser().resolve() if ns.project else Path.home()
+        return [Path(os.path.abspath(Path(d).expanduser())) for d in ns.destination]
+    base = (Path(ns.project).expanduser() if ns.project else Path.home()).resolve()
     scope = 1 if ns.project else 0
     seen, out = set(), []
     for agent in resolve_agents(ns.agent, base, scope):
-        target = (base / ALL_AGENTS[agent][scope] / SKILL_NAME).resolve()
+        target = Path(os.path.abspath(base / ALL_AGENTS[agent][scope] / SKILL_NAME))
         if target not in seen:
             seen.add(target)
             out.append(target)
     return out
+
+
+def legacy_shadow_warnings(base, targets, source_print):
+    """Warn when an older legacy user-scope Skill copy (e.g. ~/.codex/skills/chemdraw) may shadow targets."""
+    base = Path(base)
+    target_set = {Path(os.path.abspath(t)) for t in targets}
+    source_resolved = SOURCE.resolve()
+    warnings = []
+    for rel in LEGACY_SKILL_DIRS:
+        folder = Path(os.path.abspath(base / rel / SKILL_NAME))
+        if folder in target_set or not (folder / 'SKILL.md').is_file():
+            continue
+        try:
+            if folder.resolve() == source_resolved:
+                continue
+            other_print = fingerprint(folder)
+        except OSError:
+            other_print = 'unreadable'
+        if other_print != source_print:
+            warnings.append(
+                f'Legacy Skill copy at {folder} differs from current source and may shadow newer '
+                f'agent Skill folders; update it with '
+                f'`python scripts/install.py --destination "{folder}" --apply` or remove it.'
+            )
+    return warnings
 
 
 def venv_python(venv):
@@ -401,19 +437,35 @@ def main(argv=None):
         ns.runtime = True
     targets = [] if ns.runtime_only else destinations(ns)
     backups = backup_root(ns)
+    source_resolved = SOURCE.resolve()
     for target in targets:
-        if target == SOURCE.resolve() or SOURCE.resolve() in target.parents:
+        resolved_target = target.resolve() if target.exists() else None
+        if target == source_resolved or source_resolved in target.parents or (
+            resolved_target is not None and source_resolved in resolved_target.parents
+        ):
             raise SystemExit(f'Destination must lie outside the repository Skill source: {target}')
         if target in backups.parents or backups == target:
             raise SystemExit('The backup folder must not be inside an installed Skill.')
     source_print = fingerprint(SOURCE)
+    installations = [
+        {
+            'destination': str(t),
+            'existing': t.exists(),
+            **({'linked_to_source': True} if _is_link_to_source(t, source_resolved) else {}),
+        }
+        for t in targets
+    ]
+    warnings = [] if (ns.project or ns.destination or ns.runtime_only) else legacy_shadow_warnings(
+        Path.home().resolve(), targets, source_print
+    )
     record = {
         'apply': ns.apply, 'source': str(SOURCE), 'source_fingerprint': source_print,
         'backup_root': str(backups),
-        'installations': [{'destination': str(t), 'existing': t.exists()} for t in targets],
+        'installations': installations,
         'runtime': runtime_plan(ns, targets),
         'opsin': opsin_plan(ns),
         'mapping': {'backends': mapping_backends(ns)},
+        **({'warnings': warnings} if warnings else {}),
         'status': 'proposal',
     }
     if not ns.apply:
@@ -432,8 +484,11 @@ def main(argv=None):
         return 0
 
     for item, target in zip(record['installations'], targets):
-        backup = install_one(target, source_print, backups)
-        item.update(backup=str(backup) if backup else None, installed_fingerprint=fingerprint(target))
+        if _is_link_to_source(target, source_resolved):
+            item.update(backup=None, installed_fingerprint=source_print)
+        else:
+            backup = install_one(target, source_print, backups)
+            item.update(backup=str(backup) if backup else None, installed_fingerprint=fingerprint(target))
     record['status'] = 'installed'
 
     # A failed runtime install leaves usable Skill copies (docs, diagnostics) and is reported.
@@ -448,7 +503,8 @@ def main(argv=None):
             record['status'] = 'installed_runtime_failed'
             code = 1
     if ns.runtime and runtime.get('status') == 'installed':
-        recorded = record_runtime([*targets, SOURCE], runtime['python'])
+        non_linked = [t for t in targets if not _is_link_to_source(t, source_resolved)]
+        recorded = record_runtime([*non_linked, SOURCE], runtime['python'])
         runtime['local_config'] = [str(p) for p in recorded['written']]
         runtime['local_config_removed'] = [str(p) for p in recorded['removed']]
         explicit = os.environ.get('CHEMDRAW_MCP_PYTHON')
@@ -471,6 +527,8 @@ def main(argv=None):
             opsin.update(status='failed', error=str(exc))
             code = 1
     for target in targets:
+        if _is_link_to_source(target, source_resolved):
+            continue
         # Record the installed state so check_installation.py / cdx.py doctor detect later drift.
         check_installation.write_manifest(target)
     print(json.dumps(record, indent=2))

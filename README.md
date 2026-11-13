@@ -273,13 +273,14 @@ For quick single-step schemes, you can skip the JSON file altogether with `cdx.p
 
 <p align="center"><img src="assets/readme/draw/scheme.png" width="85%" alt="Salicylic acid and acetic anhydride react with catalytic sulfuric acid at room temperature for 2 hours to give aspirin in 85% yield"></p>
 
-The same command draws three kinds of figure:
+The same command draws four kinds of figure:
 
 | Figure | What the brief lists | What you get |
 | --- | --- | --- |
 | **Reaction or route** | Species, steps, conditions, yields | One reaction, a linear route, a convergent route whose arms merge, one starting material with several products, or a catalytic cycle (`catalytic-cycle`). Long routes wrap onto rows; `reversible` and `resonance` arrows, coordination/dative bonds and radicals are supported. |
 | **Substrate scope** | Compounds with labels, groups and the values you measured | A panel packed onto as many editable pages as needed, each label and value kept next to its structure. A value you did not give shows a dash, never zero. |
 | **Mechanism** | Species, steps and each electron move | Curved arrows placed from the drawn coordinates, with full or half heads, routed around atoms and labels. |
+| **Molecule or structure panel** | One or more structures, optional numbering and properties | A single molecule or multi-column structure grid (`kind: "molecule"` / `"structure_panel"`) with automatic numbering, formula/MW captions, ring fills and core-aligned substituent highlights. |
 
 <table>
   <tr>
@@ -307,7 +308,7 @@ A figure can follow a journal or a research group in two layers, both chosen wit
 
 A **house style** is a card that names one of those presets as its base and adds what that journal or group does on the page: how compound numbers are set, where the yield goes, how conditions split around the arrow, which groups are abbreviated, which bonds or fragments are coloured, the line width and arrow length measured from its figures, and how it draws each kind of figure. There are **28 cards** (13 journals, 7 publishers, patents and textbooks, 8 research groups), read from **179 figure crops in 81 openly licensed papers and textbooks**. A convention is set only when two crops agree; where they disagree the card leaves it empty, says why in a note, and the default drawing is kept.
 
-Each card is split by **figure type**, 23 in all: reaction schemes, substrate scope, mechanisms, catalytic cycles, energy profiles, total synthesis, retrosynthesis, structure panels, SAR and optimisation tables, concept panels, graphical abstracts, stereochemical models, derivatisation, biosynthesis, biomolecules, coordination complexes, polymers, Markush structures, process routes, photophysical diagrams, assignment panels and setup diagrams. The tools apply the scheme conventions, the compound-number style, abbreviations and the measured geometry to schemes and scope panels, curved-arrow colour and weight to mechanisms and arrow colour to catalytic cycles; the other figure-type conventions come back as guidance for finishing the figure.
+Each card is split by **figure type**, 23 in all: reaction schemes, substrate scope, mechanisms, catalytic cycles, energy profiles, total synthesis, retrosynthesis, structure panels, SAR and optimisation tables, concept panels, graphical abstracts, stereochemical models, derivatisation, biosynthesis, biomolecules, coordination complexes, polymers, Markush structures, process routes, photophysical diagrams, assignment panels and setup diagrams. The tools apply the scheme conventions, the compound-number style, abbreviations and the measured geometry to schemes and scope panels, curved-arrow colour and weight to mechanisms, arrow colour to catalytic cycles, and ring fills, core-aligned substituent highlights and auto-numbering to structure panels; the other figure-type conventions come back as guidance for finishing the figure.
 
 Put the name in a brief (draw, scope and mechanism briefs, compose manifests and `cdx.py build` specs all take it), or override it on the command line:
 

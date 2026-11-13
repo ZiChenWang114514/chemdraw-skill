@@ -1282,3 +1282,35 @@ def test_fuzzy_suggestions_next_free_path_and_doctor_log_and_text(tmp_path, monk
         assert cdx.main(['doctor', '--text']) == 0
     txt = capsys.readouterr().out
     assert 'ChemDraw Skill' in txt and 'healthy=True' in txt and 'chemdraw=available' in txt
+
+
+def test_doctor_warns_on_stale_skill_copy_and_shows_chemscript_hint(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv('HOME', str(tmp_path))
+    monkeypatch.setenv('USERPROFILE', str(tmp_path))
+    stale = tmp_path / '.legacy_agent' / 'skills' / 'chemdraw'
+    stale.mkdir(parents=True)
+    (stale / 'SKILL.md').write_text('# ChemDraw\n', encoding='utf-8')
+    (stale / 'runtime.json').write_text(
+        json.dumps({'commit': '000000000000', 'toolkit_fingerprint': '0' * 64}),
+        encoding='utf-8',
+    )
+    monkeypatch.setattr(cdx, 'expected_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, 'runtime_fingerprint', lambda: 'a' * 64)
+    monkeypatch.setattr(cdx, '_signatures_current', lambda: True)
+    monkeypatch.setattr(cdx, 'catalog_stale', lambda: [])
+    worker_out = {
+        'ok': True,
+        'result': {
+            'ok': False,
+            'outputs': {
+                'capabilities': {'chemscript_probe': {'status': 'missing'}},
+                'passive_capabilities': {'chemscript_dll': 'available'},
+            },
+            'warnings': ['chemscript_probe: failed'],
+        },
+    }
+    with mock.patch.object(cdx, '_worker', return_value=worker_out):
+        assert cdx.main(['doctor', '--chemscript', '--text']) == 1
+    out = capsys.readouterr().out
+    assert 'Stale Skill copy at' in out
+    assert '--configure-chemscript' in out

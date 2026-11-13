@@ -10,8 +10,25 @@ import { createRequire } from "node:module";
 
 const base = process.argv[2];
 const host = new URL(base).host;
-const browser = process.env.CHROME || (process.platform === "darwin"
-  ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" : "google-chrome");
+function findBrowser() {
+  if (process.env.CHROME) return process.env.CHROME;
+  if (process.platform === "darwin") return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+  if (process.platform === "win32") {
+    const roots = [process.env.PROGRAMFILES, process.env["PROGRAMFILES(X86)"], process.env.LOCALAPPDATA].filter(Boolean);
+    const rels = [
+      ["Google", "Chrome", "Application", "chrome.exe"],
+      ["Microsoft", "Edge", "Application", "msedge.exe"],
+    ];
+    for (const rel of rels) {
+      for (const root of roots) {
+        const candidate = join(root, ...rel);
+        if (existsSync(candidate)) return candidate;
+      }
+    }
+  }
+  return "google-chrome";
+}
+const browser = findBrowser();
 const folder = mkdtempSync(join(tmpdir(), "site-smoke-"));
 const port = 9400 + Math.floor(Math.random() * 500);
 const chrome = spawn(browser, [

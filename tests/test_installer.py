@@ -420,6 +420,47 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("codex", proposal["detected_agents"])
         self.assertIn("--apply", proposal["apply_hint"])
 
+    def test_source_linked_skill_folder_and_legacy_shadow_warning(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve()
+            claude_skills = home / ".claude" / "skills"
+            claude_skills.mkdir(parents=True)
+            linked = claude_skills / "chemdraw"
+            source = ROOT / "skill" / "chemdraw"
+            try:
+                os.symlink(source, linked, target_is_directory=True)
+            except OSError:
+                if os.name == "nt":
+                    mk = subprocess.run(
+                        ["cmd", "/c", "mklink", "/J", str(linked), str(source)],
+                        capture_output=True, text=True,
+                    )
+                    if mk.returncode != 0:
+                        self.skipTest(f"directory links unavailable: {mk.stderr or mk.stdout}")
+                else:
+                    raise
+            (home / ".gemini").mkdir()
+            legacy = home / ".codex" / "skills" / "chemdraw"
+            legacy.mkdir(parents=True)
+            (legacy / "SKILL.md").write_text("stale", encoding="utf-8")
+
+            proposal = run("--agent", "auto", home=home)
+            self.assertEqual(proposal.returncode, 0, proposal.stderr)
+            rec = json.loads(proposal.stdout)
+            by_dest = {Path(i["destination"]): i for i in rec["installations"]}
+            self.assertTrue(by_dest[linked].get("linked_to_source"))
+            gemini_dest = home / ".gemini" / "skills" / "chemdraw"
+            self.assertIn(gemini_dest, by_dest)
+            self.assertFalse(by_dest[gemini_dest].get("linked_to_source"))
+            warnings = rec.get("warnings") or []
+            self.assertTrue(any(".codex" in w and "--destination" in w for w in warnings), warnings)
+
+            applied = run("--agent", "auto", "--apply", home=home)
+            self.assertEqual(applied.returncode, 0, applied.stderr)
+            self.assertFalse((source / "manifest.json").exists())
+            self.assertTrue((gemini_dest / "manifest.json").is_file())
+            self.assertEqual(linked.resolve(), source.resolve())
+
 
 if __name__ == "__main__":
     unittest.main()
