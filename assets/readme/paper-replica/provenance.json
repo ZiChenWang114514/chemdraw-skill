@@ -1,6 +1,6 @@
 {
   "source": "Paper figure excerpt. Bibliographic attribution is currently unavailable.",
-  "rights": "The original paper figure is third-party material and is not relicensed under the repository MIT license.",
+  "rights": "The original paper figure is third-party material and is not relicensed under the repository licenses.",
   "case": "13a, 14, 15, 16 and the shared 17a/17b depiction",
   "verification": "The five structures extracted from the saved CDXML match the reviewed reference structures. The rendered image was visually inspected.",
   "pixel_identical": false,

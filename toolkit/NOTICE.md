@@ -5,8 +5,10 @@
 This repository is maintained by ZiChenWang114514 as an independent community
 continuation of Hiu Fung Kevin Lee's original `cdxml-toolkit` project. The
 original Git history, copyright notice, MIT license, and attribution are
-preserved. Community modifications are copyright 2026 ZiChenWang114514 and
-contributors under the same MIT license.
+preserved. Community modifications and additions are copyright (c) 2026 ZiChenWang114514
+and licensed under the PolyForm Strict License 1.0.0 (see
+LICENSE-POLYFORM-STRICT.txt); original upstream code remains under the MIT
+License (see LICENSE).
 
 This project includes data and code derived from the following sources.
 
@@ -42,7 +44,7 @@ with abbreviation data from RDKit's `rdAbbreviations.GetDefaultAbbreviations()`
 
 The file `reagent_abbreviations.json` is an original curated database of
 approximately 172 reagent entries commonly used in medicinal chemistry,
-compiled by the project author. It is licensed under MIT as part of this project.
+compiled by the upstream project author under the MIT License; any community additions by ZiChenWang114514 are licensed under the PolyForm Strict License 1.0.0.
 
 ## OPSIN (optional name-to-structure tool)
 

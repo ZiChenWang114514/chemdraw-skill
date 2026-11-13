@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/python-3.10--3.13-3776AB?style=flat&amp;logo=python&amp;logoColor=white" height="20" alt="Python 3.10 至 3.13">
   <img src="https://img.shields.io/badge/runtime-Windows%20%7C%20macOS%20%7C%20Linux-007c83?style=flat" height="20" alt="可移植运行时支持 Windows、macOS 和 Linux">
   <a href="skill/chemdraw/references/agent-integration.md"><img src="https://img.shields.io/badge/agents-any%20with%20a%20shell-17242b?style=flat" height="20" alt="适用于任意可执行命令行的 Agent"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-d94f70?style=flat" height="20" alt="MIT 许可证"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Noncommercial%20(PolyForm%20Strict%20%2B%20CC%20BY--NC--ND%204.0)-d94f70?style=flat" height="20" alt="非商业许可证：PolyForm Strict 1.0.0 + CC BY-NC-ND 4.0"></a>
 </p>
 
 <p align="center">
@@ -558,7 +558,7 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
 
 [下载 CDXML](toolkit/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [踩坑复盘、改进流程与版权说明](toolkit/assets/readme/stereo-reconstruction/CASE.md) · [逐结构证据与软件版本](toolkit/assets/readme/stereo-reconstruction/verification.json)
 
-X-ray 图像裁自原论文，不在 MIT 许可范围内。
+X-ray 图像裁自原论文，不在本仓库许可证范围内。
 
 <details>
 <summary><b>增量流程：</b>修改三处标题，原生调用 8 → 2 次</summary>
@@ -999,7 +999,7 @@ macOS 适配器通过 ChemDraw for macOS 的 AppleScript 字典驱动 ChemDraw�
 
 ## 许可证
 
-仓库自行编写的代码与文档采用 [MIT 许可证](LICENSE)。[`toolkit/`](toolkit) 中的内置工具包基于 Hiu Fung Kevin Lee 的原始 `cdxml-toolkit`，保留其自身的 [MIT 许可证](toolkit/LICENSE)和[第三方声明](toolkit/NOTICE.md)。ChemDraw、Microsoft Office、各 Agent 客户端、MCP Python SDK、RDKit、DECIMER 及其依赖项继续适用各自的许可证与使用条款。
+本仓库由 ZiChenWang114514 编写的代码与脚本采用 **PolyForm Strict License 1.0.0** 仅供非商业使用，提示词、期刊与课题组风格卡片、文档及网页内容采用 **CC BY-NC-ND 4.0** 许可；完整条款与商业授权咨询见 [LICENSE](LICENSE)。[`toolkit/`](toolkit) 中来自 Hiu Fung Kevin Lee 原始 `cdxml-toolkit` 的上游代码保留其 [MIT 许可证](toolkit/LICENSE)，社区新增与修改适用 [PolyForm Strict 1.0.0](toolkit/LICENSE-POLYFORM-STRICT.txt)，并附有[第三方声明](toolkit/NOTICE.md)。ChemDraw、Microsoft Office、各 Agent 客户端、MCP Python SDK、RDKit、DECIMER 及其依赖项继续适用各自的许可证与使用条款。
 
 本项目为独立社区项目，与 Revvity、Anthropic、OpenAI、Google、GitHub、Microsoft、Anysphere、OpenCode 维护者以及上游 `cdxml-toolkit`、MCP Python SDK、RDKit 或 DECIMER 的维护者不存在隶属关系，也未获得其认可。
 

@@ -4,7 +4,7 @@ Run `cdx.py py <skill>/assets/paper-reconstructions/rebuild.py NEW_DIR` (the ski
 
 Both complete layouts are provided, including the shared OR representation for compounds 113/114. Component molecular inventories must remain unchanged during assembly. Coordinates belong to these examples and are not general drawing rules.
 
-The reader comparison below records the stereochemistry of every component. Source artwork belongs to the original paper and is not covered by the MIT license.
+The reader comparison below records the stereochemistry of every component. Source artwork belongs to the original paper and is not covered by the repository license.
 
 ## Stereochemistry review
 

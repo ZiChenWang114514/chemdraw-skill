@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ChemDraw Skill：AI 绘制可编辑化学结构式（Claude Code / Codex）</title>
-<meta name="description" content="ChemDraw Skill 让 Claude Code、Codex、Gemini CLI、Cursor 等 AI Agent 绘制可编辑的 ChemDraw 化学结构式：按 28 个期刊与课题组画法风格出图、复刻论文反应路线、由 Excel 生成 SAR 与底物拓展图、ACS 1996 试卷插图、在 Word/PPT 中嵌入 ChemDraw 对象，还有 ChemDraw 自带的反应计算器（化学计量表）和表征文字。开源，MIT 许可。">
+<meta name="description" content="ChemDraw Skill 让 Claude Code、Codex、Gemini CLI、Cursor 等 AI Agent 绘制可编辑的 ChemDraw 化学结构式：按 28 个期刊与课题组画法风格出图、复刻论文反应路线、由 Excel 生成 SAR 与底物拓展图、ACS 1996 试卷插图、在 Word/PPT 中嵌入 ChemDraw 对象，还有 ChemDraw 自带的反应计算器（化学计量表）和表征文字。仅供学术与非商业使用（PolyForm Strict 1.0.0 / CC BY-NC-ND 4.0）。">
 <meta name="keywords" content="ChemDraw Skill, ChemDraw, AI 画化学结构式, 化学结构式, CDXML, Claude Code, Codex, Agent Skills, 论文图复刻, 底物拓展图, SAR, ACS Document 1996, DECIMER, OCSR, 反应计算器, PMI, 原子映射, 期刊画图风格, JACS 风格, Nature 风格, 课题组画图风格, 文献图复现">
 <link rel="canonical" href="https://zichenwang114514.github.io/chemdraw-skill/">
 <link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/">
@@ -39,11 +39,11 @@
     {
       "@type": "SoftwareSourceCode",
       "name": "ChemDraw Skill",
-      "description": "让任意 AI Agent 绘制可编辑 ChemDraw 化学结构式、复刻论文图、生成 SAR 与底物拓展图，并计算反应用量、收率和表征文字的开源 Skill。",
+      "description": "让任意 AI Agent 绘制可编辑 ChemDraw 化学结构式、复刻论文图、生成 SAR 与底物拓展图，并计算反应用量、收率和表征文字的非商业源码可见 Skill。",
       "url": "https://zichenwang114514.github.io/chemdraw-skill/",
       "codeRepository": "https://github.com/ZiChenWang114514/chemdraw-skill",
       "programmingLanguage": "Python",
-      "license": "https://opensource.org/licenses/MIT",
+      "license": "https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/LICENSE",
       "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope, journal house style, JACS style, Nature style, literature figure reproduction",
       "featureList": ["绘制可编辑的 ChemDraw 结构式和反应图", "复刻论文反应图与专利 Markush 通式", "按期刊和课题组的习惯画图：16 个 ChemDraw 尺寸预设与 28 个期刊、出版社、专利、教材和课题组画法风格，覆盖 23 类图，并按原风格重画了 47 张已发表的图", "由 CSV 或 Excel 生成 SAR 与底物拓展图", "反应计算器、表征文字和路线收率", "结构图识别：六个引擎并排比对，并可从 PDF 中抽取结构", "前体、路线、产物和反应条件预测，均标注为预测", "核磁位移预测与 OpenLynx LCMS 板核对"],
       "inLanguage": ["zh-CN", "en"],
@@ -584,7 +584,7 @@ cd chemdraw-skill
 <footer>
   <div class="wrap">
     <div>
-      <p>ChemDraw Skill 采用 MIT 许可证。内置工具包基于 Hiu Fung Kevin Lee 的 <code>cdxml-toolkit</code>。项目由 ZiChenWang114514 维护，欢迎在 GitHub 上反馈问题，尤其是画错了的例子。</p>
+      <p>ChemDraw Skill 仅供非商业使用（代码适用 PolyForm Strict 1.0.0，文档、风格卡片与网页内容适用 CC BY-NC-ND 4.0；上游 <code>cdxml-toolkit</code> 代码保留 MIT 许可）。内置工具包基于 Hiu Fung Kevin Lee 的 <code>cdxml-toolkit</code>。项目由 ZiChenWang114514 维护，欢迎在 GitHub 上反馈问题，尤其是画错了的例子。</p>
       <p>本项目为独立社区项目，与 Revvity、Anthropic、OpenAI、Google、GitHub、Microsoft 等公司不存在隶属关系，也未获得其认可。ChemDraw 是 Revvity 的商标。</p>
     </div>
     <nav aria-label="页脚">

@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/python-3.10--3.13-3776AB?style=flat&amp;logo=python&amp;logoColor=white" height="20" alt="Python 3.10 through 3.13">
   <img src="https://img.shields.io/badge/runtime-Windows%20%7C%20macOS%20%7C%20Linux-007c83?style=flat" height="20" alt="Portable runtime on Windows, macOS and Linux">
   <a href="skill/chemdraw/references/agent-integration.md"><img src="https://img.shields.io/badge/agents-any%20with%20a%20shell-17242b?style=flat" height="20" alt="Works with any agent that has a shell"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-d94f70?style=flat" height="20" alt="MIT License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Noncommercial%20(PolyForm%20Strict%20%2B%20CC%20BY--NC--ND%204.0)-d94f70?style=flat" height="20" alt="Noncommercial License: PolyForm Strict 1.0.0 + CC BY-NC-ND 4.0"></a>
 </p>
 
 <p align="center">
@@ -558,7 +558,7 @@ A drawing that follows the source literally is read differently by ChemScript an
 
 [Editable CDXML](toolkit/assets/readme/stereo-reconstruction/reconstruction.cdxml) · [Failure analysis, workflow and rights](toolkit/assets/readme/stereo-reconstruction/CASE.md) · [Per-compound evidence and versions](toolkit/assets/readme/stereo-reconstruction/verification.json)
 
-The X-ray image is cropped from the source paper and is not covered by the MIT license.
+The X-ray image is cropped from the source paper and is not covered by the repository license.
 
 <details>
 <summary><b>Incremental workflow:</b> three caption edits, 8 → 2 native calls</summary>
@@ -999,7 +999,7 @@ The deployable Skill lives in [`skill/chemdraw`](skill/chemdraw). The chemistry 
 
 ## License
 
-Repository-authored code and documentation are licensed under the [MIT License](LICENSE). The bundled toolkit in [`toolkit/`](toolkit) is based on Hiu Fung Kevin Lee's original `cdxml-toolkit` and keeps its own [MIT License](toolkit/LICENSE) and [third-party notices](toolkit/NOTICE.md). ChemDraw, Microsoft Office, agent clients, the MCP Python SDK, RDKit, DECIMER and their dependencies retain their respective licenses and usage terms.
+Repository-authored code and scripts by ZiChenWang114514 are licensed for noncommercial use under the **PolyForm Strict License 1.0.0**, and prompts, house-style cards, documentation and website content are licensed under **CC BY-NC-ND 4.0**; see [LICENSE](LICENSE) for full terms and commercial inquiries. Original upstream `cdxml-toolkit` code in [`toolkit/`](toolkit) by Hiu Fung Kevin Lee retains its [MIT License](toolkit/LICENSE), alongside community additions under [PolyForm Strict 1.0.0](toolkit/LICENSE-POLYFORM-STRICT.txt) and [third-party notices](toolkit/NOTICE.md). ChemDraw, Microsoft Office, agent clients, the MCP Python SDK, RDKit, DECIMER and their dependencies retain their respective licenses and usage terms.
 
 This is an independent community project. It is not affiliated with or endorsed by Revvity, Anthropic, OpenAI, Google, GitHub, Microsoft, Anysphere, the OpenCode maintainers, or the maintainers of the upstream `cdxml-toolkit`, the MCP Python SDK, RDKit or DECIMER.
 

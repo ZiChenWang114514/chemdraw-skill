@@ -58,6 +58,8 @@ class DistributionTests(unittest.TestCase):
             "README.md",
             "README.zh-cn.md",
             "LICENSE",
+            "toolkit/LICENSE",
+            "toolkit/LICENSE-POLYFORM-STRICT.txt",
             "AGENTS.md",
             ".gitignore",
             ".gitattributes",
@@ -117,7 +119,42 @@ class DistributionTests(unittest.TestCase):
         self.assertEqual(stray, [])
         # Workflows only run from the repository root; a nested .github would silently do nothing.
         self.assertFalse((toolkit / ".github").exists())
-        self.assertTrue((toolkit / "LICENSE").is_file() and (toolkit / "NOTICE.md").is_file())
+        self.assertTrue(
+            (toolkit / "LICENSE").is_file()
+            and (toolkit / "LICENSE-POLYFORM-STRICT.txt").is_file()
+            and (toolkit / "NOTICE.md").is_file()
+        )
+
+    def test_noncommercial_dual_license_notices_are_consistent(self) -> None:
+        root_license = (ROOT / "LICENSE").read_text(encoding="utf-8")
+        self.assertIn("PolyForm Strict License 1.0.0", root_license)
+        self.assertIn("CC BY-NC-ND 4.0", root_license)
+        self.assertIn("Copyright (c) 2026 ZiChenWang114514", root_license)
+
+        upstream_license = (ROOT / "toolkit" / "LICENSE").read_text(encoding="utf-8")
+        self.assertIn("MIT License", upstream_license)
+        self.assertIn("Hiu Fung Kevin Lee", upstream_license)
+
+        toolkit_strict = (ROOT / "toolkit" / "LICENSE-POLYFORM-STRICT.txt").read_text(encoding="utf-8")
+        self.assertIn("PolyForm Strict License 1.0.0", toolkit_strict)
+        self.assertIn("ZiChenWang114514", toolkit_strict)
+
+        pyproject = (ROOT / "toolkit" / "pyproject.toml").read_text(encoding="utf-8")
+        self.assertIn('license = "MIT AND LicenseRef-PolyForm-Strict-1.0.0"', pyproject)
+
+        for rel in (
+            "README.md",
+            "README.zh-cn.md",
+            "docs/guide.md",
+            "docs/guide.zh-cn.md",
+            "site/index.html",
+            "site/en/index.html",
+            "site/lab/index.html",
+            "site/en/lab/index.html",
+        ):
+            text = (ROOT / rel).read_text(encoding="utf-8")
+            self.assertNotIn("opensource.org/licenses/MIT", text, rel)
+            self.assertNotIn("badge/license-MIT", text, rel)
 
     def test_no_personal_machine_paths_in_tracked_sources(self) -> None:
         # samples/ keeps the recorded provenance of its fixtures and is exempt.
