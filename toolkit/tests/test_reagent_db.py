@@ -363,9 +363,9 @@ class TestTierTwoCanonicalStorage:
         db._rdkit_Chem, db._rdkit_checked = None, True  # a lookup must not need RDKit for tier 2
         by_name, by_smiles = {}, {}
         db._index_entries({"x": {"display": "X", "smiles": ["CCO", "OCC"]},
-                           "y": {"display": "Y", "smiles": "C/C=C/C", "canonical_smiles": "C/C=C\C"}},
+                           "y": {"display": "Y", "smiles": "C/C=C/C", "canonical_smiles": r"C/C=C\C"}},
                           by_name, by_smiles, canonical_defaults_to_smiles=True)
-        assert set(by_smiles) == {"CCO", "OCC", "C/C=C/C", "C/C=C\C"}
+        assert set(by_smiles) == {"CCO", "OCC", "C/C=C/C", r"C/C=C\C"}
 
     def test_every_tier_two_smiles_is_still_indexed(self):
         db = get_reagent_db()

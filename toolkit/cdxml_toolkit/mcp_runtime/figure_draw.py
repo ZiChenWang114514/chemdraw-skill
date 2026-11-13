@@ -81,7 +81,7 @@ def _validate(brief: dict) -> list[str]:
         errors.append(f"Unknown brief keys: {unknown}")
     kind = brief.get("kind", "scheme")
     if kind != "scheme":
-        errors.append(f"kind {kind!r} is not available yet; only 'scheme', 'scope' and 'mechanism' can be drawn.")
+        errors.append(f"kind {kind!r} is not supported; choose 'scheme', 'molecule', 'scope' or 'mechanism'.")
     style_error = style_preset_error(brief.get("style"))
     if style_error:
         errors.append(style_error)
@@ -804,8 +804,21 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     continues the same row with the intermediate drawn once; any other step starts a new
     row, with its substrates drawn again. show_atom_numbers=true prints the atom numbers on a
     draft so the moves can be checked.
+
+    kind "molecule" (also "structures" or "structure_panel") draws a single molecule or a
+    multi-structure grid without reaction arrows: species [{id?, smiles or name, label?,
+    caption?, orientation?, ring_fills?, atom_halos?, ts_bracket?, box?, color?,
+    atom_colors?, bond_colors?, abbreviate?}], optional columns (structures per row),
+    numbering ("arabic", "roman", "letter", "plain_roman", "int_number", etc.),
+    properties (true or ["formula", "mw", "exact_mass"]), max_width, title, panel_label
+    and style, with the same grounding, house styles, structure_panel conventions, lint,
+    semantic read-back and optional native rendering as a scheme.
     """
     brief, errors = _read_brief(brief)
+    if brief is not None and brief.get("kind") in ("molecule", "structures", "structure_panel"):
+        from .figure_molecule import draw_molecule_figure
+
+        return draw_molecule_figure(brief, output_path, render)
     if brief is not None and brief.get("kind") == "scope":
         from .figure_scope import draw_scope
 

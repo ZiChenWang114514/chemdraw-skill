@@ -55,6 +55,17 @@ def _available_path(candidate: Path) -> Path:
         index += 1
 
 
+def _available_directory(candidate: Path) -> Path:
+    if not candidate.exists():
+        return candidate
+    index = 2
+    while True:
+        alternative = candidate.with_name(f"{candidate.name}_{index}")
+        if not alternative.exists():
+            return alternative
+        index += 1
+
+
 def resolve_destination(
     *,
     source: str | Path | None,
@@ -67,7 +78,10 @@ def resolve_destination(
     if output_path is not None:
         destination = Path(output_path).expanduser().resolve()
         if destination.exists() or destination == source_path:
-            raise OutputExistsError(f"Refusing to overwrite an existing file: {destination}")
+            suggestion = _available_path(destination)
+            raise OutputExistsError(
+                f"Refusing to overwrite an existing file: {destination} (next available: {suggestion})"
+            )
         if destination.suffix.lower() != suffix.lower():
             raise ValueError(f"output_path must end in {suffix}: {destination}")
     else:
@@ -97,14 +111,12 @@ def resolve_directory_destination(
     if output_dir is not None:
         destination = Path(output_dir).expanduser().resolve()
         if destination.exists():
-            raise OutputExistsError(f"Refusing to overwrite an existing directory: {destination}")
+            suggestion = _available_directory(destination)
+            raise OutputExistsError(
+                f"Refusing to overwrite an existing directory: {destination} (next available: {suggestion})"
+            )
     else:
-        candidate = source_path.parent / f"{source_path.stem}_{tag}"
-        destination = candidate
-        index = 2
-        while destination.exists():
-            destination = candidate.with_name(f"{candidate.name}_{index}")
-            index += 1
+        destination = _available_directory(source_path.parent / f"{source_path.stem}_{tag}")
     destination.parent.mkdir(parents=True, exist_ok=True)
     return destination
 

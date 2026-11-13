@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import redirect_stdout
+import difflib
 import importlib.util
 import inspect
 import json
@@ -170,6 +171,32 @@ def _resource_timeout(worker_timeout_seconds: int) -> int:
     return max(1, worker_timeout_seconds - 5)
 
 
+def _bind_or_explain(tool_name: str, fn, call_args: list, call_kwargs: dict) -> None:
+    """Validate call signature before execution so TypeError names valid parameters and close matches."""
+    sig = inspect.signature(fn)
+    try:
+        sig.bind(*call_args, **call_kwargs)
+    except TypeError as exc:
+        valid_names = [
+            p.name
+            for p in sig.parameters.values()
+            if p.kind not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+        ]
+        has_var_kw = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values())
+        hints: list[str] = []
+        if not has_var_kw:
+            for key in call_kwargs:
+                if key not in sig.parameters:
+                    matches = difflib.get_close_matches(key, valid_names, n=3, cutoff=0.5)
+                    if matches:
+                        hints.append(f"Did you mean {matches[0]!r} for {key!r}?")
+        params_desc = ", ".join(valid_names) if valid_names else "(none)"
+        hint_text = (" " + " ".join(hints)) if hints else ""
+        raise TypeError(
+            f"{tool_name}: {exc}; valid parameters: {params_desc}.{hint_text} Run `cdx.py sig {tool_name}`."
+        ) from None
+
+
 def main() -> int:
     try:
         payload = _read_payload()
@@ -202,12 +229,15 @@ def main() -> int:
         timeout_seconds = payload.get("timeout_seconds", 570)
         if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, int):
             raise ValueError("Worker timeout must be an integer")
+        call_args = list(payload.get("args", []))
+        call_kwargs = dict(payload.get("kwargs", {}))
         with native_resource_lock(
             spec.resource_class,
             _resource_timeout(timeout_seconds),
         ):
             with redirect_stdout(sys.stderr):
-                result = spec.function(*payload.get("args", []), **payload.get("kwargs", {}))
+                _bind_or_explain(tool_name, spec.function, call_args, call_kwargs)
+                result = spec.function(*call_args, **call_kwargs)
                 if inspect.isawaitable(result):
                     result = asyncio.run(result)
         _write_envelope({"ok": True, "result": _jsonable(result)})
