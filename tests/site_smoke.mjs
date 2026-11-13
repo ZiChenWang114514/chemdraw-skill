@@ -630,6 +630,7 @@ async function main() {
   for (let d = 60; d <= 240; d += 60) await touch("touchMove", [{ x: 600 - d, y: 380, id: 0 }, { x: 680 + d, y: 380, id: 1 }]);
   await touch("touchEnd", []);
   check("pinch zooms", await until(`document.querySelector(".lb-stage img").style.transform !== ${JSON.stringify(fitted)}`, 800), { fitted, now: await scale() });
+  check("desktop hides the mobile menu button", await run(`getComputedStyle(document.querySelector(".menu-btn")).display === "none"`));
   // A phone: tools a finger can hit, the task beside the canvas and the result brought into view
   await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   const finger = async (selector) => {

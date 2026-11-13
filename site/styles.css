@@ -251,7 +251,7 @@ button { font: inherit; color: inherit; }
 .theme[hidden] { display: none; }
 .theme svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .theme[data-mode="dark"] .moon, .theme[data-mode="light"] .sun { display: none; }
-.menu-btn { display: none; width: 34px; height: 34px; padding: 0; border-color: var(--rule); color: var(--ink-2); }
+.btn.menu-btn { display: none; min-height: 34px; width: 34px; padding: 0; border-color: var(--rule); color: var(--ink-2); }
 .menu-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
 .mobile-nav {
   position: fixed; inset: 69px var(--gutter) auto auto;
@@ -281,7 +281,7 @@ button { font: inherit; color: inherit; }
 @media (max-width: 860px) {
   .nav .hide-sm { display: none; }
   .nav { gap: 12px; }
-  .menu-btn { display: inline-flex; }
+  .btn.menu-btn { display: inline-flex; }
 }
 
 /* Progress: one segment per chapter, drawn with transforms so scrolling never reflows.
@@ -379,12 +379,12 @@ button { font: inherit; color: inherit; }
 }
 
 .install {
-  display: flex; align-items: stretch; max-width: 35rem;
+  display: flex; align-items: stretch; max-width: 36rem;
   background: var(--code-bg); color: var(--code-ink);
-  border: 1px solid var(--code-line); border-radius: var(--r-md); overflow: hidden; font-size: var(--fs-sm);
+  border: 1px solid var(--code-line); border-radius: var(--r-md); overflow: hidden; font-size: var(--fs-xs);
   box-shadow: var(--shadow-card);
 }
-.install code { flex: 1; padding: 13px 16px; overflow-x: auto; white-space: nowrap; background: none; border: 0; }
+.install code { flex: 1; padding: 13px 16px; overflow-x: auto; white-space: nowrap; background: none; border: 0; scrollbar-color: var(--code-line) transparent; }
 .install code::before { content: "$ "; color: var(--code-mute); }
 .copy {
   position: relative; font-family: var(--sans); font-size: var(--fs-sm);
@@ -423,7 +423,7 @@ button { font: inherit; color: inherit; }
 .btn.primary:hover:not(:disabled) { background: var(--teal-ink); border-color: var(--teal-ink); color: var(--on-teal); }
 .btn.ghost { border-color: transparent; background: none; color: var(--ink-2); }
 .btn.ghost:hover:not(:disabled) { border-color: transparent; background: var(--sheet); color: var(--ink); }
-@media (pointer: coarse) { .btn, .btn.sm, .filters button, .seg span { min-height: 40px; } }
+@media (pointer: coarse) { .btn, .btn.sm, .btn.menu-btn, .filters button, .seg span { min-height: 40px; } .btn.menu-btn { width: 40px; } }
 @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn:active:not(:disabled) { transform: none; } }
 .agents { margin: 24px 0 0; font-size: var(--fs-sm); color: var(--mute); max-width: 34rem; }
 .agents b { color: var(--ink-2); font-weight: 600; }
