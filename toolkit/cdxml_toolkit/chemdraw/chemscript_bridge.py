@@ -110,8 +110,12 @@ def _find_chemdraw_root() -> Optional[str]:
             winreg.CloseKey(key)
         except OSError:
             continue
-        # Strip /Automation flags and quotes
-        exe_path = raw.split("/")[0].strip().strip('"')
+        # Strip /Automation flags and quotes without breaking forward-slash paths
+        stripped = raw.strip()
+        if stripped.startswith('"') and '"' in stripped[1:]:
+            exe_path = stripped[1:stripped.index('"', 1)]
+        else:
+            exe_path = re.split(r"\s+/", stripped, maxsplit=1)[0].strip().strip('"')
         if not exe_path or not os.path.isfile(exe_path):
             continue
         path = os.path.dirname(exe_path)

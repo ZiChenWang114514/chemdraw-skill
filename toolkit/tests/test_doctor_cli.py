@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from unittest import mock
 
 from cdxml_toolkit import doctor
@@ -132,6 +133,24 @@ def test_find_chemdraw_root_prefers_registry_view_with_chemscript_dlls(tmp_path)
         chemscript_bridge, "_dll_bitness", return_value=64
     ):
         assert chemscript_bridge._find_chemdraw_root() == str(x64_root)
+
+    fake_posix_winreg = types.SimpleNamespace(
+        HKEY_CLASSES_ROOT=1,
+        HKEY_LOCAL_MACHINE=2,
+        KEY_READ=1,
+        KEY_WOW64_64KEY=256,
+        KEY_WOW64_32KEY=512,
+        OpenKey=lambda root, subkey, _zero=0, access=1: (root, subkey, access),
+        QueryValue=lambda key, _name="": (
+            "{FAKE-CLSID}" if key[0] == 1
+            else (f'"{x64_exe.as_posix()}" /Automation' if (key[2] & 256) else f'{x86_exe.as_posix()} /Automation')
+        ),
+        CloseKey=lambda _key: None,
+    )
+    with mock.patch.dict(sys.modules, {"winreg": fake_posix_winreg}), mock.patch.object(
+        chemscript_bridge, "_dll_bitness", return_value=64
+    ):
+        assert os.path.normpath(chemscript_bridge._find_chemdraw_root()) == os.path.normpath(str(x64_root))
 
 
 def test_chemscript_bridge_self_heals_stale_python_path_in_config(tmp_path):
