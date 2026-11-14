@@ -49,7 +49,7 @@ const check = (name, ok, detail = "") => {
 };
 
 async function connect() {
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 250; i++) {
     try {
       const pages = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
       const page = pages.find((t) => t.type === "page");
@@ -250,6 +250,24 @@ async function main() {
   await open("");
   check("without scripts the FAQ still reads", (await count(".faq details .lead")) === 10 && await run(`getComputedStyle(document.querySelector(".faq-tools")).display === "none"`));
   await send("Emulation.setScriptExecutionDisabled", { value: false });
+
+  // Capability explorer (category chips + live search) and step-3 prompt copy
+  await open("");
+  const typeCap = async (text) => {
+    await click(".cap-search input");
+    await run(`document.querySelector(".cap-search input").select()`);
+    if (text) await send("Input.insertText", { text }); else await press("Backspace");
+    await sleep(60);
+  };
+  await typeCap("Markush");
+  check("capability search filters cards", (await count(".caps > div:not([hidden])")) === 1, await count(".caps > div:not([hidden])"));
+  check("capability search updates count", /1/.test(await run(`document.querySelector(".cap-count").textContent`)));
+  await typeCap("zzzz");
+  check("capability search shows empty state", await run(`!document.querySelector(".cap-empty").hidden`));
+  await typeCap("");
+  check("clearing capability search restores all 19 cards", (await count(".caps > div:not([hidden])")) === 19 && await run(`document.querySelector(".cap-empty").hidden`));
+  await click('[data-copy="#q3"]');
+  check("step-3 prompt copies with one click", await until(`navigator.clipboard.readText().then((t) => t === document.querySelector("#q3").textContent.trim())`) && await run(`document.querySelector('[data-copy="#q3"]').hasAttribute("data-done")`));
 
   // The pointer: each tool shows its own cursor, and a preview is exactly what the click does
   await open("lab/#free");
@@ -612,6 +630,7 @@ async function main() {
   for (let d = 60; d <= 240; d += 60) await touch("touchMove", [{ x: 600 - d, y: 380, id: 0 }, { x: 680 + d, y: 380, id: 1 }]);
   await touch("touchEnd", []);
   check("pinch zooms", await until(`document.querySelector(".lb-stage img").style.transform !== ${JSON.stringify(fitted)}`, 800), { fitted, now: await scale() });
+  check("desktop hides the mobile menu button", await run(`getComputedStyle(document.querySelector(".menu-btn")).display === "none"`));
   // A phone: tools a finger can hit, the task beside the canvas and the result brought into view
   await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   const finger = async (selector) => {
@@ -638,6 +657,10 @@ async function main() {
     setTimeout(() => done(total), 200);
   })`);
   check("the hero does not jump on a phone", shiftPhone < 0.005, shiftPhone);
+  await finger(".menu-btn");
+  check("mobile menu popover opens", await until(`document.querySelector("#mobile-nav").matches(":popover-open")`, 800));
+  await finger('#mobile-nav a[href="#capabilities"]');
+  check("picking a mobile menu item closes the popover and jumps to the section", await until(`!document.querySelector("#mobile-nav").matches(":popover-open") && Math.abs(document.querySelector("#capabilities").getBoundingClientRect().top - 72) < 6`, 2000));
   await open("lab/#level-salicylic");
   const words = await run(`Chem.CHALLENGES.find((c) => c.id === "salicylic").solve`);
   check("the task sits above the canvas on a phone", await inView(".board .quest") && await run(`document.querySelector(".board .quest").textContent.includes(ChemWords.challenge.tasks.salicylic.task)`));
@@ -707,7 +730,7 @@ async function main() {
     return top && (el === top || el.contains(top) || top.contains(el)) ? null : (el.className || el.tagName).toString().slice(0, 24) + " at " + Math.round(box.top);
   })()`;
   for (const [width, height, page, from] of [[1280, 800, "lab/#levels", ".route a:last-of-type"], [1280, 800, "en/lab/#levels", ".route a:last-of-type"],
-    [1280, 800, "", "#calculator"], [1280, 800, "en/", "#calculator"], [1024, 768, "en/", "#calculator"]]) {
+    [1280, 800, "", "#capabilities"], [1280, 800, "en/", "#capabilities"], [1280, 800, "", "#calculator"], [1280, 800, "en/", "#calculator"], [1024, 768, "en/", "#calculator"]]) {
     await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
     await open(page);
     await run(`(() => { document.documentElement.style.scrollBehavior = "auto"; const all = document.querySelectorAll(${JSON.stringify(from)}), el = all[all.length - 1]; el.tabIndex = el.matches("a") ? el.tabIndex : -1; el.focus(); return 1; })()`);

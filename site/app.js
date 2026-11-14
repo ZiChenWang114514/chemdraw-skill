@@ -269,11 +269,19 @@ document.addEventListener("click", (e) => {
   const target = document.getElementById(link.hash.slice(1));
   if (!target) return;
   e.preventDefault();
+  link.closest("[popover]")?.hidePopover?.();
   history.pushState(null, "", link.hash);
   target.tabIndex = -1;
   target.focus({ preventScroll: true });
   glide(target);
 });
+
+const mobileNav = document.getElementById("mobile-nav");
+if (mobileNav) {
+  matchMedia("(min-width: 861px)").addEventListener("change", (e) => {
+    if (e.matches) mobileNav.hidePopover?.();
+  });
+}
 
 // Reading progress: a segment per chapter along the header, filled as the page is read, and
 // the chapter in view lit in the navigation. The segments are for the mouse; keyboards and
@@ -285,7 +293,7 @@ if (progress) {
     const link = Object.assign(document.createElement("a"), { href: `#${id}`, tabIndex: -1, innerHTML: "<i><i></i></i>" });
     link.dataset.label = el.querySelector("h2")?.textContent.trim() || words?.progressTop || "";
     progress.append(link);
-    return { el, link, fill: link.querySelector("i i"), nav: document.querySelector(`.nav a[href="#${id}"]`), top: 0, height: 1, shown: -1 };
+    return { el, link, fill: link.querySelector("i i"), navs: [...document.querySelectorAll(`:is(.nav, .mobile-nav) a[href="#${id}"]`)], top: 0, height: 1, shown: -1 };
   });
   let queued = false, lit = null;
   const paint = () => {
@@ -300,8 +308,8 @@ if (progress) {
     }
     const here = read > 0.995 ? chapters.at(-1) : chapters.filter((c) => c.top <= scrollY + innerHeight * 0.35).at(-1);
     if (here !== lit) {
-      lit?.nav?.removeAttribute("aria-current");
-      here?.nav?.setAttribute("aria-current", "true");
+      lit?.navs.forEach((a) => a.removeAttribute("aria-current"));
+      here?.navs.forEach((a) => a.setAttribute("aria-current", "true"));
       lit = here;
     }
   };
@@ -436,26 +444,51 @@ if (faq && words) {
   paintAll();
 }
 
-// Capabilities: filter the list by kind, and copy any example request.
+// Capabilities: filter the list by kind and search query, and copy any example request.
 const filters = document.querySelector(".filters");
 if (filters && words) {
   const items = [...document.querySelectorAll(".caps > [data-kind]")];
+  const searchBox = document.querySelector(".cap-tools");
+  const searchInput = searchBox?.querySelector("input");
+  const capCount = searchBox?.querySelector(".cap-count");
+  const capEmpty = document.querySelector(".cap-empty");
+  let activeKind = "all";
+
+  const applyCapFilter = (animate) => {
+    const terms = (searchInput?.value || "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    items.forEach((item) => {
+      const kindOk = activeKind === "all" || item.dataset.kind === activeKind;
+      const textOk = !terms.length || terms.every((t) => item.textContent.toLowerCase().includes(t));
+      const show = kindOk && textOk;
+      item.hidden = !show;
+      if (show) {
+        if (animate && motion.matches) {
+          item.classList.remove("pop");
+          void item.offsetWidth;
+          item.style.setProperty("--k", shown);
+          item.classList.add("pop");
+        }
+        shown++;
+      }
+    });
+    if (capCount) {
+      capCount.textContent = (activeKind !== "all" || terms.length)
+        ? fmt(words.caps.count, { n: shown, total: items.length })
+        : "";
+    }
+    if (capEmpty) capEmpty.hidden = shown > 0;
+  };
+
   filters.addEventListener("click", (e) => {
     const chip = e.target.closest("[data-filter]");
     if (!chip) return;
-    const kind = chip.dataset.filter;
+    activeKind = chip.dataset.filter;
     filters.querySelectorAll("[data-filter]").forEach((b) => b.setAttribute("aria-pressed", b === chip));
-    items.forEach((item, k) => {
-      const show = kind === "all" || item.dataset.kind === kind;
-      item.hidden = !show;
-      if (show && motion.matches) {
-        item.classList.remove("pop");
-        void item.offsetWidth;
-        item.style.setProperty("--k", k);
-        item.classList.add("pop");
-      }
-    });
+    applyCapFilter(true);
   });
+  searchInput?.addEventListener("input", () => applyCapFilter(false));
+  if (searchBox) searchBox.hidden = false;
   filters.hidden = false;
   document.querySelectorAll(".try").forEach((box) => {
     const ask = box.querySelector(".ask");

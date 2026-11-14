@@ -1,54 +1,56 @@
 # ChemDraw Skill 快速上手
 
-本指南适用于任何能读取本地说明文件并执行 shell 命令的 agent。图像重建还需要 agent 具备看图能力（或由人工复核）。
-
-## 开始之前
-
-先确认这台机器有什么：
-
-- **ChemDraw。** 原生渲染、第 3 步里的 PNG、CDX 转换和 Word/PowerPoint 对象，都需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。没有它时，Skill 仍然可以生成、编辑、检查和识别结构，也能运行各个计算工具（[有哪些差别](../skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)）。
-- **Python。** 运行时要用 64 位 Python 3.10–3.13 来构建；安装脚本本身在 3.9 及以上版本就能运行。打包的 toolkit 还不支持 Python 3.14 及更新版本：如果机器上只有这些版本，先装一个 3.12（例如 `uv python install 3.12`），或者用 `--python <解释器>` 指定。
-- **磁盘。** 默认运行时是一个约 760 MB 的虚拟环境。`--extras` 不带名字只装核心部分，`--extras publication office` 只加这两组。
-- **可选工具**，默认都不安装：
-  - 加 `--opsin` 得到名称转结构。OPSIN 依赖 Java：Windows 上第一次使用时自动下载，macOS 和 Linux 上需自行安装。
-  - `image` 扩展里的文字识别需要 Tesseract 程序。
-  - 加 `--mapping` 会装上机器学习原子映射后端（RXNMapper、LocalMapper），各自在独立环境中。
+本指南适用于任何能读取本地说明文件并执行 shell 命令的 AI Agent；涉及文献或专利截图重建时，还需 Agent 支持看图（或由人工并排复核）。
 
 ## 安装
 
-**1. 安装。** 安装脚本会自己找一个 64 位 Python 3.10–3.13 来构建 toolkit 运行时（通过 `py` 启动器、`uv` 管理的解释器或 PATH 上的 `python3.x`）。先预览，确认无误后再加 `--apply`：
+**1. 一键安装**（安装脚本在 Python 3.9+ 上运行，会自动查找本机 64 位 Python 3.10–3.13 构建共享工具包环境）：
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
 cd chemdraw-skill
-python scripts/install.py --agent claude agents --runtime          # 只预览
-python scripts/install.py --agent claude agents --runtime --apply  # 安装
+python scripts/install.py --agent claude agents --runtime          # 仅预览路径
+python scripts/install.py --agent claude agents --runtime --apply  # 正式安装
 ```
 
-**2. 检查**这台机器上哪些功能可用：
+**2. 检查本机能力**：
 
 ```bash
 python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 ```
 
-**3.** 按下面“第一次使用”的方式，用平常的话告诉 agent 要做什么。
-
-如果想先试 ChemDraw 自带的反应计算器，而不是画图，可以运行 `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"`。
-
-可选的识别和预测引擎（更多 OCSR 引擎、逆合成、产物、反应条件和核磁预测）不随安装一起下载。先用 `cdx.py engines --recommend 需求` 看看该装哪个、要占多大空间，同意后再运行 `cdx.py install-engines --bundle 名称`。每个引擎占用从 2 MB 到约 8.5 GB 不等（最大的是 RetroChimera，运行时还需要约 14 GB 空闲内存）。`decimer-local` 在本机运行 DECIMER 模型，直接装进工具包运行环境。有 NVIDIA 显卡时引擎会使用显卡并报告 `execution.device`，设置 `CHEMDRAW_ENGINE_DEVICE=cpu` 可关闭；单次调用保持无状态；批量输入或多步搜索会让模型常驻在工作进程中供下次调用使用（`--accel auto|on|off`，`cdx.py stop-daemons` 可结束）。许可限制：MolParser 的权重仅限非商业用途，RetroChimera 仅供研究，Reacon 没有许可证。想装到其他磁盘，就在安装前设置 `CHEMDRAW_ENGINE_HOME`，并且之后一直保留这个设置（见[引擎说明](../skill/chemdraw/references/engines.md)）。
-
-其他 agent 的安装位置、手动构建运行时和诊断方法见[首次安装](guide.zh-cn.md#首次安装)；[agent 集成](../skill/chemdraw/references/agent-integration.md)解释了目录布局和每一条命令。
-
-## 第一次使用
-
-对你的 agent 说：
+**3. 第一次使用**（直接复制发给你的 Agent）：
 
 ```text
-使用 ChemDraw Skill 解析阿司匹林并生成可编辑的 CDXML。如果有原生 ChemDraw，请渲染并查看 PNG。报告结构回读结果和输出路径。
+使用 ChemDraw Skill 解析阿司匹林并生成可编辑的 CDXML。如果有原生 ChemDraw，请渲染并查看 PNG，同时报告结构回读结果和输出路径。
 ```
 
-结构已知、图还不存在时，既可以用 `cdx.py resolve` 解析名称或 `cdx.py draw --name` / `--smiles` / `--reaction` 直接画单分子、编号网格与单步反应，也可以把需求说成一句话，agent 会写出简短的说明文件，再用 `cdx.py draw` 一次画出并检查单步反应、线性/收敛/发散或催化循环（`catalytic-cycle`）路线、底物拓展图或带弯箭头的机理，随后可用 `cdx.py inspect` 检查成品文件或 `cdx.py report` 输出性质、配平与 HRMS 报告，见[绘制新反应图](../skill/chemdraw/references/scheme-drawing.md)。条件只取自你给的内容。`cdx.py styles` 列出期刊尺寸预设和期刊、课题组画法风格，在说明里写 `"style": "nature_portfolio"` 或加 `--style baran_group` 即可按该风格出图。科研与实验记录工作流还支持原生读取一维 NMR（Bruker `1r`/`fid`、JCAMP-DX、JEOL、Varian 与 CSV/FT）以及解析 LCMS（Waters PDF、OpenLynx `.rpt`、Waters `.raw`、Shimadzu `.daml`、Agilent `report.txt` 与 `mzML`/`mzXML`）。
+如果想先体验 ChemDraw 自带的反应计算器，可运行：
 
-考试或讲义图（含 C10H21 之类的缩写、化合物代号、中文批注）走 [ACS 1996 绘图器](../skill/chemdraw/references/acs1996-drawings.md)。论文图片走[重建指南](../skill/chemdraw/references/image-visual-review.md)：通读整图、裁剪、用 DECIMER API 识别、对齐方向、并排比对、修正化学、组装条件与版面、原生渲染。
+```bash
+python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
+```
+
+<a id="开始之前"></a>
+
+## 环境与可选组件说明
+
+- **桌面版 ChemDraw（可选）。** 原生 300 dpi PNG 渲染、CDX 转换、交互式化学计量表和 Word/PowerPoint 对象需要 Windows 或 macOS 上已授权的桌面版 ChemDraw。未安装时，Skill 仍可生成、编辑、识别和校验 `.cdxml` 结构，并运行批量计算工具（[有哪些差别](../skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)）。
+- **Python。** 工具包运行时需要 64 位 Python **3.10–3.13**；暂不支持 Python 3.14 及更新版本（若本机只有 3.14+，可先执行 `uv python install 3.12` 或传 `--python <解释器>`）。
+- **磁盘空间。** 默认共享虚拟环境约 760 MB；`--extras` 不带名字只装核心部分，`--extras publication office` 仅加装指定分组。
+- **按需扩展参数：**
+  - `--opsin`：启用离线英文命名转结构（Windows 首次使用自动下载 Java，macOS 和 Linux 需自装 Java）。
+  - `--mapping`：在各自独立环境中安装机器学习原子映射后端（RXNMapper、LocalMapper）。
+  - `image` 扩展中的文字识别依赖 Tesseract 程序。
+- **可选识别与预测引擎：** 默认不随安装下载。先运行 `cdx.py engines --recommend 需求` 查看推荐引擎与占用空间（2 MB 至约 8.5 GB；RetroChimera 另需约 14 GB 空闲内存），确认后再执行 `cdx.py install-engines --bundle 名称`。安装前设置并长期保留 `CHEMDRAW_ENGINE_HOME` 可将引擎存放在其他磁盘（详见[引擎说明](../skill/chemdraw/references/engines.md)）。
+
+其他 Agent 的安装目录、手动创建运行时与故障排查见[首次安装](guide.zh-cn.md#首次安装)和 [Agent 集成说明](../skill/chemdraw/references/agent-integration.md)。
+
+## 常用工作流导航
+
+- **从零绘制新反应或底物拓展图：** 支持 `cdx.py resolve`、`cdx.py draw --name` / `--smiles` / `--reaction`，或由一句话生成 JSON 说明文件绘制单步反应、线性/汇聚/发散路线、催化循环（`catalytic-cycle`）、底物拓展网格与弯箭头机理；用 `--style nature_portfolio` / `--style baran_group` 切换 28 种期刊与课题组画法风格（`cdx.py styles` 查看全部）。详见[绘制新反应图](../skill/chemdraw/references/scheme-drawing.md)。
+- **试卷与讲义插图（含缩写、代号与中文批注）：** 见 [ACS 1996 绘图指南](../skill/chemdraw/references/acs1996-drawings.md)。
+- **文献反应图复刻：** 通读整图 → 裁切结构 → DECIMER 识别 → 匹配取向 → 左右对照 → 修正化学 → 组装版面 → 原生预览，详见[图像复刻指南](../skill/chemdraw/references/image-visual-review.md)。
+- **谱图与实验记录：** 支持一维 NMR（Bruker `1r`/`fid`、JCAMP-DX、JEOL、Varian、CSV）与 LCMS（Waters PDF/OpenLynx `.rpt`/`.raw`、Shimadzu `.daml`、Agilent `report.txt`、`mzML`/`mzXML`）。
 
 [记录模板](../skill/chemdraw/assets/paper-replica/task-template.json) | [可运行示例](../skill/chemdraw/assets/paper-replica/example/CASE.md) | [工作流路由](../skill/chemdraw/references/workflow-router.md)

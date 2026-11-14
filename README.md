@@ -3,56 +3,175 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/readme/hero-dark.svg">
-    <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill: editable chemistry for any AI agent. A request is grounded, drawn in native ChemDraw and verified.">
+    <img src="./assets/readme/hero.svg" width="100%" alt="ChemDraw Skill turns plain chemistry briefs, spreadsheets or paper crops into editable native ChemDraw CDXML and CDX files across 28 journal and research-group house styles, verified by RDKit and ChemScript.">
   </picture>
-</p>
-
-<h1 align="center">ChemDraw Skill</h1>
-
-<h3 align="center">Editable ChemDraw chemistry for Claude Code, Codex and any AI coding agent</h3>
-
-<p align="center">
-  Draw in the house style of 28 journals, publishers and research groups (JACS, Angew, Nature, Science, Baran, MacMillan and more), rebuild paper figures, build SAR panels from a spreadsheet and put live ChemDraw objects into Word and PowerPoint.
-  The same Skill also weighs out reactions, writes characterization paragraphs and maps atoms across a reaction.<br>
-  It runs in Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and any agent that can run a shell command.
 </p>
 
 <p align="center">
   <a href="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml"><img src="https://github.com/ZiChenWang114514/chemdraw-skill/actions/workflows/validate.yml/badge.svg?style=flat" height="20" alt="Validate workflow status"></a>
+  <a href="https://zichenwang114514.github.io/chemdraw-skill/en/"><img src="https://img.shields.io/badge/website-Showcase%20%26%20Molecule%20Lab-007c83?style=flat" height="20" alt="Interactive website and Molecule Lab"></a>
   <img src="https://img.shields.io/badge/python-3.10--3.13-3776AB?style=flat&amp;logo=python&amp;logoColor=white" height="20" alt="Python 3.10 through 3.13">
   <img src="https://img.shields.io/badge/runtime-Windows%20%7C%20macOS%20%7C%20Linux-007c83?style=flat" height="20" alt="Portable runtime on Windows, macOS and Linux">
-  <a href="skill/chemdraw/references/agent-integration.md"><img src="https://img.shields.io/badge/agents-any%20with%20a%20shell-17242b?style=flat" height="20" alt="Works with any agent that has a shell"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Noncommercial%20(PolyForm%20Strict%20%2B%20CC%20BY--NC--ND%204.0)-d94f70?style=flat" height="20" alt="Noncommercial License: PolyForm Strict 1.0.0 + CC BY-NC-ND 4.0"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Noncommercial%20(PolyForm%20Strict%20%2B%20CC%20BY--NC--ND%204.0)-C83E37?style=flat" height="20" alt="Noncommercial License: PolyForm Strict 1.0.0 + CC BY-NC-ND 4.0"></a>
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.zh-cn.md">&#31616;&#20307;&#20013;&#25991;</a>
-  <br>
-  <a href="#quick-start">Quick start</a> · <a href="#gallery">Gallery</a> · <a href="#what-it-handles">What it handles</a> · <a href="#reaction-calculator-and-chemistry-reports">Calculator</a> · <a href="#featured-demos">Demos</a> · <a href="#prediction-and-analysis-engines">Engines</a> · <a href="#platform-support">Platforms</a> · <a href="#common-questions">FAQ</a> · <a href="docs/guide.md">Guide</a> · <a href="https://zichenwang114514.github.io/chemdraw-skill/en/">Website</a>
+  <b>English</b> &nbsp;/&nbsp; <a href="README.zh-cn.md">&#31616;&#20307;&#20013;&#25991;</a>
+  &nbsp;&nbsp;
+  <a href="#quick-start"><b>Quick start</b></a>, <a href="#what-it-handles">What it handles</a>, <a href="#gallery">Gallery</a>, <a href="#journal-and-group-house-styles">28 house styles</a>, <a href="#reaction-calculator-and-chemistry-reports">Calculator</a>, <a href="#prediction-and-analysis-engines">Engines</a>, <a href="#platform-support">Platforms</a>, <a href="#common-questions">FAQ</a>, <a href="docs/guide.md">Guide</a>, <a href="https://zichenwang114514.github.io/chemdraw-skill/en/"><b>Website</b></a>
 </p>
 
+**ChemDraw Skill** gives **Claude Code**, **Codex**, **Gemini CLI**, **GitHub Copilot**, **Cursor**, **OpenCode**, and any MCP or shell agent a deterministic chemistry workflow that outputs editable native ChemDraw documents (`.cdxml` and `.cdx`) and live Word or PowerPoint objects rather than static images or guessed SMILES. Turn plain reaction briefs, CSV or Excel substrate tables, published scheme crops, or patent Markush claims into verified figures across **28 empirical journal and research-group house styles** (*JACS*, *Angew. Chem.*, *Nature*, *Science*, *ACS Document 1996*, Baran, MacMillan, Studer, and more), alongside ChemDraw's **stoichiometry calculator**, **ACS characterization reports**, and **15 opt-in local OCSR, retrosynthesis, and NMR engines**.
+
+## Quick start
+
+<!-- prerequisites -->
+<details>
+<summary><b>Environment &amp; optional flags</b> (64-bit Python 3.10 to 3.13, ~760 MB runtime, desktop ChemDraw optional)</summary>
 <br>
 
-<table>
-  <tr>
-    <td colspan="4" align="center">
-      <a href="#journal-and-group-house-styles"><img src="assets/readme/gallery/house-style-chemdraw.png" width="80%" alt="A published radical-probe scheme redrawn in the Studer group house style, new bonds in red"></a>
-      <br><b>28 journal and group house styles</b><br><sub>Measured from 179 published figures; 23 figure types, 47 literature replicas</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="25%" valign="top"><b>Structures with a source</b><br><sub>A structure comes from a database, OPSIN, ChemScript or DECIMER. The agent does not type SMILES from memory.</sub></td>
-    <td width="25%" valign="top"><b>Editable output</b><br><sub>Results are CDXML. Atoms, bonds and text can be changed in ChemDraw afterwards.</sub></td>
-    <td width="25%" valign="top"><b>One command</b><br><sub><code>cdx.py</code> runs every tool in any agent. MCP is optional.</sub></td>
-    <td width="25%" valign="top"><b>Checked after saving</b><br><sub>ChemDraw renders and saves the file, then the chemistry is read back and compared with the input.</sub></td>
-  </tr>
-</table>
+| Environment item | What to know |
+| --- | --- |
+| **Desktop ChemDraw** *(optional)* | Activated ChemDraw on Windows or macOS unlocks native 300 dpi PNG rendering, `.cdx` conversion, interactive stoichiometry grids, and Word/PowerPoint OLE. Without it, the Skill still builds, edits, recognizes, and validates `.cdxml` files and runs batch calculators on Windows, macOS, and Linux ([headless differences](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)). |
+| **Runtime &amp; disk** | ~760 MB shared virtual environment on 64-bit Python **3.10–3.13**. Pass `--extras` alone for minimal core, or `--extras publication office` for selected groups. |
+| **Optional flags** | `--opsin` adds offline IUPAC name-to-structure (fetches Java on first use on Windows; install Java on macOS/Linux) · `--mapping` installs RXNMapper &amp; LocalMapper in isolated venvs · `image` OCR uses Tesseract. |
+| **Offline smoke test** | `cdx.py py $HOME/.claude/skills/chemdraw/scripts/smoke_all_tools.py --output-dir NEW_DIR` calls every tool once locally (add `--network` to test online endpoints). |
+
+</details>
+
+**1. Install** (runs on Python 3.9+ and automatically locates a 64-bit Python 3.10–3.13 for the shared toolkit runtime):
+
+```bash
+git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
+cd chemdraw-skill
+python scripts/install.py --agent claude agents --runtime --apply
+```
+
+<sub>Omit <code>--apply</code> to preview target paths first. If Python 3.14+ is your only interpreter, install 3.12 (e.g. <code>uv python install 3.12</code>) or pass <code>--python &lt;interpreter&gt;</code>.</sub>
+
+**2. Check your machine** (reports desktop ChemDraw, Office OLE, Python extras, and installed engines):
+
+```bash
+python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
+```
+
+**3. Copy a first prompt** into your coding agent:
+
+```text
+# Draw a journal-styled reaction scheme
+Use the ChemDraw Skill to draw salicylic acid + Ac2O -> aspirin (H2SO4 cat., rt, 2 h, 85%) in acs_jacs style as editable CDXML and render a 300 dpi PNG.
+
+# Rebuild a paper figure screenshot into editable ChemDraw
+Use the ChemDraw Skill to reproduce ./scheme.png as editable CDXML, match the original orientation, verify structures side by side, and render a native preview.
+
+# Weigh reagents with ChemDraw's stoichiometry calculator
+Use the ChemDraw Skill to run ChemDraw's stoichiometry grid on "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1" and read back the amounts as JSON.
+```
+
+<details>
+<summary><b>Choose agents, project scope &amp; MCP setup</b></summary>
+<br>
+
+| `--agent` | Skill folder | Discovered by |
+| --- | --- | --- |
+| `claude` | `~/.claude/skills/` | Claude Code (also read by GitHub Copilot and OpenCode) |
+| `agents` | `~/.agents/skills/` | Shared Agent Skills root: Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, and others |
+| `gemini`, `copilot`, `cursor`, `opencode`, `kimi`, `pi` | Agent-specific directory | Use when you prefer per-client isolation |
+
+- `--project <repo>` installs project-scoped copies (`.claude/skills/`, `.agents/skills/`, `.github/skills/`, ...); `--destination <folder>` installs anywhere.
+- Agents without `SKILL.md` auto-discovery need one line in their system/instruction file pointing to `SKILL.md`.
+- All copies share one runtime (`python scripts/install.py --runtime-only --apply` upgrades it in place with automatic rollback on failure). Full details and optional MCP server setup: [agent integration](skill/chemdraw/references/agent-integration.md).
+
+</details>
+
+<details>
+<summary><b><code>cdx.py</code> one-page CLI cheat sheet (draw, styles, inspect, calc, OCSR &amp; Office)</b></summary>
+<br>
+
+Agents and humans call one entry point (`cdx.py`), which any Python can launch; it automatically re-executes inside the toolkit runtime:
+
+```bash
+# Resolve & draw
+python <skill>/scripts/cdx.py resolve aspirin                             # name/SMILES/CAS -> SMILES, formula, MW
+python <skill>/scripts/cdx.py draw --name aspirin aspirin.cdxml --style acs_jacs --render
+python <skill>/scripts/cdx.py draw --smiles "c1ccccc1,CC(=O)O" grid.cdxml --columns 2 --number --properties mw,formula --render
+python <skill>/scripts/cdx.py draw --reaction "CC(=O)O.CCO>O=S(=O)(O)O>CCOC(C)=O" --yield "88%" rxn.cdxml --render
+
+# Styles, inspection & stoichiometry
+python <skill>/scripts/cdx.py styles                                      # list 16 presets + 28 house styles
+python <skill>/scripts/cdx.py inspect rxn.cdxml                           # list structures, formulas, MW, topology
+python <skill>/scripts/cdx.py report "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1" --balance
+python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
+
+# Recognition, Office & diagnostics
+python <skill>/scripts/cdx.py ocsr figure_crop.png                        # structure recognition (or decimer)
+python <skill>/scripts/cdx.py render figure.cdxml                         # native 300 dpi PNG
+python <skill>/scripts/cdx.py office-edit deck.pptx                       # embed/update live ChemDraw OLE
+python <skill>/scripts/cdx.py call resolve_name -a query=aspirin          # invoke any registered tool via key=value
+python <skill>/scripts/cdx.py tools                                       # list all registered tools
+python <skill>/scripts/cdx.py doctor --text                               # capability check + run log (--log latest)
+```
+
+</details>
+
+## What it handles
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/readme/workflow-dark.svg">
+    <img src="./assets/readme/workflow.svg" width="100%" alt="Four-stage pipeline: 01 Ask or drop data, 02 Ground structures without guessing SMILES, 03 Build native editable CDXML in 28 house styles, and 04 Dual-reader verification with RDKit and ChemScript.">
+  </picture>
+</p>
+
+Every chemistry task routes cleanly through five workflows:
+
+| Workflow | Entry point | Deliverable |
+| --- | --- | --- |
+| **Draw a new figure** | [One command](#one-command-figures) · [28 house styles](#journal-and-group-house-styles) · [ACS 1996 specs](#exam-and-lecture-drawings-in-acs-document-1996-style) · [CSV/Excel SAR](#data-driven-publication-figures) | Read-back verified `.cdxml` + native 300 dpi `.png` |
+| **Rebuild an existing figure** | [Paper scheme replica](#reproduce-a-paper-figure) · [Patent Markush](#markush-demo) | Grounded editable `.cdxml`, `.cxsmiles` &amp; side-by-side visual diff |
+| **Run chemistry arithmetic** | [Stoichiometry, SI tables, ACS characterization &amp; mapping](#reaction-calculator-and-chemistry-reports) | ChemDraw grid JSON, ACS paragraphs, PMI &amp; atom maps |
+| **Predict and recognise** | [15 opt-in local/remote engines](#prediction-and-analysis-engines) | Provenance-tagged OCSR, retrosynthesis, product &amp; NMR candidates |
+| **Publish into Office** | `cdx.py office-edit` · Word &amp; PowerPoint automation | Live editable ChemDraw OLE objects + PDF preview |
+
+<details>
+<summary><b>Complete 17-domain capability matrix</b></summary>
+<br>
+
+| Area | What you get |
+| --- | --- |
+| **Structures and reactions** | Resolve names/CAS/SMILES; draw, edit, clean, merge, segment, convert and render CDXML or CDX without disturbing open ChemDraw windows. |
+| **New figures from a request** | Single reactions, linear/convergent/divergent routes, catalytic cycles, substrate-scope panels and mechanisms drawn and verified in one pass. [Details](#one-command-figures). |
+| **Journal and group styles** | 28 empirical house styles measured from 179 openly licensed figures across 23 figure types, layered on 16 stock ChemDraw presets. [Details](#journal-and-group-house-styles). |
+| **Exam, lecture and paper figures** | ACS Document 1996 drawings from compact JSON: `GenericNickname` abbreviations, CJK notes, boxed codes, orbital lobes, TS brackets and 3D templates (chair, Newman, Haworth, Fischer). |
+| **Data-driven figures** | Substrate-scope and SAR panels bound to CSV/XLSX by compound ID so later data updates preserve manual ChemDraw edits. |
+| **Reaction mechanisms** | Curved full/half-headed arrows routed from explicit electron moves or rebuilt with exact coordinates, charges and counterions. |
+| **Patent Markush structures** | Generic structures from patent figures + claims (R groups, variable rings, multicentre bonds, repeat counts) exported as CDXML, CXSMILES and V3000 MOL. |
+| **Image recognition** | Candidate structures with confidence scores and bounding boxes via DECIMER API or local weights. |
+| **Engines and predictions** | 15 opt-in isolated engines: 6 OCSR readers, PDF segmentation, retrosynthesis, forward products, reaction conditions and 1H/13C shifts. [Benchmarks &amp; sizes](#prediction-and-analysis-engines). |
+| **Calculators and reports** | Native ChemDraw stoichiometry grids + JSON readback, batch SI materials tables with PMI, HRMS &amp; ACS characterization text, 116-entry GHS safety reminders, route yield and atom mapping. [Details](#reaction-calculator-and-chemistry-reports). |
+| **TLC and apparatus** | Native TLC plates (lanes, spots, Rf, co-spots, stains, 2D plates) and laboratory apparatus assembled from ChemDraw templates. |
+| **Spectra and plots** | Processed 1D NMR (Bruker, JCAMP-DX, JEOL, Varian/Agilent) with peak picking, integration, solvent flags, zoom insets and stacked plots; numerical curves. |
+| **Experimental records** | LCMS plate &amp; chromatogram reports (Waters, OpenLynx, Shimadzu, Agilent, mzML/mzXML) with Cl/Br `M+2` checks, IS ratios and 24/96-well heatmaps; SciFinder RDF. |
+| **Molecule comparison** | Portable RDKit fingerprint similarity everywhere; exact stereochemical identity checks via ChemScript (Windows) or ChemDraw (macOS). |
+| **Office documents** | Live editable ChemDraw OLE objects in desktop Word and PowerPoint on Windows and macOS. |
+| **ChemScript and ChemDraw interfaces** | Windows ChemScript SDK bridge plus an audited catalog of ChemDraw 22.2 COM objects, CDXML elements and menu commands. [Details](docs/guide.md#chemdraw-interface-coverage). |
+| **Remote workstation access** | Optional authenticated Streamable HTTP server for a Windows ChemDraw host with health and Prometheus endpoints. |
+
+The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists audited symbols of the bundled toolkit separately from registered tools (`cdx.py tools` prints the live count).
+
+</details>
 
 ## Gallery
 
-Every card is a native ChemDraw render of an editable file in this repository. Click one to open its case.
+Every card below is a native ChemDraw render of an editable `.cdxml` file in this repository. Click any card to inspect its workflow, source data, and verification record.
 
 <table>
+  <tr>
+    <td colspan="3" align="center">
+      <a href="#journal-and-group-house-styles"><img src="assets/readme/gallery/house-style-chemdraw.png" width="82%" alt="A published radical-probe scheme redrawn in the Studer group house style, new bonds in red"></a>
+      <br><b>28 empirical journal &amp; group house styles + 16 ChemDraw presets</b><br><sub>Measured from 179 openly licensed figures across 23 figure types · Verified against 47 literature replicas</sub>
+    </td>
+  </tr>
   <tr>
     <td colspan="3" align="center">
       <a href="#paper-scheme-demo"><img src="assets/readme/gallery/paper-scheme-original.png" alt="Original published reaction scheme"></a>
@@ -84,7 +203,7 @@ Every card is a native ChemDraw render of an editable file in this repository. C
   <tr>
     <td width="33%" align="center" valign="top">
       <a href="#exam-and-lecture-drawings-in-acs-document-1996-style"><img src="assets/readme/gallery/acs1996.png" alt="ACS Document 1996 hydrogenation drawing built from a JSON spec"></a>
-      <br><b>Exam and lecture figures</b><br><sub>ACS Document 1996 style from a small JSON spec</sub>
+      <br><b>Exam and lecture figures</b><br><sub>ACS Document 1996 style from a compact JSON spec</sub>
     </td>
     <td width="33%" align="center" valign="top">
       <a href="#tlc-demo"><img src="assets/readme/gallery/tlc-apparatus.png" alt="Native TLC plate and reflux apparatus"></a>
@@ -101,161 +220,28 @@ Every card is a native ChemDraw render of an editable file in this repository. C
   <tr>
     <td width="50%" align="center" valign="top">
       <a href="#prediction-and-analysis-engines"><img src="assets/readme/engines/retro/route-aizynthfinder.png" alt="A predicted two-step route drawn in ChemDraw"></a>
-      <br><b>Predicted routes</b><br><sub>Four engines, one recorded route, misses shown</sub>
+      <br><b>Predicted retrosynthesis routes</b><br><sub>Four engines benchmarked against recorded lab routes, misses kept</sub>
     </td>
     <td width="50%" align="center" valign="top">
       <a href="#prediction-and-analysis-engines"><img src="assets/readme/engines/nmr/caffeine/comparison.png" alt="Measured caffeine spectra with predicted shifts marked"></a>
-      <br><b>Predicted against measured NMR</b><br><sub>MagNET and NMRNet++ on a real spectrum</sub>
+      <br><b>Predicted vs measured NMR</b><br><sub>MagNET and NMRNet++ overlaid on an experimental spectrum</sub>
     </td>
   </tr>
 </table>
 
-## Quick start
-
-<!-- prerequisites -->
-**Before you start**, check what this machine has:
-
-- **ChemDraw.** Native rendering, the PNG in step 3, CDX conversion and Word/PowerPoint objects need licensed desktop ChemDraw on Windows or macOS. Without it the Skill still builds, edits, checks and recognises structures and runs the calculators ([what changes](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)).
-- **Python.** A 64-bit Python 3.10–3.13 builds the runtime; the installer itself runs on 3.9+.
-- **Disk.** The default runtime is a virtual environment of about 760 MB. `--extras` with no names installs the core only, and `--extras publication office` adds just those groups.
-- **Optional tools**, none installed by default:
-  - `--opsin` adds name-to-structure. OPSIN needs Java, which is fetched on first use on Windows and must be installed on macOS and Linux.
-  - Text recognition in the `image` extra needs the Tesseract program.
-  - `--mapping` adds the machine-learning atom-mapping backends (RXNMapper, LocalMapper), each in its own environment.
-
-**1. Install.** The installer needs Python 3.9+ and finds a 64-bit Python 3.10–3.13 for the toolkit runtime on its own (through the `py` launcher, `uv`-managed interpreters or `python3.x` on PATH).
-
-```bash
-git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
-cd chemdraw-skill
-python scripts/install.py --agent claude agents --runtime          # preview only
-python scripts/install.py --agent claude agents --runtime --apply  # install
-```
-
-**2. Check** what works on this machine:
-
-```bash
-python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
-```
-
-To call every tool once and see which ones work here, run `cdx.py py $HOME/.claude/skills/chemdraw/scripts/smoke_all_tools.py --output-dir NEW_DIR` (offline unless `--network` is given).
-
-**3. Ask** your agent in plain language:
-
-```text
-Use the ChemDraw Skill to draw aspirin as editable CDXML, render it natively and show me the PNG.
-```
-
-> [!NOTE]
-> Python 3.14 and newer are not supported by the bundled toolkit yet. If that is your only Python, install 3.12 (for example `uv python install 3.12`) or pass `--python <interpreter>`.
-
-To try ChemDraw's own reaction calculator instead of a drawing, run `python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"` ([details](#reaction-calculator-and-chemistry-reports)).
-
-<details>
-<summary><b>Everyday <code>cdx.py</code> commands (draw, style, calc, Office)</b></summary>
-<br>
-
-```bash
-python <skill>/scripts/cdx.py resolve aspirin                             # resolve to SMILES, formula, MW (or --smiles)
-python <skill>/scripts/cdx.py draw --name aspirin aspirin.cdxml --style acs_jacs --render
-python <skill>/scripts/cdx.py draw --smiles "c1ccccc1,CC(=O)O" grid.cdxml --columns 2 --number --properties mw,formula --render
-python <skill>/scripts/cdx.py draw --reaction "CC(=O)O.CCO>O=S(=O)(O)O>CCOC(C)=O" --yield "88%" rxn.cdxml --render
-python <skill>/scripts/cdx.py inspect rxn.cdxml                          # list structures, formulas, MW, scheme topology
-python <skill>/scripts/cdx.py report "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1" --balance
-python <skill>/scripts/cdx.py styles                                    # list 16 presets + 28 house styles
-python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
-python <skill>/scripts/cdx.py ocsr figure_crop.png                    # structure recognition (or decimer)
-python <skill>/scripts/cdx.py office-edit deck.pptx                    # embed/update live ChemDraw OLE
-python scripts/install.py --runtime-only --apply                       # upgrade shared runtime only
-```
-
-</details>
-
-<details>
-<summary><b>Choose agents and install locations</b></summary>
-<br>
-
-| `--agent` | Skill folder | Read by |
-| --- | --- | --- |
-| `claude` | `~/.claude/skills/` | Claude Code (also GitHub Copilot and OpenCode) |
-| `agents` | `~/.agents/skills/` | The shared Agent Skills folder: Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and others |
-| `gemini`, `copilot`, `cursor`, `opencode`, `kimi`, `pi` | each agent's own folder | when you prefer the agent-specific location |
-
-- `--project <repo>` installs project-scoped copies (`.claude/skills/`, `.agents/skills/`, `.github/skills/`, ...); `--destination <folder>` installs anywhere.
-- Agents without Skill discovery need one line in their instruction file pointing at `SKILL.md`.
-- All copies share one runtime. Re-running the installer upgrades in place; a replaced copy is backed up and restored if anything fails.
-
-Details for each agent, command allowlisting and optional MCP registration: [agent integration](skill/chemdraw/references/agent-integration.md).
-
-</details>
-
-<details>
-<summary><b>The <code>cdx.py</code> entry point</b></summary>
-<br>
-
-Agents call one entry point, which any Python can start; it re-launches itself in the toolkit runtime:
-
-```bash
-python <skill>/scripts/cdx.py tools                                         # the registered tools
-python <skill>/scripts/cdx.py resolve aspirin                               # resolve a name/SMILES/CAS in one shot
-python <skill>/scripts/cdx.py draw --name aspirin aspirin.cdxml --render    # single molecule in one command
-python <skill>/scripts/cdx.py call resolve_name -a query=aspirin            # inline key=value tool arguments
-python <skill>/scripts/cdx.py render figure.cdxml                           # native 300 dpi PNG
-python <skill>/scripts/cdx.py decimer crop.png                              # structure recognition
-python <skill>/scripts/cdx.py doctor --text                                 # capability check + recent run log (--log latest)
-```
-
-</details>
-
-## What it handles
-
-A request usually falls into one of five kinds of work. Each links to its section; the table after them lists every tool area.
-
-- **Draw a new figure** from a short brief: [one command](#one-command-figures), in the [house style](#journal-and-group-house-styles) of a journal or research group, or as [exam and lecture drawings](#exam-and-lecture-drawings-in-acs-document-1996-style).
-- **Rebuild an existing figure** from a paper image or PDF: [reproduce a paper figure](#reproduce-a-paper-figure).
-- **Do the arithmetic**: [stoichiometry, materials tables, characterization text and atom mapping](#reaction-calculator-and-chemistry-reports).
-- **Predict and read**: [structure recognition, routes, products, conditions and NMR shifts](#prediction-and-analysis-engines).
-- **Put it in a document**: editable ChemDraw objects in Word and PowerPoint.
-
-<details>
-<summary><b>Every tool area, in one table</b></summary>
-<br>
-
-| Area | What you get |
-| --- | --- |
-| **Structures and reactions** | Resolve names and identifiers; draw, edit, clean, merge, segment, convert and render CDXML or CDX documents. Work in a live ChemDraw window without disturbing the document you have open. |
-| **New figures from a request** | A reaction, a linear, convergent or divergent route, a catalytic cycle, a substrate-scope panel or a mechanism, drawn from a short brief. Chemistry and layout are checked in the same command. [Details](#one-command-figures). |
-| **Journal and group styles** | 28 house styles for journals, publishers, patents, textbooks and research groups, measured from 179 openly licensed figures, on top of 16 measurement presets read from ChemDraw's own style sheets. Each style records how that source sets compound numbers, yields, conditions, abbreviations, colours, line widths and arrows across 23 kinds of figure. [Details](#journal-and-group-house-styles). |
-| **Exam, lecture and paper figures** | ACS Document 1996 drawings from a JSON spec: abbreviations, Chinese notes, boxed compound codes, ring shading, orbital lobes, transition-state brackets and 3D templates such as chair, Newman, Haworth and Fischer. |
-| **Data-driven figures** | Substrate-scope and SAR panels from CSV or XLSX that stay editable and can be updated. |
-| **Reaction mechanisms** | Curved arrows drawn from a list of electron moves, or rebuilt from explicit atom coordinates, charges and counterions. |
-| **Patent Markush structures** | Generic structures from a patent image and its claim text: R groups, variable rings, multicentre bonds and repeat counts, saved as CXSMILES, a V3000 molfile and an editable drawing. |
-| **Image recognition** | Candidate structures with confidence values and bounding boxes, from the DECIMER API or local models. |
-| **Engines and predictions** | Fifteen optional engines, installed only when you agree: six image readers compared on one picture, structures from a PDF, precursors and routes, products, reaction conditions and 1H/13C shifts. Every result is a labelled prediction. [Cases and install sizes](#prediction-and-analysis-engines). |
-| **Calculators and reports** | ChemDraw's own stoichiometry grid read back as data; SI materials tables with process mass intensity; HRMS lines and characterization paragraphs; safety reminders from a 116-entry GHS table; route yield; atom mapping; property sheets and reaction balance. [Details](#reaction-calculator-and-chemistry-reports). |
-| **TLC and apparatus** | Native TLC plates with lanes, spots, Rf values, co-spot lanes, stain palettes and 2D plates, and apparatus built from ChemDraw templates. |
-| **Spectra and plots** | Processed 1D NMR from Bruker, JCAMP-DX, JEOL and Varian/Agilent files with peak picking, integration, residual solvent flags, multiplets, zoom insets and stacked spectra; numerical data as editable curves. |
-| **Experimental records** | LCMS reports (Waters, OpenLynx, Shimadzu, Agilent ChemStation, mzML and mzXML) with Cl/Br isotope checks, internal-standard normalization and 24/96-well purity heatmaps; SciFinder RDF and lab-book workflows. |
-| **Molecule comparison** | RDKit fingerprint similarity everywhere; exact identity checks through ChemScript on Windows or ChemDraw on macOS. |
-| **Office documents** | Editable ChemDraw objects in desktop Word and PowerPoint, built with ChemDraw on Windows or macOS. |
-| **ChemScript and ChemDraw interfaces** | The ChemScript SDK on Windows, and a catalog of ChemDraw 22.2's COM objects, CDXML elements and menu commands, each marked as having a tool, a checked recipe or documentation only. [Details](docs/guide.md#chemdraw-interface-coverage). |
-| **Remote workstation access** | Optionally expose a Windows host through Streamable HTTP with health and Prometheus endpoints. |
-
-The generated [public inventory](skill/chemdraw/references/toolkit-public-inventory.md) lists the audited symbols of the bundled toolkit, separately from the registered tools (`cdx.py tools` prints the current count).
-
-</details>
+## Draw and style new figures
 
 <a id="one-command-figures"></a>
 
 ### A new figure from one request
 
-When the structures are known and the figure does not exist yet, ask for it in a sentence: "Draw aspirin from salicylic acid and acetic anhydride, H2SO4 (cat.), rt, 2 h, 85%." Your agent turns that into a short JSON brief, and one command draws the figure and checks it:
+When the structures are known and the figure does not exist yet, ask in one sentence — *"Draw aspirin from salicylic acid and acetic anhydride, H2SO4 (cat.), rt, 2 h, 85%."* Your agent writes a compact JSON brief, and one command builds, renders, and verifies the figure:
 
 ```bash
 python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
 ```
 
-For quick single-step schemes, you can skip the JSON file altogether with `cdx.py draw --reaction "A.B>reagent>C" out.cdxml` (add `--compact` for tight multi-step or narrow-column layouts).
+For quick single-step schemes, skip the JSON file altogether with `cdx.py draw --reaction "A.B>reagent>C" out.cdxml` (add `--compact` for tight multi-step or narrow-column layouts).
 
 ```json
 {
@@ -273,14 +259,14 @@ For quick single-step schemes, you can skip the JSON file altogether with `cdx.p
 
 <p align="center"><img src="assets/readme/draw/scheme.png" width="85%" alt="Salicylic acid and acetic anhydride react with catalytic sulfuric acid at room temperature for 2 hours to give aspirin in 85% yield"></p>
 
-The same command draws four kinds of figure:
+The same command draws four figure families:
 
 | Figure | What the brief lists | What you get |
 | --- | --- | --- |
-| **Reaction or route** | Species, steps, conditions, yields | One reaction, a linear route, a convergent route whose arms merge, one starting material with several products, or a catalytic cycle (`catalytic-cycle`). Long routes wrap onto rows; `reversible` and `resonance` arrows, coordination/dative bonds and radicals are supported. |
-| **Substrate scope** | Compounds with labels, groups and the values you measured | A panel packed onto as many editable pages as needed, each label and value kept next to its structure. A value you did not give shows a dash, never zero. |
-| **Mechanism** | Species, steps and each electron move | Curved arrows placed from the drawn coordinates, with full or half heads, routed around atoms and labels. |
-| **Molecule or structure panel** | One or more structures, optional numbering and properties | A single molecule or multi-column structure grid (`kind: "molecule"` / `"structure_panel"`) with automatic numbering, formula/MW captions, ring fills and core-aligned substituent highlights. |
+| **Reaction or route** | Species, steps, conditions, yields | Single reactions, linear/convergent/divergent routes or catalytic cycles (`catalytic-cycle`), with automatic row wrapping, `reversible`/`resonance` arrows, dative bonds and radicals. |
+| **Substrate scope** | Compounds with labels, groups and measured values | Multi-page editable grids keeping each label and metric under its structure; unmeasured entries print a dash, never `0`. |
+| **Mechanism** | Species, steps and explicit electron moves | Full- or half-headed curved arrows placed from drawn coordinates and routed around atoms and labels. |
+| **Molecule or structure panel** | One or more structures, optional numbering &amp; properties | Single molecules or multi-column grids (`kind: "molecule"` / `"structure_panel"`) with auto-numbering, formula/MW captions, ring fills and core-aligned substituent highlights. |
 
 <table>
   <tr>
@@ -289,28 +275,28 @@ The same command draws four kinds of figure:
   </tr>
 </table>
 
-What the command does with a brief:
+Six built-in guardrails run on every brief:
 
-- **Structures come from you or from a table.** A SMILES you give is used as written. A name is looked up in the built-in reagent table and then PubChem (not when `CHEMDRAW_OFFLINE=1`); a name that cannot be resolved stops the run and asks for a SMILES.
-- **Conditions come only from you.** A step without conditions is drawn without them and the report says so. Nothing is filled in from the tool's own chemistry.
-- **The chemistry is checked.** Atom and charge balance is computed for each step, and a missing by-product is named, not drawn. After saving, the structures in the file are compared with the brief.
-- **The geometry is checked.** Overlaps, text that is too small and a drawing wider than the page are measured. If a check fails, the figure is laid out once more with more room and the report says what changed.
-- **Mechanisms are drawn, not predicted.** You list the electron moves; a step without moves is refused. An arrow that starts on an atom with no lone pair, charge or radical is drawn and flagged.
-- **Nothing is overwritten.** The report lists every structure with where it came from, the checks that passed or did not run, and the path of the native PNG. Without ChemDraw the file is reported as an unrendered draft. Open the PNG before you use the figure.
+- **Grounded structures.** Explicit SMILES are used verbatim; names resolve through the built-in reagent table and then PubChem (disabled under `CHEMDRAW_OFFLINE=1`). Unresolved names stop the run instead of guessing.
+- **Zero invented conditions.** Omitted conditions stay blank and are noted in the report; the tool never fills in chemistry on its own.
+- **Atom &amp; charge balance.** Every step is checked for atom/charge conservation (missing by-products are named in the report, never silently drawn), and saved CDXML structures are read back against the brief.
+- **Auto-reflowed geometry.** Overlaps, undersized text and page-width overflows trigger one automatic spacious re-layout and a diff note in the report.
+- **Explicit mechanism moves.** You supply the electron moves; steps without moves are refused, and arrows starting without a lone pair, charge or radical are drawn and flagged.
+- **Non-destructive output.** Existing files are never overwritten. Without desktop ChemDraw the file is flagged as an unrendered draft; always inspect the native PNG before publication.
 
-See [drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md) for the full brief and report.
+See [drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md) for the full brief schema and report fields.
 
 <a id="journal-and-group-house-styles"></a>
 
 ### Journal and group house styles
 
-A figure can follow a journal or a research group in two layers, both chosen with the same `style` name. A **measurement preset** is one of sixteen style sheets read from ChemDraw's own stock files (`acs1996`, the default, plus `wiley`, `rsc`, `nature`, `synthesis` and others); it fixes bond length, line widths and fonts and nothing else.
+Style selection works in **two composable layers**, both addressed by the same `style` parameter (`draw`, `scope`, `mechanism`, `compose` and `cdx.py build` all accept it):
 
-A **house style** is a card that names one of those presets as its base and adds what that journal or group does on the page: how compound numbers are set, where the yield goes, how conditions split around the arrow, which groups are abbreviated, which bonds or fragments are coloured, the line width and arrow length measured from its figures, and how it draws each kind of figure. There are **28 cards** (13 journals, 7 publishers, patents and textbooks, 8 research groups), read from **179 figure crops in 81 openly licensed papers and textbooks**. A convention is set only when two crops agree; where they disagree the card leaves it empty, says why in a note, and the default drawing is kept.
+1. **16 measurement presets:** read directly from ChemDraw's stock style sheets (`acs1996` by default, plus `wiley`, `rsc`, `nature`, `synthesis` and 11 others), fixing bond lengths, line widths and fonts only.
+2. **28 empirical house-style cards:** 13 journals, 7 publishers/patents/textbooks and 8 research groups, measured from **179 figure crops across 81 openly licensed papers and textbooks**. A convention is recorded only when at least two crops agree; disagreements stay blank with an explanatory note.
+3. **23 figure types per card:** from reaction schemes, scope grids, mechanisms, catalytic cycles and SAR tables to energy profiles, total synthesis, graphical abstracts, polymers and Markush formulas. Scheme layout, numbering, abbreviations, measured arrow/line geometry, mechanism arrow styling, catalytic-cycle arrow colours, and structure-panel ring fills/core-aligned substituent highlights are applied automatically; specialized conventions for the remaining types are returned as finishing guidance.
 
-Each card is split by **figure type**, 23 in all: reaction schemes, substrate scope, mechanisms, catalytic cycles, energy profiles, total synthesis, retrosynthesis, structure panels, SAR and optimisation tables, concept panels, graphical abstracts, stereochemical models, derivatisation, biosynthesis, biomolecules, coordination complexes, polymers, Markush structures, process routes, photophysical diagrams, assignment panels and setup diagrams. The tools apply the scheme conventions, the compound-number style, abbreviations and the measured geometry to schemes and scope panels, curved-arrow colour and weight to mechanisms, arrow colour to catalytic cycles, and ring fills, core-aligned substituent highlights and auto-numbering to structure panels; the other figure-type conventions come back as guidance for finishing the figure.
-
-Put the name in a brief (draw, scope and mechanism briefs, compose manifests and `cdx.py build` specs all take it), or override it on the command line:
+Set `"style"` in the brief or pass `--style` on the command line:
 
 ```json
 {
@@ -332,7 +318,7 @@ python skill/chemdraw/scripts/cdx.py styles studer_group    # one card with its 
 python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_group --render
 ```
 
-A brief can also style one figure without touching the card: a `title` and a bold `panel_label`; per species `color`, `atom_colors`, `bond_colors`, `abbreviate`, `orientation` (mirror or turn a structure), a `caption` under the compound number and a `box` (frame or fill, dashed or rounded); and condition lines written as runs with their own colour, bold or italic. Abbreviations cover the common groups (CO2Me, OBn, Boc, Cbz, Ts, Tf, OTf, Ms, Bpin, TMS, OTBS, TIPS, Bz, Piv, PhthN, NMe2 and more).
+A brief can also style a single figure without modifying the house-style card (`title`, `panel_label`, per-species `color` / `atom_colors` / `bond_colors` / `abbreviate` / `orientation` / `caption` / `box`, and rich-text condition runs), with native abbreviations for CO2Me, OBn, Boc, Cbz, Ts, Tf, OTf, Ms, Bpin, TMS, OTBS, TIPS, Bz, Piv, PhthN, NMe2 and more.
 
 <table>
   <tr>
@@ -390,23 +376,23 @@ A brief can also style one figure without touching the card: a `title` and a bol
 
 </details>
 
-The same Suzuki coupling drawn from one brief in six of the styles; the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md) shows all 28 and four presets:
+The same Suzuki coupling drawn from one brief across six house styles ([style gallery](skill/chemdraw/assets/house-styles/gallery/README.md) shows all 28 cards + 4 presets):
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="One Suzuki coupling drawn in six house styles: acs_jacs, nature_portfolio, baran_group, macmillan_group, science_aaas and glorius_group"></p>
 
-**Literature replicas.** The cards were tested by redrawing their own evidence. The showcase holds 47 published figures, from single schemes to catalytic cycles, scope grids and total syntheses, each redrawn from a brief in that style and kept as a case with the reference crop, the brief, the ChemDraw render and a `CASE.md`. The case lists every convention the card claims for that figure type, says whether the replica matches it, and names what the tools could not do. The [replica index](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas) links every case.
-
-Each style has a folder beside the gallery with its evidence crops and a README listing the sources; the crops are reproduced under their CC BY licences and each card lists the DOIs. The draw report says which conventions were applied and which were skipped and why. One known limit: a group abbreviated on the left of its parent is placed correctly, but desktop ChemDraw spells some of them right-flowing (CO2Me rather than MeO2C) until Clean Up Structure is run. [Drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md) has the full list of conventions and brief options. MCP clients read a card from `chemdraw://style-guide/{name}`.
+- **47 literature replicas.** Every card was tested against its own evidence: 47 published figures — single schemes, catalytic cycles, scope grids and total syntheses — were redrawn from briefs and archived with their reference crop, brief, native render and `CASE.md` audit ([replica index](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)).
+- **Audited provenance.** Each style directory stores its CC BY evidence crops and source DOIs, and every draw report logs which conventions were applied or skipped and why.
+- **Known ChemDraw limit &amp; MCP URI.** Left-attached abbreviations sit at the right coordinates, though desktop ChemDraw spells some right-flowing (`CO2Me` rather than `MeO2C`) until **Clean Up Structure** runs. Full options: [drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md); MCP clients read `chemdraw://style-guide/{name}`.
 
 <a id="data-driven-publication-figures"></a>
 
 ### SAR and substrate-scope figures from CSV or Excel
 
-Create substrate-scope and full-structure SAR panels from CSV/XLSX and trusted structures. Stable compound IDs bind measurements to editable ChemDraw objects. Update data or replace a structure after native editing while preserving unrelated layout and annotations; ambiguous matches produce conflict drafts. See the [workflow and examples](skill/chemdraw/references/data-driven-figures.md). XLSX support requires the toolkit `publication` extra.
+Build substrate-scope and full-structure SAR panels from CSV/XLSX (`publication` extra required for XLSX) and trusted structures. Stable compound IDs bind measurements to editable ChemDraw objects: subsequent data updates or structure swaps preserve unrelated manual layout and annotations, while ambiguous matches emit conflict drafts ([workflow and examples](skill/chemdraw/references/data-driven-figures.md)).
 
 ### Exam and lecture drawings in ACS Document 1996 style
 
-Write the figure as a small JSON spec: SMILES with abbreviation nodes such as C10H21, conditions, arrows, bold compound codes and Chinese notes. You get editable ACS 1996 CDXML and a native ChemDraw PNG:
+Write the figure as a compact JSON spec — SMILES with abbreviation nodes (`C10H21`), conditions, arrows, bold compound codes and Chinese notes — to produce editable ACS 1996 CDXML and a native ChemDraw PNG:
 
 ```bash
 python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
@@ -414,11 +400,11 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 
 <p align="center"><img src="skill/chemdraw/assets/acs1996/example.png" width="80%" alt="ACS Document 1996 reaction drawn from a JSON spec: an alpha,beta-unsaturated ester with a C10H21 abbreviation is hydrogenated with H2 and Pd/C"></p>
 
-Abbreviations stay real `GenericNickname` nodes with correct subscripts and label direction. Chinese characters are set in a CJK font while Latin text, digits and symbols stay in Arial. See the [ACS 1996 drawing guide](skill/chemdraw/references/acs1996-drawings.md).
+Abbreviations stay real `GenericNickname` nodes with proper subscripts and bond-attachment direction; CJK text uses a Chinese font while Latin text, digits and symbols stay in Arial ([ACS 1996 drawing guide](skill/chemdraw/references/acs1996-drawings.md)).
 
 ## Reproduce a paper figure
 
-Start with the whole figure, then follow one route:
+Start from the whole figure and follow an eight-step verification pipeline:
 
 <p align="center">
   <code>Inspect</code> → <code>Crop structures</code> → <code>DECIMER</code> → <code>Match orientation</code> → <code>Side-by-side review</code> → <code>Correct chemistry</code> → <code>Assemble layout</code> → <code>Native preview</code>
@@ -434,7 +420,7 @@ native preview.
 
 [Image reconstruction guide](skill/chemdraw/references/image-visual-review.md) · [Minimal task template](skill/chemdraw/assets/paper-replica/task-template.json) · [Drawing examples](skill/chemdraw/assets/paper-replica/example/CASE.md)
 
-Three openly licensed schemes are rebuilt as worked cases, each with the reference crop, the brief in the journal's style and the native render:
+Three openly licensed schemes are rebuilt end-to-end with their reference crop, journal-style brief and native render:
 
 | Case | Journal style | Files |
 | --- | --- | --- |
@@ -457,9 +443,7 @@ Three openly licensed schemes are rebuilt as worked cases, each with the referen
 | Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
 | Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
 
-For many more figures, the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas) shows 47 published figures redrawn in their journal or group style, each with its brief.
-
-Recognition uploads only the task images and crops to the DECIMER API (`cdx.py decimer --preflight` shows what would be sent; offline requests are honored).
+See 47 more redrawn figures with briefs in the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas). Recognition uploads only the selected crops to the DECIMER API (`cdx.py decimer --preflight` previews outgoing files; offline mode sends nothing).
 
 <details>
 <summary><b>Rebuild the two complex schemes offline</b></summary>
@@ -479,7 +463,7 @@ Native previews need desktop ChemDraw (Windows or macOS). See the [rebuild examp
 
 ## Reaction calculator and chemistry reports
 
-These tools start from structures you supply (SMILES, MOL or SDF, CDXML) and do the arithmetic and bookkeeping with RDKit, except the stoichiometry grid, which ChemDraw computes. They do not recognise or edit structures, and only the grid and the name tool need ChemDraw. Each one returns its result in the reply and can also write a new file; an existing file is never overwritten.
+Starting from supplied structures (SMILES, MOL/SDF or CDXML), these tools run exact stoichiometry in desktop ChemDraw or portable RDKit calculations on any OS — returning structured replies without overwriting existing files:
 
 | You want | Tool | You get |
 | --- | --- | --- |
@@ -498,42 +482,32 @@ These tools start from structures you supply (SMILES, MOL or SDF, CDXML) and do 
 python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1"
 ```
 
-This runs ChemDraw's own **Structure > Analyze Stoichiometry** command on the reaction (a reaction SMILES or your own `.cdxml` file) and opens the result in ChemDraw. ChemDraw puts its stoichiometry grid under the reaction: formula, MW, equivalents, sample mass, molarity, density, volume and moles for each reactant and reagent, and expected mass, measured mass, purity and percent yield for the product. Type a mass, volume or equivalents into the grid and ChemDraw recomputes the rest. While the command runs, a ChemDraw window appears for a moment, because ChemDraw runs menu commands only in a visible window. Your open drawings are not touched, and the result is a new file next to the source (`--output` names it).
-
-After you have typed the amounts and saved, `cdx.py calc --read reaction-stoichiometry.cdxml` returns every row of the grid as JSON, so the agent quotes ChemDraw's numbers instead of its own. Reading back works without ChemDraw; drawing the grid needs desktop ChemDraw on Windows or macOS.
+- **Native ChemDraw grid.** Runs **Structure &gt; Analyze Stoichiometry** on a reaction SMILES or `.cdxml` and writes a new file (`--output`) without touching your open documents (a ChemDraw window appears briefly because menu commands require a visible window). Edit any mass, volume or equivalents cell and ChemDraw recomputes the rest.
+- **Portable JSON readback.** `cdx.py calc --read reaction-stoichiometry.cdxml` reads every row back as JSON (works without ChemDraw installed), so your agent quotes ChemDraw's exact numbers rather than doing mental arithmetic.
+- **Headless batch alternative.** Without ChemDraw, `si_materials_tables` computes up to 100 reactions with molarity, atom economy and process mass intensity (PMI; E-factor = PMI − 1).
+- **116-reagent safety reminders.** Adding `reagent_safety` attaches GHS pictograms, H-statements, boiling/flash points and SMARTS alerts (azides, peroxides, organolithiums, acyl chlorides, hydrides). Unlisted chemicals show `"not listed"`, never `"safe"`; always defer to the supplier's SDS.
 
 <p align="center">
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
 </p>
 
-For amounts without ChemDraw, `si_materials_tables` writes materials tables for up to 100 reactions with concentration, atom economy and process mass intensity (PMI; E-factor is PMI minus 1).
-
-**Safety reminders.** With `reagent_safety`, the materials table also shows GHS pictograms, H-statements, boiling and flash point. They come from a built-in table of 116 common solvents and bench reagents, plus SMARTS alerts for azides, peroxides, organolithiums, acyl chlorides and hydrides. A substance that is not in the table is shown as "not listed", not as safe. The table is a reminder, and the supplier's SDS takes precedence.
-
 ### Characterization text
 
-`characterization_text` writes one paragraph per compound in ACS order: appearance, Rf, mp, rotation, IR, 1H and 13C NMR, other nuclei, HRMS. It prints the digits you give it and leaves out anything you did not supply. It also compares the 1H integral and the 13C signal count with the structure and reports a mismatch as a warning. It does not change a peak to make a check pass.
+`characterization_text` formats one ACS-order paragraph per compound (appearance, Rf, mp, optical rotation, IR, 1H/13C NMR, heteronuclei, HRMS) using only the digits you supply. It cross-checks total 1H integration and 13C signal count against the structure and flags mismatches as warnings without altering your peaks.
 
 ### Atom mapping and reaction type
 
-`map_reaction_atoms` has a built-in substructure method. Where a product atom could come from several reactant atoms it says so instead of choosing. Two learned mappers, RXNMapper and LocalMapper, can be installed with `cdx.py install-mappers`; `compare: true` runs all installed methods side by side. Many reactions can be mapped in one call, which matters because each learned mapper takes 10 to 35 seconds to start.
-
-With a finished mapping you can also ask for the reaction centre as a reaction SMARTS (`template`), a reaction type read from the structures (`classify`, 19 templates, otherwise "unclassified"), and the map numbers written beside the atoms of a copy of your drawing (`map_numbers_into_scheme`). Check the picture when an atom label such as H2N is crowded.
+`map_reaction_atoms` ships a built-in substructure mapper (flagging ambiguous atom origins rather than guessing) and optionally runs learned mappers (`cdx.py install-mappers` for RXNMapper and LocalMapper; `compare: true` compares all installed backends, and batching amortizes the 10–35 s model startup). From a mapping you can extract reaction-centre SMARTS (`template`), classify against 19 reaction templates (`classify`), or write atom-map numbers onto a copy of your scheme (`map_numbers_into_scheme`; inspect crowded labels like `H2N` visually).
 
 ### Route summary
 
-`route_summary` takes the steps of a synthesis in order, each with a yield and the masses used and obtained (or a reaction as in `si_materials_tables`). It returns the overall yield along the longest linear sequence and the cumulative PMI, scaling every step to the amount the next step consumes. Convergent routes work through the `into` field. A missing number gives `null` and a warning, not a guess. Work-up and purification solvents count only if you include them in the input mass.
+`route_summary` scales linear or convergent (`into`) multi-step syntheses backward from final demand, reporting longest-linear-sequence yield and cumulative PMI. Missing inputs return `null` plus a warning rather than a guess; work-up and purification solvents count when included in step input masses.
 
-```text
-Use the ChemDraw Skill to run ChemDraw's stoichiometry grid on this amide coupling, and read the amounts back after I edit them.
-Write the characterization paragraph for compound 3a from these NMR peaks and this HRMS value.
-```
-
-The full inputs and rules are in the [chemistry reports guide](skill/chemdraw/references/chemistry-reports.md).
+Full inputs and rules: [chemistry reports guide](skill/chemdraw/references/chemistry-reports.md).
 
 ## Featured demos
 
-Real paper images and data, with native previews, reference comparisons and editable downloads.
+Real paper images and experimental datasets, each with native previews, reference comparisons and editable downloads:
 
 | Case | What it shows |
 | --- | --- |
@@ -612,7 +586,7 @@ Eight numbered structures and six chloride counterions keep their atoms, stereoc
 
 [Editable CDXML](assets/readme/markush/markush.cdxml) · [Markush spec](assets/readme/markush/markush.json) · [CXSMILES](assets/readme/markush/markush.cxsmiles) · [V3000 molfile](assets/readme/markush/markush.mol) · [Verification and limitations](assets/readme/markush/provenance.json) · [Workflow](skill/chemdraw/references/markush.md)
 
-A generic structure from a patent figure plus claim text: R groups and linkers, two variable rings, a group that can sit on three ring positions, and repeat counts. `cdx.py markush` guides the extraction: the agent transcribes the labels, checks a read-back image, reviews the side-by-side render and turns each claim clause into values, while code does the geometry, the structure and the drawing. In the included example the result matches a hand-written reference spec atom for atom, and the drawing follows the source layout (drawn ink overlaps the source at 0.99). The structure is also saved as CXSMILES and as a V3000 molfile, so other chemistry software can read it.
+`cdx.py markush` extracts generic structures from a patent figure + claim text (R groups/linkers, variable rings, multicentre position-variation bonds and repeat counts): the agent transcribes labels, verifies a read-back image and maps claim clauses, while deterministic code handles geometry, CDXML construction and CXSMILES/V3000 export. In this case the output matches the hand-written reference atom-for-atom with 0.99 ink overlap.
 
 ### Native scientific drawings
 
@@ -687,7 +661,10 @@ A generic structure from a patent figure plus claim text: R groups and linkers, 
 
 ## Prediction and analysis engines
 
-Fifteen optional engines read structure images, find structures in a PDF, and predict precursors, products, reaction conditions and NMR shifts. Nothing is installed until you agree, each engine lives in its own environment, a local engine uploads nothing while it runs (the remote DECIMER service is the one engine that sends an image out), and every answer is labelled a model prediction. Disagreeing engines are shown side by side, never merged.
+Fifteen opt-in engines handle OCSR, PDF structure segmentation, retrosynthesis, forward product prediction, reaction-condition recommendation and 1H/13C NMR shift prediction:
+
+- **Explicit opt-in &amp; isolated venvs.** Nothing downloads until you approve; each engine lives in its own environment (`CHEMDRAW_ENGINE_HOME` relocates storage, `cdx.py engines --recommend NEED` previews requirements).
+- **Local execution &amp; labelled candidates.** Only `decimer-api` sends images over the network; all 14 local engines run offline after install. Every output is tagged as a model prediction, and disagreeing engines are shown side by side rather than merged.
 
 ### The fifteen engines
 
@@ -709,11 +686,9 @@ Fifteen optional engines read structure images, find structures in a PDF, and pr
 | `nmrnet-pp` | 1H and 13C shifts, second model | 2.8 GB | code MIT, weights CC BY 4.0 | yes |
 | `reacon` | catalyst, solvent and reagent sets | 1.9 GB | none stated by the authors | yes |
 
-Sizes are finished installs on Windows with the CUDA build of PyTorch; a CPU install is smaller. `CHEMDRAW_ENGINE_HOME` moves them to another disk. `cdx.py engines --recommend NEED` says what a task needs before anything is downloaded. The licence and registry details are in [engines.md](skill/chemdraw/references/engines.md).
+Sizes reflect Windows + CUDA PyTorch installs (CPU installs are smaller; full registry in [engines.md](skill/chemdraw/references/engines.md)). Benchmarks below ran on a Windows laptop (RTX 5090) against reviewed structures, lab-book entries or measured spectra, keeping every miss ([`assets/readme/engines/`](assets/readme/engines/provenance.json)). Cold times include model loading; batch/multi-step runs or `--accel on` keep a resident worker (cutting repeated `predict products` from 13.7 s to 0.6 s; `cdx.py stop-daemons` stops workers), and every reply logs `execution.device` (`cuda:0` or `cpu`).
 
-The cases below were run on one Windows laptop with an RTX 5090 GPU. Each is scored against a reviewed structure, a recorded experiment or a measured spectrum, and the misses are kept. They show how the engines behave on these inputs, not how accurate they are in general. Inputs, outputs, scoring and timings are in [`assets/readme/engines/`](assets/readme/engines/provenance.json). Cold one-shot times below include model loading. A one-off call is a clean process; batches and multi-step searches (or `--accel on`) keep a resident worker for the next call, which cut a repeated `predict products` call from 13.7 s to 0.6 s here (`cdx.py stop-daemons` ends the workers), and every engine reply records its actual `execution.device` (`cuda:0` or `cpu`).
-
-Open a case to see its images and results.
+Open a case to inspect its images, timings and failure modes:
 
 <details>
 <summary><b>Structure images and PDFs</b></summary>
@@ -875,7 +850,7 @@ The portable chemistry layer (CDXML generation and editing, RDKit validation, th
 macOS differences — the Automation permission, the hidden ChemDraw instance, font substitution, SVG-based vector OLE previews, `office-edit` instead of double-click editing, and the ChemScript emulation — are listed in [operations](skill/chemdraw/references/operations.md#macos).
 
 <details>
-<summary><b>Required components</b></summary>
+<summary><b>Required components by goal</b></summary>
 <br>
 
 | Goal | Add to the core setup |
@@ -894,83 +869,75 @@ ChemDraw, Microsoft Office, ChemScript and DECIMER model weights are not bundled
 
 ## Testing and security
 
-- Every pull request, merge and release runs one CI file (`validate.yml`): the distribution checks, the toolkit suite on Windows (Python 3.13) and Linux (3.12), the Skill tests on Windows and the package build. macOS and Python 3.10 are supported but not run in CI. Native ChemDraw, ChemScript and Office features are tested by hand on a licensed Windows workstation. The macOS AppleScript path was tested on macOS 26.6 (Apple silicon) with ChemDraw 26.0.
-- Tools write to a new output path and refuse to overwrite an existing file unless you ask.
-- Image recognition sends only the selected images to the DECIMER API. `cdx.py decimer --preflight` shows what would be sent, and an offline request is honored. The reports and the mappers run locally, and ChemDraw's stoichiometry grid is computed by ChemDraw on your machine. Only the reports look a name up online, when it is not in the built-in table; `CHEMDRAW_OFFLINE=1` turns that off.
-- Optional prediction engines run locally in separate environments and upload nothing; their downloads are checked against pinned hashes. Their answers are model predictions and are labelled as such.
-- The HTTP server needs a bearer key and an allowed host list for remote use, and should sit behind an encrypted tunnel or an HTTPS proxy. See the [security policy](.github/SECURITY.md).
+- **CI matrix &amp; native host verification.** Every PR, merge and release runs `validate.yml` (distribution invariants, toolkit suite on Windows Python 3.13 + Linux Python 3.12, Skill suite on Windows and wheel build; macOS and Python 3.10 are supported outside CI). Native ChemDraw, ChemScript and Office automation are verified on a licensed Windows workstation and on macOS 26.6 (Apple silicon, ChemDraw 26.0).
+- **Non-destructive file writes.** Tools write to new output paths and refuse to overwrite existing files unless explicitly requested.
+- **Explicit network boundaries.** `cdx.py decimer` uploads only selected crops (`--preflight` previews them; offline mode sends nothing). Stoichiometry grids, reports and atom mappers run locally; online PubChem fallback for unlisted names is disabled when `CHEMDRAW_OFFLINE=1`.
+- **Isolated local engines.** Optional prediction engines run offline in dedicated virtual environments with SHA-pinned downloads and explicit model-prediction labels.
+- **Authenticated remote HTTP.** Remote Streamable HTTP mode requires a bearer token, host allowlist and an encrypted tunnel or HTTPS proxy ([security policy](.github/SECURITY.md)).
 
 ## Common questions
 
 <details>
-<summary><b>Can any AI agent use this ChemDraw Skill?</b></summary>
+<summary><b>Can any AI coding agent use ChemDraw Skill?</b></summary>
 <br>
 
-Yes. An agent needs to read the Skill instructions and run shell commands; every tool runs through `cdx.py`. The installer places the Skill where Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode and other agents that read `SKILL.md` folders discover it. Agents without Skill discovery can be pointed at `SKILL.md` from their instruction file, and clients that prefer MCP (Model Context Protocol) can register the bundled server. See [agent integration](skill/chemdraw/references/agent-integration.md).
+Yes. Any agent that reads `SKILL.md` and runs shell commands works out of the box through `cdx.py`, including **Claude Code**, **Codex**, **Gemini CLI**, **GitHub Copilot**, **Cursor**, and **OpenCode**. Agents without automatic `SKILL.md` discovery can point at `SKILL.md` from their system instructions, and MCP clients can register the bundled MCP server. See [agent integration](skill/chemdraw/references/agent-integration.md).
 
 </details>
 
 <details>
-<summary><b>Do I need an MCP server?</b></summary>
+<summary><b>Do I need desktop ChemDraw or an MCP server installed?</b></summary>
 <br>
 
-No. The command line covers every tool and keeps the same worker isolation, native ChemDraw lock and timeouts. MCP remains available for clients that want typed tool calls.
+Neither is required to start. `cdx.py` covers every tool over the CLI with worker isolation, native locks, and timeouts (MCP is optional). Without desktop ChemDraw, you still get `.cdxml` construction, editing, RDKit verification, OCSR, and headless calculators on Windows, macOS, and Linux; activated desktop ChemDraw on Windows or macOS adds native 300 dpi PNG rendering, `.cdx` conversion, ChemDraw's stoichiometry grid, and Word/PowerPoint OLE objects.
 
 </details>
 
 <details>
-<summary><b>Can it draw in the style of a particular journal or research group?</b></summary>
+<summary><b>Can it draw in the house style of JACS, Angew., Nature, Science, or a research group?</b></summary>
 <br>
 
-Yes, for 28 of them, from JACS, Angew. Chem., Nature and Science to the Baran, MacMillan, Glorius and Houk groups. A style records how that journal or group sets compound numbers, where it puts the yield, how it splits conditions around the arrow, which bonds it colours, and its line widths and arrow lengths, measured from openly licensed figures. Add `--style NAME` to a draw command; `cdx.py styles` lists them. A style follows the conventions seen in those figures. It is not a publisher template and does not copy any figure. See [journal and group house styles](#journal-and-group-house-styles) and the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md).
+Yes: 28 empirical house styles (*JACS*, *Angew. Chem.*, *Nature*, *Science*, *Chem. Sci.*, Baran, MacMillan, Glorius, Houk, List, Sarpong, Studer, and more) layered on 16 ChemDraw measurement presets. Pass `--style NAME` (`cdx.py styles` lists all options). Styles apply conventions measured from openly licensed literature figures; they are not official publisher templates and never copy source artwork. See [journal and group house styles](#journal-and-group-house-styles) and the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md).
 
 </details>
 
 <details>
-<summary><b>Can I generate SAR figures from an Excel spreadsheet?</b></summary>
+<summary><b>Can I generate editable SAR and substrate-scope figures from CSV or Excel?</b></summary>
 <br>
 
-Yes. Use trusted structures with CSV or XLSX measurements to produce editable structure–activity relationship (SAR) panels or substrate-scope figures. Stable compound IDs retain data binding, and project updates preserve unrelated manual layout changes. See the [data-driven figure workflow](skill/chemdraw/references/data-driven-figures.md).
+Yes. Bind trusted structures with CSV or XLSX measurements to produce editable SAR panels or multi-page substrate-scope grids. Stable compound IDs retain data binding so future spreadsheet updates preserve manual ChemDraw edits. See [data-driven figures](skill/chemdraw/references/data-driven-figures.md).
 
 </details>
 
 <details>
-<summary><b>Will it make up reaction conditions or predict a mechanism?</b></summary>
+<summary><b>Will it hallucinate SMILES, invent reaction conditions, or guess mechanisms?</b></summary>
 <br>
 
-No. For a figure drawn from a request, conditions, yields and measured values come only from what you gave; a missing one stays missing and the report says so. A name it cannot resolve is refused instead of guessed. Mechanisms are drawn from electron moves you list, and the tool flags an arrow that starts where there is no lone pair or charge, but it does not judge whether the mechanism is right. See [a new figure from one request](#one-command-figures).
+No. Every chemical name resolves through a vetted reagent table, PubChem, OPSIN, or ChemScript; unresolved names stop execution instead of guessing. Omitted conditions stay blank and are noted in the report. Mechanisms only route explicit electron moves that you supply and flag arrows starting without a lone pair, charge, or radical. See [a new figure from one request](#one-command-figures).
 
 </details>
 
 <details>
-<summary><b>Can it work out how much of each reagent to weigh?</b></summary>
+<summary><b>Can it calculate reagent masses and volumes or format ACS characterization paragraphs?</b></summary>
 <br>
 
-Yes, with ChemDraw's own calculator. `cdx.py calc` runs Structure > Analyze Stoichiometry on a reaction given as SMILES or a ChemDraw file and opens the grid in ChemDraw, where you type a mass, volume or equivalents and ChemDraw computes the rest; `cdx.py calc --read` reads the saved numbers back. Without ChemDraw, `si_materials_tables` gives amounts tables in which every default is marked as assumed. See [reaction calculator and chemistry reports](#reaction-calculator-and-chemistry-reports).
+Yes. `cdx.py calc` runs ChemDraw's own **Structure &gt; Analyze Stoichiometry** grid and `cdx.py calc --read` reads the computed table back as JSON; without ChemDraw, `si_materials_tables` computes batch stoichiometry and PMI with explicit assumption tags. `characterization_text` formats ACS-order experimental paragraphs from your exact digits while cross-checking 1H integrals and 13C signal counts. See [reaction calculator and chemistry reports](#reaction-calculator-and-chemistry-reports).
 
 </details>
 
 <details>
-<summary><b>How far can I trust the safety information?</b></summary>
+<summary><b>How far can I trust the safety reminders and optional ML engines?</b></summary>
 <br>
 
-It is a reminder from a built-in table of 116 common solvents and bench reagents plus SMARTS structural alerts: GHS pictograms, H-statements, boiling and flash point. A substance that is not in the table is shown as "not listed", never as safe. The values were written from typical supplier classifications and differ between suppliers, so check the SDS of the product you actually use.
+`reagent_safety` is a bench reminder across 116 common reagents plus SMARTS structural alerts (unlisted compounds report `"not listed"`, never `"safe"` — always check your supplier's SDS). The [15 optional engines](#the-fifteen-engines) (2 MB to 8.5 GB each, offline after install) label every output as a candidate prediction: agreement across independent models is a useful hint, and disagreement signals manual review. Respect upstream model licences (`molparser` non-commercial, `retrochimera` research-only, `reacon` unstated).
 
 </details>
 
 <details>
-<summary><b>What do the prediction engines need, and how far can I trust them?</b></summary>
+<summary><b>Can I convert a paper screenshot or patent Markush claim into editable ChemDraw?</b></summary>
 <br>
 
-They need disk space (from 2 MB to about 8.5 GB per engine, [listed above](#the-fifteen-engines)), a network once to install, and for most of them an NVIDIA GPU is optional but makes them faster; they run offline afterwards. RetroChimera needs about 14 GB of free memory. Treat every answer as a candidate. In the cases above the engines recovered a recorded product and some recorded precursors, missed others, and agreed with measured NMR shifts to about 0.2 ppm for 1H and 2 to 3 ppm for 13C on one fair test. Reacon's conditions missed all three recorded ones. When engines agree it is a hint, and when they do not it is the signal to check by hand. Licences: MolParser's weights are non-commercial, RetroChimera is for research only, Reacon's authors state no licence.
-
-</details>
-
-<details>
-<summary><b>Can I reconstruct a paper figure as an editable ChemDraw file?</b></summary>
-<br>
-
-The [paper reconstruction workflow](skill/chemdraw/references/image-visual-review.md) combines grounded structures, layout reconstruction and native visual review. It produces editable CDXML with a native preview.
+Yes. The [paper reconstruction workflow](skill/chemdraw/references/image-visual-review.md) and [patent Markush workflow](skill/chemdraw/references/markush.md) combine structure recognition, coordinate orientation matching, side-by-side visual review, and dual-reader verification to output editable `.cdxml` (plus `.cxsmiles` and V3000 `.mol` for Markush structures).
 
 </details>
 
@@ -993,7 +960,7 @@ Please open a focused issue or pull request with the exact macOS version, chip, 
 | [Agent integration and `cdx.py` command reference](skill/chemdraw/references/agent-integration.md) | [Toolkit developer reference](toolkit/docs/agent-reference.md) · [Generated MCP tool reference](toolkit/docs/mcp-tools.md) |
 | [Task-oriented workflow catalog](skill/chemdraw/references/workflow-router.md) | [Remote HTTP setup](skill/chemdraw/references/operations.md#remote-http-only-when-asked) |
 | [Contributing guide](.github/contributing.md) · [Security policy](.github/SECURITY.md) | [Repository instructions for contributors](AGENTS.md) |
-| [Website](https://zichenwang114514.github.io/chemdraw-skill/en/) | [Landing page source and deployment](docs/website.md) |
+| [Website &amp; Molecule Lab](https://zichenwang114514.github.io/chemdraw-skill/en/) | [Landing page source and deployment](docs/website.md) |
 
 The deployable Skill lives in [`skill/chemdraw`](skill/chemdraw). The chemistry runtime it drives, the `cdxml_toolkit` Python package, lives in [`toolkit`](toolkit) with its own tests.
 
