@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="244" viewBox="0 0 1280 244" role="img" aria-labelledby="title desc">
+  <title id="title">How ChemDraw Skill turns a request into verified editable chemistry</title>
+  <desc id="desc">Four-step pipeline: 01 Ask or drop data via Skill, MCP or CLI; 02 Ground every structure without guessing SMILES; 03 Build native editable CDXML or CDX in 28 house styles with Office OLE; and 04 Verify with RDKit plus ChemScript and 15 local engines.</desc>
+  <defs>
+    <clipPath id="wf-clip"><rect width="1280" height="244" rx="18"/></clipPath>
+    <pattern id="wf-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M 44 0 L 0 0 0 44" fill="none" stroke="#12181C" stroke-opacity="0.032" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <g clip-path="url(#wf-clip)">
+    <rect width="1280" height="244" fill="#F5F2EB"/>
+    <rect width="1280" height="244" fill="url(#wf-grid)"/>
+  </g>
+  <rect x="0.5" y="0.5" width="1279" height="243" rx="17.5" fill="none" stroke="#DDD8CE"/>
+  <g transform="translate(48 26)">
+    <rect width="278" height="192" rx="16" fill="#FFFFFF" stroke="#DED9CF"/>
+    <text x="22" y="35" fill="#006D73" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15.5" font-weight="700" letter-spacing="1.0">01 INPUT</text>
+    <text x="22" y="70" fill="#12181C" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="23.5" font-weight="750" letter-spacing="-0.4">Ask or drop data</text>
+    <text x="22" y="102" fill="#455056" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="450">Plain brief, CSV/XLSX,</text>
+    <text x="22" y="128" fill="#455056" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="450">paper crop or patent</text>
+    <rect x="22" y="146" width="210" height="28" rx="7" fill="#E6F3F4"/>
+    <text x="127.0" y="165.5" text-anchor="middle" fill="#006167" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="15.5" font-weight="700">Skill, MCP &amp; CLI</text>
+  </g>
+  <path d="M331 122H345M340 117L345 122L340 127" fill="none" stroke="#8D989F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(350 26)">
+    <rect width="278" height="192" rx="16" fill="#FFFFFF" stroke="#DED9CF"/>
+    <text x="22" y="35" fill="#006D73" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15.5" font-weight="700" letter-spacing="1.0">02 GROUND</text>
+    <text x="22" y="70" fill="#12181C" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="23.5" font-weight="750" letter-spacing="-0.4">Ground structures</text>
+    <text x="22" y="102" fill="#455056" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="450">Reagent DB, PubChem,</text>
+    <text x="22" y="128" fill="#455056" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="450">OPSIN or 6 OCSR models</text>
+    <rect x="22" y="146" width="182" height="28" rx="7" fill="#E6F3F4"/>
+    <text x="113.0" y="165.5" text-anchor="middle" fill="#006167" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="15.5" font-weight="700">No guessed SMILES</text>
+  </g>
+  <path d="M633 122H647M642 117L647 122L642 127" fill="none" stroke="#8D989F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(652 26)">
+    <rect width="278" height="192" rx="16" fill="#FFFFFF" stroke="#DED9CF"/>
+    <text x="22" y="35" fill="#006D73" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15.5" font-weight="700" letter-spacing="1.0">03 DRAW</text>
+    <text x="22" y="70" fill="#12181C" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="23.5" font-weight="750" letter-spacing="-0.4">Native CDXML / CDX</text>
+    <text x="22" y="102" fill="#455056" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="450">28 house styles, SAR</text>
+    <text x="22" y="128" fill="#455056" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="450">&amp; live Word/PPT OLE</text>
+    <rect x="22" y="146" width="146" height="28" rx="7" fill="#E6F3F4"/>
+    <text x="95.0" y="165.5" text-anchor="middle" fill="#006167" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="15.5" font-weight="700">100% editable</text>
+  </g>
+  <path d="M935 122H949M944 117L949 122L944 127" fill="none" stroke="#8D989F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(954 26)">
+    <rect width="278" height="192" rx="16" fill="#FFFFFF" stroke="#DED9CF"/>
+    <text x="22" y="35" fill="#C83E37" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15.5" font-weight="700" letter-spacing="1.0">04 VERIFY</text>
+    <text x="22" y="70" fill="#12181C" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="23.5" font-weight="750" letter-spacing="-0.4">Check &amp; analyze</text>
+    <text x="22" y="102" fill="#455056" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="450">RDKit + ChemScript</text>
+    <text x="22" y="128" fill="#455056" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="450">&amp; 15 local engines</text>
+    <rect x="22" y="146" width="173" height="28" rx="7" fill="#FCEBEC"/>
+    <text x="108.5" y="165.5" text-anchor="middle" fill="#9E2A25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="15.5" font-weight="700">Read-back proven</text>
+  </g>
+</svg>

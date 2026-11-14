@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ChemDraw Skill: editable ChemDraw structures for Claude Code, Codex and any AI agent</title>
-<meta name="description" content="Noncommercial source-available skill for Claude Code, Codex and other AI agents: editable ChemDraw structures in 28 journal and group styles, paper figure rebuilds, SAR figures from Excel and a reaction calculator.">
+<title>ChemDraw Skill: Editable ChemDraw Figures for AI Agents</title>
+<meta name="description" content="Editable native ChemDraw (.cdxml/.cdx) schemes in 28 journal &amp; group styles, paper figure rebuilds, Excel SAR grids, Office OLE &amp; stoichiometry for AI agents.">
+<meta name="keywords" content="ChemDraw Skill, ChemDraw, CDXML, CDX, editable chemical structures, reaction scheme, 28 house styles, JACS style, Nature style, ACS Document 1996, SAR table, substrate scope, Markush, OCSR, DECIMER, stoichiometry calculator, Claude Code, Codex, MCP, AI agent">
 <link rel="canonical" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
 <link rel="alternate" hreflang="zh-CN" href="https://zichenwang114514.github.io/chemdraw-skill/">
 <link rel="alternate" hreflang="en" href="https://zichenwang114514.github.io/chemdraw-skill/en/">
@@ -12,14 +13,19 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ChemDraw Skill">
 <meta property="og:locale" content="en_US">
-<meta property="og:title" content="ChemDraw Skill: editable chemistry for any AI agent">
-<meta property="og:description" content="Editable ChemDraw structures in 28 journal and group styles, paper figure rebuilds, SAR figures and a reaction calculator for Claude Code, Codex and any agent with a shell.">
+<meta property="og:locale:alternate" content="zh_CN">
+<meta property="og:title" content="ChemDraw Skill: Editable ChemDraw Figures for AI Agents">
+<meta property="og:description" content="Editable ChemDraw (.cdxml/.cdx) reaction schemes in 28 journal and group house styles, paper figure rebuilds, Excel SAR grids, Office OLE and stoichiometry for any AI agent.">
 <meta property="og:url" content="https://zichenwang114514.github.io/chemdraw-skill/en/">
 <meta property="og:image" content="https://zichenwang114514.github.io/chemdraw-skill/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ChemDraw Skill: editable ChemDraw chemistry for any AI agent">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ChemDraw Skill: Editable ChemDraw Figures for AI Agents">
+<meta name="twitter:description" content="Editable ChemDraw schemes in 28 house styles, paper &amp; Markush rebuilds, SAR grids, Office OLE and stoichiometry for any AI agent.">
+<meta name="twitter:image" content="https://zichenwang114514.github.io/chemdraw-skill/og.png">
+<meta name="twitter:image:alt" content="ChemDraw Skill: editable ChemDraw chemistry for any AI agent">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#007c83">
@@ -35,15 +41,23 @@
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "WebSite",
+      "name": "ChemDraw Skill",
+      "url": "https://zichenwang114514.github.io/chemdraw-skill/en/",
+      "inLanguage": ["en", "zh-CN"]
+    },
+    {
       "@type": "SoftwareSourceCode",
       "name": "ChemDraw Skill",
-      "description": "A noncommercial source-available skill that lets any AI agent draw editable ChemDraw structures, rebuild paper figures, generate SAR and substrate-scope figures, and calculate reaction amounts, yields and characterization text.",
+      "description": "A noncommercial source-available skill that lets any AI agent draw editable ChemDraw (.cdxml/.cdx) structures in 28 journal and group house styles, rebuild paper figures, generate SAR and substrate-scope grids, and calculate reaction amounts, yields and characterization text.",
       "url": "https://zichenwang114514.github.io/chemdraw-skill/en/",
       "codeRepository": "https://github.com/ZiChenWang114514/chemdraw-skill",
       "programmingLanguage": "Python",
+      "runtimePlatform": ["Windows", "macOS", "Linux"],
       "license": "https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/LICENSE",
-      "keywords": "ChemDraw, CDXML, AI agent, Claude Code, Codex, chemical structure drawing, SAR, substrate scope, journal house style, JACS style, Nature style, literature figure reproduction",
+      "keywords": "ChemDraw, CDXML, CDX, AI agent, Claude Code, Codex, MCP, chemical structure drawing, SAR, substrate scope, journal house style, JACS style, Nature style, literature figure reproduction",
       "featureList": ["Draw editable ChemDraw structures and reaction schemes", "Rebuild paper reaction schemes and patent Markush structures", "Journal and group house styles: 16 ChemDraw measurement presets and 28 journal, publisher, patent, textbook and research-group styles across 23 figure types, with 47 published figures redrawn in their own style", "SAR and substrate-scope figures from CSV or Excel", "Reaction calculator, characterization text and route yield", "Structure recognition with six engines side by side, and structures extracted from a PDF", "Precursor, route, product and reaction-condition prediction, always labelled as predicted", "NMR shift prediction and OpenLynx LCMS plate checking"],
+      "inLanguage": ["en", "zh-CN"],
       "author": { "@type": "Person", "name": "ZiChenWang114514", "url": "https://github.com/ZiChenWang114514" }
     },
     {
@@ -51,7 +65,7 @@
       "name": "Install ChemDraw Skill for Claude Code or Codex",
       "totalTime": "PT5M",
       "step": [
-        { "@type": "HowToStep", "name": "Install", "text": "git clone https://github.com/ZiChenWang114514/chemdraw-skill.git, then run python scripts/install.py --agent claude --runtime --apply inside the folder." },
+        { "@type": "HowToStep", "name": "Install", "text": "git clone https://github.com/ZiChenWang114514/chemdraw-skill.git, then run python scripts/install.py --agent claude agents --runtime --apply inside the folder." },
         { "@type": "HowToStep", "name": "See what works on this machine", "text": "Run python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor." },
         { "@type": "HowToStep", "name": "Ask your agent", "text": "Use ChemDraw Skill to draw aspirin as editable CDXML, render it natively in ChemDraw and show me the PNG." }
       ]
