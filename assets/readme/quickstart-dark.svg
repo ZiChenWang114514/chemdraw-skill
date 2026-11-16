@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="316" viewBox="0 0 1280 316" role="img" aria-labelledby="title desc">
+  <title id="title">ChemDraw Skill Quick Start: two-command install, host doctor check, and three starter workflows</title>
+  <desc id="desc">Left terminal shows cloning the repository, installing the shared Python 3.10 to 3.13 chemistry runtime, and running cdx.py doctor. Right cards show three immediate tasks: drawing in 28 house styles, rebuilding a paper or Markush figure, and running stoichiometry or Office OLE automation.</desc>
+  <defs>
+    <clipPath id="qs-clip"><rect width="1280" height="316" rx="18"/></clipPath>
+    <clipPath id="term-clip"><rect width="650" height="268" rx="14"/></clipPath>
+    <pattern id="qs-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M 44 0 L 0 0 0 44" fill="none" stroke="#F3F0E8" stroke-opacity="0.036" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <g clip-path="url(#qs-clip)">
+    <rect width="1280" height="316" fill="#0D1317"/>
+    <rect width="1280" height="316" fill="url(#qs-grid)"/>
+  </g>
+  <rect x="0.5" y="0.5" width="1279" height="315" rx="17.5" fill="none" stroke="#223039"/>
+
+  <g id="quickstart-terminal" transform="translate(32 24)">
+    <g clip-path="url(#term-clip)">
+      <rect width="650" height="268" fill="#090E12"/>
+      <rect width="650" height="38" fill="#121B22"/>
+      <path d="M0 38H650" stroke="#253642" stroke-width="1"/>
+      <circle cx="20" cy="19" r="5" fill="#F06A63"/>
+      <circle cx="36" cy="19" r="5" fill="#F2B450"/>
+      <circle cx="52" cy="19" r="5" fill="#44C88A"/>
+      <text x="72" y="24" fill="#9CB0BC" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="0.8">QUICK START TERMINAL</text>
+      <rect x="466" y="8" width="168" height="22" rx="6" fill="#16383E"/>
+      <text x="550" y="23" text-anchor="middle" fill="#6BE0E6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" letter-spacing="0.5">PYTHON 3.10 TO 3.13</text>
+
+      <text x="20" y="65" fill="#6F8694" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5"># 1. Clone repository &amp; build shared toolkit runtime</text>
+      <text x="20" y="90" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
+        <tspan fill="#44C88A" font-weight="700">$</tspan>
+        <tspan fill="#6BE0E6" font-weight="700"> git clone</tspan>
+        <tspan fill="#ECE9E1"> https://github.com/ZiChenWang114514/chemdraw-skill.git</tspan>
+      </text>
+      <text x="20" y="115" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
+        <tspan fill="#44C88A" font-weight="700">$</tspan>
+        <tspan fill="#6BE0E6" font-weight="700"> cd</tspan>
+        <tspan fill="#ECE9E1"> chemdraw-skill</tspan>
+      </text>
+      <text x="20" y="140" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
+        <tspan fill="#44C88A" font-weight="700">$</tspan>
+        <tspan fill="#6BE0E6" font-weight="700"> python</tspan>
+        <tspan fill="#ECE9E1"> scripts/install.py</tspan>
+        <tspan fill="#F5827A" font-weight="700"> --agent claude agents</tspan>
+        <tspan fill="#F4BE68" font-weight="700"> --runtime --apply</tspan>
+      </text>
+
+      <text x="20" y="174" fill="#6F8694" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5"># 2. Check ChemDraw COM, ChemScript, styles &amp; local engines</text>
+      <text x="20" y="199" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
+        <tspan fill="#44C88A" font-weight="700">$</tspan>
+        <tspan fill="#6BE0E6" font-weight="700"> python</tspan>
+        <tspan fill="#ECE9E1"> $HOME/.claude/skills/chemdraw/scripts/cdx.py</tspan>
+        <tspan fill="#F4BE68" font-weight="700"> doctor</tspan>
+      </text>
+
+      <rect x="0" y="224" width="650" height="44" fill="#060A0D"/>
+      <path d="M0 224H650" stroke="#253642" stroke-width="1"/>
+      <circle cx="24" cy="246" r="4.5" fill="#44C88A"/>
+      <text x="35" y="250.5" fill="#DCE4E8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="600">runtime ready</text>
+      <circle cx="166" cy="246" r="4.5" fill="#6BE0E6"/>
+      <text x="177" y="250.5" fill="#DCE4E8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="600">28 house styles</text>
+      <circle cx="332" cy="246" r="4.5" fill="#F4BE68"/>
+      <text x="343" y="250.5" fill="#DCE4E8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="600">ChemDraw_x64 COM</text>
+      <circle cx="508" cy="246" r="4.5" fill="#F5827A"/>
+      <text x="519" y="250.5" fill="#DCE4E8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="600">Office OLE</text>
+    </g>
+    <rect x="0.5" y="0.5" width="649" height="267" rx="13.5" fill="none" stroke="#253642"/>
+  </g>
+
+  <g transform="translate(702 24)">
+    <defs><clipPath id="qs-card-0"><rect width="546" height="80" rx="14"/></clipPath></defs>
+    <g clip-path="url(#qs-card-0)">
+      <rect width="546" height="80" fill="#141D23"/>
+      <rect width="6" height="80" fill="#3CC3C9"/>
+    </g>
+    <rect x="0.5" y="0.5" width="545" height="79" rx="13.5" fill="none" stroke="#263640"/>
+    <rect x="20" y="13" width="148" height="24" rx="6" fill="#153339"/>
+    <text x="94.0" y="29.5" text-anchor="middle" fill="#7AE3E8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" letter-spacing="0.6">01  DRAW SCHEME</text>
+    <text x="180" y="30.5" fill="#F3F0E8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17.5" font-weight="750" letter-spacing="-0.2">28 house styles</text>
+    <text x="528" y="29.5" text-anchor="end" fill="#7AE3E8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700">.CDXML + PNG</text>
+    <text x="20" y="60" fill="#B6C3CA" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="500">"Draw salicylic acid + Ac2O -&gt; aspirin in acs_jacs style"</text>
+  </g>
+  <g transform="translate(702 118)">
+    <defs><clipPath id="qs-card-1"><rect width="546" height="80" rx="14"/></clipPath></defs>
+    <g clip-path="url(#qs-card-1)">
+      <rect width="546" height="80" fill="#141D23"/>
+      <rect width="6" height="80" fill="#F0B254"/>
+    </g>
+    <rect x="0.5" y="0.5" width="545" height="79" rx="13.5" fill="none" stroke="#263640"/>
+    <rect x="20" y="13" width="160" height="24" rx="6" fill="#332613"/>
+    <text x="100.0" y="29.5" text-anchor="middle" fill="#F6C87D" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" letter-spacing="0.6">02  PAPER REBUILD</text>
+    <text x="192" y="30.5" fill="#F3F0E8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17.5" font-weight="750" letter-spacing="-0.2">Literature &amp; Markush</text>
+    <text x="528" y="29.5" text-anchor="end" fill="#F6C87D" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700">DECIMER + DIFF</text>
+    <text x="20" y="60" fill="#B6C3CA" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="500">"Reproduce ./scheme.png as editable CDXML and verify"</text>
+  </g>
+  <g transform="translate(702 212)">
+    <defs><clipPath id="qs-card-2"><rect width="546" height="80" rx="14"/></clipPath></defs>
+    <g clip-path="url(#qs-card-2)">
+      <rect width="546" height="80" fill="#141D23"/>
+      <rect width="6" height="80" fill="#F26B63"/>
+    </g>
+    <rect x="0.5" y="0.5" width="545" height="79" rx="13.5" fill="none" stroke="#263640"/>
+    <rect x="20" y="13" width="156" height="24" rx="6" fill="#361B1E"/>
+    <text x="98.0" y="29.5" text-anchor="middle" fill="#F89993" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" letter-spacing="0.6">03  CALC &amp; OFFICE</text>
+    <text x="188" y="30.5" fill="#F3F0E8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17.5" font-weight="750" letter-spacing="-0.2">Stoichiometry &amp; OLE</text>
+    <text x="528" y="29.5" text-anchor="end" fill="#F89993" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700">JSON + WORD/PPT</text>
+    <text x="20" y="60" fill="#B6C3CA" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="500">cdx.py calc "A.B&gt;&gt;C"   /   cdx.py office-edit deck.pptx</text>
+  </g>
+</svg>

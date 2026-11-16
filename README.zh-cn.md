@@ -25,6 +25,13 @@
 
 ## 快速开始
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/readme/quickstart-dark.svg">
+    <img src="./assets/readme/quickstart.svg" width="100%" alt="快速开始总览：克隆并安装共享 Python 3.10 至 3.13 运行时，执行 cdx.py doctor 自检，随后启动画图、文献复刻或化学计量任务。">
+  </picture>
+</p>
+
 <!-- prerequisites -->
 <details>
 <summary><b>环境与可选参数说明</b>（64 位 Python 3.10 至 3.13，约 760 MB 运行时，桌面版 ChemDraw 可选）</summary>
@@ -32,14 +39,14 @@
 
 | 环境项 | 说明 |
 | --- | --- |
-| **桌面版 ChemDraw** *(可选)* | Windows 或 macOS 上已激活的桌面版 ChemDraw 可解锁原生 300 dpi PNG 渲染、`.cdx` 转换、交互式化学计量表与 Word/PowerPoint 对象。未安装 ChemDraw 时，Skill 仍可在 Windows、macOS、Linux 上构建、编辑、识别与校验 `.cdxml` 并运行批量计算工具（[无界面模式差异](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)）。 |
-| **Python 与磁盘** | 基于 64 位 Python **3.10–3.13** 的共享虚拟环境约 760 MB；单独传 `--extras` 仅装最小核心，传 `--extras publication office` 仅按需加装指定扩展组。 |
-| **可选增强参数** | `--opsin` 启用离线英文命名转结构（Windows 首次使用自动下载 Java，macOS/Linux 需自装 Java）· `--mapping` 在独立环境中安装 RXNMapper 与 LocalMapper · `image` 文字识别需安装 Tesseract。 |
+| **桌面版 ChemDraw** *(可选)* | Windows（`ChemDraw_x64.Application` 或 `ChemDraw.Application`）或 macOS 上已激活的桌面版 ChemDraw 可解锁原生 300 dpi PNG 渲染、`.cdx` 转换、交互式化学计量表与 Word/PowerPoint 对象。未安装 ChemDraw 时，Skill 仍可在 Windows、macOS、Linux 上构建、编辑、识别与校验 `.cdxml` 并运行批量计算工具（[无界面模式差异](skill/chemdraw/references/operations.md#no-chemdraw-on-this-host)）。 |
+| **Python 与磁盘** | 基于 64 位 Python **3.10 至 3.13** 的共享虚拟环境约 760 MB；单独传 `--extras` 仅装最小核心，传 `--extras publication office` 仅按需加装指定扩展组。 |
+| **可选增强参数** | `--opsin` 启用离线英文命名转结构（Windows 首次使用自动下载 Java，macOS/Linux 需自装 Java）；`--mapping` 在独立环境中安装 RXNMapper 与 LocalMapper；`image` 文字识别需安装 Tesseract。 |
 | **全工具离线自检** | 运行 `cdx.py py $HOME/.claude/skills/chemdraw/scripts/smoke_all_tools.py --output-dir 新目录` 可在本地逐个验证全部工具（加 `--network` 才会测试联网接口）。 |
 
 </details>
 
-**1. 安装**（安装脚本支持 Python 3.9+，并自动定位本机 64 位 Python 3.10–3.13 构建共享工具包环境）：
+<img src="https://img.shields.io/badge/STEP_01-%E5%AE%89%E8%A3%85-007C83?style=flat-square" height="20" alt="步骤 01"> **1. 安装**（安装脚本支持 Python 3.9+，并自动定位本机 64 位 Python 3.10 至 3.13 构建共享工具包环境）：
 
 ```bash
 git clone https://github.com/ZiChenWang114514/chemdraw-skill.git
@@ -49,24 +56,38 @@ python scripts/install.py --agent claude agents --runtime --apply
 
 <sub>去掉 <code>--apply</code> 可先预览安装路径；若本机只有 Python 3.14+，请先安装 3.12（如 <code>uv python install 3.12</code>）或加 <code>--python &lt;解释器路径&gt;</code> 指定。</sub>
 
-**2. 检查本机能力**（自动检测桌面版 ChemDraw、Office OLE、Python 可选依赖与本地引擎）：
+<img src="https://img.shields.io/badge/STEP_02-%E8%87%AA%E6%A3%80-1D7F5F?style=flat-square" height="20" alt="步骤 02"> **2. 检查本机能力**（自动检测桌面版 ChemDraw COM/AppleScript、Office OLE、Python 可选依赖与本地引擎）：
 
 ```bash
 python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 ```
 
-**3. 复制第一条指令发给你的 Agent**：
+<img src="https://img.shields.io/badge/STEP_03-%E5%BC%80%E5%A7%8B%E4%BD%BF%E7%94%A8-C83E37?style=flat-square" height="20" alt="步骤 03"> **3. 复制第一条提示词**发给你的 Agent（每个代码块均可一键纯净复制）：
+
+<img src="https://img.shields.io/badge/%E6%9C%9F%E5%88%8A%E5%8F%8D%E5%BA%94%E5%BC%8F-28_%E7%A7%8D%E7%94%BB%E6%B3%95%E9%A3%8E%E6%A0%BC-007C83?style=flat-square" height="18" alt="期刊反应式">
 
 ```text
-# 按期刊风格绘制可编辑反应式
 用 ChemDraw Skill 按 acs_jacs 风格绘制水杨酸 + Ac2O -> 阿司匹林（H2SO4 催化，室温 2 h，收率 85%），保存为可编辑 CDXML 并用 ChemDraw 渲染 300 dpi PNG。
+```
 
-# 把论文反应截图复刻成可编辑 ChemDraw
+<img src="https://img.shields.io/badge/%E8%AE%BA%E6%96%87%E5%9B%BE%E5%A4%8D%E5%88%BB-DECIMER_%2B_%E5%B7%A6%E5%8F%B3%E5%AF%B9%E7%85%A7-BE7112?style=flat-square" height="18" alt="论文图复刻">
+
+```text
 用 ChemDraw Skill 复刻 ./scheme.png 为可编辑 CDXML，保持原图分子取向，左右对照核验每个结构并输出原生预览。
+```
 
-# 用 ChemDraw 反应计算器核算投料量
+<img src="https://img.shields.io/badge/%E5%8C%96%E5%AD%A6%E8%AE%A1%E9%87%8F%E8%A1%A8-ChemDraw_%E5%8E%9F%E7%94%9F%E8%AE%A1%E7%AE%97%E5%99%A8-C83E37?style=flat-square" height="18" alt="化学计量表">
+
+```text
 用 ChemDraw Skill 对反应 "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1" 生成 ChemDraw 化学计量表，并把用量读回为 JSON。
 ```
+
+> [!TIP]
+> **不想通过 Agent，想直接在终端一行命令出图或算投料？** 直接调用 `cdx.py` 零 JSON 快捷命令：
+> ```bash
+> python $HOME/.claude/skills/chemdraw/scripts/cdx.py draw --name aspirin aspirin.cdxml --style acs_jacs --render
+> python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
+> ```
 
 <details>
 <summary><b>选择 Agent、项目级安装与 MCP 配置</b></summary>
@@ -127,11 +148,11 @@ python <skill>/scripts/cdx.py doctor --text                               # 本�
 
 | 工作流 | 入口章节 | 交付产物 |
 | --- | --- | --- |
-| **一句话生成新图** | [单命令出图](#one-command-figures) · [28 种画法风格](#期刊与课题组画法风格) · [ACS 1996 规范](#acs1996-drawings) · [CSV/Excel SAR 图](#从数据生成可持续修改的论文图) | 经回读校验的 `.cdxml` + 原生 300 dpi `.png` |
-| **复刻论文或专利原图** | [论文反应图复刻](#复刻论文反应图) · [专利 Markush 通式](#markush-demo) | 可编辑 `.cdxml`、`.cxsmiles` 与逐结构左右对照图 |
+| **一句话生成新图** | [单命令出图](#one-command-figures)、[28 种画法风格](#期刊与课题组画法风格)、[ACS 1996 规范](#acs1996-drawings)、[CSV/Excel SAR 图](#从数据生成可持续修改的论文图) | 经回读校验的 `.cdxml` + 原生 300 dpi `.png` |
+| **复刻论文或专利原图** | [论文反应图复刻](#复刻论文反应图)、[专利 Markush 通式](#markush-demo) | 可编辑 `.cdxml`、`.cxsmiles` 与逐结构左右对照图 |
 | **化学计量与表征计算** | [反应计算器、SI 原料表、ACS 表征文段与原子映射](#反应计算器与化学报告) | ChemDraw 计量表 JSON、ACS 表征段落、PMI 与原子映射 |
 | **识别与模型预测** | [15 个可选本地/远程引擎](#预测与分析引擎) | 明确标注预测来源的 OCSR、逆合成、产物与核磁候选 |
-| **嵌入 Office 文档** | `cdx.py office-edit` · Word 与 PowerPoint 自动化 | 桌面版 Office 原生可编辑 ChemDraw 对象 + PDF 预览 |
+| **嵌入 Office 文档** | `cdx.py office-edit`、Word 与 PowerPoint 自动化 | 桌面版 Office 原生可编辑 ChemDraw 对象 + PDF 预览 |
 
 <details>
 <summary><b>全部 17 个工具领域能力矩阵</b></summary>
@@ -169,7 +190,7 @@ python <skill>/scripts/cdx.py doctor --text                               # 本�
   <tr>
     <td colspan="3" align="center">
       <a href="#期刊与课题组画法风格"><img src="assets/readme/gallery/house-style-chemdraw.png" width="82%" alt="按 Studer 课题组画法风格重画的已发表自由基探针反应式，新键为红色"></a>
-      <br><b>28 个实测期刊与课题组画法风格 + 16 个 ChemDraw 预设</b><br><sub>实测自 179 张开放许可插图 · 覆盖 23 类科研图 · 经 47 个文献复现案例逐项核验</sub>
+      <br><b>28 个实测期刊与课题组画法风格 + 16 个 ChemDraw 预设</b><br><sub>实测自 179 张开放许可插图，覆盖 23 类科研图，经 47 个文献复现案例逐项核验</sub>
     </td>
   </tr>
   <tr>
@@ -235,7 +256,7 @@ python <skill>/scripts/cdx.py doctor --text                               # 本�
 
 ### 一句话生成新图
 
-当分子结构明确、需要从零画图时，直接用一句话描述需求——*“用水杨酸和乙酸酐画阿司匹林，H2SO4（催化量），室温 2 h，收率 85%。”* Agent 会将其整理为简短的 JSON 说明，一条命令即可完成绘制、渲染与多重校验：
+当分子结构明确、需要从零画图时，直接用一句话描述需求，例如*“用水杨酸和乙酸酐画阿司匹林，H2SO4（催化量），室温 2 h，收率 85%。”* Agent 会将其整理为简短的 JSON 说明，一条命令即可完成绘制、渲染与多重校验：
 
 ```bash
 python skill/chemdraw/scripts/cdx.py draw brief.json aspirin.cdxml --render
@@ -394,7 +415,7 @@ python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_gr
 
 ### 试卷与讲义插图：ACS Document 1996 格式
 
-用一份紧凑 JSON 描述图形——含 `C10H21` 等缩写节点的 SMILES、反应条件、箭头、加粗化合物代号与中文注释——即可生成可编辑的 ACS 1996 CDXML 与 ChemDraw 原生 PNG：
+用一份紧凑 JSON 描述图形（包含 `C10H21` 等缩写节点的 SMILES、反应条件、箭头、加粗化合物代号与中文注释），即可生成可编辑的 ACS 1996 CDXML 与 ChemDraw 原生 PNG：
 
 ```bash
 python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml --render
@@ -463,7 +484,7 @@ python skill/chemdraw/scripts/cdx.py py skill/chemdraw/assets/paper-reconstructi
 
 ## 反应计算器与化学报告
 
-从你提供的结构（SMILES、MOL/SDF 或 CDXML）出发，调用桌面版 ChemDraw 原生化学计量表或跨平台 RDKit 完成精确核算——结构化返回计算结果，且绝不覆盖已有文件：
+从你提供的结构（SMILES、MOL/SDF 或 CDXML）出发，调用桌面版 ChemDraw 原生化学计量表或跨平台 RDKit 完成精确核算，结构化返回计算结果，且绝不覆盖已有文件：
 
 | 想做的事 | 工具 | 得到什么 |
 | --- | --- | --- |
@@ -956,10 +977,10 @@ macOS 适配器通过 ChemDraw for macOS 的 AppleScript 字典驱动 ChemDraw�
 | 从这里开始 | 深入了解 |
 | --- | --- |
 | [安装与首次使用](docs/zh-cn.md) | [自动生成的工具签名](skill/chemdraw/references/mcp-signatures.md) |
-| [安装、故障处理与运行维护](docs/guide.zh-cn.md) · [英文运维指南](docs/guide.md) | [经过审计的内置工具包公共清单](skill/chemdraw/references/toolkit-public-inventory.md) |
-| [Agent 接入与 `cdx.py` 命令参考](skill/chemdraw/references/agent-integration.md) | [工具包开发者参考](toolkit/docs/agent-reference.md) · [生成的 MCP 工具参考](toolkit/docs/mcp-tools.md) |
+| [安装、故障处理与运行维护](docs/guide.zh-cn.md)、[英文运维指南](docs/guide.md) | [经过审计的内置工具包公共清单](skill/chemdraw/references/toolkit-public-inventory.md) |
+| [Agent 接入与 `cdx.py` 命令参考](skill/chemdraw/references/agent-integration.md) | [工具包开发者参考](toolkit/docs/agent-reference.md)、[生成的 MCP 工具参考](toolkit/docs/mcp-tools.md) |
 | [面向任务的工作流目录](skill/chemdraw/references/workflow-router.md) | [远程 HTTP 配置](skill/chemdraw/references/operations.md#remote-http-only-when-asked) |
-| [贡献指南](.github/contributing.md) · [安全策略](.github/SECURITY.md) | [仓库贡献者说明](AGENTS.md) |
+| [贡献指南](.github/contributing.md)、[安全策略](.github/SECURITY.md) | [仓库贡献者说明](AGENTS.md) |
 | [官网与分子实验室](https://zichenwang114514.github.io/chemdraw-skill/) | [落地页源码与部署说明](docs/website.md) |
 
 可部署的 Skill 位于 [`skill/chemdraw`](skill/chemdraw)。它所驱动的化学运行时，即 `cdxml_toolkit` Python 包，位于 [`toolkit`](toolkit)，并带有自己的测试。
