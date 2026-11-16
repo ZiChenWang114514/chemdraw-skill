@@ -46,7 +46,7 @@ Use `cdx.py tools` / `cdx.py sig TOOL` for signatures, `cdx.py render a.cdxml` f
 | Molecule drawing, modification, comparison, reaction editing | Matching section in [workflow router](references/workflow-router.md) |
 | Exact coordinates, native template edits, arrows, crossings | [Figure manifest](references/publication-figures.md) |
 | Journal house style (Wiley, RSC, Nature, Thieme and other ChemDraw stock style sheets) | `cdx.py styles`; `style` in [Scheme drawing](references/scheme-drawing.md) or [Figure manifest](references/publication-figures.md) |
-| A journal's or group's scheme conventions (bold numbers, yield placement, stacked substrates, abbreviations, coloured new bonds) | house styles: `cdx.py styles`, then `style` in [Scheme drawing](references/scheme-drawing.md) |
+| A journal/group's scheme style (bold numbers, yield, abbreviations, coloured bonds) | house styles: `cdx.py styles`, then `style` in [Scheme drawing](references/scheme-drawing.md) |
 | Reader stereo disagreement, native-save H loss | [Stereo diagnosis](references/stereo-reconstruction.md) |
 | Saved-file and cross-reader validation | [Figure validation](references/figure-validation.md) |
 | Patent Markush / generic structures (R groups, variable rings, image + claims) | [Markush structures](references/markush.md) |
@@ -59,7 +59,8 @@ Use `cdx.py tools` / `cdx.py sig TOOL` for signatures, `cdx.py render a.cdxml` f
 | Formula, masses, logP, balance, stoichiometry grid, HRMS, SI tables, mapping, export, naming | [Chemistry reports](references/chemistry-reports.md) |
 | ChemDraw interfaces (ChemScript, COM, CDXML elements, menus) and verified recipes | [Interface catalog](references/interface-catalog.md) |
 | Read or edit other CDXML objects (text, shapes, tables, bioshapes, attributes) | [Inspect or edit CDXML objects](references/workflow-router.md#inspect-or-edit-cdxml-objects) |
-| Installation, upgrade, missing tools or runtime failure | [Operations](references/operations.md) |
+| Install, upgrade, or runtime failure | [Operations](references/operations.md) |
+| 3D Mol* or 2D template studio | `view_molecule_3d`, `open_drawing_studio` (`cdx.py molstar/studio`) |
 
 Read only the matching workflow and needed signature (`cdx.py sig NAME`, [mcp-signatures.md](references/mcp-signatures.md)), not the whole catalog. Recurring pitfalls: [lessons](references/lessons.md); consult [interface catalog](references/interface-catalog.md) only when routing leaves no entry point.
 

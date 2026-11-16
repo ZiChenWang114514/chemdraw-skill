@@ -431,15 +431,15 @@
 ## `mcp_runtime.mcp_server`
 
 - **class**, line 574: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
-- **function**, line 1015: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
-- **function**, line 950: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
-- **function**, line 932: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
-- **function**, line 983: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
-- **function**, line 785: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
-- **function**, line 822: `read_style_guide_resource(preset: str) -> str` - JSON settings of one preset or house-style card, or of all of them for ``all``.
-- **function**, line 799: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
+- **function**, line 1044: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
+- **function**, line 974: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
+- **function**, line 956: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
+- **function**, line 1012: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
+- **function**, line 787: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
+- **function**, line 824: `read_style_guide_resource(preset: str) -> str` - JSON settings of one preset or house-style card, or of all of them for ``all``.
+- **function**, line 801: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
 - **function**, line 638: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
-- **function**, line 1053: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
+- **function**, line 1082: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_io`
 
@@ -570,14 +570,21 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 48: `build_acs_figure(spec: dict[str, Any] | str, output_path: str | None = None, render: bool = False) -> dict[str, Any]` - Build an ACS Document 1996 CDXML figure from an acs_builder JSON spec.
-- **function**, line 271: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 263: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 148: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 49: `build_acs_figure(spec: dict[str, Any] | str, output_path: str | None = None, render: bool = False) -> dict[str, Any]` - Build an ACS Document 1996 CDXML figure from an acs_builder JSON spec.
+- **function**, line 273: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 265: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 149: `ToolSpec` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_worker`
 
 - **function**, line 31: `worker_log_dir() -> Path` - Folder of ``worker-<id>.log`` files (``cdx.py doctor --paths`` prints it).
+
+## `mcp_runtime.ui_apps`
+
+- **function**, line 1854: `open_drawing_studio(template: str = 'aspirin', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Open the interactive 2D ChemDraw Studio with reaction & scaffold templates.
+- **function**, line 1104: `render_drawing_studio_app_html(initial_payload: dict[str, Any] | None = None) -> str` - Render the self-contained 2D ChemDraw Template & Drawing Studio MCP App HTML page.
+- **function**, line 321: `render_molstar_app_html(initial_payload: dict[str, Any] | None = None) -> str` - Render the self-contained Mol* + offline 3D WebGL/Canvas MCP App HTML page.
+- **function**, line 1661: `view_molecule_3d(query: str = 'aspirin', *, structure_path: str | None = None, smiles: str | None = None, pdb_id: str | None = None, format: str | None = None, representation: str = 'ball-and-stick', output_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Build an interactive 3D Mol* + offline WebGL/Canvas viewer (MCP App + standalone HTML).
 
 ## `model.document`
 

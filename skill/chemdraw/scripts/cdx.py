@@ -1191,6 +1191,38 @@ def cmd_decimer(ns):
         timeout=ns.timeout, out=ns.out, accel=None))
 
 
+def cmd_molstar(ns):
+    """Open or export an interactive 3D Mol* + offline WebGL/Canvas viewer."""
+    kwargs = {
+        'query': ns.target or 'aspirin',
+        'representation': ns.rep,
+        'launch_browser': not ns.no_browser,
+    }
+    if ns.smiles:
+        kwargs['smiles'] = ns.smiles
+    if ns.pdb:
+        kwargs['pdb_id'] = ns.pdb
+    if ns.output:
+        kwargs['output_path'] = ns.output
+    return _emit('view_molecule_3d', _worker('view_molecule_3d', kwargs), ns.out)
+
+
+def cmd_studio(ns):
+    """Open or export the interactive 2D ChemDraw template & structure drawing studio."""
+    kwargs = {
+        'template': ns.template or 'aspirin',
+        'style': ns.style,
+        'launch_browser': not ns.no_browser,
+    }
+    if ns.cdxml:
+        kwargs['cdxml_path'] = ns.cdxml
+    if ns.smiles:
+        kwargs['smiles'] = ns.smiles
+    if ns.output:
+        kwargs['output_path'] = ns.output
+    return _emit('open_drawing_studio', _worker('open_drawing_studio', kwargs), ns.out)
+
+
 def runtime_paths():
     from cdxml_toolkit.mcp_runtime import official_overrides, resource_lock, tool_worker
     base = os.environ.get('LOCALAPPDATA') or os.environ.get('TEMP') or str(Path.home())
@@ -2079,6 +2111,24 @@ def main(argv=None):
                                                '[--dry-run] [--status] (map_reaction_atoms works without them)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_install_mappers)
+    s = sub.add_parser('molstar', help='open an interactive 3D Mol* + offline WebGL viewer for a molecule, PDB ID, SMILES, or CDXML/PDB/SDF file')
+    s.add_argument('target', nargs='?', default='aspirin', help='molecule name, 4-letter PDB ID, SMILES, or file path')
+    s.add_argument('--smiles', help='explicit SMILES string to embed into 3D')
+    s.add_argument('--pdb', help='4-character RCSB PDB ID (e.g. 1CRN, 6LU7)')
+    s.add_argument('--rep', default='ball-and-stick', help='initial 3D representation (ball-and-stick, spacefill, licorice, wire)')
+    s.add_argument('--output', metavar='FILE', help='optional destination .html file')
+    s.add_argument('--no-browser', action='store_true', help='write HTML viewer without opening a browser window')
+    s.add_argument('--out', help='new evidence file for the full JSON envelope')
+    s.set_defaults(fn=cmd_molstar)
+    s = sub.add_parser('studio', help='open the interactive 2D ChemDraw structure & reaction template studio')
+    s.add_argument('template', nargs='?', default='aspirin', help='template slug (aspirin, suzuki_coupling, chair, newman, catalytic_cycle, ...)')
+    s.add_argument('--cdxml', help='load an existing .cdxml file into the studio')
+    s.add_argument('--smiles', help='load an explicit SMILES string into the studio')
+    s.add_argument('--style', default='acs1996', help='style preset (acs1996, jacs, angew, nature, science, rsc, wiley)')
+    s.add_argument('--output', metavar='FILE', help='optional destination .html file')
+    s.add_argument('--no-browser', action='store_true', help='write HTML studio without opening a browser window')
+    s.add_argument('--out', help='new evidence file for the full JSON envelope')
+    s.set_defaults(fn=cmd_studio)
     s = sub.add_parser('regen-signatures')  # maintainer: sync toolkit-derived references, inventories and runtime.json
     s.add_argument('--check', action='store_true', help='report stale generated files and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_signatures)

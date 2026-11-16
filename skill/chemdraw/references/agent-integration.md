@@ -26,6 +26,19 @@ python scripts/install.py --destination <any skills folder>/chemdraw --apply
 | `opencode` | `~/.config/opencode/skills/` | `.opencode/skills/` | OpenCode |
 | `kimi` | `~/.kimi-code/skills/` | `.kimi-code/skills/` | Kimi CLI; also reads `~/.agents/skills/` |
 | `pi` | `~/.pi/agent/skills/` | `.pi/skills/` | pi; also reads `~/.agents/skills/`; runs shell commands without asking |
+| `cline` | `~/.cline/skills/` | `.cline/skills/` | Cline CLI & VS Code extension |
+| `roo` | `~/.roo/skills/` | `.roo/skills/` | Roo Code VS Code extension |
+| `goose` | `~/.config/goose/skills/` | `.goose/skills/` | Goose CLI & Desktop |
+| `trae` | `~/.trae/skills/` | `.trae/skills/` | Trae & Trae Solo |
+| `kiro` | `~/.kiro/skills/` | `.kiro/skills/` | Kiro IDE & CLI |
+| `aider` | `~/.aider/skills/` | `.aider/skills/` | Aider (`--mcp` adds `SKILL.md` to `~/.aider.conf.yml`) |
+| `amp` | `~/.config/agents/skills/` | `.agents/skills/` | Sourcegraph Amp CLI |
+| `qwen` | `~/.qwen/skills/` | `.qwen/skills/` | Qwen Code CLI |
+| `continue` | `~/.continue/skills/` | `.continue/skills/` | Continue CLI (`cn`) & IDE |
+| `zed` | `~/.zed/skills/` | `.zed/skills/` | Zed Editor |
+| `openhands` | `~/.openhands/skills/` | `.openhands/skills/` | OpenHands |
+
+Pass `--mcp` with `--apply` (for example `python scripts/install.py --agent codex cursor windsurf goose cline --runtime --mcp --apply`) to automatically register or update the `cdxml-toolkit` MCP server configuration across each harness's native TOML, YAML, JSON, or JSONC config file.
 
 Discovery folders change between agent releases; check your agent's documentation when a copy is not picked up, and use `--destination` for any folder not listed. An agent that reads several of these folders may list the Skill once per copy; keep only the copies it needs.
 
@@ -107,6 +120,8 @@ cdx.py calc REACTION|FILE.cdxml [--output NEW.cdxml] [--no-open]   ChemDraw's ow
 cdx.py calc --read SAVED.cdxml            read the grid's numbers back as JSON (no ChemDraw needed)
 cdx.py install-mappers [rxnmapper] [localmapper] [--dry-run] [--status]   optional atom-mapping backends
 cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full] [--text] [--log ID|latest]
+cdx.py molstar [TARGET] [--smiles S] [--pdb ID] [--rep R] [--output FILE.html] [--no-browser] [--out FILE]
+cdx.py studio [TEMPLATE] [--cdxml FILE] [--smiles S] [--style S] [--output FILE.html] [--no-browser] [--out FILE]
 cdx.py py ARGS...                         run the runtime Python (helper scripts, -m modules, tests)
 ```
 

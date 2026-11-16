@@ -5,7 +5,7 @@
 
 Distribution: `cdxml-toolkit-community 0.7.0a3`
 Profile: `full (default)`
-Tools: `69`
+Tools: `71`
 
 ## Extended Tools
 
@@ -464,6 +464,14 @@ Descriptors are computed by RDKit from the structure as given; logP and TPSA are
 calculated estimates, not measurements, and generic atoms (R groups) are rejected.
 output_path ends in .json, .csv or .md and is never overwritten. At most 256 structures.
 
+### `open_drawing_studio(template: str = 'aspirin', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]`
+
+Open the interactive 2D ChemDraw Studio with reaction & scaffold templates.
+
+Supports 17 curated templates (molecules, 3D chair/Newman conformers, Suzuki,
+amide coupling, Buchwald-Hartwig, catalytic cycle, SAR scaffold), arbitrary
+SMILES, or loading an existing ``.cdxml`` file for live browser/MCP-App editing.
+
 ### `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, typing.Any]`
 
 Parse SciFinder RDF and optionally enrich CAS data over the network.
@@ -668,6 +676,15 @@ One structure that ChemDraw cannot name is reported with its error and does not 
 Needs ChemScript (Windows) or ChemDraw for macOS, like compare_molecules; there is no
 offline fallback. output_path ends in .csv, .json or .md and is never overwritten.
 At most 256 structures.
+
+### `view_molecule_3d(query: str = 'aspirin', *, structure_path: str | None = None, smiles: str | None = None, pdb_id: str | None = None, format: str | None = None, representation: str = 'ball-and-stick', output_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]`
+
+Build an interactive 3D Mol* + offline WebGL/Canvas viewer (MCP App + standalone HTML).
+
+Accepts a PDB/mmCIF/SDF/MOL/XYZ/CDXML file path, a SMILES string, a chemical name
+(e.g. ``"aspirin"``, ``"caffeine"``, ``"taxol"``), or a 4-character PDB ID
+(e.g. ``"1CRN"``, ``"6LU7"``). Returns an MCP Apps UI resource hint plus a
+self-contained standalone HTML viewer path.
 
 ## Official Tools
 

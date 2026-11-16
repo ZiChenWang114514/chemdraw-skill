@@ -712,6 +712,8 @@ _REGISTERED_RESOURCE_URIS = (
     "chemdraw://references/{slug}",
     "chemdraw://templates/{slug}",
     "chemdraw://style-guide/{preset}",
+    "ui://cdxml-toolkit/molstar-viewer.html",
+    "ui://cdxml-toolkit/drawing-studio.html",
 )
 _REGISTERED_PROMPT_NAMES = (
     "draw_reaction_scheme",
@@ -857,6 +859,28 @@ def _register_resources_and_prompts(mcp: typing.Any) -> None:
             house style (a journal's or group's drawing conventions); "all" lists them."""
             return read_style_guide_resource(preset)
 
+        from . import ui_apps
+
+        res_params = inspect.signature(resource_decorator).parameters
+        molstar_res_kwargs: dict[str, typing.Any] = {}
+        studio_res_kwargs: dict[str, typing.Any] = {}
+        if "mime_type" in res_params:
+            molstar_res_kwargs["mime_type"] = "text/html;profile=mcp-app"
+            studio_res_kwargs["mime_type"] = "text/html;profile=mcp-app"
+        if "meta" in res_params:
+            molstar_res_kwargs["meta"] = ui_apps.MOLSTAR_CSP_META
+            studio_res_kwargs["meta"] = ui_apps.DRAWING_STUDIO_CSP_META
+
+        @resource_decorator(ui_apps.MOLSTAR_RESOURCE_URI, **molstar_res_kwargs)
+        def molstar_viewer_app() -> str:
+            """Interactive 3D Mol* and offline WebGL/Canvas molecular viewer app."""
+            return ui_apps.render_molstar_app_html()
+
+        @resource_decorator(ui_apps.DRAWING_STUDIO_RESOURCE_URI, **studio_res_kwargs)
+        def drawing_studio_app() -> str:
+            """Interactive 2D ChemDraw structure and reaction template studio app."""
+            return ui_apps.render_drawing_studio_app_html()
+
         registered_resources.extend(_REGISTERED_RESOURCE_URIS)
 
     prompt_decorator = getattr(mcp, "prompt", None)
@@ -955,14 +979,19 @@ def build_server(*, profile: str | None = None, **server_settings):
     mcp = server_type(
         "cdxml-toolkit", instructions=upstream.mcp.instructions, **server_settings
     )
+    tool_decorator = mcp.tool
+    tool_params = inspect.signature(tool_decorator).parameters
     for spec in registry.values():
-        mcp.tool(
-            name=spec.name,
-            title=spec.title,
-            description=spec.description,
-            annotations=spec.annotations,
-            structured_output=False,
-        )(
+        tool_kwargs: dict[str, typing.Any] = {
+            "name": spec.name,
+            "title": spec.title,
+            "description": spec.description,
+            "annotations": spec.annotations,
+            "structured_output": False,
+        }
+        if spec.meta and "meta" in tool_params:
+            tool_kwargs["meta"] = spec.meta
+        tool_decorator(**tool_kwargs)(
             _adapt_tool(
                 spec.name,
                 spec.function,
