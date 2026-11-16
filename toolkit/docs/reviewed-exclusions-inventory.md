@@ -412,7 +412,7 @@
 
 ## `mcp_runtime.live_chemdraw`
 
-- **function**, line 389: `live_chemdraw_session(action: str = 'status', *, cdxml: str = '', smiles: str = '', output_path: str = '') -> dict[str, Any]` - Interact non-destructively with an already-open user-facing desktop ChemDraw window.
+- **function**, line 392: `live_chemdraw_session(action: str = 'status', *, cdxml: str = '', smiles: str = '', output_path: str = '') -> dict[str, Any]` - Interact non-destructively with an already-open user-facing desktop ChemDraw window.
 
 ## `mcp_runtime.markush_tools`
 
@@ -457,11 +457,11 @@
 
 ## `mcp_runtime.native_renderer`
 
-- **class**, line 36: `NativeRenderError` - ChemDraw rendering failure with a stable public error code.
-- **class**, line 109: `NativeRenderSession` - Lazily acquire and reuse one ChemDraw application for native exports.
-- **method**, line 184: `NativeRenderSession.render(source: str | Path, destination: str | Path, dpi: int = 300) -> str` - No public docstring in the audited version.
-- **function**, line 255: `render_cdxml(source: str | Path, destination: str | Path, *, dpi: int = 300, timeout_seconds: int = 30) -> str` - No public docstring in the audited version.
-- **function**, line 31: `renderer_name() -> str` - The native renderer on this platform, as written in render receipts.
+- **class**, line 37: `NativeRenderError` - ChemDraw rendering failure with a stable public error code.
+- **class**, line 110: `NativeRenderSession` - Lazily acquire and reuse one ChemDraw application for native exports.
+- **method**, line 185: `NativeRenderSession.render(source: str | Path, destination: str | Path, dpi: int = 300) -> str` - No public docstring in the audited version.
+- **function**, line 256: `render_cdxml(source: str | Path, destination: str | Path, *, dpi: int = 300, timeout_seconds: int = 30) -> str` - No public docstring in the audited version.
+- **function**, line 32: `renderer_name() -> str` - The native renderer on this platform, as written in render receipts.
 
 ## `mcp_runtime.object_tools`
 
@@ -531,15 +531,15 @@
 
 ## `mcp_runtime.runtime_diagnostics`
 
-- **function**, line 657: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
+- **function**, line 659: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
 
 ## `mcp_runtime.runtime_discovery`
 
-- **class**, line 28: `Discovery` - No public docstring in the audited version.
-- **method**, line 32: `Discovery.to_dict() -> dict[str, str]` - No public docstring in the audited version.
-- **function**, line 299: `find_chemdraw(explicit: str | None = None) -> Discovery` - Find ChemDraw from explicit, environment, the macOS application, COM, then common paths.
-- **function**, line 144: `find_python(explicit: str | None = None) -> Discovery` - Find and probe Python using explicit, environment, then implicit paths.
-- **function**, line 185: `find_skill_root(explicit: str | None = None) -> Discovery` - No public docstring in the audited version.
+- **class**, line 23: `Discovery` - No public docstring in the audited version.
+- **method**, line 27: `Discovery.to_dict() -> dict[str, str]` - No public docstring in the audited version.
+- **function**, line 284: `find_chemdraw(explicit: str | None = None) -> Discovery` - Find ChemDraw from explicit, environment, the macOS application, COM, then common paths.
+- **function**, line 139: `find_python(explicit: str | None = None) -> Discovery` - Find and probe Python using explicit, environment, then implicit paths.
+- **function**, line 180: `find_skill_root(explicit: str | None = None) -> Discovery` - No public docstring in the audited version.
 
 ## `mcp_runtime.scientific_tool`
 
