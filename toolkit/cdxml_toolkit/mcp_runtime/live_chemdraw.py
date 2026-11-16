@@ -14,6 +14,7 @@ import tempfile
 from typing import Any, Iterator
 
 from . import artifact_safety
+from ..chemdraw import progid as chemdraw_progid
 
 
 SUPPORTED_ACTIONS = ("status", "read_active", "read_selection", "insert_cdxml")
@@ -45,10 +46,12 @@ def _get_active_com_application() -> Any | None:
     get_active = getattr(win32_client, "GetActiveObject", None)
     if get_active is None:
         return None
-    try:
-        return get_active("ChemDraw.Application")
-    except Exception:
-        return None
+    for name in chemdraw_progid.PROGIDS:
+        try:
+            return get_active(name)
+        except Exception:
+            continue
+    return None
 
 
 def _active_document(app: Any) -> Any | None:

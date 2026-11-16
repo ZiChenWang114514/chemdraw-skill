@@ -15,6 +15,7 @@ from typing import Iterator
 
 from . import native_io
 from ..chemdraw import mac_automation
+from ..chemdraw import progid
 
 logger = logging.getLogger(__name__)
 
@@ -72,8 +73,8 @@ def _acquire_application():
 
     dispatch_ex = getattr(win32, "DispatchEx", None)
     if dispatch_ex is not None:
-        return dispatch_ex("ChemDraw.Application"), True
-    return win32.Dispatch("ChemDraw.Application"), True
+        return progid.dispatch_ex(), True
+    return progid.dispatch(), True
 
 
 @contextmanager

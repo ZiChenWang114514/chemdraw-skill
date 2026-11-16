@@ -101,7 +101,7 @@ def test_ole_embedder_batch_convert_uses_dispatchex_not_dispatch(tmp_path):
         results = ole_embedder.batch_convert([str(cdxml_path)])
 
     assert fake_win32_client.DispatchEx.call_count == 1
-    fake_win32_client.DispatchEx.assert_called_once_with("ChemDraw.Application")
+    fake_win32_client.DispatchEx.assert_called_once_with("ChemDraw_x64.Application")
     assert fake_win32_client.Dispatch.call_count == 0
     fake_app.Quit.assert_called_once()
     assert len(results) == 1

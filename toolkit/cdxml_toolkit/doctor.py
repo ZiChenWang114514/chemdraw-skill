@@ -38,14 +38,12 @@ def _check_dependency(name, import_fn):
 
 def _check_chemdraw_com():
     """Check if ChemDraw COM is registered (without launching it)."""
-    try:
-        import winreg
-        key = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT,
-                             "ChemDraw.Application\\CLSID")
-        winreg.CloseKey(key)
-        return True, "registered"
-    except Exception:
-        return False, "not registered"
+    from cdxml_toolkit.chemdraw import progid
+
+    registered = progid.registered_progids()
+    if registered:
+        return True, f"registered ({', '.join(registered)})"
+    return False, "not registered"
 
 
 def _check_chemdraw_macos():

@@ -196,8 +196,8 @@ def _chemdraw_outputs(install_dir: Path, workdir: Path) -> tuple[list[Path], lis
     import gc
 
     import pythoncom
-    import win32com.client as win32
 
+    from ..chemdraw import progid as chemdraw_progid
     from ..mcp_runtime.resource_lock import native_resource_lock
 
     outputs: list[Path] = []
@@ -205,7 +205,7 @@ def _chemdraw_outputs(install_dir: Path, workdir: Path) -> tuple[list[Path], lis
     with native_resource_lock("chemdraw_com", 300):
         pythoncom.CoInitialize()
         try:
-            application = win32.DispatchEx("ChemDraw.Application")
+            application = chemdraw_progid.dispatch_ex()
             try:
                 for source in sorted(install_dir.rglob("*.cdx")):
                     target = workdir / f"roundtrip_{source.stem}.cdxml"

@@ -82,14 +82,14 @@ def _walk(application) -> list[dict[str, Any]]:
 def extract_live(*, verified_on: Optional[str] = None) -> dict[str, Any]:
     """Start a private ChemDraw (Windows), read its menus and quit it."""
     import pythoncom
-    import win32com.client as win32
 
+    from ..chemdraw import progid as chemdraw_progid
     from ..mcp_runtime.resource_lock import native_resource_lock
 
     with native_resource_lock("chemdraw_com", NATIVE_LOCK_SECONDS):
         pythoncom.CoInitialize()
         try:
-            application = win32.DispatchEx("ChemDraw.Application")
+            application = chemdraw_progid.dispatch_ex()
             try:
                 raw = _walk(application)
             finally:

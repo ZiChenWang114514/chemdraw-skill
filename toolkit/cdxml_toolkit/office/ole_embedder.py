@@ -103,16 +103,15 @@ def batch_convert(cdxml_paths):
     document as CDXML: the tight extent of the drawing. Use content_size_emu().
     """
     from cdxml_toolkit.chemdraw import mac_automation
+    from cdxml_toolkit.chemdraw import progid as chemdraw_progid
 
     if mac_automation.is_macos():
         return _batch_convert_macos(cdxml_paths)
 
-    import win32com.client as win32
-
     results = []
     app = None
     try:
-        app = win32.DispatchEx("ChemDraw.Application")
+        app = chemdraw_progid.dispatch_ex()
         app.Visible = False
 
         for cdxml_path in cdxml_paths:

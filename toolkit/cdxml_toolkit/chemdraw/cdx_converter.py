@@ -56,6 +56,7 @@ except (FileNotFoundError, subprocess.TimeoutExpired):
     pass
 
 from . import mac_automation as _mac
+from . import progid
 
 HAS_APPLESCRIPT = _mac.is_macos() and _mac.find_application() is not None
 
@@ -128,10 +129,10 @@ def _get_chemdraw():
     Always sets Visible=False to suppress flashing.
     """
     try:
-        app = win32com.client.GetActiveObject("ChemDraw.Application")
+        app = progid.get_active()
         launched = False
     except Exception:
-        app = win32com.client.Dispatch("ChemDraw.Application")
+        app = progid.dispatch()
         launched = True
     return app, launched
 

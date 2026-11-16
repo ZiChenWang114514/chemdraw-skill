@@ -239,6 +239,8 @@ def _has_windows_office_com() -> dict[str, bool]:
     except ImportError:
         return {"word": False, "powerpoint": False, "chemdraw": False}
 
+    from ..chemdraw import progid as chemdraw_progid
+
     def _progid_registered(progid: str) -> bool:
         try:
             with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, rf"{progid}\CLSID") as key:
@@ -250,7 +252,7 @@ def _has_windows_office_com() -> dict[str, bool]:
     return {
         "word": _progid_registered("Word.Application"),
         "powerpoint": _progid_registered("PowerPoint.Application"),
-        "chemdraw": _progid_registered("ChemDraw.Application"),
+        "chemdraw": any(_progid_registered(name) for name in chemdraw_progid.PROGIDS),
     }
 
 
