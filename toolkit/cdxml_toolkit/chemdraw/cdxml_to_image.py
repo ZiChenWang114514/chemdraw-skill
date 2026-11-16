@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from cdxml_toolkit.chemdraw import progid
 from cdxml_toolkit.chemdraw.mac_automation import MacChemDrawSession, flatten_png, is_macos
 
 
@@ -34,12 +35,11 @@ def _get_chemdraw():
 
     Returns (app, launched) where launched is True if we started a new instance.
     """
-    import win32com.client as win32
     try:
-        app = win32.GetActiveObject("ChemDraw.Application")
+        app = progid.get_active()
         launched = False
     except Exception:
-        app = win32.Dispatch("ChemDraw.Application")
+        app = progid.dispatch()
         launched = True
     return app, launched
 

@@ -41,6 +41,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from ..constants import ACS_STYLE
 from . import mac_automation
+from . import progid
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -76,9 +77,10 @@ def _dll_bitness(path: str) -> Optional[int]:
 def _find_chemdraw_root() -> Optional[str]:
     """Find ChemDraw/ChemOffice vendor install root via COM registry.
 
-    Looks up the ChemDraw.Application ProgID → CLSID → LocalServer32 path,
-    then walks up the directory tree to the vendor folder (child of
-    Program Files or Program Files (x86)).
+    Looks up the registered ChemDraw ProgID (``ChemDraw_x64.Application`` on
+    64-bit ChemDraw 23+, ``ChemDraw.Application`` on older builds) → CLSID →
+    LocalServer32 path, then walks up the directory tree to the vendor folder
+    (child of Program Files or Program Files (x86)).
 
     Returns the vendor root (e.g. ``C:\\Program Files (x86)\\PerkinElmerInformatics``)
     or None if ChemDraw is not registered.
@@ -88,13 +90,17 @@ def _find_chemdraw_root() -> Optional[str]:
     except ImportError:
         return None
 
-    # Step 1: ProgID → CLSID
-    try:
-        key = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT,
-                             "ChemDraw.Application\\CLSID")
-        clsid = winreg.QueryValue(key, "")
-        winreg.CloseKey(key)
-    except OSError:
+    # Step 1: ProgID → CLSID, newest build first
+    clsid = None
+    for name in progid.PROGIDS:
+        try:
+            key = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, f"{name}\\CLSID")
+            clsid = winreg.QueryValue(key, "")
+            winreg.CloseKey(key)
+            break
+        except OSError:
+            continue
+    if not clsid:
         return None
 
     # Step 2: CLSID → executable paths across 64-bit and 32-bit registry views

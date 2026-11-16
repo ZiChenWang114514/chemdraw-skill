@@ -13,11 +13,6 @@ import subprocess
 import sys
 from typing import Iterable
 
-try:
-    import winreg
-except ImportError:  # pragma: no cover - Windows is the supported platform.
-    winreg = None
-
 
 # Native/Office dependencies are checked only when those capabilities are requested.
 REQUIRED_IMPORTS = ("cdxml_toolkit", "mcp", "rdkit")
@@ -223,20 +218,10 @@ def _extract_local_server_executable(command: str | None) -> str | None:
 
 
 def _registry_local_server_command() -> str | None:
-    """Read HKCR ChemDraw.Application -> CLSID -> LocalServer32."""
-    if winreg is None:
-        return None
-    try:
-        with winreg.OpenKey(
-            winreg.HKEY_CLASSES_ROOT, r"ChemDraw.Application\CLSID"
-        ) as clsid_key:
-            clsid = winreg.QueryValueEx(clsid_key, "")[0]
-        with winreg.OpenKey(
-            winreg.HKEY_CLASSES_ROOT, rf"CLSID\{clsid}\LocalServer32"
-        ) as server_key:
-            return str(winreg.QueryValueEx(server_key, "")[0])
-    except (OSError, TypeError, ValueError):
-        return None
+    """Read HKCR ChemDraw ProgID -> CLSID -> LocalServer32, newest build first."""
+    from ..chemdraw import progid as chemdraw_progid
+
+    return chemdraw_progid.local_server_command()
 
 
 def _common_chemdraw_candidates() -> list[Path]:

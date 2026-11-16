@@ -118,7 +118,7 @@ class NativeRendererTests(unittest.TestCase):
 
         self.assertIs(acquired, application)
         self.assertTrue(launched)
-        dispatch_ex.assert_called_once_with("ChemDraw.Application")
+        dispatch_ex.assert_called_once_with("ChemDraw_x64.Application")
         get_active.assert_not_called()
 
     def test_reports_invalid_native_output_with_stable_error_code(self):
