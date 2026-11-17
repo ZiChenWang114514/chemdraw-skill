@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+import importlib.util
 import json
 from pathlib import Path
 import struct
@@ -36,7 +37,13 @@ def mocked_module(full_name: str, **members):
         name = ".".join(parts[: index + 1])
         module = types.ModuleType(name)
         if index < len(parts) - 1:
-            module.__path__ = []
+            try:
+                spec = importlib.util.find_spec(name)
+            except (ImportError, ValueError):
+                spec = None
+            module.__path__ = (
+                list(spec.submodule_search_locations or []) if spec is not None else []
+            )
         modules[name] = module
         if parent is not None:
             setattr(parent, parts[index], module)
