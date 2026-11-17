@@ -1,0 +1,303 @@
+{
+  "name": "chemdraw-studio",
+  "displayName": "ChemDraw 2D Studio & Mol* 3D Workbench",
+  "description": "Reaxys / SciFinder-grade 2D chemical structure & substructure query editor, native .cdxml / .mol visual custom editors, 3D Mol* conformer viewer, and universal AI Coding Agent chat bridge.",
+  "version": "0.7.0",
+  "publisher": "chemdraw-skill",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Custom Editors",
+    "Data Science",
+    "Machine Learning",
+    "Other"
+  ],
+  "keywords": [
+    "chemistry",
+    "chemdraw",
+    "cdxml",
+    "molstar",
+    "smiles",
+    "smarts",
+    "reaxys",
+    "scifinder",
+    "molecule",
+    "coding-agent"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "cdxml",
+        "aliases": ["CDXML (ChemDraw XML)", "cdxml"],
+        "extensions": [".cdxml"]
+      },
+      {
+        "id": "molfile",
+        "aliases": ["MDL Molfile / SDF", "molfile"],
+        "extensions": [".mol", ".sdf"]
+      },
+      {
+        "id": "smiles",
+        "aliases": ["SMILES / SMARTS", "smiles"],
+        "extensions": [".smi", ".smiles", ".smarts"]
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "chemdraw-workbench",
+          "title": "ChemDraw Studio & 3D",
+          "icon": "media/activity-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "chemdraw-workbench": [
+        {
+          "type": "webview",
+          "id": "chemdraw.sidebarStudio",
+          "name": "2D Structure & Query Pad"
+        },
+        {
+          "id": "chemdraw.quickActions",
+          "name": "Agent & Toolkit Actions"
+        },
+        {
+          "id": "chemdraw.workspaceStructures",
+          "name": "Workspace Structures"
+        }
+      ]
+    },
+    "customEditors": [
+      {
+        "viewType": "chemdraw.cdxmlEditor",
+        "displayName": "ChemDraw 2D Structure Studio (CDXML)",
+        "selector": [
+          {
+            "filenamePattern": "*.cdxml"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "chemdraw.molEditor",
+        "displayName": "ChemDraw 2D Structure Studio (MOL / SDF)",
+        "selector": [
+          {
+            "filenamePattern": "*.mol"
+          },
+          {
+            "filenamePattern": "*.sdf"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "chemdraw.structure3dViewer",
+        "displayName": "ChemDraw 3D Mol* Viewer (PDB / CIF / XYZ)",
+        "selector": [
+          {
+            "filenamePattern": "*.pdb"
+          },
+          {
+            "filenamePattern": "*.ent"
+          },
+          {
+            "filenamePattern": "*.cif"
+          },
+          {
+            "filenamePattern": "*.mmcif"
+          },
+          {
+            "filenamePattern": "*.xyz"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "chemdraw.openStudio",
+        "title": "Open 2D Structure & Query Studio (Beside Chat)",
+        "category": "ChemDraw",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "chemdraw.openStudioHere",
+        "title": "Open 2D Structure & Query Studio (Active Tab)",
+        "category": "ChemDraw"
+      },
+      {
+        "command": "chemdraw.open3DViewer",
+        "title": "Open 3D Mol* Conformer / Protein Viewer",
+        "category": "ChemDraw",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "chemdraw.selectionTo2D",
+        "title": "Edit Selected SMILES / Molfile in 2D Studio",
+        "category": "ChemDraw",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "chemdraw.selectionTo3D",
+        "title": "View Selected SMILES / PDB ID in 3D Mol*",
+        "category": "ChemDraw",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "chemdraw.renderNativePng",
+        "title": "Render 300 DPI Native ChemDraw PNG",
+        "category": "ChemDraw",
+        "icon": "$(file-media)"
+      },
+      {
+        "command": "chemdraw.viewSource",
+        "title": "Open Raw Source Text Beside Canvas",
+        "category": "ChemDraw",
+        "icon": "$(code)"
+      },
+      {
+        "command": "chemdraw.refreshWorkspace",
+        "title": "Refresh Workspace Structures",
+        "category": "ChemDraw",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "chemdraw.openTreeStructure",
+        "title": "Open Structure",
+        "category": "ChemDraw"
+      },
+      {
+        "command": "chemdraw.sendFileToAgent",
+        "title": "Transfer Structure to Agent Chat",
+        "category": "ChemDraw",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "chemdraw.openSmilesIn2D",
+        "title": "Open SMILES in 2D Studio",
+        "category": "ChemDraw"
+      },
+      {
+        "command": "chemdraw.openSmilesIn3D",
+        "title": "Open SMILES in 3D Mol*",
+        "category": "ChemDraw"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "chemdraw.openStudio",
+        "key": "ctrl+alt+m",
+        "mac": "cmd+alt+m"
+      },
+      {
+        "command": "chemdraw.open3DViewer",
+        "key": "ctrl+alt+3",
+        "mac": "cmd+alt+3"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "chemdraw.viewSource",
+          "when": "activeCustomEditorId == 'chemdraw.cdxmlEditor' || activeCustomEditorId == 'chemdraw.molEditor'",
+          "group": "navigation@1"
+        },
+        {
+          "command": "chemdraw.renderNativePng",
+          "when": "activeCustomEditorId == 'chemdraw.cdxmlEditor' || resourceExtname == '.cdxml'",
+          "group": "navigation@2"
+        },
+        {
+          "command": "chemdraw.openStudio",
+          "when": "resourceExtname == '.smi' || resourceExtname == '.smiles'",
+          "group": "navigation@1"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "chemdraw.selectionTo2D",
+          "when": "editorHasSelection",
+          "group": "9_chemdraw@1"
+        },
+        {
+          "command": "chemdraw.selectionTo3D",
+          "when": "editorHasSelection",
+          "group": "9_chemdraw@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "chemdraw.renderNativePng",
+          "when": "resourceExtname == '.cdxml'",
+          "group": "9_chemdraw@1"
+        },
+        {
+          "command": "chemdraw.sendFileToAgent",
+          "when": "resourceExtname == '.cdxml' || resourceExtname == '.mol' || resourceExtname == '.sdf'",
+          "group": "9_chemdraw@2"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "chemdraw.openStudio",
+          "when": "view == chemdraw.sidebarStudio",
+          "group": "navigation@1"
+        },
+        {
+          "command": "chemdraw.refreshWorkspace",
+          "when": "view == chemdraw.workspaceStructures",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "chemdraw.sendFileToAgent",
+          "when": "view == chemdraw.workspaceStructures",
+          "group": "inline@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ChemDraw Studio & Agent Bridge",
+      "properties": {
+        "chemdraw.preferredChatTarget": {
+          "type": "string",
+          "enum": ["auto", "nativeChat", "cline", "roo", "continue", "clipboardOnly"],
+          "default": "auto",
+          "description": "Where 'Transfer to Agent' dispatches the drawn SMILES / SMARTS / CDXML structure."
+        },
+        "chemdraw.autoOpenOnAgentSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open or update the 2D Studio panel beside chat when an AI agent writes studio-live.cdxml or studio-live.json."
+        },
+        "chemdraw.enableSmilesHover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show 'Open in 2D Studio / 3D Mol*' hover links on SMILES literals in Markdown, Python, JSON, and .smi files."
+        },
+        "chemdraw.defaultStyle": {
+          "type": "string",
+          "enum": ["acs1996", "jacs", "angew", "nature", "science", "rsc", "wiley"],
+          "default": "acs1996",
+          "description": "Default publication style sheet for new 2D Studio sessions."
+        },
+        "chemdraw.pythonPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional explicit path to the chemdraw-skill Python interpreter (auto-detected from shared runtime when blank)."
+        }
+      }
+    }
+  }
+}

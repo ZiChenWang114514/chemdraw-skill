@@ -28,3 +28,9 @@ output/
 # Written per installation by scripts/install.py
 skill/chemdraw/manifest.json
 skill/chemdraw/runtime.local.json
+
+# Built VS Code VSIX packages and staged webview bundles
+vscode/dist/
+vscode/media/generated/
+vscode/node_modules/
+.chemdraw/
