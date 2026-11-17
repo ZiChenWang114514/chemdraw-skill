@@ -177,6 +177,11 @@ CASES = [
     {'tool': 'publication_figure', 'needs': ['chemdraw'],
      'args': lambda c: {'operation': 'create', 'spec_path': str(ASSETS / 'publication' / 'sar.json'),
                         'output_dir': _p(c, 'sar')}},
+    {'tool': 'view_molecule_3d', 'args': lambda c: {'query': 'aspirin', 'output_path': _p(c, 'aspirin-3d.html'),
+                                                    'launch_browser': False}},
+    {'tool': 'open_drawing_studio', 'args': lambda c: {'template': 'suzuki_coupling',
+                                                       'output_path': _p(c, 'studio-suzuki.html'),
+                                                       'launch_browser': False}},
     {'tool': 'markush_validate', 'args': {'spec_path': str(ASSETS / 'markush' / 'indole-macrocycle.json')}},
     {'tool': 'markush_enumerate', 'args': {'spec_path': str(ASSETS / 'markush' / 'indole-macrocycle.json'), 'count': 2}},
     {'tool': 'markush_compile', 'args': lambda c: {

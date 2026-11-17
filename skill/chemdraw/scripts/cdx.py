@@ -1191,6 +1191,58 @@ def cmd_decimer(ns):
         timeout=ns.timeout, out=ns.out, accel=None))
 
 
+def cmd_molstar(ns):
+    """Open or export an interactive 3D Mol* + offline WebGL/Canvas viewer."""
+    kwargs = {
+        'query': ns.target or 'aspirin',
+        'representation': ns.rep,
+        'launch_browser': not ns.no_browser,
+    }
+    if ns.smiles:
+        kwargs['smiles'] = ns.smiles
+    if ns.pdb:
+        kwargs['pdb_id'] = ns.pdb
+    if ns.output:
+        kwargs['output_path'] = ns.output
+    return _emit('view_molecule_3d', _worker('view_molecule_3d', kwargs), ns.out)
+
+
+def cmd_studio(ns):
+    """Open, export, or live-serve the interactive 2D ChemDraw drawing studio."""
+    if getattr(ns, 'serve', False):
+        from cdxml_toolkit.mcp_runtime.ui_apps import serve_drawing_studio
+
+        server, url, sync_cdxml = serve_drawing_studio(
+            template=ns.template or 'blank',
+            cdxml_path=ns.cdxml,
+            smiles=ns.smiles,
+            style=ns.style,
+            sync_dir=ns.sync_dir or '.',
+            port=ns.port,
+            open_browser=not ns.no_browser,
+        )
+        print(json.dumps({'ok': True, 'url': url, 'sync_cdxml': str(sync_cdxml)}, indent=2), flush=True)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            server.server_close()
+        return 0
+    kwargs = {
+        'template': ns.template or 'blank',
+        'style': ns.style,
+        'launch_browser': not ns.no_browser,
+    }
+    if ns.cdxml:
+        kwargs['cdxml_path'] = ns.cdxml
+    if ns.smiles:
+        kwargs['smiles'] = ns.smiles
+    if ns.output:
+        kwargs['output_path'] = ns.output
+    if getattr(ns, 'fragment', None):
+        kwargs['fragment_path'] = ns.fragment
+    return _emit('open_drawing_studio', _worker('open_drawing_studio', kwargs), ns.out)
+
+
 def runtime_paths():
     from cdxml_toolkit.mcp_runtime import official_overrides, resource_lock, tool_worker
     base = os.environ.get('LOCALAPPDATA') or os.environ.get('TEMP') or str(Path.home())
@@ -2079,6 +2131,28 @@ def main(argv=None):
                                                '[--dry-run] [--status] (map_reaction_atoms works without them)')
     s.add_argument('rest', nargs=argparse.REMAINDER)
     s.set_defaults(fn=cmd_install_mappers)
+    s = sub.add_parser('molstar', help='open an interactive 3D Mol* + offline WebGL viewer for a molecule, PDB ID, SMILES, or CDXML/PDB/SDF file')
+    s.add_argument('target', nargs='?', default='aspirin', help='molecule name, 4-letter PDB ID, SMILES, or file path')
+    s.add_argument('--smiles', help='explicit SMILES string to embed into 3D')
+    s.add_argument('--pdb', help='4-character RCSB PDB ID (e.g. 1CRN, 6LU7)')
+    s.add_argument('--rep', default='ball-and-stick', help='initial 3D representation (ball-and-stick, spacefill, licorice, wire)')
+    s.add_argument('--output', metavar='FILE', help='optional destination .html file')
+    s.add_argument('--no-browser', action='store_true', help='write HTML viewer without opening a browser window')
+    s.add_argument('--out', help='new evidence file for the full JSON envelope')
+    s.set_defaults(fn=cmd_molstar)
+    s = sub.add_parser('studio', help='open, inline-fragment export, or live-serve the interactive 2D ChemDraw studio')
+    s.add_argument('template', nargs='?', default='aspirin', help='template slug (aspirin, suzuki_coupling, chair, newman, catalytic_cycle, ...)')
+    s.add_argument('--cdxml', help='load an existing .cdxml file into the studio')
+    s.add_argument('--smiles', help='load an explicit SMILES or reaction SMILES string into the studio')
+    s.add_argument('--style', default='acs1996', help='style preset (acs1996, jacs, angew, nature, science, rsc, wiley)')
+    s.add_argument('--output', metavar='FILE', help='optional destination standalone .html file')
+    s.add_argument('--fragment', metavar='FILE', help='write a pure HTML fragment (no html/head/body tags) for inline chat mounting')
+    s.add_argument('--serve', action='store_true', help='run loopback HTTP live-sync server writing edits to studio-live.cdxml')
+    s.add_argument('--port', type=int, default=0, help='with --serve: loopback port (0 picks a free port)')
+    s.add_argument('--sync-dir', metavar='DIR', help='with --serve: folder where studio-live.cdxml is saved')
+    s.add_argument('--no-browser', action='store_true', help='write HTML studio without opening a browser window')
+    s.add_argument('--out', help='new evidence file for the full JSON envelope')
+    s.set_defaults(fn=cmd_studio)
     s = sub.add_parser('regen-signatures')  # maintainer: sync toolkit-derived references, inventories and runtime.json
     s.add_argument('--check', action='store_true', help='report stale generated files and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_signatures)

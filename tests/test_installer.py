@@ -461,6 +461,88 @@ class InstallerTests(unittest.TestCase):
             self.assertTrue((gemini_dest / "manifest.json").is_file())
             self.assertEqual(linked.resolve(), source.resolve())
 
+    def test_market_harness_aliases_and_mcp_registration(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve()
+            oc_dir = home / ".config" / "opencode"
+            oc_dir.mkdir(parents=True)
+            # Legacy broken entry + JSONC comments should be cleaned cleanly without losing sibling keys.
+            (oc_dir / "opencode.jsonc").write_text(
+                '{\n  // user comment\n  "theme": "dark",\n  "mcp": {"chemdraw": {"type": "local", "command": ["old", "scripts/mcp_server.py"]}}\n}\n',
+                encoding="utf-8",
+            )
+            codex_dir = home / ".codex"
+            codex_dir.mkdir(parents=True)
+            (codex_dir / "config.toml").write_text('model = "gpt-5"\n\n[mcp_servers.other]\ncommand = "node"\n', encoding="utf-8")
+
+            dry = run(
+                "--agent", "cline", "roo", "goose", "trae", "kiro", "aider",
+                "amp", "qwen", "continue", "zed", "openhands", "--mcp", home=home,
+            )
+            self.assertEqual(dry.returncode, 0, dry.stderr)
+            dry_rec = json.loads(dry.stdout)
+            self.assertEqual(len(dry_rec["installations"]), 11)
+            self.assertGreaterEqual(len(dry_rec["mcp"]), 10)
+
+            res = run(
+                "--agent", "codex", "cursor", "opencode", "goose", "qwen",
+                "--mcp", "--apply", home=home,
+            )
+            self.assertEqual(res.returncode, 0, res.stderr)
+            rec = json.loads(res.stdout)
+            self.assertEqual(rec["status"], "installed")
+            toml_text = (codex_dir / "config.toml").read_text(encoding="utf-8")
+            self.assertIn("[mcp_servers.cdxml-toolkit]", toml_text)
+            self.assertIn("[mcp_servers.other]", toml_text)
+            if sys.version_info >= (3, 11):
+                import tomllib
+
+                parsed_toml = tomllib.loads(toml_text)
+                self.assertIn("cdxml-toolkit", parsed_toml["mcp_servers"])
+                self.assertIn("other", parsed_toml["mcp_servers"])
+            oc_data = json.loads((oc_dir / "opencode.jsonc").read_text(encoding="utf-8"))
+            self.assertEqual(oc_data["theme"], "dark")
+            self.assertNotIn("chemdraw", oc_data["mcp"])
+            self.assertIn("cdxml-toolkit", oc_data["mcp"])
+            self.assertIn("cdxml-toolkit:", (home / ".config" / "goose" / "config.yaml").read_text(encoding="utf-8"))
+            self.assertIn("cdxml-toolkit", json.loads((home / ".cursor" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+            self.assertTrue((home / ".qwen" / "skills" / "chemdraw" / "SKILL.md").is_file())
+
+    def test_domestic_harnesses_zcode_dsh_kimi_qoder_and_codebuddy(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve()
+            (home / ".qoder-cn").mkdir()
+            (home / ".workbuddy").mkdir()
+            zcode_cfg = home / ".zcode" / "cli" / "config.json"
+            zcode_cfg.parent.mkdir(parents=True)
+            zcode_cfg.write_text('{"skills": {"enabled": true}, "mcp": {"servers": {"existing": {"command": "npx"}}}}\n', encoding="utf-8")
+
+            res = run(
+                "--agent", "zcode", "dsh", "kimi", "qoder", "codebuddy", "lingma", "comate", "bailian", "codegeex",
+                "--mcp", "--apply", home=home,
+            )
+            self.assertEqual(res.returncode, 0, res.stderr)
+            self.assertTrue((home / ".zcode" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".dsh" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".kimi-code" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".qoder" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".qoder-cn" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".codebuddy" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".workbuddy" / "connectors" / "skills" / "chemdraw" / "SKILL.md").is_file())
+
+            zc_parsed = json.loads(zcode_cfg.read_text(encoding="utf-8"))
+            self.assertIn("existing", zc_parsed["mcp"]["servers"])
+            self.assertIn("cdxml-toolkit", zc_parsed["mcp"]["servers"])
+
+            cordis_patch = (home / ".dsh" / "cordis.patch.yml").read_text(encoding="utf-8")
+            self.assertIn("mcp-cdxml-toolkit", cordis_patch)
+            self.assertIn("@deepseek-ai/dsh-mcp-client", cordis_patch)
+
+            self.assertIn("cdxml-toolkit", json.loads((home / ".kimi-code" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+            self.assertIn("cdxml-toolkit", json.loads((home / ".kimi" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+            self.assertIn("cdxml-toolkit", json.loads((home / ".qoder-cn" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+            self.assertIn("cdxml-toolkit", json.loads((home / ".codebuddy" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+
 
 if __name__ == "__main__":
     unittest.main()

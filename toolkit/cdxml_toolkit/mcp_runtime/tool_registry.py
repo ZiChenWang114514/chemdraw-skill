@@ -28,6 +28,7 @@ from .engine_tools import ENGINE_TOOLS
 from .live_chemdraw import LIVE_CHEMDRAW_TOOLS
 from .figure_draw import draw_figure
 from .publication_figure import publication_figure
+from .ui_apps import UI_APP_TOOLS
 
 
 def _load_acs_builder():
@@ -155,6 +156,7 @@ class ToolSpec:
     group: str = "official"
     resource_class: str | None = None
     timeout_seconds: int | None = None
+    meta: dict[str, Any] | None = None
 
 
 CHEMDRAW_COM_TOOLS = {
@@ -219,6 +221,20 @@ def _tool_timeout(name: str) -> int | None:
         "predict_nmr": 1200,
         "predict_retrosynthesis": 1200,
     }.get(name)
+
+
+def _enrich_ui_meta(meta: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(meta, dict):
+        return None
+    ui_block = meta.get("ui")
+    uri = ui_block.get("resourceUri") if isinstance(ui_block, dict) else None
+    if not uri:
+        return meta
+    return {
+        **meta,
+        "openai/outputTemplate": uri,
+        "openai/widgetAccessible": True,
+    }
 
 
 def _merge_named_tools(existing: dict, incoming: dict, *, source: str) -> dict:
@@ -346,6 +362,9 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     extended_functions = _merge_named_tools(
         extended_functions, {"build_acs_figure": build_acs_figure}, source="ACS figure builder"
     )
+    extended_functions = _merge_named_tools(
+        extended_functions, UI_APP_TOOLS, source="interactive UI apps"
+    )
     extended = {
         name: ToolSpec(
             name=name,
@@ -356,6 +375,7 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
             group="extended",
             resource_class=_resource_class(name),
             timeout_seconds=_tool_timeout(name),
+            meta=_enrich_ui_meta(getattr(function, "_chemdraw_mcp_meta", None)),
         )
         for name, function in extended_functions.items()
     }

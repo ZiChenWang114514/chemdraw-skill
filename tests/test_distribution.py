@@ -88,7 +88,7 @@ class DistributionTests(unittest.TestCase):
             path.relative_to(ROOT).as_posix()
             for path in ROOT.rglob("*.md")
             if path.relative_to(ROOT).parts[0] not in {
-                ".git", "skill", "toolkit",
+                ".git", "skill", "toolkit", "vscode",
             }
             and not any(p.startswith(".") and p != ".github" for p in path.relative_to(ROOT).parts)
         }
@@ -248,7 +248,7 @@ class DistributionTests(unittest.TestCase):
         tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode("utf-8").split("\0")
         offenders = []
         for name in filter(None, tracked):
-            if name in allowed or name.startswith("tests/") or "/tests/" in name:
+            if name in allowed or name.startswith(("tests/", "vscode/")) or "/tests/" in name:
                 continue
             try:
                 text = (ROOT / name).read_text(encoding="utf-8")

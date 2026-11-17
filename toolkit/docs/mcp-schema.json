@@ -3,7 +3,7 @@
   "distribution": "cdxml-toolkit-community",
   "version": "0.7.0a3",
   "profile": "full",
-  "tool_count": 69,
+  "tool_count": 71,
   "tools": [
     {
       "name": "analyze_lcms_series",
@@ -358,6 +358,14 @@
       "description": "Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.\n\nEach record is a SMILES/CXSMILES, molblock or file (CDXML/MOL/SDF) record with an optional\nlabel; a bare SMILES string also works. A CDXML or SDF record with all_fragments=true\ncontributes every structure in the file. Reports formula, average and monoisotopic mass,\nInChI/InChIKey, ESI adduct m/z values (positive and negative mode, electron mass included),\nthe isotope pattern scaled to the tallest peak, Crippen logP, TPSA, H-bond donors and\nacceptors, rotatable bonds, QED, stereocentre counts and Lipinski/Veber rule results.\nDescriptors are computed by RDKit from the structure as given; logP and TPSA are\ncalculated estimates, not measurements, and generic atoms (R groups) are rejected.\noutput_path ends in .json, .csv or .md and is never overwritten. At most 256 structures."
     },
     {
+      "name": "open_drawing_studio",
+      "signature": "(template: str = 'blank', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Open the interactive 2D ChemDraw Studio with ring fusion, drag-bond drawing & templates.\n\nOutputs both a standalone/MCP-App HTML document (``html_path``) and a pure inline HTML\nfragment without document tags (``fragment_path``) so conversational agent hosts can\nmount the 2D molecular canvas directly inline inside an assistant reply."
+    },
+    {
       "name": "parse_analysis_file",
       "signature": "(pdf_path: str, output_path: Optional[str] = None) -> dict",
       "group": "official",
@@ -556,6 +564,14 @@
       "resource_class": null,
       "timeout_seconds": null,
       "description": "Return a compact, context-efficient view of a reaction JSON file.\n\nThe full reaction JSON can be 3,000+ tokens with geometry data. This tool\nreturns only the fields you need for a given task, making it practical for\nLLM reasoning without burning context.\n\nDefault fields (when no arguments given):\n  species:   id, name, role, role_detail, smiles, display_text, formula, mw\n  top-level: experiment, conditions\n  eln_data:  product_yield, reaction_type\n\nPass [\"*\"] for any field set to get all fields (equivalent to loading the\nfull JSON). Request specific fields by name for task-focused summaries.\n\nArgs:\n    json_path:      Path to a reaction JSON file from parse_reaction.\n    species_fields: Species fields to include. Available: id, name, role,\n                    role_detail, smiles, smiles_neutral, is_sm, is_dp,\n                    is_substrate, is_solvent, exact_mass, exact_mass_full,\n                    mw, formula, adducts, source, source_id, csv_equiv,\n                    csv_mass, csv_name, csv_volume, csv_supplier,\n                    display_text, original_geometry. Pass [\"*\"] for all.\n    top_fields:     Top-level fields. Available: version, experiment,\n                    input_files, reaction_smiles, reaction_class,\n                    reaction_name, classification_confidence, warnings,\n                    metadata, conditions. Pass [\"*\"] for all.\n    eln_fields:     ELN data fields. Available: sm_mass, product_obtained,\n                    product_yield, procedure_text, procedure_plain,\n                    reaction_type, start_date, labbook_name, solvents,\n                    solvent_details. Pass [\"*\"] for all.\n\nReturns:\n    Compact dict with requested fields for each species and top-level keys."
+    },
+    {
+      "name": "view_molecule_3d",
+      "signature": "(query: str = 'aspirin', *, structure_path: str | None = None, smiles: str | None = None, pdb_id: str | None = None, format: str | None = None, representation: str = 'ball-and-stick', output_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]",
+      "group": "extended",
+      "resource_class": null,
+      "timeout_seconds": null,
+      "description": "Build an interactive 3D Mol* + offline WebGL/Canvas viewer (MCP App + standalone HTML).\n\nAccepts a PDB/mmCIF/SDF/MOL/XYZ/CDXML file path, a SMILES string, a chemical name\n(e.g. ``\"aspirin\"``, ``\"caffeine\"``, ``\"taxol\"``), or a 4-character PDB ID\n(e.g. ``\"1CRN\"``, ``\"6LU7\"``). Returns an MCP Apps UI resource hint plus a\nself-contained standalone HTML viewer path."
     }
   ]
 }
