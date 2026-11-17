@@ -1208,7 +1208,25 @@ def cmd_molstar(ns):
 
 
 def cmd_studio(ns):
-    """Open or export the interactive 2D ChemDraw template & structure drawing studio."""
+    """Open, export, or live-serve the interactive 2D ChemDraw drawing studio."""
+    if getattr(ns, 'serve', False):
+        from cdxml_toolkit.mcp_runtime.ui_apps import serve_drawing_studio
+
+        server, url, sync_cdxml = serve_drawing_studio(
+            template=ns.template or 'aspirin',
+            cdxml_path=ns.cdxml,
+            smiles=ns.smiles,
+            style=ns.style,
+            sync_dir=ns.sync_dir or '.',
+            port=ns.port,
+            open_browser=not ns.no_browser,
+        )
+        print(json.dumps({'ok': True, 'url': url, 'sync_cdxml': str(sync_cdxml)}, indent=2), flush=True)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            server.server_close()
+        return 0
     kwargs = {
         'template': ns.template or 'aspirin',
         'style': ns.style,
@@ -1220,6 +1238,8 @@ def cmd_studio(ns):
         kwargs['smiles'] = ns.smiles
     if ns.output:
         kwargs['output_path'] = ns.output
+    if getattr(ns, 'fragment', None):
+        kwargs['fragment_path'] = ns.fragment
     return _emit('open_drawing_studio', _worker('open_drawing_studio', kwargs), ns.out)
 
 
@@ -2120,12 +2140,16 @@ def main(argv=None):
     s.add_argument('--no-browser', action='store_true', help='write HTML viewer without opening a browser window')
     s.add_argument('--out', help='new evidence file for the full JSON envelope')
     s.set_defaults(fn=cmd_molstar)
-    s = sub.add_parser('studio', help='open the interactive 2D ChemDraw structure & reaction template studio')
+    s = sub.add_parser('studio', help='open, inline-fragment export, or live-serve the interactive 2D ChemDraw studio')
     s.add_argument('template', nargs='?', default='aspirin', help='template slug (aspirin, suzuki_coupling, chair, newman, catalytic_cycle, ...)')
     s.add_argument('--cdxml', help='load an existing .cdxml file into the studio')
-    s.add_argument('--smiles', help='load an explicit SMILES string into the studio')
+    s.add_argument('--smiles', help='load an explicit SMILES or reaction SMILES string into the studio')
     s.add_argument('--style', default='acs1996', help='style preset (acs1996, jacs, angew, nature, science, rsc, wiley)')
-    s.add_argument('--output', metavar='FILE', help='optional destination .html file')
+    s.add_argument('--output', metavar='FILE', help='optional destination standalone .html file')
+    s.add_argument('--fragment', metavar='FILE', help='write a pure HTML fragment (no html/head/body tags) for inline chat mounting')
+    s.add_argument('--serve', action='store_true', help='run loopback HTTP live-sync server writing edits to studio-live.cdxml')
+    s.add_argument('--port', type=int, default=0, help='with --serve: loopback port (0 picks a free port)')
+    s.add_argument('--sync-dir', metavar='DIR', help='with --serve: folder where studio-live.cdxml is saved')
     s.add_argument('--no-browser', action='store_true', help='write HTML studio without opening a browser window')
     s.add_argument('--out', help='new evidence file for the full JSON envelope')
     s.set_defaults(fn=cmd_studio)

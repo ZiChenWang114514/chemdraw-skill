@@ -60,7 +60,7 @@ Use `cdx.py tools` / `cdx.py sig TOOL` for signatures, `cdx.py render a.cdxml` f
 | ChemDraw interfaces (ChemScript, COM, CDXML elements, menus) and verified recipes | [Interface catalog](references/interface-catalog.md) |
 | Read or edit other CDXML objects (text, shapes, tables, bioshapes, attributes) | [Inspect or edit CDXML objects](references/workflow-router.md#inspect-or-edit-cdxml-objects) |
 | Install, upgrade, or runtime failure | [Operations](references/operations.md) |
-| 3D Mol* or 2D template studio | `view_molecule_3d`, `open_drawing_studio` (`cdx.py molstar/studio`) |
+| Inline 2D studio / 3D Mol* | `open_drawing_studio` (`cdx.py studio --fragment`), `view_molecule_3d` |
 
 Read only the matching workflow and needed signature (`cdx.py sig NAME`, [mcp-signatures.md](references/mcp-signatures.md)), not the whole catalog. Recurring pitfalls: [lessons](references/lessons.md); consult [interface catalog](references/interface-catalog.md) only when routing leaves no entry point.
 

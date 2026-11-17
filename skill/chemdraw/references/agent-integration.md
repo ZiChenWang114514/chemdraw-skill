@@ -121,7 +121,7 @@ cdx.py calc --read SAVED.cdxml            read the grid's numbers back as JSON (
 cdx.py install-mappers [rxnmapper] [localmapper] [--dry-run] [--status]   optional atom-mapping backends
 cdx.py doctor [--paths] [--native] [--office] [--chemscript] [--full] [--text] [--log ID|latest]
 cdx.py molstar [TARGET] [--smiles S] [--pdb ID] [--rep R] [--output FILE.html] [--no-browser] [--out FILE]
-cdx.py studio [TEMPLATE] [--cdxml FILE] [--smiles S] [--style S] [--output FILE.html] [--no-browser] [--out FILE]
+cdx.py studio [TEMPLATE] [--cdxml FILE] [--smiles S] [--style S] [--output FILE.html] [--fragment FRAG.html] [--serve] [--port P] [--sync-dir DIR] [--no-browser] [--out FILE]
 cdx.py py ARGS...                         run the runtime Python (helper scripts, -m modules, tests)
 ```
 
@@ -134,6 +134,15 @@ On PowerShell or `cmd.exe`, prefer `cdx.py resolve`, `cdx.py inspect`, `cdx.py r
 ## Subagents
 
 Subagents load the same Skill. Give them the `cdx.py` command form, never a guessed interpreter path. Native work is serialized by the ChemDraw lock however many agents run.
+
+## Inline 2D Studio across coding agents
+
+Every coding agent renders interactive tools through one of four host surfaces; `open_drawing_studio` and `cdx.py studio` emit the artifacts for all four from one shared HTML fragment core:
+
+1. **MCP Apps & Apps SDK hosts (`Cursor`, `VS Code` / `GitHub Copilot`, `Goose`, `Windsurf`, `Codex` MCP Apps)**: calling the MCP tool `open_drawing_studio` returns `CallToolResult.structuredContent` alongside `_meta.ui.resourceUri` (`ui://cdxml-toolkit/drawing-studio.html`, `text/html;profile=mcp-app`) and `_meta["openai/outputTemplate"]`, mounting the interactive 2D board inline inside the tool card.
+2. **Codex Desktop inline `visualize` surface**: write a pure HTML fragment (no `<html>`/`<head>`/`<body>` tags) into a writable workspace directory via `cdx.py studio TEMPLATE --no-browser --fragment <workdir>/chemdraw-studio.html`, and place the single-line `visualize` reference (`path` set to the absolute fragment path, `"mode":"wide"`) in the final assistant reply so Codex mounts the 1,024 px 2D board directly inside the answer bubble with `widgetState` persistence and follow-up prompt dispatch.
+3. **Artifact-embed IDE agents (`Antigravity`)**: save `html_path` into the conversation artifact directory (`UserFacing: true`) and emit `<agent-embed src="file:///<artifact_dir>/chemdraw-studio.html"></agent-embed>` in the reply.
+4. **Terminal CLI agents (`Gemini CLI`, `OpenCode` TUI, `Aider`, `Kimi`, `Qwen`, `Amp`, `Continue`)**: run `cdx.py studio TEMPLATE --serve --sync-dir <workdir>`; clicking **Send to Agent** in the browser writes `studio-live.cdxml` and `studio-live.json` straight back to `<workdir>` and copies a ready-to-paste prompt to the clipboard.
 
 ## Agent notes
 

@@ -531,6 +531,7 @@ def _adapt_tool(
     timeout_seconds: int | None = None,
     resource_class: str | None = None,
     profile: str | None = None,
+    ui_meta: dict[str, typing.Any] | None = None,
 ) -> typing.Callable:
     """Preserve source parameters while routing execution through a worker."""
 
@@ -547,6 +548,17 @@ def _adapt_tool(
         if not outcome["ok"]:
             raise RuntimeError(json.dumps(outcome, indent=2))
         result = outcome["result"]
+        if ui_meta and isinstance(result, dict):
+            text_body = json.dumps(result, indent=2, default=str)
+            try:
+                from mcp.types import CallToolResult, TextContent
+
+                return CallToolResult(
+                    content=[TextContent(type="text", text=text_body)],
+                    structuredContent=result,
+                )
+            except Exception:
+                return text_body
         if return_json_text and not isinstance(result, str):
             return json.dumps(result, indent=2, default=str)
         return result
@@ -560,7 +572,11 @@ def _adapt_tool(
         parameter.replace(annotation=hints.get(parameter.name, parameter.annotation))
         for parameter in signature.parameters.values()
     ]
-    return_annotation = str if return_json_text else hints.get("return", signature.return_annotation)
+    return_annotation = (
+        typing.Any
+        if ui_meta
+        else (str if return_json_text else hints.get("return", signature.return_annotation))
+    )
     invoke.__signature__ = signature.replace(
         parameters=parameters, return_annotation=return_annotation
     )
@@ -999,6 +1015,7 @@ def build_server(*, profile: str | None = None, **server_settings):
                 timeout_seconds=spec.timeout_seconds,
                 resource_class=spec.resource_class,
                 profile=selected_profile,
+                ui_meta=spec.meta,
             )
         )
     _register_resources_and_prompts(mcp)

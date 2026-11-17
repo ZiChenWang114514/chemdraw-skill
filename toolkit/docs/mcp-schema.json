@@ -359,11 +359,11 @@
     },
     {
       "name": "open_drawing_studio",
-      "signature": "(template: str = 'aspirin', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]",
+      "signature": "(template: str = 'aspirin', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]",
       "group": "extended",
       "resource_class": null,
       "timeout_seconds": null,
-      "description": "Open the interactive 2D ChemDraw Studio with reaction & scaffold templates.\n\nSupports 17 curated templates (molecules, 3D chair/Newman conformers, Suzuki,\namide coupling, Buchwald-Hartwig, catalytic cycle, SAR scaffold), arbitrary\nSMILES, or loading an existing ``.cdxml`` file for live browser/MCP-App editing."
+      "description": "Open the interactive 2D ChemDraw Studio with ring fusion, drag-bond drawing & templates.\n\nOutputs both a standalone/MCP-App HTML document (``html_path``) and a pure inline HTML\nfragment without document tags (``fragment_path``) so conversational agent hosts can\nmount the 2D molecular canvas directly inline inside an assistant reply."
     },
     {
       "name": "parse_analysis_file",

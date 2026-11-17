@@ -223,6 +223,20 @@ def _tool_timeout(name: str) -> int | None:
     }.get(name)
 
 
+def _enrich_ui_meta(meta: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(meta, dict):
+        return None
+    ui_block = meta.get("ui")
+    uri = ui_block.get("resourceUri") if isinstance(ui_block, dict) else None
+    if not uri:
+        return meta
+    return {
+        **meta,
+        "openai/outputTemplate": uri,
+        "openai/widgetAccessible": True,
+    }
+
+
 def _merge_named_tools(existing: dict, incoming: dict, *, source: str) -> dict:
     collisions = sorted(set(existing).intersection(incoming))
     if collisions:
@@ -361,7 +375,7 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
             group="extended",
             resource_class=_resource_class(name),
             timeout_seconds=_tool_timeout(name),
-            meta=getattr(function, "_chemdraw_mcp_meta", None),
+            meta=_enrich_ui_meta(getattr(function, "_chemdraw_mcp_meta", None)),
         )
         for name, function in extended_functions.items()
     }
