@@ -915,8 +915,11 @@ def _smiles_to_studio_graph(
     offset_y: float = 142.0,
     bond_scale: float = 28.0,
 ) -> dict[str, Any]:
-    from rdkit import Chem
-    from rdkit.Chem import AllChem
+    try:
+        from rdkit import Chem
+        from rdkit.Chem import AllChem
+    except ImportError:
+        return {"atoms": [], "bonds": []}
 
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:

@@ -581,12 +581,12 @@
 
 ## `mcp_runtime.ui_apps`
 
-- **function**, line 3976: `open_drawing_studio(template: str = 'blank', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Open the interactive 2D ChemDraw Studio with ring fusion, drag-bond drawing & templates.
-- **function**, line 3732: `render_drawing_studio_app_html(initial_payload: dict[str, Any] | None = None, *, live_sync_url: str | None = None) -> str` - Render the standalone / MCP-App HTML document wrapping the 2D Studio fragment.
-- **function**, line 1126: `render_drawing_studio_fragment(initial_payload: dict[str, Any] | None = None) -> str` - Render a pure HTML fragment (<div id='cdx-studio-root'>...</div>) with NO document tags.
+- **function**, line 3979: `open_drawing_studio(template: str = 'blank', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Open the interactive 2D ChemDraw Studio with ring fusion, drag-bond drawing & templates.
+- **function**, line 3735: `render_drawing_studio_app_html(initial_payload: dict[str, Any] | None = None, *, live_sync_url: str | None = None) -> str` - Render the standalone / MCP-App HTML document wrapping the 2D Studio fragment.
+- **function**, line 1129: `render_drawing_studio_fragment(initial_payload: dict[str, Any] | None = None) -> str` - Render a pure HTML fragment (<div id='cdx-studio-root'>...</div>) with NO document tags.
 - **function**, line 338: `render_molstar_app_html(initial_payload: dict[str, Any] | None = None) -> str` - Render the self-contained Mol* + offline 3D WebGL/Canvas MCP App HTML page.
-- **function**, line 4116: `serve_drawing_studio(*, template: str = 'blank', cdxml_path: str | None = None, smiles: str | None = None, style: str = 'acs1996', sync_dir: str | Path = '.', port: int = 0, open_browser: bool = True) -> tuple[ThreadingHTTPServer, str, Path]` - Start a local loopback HTTP bridge so terminal CLI agents receive live 2D edits.
-- **function**, line 3783: `view_molecule_3d(query: str = 'aspirin', *, structure_path: str | None = None, smiles: str | None = None, pdb_id: str | None = None, format: str | None = None, representation: str = 'ball-and-stick', output_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Build an interactive 3D Mol* + offline WebGL/Canvas viewer (MCP App + standalone HTML).
+- **function**, line 4119: `serve_drawing_studio(*, template: str = 'blank', cdxml_path: str | None = None, smiles: str | None = None, style: str = 'acs1996', sync_dir: str | Path = '.', port: int = 0, open_browser: bool = True) -> tuple[ThreadingHTTPServer, str, Path]` - Start a local loopback HTTP bridge so terminal CLI agents receive live 2D edits.
+- **function**, line 3786: `view_molecule_3d(query: str = 'aspirin', *, structure_path: str | None = None, smiles: str | None = None, pdb_id: str | None = None, format: str | None = None, representation: str = 'ball-and-stick', output_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Build an interactive 3D Mol* + offline WebGL/Canvas viewer (MCP App + standalone HTML).
 
 ## `model.document`
 

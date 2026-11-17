@@ -98,8 +98,10 @@ Use the ChemDraw Skill to run ChemDraw's stoichiometry grid on "OCc1ccccc1.CC(=O
 | `claude` | `~/.claude/skills/` | Claude Code (also read by GitHub Copilot and OpenCode) |
 | `agents` | `~/.agents/skills/` | Shared Agent Skills root: Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, and others |
 | `gemini`, `copilot`, `cursor`, `opencode`, `kimi`, `pi` | Agent-specific directory | Use when you prefer per-client isolation |
+| `codex`, `zcode`, `dsh`, `qoder`, `codebuddy`, `lingma`, `comate`, `bailian`, `qwen`, `trae`, `windsurf`, `cline`, `roo`, `goose`, `kiro`, `aider`, `amp`, `continue`, `zed`, `openhands`, `antigravity` | Client-specific directory | Extended global and domestic agent targets (add `--mcp` to register `cdxml-toolkit` automatically) |
 
 - `--project <repo>` installs project-scoped copies (`.claude/skills/`, `.agents/skills/`, `.github/skills/`, ...); `--destination <folder>` installs anywhere.
+- For VS Code, Cursor, Windsurf, Qoder, Trae, Kiro, Cline, and Roo Code, run `python vscode/scripts/build_vsix.py --install-all` to install the companion `.vsix` workbench with native `.cdxml` and `.mol` visual custom editors, a Reaxys and SciFinder style 2D structure and substructure query pad, and 3D Mol* conformer viewing.
 - Agents without `SKILL.md` auto-discovery need one line in their system/instruction file pointing to `SKILL.md`.
 - All copies share one runtime (`python scripts/install.py --runtime-only --apply` upgrades it in place with automatic rollback on failure). Full details and optional MCP server setup: [agent integration](skill/chemdraw/references/agent-integration.md).
 
@@ -129,6 +131,8 @@ python <skill>/scripts/cdx.py ocsr figure_crop.png                        # stru
 python <skill>/scripts/cdx.py render figure.cdxml                         # native 300 dpi PNG
 python <skill>/scripts/cdx.py office-edit deck.pptx                       # embed/update live ChemDraw OLE
 python <skill>/scripts/cdx.py call resolve_name -a query=aspirin          # invoke any registered tool via key=value
+python <skill>/scripts/cdx.py studio                                      # Reaxys/SciFinder 2D structure & query studio
+python <skill>/scripts/cdx.py molstar aspirin                             # interactive 3D Mol* conformer/PDB viewer
 python <skill>/scripts/cdx.py tools                                       # list all registered tools
 python <skill>/scripts/cdx.py doctor --text                               # capability check + run log (--log latest)
 ```

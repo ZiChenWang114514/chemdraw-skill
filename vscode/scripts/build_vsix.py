@@ -159,9 +159,40 @@ CONTENT_TYPES_XML = """<?xml version="1.0" encoding="utf-8"?>
 """
 
 
-def build_vsix(output_path: Path | None = None) -> Path:
+def _load_ui_apps():
     sys.path.insert(0, str(TOOLKIT_DIR))
-    from cdxml_toolkit.mcp_runtime import ui_apps  # noqa: WPS433
+    try:
+        from cdxml_toolkit.mcp_runtime import ui_apps  # noqa: WPS433
+
+        return ui_apps
+    except ImportError:
+        import importlib.util
+        import types
+
+        pkg_root = types.ModuleType("cdxml_toolkit")
+        pkg_root.__path__ = [str(TOOLKIT_DIR / "cdxml_toolkit")]
+        pkg_rt = types.ModuleType("cdxml_toolkit.mcp_runtime")
+        pkg_rt.__path__ = [str(TOOLKIT_DIR / "cdxml_toolkit" / "mcp_runtime")]
+        sys.modules.setdefault("cdxml_toolkit", pkg_root)
+        sys.modules.setdefault("cdxml_toolkit.mcp_runtime", pkg_rt)
+
+        for mod_name, rel_file in (
+            ("cdxml_toolkit.mcp_runtime.artifact_safety", "artifact_safety.py"),
+            ("cdxml_toolkit.mcp_runtime.ui_apps", "ui_apps.py"),
+        ):
+            spec = importlib.util.spec_from_file_location(
+                mod_name,
+                TOOLKIT_DIR / "cdxml_toolkit" / "mcp_runtime" / rel_file,
+            )
+            assert spec is not None and spec.loader is not None
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules[mod_name] = mod
+            spec.loader.exec_module(mod)
+        return sys.modules["cdxml_toolkit.mcp_runtime.ui_apps"]
+
+
+def build_vsix(output_path: Path | None = None) -> Path:
+    ui_apps = _load_ui_apps()
 
     MEDIA_DIR.mkdir(parents=True, exist_ok=True)
     GEN_DIR.mkdir(parents=True, exist_ok=True)

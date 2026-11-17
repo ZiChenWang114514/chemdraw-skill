@@ -98,8 +98,10 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 | `claude` | `~/.claude/skills/` | Claude Code（GitHub Copilot 与 OpenCode 也会读取） |
 | `agents` | `~/.agents/skills/` | Agent Skills 通用目录：Codex、Gemini CLI、GitHub Copilot、Cursor、OpenCode 等 |
 | `gemini`、`copilot`、`cursor`、`opencode`、`kimi`、`pi` | 各客户端专属目录 | 需要按客户端独立管理时使用 |
+| `codex`、`zcode`、`dsh`、`qoder`、`codebuddy`、`lingma`、`comate`、`bailian`、`qwen`、`trae`、`windsurf`、`cline`、`roo`、`goose`、`kiro`、`aider`、`amp`、`continue`、`zed`、`openhands`、`antigravity` | 各客户端专属目录 | 覆盖海内外与国产主流编程框架（加 `--mcp` 可一键写入对应 MCP 配置） |
 
 - `--project <仓库>` 安装至项目级目录（`.claude/skills/`、`.agents/skills/`、`.github/skills/` 等）；`--destination <目录>` 可安装至任意自定义位置。
+- 若使用 VS Code、Cursor、Windsurf、Qoder、Trae、Kiro、Cline 或 Roo Code，可运行 `python vscode/scripts/build_vsix.py --install-all` 一键安装配套 `.vsix` 扩展，直接双击可视化编辑 `.cdxml` 与 `.mol` 文件，并在对话侧栏旁开启 Reaxys 与 SciFinder 风格的通用 2D 结构检索画板及 3D Mol* 视图。
 - 不支持自动发现 `SKILL.md` 的 Agent，只需在其系统指令中加一行指向 `SKILL.md`。
 - 所有副本共享同一套运行时（运行 `python scripts/install.py --runtime-only --apply` 即可原地升级，失败自动回滚）。各客户端白名单与可选 MCP 注册详见 [Agent 接入](skill/chemdraw/references/agent-integration.md)。
 
@@ -129,6 +131,8 @@ python <skill>/scripts/cdx.py ocsr figure_crop.png                        # 结�
 python <skill>/scripts/cdx.py render figure.cdxml                         # ChemDraw 原生 300 dpi PNG 渲染
 python <skill>/scripts/cdx.py office-edit deck.pptx                       # 嵌入或更新可编辑 ChemDraw 对象
 python <skill>/scripts/cdx.py call resolve_name -a query=aspirin          # 以 key=value 直接调用任意已注册工具
+python <skill>/scripts/cdx.py studio                                      # 开启 Reaxys/SciFinder 风格 2D 分子与检索画板
+python <skill>/scripts/cdx.py molstar aspirin                             # 开启交互式 3D Mol* 构象与蛋白查看器
 python <skill>/scripts/cdx.py tools                                       # 查看全部已注册工具清单
 python <skill>/scripts/cdx.py doctor --text                               # 本机能力检查与运行日志（--log latest）
 ```
