@@ -102,6 +102,8 @@ def test_open_drawing_studio_fragment_and_cdxml(tmp_path):
     checker.feed(frag)
     checker.close()
     assert checker.forbidden == []
+    import re
+    assert not re.search(r"<!doctype\s|<\s*(?:html|head|body)(?:\s|>)", frag, re.IGNORECASE)
     assert len(frag.encode("utf-8")) < 200_000
     assert 'id="cdx-studio-root"' in frag
     assert "fuseRingOnBond" in frag

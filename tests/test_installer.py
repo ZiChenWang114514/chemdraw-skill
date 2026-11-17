@@ -508,6 +508,41 @@ class InstallerTests(unittest.TestCase):
             self.assertIn("cdxml-toolkit", json.loads((home / ".cursor" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
             self.assertTrue((home / ".qwen" / "skills" / "chemdraw" / "SKILL.md").is_file())
 
+    def test_domestic_harnesses_zcode_dsh_kimi_qoder_and_codebuddy(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp).resolve()
+            (home / ".qoder-cn").mkdir()
+            (home / ".workbuddy").mkdir()
+            zcode_cfg = home / ".zcode" / "cli" / "config.json"
+            zcode_cfg.parent.mkdir(parents=True)
+            zcode_cfg.write_text('{"skills": {"enabled": true}, "mcp": {"servers": {"existing": {"command": "npx"}}}}\n', encoding="utf-8")
+
+            res = run(
+                "--agent", "zcode", "dsh", "kimi", "qoder", "codebuddy", "lingma", "comate", "bailian", "codegeex",
+                "--mcp", "--apply", home=home,
+            )
+            self.assertEqual(res.returncode, 0, res.stderr)
+            self.assertTrue((home / ".zcode" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".dsh" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".kimi-code" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".qoder" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".qoder-cn" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".codebuddy" / "skills" / "chemdraw" / "SKILL.md").is_file())
+            self.assertTrue((home / ".workbuddy" / "connectors" / "skills" / "chemdraw" / "SKILL.md").is_file())
+
+            zc_parsed = json.loads(zcode_cfg.read_text(encoding="utf-8"))
+            self.assertIn("existing", zc_parsed["mcp"]["servers"])
+            self.assertIn("cdxml-toolkit", zc_parsed["mcp"]["servers"])
+
+            cordis_patch = (home / ".dsh" / "cordis.patch.yml").read_text(encoding="utf-8")
+            self.assertIn("mcp-cdxml-toolkit", cordis_patch)
+            self.assertIn("@deepseek-ai/dsh-mcp-client", cordis_patch)
+
+            self.assertIn("cdxml-toolkit", json.loads((home / ".kimi-code" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+            self.assertIn("cdxml-toolkit", json.loads((home / ".kimi" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+            self.assertIn("cdxml-toolkit", json.loads((home / ".qoder-cn" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+            self.assertIn("cdxml-toolkit", json.loads((home / ".codebuddy" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -39,6 +39,13 @@ function findCdxScript() {
   const home = os.homedir();
   const rels = [
     [".agents", "skills", "chemdraw", "scripts", "cdx.py"],
+    [".zcode", "skills", "chemdraw", "scripts", "cdx.py"],
+    [".dsh", "skills", "chemdraw", "scripts", "cdx.py"],
+    [".kimi-code", "skills", "chemdraw", "scripts", "cdx.py"],
+    [".qoder", "skills", "chemdraw", "scripts", "cdx.py"],
+    [".qoder-cn", "skills", "chemdraw", "scripts", "cdx.py"],
+    [".codebuddy", "skills", "chemdraw", "scripts", "cdx.py"],
+    [".trae", "skills", "chemdraw", "scripts", "cdx.py"],
     [".cursor", "skills", "chemdraw", "scripts", "cdx.py"],
     [".copilot", "skills", "chemdraw", "scripts", "cdx.py"],
     [".codeium", "windsurf", "skills", "chemdraw", "scripts", "cdx.py"],
@@ -365,24 +372,49 @@ async function dispatchStructureToAgent(msg) {
     }
   };
 
+  const tryFirst = async (pairs) => {
+    for (const [cmd, label] of pairs) {
+      if (await tryFocus(cmd, undefined, label)) return true;
+    }
+    return false;
+  };
+
   if (pref !== "clipboardOnly") {
-    if (pref === "cline") {
+    if (pref === "kimi") {
+      await tryFirst([["kimi-code.focus", "Kimi Code"], ["kimi.focusChatInput", "Kimi Code"], ["kimi-code.chatView.focus", "Kimi Code"]]);
+    } else if (pref === "lingma") {
+      await tryFirst([["tongyi.lingma.chat.focus", "Tongyi Lingma"], ["lingma.chat.focus", "Tongyi Lingma"]]);
+    } else if (pref === "comate") {
+      await tryFirst([["comate.chat.focus", "Baidu Comate"], ["baidu.comate.focus", "Baidu Comate"]]);
+    } else if (pref === "codebuddy") {
+      await tryFirst([["codebuddy.chat.focus", "CodeBuddy"], ["tencent.coding-copilot.focus", "CodeBuddy"]]);
+    } else if (pref === "codegeex") {
+      await tryFirst([["codegeex.chat.focus", "CodeGeeX"], ["aminer.codegeex.focus", "CodeGeeX"]]);
+    } else if (pref === "cline") {
       await tryFocus("claude-dev.SidebarProvider.focus", undefined, "Cline");
     } else if (pref === "roo") {
       await tryFocus("roo-cline.SidebarProvider.focus", undefined, "Roo Code");
     } else if (pref === "continue") {
       await tryFocus("continue.focusContinueInput", undefined, "Continue");
     } else {
-      // Auto-detect native IDE chat (VS Code Copilot / Cursor / Windsurf / Trae / Kiro / Antigravity), then extensions
+      // Auto-detect native IDE chat (VS Code / Cursor / Windsurf / Qoder / Trae / Kiro / Antigravity), then domestic & OSS extensions
       const okNative = await tryFocus(
         "workbench.action.chat.open",
         { query: structuredPrompt, isPartialQuery: true },
         "IDE Chat"
       );
       if (!okNative) {
-        (await tryFocus("roo-cline.SidebarProvider.focus", undefined, "Roo Code")) ||
-          (await tryFocus("claude-dev.SidebarProvider.focus", undefined, "Cline")) ||
-          (await tryFocus("continue.focusContinueInput", undefined, "Continue"));
+        await tryFirst([
+          ["kimi-code.focus", "Kimi Code"],
+          ["kimi-code.chatView.focus", "Kimi Code"],
+          ["tongyi.lingma.chat.focus", "Tongyi Lingma"],
+          ["codebuddy.chat.focus", "CodeBuddy"],
+          ["comate.chat.focus", "Baidu Comate"],
+          ["codegeex.chat.focus", "CodeGeeX"],
+          ["roo-cline.SidebarProvider.focus", "Roo Code"],
+          ["claude-dev.SidebarProvider.focus", "Cline"],
+          ["continue.focusContinueInput", "Continue"]
+        ]);
       }
     }
   }

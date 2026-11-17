@@ -1564,7 +1564,7 @@ def render_drawing_studio_fragment(initial_payload: dict[str, Any] | None = None
   const modalEl = document.getElementById("cdx-modal");
   const hotboxEl = document.getElementById("cdx-hotbox");
   const hotboxIn = document.getElementById("cdx-hotbox-in");
-  const hostBridge = window["open" + "ai"] || null;
+  const hostBridge = window["open" + "ai"] || window["z" + "code"] || null;
 
   const MASS = {{H:1.00794,D:2.0141,T:3.01605,He:4.0026,Li:6.941,Be:9.0122,B:10.811,C:12.0107,N:14.0067,O:15.9994,F:18.9984,Ne:20.1797,Na:22.9898,Mg:24.305,Al:26.9815,Si:28.0855,P:30.9738,S:32.065,Cl:35.453,K:39.0983,Ca:40.078,Sc:44.956,Ti:47.867,V:50.942,Cr:51.996,Mn:54.938,Fe:55.845,Co:58.933,Ni:58.693,Cu:63.546,Zn:65.38,Ga:69.723,Ge:72.64,As:74.922,Se:78.96,Br:79.904,Rb:85.468,Sr:87.62,Y:88.906,Zr:91.224,Mo:95.96,Ru:101.07,Rh:102.906,Pd:106.42,Ag:107.868,Cd:112.41,In:114.818,Sn:118.71,Sb:121.76,Te:127.6,I:126.904,Cs:132.905,Ba:137.327,W:183.84,Re:186.207,Os:190.23,Ir:192.217,Pt:195.084,Au:196.967,Hg:200.59,Tl:204.38,Pb:207.2,Bi:208.98}};
   const EXACT = {{H:1.007825,D:2.014102,T:3.016049,Li:7.016004,B:11.009305,C:12.0,N:14.003074,O:15.994915,F:18.998403,Na:22.989769,Mg:23.985042,Al:26.981539,Si:27.976927,P:30.973762,S:31.972071,Cl:34.968853,K:38.963707,Ca:39.962591,Fe:55.934937,Co:58.933195,Ni:57.935343,Cu:62.929597,Zn:63.929142,Se:79.916522,Br:78.918338,Ru:101.904349,Rh:102.905504,Pd:105.903486,Ag:106.905097,Sn:119.902195,I:126.904473,Cs:132.905452,Pt:194.964791,Au:196.966569}};
@@ -2493,7 +2493,7 @@ def render_drawing_studio_fragment(initial_payload: dict[str, Any] | None = None
     g.arrows.forEach((ar, i) => {{
       arrowsXml += `    <arrow id="${{3000 + i}}" Head3D="${{ar.x2.toFixed(2)}} ${{ar.y2.toFixed(2)}} 0" Tail3D="${{ar.x1.toFixed(2)}} ${{ar.y1.toFixed(2)}} 0" ArrowheadType="Solid"/>\n`;
     }});
-    return `<?xml version="1.0" encoding="UTF-8" ?>\n<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >\n<CDXML BondLength="${{st.bondLength || 14.4}}" LineWidth="${{st.lineWidth || 0.6}}">\n  <page id="5000">\n    <fragment id="5001">\n${{nodes}}${{bxml}}    </fragment>\n${{arrowsXml}}  </page>\n</CDXML>\n`;
+    return `<?xml version="1.0" encoding="UTF-8" ?>\n${{"<!" + "DOCTYPE"}} CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >\n<CDXML BondLength="${{st.bondLength || 14.4}}" LineWidth="${{st.lineWidth || 0.6}}">\n  <page id="5000">\n    <fragment id="5001">\n${{nodes}}${{bxml}}    </fragment>\n${{arrowsXml}}  </page>\n</CDXML>\n`;
   }}
 
   function esc(s) {{
@@ -3672,14 +3672,16 @@ def render_drawing_studio_fragment(initial_payload: dict[str, Any] | None = None
   window.addEventListener("message", (ev) => {{
     const d = ev.data;
     if (!d || typeof d !== "object") return;
-    const res = d.params?.result || d.result;
+    const res = d.params?.structuredContent || d.params?.result || d.result;
     if (res && res.graph) {{
       state.graph = normalizeGraph(res.graph); fitZoom(); render();
     }}
   }});
-  window.addEventListener("open" + "ai:set_globals", (ev) => {{
-    const ws = ev.detail?.globals?.widgetState;
-    if (ws?.privateContent?.graph) {{ state.graph = normalizeGraph(ws.privateContent.graph); render(); }}
+  ["open" + "ai:set_globals", "z" + "code:set_globals"].forEach((evName) => {{
+    window.addEventListener(evName, (ev) => {{
+      const ws = ev.detail?.globals?.widgetState;
+      if (ws?.privateContent?.graph) {{ state.graph = normalizeGraph(ws.privateContent.graph); render(); }}
+    }});
   }});
 
   document.getElementById("cdx-btn-3d").addEventListener("click", () => {{

@@ -77,16 +77,33 @@ AGENT_ALIASES = {
     'continue': ('.continue/skills', '.continue/skills'),
     'zed': ('.zed/skills', '.zed/skills'),
     'openhands': ('.openhands/skills', '.openhands/skills'),
+    'zcode': ('.zcode/skills', '.zcode/skills'),
+    'dsh': ('.dsh/skills', '.dsh/skills'),
+    'qoder': ('.qoder/skills', '.qoder/skills'),
+    'codebuddy': ('.codebuddy/skills', '.codebuddy/skills'),
+    'lingma': ('.lingma/skills', '.lingma/skills'),
+    'comate': ('.comate/skills', '.comate/skills'),
+    'bailian': ('.bailian/skills', '.bailian/skills'),
+    'codegeex': ('.codegeex/skills', '.codegeex/skills'),
 }
 ALL_AGENTS = {**AGENTS, **AGENT_ALIASES}
 EXTRA_AGENT_DIRS = {
     'codex': ('.codex',),
-    'kimi': ('.kimi',),
+    'kimi': ('.kimi', '.kimi-code'),
     'windsurf': ('.windsurf', '.Windsurf'),
     'pi': ('.pi',),
     'opencode': ('.config/opencode', '.opencode'),
     'amp': ('.config/amp', '.amp'),
     'zed': ('.config/zed',),
+    'zcode': ('.zcode',),
+    'dsh': ('.dsh',),
+    'qoder': ('.qoder', '.qoder-cn', '.qoder-cli'),
+    'codebuddy': ('.codebuddy', '.workbuddy'),
+    'trae': ('.trae', '.trae-cn'),
+    'lingma': ('.lingma',),
+    'comate': ('.comate',),
+    'bailian': ('.bailian',),
+    'codegeex': ('.codegeex',),
 }
 LEGACY_SKILL_DIRS = ('.codex/skills', '.kimi/skills', '.windsurf/skills')
 # Never copied into an installation; runtime.local.json is written per installation.
@@ -213,10 +230,19 @@ def destinations(ns):
     scope = 1 if ns.project else 0
     seen, out = set(), []
     for agent in resolve_agents(ns.agent, base, scope):
-        target = Path(os.path.abspath(base / ALL_AGENTS[agent][scope] / SKILL_NAME))
-        if target not in seen:
-            seen.add(target)
-            out.append(target)
+        rels = [ALL_AGENTS[agent][scope]]
+        if scope == 0:
+            if agent == 'qoder' and (base / '.qoder-cn').is_dir():
+                rels.append('.qoder-cn/skills')
+            elif agent == 'trae' and (base / '.trae-cn').is_dir():
+                rels.append('.trae-cn/skills')
+            elif agent == 'codebuddy' and (base / '.workbuddy').is_dir():
+                rels.append('.workbuddy/connectors/skills')
+        for rel in rels:
+            target = Path(os.path.abspath(base / rel / SKILL_NAME))
+            if target not in seen:
+                seen.add(target)
+                out.append(target)
     return out
 
 
@@ -539,7 +565,34 @@ def _mcp_specs(agents, home, python_cmd):
             add(agent, home / '.gemini' / 'antigravity' / 'mcp_config.json', 'json_key', root_key='mcpServers',
                 entry_key='cdxml-toolkit', value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
         elif agent == 'kimi':
+            add(agent, home / '.kimi-code' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
             add(agent, home / '.kimi' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
+        elif agent == 'zcode':
+            add(agent, home / '.zcode' / 'cli' / 'config.json', 'zcode_json')
+        elif agent == 'dsh':
+            add(agent, home / '.dsh' / 'cordis.patch.yml', 'dsh_cordis_yaml')
+        elif agent == 'qoder':
+            add(agent, home / '.qoder' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
+            if (home / '.qoder-cn').is_dir():
+                add(agent, home / '.qoder-cn' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                    value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
+        elif agent == 'codebuddy':
+            add(agent, home / '.codebuddy' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
+            if (home / '.workbuddy').is_dir():
+                add(agent, home / '.workbuddy' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                    value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
+        elif agent == 'lingma':
+            add(agent, home / '.lingma' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
+        elif agent == 'comate':
+            add(agent, home / '.comate' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
+        elif agent == 'codegeex':
+            add(agent, home / '.codegeex' / 'mcp.json', 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
                 value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
         elif agent == 'cline':
             add(agent, home / '.cline' / 'data' / 'settings' / 'cline_mcp_settings.json', 'json_key',
@@ -559,10 +612,11 @@ def _mcp_specs(agents, home, python_cmd):
         elif agent == 'trae':
             add(agent, appdata / 'Trae' / 'User' / 'mcp.json', 'json_key', root_key='mcpServers',
                 entry_key='cdxml-toolkit', value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
-            solo = appdata / 'TRAE SOLO' / 'User' / 'mcp.json'
-            if solo.parent.parent.is_dir():
-                add(agent, solo, 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
-                    value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
+            for cn_variant in ('TRAE SOLO', 'Trae CN'):
+                cn_mcp = appdata / cn_variant / 'User' / 'mcp.json'
+                if cn_mcp.parent.parent.is_dir():
+                    add(agent, cn_mcp, 'json_key', root_key='mcpServers', entry_key='cdxml-toolkit',
+                        value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
         elif agent == 'kiro':
             add(agent, home / '.kiro' / 'settings' / 'mcp.json', 'json_key', root_key='mcpServers',
                 entry_key='cdxml-toolkit', value={'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']})
@@ -642,6 +696,35 @@ def _upsert_aider_yaml(path, skill_md_path):
     path.write_text(updated, encoding='utf-8')
 
 
+def _upsert_dsh_cordis_yaml(path, python_cmd):
+    existing = path.read_text(encoding='utf-8') if path.is_file() else ''
+    quoted = json.dumps(python_cmd)
+    block = (
+        '# BEGIN chemdraw-skill mcp\n'
+        '- insert:\n'
+        '    - id: mcp-cdxml-toolkit\n'
+        '      name: "@deepseek-ai/dsh-mcp-client"\n'
+        '      config:\n'
+        '        transport: stdio\n'
+        '        serverName: cdxml_toolkit\n'
+        f'        command: {quoted}\n'
+        '        args:\n'
+        '          - "-m"\n'
+        '          - "cdxml_toolkit.mcp_runtime"\n'
+        '# END chemdraw-skill mcp\n'
+    )
+    marker_re = re.compile(r'(?ms)^# BEGIN chemdraw-skill mcp\r?\n.*?^# END chemdraw-skill mcp\r?\n?')
+    if marker_re.search(existing):
+        updated = marker_re.sub(lambda _match: block, existing, count=1)
+    elif existing.strip() in ('', '[]'):
+        updated = block
+    else:
+        sep = '' if existing.endswith('\n') else '\n'
+        updated = existing + sep + block
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(updated, encoding='utf-8')
+
+
 def apply_mcp_configs(specs, python_cmd, skill_md_path):
     results = []
     for spec in specs:
@@ -652,6 +735,27 @@ def apply_mcp_configs(specs, python_cmd, skill_md_path):
                 _upsert_codex_toml(path, python_cmd)
             elif fmt == 'goose_yaml':
                 _upsert_goose_yaml(path, python_cmd)
+            elif fmt == 'dsh_cordis_yaml':
+                _upsert_dsh_cordis_yaml(path, python_cmd)
+            elif fmt == 'zcode_json':
+                raw = path.read_text(encoding='utf-8') if path.is_file() else '{}'
+                data = json.loads(_strip_jsonc(raw) or '{}')
+                if not isinstance(data, dict):
+                    data = {}
+                mcp_obj = data.get('mcp')
+                if not isinstance(mcp_obj, dict):
+                    mcp_obj = {}
+                servers = mcp_obj.get('servers')
+                if not isinstance(servers, dict):
+                    servers = {}
+                servers['cdxml-toolkit'] = {
+                    'command': python_cmd,
+                    'args': ['-m', 'cdxml_toolkit.mcp_runtime'],
+                }
+                mcp_obj['servers'] = servers
+                data['mcp'] = mcp_obj
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
             elif fmt == 'continue_yaml':
                 content = (
                     'name: ChemDraw Toolkit MCP\n'

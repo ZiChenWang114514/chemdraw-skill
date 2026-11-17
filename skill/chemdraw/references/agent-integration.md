@@ -24,12 +24,20 @@ python scripts/install.py --destination <any skills folder>/chemdraw --apply
 | `cursor` | `~/.cursor/skills/` | `.cursor/skills/` | Cursor |
 | `windsurf` | `~/.codeium/windsurf/skills/` | `.windsurf/skills/` | Windsurf |
 | `opencode` | `~/.config/opencode/skills/` | `.opencode/skills/` | OpenCode |
-| `kimi` | `~/.kimi-code/skills/` | `.kimi-code/skills/` | Kimi CLI; also reads `~/.agents/skills/` |
+| `kimi` | `~/.kimi-code/skills/` | `.kimi-code/skills/` | Kimi Code CLI & Desktop app (`--mcp` writes `~/.kimi-code/mcp.json` & `~/.kimi/mcp.json`) |
+| `zcode` | `~/.zcode/skills/` | `.zcode/skills/` | ZCode CLI & ZCode GUI (`--mcp` updates `mcp.servers` in `~/.zcode/cli/config.json`) |
+| `dsh` | `~/.dsh/skills/` | `.dsh/skills/` | DeepSeek Harness CLI & Web UI (`--mcp` updates `~/.dsh/cordis.patch.yml`) |
+| `qoder` | `~/.qoder/skills/` | `.qoder/skills/` | Qoder & Qoder CN IDE (`~/.qoder-cn/skills/`, `--mcp` writes `mcp.json`) |
+| `codebuddy` | `~/.codebuddy/skills/` | `.codebuddy/skills/` | CodeBuddy & WorkBuddy (`--mcp` writes `~/.codebuddy/mcp.json`) |
+| `lingma` | `~/.lingma/skills/` | `.lingma/skills/` | Tongyi Lingma |
+| `comate` | `~/.comate/skills/` | `.comate/skills/` | Baidu Comate |
+| `bailian` | `~/.bailian/skills/` | `.bailian/skills/` | Bailian CLI |
+| `codegeex` | `~/.codegeex/skills/` | `.codegeex/skills/` | CodeGeeX |
 | `pi` | `~/.pi/agent/skills/` | `.pi/skills/` | pi; also reads `~/.agents/skills/`; runs shell commands without asking |
 | `cline` | `~/.cline/skills/` | `.cline/skills/` | Cline CLI & VS Code extension |
 | `roo` | `~/.roo/skills/` | `.roo/skills/` | Roo Code VS Code extension |
 | `goose` | `~/.config/goose/skills/` | `.goose/skills/` | Goose CLI & Desktop |
-| `trae` | `~/.trae/skills/` | `.trae/skills/` | Trae & Trae Solo |
+| `trae` | `~/.trae/skills/` | `.trae/skills/` | Trae, Trae CN & Trae Solo |
 | `kiro` | `~/.kiro/skills/` | `.kiro/skills/` | Kiro IDE & CLI |
 | `aider` | `~/.aider/skills/` | `.aider/skills/` | Aider (`--mcp` adds `SKILL.md` to `~/.aider.conf.yml`) |
 | `amp` | `~/.config/agents/skills/` | `.agents/skills/` | Sourcegraph Amp CLI |
@@ -140,8 +148,8 @@ Subagents load the same Skill. Give them the `cdx.py` command form, never a gues
 Every coding agent renders interactive tools through one of four host surfaces; `open_drawing_studio` and `cdx.py studio` emit the artifacts for all four from one shared HTML fragment core:
 
 1. **MCP Apps & Apps SDK hosts (`Cursor`, `VS Code` / `GitHub Copilot`, `Goose`, `Windsurf`, `Codex` MCP Apps)**: calling the MCP tool `open_drawing_studio` returns `CallToolResult.structuredContent` alongside `_meta.ui.resourceUri` (`ui://cdxml-toolkit/drawing-studio.html`, `text/html;profile=mcp-app`) and `_meta["openai/outputTemplate"]`, mounting the interactive 2D board inline inside the tool card.
-2. **Codex Desktop inline `visualize` surface**: write a pure HTML fragment (no `<html>`/`<head>`/`<body>` tags) into a writable workspace directory via `cdx.py studio TEMPLATE --no-browser --fragment <workdir>/chemdraw-studio.html`, and place the single-line `visualize` reference (`path` set to the absolute fragment path, `"mode":"wide"`) in the final assistant reply so Codex mounts the 1,024 px 2D board directly inside the answer bubble with `widgetState` persistence and follow-up prompt dispatch.
-3. **Artifact-embed IDE agents (`Antigravity`)**: save `html_path` into the conversation artifact directory (`UserFacing: true`) and emit `<agent-embed src="file:///<artifact_dir>/chemdraw-studio.html"></agent-embed>` in the reply.
+2. **Inline `visualize` fragment hosts (`Codex` Desktop & `ZCode` GUI)**: write a pure HTML fragment (no `<html>`/`<head>`/`<body>` tags) into a writable session directory via `cdx.py studio blank --no-browser --fragment <workdir>/chemdraw-studio.html`, then emit the host's single-line `visualize` reference (`path` set to the absolute fragment path, `"mode":"wide"` — `::visualize{...}` in ZCode GUI) so the 2D board mounts directly inside the answer bubble with `widgetState` persistence and follow-up prompt dispatch (`window.zcode` / host bridge).
+3. **Artifact-embed & VSIX IDE hosts (`Antigravity`, `VS Code`, `Cursor`, `Windsurf`, `Qoder`, `Trae`, `Kiro`, `Cline`, `Roo Code`, `Kimi Code` IDE)**: in Antigravity emit `<agent-embed src="file:///<artifact_dir>/chemdraw-studio.html"></agent-embed>`; in any VS Code-family IDE install `vscode/dist/chemdraw-studio-0.7.0.vsix` (`python vscode/scripts/build_vsix.py --install-all`) to open `.cdxml`/`.mol` directly as 2D canvases or dock the 2D Studio beside any AI chat sidebar (`Ctrl+Alt+M`).
 4. **Terminal CLI agents (`Gemini CLI`, `OpenCode` TUI, `Aider`, `Kimi`, `Qwen`, `Amp`, `Continue`)**: run `cdx.py studio TEMPLATE --serve --sync-dir <workdir>`; clicking **Send to Agent** in the browser writes `studio-live.cdxml` and `studio-live.json` straight back to `<workdir>` and copies a ready-to-paste prompt to the clipboard.
 
 ## Agent notes

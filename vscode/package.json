@@ -272,7 +272,7 @@
       "properties": {
         "chemdraw.preferredChatTarget": {
           "type": "string",
-          "enum": ["auto", "nativeChat", "cline", "roo", "continue", "clipboardOnly"],
+          "enum": ["auto", "nativeChat", "kimi", "lingma", "comate", "codebuddy", "codegeex", "cline", "roo", "continue", "clipboardOnly"],
           "default": "auto",
           "description": "Where 'Transfer to Agent' dispatches the drawn SMILES / SMARTS / CDXML structure."
         },

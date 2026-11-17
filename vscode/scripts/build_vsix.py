@@ -360,6 +360,10 @@ def install_into_ides(vsix_path: Path) -> list[dict]:
         ("Antigravity", ".antigravity"),
         ("Cursor", ".cursor"),
         ("Windsurf", ".windsurf"),
+        ("Qoder", ".qoder"),
+        ("Qoder CN", ".qoder-cn"),
+        ("Trae", ".trae"),
+        ("Trae CN", ".trae-cn"),
     ):
         ext_root = home / dot_folder / "extensions"
         if label not in succeeded_labels and (ext_root / "extensions.json").is_file():
