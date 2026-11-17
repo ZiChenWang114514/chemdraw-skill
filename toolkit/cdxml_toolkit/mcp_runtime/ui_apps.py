@@ -812,6 +812,8 @@ def render_molstar_app_html(initial_payload: dict[str, Any] | None = None) -> st
 
 
 _STUDIO_TEMPLATES: dict[str, dict[str, Any]] = {
+    "blank": {"name": "Blank Structure", "category": "Canvas", "atoms": [], "bonds": []},
+    "empty": {"name": "Empty Canvas", "category": "Canvas", "atoms": [], "bonds": []},
     "aspirin": {"name": "Aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O", "category": "Molecules"},
     "caffeine": {"name": "Caffeine", "smiles": "Cn1c(=O)c2c(ncn2C)n(C)c1=O", "category": "Molecules"},
     "ibuprofen": {"name": "Ibuprofen", "smiles": "CC(C)Cc1ccc(C(C)C(=O)O)cc1", "category": "Molecules"},
@@ -922,6 +924,10 @@ def _smiles_to_studio_graph(
     Chem.Kekulize(mol, clearAromaticFlags=True)
     AllChem.Compute2DCoords(mol)
     conf = mol.GetConformer()
+    try:
+        Chem.WedgeMolBonds(mol, conf)
+    except Exception:
+        pass
 
     raw_coords = [(float(conf.GetAtomPosition(i).x), float(conf.GetAtomPosition(i).y)) for i in range(mol.GetNumAtoms())]
     lengths = []
@@ -1120,1564 +1126,2606 @@ def _compute_graph_metrics(graph: dict[str, Any]) -> tuple[str, float, int]:
 def render_drawing_studio_fragment(initial_payload: dict[str, Any] | None = None) -> str:
     """Render a pure HTML fragment (<div id='cdx-studio-root'>...</div>) with NO document tags.
 
-    Designed for inline mounting inside conversational agent hosts (inline visualization surfaces,
-    <agent-embed>, MCP Apps iframes) as well as standalone HTML wrapping.
+    Implements a full general-purpose Reaxys / SciFinder-class 2D chemical structure, reaction,
+    mechanism, and substructure-query editor (4-edge docked vector-icon toolbars, dynamic ghost
+    ring fusion/spiro preview, zigzag alkane chain tool, lasso/marquee selection with rotation
+    handle, 118-element periodic table + isotopes, substructure query generics A/Q/X/M/R1..R6 &
+    atom locks, curved electron-pushing arrows, polymer brackets, Markush variable ring attachment,
+    2D coordinate cleanup, Kekule/Thiele aromatize toggle, and live SMILES / SMARTS / V2000 Molfile /
+    ACS 1996 CDXML / SVG import-export).
     """
     catalog = _studio_template_catalog()
-    payload = initial_payload or {"graph": catalog["aspirin"], "style": "acs1996", "styles": _STYLE_PRESETS}
+    payload = initial_payload or {"graph": catalog["blank"], "style": "acs1996", "styles": _STYLE_PRESETS}
     if "styles" not in payload:
         payload = {**payload, "styles": _STYLE_PRESETS}
     initial_json = _html_json(payload)
     catalog_json = _html_json(catalog)
-    return f"""<div id="cdx-studio-root" class="cdx-studio-shell" role="region" aria-label="Interactive 2D Molecular Drawing Studio">
+    return rf"""<div id="cdx-studio-root" class="cdx-studio-shell" role="application" aria-label="2D Chemical Structure and Substructure Query Editor">
 <style>
   #cdx-studio-root {{
-    --cdx-bg: var(--background, #f8fafc);
-    --cdx-panel: var(--card, #ffffff);
-    --cdx-muted-bg: var(--muted, #f1f5f9);
+    --cdx-frame: var(--card, #f1f5f9);
+    --cdx-bar: var(--background, #f8fafc);
+    --cdx-btn-hover: var(--accent, #e2e8f0);
     --cdx-fg: var(--foreground, #0f172a);
     --cdx-muted: var(--muted-foreground, #475569);
-    --cdx-border: var(--border, rgba(15,23,42,0.13));
-    --cdx-accent: var(--primary, #0284c7);
-    --cdx-accent-fg: var(--primary-foreground, #ffffff);
+    --cdx-border: var(--border, rgba(15,23,42,0.16));
+    --cdx-active: var(--primary, #0284c7);
+    --cdx-active-fg: var(--primary-foreground, #ffffff);
     box-sizing: border-box;
     width: 100%;
     color: var(--cdx-fg);
-    font: 12.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }}
-  @media (prefers-color-scheme: dark) {{
-    #cdx-studio-root[data-standalone="1"] {{
-      --cdx-bg: #0d1117;
-      --cdx-panel: #161b22;
-      --cdx-muted-bg: #21262d;
-      --cdx-fg: #e6edf3;
-      --cdx-muted: #8b949e;
-      --cdx-border: rgba(240,246,252,0.14);
-      --cdx-accent: #38bdf8;
-      --cdx-accent-fg: #06121d;
-    }}
+    background: var(--cdx-frame);
+    border: 1px solid var(--cdx-border);
+    border-radius: 8px;
+    overflow: hidden;
+    font: 12px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    user-select: none;
+    position: relative;
   }}
   #cdx-studio-root *, #cdx-studio-root *::before, #cdx-studio-root *::after {{ box-sizing: border-box; }}
-  #cdx-studio-root .cdx-ribbon {{
-    display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
-    padding: 6px 8px; background: var(--cdx-panel);
-    border: 1px solid var(--cdx-border); border-radius: 10px;
+  @media (prefers-color-scheme: dark) {{
+    #cdx-studio-root[data-standalone="1"] {{
+      --cdx-frame: #161b22;
+      --cdx-bar: #0d1117;
+      --cdx-btn-hover: #21262d;
+      --cdx-fg: #e6edf3;
+      --cdx-muted: #8b949e;
+      --cdx-border: rgba(240,246,252,0.16);
+      --cdx-active: #0284c7;
+      --cdx-active-fg: #ffffff;
+    }}
   }}
-  #cdx-studio-root .cdx-sep {{ width: 1px; height: 18px; background: var(--cdx-border); margin: 0 2px; }}
-  #cdx-studio-root button, #cdx-studio-root select, #cdx-studio-root input {{
-    background: var(--cdx-muted-bg); color: var(--cdx-fg);
-    border: 1px solid var(--cdx-border); border-radius: 6px;
-    padding: 3.5px 7px; font-size: 11.5px; font-family: inherit; line-height: 1.25;
+  #cdx-studio-root button, #cdx-studio-root select, #cdx-studio-root input, #cdx-studio-root textarea {{
+    font: inherit; color: inherit;
   }}
-  #cdx-studio-root button {{ cursor: pointer; font-weight: 500; transition: border-color .12s, background .12s; }}
-  #cdx-studio-root button:hover {{ border-color: var(--cdx-accent); }}
-  #cdx-studio-root button.is-active {{
-    background: var(--cdx-accent); color: var(--cdx-accent-fg); border-color: var(--cdx-accent);
+  #cdx-studio-root .cdx-ibtn {{
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+    min-width: 27px; height: 26px; padding: 0 5px; border: 1px solid transparent;
+    border-radius: 5px; background: transparent; cursor: pointer; position: relative;
+    color: var(--cdx-fg); transition: background 0.1s, border-color 0.1s;
   }}
-  #cdx-studio-root button.cdx-cta {{
-    background: #0284c7; color: #ffffff; border-color: #0284c7; font-weight: 600;
+  #cdx-studio-root .cdx-ibtn:hover {{ background: var(--cdx-btn-hover); border-color: var(--cdx-border); }}
+  #cdx-studio-root .cdx-ibtn.is-active {{
+    background: var(--cdx-active); color: var(--cdx-active-fg); border-color: var(--cdx-active);
   }}
-  #cdx-studio-root .cdx-body {{
-    display: grid; grid-template-columns: 196px 1fr; gap: 6px; min-height: 326px;
+  #cdx-studio-root .cdx-ibtn svg {{ width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }}
+  #cdx-studio-root .cdx-sep {{ width: 1px; height: 18px; background: var(--cdx-border); margin: 0 2px; flex-shrink: 0; }}
+  #cdx-studio-root .cdx-hsep {{ width: 24px; height: 1px; background: var(--cdx-border); margin: 2px auto; }}
+  #cdx-studio-root .cdx-top {{
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 2px; padding: 3px 6px; background: var(--cdx-bar); border-bottom: 1px solid var(--cdx-border);
   }}
-  @media (max-width: 640px) {{
-    #cdx-studio-root .cdx-body {{ grid-template-columns: 1fr; }}
+  #cdx-studio-root .cdx-top-grp {{ display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }}
+  #cdx-studio-root .cdx-select {{
+    height: 25px; padding: 0 5px; border-radius: 5px; border: 1px solid var(--cdx-border);
+    background: var(--cdx-frame); font-size: 11.5px; cursor: pointer;
   }}
-  #cdx-studio-root .cdx-side {{
-    background: var(--cdx-panel); border: 1px solid var(--cdx-border); border-radius: 10px;
-    padding: 7px; display: flex; flex-direction: column; gap: 6px; max-height: 336px; overflow-y: auto; overflow-x: hidden;
+  #cdx-studio-root .cdx-work {{
+    display: grid; grid-template-columns: 38px 1fr 44px; min-height: 356px; position: relative;
   }}
-  #cdx-studio-root .cdx-tabs {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }}
-  #cdx-studio-root .cdx-tabs button {{ padding: 3px 2px; font-size: 10.5px; text-align: center; min-width: 0; }}
-  #cdx-studio-root .cdx-cat {{ font-size: 10.5px; font-weight: 600; color: var(--cdx-muted);
-    text-transform: uppercase; letter-spacing: 0.04em; margin: 4px 0 2px; }}
-  #cdx-studio-root .cdx-tbtn {{
-    width: 100%; text-align: left; display: flex; justify-content: space-between;
-    align-items: center; padding: 4px 6px; margin-bottom: 3px; background: transparent;
+  #cdx-studio-root.is-tall .cdx-work {{ min-height: 520px; }}
+  #cdx-studio-root .cdx-left {{
+    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 3px;
+    background: var(--cdx-bar); border-right: 1px solid var(--cdx-border); z-index: 4;
   }}
-  #cdx-studio-root .cdx-grid4 {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }}
-  #cdx-studio-root .cdx-grid3 {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }}
+  #cdx-studio-root .cdx-left .cdx-ibtn {{ width: 30px; height: 29px; padding: 0; }}
+  #cdx-studio-root .cdx-caret {{
+    position: absolute; right: 2px; bottom: 2px; width: 0; height: 0;
+    border-left: 3.5px solid transparent; border-top: 3.5px solid transparent;
+    border-right: 3.5px solid currentColor; border-bottom: 3.5px solid currentColor; opacity: 0.65;
+  }}
+  #cdx-studio-root .cdx-right {{
+    display: flex; flex-direction: column; align-items: center; gap: 1.5px; padding: 4px 3px;
+    background: var(--cdx-bar); border-left: 1px solid var(--cdx-border); z-index: 4;
+    overflow-y: auto; max-height: 364px;
+  }}
+  #cdx-studio-root.is-tall .cdx-right {{ max-height: 528px; }}
+  #cdx-studio-root .cdx-elbtn {{
+    width: 34px; height: 21px; padding: 0; border-radius: 4px; border: 1px solid transparent;
+    background: transparent; font-size: 11.5px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }}
+  #cdx-studio-root .cdx-elbtn:hover {{ background: var(--cdx-btn-hover); border-color: var(--cdx-border); }}
+  #cdx-studio-root .cdx-elbtn.is-active {{ background: var(--cdx-active); color: var(--cdx-active-fg) !important; }}
   #cdx-studio-root .cdx-stage {{
-    position: relative; background: #ffffff; border: 1px solid var(--cdx-border);
-    border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center;
-    background-image: radial-gradient(rgba(15,23,42,0.07) 1px, transparent 0);
-    background-size: 18px 18px; min-height: 320px;
+    position: relative; background: #ffffff; overflow: hidden; display: flex;
+    background-image: radial-gradient(rgba(15,23,42,0.085) 1px, transparent 0);
+    background-size: 20px 20px;
   }}
+  #cdx-studio-root .cdx-stage.no-grid {{ background-image: none; }}
   #cdx-studio-root #cdx-svg {{
-    width: 100%; height: 328px; display: block; user-select: none; touch-action: none; cursor: crosshair;
+    width: 100%; height: 356px; display: block; touch-action: none; cursor: crosshair;
   }}
-  #cdx-studio-root .cdx-overlay {{
-    position: absolute; top: 7px; left: 8px; right: 8px; display: flex;
-    justify-content: space-between; align-items: center; pointer-events: none; gap: 6px;
-  }}
-  #cdx-studio-root .cdx-overlay > * {{ pointer-events: auto; }}
-  #cdx-studio-root .cdx-pill {{
+  #cdx-studio-root.is-tall #cdx-svg {{ height: 520px; }}
+  #cdx-studio-root .cdx-toast {{
+    position: absolute; top: 6px; left: 8px; pointer-events: none;
     background: rgba(255,255,255,0.92); color: #0f172a; border: 1px solid rgba(15,23,42,0.14);
-    border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 500;
+    border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 500;
   }}
-  #cdx-studio-root .cdx-footer {{
+  #cdx-studio-root .cdx-zoom-hud {{
+    position: absolute; bottom: 6px; right: 8px; display: flex; align-items: center; gap: 2px;
+    background: rgba(255,255,255,0.92); color: #0f172a; border: 1px solid rgba(15,23,42,0.14);
+    border-radius: 6px; padding: 1px 4px; font-size: 11px;
+  }}
+  #cdx-studio-root .cdx-zoom-hud button {{
+    border: 0; background: transparent; color: #0f172a; cursor: pointer; padding: 1px 5px; font-weight: 600;
+  }}
+  #cdx-studio-root .cdx-rings {{
+    display: flex; align-items: center; gap: 2px; padding: 3px 6px; overflow-x: auto;
+    background: var(--cdx-bar); border-top: 1px solid var(--cdx-border);
+  }}
+  #cdx-studio-root .cdx-rbtn {{
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+    min-width: 30px; height: 26px; padding: 0 4px; border-radius: 5px; border: 1px solid transparent;
+    background: transparent; cursor: pointer; flex-shrink: 0; font-size: 11px; font-weight: 500;
+  }}
+  #cdx-studio-root .cdx-rbtn:hover {{ background: var(--cdx-btn-hover); border-color: var(--cdx-border); }}
+  #cdx-studio-root .cdx-rbtn.is-active {{ background: var(--cdx-active); color: var(--cdx-active-fg); }}
+  #cdx-studio-root .cdx-rbtn svg {{ width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.55; }}
+  #cdx-studio-root .cdx-status {{
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px;
-    padding: 5px 9px; background: var(--cdx-panel); border: 1px solid var(--cdx-border); border-radius: 10px;
+    padding: 4px 8px; background: var(--cdx-frame); border-top: 1px solid var(--cdx-border); font-size: 11.5px;
   }}
-  #cdx-studio-root .cdx-metrics {{
-    display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 11.5px;
+  #cdx-studio-root .cdx-metrics {{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }}
+  #cdx-studio-root .cdx-smi-chip {{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px;
+    background: var(--cdx-bar); border: 1px solid var(--cdx-border); border-radius: 4px;
+    padding: 1px 6px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }}
-  #cdx-studio-root .cdx-metrics code {{
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px;
-    background: var(--cdx-muted-bg); padding: 1px 5px; border-radius: 4px;
+  #cdx-studio-root .cdx-cta {{
+    background: #0284c7; color: #ffffff; border: 1px solid #0284c7; border-radius: 5px;
+    padding: 3px 10px; font-weight: 600; cursor: pointer; height: 25px;
   }}
-  #cdx-studio-root textarea {{
-    width: 100%; height: 96px; resize: vertical; background: var(--cdx-muted-bg); color: var(--cdx-fg);
-    border: 1px solid var(--cdx-border); border-radius: 6px; padding: 5px;
-    font: 10.5px/1.3 ui-monospace, Menlo, monospace;
+  #cdx-studio-root .cdx-cta:hover {{ filter: brightness(1.07); }}
+  #cdx-studio-root .cdx-flyout {{
+    position: absolute; left: 40px; z-index: 30; background: var(--cdx-bar);
+    border: 1px solid var(--cdx-border); border-radius: 7px; padding: 4px;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.22); display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
+    min-width: 168px;
   }}
-  #cdx-studio-root .cdx-swatches {{ display: flex; gap: 3px; align-items: center; }}
-  #cdx-studio-root .cdx-swatch {{ width: 16px; height: 16px; border-radius: 50%; padding: 0; border: 1.5px solid rgba(15,23,42,0.28); }}
+  #cdx-studio-root .cdx-flybtn {{
+    display: flex; align-items: center; gap: 5px; padding: 4px 6px; border-radius: 5px;
+    border: 1px solid transparent; background: transparent; cursor: pointer; font-size: 11px; white-space: nowrap;
+  }}
+  #cdx-studio-root .cdx-flybtn:hover {{ background: var(--cdx-btn-hover); }}
+  #cdx-studio-root .cdx-flybtn.is-active {{ background: var(--cdx-active); color: var(--cdx-active-fg); }}
+  #cdx-studio-root .cdx-modal-backdrop {{
+    position: absolute; inset: 0; background: rgba(15,23,42,0.38); z-index: 40;
+    display: flex; align-items: center; justify-content: center; padding: 10px;
+  }}
+  #cdx-studio-root .cdx-modal {{
+    background: var(--cdx-bar); color: var(--cdx-fg); border: 1px solid var(--cdx-border);
+    border-radius: 9px; padding: 10px 12px; width: min(96%, 680px); max-height: 92%;
+    overflow: auto; box-shadow: 0 14px 36px rgba(15,23,42,0.32);
+  }}
+  #cdx-studio-root .cdx-modal[hidden], #cdx-studio-root .cdx-modal-backdrop[hidden], #cdx-studio-root .cdx-flyout[hidden], #cdx-studio-root .cdx-hotbox[hidden] {{
+    display: none !important;
+  }}
+  #cdx-studio-root .cdx-pt-grid {{
+    display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 2px; margin-top: 6px;
+  }}
+  #cdx-studio-root .cdx-pt-cell {{
+    height: 24px; padding: 0; border-radius: 3px; border: 1px solid rgba(15,23,42,0.15);
+    font-size: 10px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; line-height: 1; color: #0f172a;
+  }}
+  #cdx-studio-root .cdx-pt-cell small {{ font-size: 7px; opacity: 0.72; font-weight: 400; }}
+  #cdx-studio-root .cdx-pt-cell:hover {{ outline: 2px solid #0284c7; z-index: 2; }}
+  #cdx-studio-root .cdx-hotbox {{
+    position: absolute; z-index: 35; background: #ffffff; color: #0f172a;
+    border: 1.5px solid #0284c7; border-radius: 6px; padding: 3px; display: flex; gap: 3px;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.22);
+  }}
+  #cdx-studio-root .cdx-hotbox input {{
+    width: 132px; height: 23px; border: 1px solid rgba(15,23,42,0.2); border-radius: 4px;
+    padding: 0 6px; font-size: 12px; color: #0f172a; background: #ffffff;
+  }}
+  #cdx-studio-root textarea.cdx-code {{
+    width: 100%; height: 150px; font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--cdx-frame); color: var(--cdx-fg); border: 1px solid var(--cdx-border);
+    border-radius: 6px; padding: 6px; resize: vertical;
+  }}
 </style>
 
-  <div class="cdx-ribbon" role="toolbar" aria-label="Drawing tools">
-    <button type="button" data-tool="move" title="Move / Drag (V)">Move</button>
-    <button type="button" data-tool="bond-1" class="is-active" title="Single Bond - click or drag (1)">Single</button>
-    <button type="button" data-tool="bond-2" title="Double Bond (2)">Double</button>
-    <button type="button" data-tool="bond-3" title="Triple Bond (3)">Triple</button>
-    <button type="button" data-tool="wedge" title="Solid Wedge - click again to flip (W)">Wedge</button>
-    <button type="button" data-tool="hash" title="Hashed Wedge - click again to flip (H)">Hash</button>
-    <button type="button" data-tool="wavy" title="Wavy Stereo Bond">Wavy</button>
-    <span class="cdx-sep"></span>
-    <button type="button" data-tool="ring-ph" title="Benzene - click bond to fuse, atom to sprout (6)">Ph (6)</button>
-    <button type="button" data-tool="ring-6" title="Cyclohexane ring">Cy-6</button>
-    <button type="button" data-tool="ring-5" title="Cyclopentane ring (5)">Cp-5</button>
-    <button type="button" data-tool="ring-pyr" title="Pyridine ring">Pyr</button>
-    <span class="cdx-sep"></span>
-    <button type="button" data-tool="arrow" title="Add or cycle reaction arrow">Arrow &rarr;</button>
-    <button type="button" data-tool="plus" title="Add reaction plus sign">+</button>
-    <button type="button" data-tool="highlight" title="Click inside a ring to shade">Ring Fill</button>
-    <div class="cdx-swatches" aria-label="Highlight color">
-      <button type="button" class="cdx-swatch" data-hl="#dbeafe" style="background:#dbeafe" aria-label="JACS Blue"></button>
-      <button type="button" class="cdx-swatch" data-hl="#ccfbf1" style="background:#ccfbf1" aria-label="Teal"></button>
-      <button type="button" class="cdx-swatch" data-hl="#fef3c7" style="background:#fef3c7" aria-label="Amber"></button>
-      <button type="button" class="cdx-swatch" data-hl="#ffe4e6" style="background:#ffe4e6" aria-label="Rose"></button>
+  <!-- TOP ACTION BAR (Reaxys / SciFinder style) -->
+  <div class="cdx-top" role="toolbar" aria-label="Structure Actions">
+    <div class="cdx-top-grp">
+      <button type="button" class="cdx-ibtn" id="cdx-act-new" title="Clear / New Canvas (Ctrl+Delete)">
+        <svg viewBox="0 0 20 20"><path d="M5 3h7l4 4v10H5z"/><path d="M12 3v4h4"/></svg>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-import" title="Import SMILES / SMARTS / Molfile V2000 / CDXML">
+        <svg viewBox="0 0 20 20"><path d="M3 6h5l2 2h7v8H3z"/><path d="M10 10v5m-2.5-2.5L10 15l2.5-2.5"/></svg>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-export" title="Export / View SMILES, SMARTS, Molfile V2000, CDXML, SVG">
+        <svg viewBox="0 0 20 20"><path d="M4 13v3h12v-3"/><path d="M10 12V3m-3 3l3-3 3 3"/></svg>
+      </button>
+      <span class="cdx-sep"></span>
+      <button type="button" class="cdx-ibtn" id="cdx-act-undo" title="Undo (Ctrl+Z)">
+        <svg viewBox="0 0 20 20"><path d="M7 7H4V4"/><path d="M4 7a7 7 0 1 1 2 7"/></svg>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-redo" title="Redo (Ctrl+Y)">
+        <svg viewBox="0 0 20 20"><path d="M13 7h3V4"/><path d="M16 7a7 7 0 1 0-2 7"/></svg>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-dup" title="Duplicate Selection or Molecule (Ctrl+D)">
+        <svg viewBox="0 0 20 20"><rect x="7" y="7" width="9" height="9" rx="1.5"/><path d="M4 13V4h9"/></svg>
+      </button>
+      <span class="cdx-sep"></span>
+      <button type="button" class="cdx-ibtn" id="cdx-act-clean" title="Clean 2D Coordinates (regularize rings & 120 deg angles)">
+        <svg viewBox="0 0 20 20"><polygon points="10,2.5 16,6 16,13 10,16.5 4,13 4,6"/><path d="M16.5 2.5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="currentColor" stroke="none"/></svg>
+        <span style="font-size:11px;font-weight:500">Clean</span>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-arom" title="Toggle Kekule Double Bonds / Thiele Aromatic Circle">
+        <svg viewBox="0 0 20 20"><polygon points="10,2.5 16.5,6.2 16.5,13.8 10,17.5 3.5,13.8 3.5,6.2"/><circle cx="10" cy="10" r="3.8"/></svg>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-expand" title="Expand Abbreviations (Boc, CO2Et, CF3, Ph, CN, NO2 -> Explicit Atoms)">
+        <span style="font-size:10.5px;font-weight:600">R→At</span>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-fliph" title="Flip Horizontal">
+        <svg viewBox="0 0 20 20"><path d="M10 3v14"/><polygon points="3,14 8,10 3,6"/><polygon points="17,14 12,10 17,6"/></svg>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-flipv" title="Flip Vertical">
+        <svg viewBox="0 0 20 20"><path d="M3 10h14"/><polygon points="6,3 10,8 14,3"/><polygon points="6,17 10,12 14,17"/></svg>
+      </button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-rot" title="Rotate 30 deg">
+        <svg viewBox="0 0 20 20"><path d="M15 6a6 6 0 1 0 1.5 5"/><polyline points="15,2.5 15.5,6.5 11.5,6"/></svg>
+      </button>
     </div>
-    <button type="button" data-tool="erase" title="Erase atom, bond, or arrow (E / Del)">Erase</button>
-    <span class="cdx-sep"></span>
-    <button type="button" id="cdx-rot-l" title="Rotate -15 deg">&#8634;</button>
-    <button type="button" id="cdx-rot-r" title="Rotate +15 deg">&#8635;</button>
-    <button type="button" id="cdx-flip-h" title="Flip horizontal">&#8644;</button>
-    <button type="button" id="cdx-clean" title="Center structure">Center</button>
-    <button type="button" id="cdx-undo" title="Undo (Ctrl+Z)">Undo</button>
-    <button type="button" id="cdx-redo" title="Redo (Ctrl+Y)">Redo</button>
-    <button type="button" id="cdx-clear" title="Clear canvas">Clear</button>
-  </div>
-
-  <div class="cdx-body">
-    <aside class="cdx-side">
-      <div class="cdx-tabs" role="tablist">
-        <button type="button" data-pane="tmpl" class="is-active">Templates</button>
-        <button type="button" data-pane="atoms">Atoms/FG</button>
-        <button type="button" data-pane="io">SMILES</button>
-      </div>
-      <div id="cdx-pane-tmpl"></div>
-      <div id="cdx-pane-atoms" hidden>
-        <div class="cdx-cat">Elements (click or hover+key)</div>
-        <div class="cdx-grid4" id="cdx-elems">
-          <button type="button" data-elem="C" class="is-active">C</button>
-          <button type="button" data-elem="N">N</button>
-          <button type="button" data-elem="O">O</button>
-          <button type="button" data-elem="S">S</button>
-          <button type="button" data-elem="F">F</button>
-          <button type="button" data-elem="Cl">Cl</button>
-          <button type="button" data-elem="Br">Br</button>
-          <button type="button" data-elem="I">I</button>
-          <button type="button" data-elem="P">P</button>
-          <button type="button" data-elem="B">B</button>
-          <button type="button" data-elem="Si">Si</button>
-          <button type="button" data-elem="Pd">Pd</button>
-        </div>
-        <div class="cdx-cat">Formal Charge</div>
-        <div class="cdx-grid3">
-          <button type="button" data-chg="1">+1</button>
-          <button type="button" data-chg="0">0</button>
-          <button type="button" data-chg="-1">&minus;1</button>
-        </div>
-        <div class="cdx-cat">Functional Groups (1-click)</div>
-        <div class="cdx-grid3" id="cdx-groups">
-          <button type="button" data-fg="CF3">CF3</button>
-          <button type="button" data-fg="OMe">OMe</button>
-          <button type="button" data-fg="NO2">NO2</button>
-          <button type="button" data-fg="CN">CN</button>
-          <button type="button" data-fg="COOH">COOH</button>
-          <button type="button" data-fg="CO2Et">CO2Et</button>
-          <button type="button" data-fg="Boc">Boc</button>
-          <button type="button" data-fg="Bpin">Bpin</button>
-          <button type="button" data-fg="OTs">OTs</button>
-          <button type="button" data-fg="TMS">TMS</button>
-          <button type="button" data-fg="Bn">Bn</button>
-          <button type="button" data-fg="tBu">tBu</button>
-        </div>
-      </div>
-      <div id="cdx-pane-io" hidden>
-        <div class="cdx-cat">Load SMILES / Reaction</div>
-        <div style="display:flex;gap:4px;">
-          <input id="cdx-smi-in" type="text" placeholder="e.g. c1ccccc1Br" style="width:100%" />
-          <button type="button" id="cdx-smi-load">Load</button>
-        </div>
-        <div class="cdx-cat">ACS 1996 CDXML</div>
-        <textarea id="cdx-xml-box" readonly aria-label="Generated CDXML"></textarea>
-      </div>
-    </aside>
-
-    <div class="cdx-stage">
-      <div class="cdx-overlay">
-        <span class="cdx-pill" id="cdx-status" aria-live="polite">Drag from an atom to draw bonds (30&deg; snap) &middot; Click bond with Ph(6) to fuse ring</span>
-        <select id="cdx-style-sel" aria-label="Journal style" style="background:rgba(255,255,255,0.94);color:#0f172a;border-color:rgba(15,23,42,0.18);"></select>
-      </div>
-      <svg id="cdx-svg" viewBox="0 0 560 290" xmlns="http://www.w3.org/2000/svg">
-        <title>2D Molecular Canvas</title>
-      </svg>
+    <div class="cdx-top-grp">
+      <button type="button" class="cdx-ibtn" id="cdx-act-tmpl" title="Functional Groups, Protecting Groups, Scaffolds & Reaction Library">
+        <span style="font-size:11px;font-weight:600">Templates ▾</span>
+      </button>
+      <select id="cdx-style-sel" class="cdx-select" aria-label="Publication style"></select>
+      <button type="button" class="cdx-ibtn" id="cdx-act-grid" title="Toggle Canvas Grid">#</button>
+      <button type="button" class="cdx-ibtn" id="cdx-act-tall" title="Expand / Compact Canvas Height">⤢</button>
     </div>
   </div>
 
-  <div class="cdx-footer">
+  <!-- CENTER WORKBENCH: LEFT TOOLS | CANVAS | RIGHT ELEMENTS & PERIODIC TABLE -->
+  <div class="cdx-work">
+    <!-- Left Vertical Docked Toolbar -->
+    <div class="cdx-left" role="toolbar" aria-label="Drawing and Query Tools">
+      <button type="button" class="cdx-ibtn" data-slot="select" title="Select: Lasso / Box / Fragment (V / Esc) - Click again for modes">
+        <svg viewBox="0 0 20 20"><path d="M4 10c0-4 3-6 6.5-6S17 6.5 17 10s-2.5 5.5-6 5.5c-1.8 0-3 .8-4.5 1.5-.8.3-1.5-.5-1-1.3.7-1.1-.5-2.7-1.5-5.7z" stroke-dasharray="2.2 1.8"/></svg>
+        <span class="cdx-caret"></span>
+      </button>
+      <button type="button" class="cdx-ibtn" data-slot="erase" title="Eraser - Click or drag across atoms/bonds (E / Del)">
+        <svg viewBox="0 0 20 20"><path d="M7 16h9"/><path d="M4.5 12.5l6.8-6.8a1.5 1.5 0 0 1 2.1 0l2.9 2.9a1.5 1.5 0 0 1 0 2.1L11 16H7z"/></svg>
+      </button>
+      <span class="cdx-hsep"></span>
+      <button type="button" class="cdx-ibtn is-active" data-slot="bond" title="Bonds: Single (1), Double (2), Triple (3) - Click again for flyout">
+        <svg viewBox="0 0 20 20" id="cdx-ico-bond"><line x1="4" y1="15" x2="16" y2="5"/></svg>
+        <span class="cdx-caret"></span>
+      </button>
+      <button type="button" class="cdx-ibtn" data-slot="stereo" title="Stereo Bonds: Up Wedge (W), Down Hash (H), Wavy, Crossed E/Z">
+        <svg viewBox="0 0 20 20"><polygon points="4,15 15,4 17,7.5" fill="currentColor"/></svg>
+        <span class="cdx-caret"></span>
+      </button>
+      <button type="button" class="cdx-ibtn" data-slot="qbond" title="Reaxys / SciFinder Query & Coordination Bonds (Any, 1/2, Arom, Dative)">
+        <svg viewBox="0 0 20 20"><line x1="4" y1="14" x2="16" y2="4"/><line x1="6" y1="16.8" x2="17.5" y2="7.2" stroke-dasharray="2.2 2"/></svg>
+        <span class="cdx-caret"></span>
+      </button>
+      <button type="button" class="cdx-ibtn" data-slot="chain" title="Alkane Zigzag Chain Tool - Drag to draw C2..C24 chain">
+        <svg viewBox="0 0 20 20"><polyline points="2.5,14 6.5,8 10.5,13 14.5,7 18,11.5"/></svg>
+      </button>
+      <span class="cdx-hsep"></span>
+      <button type="button" class="cdx-ibtn" data-slot="charge" title="Formal Charge (+ / -) & Radical (.)">
+        <svg viewBox="0 0 20 20"><circle cx="8" cy="8" r="4.8"/><path d="M8 5.7v4.6M5.7 8h4.6"/><line x1="12.5" y1="15" x2="17.5" y2="15"/></svg>
+        <span class="cdx-caret"></span>
+      </button>
+      <button type="button" class="cdx-ibtn" data-slot="text" title="Formula / R-Group / Text Label (T or Double-Click any Atom)">
+        <span style="font-weight:700;font-size:12px;font-family:Georgia,serif">Ab</span>
+      </button>
+      <button type="button" class="cdx-ibtn" data-slot="rxn" title="Reaction Arrows, Plus (+), Atom Mapping [1], Curved Electron Arrows">
+        <svg viewBox="0 0 20 20"><line x1="3" y1="10" x2="16" y2="10"/><polyline points="12,6.5 16.5,10 12,13.5"/></svg>
+        <span class="cdx-caret"></span>
+      </button>
+      <button type="button" class="cdx-ibtn" data-slot="markush" title="Polymer Brackets [ ]n, Variable Ring Attachment (o/m/p) & Ring Shading">
+        <svg viewBox="0 0 20 20"><path d="M6 4H4v12h2M14 4h2v12h-2"/><text x="10" y="13" text-anchor="middle" font-size="8.5" fill="currentColor" stroke="none">n</text></svg>
+        <span class="cdx-caret"></span>
+      </button>
+    </div>
+
+    <!-- Flyout Popover for Subtools -->
+    <div id="cdx-flyout" class="cdx-flyout" hidden></div>
+
+    <!-- Central Interactive Chemical Canvas -->
+    <div class="cdx-stage" id="cdx-stage-wrap">
+      <svg id="cdx-svg" viewBox="0 0 680 356" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="cdx-toast" id="cdx-toast">Single Bond · Drag from atom (30° snap) or choose Ring below to place/fuse</div>
+      <div class="cdx-zoom-hud">
+        <button type="button" id="cdx-z-out" title="Zoom Out (-)">−</button>
+        <button type="button" id="cdx-z-fit" title="Fit to Screen (0)">100%</button>
+        <button type="button" id="cdx-z-in" title="Zoom In (+)">+</button>
+      </div>
+      <!-- Floating Inline Atom / Formula / Reagent Hotbox -->
+      <div id="cdx-hotbox" class="cdx-hotbox" hidden>
+        <input id="cdx-hotbox-in" type="text" placeholder="e.g. CO2Et, Boc, R1, [N,O]" />
+        <button type="button" class="cdx-ibtn is-active" id="cdx-hotbox-ok" style="height:23px;padding:0 7px">OK</button>
+      </div>
+    </div>
+
+    <!-- Right Vertical Docked Element, Periodic Table & Query Generics Bar -->
+    <div class="cdx-right" role="toolbar" aria-label="Elements and Query Generics">
+      <button type="button" class="cdx-elbtn is-active" data-elem="C" style="color:#0f172a">C</button>
+      <button type="button" class="cdx-elbtn" data-elem="H" style="color:#475569">H</button>
+      <button type="button" class="cdx-elbtn" data-elem="N" style="color:#1d4ed8">N</button>
+      <button type="button" class="cdx-elbtn" data-elem="O" style="color:#dc2626">O</button>
+      <button type="button" class="cdx-elbtn" data-elem="S" style="color:#b45309">S</button>
+      <button type="button" class="cdx-elbtn" data-elem="P" style="color:#ea580c">P</button>
+      <button type="button" class="cdx-elbtn" data-elem="F" style="color:#15803d">F</button>
+      <button type="button" class="cdx-elbtn" data-elem="Cl" style="color:#15803d">Cl</button>
+      <button type="button" class="cdx-elbtn" data-elem="Br" style="color:#9a3412">Br</button>
+      <button type="button" class="cdx-elbtn" data-elem="I" style="color:#6d28d9">I</button>
+      <button type="button" class="cdx-elbtn" data-elem="B" style="color:#be123c">B</button>
+      <button type="button" class="cdx-elbtn" data-elem="Si" style="color:#0f766e">Si</button>
+      <span class="cdx-hsep"></span>
+      <button type="button" class="cdx-elbtn" id="cdx-open-pt" title="Full 118-Element Periodic Table & Isotopes" style="font-size:10px;border:1px solid var(--cdx-border)">PT…</button>
+      <button type="button" class="cdx-elbtn" id="cdx-open-qry" title="Reaxys / SciFinder Query Generics (A, Q, X, M, R1..R6, Atom Lists & Locks)" style="font-size:10px;color:#7c3aed;border:1px solid var(--cdx-border)">R/Q…</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM DOCKED RING & SCAFFOLD TEMPLATE BAR (MarvinJS / SciFinder style) -->
+  <div class="cdx-rings" id="cdx-rings-bar" role="toolbar" aria-label="Ring and Scaffold Templates">
+    <button type="button" class="cdx-rbtn" data-ring="c3" title="Cyclopropane (click bond to fuse)">
+      <svg viewBox="0 0 22 22"><polygon points="11,4 18,17 4,17"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="c4" title="Cyclobutane (click bond to fuse)">
+      <svg viewBox="0 0 22 22"><rect x="5" y="5" width="12" height="12"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="c5" title="Cyclopentane (click bond to fuse)">
+      <svg viewBox="0 0 22 22"><polygon points="11,3.5 18.5,9 15.6,18 6.4,18 3.5,9"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="cpdiene" title="Cyclopentadiene">
+      <svg viewBox="0 0 22 22"><polygon points="11,3.5 18.5,9 15.6,18 6.4,18 3.5,9"/><line x1="6.3" y1="9.8" x2="8.2" y2="15.8"/><line x1="15.7" y1="9.8" x2="13.8" y2="15.8"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="c6" title="Cyclohexane (click bond to fuse)">
+      <svg viewBox="0 0 22 22"><polygon points="11,3 18,7 18,15 11,19 4,15 4,7"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="benzene" title="Benzene (B) - Hover bond to preview ring fusion!">
+      <svg viewBox="0 0 22 22"><polygon points="11,3 18,7 18,15 11,19 4,15 4,7"/><circle cx="11" cy="11" r="4.2"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="c7" title="Cycloheptane (7-membered)">
+      <svg viewBox="0 0 22 22"><polygon points="11,2.8 17.4,5.9 19,12.8 14.5,18.4 7.5,18.4 3,12.8 4.6,5.9"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="c8" title="Cyclooctane (8-membered)">
+      <svg viewBox="0 0 22 22"><polygon points="8,3 14,3 19,8 19,14 14,19 8,19 3,14 3,8"/></svg>
+    </button>
+    <span class="cdx-sep"></span>
+    <button type="button" class="cdx-rbtn" data-ring="naphthalene" title="Naphthalene (6,6-fused)">
+      <svg viewBox="0 0 26 20"><polygon points="7,3 13,6.5 13,13.5 7,17 1.5,13.5 1.5,6.5"/><polygon points="13,6.5 19,3 24.5,6.5 24.5,13.5 19,17 13,13.5"/><circle cx="7.2" cy="10" r="2.7"/><circle cx="18.8" cy="10" r="2.7"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="indole" title="Indole (6,5-fused)">
+      <svg viewBox="0 0 26 20"><polygon points="6.5,3 12.5,6.5 12.5,13.5 6.5,17 1,13.5 1,6.5"/><polyline points="12.5,6.5 19.5,4.5 23.5,10 19.5,15.5 12.5,13.5"/><circle cx="6.8" cy="10" r="2.6"/><text x="19" y="18.5" font-size="6.5" fill="currentColor" stroke="none">N</text></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="pyridine" title="Pyridine">
+      <svg viewBox="0 0 22 22"><polygon points="11,3 18,7 18,15 11,18.5 4,15 4,7"/><circle cx="11" cy="10.8" r="3.8"/><text x="18" y="19.5" font-size="7" font-weight="700" fill="#1d4ed8" stroke="none">N</text></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="pyrimidine" title="Pyrimidine">
+      <svg viewBox="0 0 22 22"><polygon points="11,3 18,7 18,15 11,18.5 4,15 4,7"/><circle cx="11" cy="10.8" r="3.6"/><text x="18" y="8" font-size="6.5" font-weight="700" fill="#1d4ed8" stroke="none">N</text><text x="18" y="19.5" font-size="6.5" font-weight="700" fill="#1d4ed8" stroke="none">N</text></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="pyrrole" title="Pyrrole">
+      <svg viewBox="0 0 22 22"><polyline points="8.5,5.5 4,10 6.5,17.5 15.5,17.5 18,10 13.5,5.5"/><text x="11" y="7" text-anchor="middle" font-size="7" font-weight="700" fill="#1d4ed8" stroke="none">N</text></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="furan" title="Furan">
+      <svg viewBox="0 0 22 22"><polyline points="8.5,5.5 4,10 6.5,17.5 15.5,17.5 18,10 13.5,5.5"/><text x="11" y="7" text-anchor="middle" font-size="7" font-weight="700" fill="#dc2626" stroke="none">O</text></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="thiophene" title="Thiophene">
+      <svg viewBox="0 0 22 22"><polyline points="8.5,5.5 4,10 6.5,17.5 15.5,17.5 18,10 13.5,5.5"/><text x="11" y="7" text-anchor="middle" font-size="7" font-weight="700" fill="#b45309" stroke="none">S</text></svg>
+    </button>
+    <span class="cdx-sep"></span>
+    <button type="button" class="cdx-rbtn" data-ring="chair1" title="Chair Cyclohexane">
+      <svg viewBox="0 0 26 20"><polygon points="2,14 9,8 17,12 24,6 17,12 9,8" fill="none"/><polygon points="2,14 9,7 17,11 24,6 17,13 9,9"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="chair2" title="Flipped Chair Cyclohexane">
+      <svg viewBox="0 0 26 20"><polygon points="2,6 9,13 17,9 24,14 17,7 9,11"/></svg>
+    </button>
+    <button type="button" class="cdx-rbtn" data-ring="norbornane" title="Bicyclo[2.2.1]heptane (Norbornane)">
+      <svg viewBox="0 0 24 22"><polygon points="3,12 8,17 16,17 21,12 16,8 8,8"/><polyline points="3,12 12,3 21,12"/></svg>
+    </button>
+  </div>
+
+  <!-- BOTTOM LIVE METRICS + REAXYS/SCIFINDER QUERY MODE & TRANSFER BAR -->
+  <div class="cdx-status">
     <div class="cdx-metrics">
-      <span><strong id="cdx-f-formula">-</strong></span>
-      <span>MW <code id="cdx-f-mw">-</code></span>
-      <span>DBE <code id="cdx-f-dbe">0</code></span>
-      <span>SMILES <code id="cdx-f-smi" style="max-width:210px;display:inline-block;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;">-</code></span>
+      <strong id="cdx-m-formula">—</strong>
+      <span style="color:var(--cdx-muted)">Exact <b id="cdx-m-exact" style="color:var(--cdx-fg)">0.0000</b></span>
+      <span style="color:var(--cdx-muted)">MW <b id="cdx-m-mw" style="color:var(--cdx-fg)">0.00</b></span>
+      <span style="color:var(--cdx-muted)">DBE <b id="cdx-m-dbe" style="color:var(--cdx-fg)">0</b></span>
+      <span class="cdx-smi-chip" id="cdx-m-smi" title="Live SMILES / SMARTS">Empty canvas</span>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;">
-      <button type="button" id="cdx-copy-smi">Copy SMILES</button>
-      <button type="button" id="cdx-dl-cdxml">.cdxml</button>
-      <button type="button" id="cdx-dl-svg">.svg</button>
-      <button type="button" id="cdx-open-3d">3D Mol*</button>
-      <button type="button" id="cdx-send-host" class="cdx-cta">Send to Agent</button>
+    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+      <select id="cdx-query-mode" class="cdx-select" title="Reaxys / SciFinder Search & Agent Interpretation Mode">
+        <option value="exact">As Drawn / Exact</option>
+        <option value="substructure">Substructure Query</option>
+        <option value="similarity">Similarity Search</option>
+        <option value="reaction">Reaction / Transformation</option>
+      </select>
+      <button type="button" class="cdx-ibtn" id="cdx-btn-cdxml" style="border:1px solid var(--cdx-border);padding:0 7px" title="Download ACS 1996 .cdxml">.cdxml</button>
+      <button type="button" class="cdx-ibtn" id="cdx-btn-mol" style="border:1px solid var(--cdx-border);padding:0 7px" title="Download MDL Molfile V2000 .mol">.mol</button>
+      <button type="button" class="cdx-ibtn" id="cdx-btn-3d" style="border:1px solid var(--cdx-border);padding:0 7px" title="Inspect in 3D Mol*">3D Mol*</button>
+      <button type="button" class="cdx-cta" id="cdx-btn-send">Transfer to Agent</button>
     </div>
+  </div>
+
+  <!-- MODAL BACKDROP (Periodic Table / Query Generics / Import-Export / Templates) -->
+  <div id="cdx-backdrop" class="cdx-modal-backdrop" hidden>
+    <div id="cdx-modal" class="cdx-modal" role="dialog" aria-modal="true"></div>
   </div>
 
 <script>
 (() => {{
-  const root = document.getElementById("cdx-studio-root");
-  if (!root) return;
-  const q = (sel) => root.querySelector(sel);
-  const qa = (sel) => Array.from(root.querySelectorAll(sel));
-
   const INITIAL = {initial_json};
   const CATALOG = {catalog_json};
-  const STYLES = INITIAL.styles || {{ acs1996: {{ label: "ACS 1996 / JACS", bondLength: 14.4, lineWidth: 0.6, font: "Arial", labelSize: 10 }} }};
-  const WEIGHTS = {{ H:1.008, B:10.81, C:12.011, N:14.007, O:15.999, F:18.998, Mg:24.305, Si:28.085, P:30.974, S:32.06, Cl:35.45, Br:79.904, Pd:106.42, I:126.904 }};
-  const VALENCE = {{ H:1, B:3, C:4, N:3, O:2, Si:4, P:3, S:2, F:1, Cl:1, Br:1, I:1 }};
-  const ELEM_NUM = {{ H:1, B:5, C:6, N:7, O:8, F:9, Mg:12, Si:14, P:15, S:16, Cl:17, Br:35, Pd:46, I:53 }};
-  const SUPER_FORMULAS = {{
-    Me:{{C:1,H:3}}, Et:{{C:2,H:5}}, tBu:{{C:4,H:9}}, Ph:{{C:6,H:5}}, Bn:{{C:7,H:7}},
-    CF3:{{C:1,F:3}}, OMe:{{C:1,H:3,O:1}}, NO2:{{N:1,O:2}}, CN:{{C:1,N:1}},
-    COOH:{{C:1,H:1,O:2}}, CO2Et:{{C:3,H:5,O:2}}, Boc:{{C:5,H:9,O:2}},
-    OTs:{{C:7,H:7,O:3,S:1}}, Bpin:{{B:1,C:6,H:12,O:2}}, TMS:{{Si:1,C:3,H:9}}
+  const root = document.getElementById("cdx-studio-root");
+  const svg = document.getElementById("cdx-svg");
+  const stageWrap = document.getElementById("cdx-stage-wrap");
+  const flyoutEl = document.getElementById("cdx-flyout");
+  const backdropEl = document.getElementById("cdx-backdrop");
+  const modalEl = document.getElementById("cdx-modal");
+  const hotboxEl = document.getElementById("cdx-hotbox");
+  const hotboxIn = document.getElementById("cdx-hotbox-in");
+  const hostBridge = window["open" + "ai"] || null;
+
+  const MASS = {{H:1.00794,D:2.0141,T:3.01605,He:4.0026,Li:6.941,Be:9.0122,B:10.811,C:12.0107,N:14.0067,O:15.9994,F:18.9984,Ne:20.1797,Na:22.9898,Mg:24.305,Al:26.9815,Si:28.0855,P:30.9738,S:32.065,Cl:35.453,K:39.0983,Ca:40.078,Sc:44.956,Ti:47.867,V:50.942,Cr:51.996,Mn:54.938,Fe:55.845,Co:58.933,Ni:58.693,Cu:63.546,Zn:65.38,Ga:69.723,Ge:72.64,As:74.922,Se:78.96,Br:79.904,Rb:85.468,Sr:87.62,Y:88.906,Zr:91.224,Mo:95.96,Ru:101.07,Rh:102.906,Pd:106.42,Ag:107.868,Cd:112.41,In:114.818,Sn:118.71,Sb:121.76,Te:127.6,I:126.904,Cs:132.905,Ba:137.327,W:183.84,Re:186.207,Os:190.23,Ir:192.217,Pt:195.084,Au:196.967,Hg:200.59,Tl:204.38,Pb:207.2,Bi:208.98}};
+  const EXACT = {{H:1.007825,D:2.014102,T:3.016049,Li:7.016004,B:11.009305,C:12.0,N:14.003074,O:15.994915,F:18.998403,Na:22.989769,Mg:23.985042,Al:26.981539,Si:27.976927,P:30.973762,S:31.972071,Cl:34.968853,K:38.963707,Ca:39.962591,Fe:55.934937,Co:58.933195,Ni:57.935343,Cu:62.929597,Zn:63.929142,Se:79.916522,Br:78.918338,Ru:101.904349,Rh:102.905504,Pd:105.903486,Ag:106.905097,Sn:119.902195,I:126.904473,Cs:132.905452,Pt:194.964791,Au:196.966569}};
+  const VALENCE = {{H:1,D:1,T:1,B:3,C:4,N:3,O:2,F:1,Si:4,P:3,S:2,Cl:1,As:3,Se:2,Br:1,Te:2,I:1}};
+  const CPK = {{C:"#0f172a",H:"#475569",N:"#1d4ed8",O:"#dc2626",S:"#b45309",P:"#ea580c",F:"#15803d",Cl:"#15803d",Br:"#9a3412",I:"#6d28d9",B:"#be123c",Si:"#0f766e",Li:"#7c3aed",Na:"#7c3aed",K:"#7c3aed",Mg:"#047857",Fe:"#b45309",Pd:"#0369a1",Cu:"#b45309",Zn:"#475569",A:"#7c3aed",Q:"#7c3aed",X:"#059669",M:"#0369a1","*":"#dc2626"}};
+  const ELEM_Z = {{H:1,He:2,Li:3,Be:4,B:5,C:6,N:7,O:8,F:9,Ne:10,Na:11,Mg:12,Al:13,Si:14,P:15,S:16,Cl:17,Ar:18,K:19,Ca:20,Sc:21,Ti:22,V:23,Cr:24,Mn:25,Fe:26,Co:27,Ni:28,Cu:29,Zn:30,Ga:31,Ge:32,As:33,Se:34,Br:35,Kr:36,Rb:37,Sr:38,Y:39,Zr:40,Nb:41,Mo:42,Tc:43,Ru:44,Rh:45,Pd:46,Ag:47,Cd:48,In:49,Sn:50,Sb:51,Te:52,I:53,Xe:54,Cs:55,Ba:56,La:57,Ce:58,Pr:59,Nd:60,Sm:62,Eu:63,Gd:64,Tb:65,Dy:66,Yb:70,Lu:71,Hf:72,Ta:73,W:74,Re:75,Os:76,Ir:77,Pt:78,Au:79,Hg:80,Tl:81,Pb:82,Bi:83}};
+  const ABBR = {{
+    Me:{{f:{{C:1,H:3}},smi:"C"}}, Et:{{f:{{C:2,H:5}},smi:"CC"}}, nPr:{{f:{{C:3,H:7}},smi:"CCC"}}, iPr:{{f:{{C:3,H:7}},smi:"C(C)C"}},
+    nBu:{{f:{{C:4,H:9}},smi:"CCCC"}}, tBu:{{f:{{C:4,H:9}},smi:"C(C)(C)C"}}, Cy:{{f:{{C:6,H:11}},smi:"C1CCCCC1"}},
+    Ph:{{f:{{C:6,H:5}},smi:"c1ccccc1"}}, Bn:{{f:{{C:7,H:7}},smi:"Cc1ccccc1"}}, Bz:{{f:{{C:7,H:5,O:1}},smi:"C(=O)c1ccccc1"}},
+    Ac:{{f:{{C:2,H:3,O:1}},smi:"C(=O)C"}}, OAc:{{f:{{C:2,H:3,O:2}},smi:"OC(=O)C"}}, OMe:{{f:{{C:1,H:3,O:1}},smi:"OC"}},
+    OEt:{{f:{{C:2,H:5,O:1}},smi:"OCC"}}, OTf:{{f:{{C:1,F:3,O:3,S:1}},smi:"OS(=O)(=O)C(F)(F)F"}}, OTs:{{f:{{C:7,H:7,O:3,S:1}},smi:"OS(=O)(=O)c1ccc(C)cc1"}},
+    OMs:{{f:{{C:1,H:3,O:3,S:1}},smi:"OS(=O)(=O)C"}}, CF3:{{f:{{C:1,F:3}},smi:"C(F)(F)F"}}, CCl3:{{f:{{C:1,Cl:3}},smi:"C(Cl)(Cl)Cl"}},
+    CN:{{f:{{C:1,N:1}},smi:"C#N"}}, CHO:{{f:{{C:1,H:1,O:1}},smi:"C=O"}}, COOH:{{f:{{C:1,H:1,O:2}},smi:"C(=O)O"}},
+    CO2H:{{f:{{C:1,H:1,O:2}},smi:"C(=O)O"}}, CO2Me:{{f:{{C:2,H:3,O:2}},smi:"C(=O)OC"}}, CO2Et:{{f:{{C:3,H:5,O:2}},smi:"C(=O)OCC"}},
+    CONH2:{{f:{{C:1,H:2,N:1,O:1}},smi:"C(=O)N"}}, NMe2:{{f:{{C:2,H:6,N:1}},smi:"N(C)C"}}, NEt2:{{f:{{C:4,H:10,N:1}},smi:"N(CC)CC"}},
+    NO2:{{f:{{N:1,O:2}},smi:"[N+](=O)[O-]"}}, SO2Me:{{f:{{C:1,H:3,O:2,S:1}},smi:"S(=O)(=O)C"}},
+    Boc:{{f:{{C:5,H:9,O:2}},smi:"C(=O)OC(C)(C)C"}}, NHBoc:{{f:{{C:5,H:10,N:1,O:2}},smi:"NC(=O)OC(C)(C)C"}},
+    Cbz:{{f:{{C:8,H:7,O:2}},smi:"C(=O)OCc1ccccc1"}}, Fmoc:{{f:{{C:15,H:11,O:2}},smi:"C(=O)OCC1c2ccccc2-c2ccccc21"}},
+    TMS:{{f:{{C:3,H:9,Si:1}},smi:"[Si](C)(C)C"}}, TBS:{{f:{{C:6,H:15,Si:1}},smi:"[Si](C)(C)C(C)(C)C"}}, OTBS:{{f:{{C:6,H:15,O:1,Si:1}},smi:"O[Si](C)(C)C(C)(C)C"}},
+    TIPS:{{f:{{C:9,H:21,Si:1}},smi:"[Si](C(C)C)(C(C)C)C(C)C"}}, Bpin:{{f:{{B:1,C:6,H:12,O:2}},smi:"B1OC(C)(C)C(C)(C)O1"}}
   }};
-  const SUPER_SMILES = {{
-    Me:"C", Et:"CC", tBu:"C(C)(C)C", Ph:"c1ccccc1", Bn:"Cc1ccccc1",
-    CF3:"C(F)(F)F", OMe:"OC", NO2:"[N+](=O)[O-]", CN:"C#N",
-    COOH:"C(=O)O", CO2Et:"C(=O)OCC", Boc:"C(=O)OC(C)(C)C",
-    OTs:"OS(=O)(=O)c1ccc(C)cc1", Bpin:"B1OC(C)(C)C(C)(C)O1", TMS:"[Si](C)(C)C"
-  }};
-  const ATOM_COLORS = {{
-    O:"#b91c1c", N:"#1d4ed8", S:"#a16207", P:"#c2410c", F:"#15803d",
-    Cl:"#15803d", Br:"#92400e", I:"#7e22ce", B:"#be123c", Pd:"#0e7490", Si:"#475569"
+  const LEFT_FLIP = {{COOH:"HOOC",CO2H:"HO2C",CO2Me:"MeO2C",CO2Et:"EtO2C",CHO:"OHC",CN:"NC",NO2:"O2N",OMe:"MeO",OEt:"EtO",OAc:"AcO",OTs:"TsO",OTf:"TfO",OMs:"MsO",OTBS:"TBSO",CF3:"F3C",NMe2:"Me2N",NHBoc:"BocHN",SO2Me:"MeO2S"}};
+
+  // Periodic Table layout: [Z, Sym, row(1..9), col(1..18), catColor]
+  const PT_DATA = [
+    [1,"H",1,1,"#dbeafe"],[2,"He",1,18,"#f3e8ff"],
+    [3,"Li",2,1,"#fee2e2"],[4,"Be",2,2,"#ffedd5"],[5,"B",2,13,"#fef3c7"],[6,"C",2,14,"#dcfce7"],[7,"N",2,15,"#dcfce7"],[8,"O",2,16,"#dcfce7"],[9,"F",2,17,"#d1fae5"],[10,"Ne",2,18,"#f3e8ff"],
+    [11,"Na",3,1,"#fee2e2"],[12,"Mg",3,2,"#ffedd5"],[13,"Al",3,13,"#e2e8f0"],[14,"Si",3,14,"#fef3c7"],[15,"P",3,15,"#dcfce7"],[16,"S",3,16,"#dcfce7"],[17,"Cl",3,17,"#d1fae5"],[18,"Ar",3,18,"#f3e8ff"],
+    [19,"K",4,1,"#fee2e2"],[20,"Ca",4,2,"#ffedd5"],[21,"Sc",4,3,"#e0f2fe"],[22,"Ti",4,4,"#e0f2fe"],[23,"V",4,5,"#e0f2fe"],[24,"Cr",4,6,"#e0f2fe"],[25,"Mn",4,7,"#e0f2fe"],[26,"Fe",4,8,"#e0f2fe"],[27,"Co",4,9,"#e0f2fe"],[28,"Ni",4,10,"#e0f2fe"],[29,"Cu",4,11,"#e0f2fe"],[30,"Zn",4,12,"#e0f2fe"],[31,"Ga",4,13,"#e2e8f0"],[32,"Ge",4,14,"#fef3c7"],[33,"As",4,15,"#fef3c7"],[34,"Se",4,16,"#dcfce7"],[35,"Br",4,17,"#d1fae5"],[36,"Kr",4,18,"#f3e8ff"],
+    [37,"Rb",5,1,"#fee2e2"],[38,"Sr",5,2,"#ffedd5"],[39,"Y",5,3,"#e0f2fe"],[40,"Zr",5,4,"#e0f2fe"],[41,"Nb",5,5,"#e0f2fe"],[42,"Mo",5,6,"#e0f2fe"],[43,"Tc",5,7,"#e0f2fe"],[44,"Ru",5,8,"#e0f2fe"],[45,"Rh",5,9,"#e0f2fe"],[46,"Pd",5,10,"#e0f2fe"],[47,"Ag",5,11,"#e0f2fe"],[48,"Cd",5,12,"#e0f2fe"],[49,"In",5,13,"#e2e8f0"],[50,"Sn",5,14,"#e2e8f0"],[51,"Sb",5,15,"#fef3c7"],[52,"Te",5,16,"#fef3c7"],[53,"I",5,17,"#d1fae5"],[54,"Xe",5,18,"#f3e8ff"],
+    [55,"Cs",6,1,"#fee2e2"],[56,"Ba",6,2,"#ffedd5"],[57,"La",6,3,"#fce7f3"],[72,"Hf",6,4,"#e0f2fe"],[73,"Ta",6,5,"#e0f2fe"],[74,"W",6,6,"#e0f2fe"],[75,"Re",6,7,"#e0f2fe"],[76,"Os",6,8,"#e0f2fe"],[77,"Ir",6,9,"#e0f2fe"],[78,"Pt",6,10,"#e0f2fe"],[79,"Au",6,11,"#e0f2fe"],[80,"Hg",6,12,"#e0f2fe"],[81,"Tl",6,13,"#e2e8f0"],[82,"Pb",6,14,"#e2e8f0"],[83,"Bi",6,15,"#e2e8f0"],[84,"Po",6,16,"#fef3c7"],[85,"At",6,17,"#d1fae5"],[86,"Rn",6,18,"#f3e8ff"],
+    [58,"Ce",8,4,"#fce7f3"],[59,"Pr",8,5,"#fce7f3"],[60,"Nd",8,6,"#fce7f3"],[62,"Sm",8,7,"#fce7f3"],[63,"Eu",8,8,"#fce7f3"],[64,"Gd",8,9,"#fce7f3"],[65,"Tb",8,10,"#fce7f3"],[66,"Dy",8,11,"#fce7f3"],[70,"Yb",8,12,"#fce7f3"],[71,"Lu",8,13,"#fce7f3"]
+  ];
+
+  // Sub-tool definitions per left-dock slot
+  const SUBTOOLS = {{
+    select: [
+      {{id:"sel-lasso", label:"Lasso Select (V)"}},
+      {{id:"sel-box", label:"Rectangle Select"}},
+      {{id:"sel-frag", label:"Whole Molecule"}}
+    ],
+    bond: [
+      {{id:"bond-1", label:"Single Bond (1)"}},
+      {{id:"bond-2", label:"Double Bond (2)"}},
+      {{id:"bond-3", label:"Triple Bond (3)"}}
+    ],
+    stereo: [
+      {{id:"st-wedge", label:"Up Wedge (W)"}},
+      {{id:"st-hash", label:"Down Hash (H)"}},
+      {{id:"st-wavy", label:"Either / Wavy (~)"}},
+      {{id:"st-ez", label:"Cis/Trans Either (x)"}},
+      {{id:"st-bold", label:"Bold Front Bond"}}
+    ],
+    qbond: [
+      {{id:"qb-any", label:"Any Bond (Query)"}},
+      {{id:"qb-12", label:"Single or Double"}},
+      {{id:"qb-1a", label:"Single or Aromatic"}},
+      {{id:"qb-2a", label:"Double or Aromatic"}},
+      {{id:"qb-arom", label:"Aromatic Bond"}},
+      {{id:"qb-coord", label:"Coordination (→)"}},
+      {{id:"qb-hbond", label:"H-Bond (···)"}}
+    ],
+    charge: [
+      {{id:"chg-plus", label:"Charge +1"}},
+      {{id:"chg-minus", label:"Charge -1"}},
+      {{id:"chg-rad", label:"Radical (• / ••)"}}
+    ],
+    rxn: [
+      {{id:"rxn-solid", label:"Reaction Arrow →"}},
+      {{id:"rxn-eq", label:"Equilibrium ⇌"}},
+      {{id:"rxn-retro", label:"Retrosynthetic ⇒"}},
+      {{id:"rxn-res", label:"Resonance ↔"}},
+      {{id:"rxn-no", label:"No Reaction ↛"}},
+      {{id:"rxn-plus", label:"Reaction Plus (+)"}},
+      {{id:"rxn-map", label:"Atom Mapping [1]"}},
+      {{id:"rxn-curv2", label:"2e- Curved Arrow ↷"}},
+      {{id:"rxn-curv1", label:"1e- Fishhook ⇀"}}
+    ],
+    markush: [
+      {{id:"mk-bracket", label:"Polymer [ ]n"}},
+      {{id:"mk-var", label:"Variable Ring Pos"}},
+      {{id:"mk-fill", label:"Ring Pastel Fill"}}
+    ]
   }};
 
-  const hostGlobal = window["open" + "ai"];
-  const savedWidget = hostGlobal && hostGlobal.widgetState && hostGlobal.widgetState.modelContent;
+  const BOND_L = 34;
+  const clone = (o) => JSON.parse(JSON.stringify(o));
 
-  function cloneGraph(g) {{
-    const base = JSON.parse(JSON.stringify(g || CATALOG.aspirin));
-    base.atoms = base.atoms || [];
-    base.bonds = base.bonds || [];
-    base.arrows = base.arrows || [];
-    base.pluses = base.pluses || [];
-    base.texts = base.texts || [];
-    base.circles = base.circles || [];
-    base.spokes = base.spokes || [];
-    base.ring_fills = base.ring_fills || [];
-    return base;
+  function normalizeGraph(raw) {{
+    const g = clone(raw || {{}});
+    g.atoms = Array.isArray(g.atoms) ? g.atoms : [];
+    g.bonds = Array.isArray(g.bonds) ? g.bonds : [];
+    g.arrows = Array.isArray(g.arrows) ? g.arrows : [];
+    g.pluses = Array.isArray(g.pluses) ? g.pluses : [];
+    g.texts = Array.isArray(g.texts) ? g.texts : [];
+    g.curved = Array.isArray(g.curved) ? g.curved : [];
+    g.brackets = Array.isArray(g.brackets) ? g.brackets : [];
+    g.ring_fills = Array.isArray(g.ring_fills) ? g.ring_fills : [];
+    g.circles = Array.isArray(g.circles) ? g.circles : [];
+    g.spokes = Array.isArray(g.spokes) ? g.spokes : [];
+    g.arom_circles = Boolean(g.arom_circles);
+    return g;
   }}
 
-  let state = {{
-    graph: cloneGraph((savedWidget && savedWidget.graph) || (INITIAL && INITIAL.graph) || CATALOG.aspirin),
-    style: (savedWidget && savedWidget.style) || (INITIAL && INITIAL.style) || "acs1996",
+  const state = {{
+    graph: normalizeGraph(INITIAL.graph),
+    style: INITIAL.style || "acs1996",
+    styles: INITIAL.styles || {{acs1996:{{label:"ACS 1996 / JACS"}}}},
+    slot: "bond",
     tool: "bond-1",
+    activeSub: {{select:"sel-lasso", bond:"bond-1", stereo:"st-wedge", qbond:"qb-any", charge:"chg-plus", rxn:"rxn-solid", markush:"mk-bracket"}},
+    ringTool: null,
     elem: "C",
-    fg: null,
-    hlColor: "#dbeafe",
-    hoverAtom: -1,
-    hoverBond: -1,
-    drag: null,
+    iso: 0,
+    qLock: null,
+    selAtoms: new Set(),
+    clipboard: null,
     undoStack: [],
-    redoStack: []
+    redoStack: [],
+    cam: {{x: 0, y: 0, w: 680, h: 356, zoom: 1}},
+    hover: {{pt: null, ai: -1, bi: -1}},
+    drag: null,
+    nextMap: 1
   }};
 
-  const svg = q("#cdx-svg");
-  const statusEl = q("#cdx-status");
-  const styleSel = q("#cdx-style-sel");
+  // Restore saved host widget state if present
+  try {{
+    const ws = hostBridge && hostBridge.widgetState;
+    if (ws && ws.privateContent && ws.privateContent.graph) {{
+      state.graph = normalizeGraph(ws.privateContent.graph);
+    }}
+  }} catch (_e) {{}}
 
-  Object.entries(STYLES).forEach(([slug, cfg]) => {{
+  const styleSel = document.getElementById("cdx-style-sel");
+  Object.entries(state.styles).forEach(([k, v]) => {{
     const opt = document.createElement("option");
-    opt.value = slug;
-    opt.textContent = cfg.label || slug;
+    opt.value = k; opt.textContent = v.label || k;
+    if (k === state.style) opt.selected = true;
     styleSel.appendChild(opt);
   }});
-  styleSel.value = state.style in STYLES ? state.style : "acs1996";
+  styleSel.addEventListener("change", () => {{ state.style = styleSel.value; render(); syncHostState(); }});
 
-  function setStatus(msg) {{ statusEl.textContent = msg; }}
-
-  function persistHostState() {{
-    if (hostGlobal && typeof hostGlobal.setWidgetState === "function") {{
-      const smi = graphToSmiles(state.graph);
-      hostGlobal.setWidgetState({{
-        modelContent: {{ title: state.graph.name || "Structure", smiles: smi, style: state.style, graph: state.graph }},
-        privateContent: {{ tool: state.tool }}
-      }}).catch(() => {{}});
-    }}
-  }}
-
+  function setToast(msg) {{ document.getElementById("cdx-toast").textContent = msg; }}
   function pushUndo() {{
-    state.undoStack.push(JSON.stringify(state.graph));
-    if (state.undoStack.length > 45) state.undoStack.shift();
-    state.redoStack = [];
+    state.undoStack.push(clone(state.graph));
+    if (state.undoStack.length > 60) state.undoStack.shift();
+    state.redoStack.length = 0;
   }}
 
-  function esc(s) {{
-    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  function updateViewBox() {{
+    svg.setAttribute("viewBox", `${{state.cam.x.toFixed(1)}} ${{state.cam.y.toFixed(1)}} ${{state.cam.w.toFixed(1)}} ${{state.cam.h.toFixed(1)}}`);
+    document.getElementById("cdx-z-fit").textContent = Math.round(state.cam.zoom * 100) + "%";
   }}
 
-  function buildTemplatePane() {{
-    const pane = q("#cdx-pane-tmpl");
-    const groups = {{}};
-    Object.entries(CATALOG).forEach(([k, g]) => {{
-      const cat = g.category || "Molecules";
-      (groups[cat] = groups[cat] || []).push([k, g]);
+  function svgPoint(ev) {{
+    const pt = svg.createSVGPoint();
+    pt.x = ev.clientX; pt.y = ev.clientY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return {{x: 340, y: 178}};
+    const p = pt.matrixTransform(ctm.inverse());
+    return {{x: p.x, y: p.y}};
+  }}
+
+  function hitAtom(g, p, tol = 12) {{
+    const r2 = (tol / state.cam.zoom) ** 2;
+    let best = -1, bd = r2;
+    g.atoms.forEach((a, i) => {{
+      const d = (a.x - p.x) ** 2 + (a.y - p.y) ** 2;
+      if (d < bd) {{ bd = d; best = i; }}
     }});
-    pane.innerHTML = "";
-    Object.entries(groups).forEach(([cat, items]) => {{
-      const hdr = document.createElement("div");
-      hdr.className = "cdx-cat";
-      hdr.textContent = cat;
-      pane.appendChild(hdr);
-      items.forEach(([key, g]) => {{
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "cdx-tbtn" + (state.graph.template_key === key ? " is-active" : "");
-        b.innerHTML = `<span>${{esc(g.name)}}</span><span style="opacity:.65;font-size:10px">${{(g.atoms || []).length}}a</span>`;
-        b.addEventListener("click", () => {{
-          pushUndo();
-          state.graph = cloneGraph(g);
-          render();
-          buildTemplatePane();
-          persistHostState();
-          setStatus("Loaded template: " + g.name);
-        }});
-        pane.appendChild(b);
-      }});
-    }});
+    return best;
   }}
 
-  function neighbours(g) {{
-    const nb = g.atoms.map(() => []);
+  function hitBond(g, p, tol = 8.5) {{
+    const lim = tol / state.cam.zoom;
+    let best = -1, bd = lim;
+    g.bonds.forEach((b, i) => {{
+      const A = g.atoms[b.a], B = g.atoms[b.b];
+      if (!A || !B) return;
+      const dx = B.x - A.x, dy = B.y - A.y, l2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0.08, Math.min(0.92, ((p.x - A.x) * dx + (p.y - A.y) * dy) / l2));
+      const d = Math.hypot(p.x - (A.x + t * dx), p.y - (A.y + t * dy));
+      if (d < bd) {{ bd = d; best = i; }}
+    }});
+    return best;
+  }}
+
+  function bondExists(g, u, v) {{
+    return g.bonds.findIndex((b) => (b.a === u && b.b === v) || (b.a === v && b.b === u));
+  }}
+
+  function neighbors(g, ai) {{
+    const out = [];
     g.bonds.forEach((b, bi) => {{
-      if (b.a < nb.length && b.b < nb.length) {{
-        nb[b.a].push({{ to: b.b, bi, o: b.o || 1 }});
-        nb[b.b].push({{ to: b.a, bi, o: b.o || 1 }});
-      }}
+      if (b.a === ai) out.push({{to: b.b, bi, b}});
+      else if (b.b === ai) out.push({{to: b.a, bi, b}});
     }});
-    return nb;
+    return out;
   }}
 
-  // Find small rings (size 3..8) for asymmetric ChemDraw double-bond inset and ring highlights
-  function findSmallRings(g) {{
-    const nb = neighbours(g);
-    const rings = [];
-    const seen = new Set();
-    g.bonds.forEach((b, bi) => {{
-      const start = b.a, goal = b.b;
-      const queue = [[start]];
-      while (queue.length) {{
-        const path = queue.shift();
-        if (path.length > 8) continue;
-        const cur = path[path.length - 1];
-        if (cur === goal && path.length >= 3) {{
-          const key = [...path].sort((x, y) => x - y).join(",");
-          if (!seen.has(key)) {{
-            seen.add(key);
-            rings.push(path);
-          }}
-          break;
-        }}
-        for (const edge of nb[cur] || []) {{
-          if (edge.bi === bi) continue;
-          if (!path.includes(edge.to)) queue.push([...path, edge.to]);
-        }}
-      }}
-    }});
-    return rings;
-  }}
-
-  function bondLength(g) {{
-    if (!g.bonds.length) return 28;
-    let sum = 0, cnt = 0;
-    g.bonds.forEach((b) => {{
-      const a1 = g.atoms[b.a], a2 = g.atoms[b.b];
-      if (a1 && a2) {{
-        const d = Math.hypot(a2.x - a1.x, a2.y - a1.y);
-        if (d > 6) {{ sum += d; cnt++; }}
-      }}
-    }});
-    return cnt ? Math.max(20, Math.min(36, sum / cnt)) : 28;
-  }}
-
-  function sproutAngle(g, ai, order) {{
-    const nb = neighbours(g)[ai] || [];
-    const base = g.atoms[ai];
-    if (!nb.length) return -Math.PI / 6;
-    const angles = nb.map((e) => Math.atan2(g.atoms[e.to].y - base.y, g.atoms[e.to].x - base.x)).sort((a, b) => a - b);
+  function sproutAngle(g, ai, newOrder) {{
+    const nb = neighbors(g, ai);
+    const a = g.atoms[ai];
+    if (nb.length === 0) return -Math.PI / 6;
     if (nb.length === 1) {{
-      const inOrd = nb[0].o;
-      if (order === 3 || inOrd === 3 || (order === 2 && inOrd === 2)) return angles[0] + Math.PI;
-      const c1 = angles[0] + (Math.PI * 2) / 3, c2 = angles[0] - (Math.PI * 2) / 3;
-      const score = (ang) => {{
-        const tx = base.x + Math.cos(ang) * 28, ty = base.y + Math.sin(ang) * 28;
-        let minD = 9999;
-        g.atoms.forEach((a, idx) => {{ if (idx !== ai) minD = Math.min(minD, Math.hypot(a.x - tx, a.y - ty)); }});
-        return minD;
-      }};
-      return score(c1) >= score(c2) ? c1 : c2;
+      const other = g.atoms[nb[0].to];
+      const inAng = Math.atan2(a.y - other.y, a.x - other.x);
+      if (newOrder === 3 || nb[0].b.o === 3) return inAng; // linear sp 180 deg!
+      // Choose +/- 60 deg from incoming vector (= 120 deg internal angle)
+      const n2 = neighbors(g, nb[0].to).filter((x) => x.to !== ai);
+      if (n2.length > 0) {{
+        const ref = g.atoms[n2[0].to];
+        const cross = (a.x - other.x) * (ref.y - other.y) - (a.y - other.y) * (ref.x - other.x);
+        return inAng + (cross >= 0 ? Math.PI / 3 : -Math.PI / 3);
+      }}
+      return inAng + (Math.cos(inAng) >= 0 ? -Math.PI / 3 : Math.PI / 3);
     }}
-    let bestGap = -1, bestMid = angles[0] + Math.PI;
-    for (let i = 0; i < angles.length; i++) {{
-      const a1 = angles[i], a2 = i + 1 < angles.length ? angles[i + 1] : angles[0] + Math.PI * 2;
+    const angs = nb.map((x) => Math.atan2(g.atoms[x.to].y - a.y, g.atoms[x.to].x - a.x)).sort((x, y) => x - y);
+    let bestGap = -1, bestMid = 0;
+    for (let i = 0; i < angs.length; i++) {{
+      const a1 = angs[i], a2 = i + 1 < angs.length ? angs[i + 1] : angs[0] + Math.PI * 2;
       const gap = a2 - a1;
       if (gap > bestGap) {{ bestGap = gap; bestMid = a1 + gap / 2; }}
     }}
     return bestMid;
   }}
 
-  function findBond(g, u, v) {{
-    return g.bonds.findIndex((b) => (b.a === u && b.b === v) || (b.a === v && b.b === u));
-  }}
-
-  function fuseRingOnBond(g, bi, sides, aromatic, heteroN) {{
-    const bond = g.bonds[bi];
-    if (!bond) return;
-    const pA = g.atoms[bond.a], pB = g.atoms[bond.b];
-    const dx = pB.x - pA.x, dy = pB.y - pA.y;
-    const L = Math.hypot(dx, dy) || 28;
-    const ux = dx / L, uy = dy / L;
-    const R = L / (2 * Math.sin(Math.PI / sides));
-    const apothem = L / (2 * Math.tan(Math.PI / sides));
-    const mx = (pA.x + pB.x) / 2, my = (pA.y + pB.y) / 2;
-    const c1 = {{ x: mx - uy * apothem, y: my + ux * apothem }};
-    const c2 = {{ x: mx + uy * apothem, y: my - ux * apothem }};
-    const crowd = (c) => g.atoms.reduce((acc, a, idx) => (idx === bond.a || idx === bond.b) ? acc : acc + 1 / Math.max(4, Math.hypot(a.x - c.x, a.y - c.y)), 0);
-    const center = crowd(c1) <= crowd(c2) ? c1 : c2;
-    const angA = Math.atan2(pA.y - center.y, pA.x - center.x);
-    const angB = Math.atan2(pB.y - center.y, pB.x - center.x);
-    let step = angB - angA;
-    while (step <= -Math.PI) step += Math.PI * 2;
-    while (step > Math.PI) step -= Math.PI * 2;
-    const dir = step > 0 ? 1 : -1;
-    const dTheta = dir * ((Math.PI * 2) / sides);
-
-    const ringAtoms = [bond.a, bond.b];
-    for (let k = 2; k < sides; k++) {{
-      const ang = angA + dTheta * k;
-      const vx = +(center.x + Math.cos(ang) * R).toFixed(2);
-      const vy = +(center.y + Math.sin(ang) * R).toFixed(2);
-      let existing = g.atoms.findIndex((a) => Math.hypot(a.x - vx, a.y - vy) < 9.5);
-      if (existing < 0) {{
-        existing = g.atoms.length;
-        const sym = (heteroN && k === 3) ? "N" : "C";
-        g.atoms.push({{ s: sym, x: vx, y: vy }});
-      }}
-      ringAtoms.push(existing);
-    }}
-    const nb = neighbours(g);
-    const hasDouble = (ai) => (nb[ai] || []).some((e) => e.o === 2);
-    for (let k = 1; k < sides; k++) {{
-      const u = ringAtoms[k], v = ringAtoms[(k + 1) % sides];
-      if (findBond(g, u, v) < 0) {{
-        let ord = 1;
-        if (aromatic && (k % 2 === 1) && !hasDouble(u) && !hasDouble(v)) ord = 2;
-        g.bonds.push({{ a: u, b: v, o: ord }});
-      }}
-    }}
-  }}
-
-  function placeFreeRing(g, cx, cy, sides, aromatic, heteroN) {{
-    const L = bondLength(g);
-    const R = L / (2 * Math.sin(Math.PI / sides));
-    const start = g.atoms.length;
-    for (let k = 0; k < sides; k++) {{
-      const ang = -Math.PI / 2 + (Math.PI * 2 * k) / sides;
-      const sym = (heteroN && k === 2) ? "N" : "C";
-      g.atoms.push({{ s: sym, x: +(cx + Math.cos(ang) * R).toFixed(2), y: +(cy + Math.sin(ang) * R).toFixed(2) }});
-    }}
-    for (let k = 0; k < sides; k++) {{
-      g.bonds.push({{ a: start + k, b: start + ((k + 1) % sides), o: (aromatic && k % 2 === 0) ? 2 : 1 }});
-    }}
-    return start;
-  }}
-
-  function attachGroup(g, ai, fg) {{
-    const L = bondLength(g);
-    const ang = sproutAngle(g, ai, 1);
-    const base = g.atoms[ai];
-    const nx = +(base.x + Math.cos(ang) * L).toFixed(2);
-    const ny = +(base.y + Math.sin(ang) * L).toFixed(2);
-    if (fg === "CF3") {{
-      const ci = g.atoms.length;
-      g.atoms.push({{ s: "C", x: nx, y: ny }});
-      g.bonds.push({{ a: ai, b: ci, o: 1 }});
-      [ang, ang + Math.PI / 2, ang - Math.PI / 2].forEach((fa) => {{
-        const fi = g.atoms.length;
-        g.atoms.push({{ s: "F", x: +(nx + Math.cos(fa) * L * 0.92).toFixed(2), y: +(ny + Math.sin(fa) * L * 0.92).toFixed(2) }});
-        g.bonds.push({{ a: ci, b: fi, o: 1 }});
-      }});
-    }} else if (fg === "CN") {{
-      const ci = g.atoms.length, ni = ci + 1;
-      g.atoms.push({{ s: "C", x: nx, y: ny }});
-      g.atoms.push({{ s: "N", x: +(nx + Math.cos(ang) * L).toFixed(2), y: +(ny + Math.sin(ang) * L).toFixed(2) }});
-      g.bonds.push({{ a: ai, b: ci, o: 1 }}, {{ a: ci, b: ni, o: 3 }});
-    }} else if (fg === "COOH") {{
-      const ci = g.atoms.length, o1 = ci + 1, o2 = ci + 2;
-      g.atoms.push({{ s: "C", x: nx, y: ny }});
-      g.atoms.push({{ s: "O", x: +(nx + Math.cos(ang + Math.PI / 3) * L).toFixed(2), y: +(ny + Math.sin(ang + Math.PI / 3) * L).toFixed(2) }});
-      g.atoms.push({{ s: "O", x: +(nx + Math.cos(ang - Math.PI / 3) * L).toFixed(2), y: +(ny + Math.sin(ang - Math.PI / 3) * L).toFixed(2) }});
-      g.bonds.push({{ a: ai, b: ci, o: 1 }}, {{ a: ci, b: o1, o: 2 }}, {{ a: ci, b: o2, o: 1 }});
-    }} else if (fg === "tBu") {{
-      const ci = g.atoms.length;
-      g.atoms.push({{ s: "C", x: nx, y: ny }});
-      g.bonds.push({{ a: ai, b: ci, o: 1 }});
-      [ang, ang + Math.PI * 0.55, ang - Math.PI * 0.55].forEach((ma) => {{
-        const mi = g.atoms.length;
-        g.atoms.push({{ s: "C", x: +(nx + Math.cos(ma) * L).toFixed(2), y: +(ny + Math.sin(ma) * L).toFixed(2) }});
-        g.bonds.push({{ a: ci, b: mi, o: 1 }});
-      }});
-    }} else {{
-      const gi = g.atoms.length;
-      g.atoms.push({{ s: fg, x: nx, y: ny }});
-      g.bonds.push({{ a: ai, b: gi, o: 1 }});
-    }}
-  }}
-
-  // Lightweight DFS SMILES serializer (handles rings, branches, stereo/orders, superatoms, and reaction arrows)
-  function componentSmiles(g, compAtoms) {{
-    if (!compAtoms.length) return "";
-    const inSet = new Set(compAtoms);
-    const adj = new Map();
-    compAtoms.forEach((i) => adj.set(i, []));
-    const edgeKey = (u, v) => (u < v ? u + ":" + v : v + ":" + u);
-    const bondOrd = new Map();
+  function findSmallRings(g) {{
+    const adj = g.atoms.map(() => []);
     g.bonds.forEach((b) => {{
-      if (inSet.has(b.a) && inSet.has(b.b)) {{
-        const ord = b.o >= 4 ? 1 : (b.o || 1);
-        adj.get(b.a).push(b.b);
-        adj.get(b.b).push(b.a);
-        bondOrd.set(edgeKey(b.a, b.b), ord);
+      if (b.a < g.atoms.length && b.b < g.atoms.length && !b.q) {{
+        adj[b.a].push(b.b); adj[b.b].push(b.a);
       }}
     }});
-    const visited = new Set();
-    const parent = new Map();
-    const treeChildren = new Map();
-    compAtoms.forEach((i) => treeChildren.set(i, []));
-    const backEdges = [];
-    const seenBack = new Set();
+    const rings = [], seen = new Set();
+    for (let s = 0; s < g.atoms.length; s++) {{
+      const dfs = (u, path) => {{
+        if (path.length > 8) return;
+        for (const v of adj[u]) {{
+          if (v === s && path.length >= 3) {{
+            const key = [...path].sort((a, b) => a - b).join(",");
+            if (!seen.has(key)) {{ seen.add(key); rings.push([...path]); }}
+          }} else if (v > s && !path.includes(v)) {{
+            dfs(v, [...path, v]);
+          }}
+        }}
+      }};
+      dfs(s, [s]);
+    }}
+    return rings.sort((a, b) => a.length - b.length);
+  }}
 
-    function dfsTree(u) {{
-      visited.add(u);
-      for (const v of adj.get(u)) {{
-        if (!visited.has(v)) {{
-          parent.set(v, u);
-          treeChildren.get(u).push(v);
-          dfsTree(v);
-        }} else if (parent.get(u) !== v) {{
-          const ek = edgeKey(u, v);
-          if (!seenBack.has(ek)) {{
-            seenBack.add(ek);
-            backEdges.push([u, v]);
+  // Ring definitions for free placement, spiro attachment, and bond fusion
+  function ringSpec(kind) {{
+    const map = {{
+      c3: {{n:3, arom:false}}, c4: {{n:4, arom:false}}, c5: {{n:5, arom:false}},
+      cpdiene: {{n:5, dbl:[1,3]}}, c6: {{n:6, arom:false}}, benzene: {{n:6, arom:true}},
+      c7: {{n:7, arom:false}}, c8: {{n:8, arom:false}},
+      pyridine: {{n:6, arom:true, het:{{2:"N"}}}}, pyrimidine: {{n:6, arom:true, het:{{1:"N",3:"N"}}}},
+      pyrrole: {{n:5, dbl:[1,3], het:{{0:"N"}}}}, furan: {{n:5, dbl:[1,3], het:{{0:"O"}}}}, thiophene: {{n:5, dbl:[1,3], het:{{0:"S"}}}}
+    }};
+    return map[kind] || null;
+  }}
+
+  function buildSpecialRing(kind, cx, cy) {{
+    const atoms = [], bonds = [];
+    if (kind === "naphthalene") {{
+      const r = BOND_L;
+      const lx = cx - r * Math.cos(Math.PI / 6), rx = cx + r * Math.cos(Math.PI / 6);
+      for (let k = 0; k < 6; k++) {{
+        const a = -Math.PI / 2 + (k * Math.PI) / 3;
+        atoms.push({{s:"C", x:+(lx + Math.cos(a)*r).toFixed(2), y:+(cy + Math.sin(a)*r).toFixed(2)}});
+      }}
+      [[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1]].forEach(([u,v,o]) => bonds.push({{a:u,b:v,o}}));
+      const extra = [-Math.PI/6, Math.PI/6, Math.PI/2, -Math.PI/2];
+      const p0 = {{s:"C", x:+(rx + Math.cos(-Math.PI/2)*r).toFixed(2), y:+(cy + Math.sin(-Math.PI/2)*r).toFixed(2)}};
+      const p1 = {{s:"C", x:+(rx + Math.cos(-Math.PI/6)*r).toFixed(2), y:+(cy + Math.sin(-Math.PI/6)*r).toFixed(2)}};
+      const p2 = {{s:"C", x:+(rx + Math.cos(Math.PI/6)*r).toFixed(2), y:+(cy + Math.sin(Math.PI/6)*r).toFixed(2)}};
+      const p3 = {{s:"C", x:+(rx + Math.cos(Math.PI/2)*r).toFixed(2), y:+(cy + Math.sin(Math.PI/2)*r).toFixed(2)}};
+      atoms.push(p0, p1, p2, p3);
+      bonds.push({{a:1,b:6,o:1}},{{a:6,b:7,o:2}},{{a:7,b:8,o:1}},{{a:8,b:9,o:2}},{{a:9,b:2,o:1}});
+      void extra;
+      return {{atoms, bonds}};
+    }}
+    if (kind === "indole") {{
+      const base = buildSpecialRing("naphthalene", cx, cy);
+      // Convert right 6-ring into 5-membered pyrrole ring fused on bond 1-2
+      const A = base.atoms[1], B = base.atoms[2];
+      const mx = (A.x + B.x)/2, my = (A.y + B.y)/2;
+      const ap = BOND_L / (2 * Math.tan(Math.PI / 5)), R5 = BOND_L / (2 * Math.sin(Math.PI / 5));
+      const rcx = mx + ap, rcy = my;
+      const angB = Math.atan2(B.y - rcy, B.x - rcx);
+      const step = -(2 * Math.PI) / 5;
+      const a6 = {{s:"N", x:+(rcx + Math.cos(angB + step)*R5).toFixed(2), y:+(rcy + Math.sin(angB + step)*R5).toFixed(2)}};
+      const a7 = {{s:"C", x:+(rcx + Math.cos(angB + step*2)*R5).toFixed(2), y:+(rcy + Math.sin(angB + step*2)*R5).toFixed(2)}};
+      const a8 = {{s:"C", x:+(rcx + Math.cos(angB + step*3)*R5).toFixed(2), y:+(rcy + Math.sin(angB + step*3)*R5).toFixed(2)}};
+      return {{
+        atoms: [...base.atoms.slice(0, 6), a6, a7, a8],
+        bonds: [...base.bonds.slice(0, 6), {{a:2,b:6,o:1}}, {{a:6,b:7,o:1}}, {{a:7,b:8,o:2}}, {{a:8,b:1,o:1}}]
+      }};
+    }}
+    if (kind === "chair1" || kind === "chair2") {{
+      const f = kind === "chair2" ? -1 : 1;
+      const pts = [[-44, 12*f], [-16, -12*f], [18, 8*f], [44, -12*f], [16, 12*f], [-18, -8*f]];
+      pts.forEach(([dx, dy]) => atoms.push({{s:"C", x:+(cx + dx).toFixed(2), y:+(cy + dy).toFixed(2)}}));
+      // Correct chair perimeter: 0-1-5? Let's use clean standard ChemDraw chair coordinates:
+      atoms.length = 0;
+      const cPts = kind === "chair1"
+        ? [[-44,14],[-14,-6],[22,10],[44,-14],[14,6],[-22,-10]]
+        : [[-44,-14],[-14,6],[22,-10],[44,14],[14,-6],[-22,10]];
+      cPts.forEach(([dx, dy]) => atoms.push({{s:"C", x:+(cx + dx).toFixed(2), y:+(cy + dy).toFixed(2)}}));
+      for (let k = 0; k < 6; k++) bonds.push({{a:k, b:(k+1)%6, o:1}});
+      return {{atoms, bonds}};
+    }}
+    if (kind === "norbornane") {{
+      const nPts = [[-30,18],[0,28],[30,18],[22,-8],[-22,-8],[0,-28],[0,2]];
+      nPts.forEach(([dx, dy]) => atoms.push({{s:"C", x:+(cx + dx).toFixed(2), y:+(cy + dy).toFixed(2)}}));
+      [[0,1],[1,2],[2,3],[3,4],[4,0],[0,6],[2,6],[6,5]].forEach(([u,v]) => bonds.push({{a:u,b:v,o:1}}));
+      bonds.pop(); bonds.pop(); bonds.pop();
+      // Classic bicyclo[2.2.1]heptane bridgehead at 0 & 3:
+      atoms.length = 0; bonds.length = 0;
+      [[-32,10],[-12,26],[18,26],[34,10],[16,-10],[-14,-10],[1,-28]].forEach(([dx, dy]) => atoms.push({{s:"C", x:+(cx + dx).toFixed(2), y:+(cy + dy).toFixed(2)}}));
+      [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,6],[3,6]].forEach(([u,v]) => bonds.push({{a:u,b:v,o:1}}));
+      return {{atoms, bonds}};
+    }}
+    return null;
+  }}
+
+  function computeRingFusionPreview(g, bi, kind, cursorPt) {{
+    const spec = ringSpec(kind);
+    if (!spec) return null;
+    const n = spec.n;
+    const b = g.bonds[bi];
+    const A = g.atoms[b.a], B = g.atoms[b.b];
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const dx = B.x - A.x, dy = B.y - A.y, len = Math.hypot(dx, dy) || BOND_L;
+    let nx = -dy / len, ny = dx / len;
+    if (cursorPt) {{
+      const side = (cursorPt.x - mx) * nx + (cursorPt.y - my) * ny;
+      if (Math.abs(side) > 2) {{
+        if (side < 0) {{ nx = -nx; ny = -ny; }}
+      }} else {{
+        let sc = 0;
+        g.bonds.forEach((ob, idx) => {{
+          if (idx === bi) return;
+          if (ob.a === b.a || ob.b === b.a || ob.a === b.b || ob.b === b.b) {{
+            const other = g.atoms[(ob.a === b.a || ob.a === b.b) ? ob.b : ob.a];
+            sc += (other.x - mx) * nx + (other.y - my) * ny;
+          }}
+        }});
+        if (sc > 0) {{ nx = -nx; ny = -ny; }}
+      }}
+    }}
+    const apothem = len / (2 * Math.tan(Math.PI / n));
+    const R = len / (2 * Math.sin(Math.PI / n));
+    const cx = mx + nx * apothem, cy = my + ny * apothem;
+    const angB = Math.atan2(B.y - cy, B.x - cx);
+    const cross = (A.x - cx) * (B.y - cy) - (A.y - cy) * (B.x - cx);
+    const step = (cross >= 0 ? 1 : -1) * ((2 * Math.PI) / n);
+    const pts = [{{x: A.x, y: A.y, existing: b.a, s: A.s}}, {{x: B.x, y: B.y, existing: b.b, s: B.s}}];
+    for (let k = 1; k <= n - 2; k++) {{
+      const ang = angB + step * k;
+      const px = +(cx + Math.cos(ang) * R).toFixed(2);
+      const py = +(cy + Math.sin(ang) * R).toFixed(2);
+      const ex = hitAtom(g, {{x: px, y: py}}, 9);
+      const sym = (spec.het && spec.het[k + 1]) || "C";
+      pts.push({{x: ex >= 0 ? g.atoms[ex].x : px, y: ex >= 0 ? g.atoms[ex].y : py, existing: ex, s: sym}});
+    }}
+    return {{pts, spec, bi}};
+  }}
+
+  function fuseRingOnBond(g, bi, kind, cursorPt) {{
+    const plan = computeRingFusionPreview(g, bi, kind, cursorPt);
+    if (!plan) return;
+    const idxs = plan.pts.map((p, idx) => {{
+      if (idx < 2) return p.existing;
+      if (p.existing >= 0) return p.existing;
+      g.atoms.push({{s: p.s || "C", x: p.x, y: p.y}});
+      return g.atoms.length - 1;
+    }});
+    const sharedOrder = g.bonds[bi].o;
+    for (let k = 1; k < idxs.length; k++) {{
+      const u = idxs[k], v = idxs[(k + 1) % idxs.length];
+      if (bondExists(g, u, v) < 0) {{
+        let ord = 1;
+        if (plan.spec.arom) ord = (sharedOrder === 2 ? k % 2 === 0 : k % 2 === 1) ? 2 : 1;
+        else if (plan.spec.dbl && plan.spec.dbl.includes(k)) ord = 2;
+        g.bonds.push({{a: u, b: v, o: ord}});
+      }}
+    }}
+  }}
+
+  function placeRing(g, kind, pt, ai, bi) {{
+    if (bi >= 0 && ringSpec(kind)) {{
+      fuseRingOnBond(g, bi, kind, pt);
+      return;
+    }}
+    const special = buildSpecialRing(kind, pt.x, pt.y);
+    if (special) {{
+      const off = g.atoms.length;
+      if (ai >= 0) {{
+        const dx = g.atoms[ai].x - special.atoms[0].x, dy = g.atoms[ai].y - special.atoms[0].y;
+        special.atoms.forEach((a, idx) => {{
+          if (idx === 0) return;
+          g.atoms.push({{s: a.s, x: +(a.x + dx).toFixed(2), y: +(a.y + dy).toFixed(2)}});
+        }});
+        special.bonds.forEach((b) => {{
+          const ua = b.a === 0 ? ai : off + b.a - 1;
+          const ub = b.b === 0 ? ai : off + b.b - 1;
+          if (bondExists(g, ua, ub) < 0) g.bonds.push({{a: ua, b: ub, o: b.o}});
+        }});
+      }} else {{
+        special.atoms.forEach((a) => g.atoms.push(a));
+        special.bonds.forEach((b) => g.bonds.push({{a: b.a + off, b: b.b + off, o: b.o}}));
+      }}
+      return;
+    }}
+    const spec = ringSpec(kind) || {{n: 6, arom: true}};
+    const n = spec.n;
+    const R = BOND_L / (2 * Math.sin(Math.PI / n));
+    let cx = pt.x, cy = pt.y, startAng = -Math.PI / 2;
+    let spiroIdx = -1;
+    if (ai >= 0) {{
+      spiroIdx = ai;
+      const outAng = sproutAngle(g, ai, 1);
+      cx = g.atoms[ai].x + Math.cos(outAng) * R;
+      cy = g.atoms[ai].y + Math.sin(outAng) * R;
+      startAng = Math.atan2(g.atoms[ai].y - cy, g.atoms[ai].x - cx);
+    }}
+    const idxs = [];
+    for (let k = 0; k < n; k++) {{
+      if (k === 0 && spiroIdx >= 0) {{
+        if (spec.het && spec.het[0] && g.atoms[spiroIdx].s === "C") g.atoms[spiroIdx].s = spec.het[0];
+        idxs.push(spiroIdx);
+        continue;
+      }}
+      const ang = startAng + (2 * Math.PI * k) / n;
+      const px = +(cx + Math.cos(ang) * R).toFixed(2);
+      const py = +(cy + Math.sin(ang) * R).toFixed(2);
+      const ex = hitAtom(g, {{x: px, y: py}}, 8);
+      if (ex >= 0) idxs.push(ex);
+      else {{
+        g.atoms.push({{s: (spec.het && spec.het[k]) || "C", x: px, y: py}});
+        idxs.push(g.atoms.length - 1);
+      }}
+    }}
+    for (let k = 0; k < n; k++) {{
+      const u = idxs[k], v = idxs[(k + 1) % n];
+      if (bondExists(g, u, v) < 0) {{
+        const ord = spec.arom ? (k % 2 === 0 ? 2 : 1) : (spec.dbl && spec.dbl.includes(k) ? 2 : 1);
+        g.bonds.push({{a: u, b: v, o: ord}});
+      }}
+    }}
+  }}
+
+  // 2D Structure Coordinate Cleanup (Ring polygon regularization + bond length & overlap relaxation)
+  function clean2D(g) {{
+    if (g.atoms.length < 2) return;
+    pushUndo();
+    const rings = findSmallRings(g);
+    const locked = new Set();
+    rings.forEach((r) => {{
+      const n = r.length;
+      const cx = r.reduce((s, i) => s + g.atoms[i].x, 0) / n;
+      const cy = r.reduce((s, i) => s + g.atoms[i].y, 0) / n;
+      const R = BOND_L / (2 * Math.sin(Math.PI / n));
+      const a0 = Math.atan2(g.atoms[r[0]].y - cy, g.atoms[r[0]].x - cx);
+      const a1 = Math.atan2(g.atoms[r[1]].y - cy, g.atoms[r[1]].x - cx);
+      let diff = a1 - a0;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      const step = (diff >= 0 ? 1 : -1) * ((2 * Math.PI) / n);
+      // Snap orientation to nearest 15 degrees
+      const snap0 = Math.round(a0 / (Math.PI / 12)) * (Math.PI / 12);
+      r.forEach((ai, k) => {{
+        if (!locked.has(ai)) {{
+          const ang = snap0 + step * k;
+          g.atoms[ai].x = +(cx + Math.cos(ang) * R).toFixed(2);
+          g.atoms[ai].y = +(cy + Math.sin(ang) * R).toFixed(2);
+          locked.add(ai);
+        }}
+      }});
+    }});
+    for (let iter = 0; iter < 45; iter++) {{
+      const fx = new Float64Array(g.atoms.length);
+      const fy = new Float64Array(g.atoms.length);
+      g.bonds.forEach((b) => {{
+        const A = g.atoms[b.a], B = g.atoms[b.b];
+        const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) || 0.1;
+        const err = (d - BOND_L) * 0.35;
+        const ux = dx / d, uy = dy / d;
+        if (!locked.has(b.a)) {{ fx[b.a] += ux * err; fy[b.a] += uy * err; }}
+        if (!locked.has(b.b)) {{ fx[b.b] -= ux * err; fy[b.b] -= uy * err; }}
+      }});
+      for (let i = 0; i < g.atoms.length; i++) {{
+        for (let j = i + 1; j < g.atoms.length; j++) {{
+          const dx = g.atoms[j].x - g.atoms[i].x, dy = g.atoms[j].y - g.atoms[i].y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < (BOND_L * 0.85) ** 2 && d2 > 0.01 && bondExists(g, i, j) < 0) {{
+            const d = Math.sqrt(d2), rep = ((BOND_L * 0.85 - d) / d) * 0.22;
+            if (!locked.has(i)) {{ fx[i] -= dx * rep; fy[i] -= dy * rep; }}
+            if (!locked.has(j)) {{ fx[j] += dx * rep; fy[j] += dy * rep; }}
           }}
         }}
       }}
-    }}
-    dfsTree(compAtoms[0]);
-
-    const ringTags = new Map();
-    compAtoms.forEach((i) => ringTags.set(i, []));
-    backEdges.forEach(([u, v], idx) => {{
-      const num = idx + 1;
-      const tag = num >= 10 ? "%" + num : String(num);
-      const bSym = bondOrd.get(edgeKey(u, v)) === 2 ? "=" : (bondOrd.get(edgeKey(u, v)) === 3 ? "#" : "");
-      ringTags.get(u).push(bSym + tag);
-      ringTags.get(v).push(tag);
-    }});
-
-    function atomToken(i) {{
-      const a = g.atoms[i];
-      const s = a.s || "C";
-      if (SUPER_SMILES[s] && (adj.get(i) || []).length <= 1) return SUPER_SMILES[s];
-      const chg = a.chg || 0;
-      const organic = new Set(["B","C","N","O","P","S","F","Cl","Br","I"]);
-      if (!chg && organic.has(s)) return s;
-      const chgStr = chg > 0 ? (chg === 1 ? "+" : "+" + chg) : (chg < 0 ? (chg === -1 ? "-" : String(chg)) : "");
-      return "[" + s + chgStr + "]";
-    }}
-
-    function emit(u, p) {{
-      let prefix = "";
-      if (p !== null) {{
-        const ord = bondOrd.get(edgeKey(p, u)) || 1;
-        prefix = ord === 2 ? "=" : (ord === 3 ? "#" : "");
+      for (let i = 0; i < g.atoms.length; i++) {{
+        g.atoms[i].x = +(g.atoms[i].x + Math.max(-4, Math.min(4, fx[i]))).toFixed(2);
+        g.atoms[i].y = +(g.atoms[i].y + Math.max(-4, Math.min(4, fy[i]))).toFixed(2);
       }}
-      let out = prefix + atomToken(u) + (ringTags.get(u) || []).join("");
-      const kids = treeChildren.get(u) || [];
-      for (let k = 0; k < kids.length; k++) {{
-        const childSmi = emit(kids[k], u);
-        out += (k < kids.length - 1) ? "(" + childSmi + ")" : childSmi;
-      }}
-      return out;
     }}
-    return emit(compAtoms[0], null);
+    render();
+    setToast("Cleaned 2D coordinates");
   }}
 
-  function graphToSmiles(g) {{
-    if (!g.atoms.length) return "";
-    const nb = neighbours(g);
-    const seen = new Set();
-    const comps = [];
-    for (let i = 0; i < g.atoms.length; i++) {{
-      if (seen.has(i)) continue;
-      const comp = [];
-      const qList = [i];
-      seen.add(i);
-      while (qList.length) {{
-        const u = qList.shift();
-        comp.push(u);
-        for (const e of nb[u]) {{
-          if (!seen.has(e.to)) {{ seen.add(e.to); qList.push(e.to); }}
+  // Expand abbreviations (e.g. CF3, CN, NO2, COOH, Boc, tBu, OMe, Ph) into explicit atoms
+  function expandAbbreviations(g) {{
+    let changed = false;
+    for (let i = g.atoms.length - 1; i >= 0; i--) {{
+      const sym = g.atoms[i].s;
+      if (!ABBR[sym]) continue;
+      if (!changed) {{ pushUndo(); changed = true; }}
+      const base = g.atoms[i];
+      const ang = sproutAngle(g, i, 1) + Math.PI;
+      const nb = neighbors(g, i);
+      const dir = nb.length === 1 ? Math.atan2(base.y - g.atoms[nb[0].to].y, base.x - g.atoms[nb[0].to].x) : ang;
+      if (sym === "CF3" || sym === "CCl3" || sym === "tBu" || sym === "TMS") {{
+        const centerSym = sym === "TMS" ? "Si" : "C";
+        const leafSym = sym === "CF3" ? "F" : (sym === "CCl3" ? "Cl" : "C");
+        base.s = centerSym;
+        [dir, dir + Math.PI * 0.52, dir - Math.PI * 0.52].forEach((a) => {{
+          const li = g.atoms.length;
+          g.atoms.push({{s: leafSym, x: +(base.x + Math.cos(a) * BOND_L).toFixed(2), y: +(base.y + Math.sin(a) * BOND_L).toFixed(2)}});
+          g.bonds.push({{a: i, b: li, o: 1}});
+        }});
+      }} else if (sym === "CN") {{
+        base.s = "C";
+        const ni = g.atoms.length;
+        g.atoms.push({{s: "N", x: +(base.x + Math.cos(dir) * BOND_L).toFixed(2), y: +(base.y + Math.sin(dir) * BOND_L).toFixed(2)}});
+        g.bonds.push({{a: i, b: ni, o: 3}});
+      }} else if (sym === "NO2") {{
+        base.s = "N"; base.chg = 1;
+        const o1 = g.atoms.length, o2 = o1 + 1;
+        g.atoms.push({{s: "O", x: +(base.x + Math.cos(dir + Math.PI/3)*BOND_L).toFixed(2), y: +(base.y + Math.sin(dir + Math.PI/3)*BOND_L).toFixed(2)}});
+        g.atoms.push({{s: "O", chg: -1, x: +(base.x + Math.cos(dir - Math.PI/3)*BOND_L).toFixed(2), y: +(base.y + Math.sin(dir - Math.PI/3)*BOND_L).toFixed(2)}});
+        g.bonds.push({{a: i, b: o1, o: 2}}, {{a: i, b: o2, o: 1}});
+      }} else if (sym === "COOH" || sym === "CO2H" || sym === "CO2Me" || sym === "CO2Et") {{
+        base.s = "C";
+        const o1 = g.atoms.length, o2 = o1 + 1;
+        g.atoms.push({{s: "O", x: +(base.x + Math.cos(dir + Math.PI/3)*BOND_L).toFixed(2), y: +(base.y + Math.sin(dir + Math.PI/3)*BOND_L).toFixed(2)}});
+        const ox = +(base.x + Math.cos(dir - Math.PI/3)*BOND_L).toFixed(2), oy = +(base.y + Math.sin(dir - Math.PI/3)*BOND_L).toFixed(2);
+        g.atoms.push({{s: "O", x: ox, y: oy}});
+        g.bonds.push({{a: i, b: o1, o: 2}}, {{a: i, b: o2, o: 1}});
+        if (sym === "CO2Me" || sym === "CO2Et") {{
+          const c1 = g.atoms.length;
+          const cx1 = +(ox + Math.cos(dir)*BOND_L).toFixed(2), cy1 = +(oy + Math.sin(dir)*BOND_L).toFixed(2);
+          g.atoms.push({{s: "C", x: cx1, y: cy1}});
+          g.bonds.push({{a: o2, b: c1, o: 1}});
+          if (sym === "CO2Et") {{
+            const c2 = g.atoms.length;
+            g.atoms.push({{s: "C", x: +(cx1 + Math.cos(dir - Math.PI/3)*BOND_L).toFixed(2), y: +(cy1 + Math.sin(dir - Math.PI/3)*BOND_L).toFixed(2)}});
+            g.bonds.push({{a: c1, b: c2, o: 1}});
+          }}
         }}
+      }} else if (sym === "OMe" || sym === "Me") {{
+        if (sym === "Me") base.s = "C";
+        else {{
+          base.s = "O";
+          const ci = g.atoms.length;
+          g.atoms.push({{s: "C", x: +(base.x + Math.cos(dir)*BOND_L).toFixed(2), y: +(base.y + Math.sin(dir)*BOND_L).toFixed(2)}});
+          g.bonds.push({{a: i, b: ci, o: 1}});
+        }}
+      }} else if (sym === "Boc") {{
+        base.s = "C";
+        const o1 = g.atoms.length, o2 = o1 + 1, ct = o1 + 2;
+        g.atoms.push({{s:"O", x:+(base.x + Math.cos(dir + Math.PI/3)*BOND_L).toFixed(2), y:+(base.y + Math.sin(dir + Math.PI/3)*BOND_L).toFixed(2)}});
+        const ox = +(base.x + Math.cos(dir - Math.PI/3)*BOND_L).toFixed(2), oy = +(base.y + Math.sin(dir - Math.PI/3)*BOND_L).toFixed(2);
+        g.atoms.push({{s:"O", x:ox, y:oy}});
+        const tx = +(ox + Math.cos(dir)*BOND_L).toFixed(2), ty = +(oy + Math.sin(dir)*BOND_L).toFixed(2);
+        g.atoms.push({{s:"C", x:tx, y:ty}});
+        g.bonds.push({{a:i,b:o1,o:2}},{{a:i,b:o2,o:1}},{{a:o2,b:ct,o:1}});
+        [dir, dir + Math.PI*0.52, dir - Math.PI*0.52].forEach((a) => {{
+          const mi = g.atoms.length;
+          g.atoms.push({{s:"C", x:+(tx + Math.cos(a)*BOND_L).toFixed(2), y:+(ty + Math.sin(a)*BOND_L).toFixed(2)}});
+          g.bonds.push({{a:ct,b:mi,o:1}});
+        }});
+      }} else if (sym === "Ph") {{
+        base.s = "C";
+        const R = BOND_L;
+        const rcx = base.x + Math.cos(dir) * R, rcy = base.y + Math.sin(dir) * R;
+        const a0 = Math.atan2(base.y - rcy, base.x - rcx);
+        const ids = [i];
+        for (let k = 1; k < 6; k++) {{
+          const ang2 = a0 + (k * Math.PI) / 3;
+          ids.push(g.atoms.length);
+          g.atoms.push({{s:"C", x:+(rcx + Math.cos(ang2)*R).toFixed(2), y:+(rcy + Math.sin(ang2)*R).toFixed(2)}});
+        }}
+        for (let k = 0; k < 6; k++) g.bonds.push({{a:ids[k], b:ids[(k+1)%6], o: k % 2 === 0 ? 2 : 1}});
+      }}
+    }}
+    if (changed) {{ render(); setToast("Expanded abbreviations to explicit atoms"); }}
+    else setToast("No expandable superatom abbreviations on canvas");
+  }}
+
+  // Implicit hydrogens & live metrics
+  function implicitH(g, ai, orderSum) {{
+    const a = g.atoms[ai];
+    if (!a || ABBR[a.s] || a.s.startsWith("[") || ["A","Q","X","M","G","*"].includes(a.s) || /^R\d*$/.test(a.s)) return 0;
+    if (a.qlock === "s*") return 0;
+    let v = VALENCE[a.s] || 0;
+    const chg = a.chg || 0;
+    if (a.s === "N" && chg === 1) v = 4;
+    else if (a.s === "O" && chg === 1) v = 3;
+    else if (a.s === "O" && chg === -1) v = 1;
+    else if ((a.s === "B" || a.s === "Al") && chg === -1) v = 4;
+    else if (a.s === "C" && Math.abs(chg) === 1) v = 3;
+    else if (a.s === "S" && orderSum > 2) v = orderSum <= 4 ? 4 : 6;
+    else if (a.s === "P" && orderSum > 3) v = 5;
+    const rad = a.rad || 0;
+    return Math.max(0, v - orderSum - rad);
+  }}
+
+  function graphToSmiles(g, smartsMode = false) {{
+    if (!g.atoms.length) return "";
+    const adj = g.atoms.map(() => []);
+    const bmap = new Map();
+    const ek = (u, v) => (u < v ? u + ":" + v : v + ":" + u);
+    g.bonds.forEach((b) => {{
+      if (b.a < g.atoms.length && b.b < g.atoms.length && b.q !== "hbond" && !b.multicenter) {{
+        adj[b.a].push(b.b); adj[b.b].push(b.a);
+        bmap.set(ek(b.a, b.b), b);
+      }}
+    }});
+    const seen = new Set(), comps = [];
+    for (let i = 0; i < g.atoms.length; i++) {{
+      if (g.atoms[i].multicenterCenter) continue;
+      if (seen.has(i)) continue;
+      const comp = [], q = [i]; seen.add(i);
+      while (q.length) {{
+        const u = q.shift(); comp.push(u);
+        adj[u].forEach((v) => {{ if (!seen.has(v)) {{ seen.add(v); q.push(v); }} }});
       }}
       comps.push(comp);
     }}
-    if (g.arrows && g.arrows.length) {{
-      const ar = g.arrows[0];
-      const midX = (ar.x1 + ar.x2) / 2;
-      const left = [], right = [];
+    const bondSym = (b) => {{
+      if (!b) return "";
+      if (smartsMode && b.q) {{
+        if (b.q === "any") return "~";
+        if (b.q === "12") return "-,=";
+        if (b.q === "1a") return "-,:";
+        if (b.q === "2a") return "=,:";
+        if (b.q === "arom") return ":";
+      }}
+      if (b.o === 2) return "=";
+      if (b.o === 3) return "#";
+      return "";
+    }};
+    const atomTok = (i) => {{
+      const a = g.atoms[i];
+      if (!smartsMode && ABBR[a.s]) return ABBR[a.s].smi;
+      if (a.s === "*") return "*";
+      if (smartsMode) {{
+        if (a.s === "A") return "[!#1]";
+        if (a.s === "Q") return "[!#6;!#1]";
+        if (a.s === "X") return "[F,Cl,Br,I]";
+        if (a.s.startsWith("[")) return a.s;
+      }}
+      const organic = ["B","C","N","O","P","S","F","Cl","Br","I"];
+      const needBrk = !organic.includes(a.s) || a.chg || a.iso || a.map || (smartsMode && a.qlock);
+      if (!needBrk) return a.s;
+      const iso = a.iso ? String(a.iso) : "";
+      const chg = a.chg ? (a.chg > 0 ? "+" + (a.chg > 1 ? a.chg : "") : "-" + (a.chg < -1 ? Math.abs(a.chg) : "")) : "";
+      const ql = (smartsMode && a.qlock && a.qlock !== "s*") ? ";" + a.qlock : "";
+      const mp = a.map ? ":" + a.map : "";
+      const base = /^[A-Z][a-z]?$/.test(a.s) ? a.s : "*" ;
+      return `[${{iso}}${{base}}${{chg}}${{ql}}${{mp}}]`;
+    }};
+    const serComp = (comp) => {{
+      const vis = new Set(), par = new Map(), kids = new Map(), rtags = new Map(), seenB = new Set();
+      comp.forEach((u) => {{ kids.set(u, []); rtags.set(u, []); }});
+      let rno = 0;
+      const dfs = (u) => {{
+        vis.add(u);
+        for (const v of adj[u]) {{
+          if (!vis.has(v)) {{ par.set(v, u); kids.get(u).push(v); dfs(v); }}
+          else if (par.get(u) !== v && !seenB.has(ek(u, v))) {{
+            seenB.add(ek(u, v)); rno++;
+            const tag = rno >= 10 ? "%" + rno : String(rno);
+            const bs = bondSym(bmap.get(ek(u, v)));
+            rtags.get(u).push(bs + tag);
+            rtags.get(v).push(tag);
+          }}
+        }}
+      }};
+      dfs(comp[0]);
+      const emit = (u, p) => {{
+        const bs = p == null ? "" : bondSym(bmap.get(ek(u, p)));
+        const ch = kids.get(u);
+        let out = bs + atomTok(u) + rtags.get(u).join("");
+        ch.forEach((c, idx) => {{ out += idx < ch.length - 1 ? "(" + emit(c, u) + ")" : emit(c, u); }});
+        return out;
+      }};
+      return emit(comp[0], null);
+    }};
+    if (g.arrows.length > 0) {{
+      const ax = (g.arrows[0].x1 + g.arrows[0].x2) / 2;
+      const lhs = [], rhs = [];
       comps.forEach((c) => {{
-        const avgX = c.reduce((s, idx) => s + g.atoms[idx].x, 0) / c.length;
-        (avgX <= midX ? left : right).push(componentSmiles(g, c));
+        const cx = c.reduce((s, i) => s + g.atoms[i].x, 0) / c.length;
+        (cx < ax ? lhs : rhs).push(serComp(c));
       }});
-      if (left.length && right.length) return left.join(".") + ">>" + right.join(".");
+      return lhs.join(".") + ">>" + rhs.join(".");
     }}
-    return comps.map((c) => componentSmiles(g, c)).filter(Boolean).join(".");
+    return comps.map(serComp).join(".");
   }}
 
-  // Lightweight client-side SMILES parser for instant interactive loading without backend roundtrip
+  // MDL Molfile V2000 Generator & Parser (Native Reaxys / SciFinder format!)
+  function toMolfileV2000(g) {{
+    const realIdx = [];
+    const mapIdx = new Map();
+    g.atoms.forEach((a, i) => {{
+      if (!a.multicenterCenter) {{ mapIdx.set(i, realIdx.length + 1); realIdx.push(i); }}
+    }});
+    const validBonds = g.bonds.filter((b) => mapIdx.has(b.a) && mapIdx.has(b.b));
+    let out = `${{g.name || "Structure"}}\n  CDXMLToolkit-2DStudio          2D\n\n`;
+    out += String(realIdx.length).padStart(3) + String(validBonds.length).padStart(3) + "  0  0  0  0            999 V2000\n";
+    const cx = realIdx.length ? realIdx.reduce((s, i) => s + g.atoms[i].x, 0) / realIdx.length : 0;
+    const cy = realIdx.length ? realIdx.reduce((s, i) => s + g.atoms[i].y, 0) / realIdx.length : 0;
+    const chgs = [], isos = [], rads = [];
+    realIdx.forEach((ai, k) => {{
+      const a = g.atoms[ai];
+      const mx = ((a.x - cx) / BOND_L * 1.54).toFixed(4).padStart(10);
+      const my = (-(a.y - cy) / BOND_L * 1.54).toFixed(4).padStart(10);
+      const mz = (0).toFixed(4).padStart(10);
+      const sym = (/^[A-Z][a-z]?$/.test(a.s) || ["A","Q","X","*"].includes(a.s) ? a.s : "R#").padEnd(3);
+      const mp = String(a.map || 0).padStart(3);
+      out += `${{mx}}${{my}}${{mz}} ${{sym}} 0  0  0  0  0  0  0  0  0${{mp}}  0  0\n`;
+      if (a.chg) chgs.push([k + 1, a.chg]);
+      if (a.iso) isos.push([k + 1, a.iso]);
+      if (a.rad) rads.push([k + 1, a.rad]);
+    }});
+    validBonds.forEach((b) => {{
+      const u = String(mapIdx.get(b.a)).padStart(3);
+      const v = String(mapIdx.get(b.b)).padStart(3);
+      let bt = b.o >= 4 ? 1 : (b.o || 1);
+      if (b.q === "arom") bt = 4;
+      else if (b.q === "12") bt = 5;
+      else if (b.q === "1a") bt = 6;
+      else if (b.q === "2a") bt = 7;
+      else if (b.q === "any") bt = 8;
+      let st = 0;
+      if (b.o === 4) st = 1;
+      else if (b.o === 5) st = 6;
+      else if (b.o === 6) st = 4;
+      else if (b.ez) st = 3;
+      out += `${{u}}${{v}}${{String(bt).padStart(3)}}${{String(st).padStart(3)}}  0  0  0\n`;
+    }});
+    chgs.forEach(([idx, c]) => {{ out += `M  CHG  1 ${{String(idx).padStart(3)}} ${{String(c).padStart(3)}}\n`; }});
+    isos.forEach(([idx, m]) => {{ out += `M  ISO  1 ${{String(idx).padStart(3)}} ${{String(m).padStart(3)}}\n`; }});
+    rads.forEach(([idx, r]) => {{ out += `M  RAD  1 ${{String(idx).padStart(3)}} ${{String(r).padStart(3)}}\n`; }});
+    out += "M  END\n";
+    return out;
+  }}
+
+  function parseMolfileV2000(text) {{
+    const lines = text.replace(/\r/g, "").split("\n");
+    const vIdx = lines.findIndex((l) => l.includes("V2000"));
+    if (vIdx < 0) return null;
+    const na = parseInt(lines[vIdx].slice(0, 3), 10);
+    const nb = parseInt(lines[vIdx].slice(3, 6), 10);
+    if (isNaN(na) || na <= 0) return null;
+    const rawAtoms = [], bonds = [];
+    for (let i = 0; i < na; i++) {{
+      const l = lines[vIdx + 1 + i] || "";
+      const x = parseFloat(l.slice(0, 10)) || 0;
+      const y = parseFloat(l.slice(10, 20)) || 0;
+      const s = l.slice(31, 34).trim() || "C";
+      rawAtoms.push({{s, x, y: -y}});
+    }}
+    for (let i = 0; i < nb; i++) {{
+      const l = lines[vIdx + 1 + na + i] || "";
+      const a = parseInt(l.slice(0, 3), 10) - 1;
+      const b = parseInt(l.slice(3, 6), 10) - 1;
+      const bt = parseInt(l.slice(6, 9), 10) || 1;
+      const st = parseInt(l.slice(9, 12), 10) || 0;
+      let o = bt <= 3 ? bt : 1;
+      if (st === 1) o = 4; else if (st === 6) o = 5; else if (st === 4) o = 6;
+      const entry = {{a, b, o}};
+      if (bt === 4) entry.q = "arom"; else if (bt === 8) entry.q = "any";
+      if (a >= 0 && b >= 0 && a < na && b < na) bonds.push(entry);
+    }}
+    lines.slice(vIdx + 1 + na + nb).forEach((l) => {{
+      if (l.startsWith("M  CHG")) {{
+        const parts = l.slice(6).trim().split(/\s+/).map(Number);
+        for (let k = 1; k < parts.length; k += 2) {{
+          if (rawAtoms[parts[k] - 1]) rawAtoms[parts[k] - 1].chg = parts[k + 1];
+        }}
+      }}
+    }});
+    const cx = rawAtoms.reduce((s, a) => s + a.x, 0) / na;
+    const cy = rawAtoms.reduce((s, a) => s + a.y, 0) / na;
+    const scale = BOND_L / 1.54;
+    const atoms = rawAtoms.map((a) => ({{...a, x: +(340 + (a.x - cx) * scale).toFixed(2), y: +(178 + (a.y - cy) * scale).toFixed(2)}}));
+    return normalizeGraph({{name: lines[0].trim() || "Imported Molfile", atoms, bonds}});
+  }}
+
+  // Client-side SMILES parser (handles branches, rings, aromaticity -> Kekule, charges, reactions)
   function parseSmilesClient(smi) {{
-    const clean = (smi || "").trim();
+    const clean = smi.trim();
     if (!clean) return null;
     if (clean.includes(">>")) {{
-      const [lhs, rhs] = clean.split(">>");
-      const gL = parseSmilesSingle(lhs, 130, 145, 24);
-      const gR = parseSmilesSingle(rhs, 430, 145, 24);
-      if (!gL || !gR) return null;
-      const off = gL.atoms.length;
-      return {{
-        name: clean,
-        atoms: [...gL.atoms, ...gR.atoms],
-        bonds: [...gL.bonds, ...gR.bonds.map((b) => ({{ a: b.a + off, b: b.b + off, o: b.o }}))],
-        arrows: [{{ x1: 235, y1: 145, x2: 325, y2: 145, style: "solid", above: "", below: "" }}],
-        pluses: lhs.includes(".") ? [{{ x: 130, y: 145 }}] : [],
-        texts: [], circles: [], spokes: [], ring_fills: []
-      }};
+      const [l, r] = clean.split(">>");
+      const gl = parseSmilesClient(l) || normalizeGraph({{}});
+      const gr = parseSmilesClient(r) || normalizeGraph({{}});
+      gl.atoms.forEach((a) => {{ a.x -= 155; }});
+      const off = gl.atoms.length;
+      gr.atoms.forEach((a) => {{ gl.atoms.push({{...a, x: a.x + 155}}); }});
+      gr.bonds.forEach((b) => gl.bonds.push({{...b, a: b.a + off, b: b.b + off}}));
+      gl.arrows.push({{x1: 295, y1: 178, x2: 385, y2: 178, style: "solid", above: "", below: ""}});
+      return gl;
     }}
-    return parseSmilesSingle(clean, 275, 145, 27);
-  }}
-
-  function parseSmilesSingle(smi, cx, cy, L) {{
-    const parts = smi.split(".").filter(Boolean);
-    let allAtoms = [], allBonds = [];
-    parts.forEach((part, pi) => {{
-      const atoms = [], bonds = [];
-      const stack = [];
-      const rings = {{}};
-      let prev = -1, pendingOrd = 1, i = 0;
-      const aromSet = new Set();
-      while (i < part.length) {{
-        const ch = part[i];
-        if (ch === "(") {{ stack.push(prev); i++; continue; }}
-        if (ch === ")") {{ prev = stack.pop() ?? prev; i++; continue; }}
-        if (ch === "=") {{ pendingOrd = 2; i++; continue; }}
-        if (ch === "#") {{ pendingOrd = 3; i++; continue; }}
-        if (ch === "-" || ch === "/" || ch === "\\\\") {{ pendingOrd = 1; i++; continue; }}
-        if (ch >= "0" && ch <= "9") {{
-          const d = ch;
-          if (rings[d] !== undefined && prev >= 0) {{
-            bonds.push({{ a: rings[d].idx, b: prev, o: pendingOrd > 1 ? pendingOrd : rings[d].ord }});
-            delete rings[d];
-          }} else if (prev >= 0) {{
-            rings[d] = {{ idx: prev, ord: pendingOrd }};
-          }}
-          pendingOrd = 1; i++; continue;
+    const atoms = [], bonds = [], aromSet = new Set();
+    const stack = [], ringOpen = new Map();
+    let cur = -1, pendOrd = 1, pendQ = null, i = 0;
+    while (i < clean.length) {{
+      const ch = clean[i];
+      if (ch === ".") {{ cur = -1; pendOrd = 1; i++; continue; }}
+      if (ch === "(") {{ stack.push(cur); i++; continue; }}
+      if (ch === ")") {{ cur = stack.pop() ?? -1; i++; continue; }}
+      if (ch === "=") {{ pendOrd = 2; i++; continue; }}
+      if (ch === "#") {{ pendOrd = 3; i++; continue; }}
+      if (ch === "~") {{ pendOrd = 1; pendQ = "any"; i++; continue; }}
+      if (ch === "-" || ch === "/" || ch === "\\") {{ pendOrd = 1; i++; continue; }}
+      if (ch === "%" || /\d/.test(ch)) {{
+        let rtag = ch;
+        if (ch === "%") {{ rtag = clean.slice(i + 1, i + 3); i += 3; }} else i++;
+        if (ringOpen.has(rtag)) {{
+          const [prev, ro] = ringOpen.get(rtag);
+          ringOpen.delete(rtag);
+          if (cur >= 0 && prev !== cur) bonds.push({{a: prev, b: cur, o: Math.max(pendOrd, ro)}});
+        }} else if (cur >= 0) {{
+          ringOpen.set(rtag, [cur, pendOrd]);
         }}
-        let sym = null, isArom = false, chg = 0;
-        if (ch === "[") {{
-          const end = part.indexOf("]", i);
-          if (end < 0) break;
-          const inner = part.slice(i + 1, end);
-          const m = inner.match(/^([A-Za-z][a-z]?)/);
-          sym = m ? m[1] : "C";
-          if (/^[a-z]/.test(sym)) {{ isArom = true; sym = sym.toUpperCase(); }}
-          if (inner.includes("+")) chg = 1;
-          else if (inner.includes("-")) chg = -1;
-          i = end + 1;
-        }} else if (part.slice(i, i + 2) === "Cl" || part.slice(i, i + 2) === "Br") {{
-          sym = part.slice(i, i + 2); i += 2;
-        }} else if (/[A-Za-z]/.test(ch)) {{
-          isArom = ch === ch.toLowerCase();
-          sym = ch.toUpperCase(); i++;
-        }} else {{ i++; continue; }}
-
-        const cur = atoms.length;
-        let x = cx + (pi - (parts.length - 1) / 2) * 110, y = cy;
-        if (prev >= 0) {{
-          const ang = sproutAngle({{ atoms, bonds }}, prev, pendingOrd);
-          x = +(atoms[prev].x + Math.cos(ang) * L).toFixed(2);
-          y = +(atoms[prev].y + Math.sin(ang) * L).toFixed(2);
-        }}
-        atoms.push(chg ? {{ s: sym, x, y, chg }} : {{ s: sym, x, y }});
-        if (isArom) aromSet.add(cur);
-        if (prev >= 0) {{
-          const ord = (pendingOrd === 1 && aromSet.has(prev) && aromSet.has(cur) && (cur % 2 === 1)) ? 2 : pendingOrd;
-          bonds.push({{ a: prev, b: cur, o: ord }});
-        }}
-        prev = cur; pendingOrd = 1;
+        pendOrd = 1; pendQ = null; continue;
       }}
-      // Regularize simple 5/6-membered single rings cleanly
-      const gTmp = {{ atoms, bonds }};
-      const foundRings = findSmallRings(gTmp);
-      if (foundRings.length === 1 && foundRings[0].length === atoms.length) {{
-        const n = foundRings[0].length, R = L / (2 * Math.sin(Math.PI / n));
-        foundRings[0].forEach((ai, k) => {{
-          const ang = -Math.PI / 2 + (2 * Math.PI * k) / n;
-          atoms[ai].x = +(cx + Math.cos(ang) * R).toFixed(2);
-          atoms[ai].y = +(cy + Math.sin(ang) * R).toFixed(2);
-        }});
+      let sym = null, chg = 0, iso = 0, mp = 0, isArom = false;
+      if (ch === "[") {{
+        const end = clean.indexOf("]", i);
+        if (end < 0) break;
+        const body = clean.slice(i + 1, end);
+        i = end + 1;
+        const m = body.match(/^(\d+)?([A-Za-z*]+)(?:@+)?(?:H\d*)?([+-]\d*)?(?::(\d+))?/);
+        if (m) {{
+          if (m[1]) iso = parseInt(m[1], 10);
+          sym = m[2];
+          if (/^[a-z]+$/.test(sym)) {{ isArom = true; sym = sym[0].toUpperCase() + sym.slice(1); }}
+          if (m[3]) chg = m[3] === "+" ? 1 : (m[3] === "-" ? -1 : parseInt(m[3], 10));
+          if (m[4]) mp = parseInt(m[4], 10);
+        }} else sym = "C";
+      }} else if (ch === "C" && clean[i + 1] === "l") {{ sym = "Cl"; i += 2; }}
+      else if (ch === "B" && clean[i + 1] === "r") {{ sym = "Br"; i += 2; }}
+      else if (/[BCNOPSFI*]/.test(ch)) {{ sym = ch; i++; }}
+      else if (/[bcnops]/.test(ch)) {{ sym = ch.toUpperCase(); isArom = true; i++; }}
+      else {{ i++; continue; }}
+
+      const idx = atoms.length;
+      const ang = cur >= 0 ? ((idx % 2 === 0 ? 1 : -1) * Math.PI / 6) : 0;
+      const px = cur >= 0 ? atoms[cur].x + Math.cos(ang) * BOND_L : 260 + (idx > 0 ? 90 : 0);
+      const py = cur >= 0 ? atoms[cur].y + Math.sin(ang) * BOND_L : 178;
+      const aObj = {{s: sym, x: +px.toFixed(2), y: +py.toFixed(2)}};
+      if (chg) aObj.chg = chg;
+      if (iso) aObj.iso = iso;
+      if (mp) aObj.map = mp;
+      atoms.push(aObj);
+      if (isArom) aromSet.add(idx);
+      if (cur >= 0) {{
+        const bObj = {{a: cur, b: idx, o: pendOrd}};
+        if (pendQ) bObj.q = pendQ;
+        bonds.push(bObj);
       }}
-      const off = allAtoms.length;
-      allAtoms.push(...atoms);
-      allBonds.push(...bonds.map((b) => ({{ a: b.a + off, b: b.b + off, o: b.o }})));
+      cur = idx; pendOrd = 1; pendQ = null;
+    }}
+    // Kekulize simple aromatic rings
+    const g = normalizeGraph({{atoms, bonds}});
+    const rings = findSmallRings(g);
+    rings.forEach((r) => {{
+      if (r.every((u) => aromSet.has(u))) {{
+        for (let k = 0; k < r.length; k += 2) {{
+          const bi = bondExists(g, r[k], r[(k + 1) % r.length]);
+          if (bi >= 0) g.bonds[bi].o = 2;
+        }}
+      }}
     }});
-    return allAtoms.length ? {{ name: smi, atoms: allAtoms, bonds: allBonds, arrows: [], pluses: [], texts: [], circles: [], spokes: [], ring_fills: [] }} : null;
+    clean2D(g);
+    state.undoStack.pop();
+    return g;
   }}
 
-  function computeMetrics(g) {{
-    const atoms = g.atoms || [], bonds = g.bonds || [];
-    const deg = Array(atoms.length).fill(0);
-    bonds.forEach((b) => {{
+  function toCdxml(g) {{
+    const st = state.styles[state.style] || {{bondLength: 14.4, lineWidth: 0.6}};
+    let nodes = "", bxml = "";
+    g.atoms.forEach((a, i) => {{
+      if (a.multicenterCenter) return;
+      const z = ELEM_Z[a.s] || 6;
+      const chg = a.chg ? ` Charge="${{a.chg}}"` : "";
+      const iso = a.iso ? ` Isotope="${{a.iso}}"` : "";
+      const isNick = !ELEM_Z[a.s] && a.s !== "C";
+      if (isNick) {{
+        nodes += `      <n id="${{i + 1}}" p="${{a.x.toFixed(2)}} ${{a.y.toFixed(2)}}" NodeType="Nickname"${{chg}}><t p="${{a.x.toFixed(2)}} ${{a.y.toFixed(2)}}"><s font="3" size="10" face="96">${{esc(a.s)}}</s></t></n>\n`;
+      }} else {{
+        const elAttr = a.s !== "C" ? ` Element="${{z}}"` : "";
+        nodes += `      <n id="${{i + 1}}" p="${{a.x.toFixed(2)}} ${{a.y.toFixed(2)}}"${{elAttr}}${{chg}}${{iso}}/>\n`;
+      }}
+    }});
+    g.bonds.forEach((b, i) => {{
+      if (g.atoms[b.a]?.multicenterCenter || g.atoms[b.b]?.multicenterCenter) return;
+      const ord = b.o >= 4 ? 1 : (b.o || 1);
+      let disp = "";
+      if (b.o === 4) disp = ' Display="WedgeBegin"';
+      else if (b.o === 5) disp = ' Display="WedgedHashBegin"';
+      else if (b.o === 6) disp = ' Display="Wavy"';
+      else if (b.o === 7) disp = ' Display="Bold"';
+      bxml += `      <b id="${{1000 + i}}" B="${{b.a + 1}}" E="${{b.b + 1}}" Order="${{ord}}"${{disp}}/>\n`;
+    }});
+    let arrowsXml = "";
+    g.arrows.forEach((ar, i) => {{
+      arrowsXml += `    <arrow id="${{3000 + i}}" Head3D="${{ar.x2.toFixed(2)}} ${{ar.y2.toFixed(2)}} 0" Tail3D="${{ar.x1.toFixed(2)}} ${{ar.y1.toFixed(2)}} 0" ArrowheadType="Solid"/>\n`;
+    }});
+    return `<?xml version="1.0" encoding="UTF-8" ?>\n<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >\n<CDXML BondLength="${{st.bondLength || 14.4}}" LineWidth="${{st.lineWidth || 0.6}}">\n  <page id="5000">\n    <fragment id="5001">\n${{nodes}}${{bxml}}    </fragment>\n${{arrowsXml}}  </page>\n</CDXML>\n`;
+  }}
+
+  function esc(s) {{
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }}
+
+  // Format chemical formula label with SVG tspan subscripts (e.g. CO2Et -> CO₂Et, CF3 -> CF₃)
+  function formatChemLabelSvg(sym, flipLeft) {{
+    let txt = (flipLeft && LEFT_FLIP[sym]) ? LEFT_FLIP[sym] : sym;
+    return esc(txt).replace(/([A-Za-z)\]])(\d+)/g, '$1<tspan dy="2.8" font-size="8.8">$2</tspan><tspan dy="-2.8"> </tspan>').replace(/<\/tspan> /g, "</tspan>");
+  }}
+
+  function updateMetrics() {{
+    const g = state.graph;
+    const ordSum = g.atoms.map(() => 0);
+    g.bonds.forEach((b) => {{
+      if (b.q === "hbond" || b.multicenter) return;
       const o = b.o >= 4 ? 1 : (b.o || 1);
-      if (b.a < atoms.length) deg[b.a] += o;
-      if (b.b < atoms.length) deg[b.b] += o;
+      if (b.a < ordSum.length) ordSum[b.a] += o;
+      if (b.b < ordSum.length) ordSum[b.b] += o;
     }});
     const counts = {{}};
-    const implicitH = Array(atoms.length).fill(0);
-    const overVal = Array(atoms.length).fill(false);
-    atoms.forEach((a, i) => {{
-      const s = a.s || "C";
-      const chg = a.chg || 0;
-      if (SUPER_FORMULAS[s]) {{
-        Object.entries(SUPER_FORMULAS[s]).forEach(([el, n]) => {{ counts[el] = (counts[el] || 0) + n; }});
+    let mw = 0, exact = 0;
+    g.atoms.forEach((a, i) => {{
+      if (a.multicenterCenter) return;
+      if (ABBR[a.s]) {{
+        Object.entries(ABBR[a.s].f).forEach(([el, n]) => {{
+          counts[el] = (counts[el] || 0) + n;
+          mw += (MASS[el] || 0) * n;
+          exact += (EXACT[el] || MASS[el] || 0) * n;
+        }});
         return;
       }}
-      if (WEIGHTS[s]) counts[s] = (counts[s] || 0) + 1;
-      let v = VALENCE[s] || 0;
-      if (s === "N" && chg === 1) v = 4;
-      else if (s === "O" && chg === -1) v = 1;
-      else if (s === "B" && chg === -1) v = 4;
-      if (v > 0 && deg[i] > v && !["S", "P"].includes(s)) overVal[i] = true;
-      const h = Math.max(0, v - deg[i]);
-      implicitH[i] = h;
-      if (h) counts.H = (counts.H || 0) + h;
-    }});
-    let formula = "";
-    ["C", "H"].forEach((k) => {{ if (counts[k]) formula += k + (counts[k] > 1 ? counts[k] : ""); }});
-    Object.keys(counts).filter((k) => k !== "C" && k !== "H").sort().forEach((k) => {{
-      formula += k + (counts[k] > 1 ? counts[k] : "");
-    }});
-    const mw = Object.entries(counts).reduce((acc, [k, n]) => acc + (WEIGHTS[k] || 0) * n, 0);
-    const cN = counts.C || 0, hN = counts.H || 0, nN = counts.N || 0;
-    const hal = (counts.F || 0) + (counts.Cl || 0) + (counts.Br || 0) + (counts.I || 0);
-    const dbe = atoms.length ? Math.max(0, Math.round(cN + 1 - (hN + hal - nN) / 2)) : 0;
-    return {{ formula: formula || "-", mw: mw ? mw.toFixed(2) : "-", dbe, implicitH, overVal }};
-  }}
-
-  function generateCdxml(g) {{
-    const preset = STYLES[state.style] || STYLES.acs1996;
-    const scale = (preset.bondLength || 14.4) / 28.0;
-    let id = 100;
-    const nid = () => String(++id);
-    const lines = [
-      '<?xml version="1.0" encoding="UTF-8"?>',
-      '<!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd">',
-      `<CDXML BondLength="${{preset.bondLength || 14.4}}" LabelFont="3" LabelSize="${{preset.labelSize || 10}}">`,
-      '  <page id="1" WidthPages="1" HeightPages="1">',
-      '    <fragment id="2">'
-    ];
-    const atomIds = (g.atoms || []).map((a) => {{
-      const aid = nid();
-      const x = (a.x * scale + 60).toFixed(2);
-      const y = (a.y * scale + 60).toFixed(2);
-      const el = ELEM_NUM[a.s];
-      const chgAttr = a.chg ? ` Charge="${{a.chg}}"` : "";
-      if (a.s === "C" && !a.chg) {{
-        lines.push(`      <n id="${{aid}}" p="${{x}} ${{y}}"/>`);
-      }} else if (el) {{
-        const elAttr = el === 6 ? "" : ` Element="${{el}}"`;
-        lines.push(`      <n id="${{aid}}" p="${{x}} ${{y}}"${{elAttr}}${{chgAttr}}><t p="${{x}} ${{y}}"><s>${{esc(a.s)}}</s></t></n>`);
-      }} else {{
-        lines.push(`      <n id="${{aid}}" p="${{x}} ${{y}}" NodeType="Fragment"><t p="${{x}} ${{y}}"><s>${{esc(a.s)}}</s></t></n>`);
+      if (MASS[a.s]) {{
+        counts[a.s] = (counts[a.s] || 0) + 1;
+        mw += a.iso || MASS[a.s];
+        exact += a.iso || EXACT[a.s] || MASS[a.s];
+        const h = implicitH(g, i, ordSum[i]);
+        if (h > 0) {{
+          counts.H = (counts.H || 0) + h;
+          mw += MASS.H * h;
+          exact += EXACT.H * h;
+        }}
       }}
-      return aid;
     }});
-    (g.bonds || []).forEach((b) => {{
-      const a = atomIds[b.a], c = atomIds[b.b];
-      if (!a || !c) return;
-      const bid = nid();
-      const orderAttr = b.o === 2 || b.o === 3 ? ` Order="${{b.o}}"` : "";
-      const dispAttr = b.o === 4 ? ' Display="WedgeBegin"' : (b.o === 5 ? ' Display="WedgedHashBegin"' : (b.o === 6 ? ' Display="Wavy"' : ""));
-      lines.push(`      <b id="${{bid}}" B="${{a}}" E="${{c}}"${{orderAttr}}${{dispAttr}}/>`);
-    }});
-    lines.push("    </fragment>");
-    (g.arrows || []).forEach((ar) => {{
-      const x1 = (ar.x1 * scale + 60).toFixed(2), y1 = (ar.y1 * scale + 60).toFixed(2);
-      const x2 = (ar.x2 * scale + 60).toFixed(2), y2 = (ar.y2 * scale + 60).toFixed(2);
-      lines.push(`    <arrow id="${{nid()}}" Head3D="${{x2}} ${{y2}} 0" Tail3D="${{x1}} ${{y1}} 0" ArrowheadType="Solid"/>`);
-    }});
-    lines.push("  </page>", "</CDXML>");
-    return lines.join("\\n");
+    const order = ["C", "H", ...Object.keys(counts).filter((k) => k !== "C" && k !== "H").sort()];
+    const fStr = order.filter((k) => counts[k]).map((k) => k + (counts[k] > 1 ? counts[k] : "")).join("") || "—";
+    const cN = counts.C || 0, hN = (counts.H || 0) + (counts.D || 0) + (counts.T || 0);
+    const hal = (counts.F || 0) + (counts.Cl || 0) + (counts.Br || 0) + (counts.I || 0);
+    const nN = counts.N || 0;
+    const dbe = g.atoms.length ? Math.max(0, Math.round(cN + 1 - (hN + hal - nN) / 2)) : 0;
+    const qMode = document.getElementById("cdx-query-mode").value;
+    const smi = graphToSmiles(g, qMode === "substructure");
+    document.getElementById("cdx-m-formula").textContent = fStr;
+    document.getElementById("cdx-m-exact").textContent = exact.toFixed(4);
+    document.getElementById("cdx-m-mw").textContent = mw.toFixed(2);
+    document.getElementById("cdx-m-dbe").textContent = String(dbe);
+    document.getElementById("cdx-m-smi").textContent = smi || "Empty canvas";
+    document.getElementById("cdx-m-smi").title = smi || "Draw a structure";
   }}
 
-  function formatAtomLabel(g, nb, metrics, i) {{
-    const a = g.atoms[i];
-    const h = metrics.implicitH[i] || 0;
-    const chg = a.chg || 0;
-    const chgSup = chg ? (chg > 0 ? (chg === 1 ? "+" : chg + "+") : (chg === -1 ? "−" : Math.abs(chg) + "−")) : "";
-    const sub = (n) => (n > 1 ? ["","","₂","₃","₄"][n] || String(n) : "");
-    if (SUPER_FORMULAS[a.s] && a.s !== "Ph") {{
-      return a.s.replace(/(\\d+)/g, (m) => ["₀","₁","₂","₃","₄","₅","₆","₇","₈","₉"][Number(m)] || m);
-    }}
-    if (!h) return a.s + chgSup;
-    const hPart = "H" + sub(h);
-    const edges = nb[i] || [];
-    // Put H on left (HO-, H2N-) when bonds point predominantly right
-    const avgDx = edges.length ? edges.reduce((acc, e) => acc + (g.atoms[e.to].x - a.x), 0) / edges.length : -1;
-    if (avgDx > 6 && ["O", "N", "S", "F", "Cl", "Br", "I"].includes(a.s) && !chgSup) {{
-      return hPart + a.s;
-    }}
-    return a.s + hPart + chgSup;
-  }}
-
+  // Main SVG Renderer
   function render() {{
     const g = state.graph;
-    const atoms = g.atoms || [], bonds = g.bonds || [];
-    const nb = neighbours(g);
     const rings = findSmallRings(g);
-    const metrics = computeMetrics(g);
-    const preset = STYLES[state.style] || STYLES.acs1996;
-    const sw = preset.lineWidth ? Math.max(1.55, preset.lineWidth * 2.75) : 1.75;
-    const parts = [];
+    const ordSum = g.atoms.map(() => 0);
+    const deg = g.atoms.map(() => 0);
+    g.bonds.forEach((b) => {{
+      if (b.a < g.atoms.length && b.b < g.atoms.length && !b.multicenter) {{
+        const o = b.o >= 4 ? 1 : (b.o || 1);
+        ordSum[b.a] += o; ordSum[b.b] += o;
+        deg[b.a]++; deg[b.b]++;
+      }}
+    }});
 
-    // 1. JACS Pastel Ring Highlights
-    (g.ring_fills || []).forEach((rf) => {{
-      const pts = (rf.atoms || []).map((idx) => atoms[idx]).filter(Boolean);
+    // Identify aromatic 6-rings if Thiele circle mode is active
+    const thieleBondSkip = new Set();
+    const thieleRings = [];
+    if (g.arom_circles) {{
+      rings.forEach((r) => {{
+        if (r.length !== 6) return;
+        let dblCnt = 0;
+        const rbs = [];
+        for (let k = 0; k < 6; k++) {{
+          const bi = bondExists(g, r[k], r[(k + 1) % 6]);
+          if (bi >= 0) {{ rbs.push(bi); if (g.bonds[bi].o === 2) dblCnt++; }}
+        }}
+        if (dblCnt === 3) {{
+          rbs.forEach((bi) => thieleBondSkip.add(bi));
+          thieleRings.push(r);
+        }}
+      }});
+    }}
+
+    let h = `<defs>
+      <marker id="cdx-ah" viewBox="0 0 10 6" refX="9" refY="3" markerWidth="7" markerHeight="5" orient="auto"><path d="M0,0 L10,3 L0,6 L2.2,3 Z" fill="#0f172a"/></marker>
+      <marker id="cdx-ah-blue" viewBox="0 0 10 6" refX="9" refY="3" markerWidth="6.5" markerHeight="5" orient="auto"><path d="M0,0 L10,3 L0,6 L2,3 Z" fill="#0284c7"/></marker>
+    </defs>`;
+
+    if (g.atoms.length === 0 && g.arrows.length === 0 && g.texts.length === 0 && !state.drag) {{
+      h += `<g opacity="0.46" pointer-events="none">
+        <text x="340" y="168" text-anchor="middle" font-size="13" font-weight="600" fill="#475569">Reaxys / SciFinder Universal 2D Structure &amp; Query Canvas</text>
+        <text x="340" y="189" text-anchor="middle" font-size="11.5" fill="#64748b">Click or drag to draw bonds · Hover bond with Ring tool to fuse · Double-click atom for formula/R-group</text>
+      </g>`;
+    }}
+
+    // Ring pastel fills
+    g.ring_fills.forEach((rf) => {{
+      const pts = (rf.atoms || []).map((i) => g.atoms[i]).filter(Boolean);
       if (pts.length >= 3) {{
-        parts.push(`<polygon points="${{pts.map((p) => p.x + "," + p.y).join(" ")}}" fill="${{rf.color || '#dbeafe'}}" opacity="0.85"/>`);
+        h += `<polygon points="${{pts.map((p) => p.x + "," + p.y).join(" ")}}" fill="${{rf.color || "rgba(56,189,248,0.22)"}}" stroke="none"/>`;
       }}
     }});
 
-    // 2. Newman Circles & Spokes
-    (g.circles || []).forEach((c) => {{
-      parts.push(`<circle cx="${{c.cx}}" cy="${{c.cy}}" r="${{c.r}}" fill="#ffffff" stroke="#0f172a" stroke-width="${{sw}}"/>`);
-    }});
-    (g.spokes || []).forEach((s) => {{
-      parts.push(`<line x1="${{s[0]}}" y1="${{s[1]}}" x2="${{s[2]}}" y2="${{s[3]}}" stroke="#0f172a" stroke-width="${{sw}}" stroke-linecap="round"/>`);
-    }});
+    // Newman circles & spokes
+    g.circles.forEach((c) => {{ h += `<circle cx="${{c.cx}}" cy="${{c.cy}}" r="${{c.r}}" fill="#ffffff" stroke="#0f172a" stroke-width="1.6"/>`; }});
+    g.spokes.forEach((s) => {{ h += `<line x1="${{s[0]}}" y1="${{s[1]}}" x2="${{s[2]}}" y2="${{s[3]}}" stroke="#0f172a" stroke-width="1.6"/>`; }});
 
-    // Map each bond to a ring centroid if part of a 3..8 ring
-    const bondRingCenter = new Map();
-    rings.forEach((ring) => {{
-      const rcx = ring.reduce((s, idx) => s + atoms[idx].x, 0) / ring.length;
-      const rcy = ring.reduce((s, idx) => s + atoms[idx].y, 0) / ring.length;
-      for (let k = 0; k < ring.length; k++) {{
-        const u = ring[k], v = ring[(k + 1) % ring.length];
-        const bi = findBond(g, u, v);
-        if (bi >= 0 && (!bondRingCenter.has(bi) || ring.length === 6)) {{
-          bondRingCenter.set(bi, {{ x: rcx, y: rcy }});
-        }}
+    // Selection bounding box & rotation handle
+    if (state.selAtoms.size > 0) {{
+      const sPts = [...state.selAtoms].map((i) => g.atoms[i]).filter(Boolean);
+      if (sPts.length > 0) {{
+        const minX = Math.min(...sPts.map((p) => p.x)) - 14;
+        const maxX = Math.max(...sPts.map((p) => p.x)) + 14;
+        const minY = Math.min(...sPts.map((p) => p.y)) - 14;
+        const maxY = Math.max(...sPts.map((p) => p.y)) + 14;
+        const midX = (minX + maxX) / 2;
+        h += `<rect x="${{minX}}" y="${{minY}}" width="${{maxX - minX}}" height="${{maxY - minY}}" rx="5" fill="rgba(2,132,199,0.05)" stroke="#0284c7" stroke-width="1" stroke-dasharray="4 3"/>`;
+        h += `<line x1="${{midX}}" y1="${{minY}}" x2="${{midX}}" y2="${{minY - 14}}" stroke="#0284c7" stroke-width="1.2"/>`;
+        h += `<circle cx="${{midX}}" cy="${{minY - 17}}" r="4.5" fill="#ffffff" stroke="#0284c7" stroke-width="1.6"/>`;
       }}
-    }});
-
-    // 3. Bonds
-    bonds.forEach((b, bi) => {{
-      const a1 = atoms[b.a], a2 = atoms[b.b];
-      if (!a1 || !a2) return;
-      const dx = a2.x - a1.x, dy = a2.y - a1.y, len = Math.hypot(dx, dy) || 1;
-      const ux = dx / len, uy = dy / len;
-      const nx = -uy, ny = ux;
-      if (bi === state.hoverBond) {{
-        parts.push(`<line x1="${{a1.x}}" y1="${{a1.y}}" x2="${{a2.x}}" y2="${{a2.y}}" stroke="rgba(2,132,199,0.22)" stroke-width="9" stroke-linecap="round"/>`);
-      }}
-      if (b.o === 4) {{
-        parts.push(`<polygon points="${{a1.x}},${{a1.y}} ${{(a2.x + nx * 4.2).toFixed(1)}},${{(a2.y + ny * 4.2).toFixed(1)}} ${{(a2.x - nx * 4.2).toFixed(1)}},${{(a2.y - ny * 4.2).toFixed(1)}}" fill="#0f172a"/>`);
-      }} else if (b.o === 5) {{
-        for (let t = 0.18; t <= 0.98; t += 0.16) {{
-          const px = a1.x + dx * t, py = a1.y + dy * t, hw = 4.2 * t;
-          parts.push(`<line x1="${{(px + nx * hw).toFixed(1)}}" y1="${{(py + ny * hw).toFixed(1)}}" x2="${{(px - nx * hw).toFixed(1)}}" y2="${{(py - ny * hw).toFixed(1)}}" stroke="#0f172a" stroke-width="1.5"/>`);
-        }}
-      }} else if (b.o === 6) {{
-        let d = `M ${{a1.x.toFixed(1)}} ${{a1.y.toFixed(1)}}`;
-        const steps = 7;
-        for (let k = 1; k <= steps; k++) {{
-          const t = k / steps, sign = k % 2 === 0 ? 1 : -1;
-          const cxp = a1.x + dx * (t - 0.5 / steps) + nx * 3.2 * sign;
-          const cyp = a1.y + dy * (t - 0.5 / steps) + ny * 3.2 * sign;
-          d += ` Q ${{cxp.toFixed(1)}} ${{cyp.toFixed(1)}}, ${{(a1.x + dx * t).toFixed(1)}} ${{(a1.y + dy * t).toFixed(1)}}`;
-        }}
-        parts.push(`<path d="${{d}}" fill="none" stroke="#0f172a" stroke-width="${{sw}}"/>`);
-      }} else if (b.o === 2 && bondRingCenter.has(bi)) {{
-        // Asymmetric ChemDraw ring double bond: primary bond on vertex line, inset pi-bond inside ring
-        parts.push(`<line x1="${{a1.x}}" y1="${{a1.y}}" x2="${{a2.x}}" y2="${{a2.y}}" stroke="#0f172a" stroke-width="${{sw}}" stroke-linecap="round"/>`);
-        const rc = bondRingCenter.get(bi);
-        const mx = (a1.x + a2.x) / 2, my = (a1.y + a2.y) / 2;
-        const side = (rc.x - mx) * nx + (rc.y - my) * ny >= 0 ? 1 : -1;
-        const inset = 3.8 * side, trim = Math.min(4.8, len * 0.17);
-        const ix1 = a1.x + ux * trim + nx * inset, iy1 = a1.y + uy * trim + ny * inset;
-        const ix2 = a2.x - ux * trim + nx * inset, iy2 = a2.y - uy * trim + ny * inset;
-        parts.push(`<line x1="${{ix1.toFixed(1)}}" y1="${{iy1.toFixed(1)}}" x2="${{ix2.toFixed(1)}}" y2="${{iy2.toFixed(1)}}" stroke="#0f172a" stroke-width="${{sw}}" stroke-linecap="round"/>`);
-      }} else {{
-        const offsets = b.o === 2 ? [-2.1, 2.1] : (b.o === 3 ? [-3.2, 0, 3.2] : [0]);
-        offsets.forEach((off) => {{
-          parts.push(`<line x1="${{(a1.x + nx * off).toFixed(1)}}" y1="${{(a1.y + ny * off).toFixed(1)}}" x2="${{(a2.x + nx * off).toFixed(1)}}" y2="${{(a2.y + ny * off).toFixed(1)}}" stroke="#0f172a" stroke-width="${{sw}}" stroke-linecap="round"/>`);
-        }});
-      }}
-      parts.push(`<line data-bond="${{bi}}" x1="${{a1.x}}" y1="${{a1.y}}" x2="${{a2.x}}" y2="${{a2.y}}" stroke="transparent" stroke-width="11" style="cursor:pointer"/>`);
-    }});
-
-    // 4. Drag Preview Rubber-Band
-    if (state.drag && state.drag.mode === "sprout") {{
-      const {{ x1, y1, x2, y2, snapIdx }} = state.drag;
-      parts.push(`<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#0284c7" stroke-width="2" stroke-dasharray="4 3"/>`);
-      parts.push(`<circle cx="${{x2}}" cy="${{y2}}" r="${{snapIdx >= 0 ? 9 : 4.5}}" fill="rgba(2,132,199,0.22)" stroke="#0284c7" stroke-width="1.5"/>`);
+      sPts.forEach((p) => {{ h += `<circle cx="${{p.x}}" cy="${{p.y}}" r="10.5" fill="rgba(2,132,199,0.16)" stroke="none"/>`; }});
     }}
 
-    // 5. Reaction Arrows, Pluses & Texts
-    (g.arrows || []).forEach((ar, ari) => {{
-      const st = ar.style || "solid";
-      if (st === "retro") {{
-        parts.push(`<line x1="${{ar.x1}}" y1="${{ar.y1 - 2.5}}" x2="${{ar.x2 - 6}}" y2="${{ar.y2 - 2.5}}" stroke="#0f172a" stroke-width="1.6"/>`);
-        parts.push(`<line x1="${{ar.x1}}" y1="${{ar.y1 + 2.5}}" x2="${{ar.x2 - 6}}" y2="${{ar.y2 + 2.5}}" stroke="#0f172a" stroke-width="1.6"/>`);
-        parts.push(`<polyline points="${{ar.x2 - 9}},${{ar.y2 - 6}} ${{ar.x2}},${{ar.y2}} ${{ar.x2 - 9}},${{ar.y2 + 6}}" fill="none" stroke="#0f172a" stroke-width="1.8"/>`);
-      }} else if (st === "eq") {{
-        parts.push(`<line x1="${{ar.x1}}" y1="${{ar.y1 - 2.5}}" x2="${{ar.x2}}" y2="${{ar.y2 - 2.5}}" stroke="#0f172a" stroke-width="1.5"/>`);
-        parts.push(`<polygon points="${{ar.x2}},${{ar.y2 - 2.5}} ${{ar.x2 - 8}},${{ar.y2 - 6.5}} ${{ar.x2 - 6}},${{ar.y2 - 2.5}}" fill="#0f172a"/>`);
-        parts.push(`<line x1="${{ar.x1}}" y1="${{ar.y1 + 2.5}}" x2="${{ar.x2}}" y2="${{ar.y2 + 2.5}}" stroke="#0f172a" stroke-width="1.5"/>`);
-        parts.push(`<polygon points="${{ar.x1}},${{ar.y1 + 2.5}} ${{ar.x1 + 8}},${{ar.y1 + 6.5}} ${{ar.x1 + 6}},${{ar.y1 + 2.5}}" fill="#0f172a"/>`);
-      }} else {{
-        parts.push(`<line x1="${{ar.x1}}" y1="${{ar.y1}}" x2="${{ar.x2}}" y2="${{ar.y2}}" stroke="#0f172a" stroke-width="1.8"/>`);
-        parts.push(`<polygon points="${{ar.x2}},${{ar.y2}} ${{ar.x2 - 9}},${{ar.y2 - 4}} ${{ar.x2 - 7}},${{ar.y2}} ${{ar.x2 - 9}},${{ar.y2 + 4}}" fill="#0f172a"/>`);
-      }}
-      if (ar.above) parts.push(`<text data-arrow="${{ari}}" x="${{(ar.x1 + ar.x2) / 2}}" y="${{ar.y1 - 9}}" text-anchor="middle" font-family="${{preset.font || 'Arial'}},sans-serif" font-size="11" fill="#0f172a" style="cursor:pointer">${{esc(ar.above)}}</text>`);
-      if (ar.below) parts.push(`<text data-arrow="${{ari}}" x="${{(ar.x1 + ar.x2) / 2}}" y="${{ar.y1 + 16}}" text-anchor="middle" font-family="${{preset.font || 'Arial'}},sans-serif" font-size="10.8" fill="#334155" style="cursor:pointer">${{esc(ar.below)}}</text>`);
-      parts.push(`<line data-arrow="${{ari}}" x1="${{ar.x1}}" y1="${{ar.y1}}" x2="${{ar.x2}}" y2="${{ar.y2}}" stroke="transparent" stroke-width="12" style="cursor:pointer"/>`);
-    }});
-    (g.pluses || []).forEach((pl, pli) => {{
-      parts.push(`<text data-plus="${{pli}}" x="${{pl.x}}" y="${{pl.y + 5}}" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="600" fill="#0f172a" style="cursor:pointer">+</text>`);
-    }});
-    (g.texts || []).forEach((tx, txi) => {{
-      parts.push(`<text data-text="${{txi}}" x="${{tx.x}}" y="${{tx.y}}" text-anchor="middle" font-family="${{preset.font || 'Arial'}},sans-serif" font-size="11.2" font-weight="600" fill="#0f172a" style="cursor:pointer">${{esc(tx.text)}}</text>`);
-    }});
-
-    // 6. Atoms, Implicit Hydrogens, Charges & Valence Warnings
-    atoms.forEach((a, ai) => {{
-      if (metrics.overVal[ai]) {{
-        parts.push(`<circle cx="${{a.x}}" cy="${{a.y}}" r="11.5" fill="rgba(239,68,68,0.16)" stroke="#ef4444" stroke-width="1.2"/>`);
-      }} else if (ai === state.hoverAtom) {{
-        parts.push(`<circle cx="${{a.x}}" cy="${{a.y}}" r="10" fill="rgba(2,132,199,0.18)"/>`);
-      }}
-      const showLabel = a.s !== "C" || Boolean(a.chg) || !(nb[ai] || []).length;
-      if (showLabel) {{
-        const lbl = formatAtomLabel(g, nb, metrics, ai);
-        const col = ATOM_COLORS[a.s] || "#0f172a";
-        const boxW = Math.max(15, lbl.length * 7.6);
-        parts.push(`<rect x="${{(a.x - boxW / 2).toFixed(1)}}" y="${{(a.y - 8.5).toFixed(1)}}" width="${{boxW.toFixed(1)}}" height="16.5" rx="4" fill="#ffffff"/>`);
-        parts.push(`<text x="${{a.x}}" y="${{a.y + 4.2}}" text-anchor="middle" font-family="${{preset.font || 'Arial'}},sans-serif" font-size="12" font-weight="700" fill="${{col}}">${{esc(lbl)}}</text>`);
-      }}
-      parts.push(`<circle data-atom="${{ai}}" cx="${{a.x}}" cy="${{a.y}}" r="10.5" fill="transparent" style="cursor:pointer"/>`);
-    }});
-
-    svg.innerHTML = parts.join("");
-
-    const smi = graphToSmiles(g) || g.smiles || "-";
-    q("#cdx-f-formula").textContent = metrics.formula;
-    q("#cdx-f-mw").textContent = metrics.mw === "-" ? "-" : metrics.mw;
-    q("#cdx-f-dbe").textContent = String(metrics.dbe);
-    q("#cdx-f-smi").textContent = smi;
-    q("#cdx-f-smi").title = smi;
-    q("#cdx-xml-box").value = generateCdxml(g);
-  }}
-
-  function svgPt(evt) {{
-    const r = svg.getBoundingClientRect();
-    return {{
-      x: ((evt.clientX - r.left) / (r.width || 560)) * 560,
-      y: ((evt.clientY - r.top) / (r.height || 290)) * 290
-    }};
-  }}
-
-  function nearestAtom(pt, excludeIdx = -1, radius = 15.5) {{
-    let best = -1, bestD = radius;
-    state.graph.atoms.forEach((a, idx) => {{
-      if (idx === excludeIdx) return;
-      const d = Math.hypot(a.x - pt.x, a.y - pt.y);
-      if (d < bestD) {{ bestD = d; best = idx; }}
-    }});
-    return best;
-  }}
-
-  function orderForTool(t) {{
-    return t === "bond-2" ? 2 : (t === "bond-3" ? 3 : (t === "wedge" ? 4 : (t === "hash" ? 5 : (t === "wavy" ? 6 : 1))));
-  }}
-
-  // Pointer interactions: drag-to-draw bonds, snap to close rings, move atoms/fragments, fuse rings
-  svg.addEventListener("pointerdown", (e) => {{
-    if (e.button !== 0) return;
-    const pt = svgPt(e);
-    const t = e.target;
-    const atomAttr = t.getAttribute && t.getAttribute("data-atom");
-    const bondAttr = t.getAttribute && t.getAttribute("data-bond");
-    const arrowAttr = t.getAttribute && t.getAttribute("data-arrow");
-    const plusAttr = t.getAttribute && t.getAttribute("data-plus");
-
-    if (state.tool === "move") {{
-      if (atomAttr !== null) {{
-        pushUndo();
-        state.drag = {{ mode: "move-atom", ai: Number(atomAttr), startPt: pt }};
-        svg.setPointerCapture(e.pointerId);
-      }} else if (arrowAttr !== null) {{
-        pushUndo();
-        const ar = state.graph.arrows[Number(arrowAttr)];
-        state.drag = {{ mode: "move-arrow", ari: Number(arrowAttr), startPt: pt, orig: {{ ...ar }} }};
-        svg.setPointerCapture(e.pointerId);
-      }} else if (plusAttr !== null) {{
-        pushUndo();
-        state.drag = {{ mode: "move-plus", pli: Number(plusAttr) }};
-        svg.setPointerCapture(e.pointerId);
-      }}
-      return;
+    // Hover highlight
+    if (state.hover.ai >= 0 && g.atoms[state.hover.ai]) {{
+      const ha = g.atoms[state.hover.ai];
+      h += `<circle cx="${{ha.x}}" cy="${{ha.y}}" r="10" fill="rgba(2,132,199,0.14)"/>`;
+    }} else if (state.hover.bi >= 0 && g.bonds[state.hover.bi]) {{
+      const hb = g.bonds[state.hover.bi], A = g.atoms[hb.a], B = g.atoms[hb.b];
+      if (A && B) h += `<line x1="${{A.x}}" y1="${{A.y}}" x2="${{B.x}}" y2="${{B.y}}" stroke="rgba(2,132,199,0.22)" stroke-width="8" stroke-linecap="round"/>`;
     }}
 
-    if (state.tool.startsWith("bond-") || ["wedge", "hash", "wavy"].includes(state.tool)) {{
-      if (atomAttr !== null) {{
-        const ai = Number(atomAttr);
-        const a = state.graph.atoms[ai];
-        state.drag = {{ mode: "sprout", fromIdx: ai, x1: a.x, y1: a.y, x2: a.x, y2: a.y, moved: false, snapIdx: -1 }};
-        svg.setPointerCapture(e.pointerId);
+    // Bonds
+    g.bonds.forEach((b, bi) => {{
+      const A = g.atoms[b.a], B = g.atoms[b.b];
+      if (!A || !B) return;
+      let x1 = A.x, y1 = A.y, x2 = B.x, y2 = B.y;
+      const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+      const ux = dx / len, uy = dy / len, nx = -uy, ny = ux;
+      const visA = !A.multicenterCenter && (A.s !== "C" || deg[b.a] === 0 || b.q === "coord" || A.chg || A.iso || A.rad || A.qlock);
+      const visB = !B.multicenterCenter && (B.s !== "C" || deg[b.b] === 0 || b.q === "coord" || B.chg || B.iso || B.rad || B.qlock);
+      if (visA) {{ x1 += ux * 8.5; y1 += uy * 8.5; }}
+      if (visB) {{ x2 -= ux * 8.5; y2 -= uy * 8.5; }}
+
+      if (b.multicenter) {{
+        h += `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#0f172a" stroke-width="1.75" stroke-linecap="round"/>`;
+        h += `<circle cx="${{A.multicenterCenter ? A.x : B.x}}" cy="${{A.multicenterCenter ? A.y : B.y}}" r="2.6" fill="#0f172a"/>`;
         return;
       }}
-    }}
-  }});
-
-  svg.addEventListener("pointermove", (e) => {{
-    const pt = svgPt(e);
-    if (!state.drag) {{
-      const t = e.target;
-      const ha = t.getAttribute && t.getAttribute("data-atom");
-      const hb = t.getAttribute && t.getAttribute("data-bond");
-      const na = ha !== null ? Number(ha) : -1;
-      const nbIdx = hb !== null ? Number(hb) : -1;
-      if (na !== state.hoverAtom || nbIdx !== state.hoverBond) {{
-        state.hoverAtom = na; state.hoverBond = nbIdx; render();
-      }}
-      return;
-    }}
-    if (state.drag.mode === "move-atom") {{
-      state.graph.atoms[state.drag.ai].x = +pt.x.toFixed(1);
-      state.graph.atoms[state.drag.ai].y = +pt.y.toFixed(1);
-      render();
-    }} else if (state.drag.mode === "move-arrow") {{
-      const dx = pt.x - state.drag.startPt.x, dy = pt.y - state.drag.startPt.y;
-      const ar = state.graph.arrows[state.drag.ari];
-      ar.x1 = +(state.drag.orig.x1 + dx).toFixed(1); ar.y1 = +(state.drag.orig.y1 + dy).toFixed(1);
-      ar.x2 = +(state.drag.orig.x2 + dx).toFixed(1); ar.y2 = +(state.drag.orig.y2 + dy).toFixed(1);
-      render();
-    }} else if (state.drag.mode === "move-plus") {{
-      state.graph.pluses[state.drag.pli].x = +pt.x.toFixed(1);
-      state.graph.pluses[state.drag.pli].y = +pt.y.toFixed(1);
-      render();
-    }} else if (state.drag.mode === "sprout") {{
-      const d = Math.hypot(pt.x - state.drag.x1, pt.y - state.drag.y1);
-      if (d > 6) state.drag.moved = true;
-      const snap = nearestAtom(pt, state.drag.fromIdx, 15.5);
-      if (snap >= 0) {{
-        state.drag.x2 = state.graph.atoms[snap].x;
-        state.drag.y2 = state.graph.atoms[snap].y;
-        state.drag.snapIdx = snap;
-      }} else {{
-        const L = e.shiftKey ? Math.max(16, d) : bondLength(state.graph);
-        let ang = Math.atan2(pt.y - state.drag.y1, pt.x - state.drag.x1);
-        if (!e.shiftKey) ang = Math.round(ang / (Math.PI / 12)) * (Math.PI / 12);
-        state.drag.x2 = +(state.drag.x1 + Math.cos(ang) * L).toFixed(2);
-        state.drag.y2 = +(state.drag.y1 + Math.sin(ang) * L).toFixed(2);
-        state.drag.snapIdx = -1;
-      }}
-      render();
-    }}
-  }});
-
-  svg.addEventListener("pointerup", (e) => {{
-    if (!state.drag) return;
-    const drag = state.drag;
-    state.drag = null;
-    if (drag.mode === "sprout") {{
-      pushUndo();
-      const ord = orderForTool(state.tool);
-      if (drag.moved) {{
-        let targetIdx = drag.snapIdx;
-        if (targetIdx < 0) {{
-          targetIdx = state.graph.atoms.length;
-          state.graph.atoms.push({{ s: state.elem, x: drag.x2, y: drag.y2 }});
+      if (b.q) {{
+        if (b.q === "any") h += `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="2.5 2.5"/>`;
+        else if (b.q === "hbond") h += `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#64748b" stroke-width="1.6" stroke-dasharray="1.5 3.2" stroke-linecap="round"/>`;
+        else if (b.q === "coord") h += `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#0284c7" stroke-width="1.65" marker-end="url(#cdx-ah-blue)"/>`;
+        else {{
+          h += `<line x1="${{x1 + nx*2}}" y1="${{y1 + ny*2}}" x2="${{x2 + nx*2}}" y2="${{y2 + ny*2}}" stroke="#0f172a" stroke-width="1.6"/>`;
+          h += `<line x1="${{x1 - nx*2}}" y1="${{y1 - ny*2}}" x2="${{x2 - nx*2}}" y2="${{y2 - ny*2}}" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="3 2.2"/>`;
         }}
-        const eb = findBond(state.graph, drag.fromIdx, targetIdx);
-        if (eb >= 0) state.graph.bonds[eb].o = ord;
-        else state.graph.bonds.push({{ a: drag.fromIdx, b: targetIdx, o: ord }});
-        setStatus(drag.snapIdx >= 0 ? "Closed ring bond" : "Drew bond");
-      }} else {{
-        const ai = drag.fromIdx;
-        if (state.fg) {{
-          attachGroup(state.graph, ai, state.fg);
-          setStatus("Attached -" + state.fg);
-        }} else if (state.elem !== "C" && state.graph.atoms[ai].s !== state.elem && state.tool === "bond-1") {{
-          state.graph.atoms[ai].s = state.elem;
-          setStatus("Set atom to " + state.elem);
+        return;
+      }}
+
+      const effOrder = thieleBondSkip.has(bi) ? 1 : (b.o || 1);
+      if (effOrder === 4) {{
+        h += `<polygon points="${{x1}},${{y1}} ${{x2 + nx*4.2}},${{y2 + ny*4.2}} ${{x2 - nx*4.2}},${{y2 - ny*4.2}}" fill="#0f172a"/>`;
+      }} else if (effOrder === 5) {{
+        const steps = Math.max(5, Math.round(len / 5.2));
+        for (let k = 1; k <= steps; k++) {{
+          const t = k / steps, px = x1 + (x2 - x1) * t, py = y1 + (y2 - y1) * t, w = 4.0 * t;
+          h += `<line x1="${{px - nx*w}}" y1="${{py - ny*w}}" x2="${{px + nx*w}}" y2="${{py + ny*w}}" stroke="#0f172a" stroke-width="1.35"/>`;
+        }}
+      }} else if (effOrder === 6) {{
+        let d = `M ${{x1}} ${{y1}}`;
+        const segs = 7;
+        for (let k = 1; k <= segs; k++) {{
+          const t = (k - 0.5) / segs, te = k / segs;
+          const sgn = k % 2 === 0 ? 3.5 : -3.5;
+          d += ` Q ${{x1 + (x2-x1)*t + nx*sgn}} ${{y1 + (y2-y1)*t + ny*sgn}}, ${{x1 + (x2-x1)*te}} ${{y1 + (y2-y1)*te}}`;
+        }}
+        h += `<path d="${{d}}" fill="none" stroke="#0f172a" stroke-width="1.55"/>`;
+      }} else if (effOrder === 7) {{
+        h += `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#0f172a" stroke-width="4.2" stroke-linecap="round"/>`;
+      }} else if (b.ez) {{
+        h += `<line x1="${{x1 + nx*2.5}}" y1="${{y1 + ny*2.5}}" x2="${{x2 - nx*2.5}}" y2="${{y2 - ny*2.5}}" stroke="#0f172a" stroke-width="1.6"/>`;
+        h += `<line x1="${{x1 - nx*2.5}}" y1="${{y1 - ny*2.5}}" x2="${{x2 + nx*2.5}}" y2="${{y2 + ny*2.5}}" stroke="#0f172a" stroke-width="1.6"/>`;
+      }} else if (effOrder === 2) {{
+        const mode = b.side || 0; // 0=auto, 1=left, 2=center, 3=right
+        const ring = mode === 0 ? rings.find((r) => r.includes(b.a) && r.includes(b.b)) : null;
+        if (mode === 2 || (!ring && mode === 0 && (visA || visB))) {{
+          h += `<line x1="${{x1 + nx*2.2}}" y1="${{y1 + ny*2.2}}" x2="${{x2 + nx*2.2}}" y2="${{y2 + ny*2.2}}" stroke="#0f172a" stroke-width="1.65" stroke-linecap="round"/>`;
+          h += `<line x1="${{x1 - nx*2.2}}" y1="${{y1 - ny*2.2}}" x2="${{x2 - nx*2.2}}" y2="${{y2 - ny*2.2}}" stroke="#0f172a" stroke-width="1.65" stroke-linecap="round"/>`;
         }} else {{
-          const L = bondLength(state.graph);
-          const ang = sproutAngle(state.graph, ai, ord);
-          const ni = state.graph.atoms.length;
-          state.graph.atoms.push({{ s: state.elem, x: +(drag.x1 + Math.cos(ang) * L).toFixed(2), y: +(drag.y1 + Math.sin(ang) * L).toFixed(2) }});
-          state.graph.bonds.push({{ a: ai, b: ni, o: ord }});
+          let sgn = 1;
+          if (ring) {{
+            const rcx = ring.reduce((s, i) => s + g.atoms[i].x, 0) / ring.length;
+            const rcy = ring.reduce((s, i) => s + g.atoms[i].y, 0) / ring.length;
+            sgn = ((rcx - (A.x + B.x)/2) * nx + (rcy - (A.y + B.y)/2) * ny) >= 0 ? 1 : -1;
+          }} else if (mode === 3) sgn = -1;
+          const off = 3.7 * sgn, ins = (visA || visB) ? 1.5 : 4.2;
+          h += `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#0f172a" stroke-width="1.75" stroke-linecap="round"/>`;
+          h += `<line x1="${{x1 + ux*ins + nx*off}}" y1="${{y1 + uy*ins + ny*off}}" x2="${{x2 - ux*ins + nx*off}}" y2="${{y2 - uy*ins + ny*off}}" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round"/>`;
         }}
-      }}
-      render();
-      persistHostState();
-    }} else {{
-      persistHostState();
-    }}
-  }});
-
-  svg.addEventListener("click", (e) => {{
-    if (state.tool === "move" || state.tool.startsWith("bond-") || ["wedge", "hash", "wavy"].includes(state.tool)) {{
-      const t = e.target;
-      const bondAttr = t.getAttribute && t.getAttribute("data-bond");
-      if (bondAttr !== null && state.tool !== "move") {{
-        pushUndo();
-        const bi = Number(bondAttr);
-        const b = state.graph.bonds[bi];
-        if (["wedge", "hash", "wavy"].includes(state.tool)) {{
-          const targetOrd = orderForTool(state.tool);
-          if (b.o === targetOrd) {{ const tmp = b.a; b.a = b.b; b.b = tmp; }}
-          else b.o = targetOrd;
-        }} else if (state.tool === "bond-2") {{
-          b.o = b.o === 2 ? 1 : 2;
-        }} else if (state.tool === "bond-3") {{
-          b.o = b.o === 3 ? 1 : 3;
-        }} else {{
-          b.o = b.o === 1 ? 2 : (b.o === 2 ? 3 : 1);
-        }}
-        render(); persistHostState(); return;
-      }}
-      // Empty canvas click with bond tool starts a 2-atom bond
-      if (t === svg && state.tool !== "move") {{
-        const pt = svgPt(e);
-        pushUndo();
-        const L = bondLength(state.graph);
-        const i0 = state.graph.atoms.length;
-        state.graph.atoms.push(
-          {{ s: state.elem, x: +(pt.x - L * 0.43).toFixed(1), y: +(pt.y + L * 0.25).toFixed(1) }},
-          {{ s: "C", x: +(pt.x + L * 0.43).toFixed(1), y: +(pt.y - L * 0.25).toFixed(1) }}
-        );
-        state.graph.bonds.push({{ a: i0, b: i0 + 1, o: orderForTool(state.tool) }});
-        render(); persistHostState();
-      }}
-      return;
-    }}
-
-    const pt = svgPt(e);
-    const t = e.target;
-    const atomAttr = t.getAttribute && t.getAttribute("data-atom");
-    const bondAttr = t.getAttribute && t.getAttribute("data-bond");
-    const arrowAttr = t.getAttribute && t.getAttribute("data-arrow");
-    const plusAttr = t.getAttribute && t.getAttribute("data-plus");
-
-    if (state.tool === "erase") {{
-      pushUndo();
-      if (atomAttr !== null) {{
-        const ai = Number(atomAttr);
-        state.graph.bonds = state.graph.bonds.filter((b) => b.a !== ai && b.b !== ai)
-          .map((b) => ({{ ...b, a: b.a > ai ? b.a - 1 : b.a, b: b.b > ai ? b.b - 1 : b.b }}));
-        state.graph.atoms.splice(ai, 1);
-        state.graph.ring_fills = [];
-      }} else if (bondAttr !== null) {{
-        state.graph.bonds.splice(Number(bondAttr), 1);
-      }} else if (arrowAttr !== null) {{
-        state.graph.arrows.splice(Number(arrowAttr), 1);
-      }} else if (plusAttr !== null) {{
-        state.graph.pluses.splice(Number(plusAttr), 1);
-      }}
-      render(); persistHostState(); return;
-    }}
-
-    if (state.tool.startsWith("ring-")) {{
-      pushUndo();
-      const sides = state.tool === "ring-5" ? 5 : 6;
-      const arom = state.tool === "ring-ph" || state.tool === "ring-pyr";
-      const hetN = state.tool === "ring-pyr";
-      if (bondAttr !== null) {{
-        fuseRingOnBond(state.graph, Number(bondAttr), sides, arom, hetN);
-        setStatus("Fused " + sides + "-membered ring onto bond");
-      }} else if (atomAttr !== null) {{
-        const ai = Number(atomAttr), L = bondLength(state.graph), ang = sproutAngle(state.graph, ai, 1);
-        const R = L / (2 * Math.sin(Math.PI / sides));
-        const cx = state.graph.atoms[ai].x + Math.cos(ang) * (L + R);
-        const cy = state.graph.atoms[ai].y + Math.sin(ang) * (L + R);
-        const rStart = placeFreeRing(state.graph, cx, cy, sides, arom, hetN);
-        let closest = rStart, minD = 9999;
-        for (let k = rStart; k < rStart + sides; k++) {{
-          const d = Math.hypot(state.graph.atoms[k].x - state.graph.atoms[ai].x, state.graph.atoms[k].y - state.graph.atoms[ai].y);
-          if (d < minD) {{ minD = d; closest = k; }}
-        }}
-        state.graph.bonds.push({{ a: ai, b: closest, o: 1 }});
-        setStatus("Sprouted ring substituent");
+      }} else if (effOrder === 3) {{
+        h += `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#0f172a" stroke-width="1.65"/>`;
+        h += `<line x1="${{x1 + nx*3.4}}" y1="${{y1 + ny*3.4}}" x2="${{x2 + nx*3.4}}" y2="${{y2 + ny*3.4}}" stroke="#0f172a" stroke-width="1.55"/>`;
+        h += `<line x1="${{x1 - nx*3.4}}" y1="${{y1 - ny*3.4}}" x2="${{x2 - nx*3.4}}" y2="${{y2 - ny*3.4}}" stroke="#0f172a" stroke-width="1.55"/>`;
       }} else {{
-        placeFreeRing(state.graph, pt.x, pt.y, sides, arom, hetN);
+        h += `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="#0f172a" stroke-width="1.75" stroke-linecap="round"/>`;
       }}
-      render(); persistHostState(); return;
-    }}
+    }});
 
-    if (state.tool === "arrow") {{
-      pushUndo();
-      if (arrowAttr !== null) {{
-        const ar = state.graph.arrows[Number(arrowAttr)];
-        ar.style = ar.style === "solid" ? "eq" : (ar.style === "eq" ? "retro" : "solid");
-        setStatus("Cycled arrow style: " + ar.style);
+    // Thiele aromatic inner circles
+    thieleRings.forEach((r) => {{
+      const cx = r.reduce((s, i) => s + g.atoms[i].x, 0) / 6;
+      const cy = r.reduce((s, i) => s + g.atoms[i].y, 0) / 6;
+      const rad = Math.hypot(g.atoms[r[0]].x - cx, g.atoms[r[0]].y - cy) * 0.58;
+      h += `<circle cx="${{cx}}" cy="${{cy}}" r="${{rad.toFixed(1)}}" fill="none" stroke="#0f172a" stroke-width="1.55"/>`;
+    }});
+
+    // Reaction arrows
+    g.arrows.forEach((ar) => {{
+      const dx = ar.x2 - ar.x1, dy = ar.y2 - ar.y1, len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len, ny = dx / len, mx = (ar.x1 + ar.x2) / 2, my = (ar.y1 + ar.y2) / 2;
+      if (ar.style === "eq") {{
+        h += `<line x1="${{ar.x1}}" y1="${{ar.y1 - 2.4}}" x2="${{ar.x2}}" y2="${{ar.y2 - 2.4}}" stroke="#0f172a" stroke-width="1.5" marker-end="url(#cdx-ah)"/>`;
+        h += `<line x1="${{ar.x2}}" y1="${{ar.y2 + 2.4}}" x2="${{ar.x1}}" y2="${{ar.y1 + 2.4}}" stroke="#0f172a" stroke-width="1.5" marker-end="url(#cdx-ah)"/>`;
+      }} else if (ar.style === "retro") {{
+        h += `<line x1="${{ar.x1}}" y1="${{ar.y1 - 2.6}}" x2="${{ar.x2 - 5}}" y2="${{ar.y2 - 2.6}}" stroke="#0f172a" stroke-width="1.5"/>`;
+        h += `<line x1="${{ar.x1}}" y1="${{ar.y1 + 2.6}}" x2="${{ar.x2 - 5}}" y2="${{ar.y2 + 2.6}}" stroke="#0f172a" stroke-width="1.5"/>`;
+        h += `<polyline points="${{ar.x2 - 8}},${{ar.y2 - 6}} ${{ar.x2}},${{ar.y2}} ${{ar.x2 - 8}},${{ar.y2 + 6}}" fill="none" stroke="#0f172a" stroke-width="1.6"/>`;
       }} else {{
-        state.graph.arrows.push({{ x1: +(pt.x - 45).toFixed(1), y1: +pt.y.toFixed(1), x2: +(pt.x + 45).toFixed(1), y2: +pt.y.toFixed(1), style: "solid", above: "cat., solvent", below: "rt, 2 h" }});
-        setStatus("Added reaction arrow (double-click to edit conditions)");
+        h += `<line x1="${{ar.x1}}" y1="${{ar.y1}}" x2="${{ar.x2}}" y2="${{ar.y2}}" stroke="#0f172a" stroke-width="1.7" marker-end="url(#cdx-ah)"/>`;
+        if (ar.style === "res") h += `<line x1="${{ar.x2}}" y1="${{ar.y2}}" x2="${{ar.x1}}" y2="${{ar.y1}}" stroke="#0f172a" stroke-width="1.7" marker-end="url(#cdx-ah)"/>`;
+        if (ar.style === "no") {{
+          h += `<line x1="${{mx - 5}}" y1="${{my - 6}}" x2="${{mx + 5}}" y2="${{my + 6}}" stroke="#dc2626" stroke-width="1.9"/>`;
+          h += `<line x1="${{mx + 5}}" y1="${{my - 6}}" x2="${{mx - 5}}" y2="${{my + 6}}" stroke="#dc2626" stroke-width="1.9"/>`;
+        }}
       }}
-      render(); persistHostState(); return;
-    }}
+      void nx; void ny;
+      if (ar.above) h += `<text x="${{mx}}" y="${{my - 8}}" text-anchor="middle" font-size="11" fill="#0f172a">${{esc(ar.above)}}</text>`;
+      if (ar.below) h += `<text x="${{mx}}" y="${{my + 16}}" text-anchor="middle" font-size="10.5" fill="#334155">${{esc(ar.below)}}</text>`;
+    }});
 
-    if (state.tool === "plus") {{
-      pushUndo();
-      state.graph.pluses.push({{ x: +pt.x.toFixed(1), y: +pt.y.toFixed(1) }});
-      render(); persistHostState(); return;
-    }}
+    // Pluses, Brackets, Curved electron arrows, Free texts
+    g.pluses.forEach((p) => {{ h += `<text x="${{p.x}}" y="${{p.y + 4}}" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">+</text>`; }});
+    g.brackets.forEach((br) => {{
+      const x1 = Math.min(br.x1, br.x2), x2 = Math.max(br.x1, br.x2);
+      const y1 = Math.min(br.y1, br.y2), y2 = Math.max(br.y1, br.y2), w = 6;
+      h += `<path d="M${{x1+w}},${{y1}} H${{x1}} V${{y2}} H${{x1+w}} M${{x2-w}},${{y1}} H${{x2}} V${{y2}} H${{x2-w}}" fill="none" stroke="#0f172a" stroke-width="1.5"/>`;
+      h += `<text x="${{x2 + 4}}" y="${{y2 + 3}}" font-size="10.5" font-style="italic" fill="#0f172a">${{esc(br.label || "n")}}</text>`;
+    }});
+    g.curved.forEach((cv) => {{
+      const mx = (cv.x1 + cv.x2) / 2, my = (cv.y1 + cv.y2) / 2;
+      const dx = cv.x2 - cv.x1, dy = cv.y2 - cv.y1, len = Math.hypot(dx, dy) || 1;
+      const cx = mx - (dy / len) * 26, cy = my + (dx / len) * 26;
+      h += `<path d="M${{cv.x1}},${{cv.y1}} Q${{cx}},${{cy}} ${{cv.x2}},${{cv.y2}}" fill="none" stroke="#0284c7" stroke-width="1.55" marker-end="url(#cdx-ah-blue)"/>`;
+      if (cv.el === 1) h += `<circle cx="${{cv.x2}}" cy="${{cv.y2}}" r="2" fill="#0284c7"/>`;
+    }});
+    g.texts.forEach((t) => {{
+      h += `<text x="${{t.x}}" y="${{t.y}}" text-anchor="middle" font-size="11.5" fill="#0f172a">${{esc(t.text)}}</text>`;
+    }});
 
-    if (state.tool === "highlight") {{
-      const rings = findSmallRings(state.graph);
-      let hit = null, bestD = 38;
-      rings.forEach((r) => {{
-        const rcx = r.reduce((s, idx) => s + state.graph.atoms[idx].x, 0) / r.length;
-        const rcy = r.reduce((s, idx) => s + state.graph.atoms[idx].y, 0) / r.length;
-        const d = Math.hypot(rcx - pt.x, rcy - pt.y);
-        if (d < bestD) {{ bestD = d; hit = r; }}
+    // Atoms
+    g.atoms.forEach((a, i) => {{
+      if (a.multicenterCenter) return;
+      const isC = a.s === "C" && deg[i] > 0 && !a.chg && !a.iso && !a.rad && !a.qlock && !a.map;
+      if (isC) return;
+      const col = state.style === "acs1996" && !["A","Q","X","M","*"].includes(a.s) ? (CPK[a.s] || "#0f172a") : (CPK[a.s] || "#0f172a");
+      let dirX = 0;
+      g.bonds.forEach((b) => {{
+        if (b.a === i && g.atoms[b.b]) dirX += g.atoms[b.b].x - a.x;
+        else if (b.b === i && g.atoms[b.a]) dirX += g.atoms[b.a].x - a.x;
       }});
-      if (hit) {{
-        pushUndo();
-        const key = [...hit].sort((a, b) => a - b).join(",");
-        const idx = (state.graph.ring_fills || []).findIndex((rf) => [...rf.atoms].sort((a, b) => a - b).join(",") === key);
-        if (idx >= 0 && state.graph.ring_fills[idx].color === state.hlColor) state.graph.ring_fills.splice(idx, 1);
-        else if (idx >= 0) state.graph.ring_fills[idx].color = state.hlColor;
-        else state.graph.ring_fills.push({{ atoms: hit, color: state.hlColor }});
-        render(); persistHostState();
+      const hc = implicitH(g, i, ordSum[i]);
+      const showH = hc > 0 && (["N","O","S","P","F","Cl","Br","I"].includes(a.s) || deg[i] === 0);
+      const hPart = showH ? "H" + (hc > 1 ? `<tspan dy="2.8" font-size="8.8">${{hc}}</tspan><tspan dy="-2.8"></tspan>` : "") : "";
+      const flipLeft = dirX > 7;
+      const coreSvg = formatChemLabelSvg(a.s, flipLeft);
+      const isoSup = a.iso ? `<tspan dy="-4.5" font-size="8.5">${{a.iso}}</tspan><tspan dy="4.5"></tspan>` : "";
+      const chgSup = a.chg ? `<tspan dy="-4.5" font-size="8.8">${{Math.abs(a.chg) > 1 ? Math.abs(a.chg) : ""}}${{a.chg > 0 ? "+" : "−"}}</tspan><tspan dy="4.5"></tspan>` : "";
+      const labelHtml = (showH && flipLeft) ? (hPart + isoSup + coreSvg + chgSup) : (isoSup + coreSvg + hPart + chgSup);
+
+      h += `<circle cx="${{a.x}}" cy="${{a.y}}" r="7.5" fill="#ffffff"/>`;
+      // Over-valence red warning halo
+      if (VALENCE[a.s] && ordSum[i] > (VALENCE[a.s] + (a.s === "N" && a.chg === 1 ? 1 : 0)) && !["S","P"].includes(a.s)) {{
+        h += `<circle cx="${{a.x}}" cy="${{a.y}}" r="10.5" fill="none" stroke="#dc2626" stroke-width="1.3" stroke-dasharray="2 2"/>`;
       }}
-    }}
-  }});
-
-  // Double-click atom or arrow to edit custom label / conditions
-  svg.addEventListener("dblclick", (e) => {{
-    const t = e.target;
-    const arrowAttr = t.getAttribute && t.getAttribute("data-arrow");
-    const atomAttr = t.getAttribute && t.getAttribute("data-atom");
-    if (arrowAttr !== null) {{
-      const ar = state.graph.arrows[Number(arrowAttr)];
-      const above = window.prompt("Reagents above arrow:", ar.above || "");
-      if (above === null) return;
-      const below = window.prompt("Conditions below arrow:", ar.below || "");
-      pushUndo();
-      ar.above = above;
-      if (below !== null) ar.below = below;
-      render(); persistHostState();
-    }} else if (atomAttr !== null) {{
-      const ai = Number(atomAttr);
-      const val = window.prompt("Atom or superatom label (e.g. O, N, Boc, CF3, R1):", state.graph.atoms[ai].s);
-      if (val && val.trim()) {{
-        pushUndo();
-        state.graph.atoms[ai].s = val.trim().slice(0, 8);
-        render(); persistHostState();
+      h += `<text x="${{a.x}}" y="${{a.y + 4.2}}" text-anchor="middle" font-size="12.2" font-weight="600" fill="${{col}}">${{labelHtml}}</text>`;
+      if (a.rad) {{
+        h += `<circle cx="${{a.x + 7.5}}" cy="${{a.y - 5.5}}" r="1.9" fill="${{col}}"/>`;
+        if (a.rad === 2) h += `<circle cx="${{a.x + 7.5}}" cy="${{a.y - 1}}" r="1.9" fill="${{col}}"/>`;
       }}
-    }}
-  }});
-
-  // Keyboard shortcuts (active when not typing in input)
-  window.addEventListener("keydown", (e) => {{
-    if (e.target && ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {{ e.preventDefault(); q("#cdx-undo").click(); return; }}
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {{ e.preventDefault(); q("#cdx-redo").click(); return; }}
-    const k = e.key.toLowerCase();
-    if (state.hoverAtom >= 0 && ["c","n","o","s","p","f","b","i"].includes(k)) {{
-      pushUndo();
-      state.graph.atoms[state.hoverAtom].s = k.toUpperCase();
-      render(); persistHostState(); return;
-    }}
-    const toolMap = {{ "1":"bond-1", "2":"bond-2", "3":"bond-3", "w":"wedge", "h":"hash", "6":"ring-ph", "5":"ring-5", "v":"move", "e":"erase", "delete":"erase", "backspace":"erase" }};
-    if (toolMap[k]) {{
-      const btn = q(`[data-tool="${{toolMap[k]}}"]`);
-      if (btn) btn.click();
-    }}
-  }});
-
-  function selectTool(toolName) {{
-    state.tool = toolName;
-    qa("[data-tool]").forEach((b) => b.classList.toggle("is-active", b.getAttribute("data-tool") === toolName));
-  }}
-  qa("[data-tool]").forEach((btn) => btn.addEventListener("click", () => {{ state.fg = null; qa("[data-fg]").forEach((x) => x.classList.remove("is-active")); selectTool(btn.getAttribute("data-tool")); }}));
-
-  qa("[data-pane]").forEach((btn) => {{
-    btn.addEventListener("click", () => {{
-      const target = btn.getAttribute("data-pane");
-      qa("[data-pane]").forEach((b) => b.classList.toggle("is-active", b === btn));
-      ["tmpl", "atoms", "io"].forEach((p) => {{ q("#cdx-pane-" + p).hidden = p !== target; }});
+      if (a.map) {{
+        h += `<text x="${{a.x - 9}}" y="${{a.y - 5}}" font-size="8.8" font-weight="700" fill="#0284c7">[${{a.map}}]</text>`;
+      }}
+      if (a.qlock) {{
+        h += `<text x="${{a.x + 9}}" y="${{a.y + 9}}" font-size="8" font-weight="700" fill="#7c3aed">${{esc(a.qlock)}}</text>`;
+      }}
     }});
-  }});
 
-  qa("[data-elem]").forEach((btn) => {{
-    btn.addEventListener("click", () => {{
-      state.elem = btn.getAttribute("data-elem");
-      state.fg = null;
-      qa("[data-elem]").forEach((b) => b.classList.toggle("is-active", b === btn));
-      qa("[data-fg]").forEach((b) => b.classList.remove("is-active"));
-      if (!state.tool.startsWith("bond-")) selectTool("bond-1");
-      setStatus("Element brush: " + state.elem);
-    }});
-  }});
-
-  qa("[data-chg]").forEach((btn) => {{
-    btn.addEventListener("click", () => {{
-      const c = Number(btn.getAttribute("data-chg"));
-      if (state.hoverAtom >= 0) {{
-        pushUndo();
-        if (c === 0) delete state.graph.atoms[state.hoverAtom].chg;
-        else state.graph.atoms[state.hoverAtom].chg = c;
-        render(); persistHostState();
+    // Dynamic Ghost Preview (Ring fusion / spiro / free ring, Drag bond, Zigzag chain, Selection marquee/lasso)
+    if (state.ringTool && state.hover.pt && !state.drag) {{
+      const p = state.hover.pt;
+      if (state.hover.bi >= 0 && ringSpec(state.ringTool)) {{
+        const plan = computeRingFusionPreview(g, state.hover.bi, state.ringTool, p);
+        if (plan) {{
+          const poly = plan.pts.map((q) => q.x + "," + q.y).join(" ");
+          h += `<polygon points="${{poly}}" fill="rgba(2,132,199,0.10)" stroke="#0284c7" stroke-width="1.6" stroke-dasharray="3.5 2.5"/>`;
+        }}
       }} else {{
-        setStatus("Hover an atom or click after selecting charge");
+        const temp = normalizeGraph({{}});
+        if (state.hover.ai >= 0) temp.atoms.push({{...g.atoms[state.hover.ai]}});
+        placeRing(temp, state.ringTool, p, state.hover.ai >= 0 ? 0 : -1, -1);
+        temp.bonds.forEach((tb) => {{
+          const A = temp.atoms[tb.a], B = temp.atoms[tb.b];
+          h += `<line x1="${{A.x}}" y1="${{A.y}}" x2="${{B.x}}" y2="${{B.y}}" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="3.5 2.5" opacity="0.78"/>`;
+        }});
       }}
-    }});
-  }});
+    }}
 
-  qa("[data-fg]").forEach((btn) => {{
-    btn.addEventListener("click", () => {{
-      state.fg = btn.getAttribute("data-fg");
-      qa("[data-fg]").forEach((b) => b.classList.toggle("is-active", b === btn));
-      qa("[data-elem]").forEach((b) => b.classList.remove("is-active"));
-      selectTool("bond-1");
-      setStatus("Click any atom to attach -" + state.fg);
-    }});
-  }});
+    if (state.drag) {{
+      const d = state.drag;
+      if (d.kind === "bond") {{
+        h += `<line x1="${{d.x1}}" y1="${{d.y1}}" x2="${{d.x2}}" y2="${{d.y2}}" stroke="#0284c7" stroke-width="1.9" stroke-dasharray="4 3"/>`;
+        if (d.snapAi >= 0) h += `<circle cx="${{d.x2}}" cy="${{d.y2}}" r="9.5" fill="none" stroke="#0284c7" stroke-width="1.8"/>`;
+      }} else if (d.kind === "chain" && d.pts.length > 1) {{
+        h += `<polyline points="${{d.pts.map((q) => q.x + "," + q.y).join(" ")}}" fill="none" stroke="#0284c7" stroke-width="1.9"/>`;
+        const last = d.pts[d.pts.length - 1];
+        h += `<rect x="${{last.x + 8}}" y="${{last.y - 18}}" width="28" height="16" rx="4" fill="#0284c7"/>`;
+        h += `<text x="${{last.x + 22}}" y="${{last.y - 7}}" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">C${{d.pts.length}}</text>`;
+      }} else if (d.kind === "box") {{
+        const rx = Math.min(d.x1, d.x2), ry = Math.min(d.y1, d.y2);
+        h += `<rect x="${{rx}}" y="${{ry}}" width="${{Math.abs(d.x2 - d.x1)}}" height="${{Math.abs(d.y2 - d.y1)}}" fill="rgba(2,132,199,0.08)" stroke="#0284c7" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+      }} else if (d.kind === "lasso" && d.pts.length > 1) {{
+        h += `<polygon points="${{d.pts.map((q) => q.x + "," + q.y).join(" ")}}" fill="rgba(2,132,199,0.08)" stroke="#0284c7" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+      }} else if (d.kind === "arrow" || d.kind === "map" || d.kind === "curv" || d.kind === "bracket") {{
+        h += `<line x1="${{d.x1}}" y1="${{d.y1}}" x2="${{d.x2}}" y2="${{d.y2}}" stroke="#0284c7" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#cdx-ah-blue)"/>`;
+      }}
+    }}
 
-  qa("[data-hl]").forEach((btn) => {{
-    btn.addEventListener("click", () => {{
-      state.hlColor = btn.getAttribute("data-hl");
-      selectTool("highlight");
-      setStatus("Click inside any ring to shade");
-    }});
-  }});
-
-  function transformCoords(fn) {{
-    const atoms = state.graph.atoms;
-    if (!atoms.length) return;
-    pushUndo();
-    const cx = atoms.reduce((s, a) => s + a.x, 0) / atoms.length;
-    const cy = atoms.reduce((s, a) => s + a.y, 0) / atoms.length;
-    atoms.forEach((a) => {{
-      const [nx, ny] = fn(a.x - cx, a.y - cy);
-      a.x = +(cx + nx).toFixed(2);
-      a.y = +(cy + ny).toFixed(2);
-    }});
-    render(); persistHostState();
+    svg.innerHTML = h;
+    updateMetrics();
   }}
-  q("#cdx-rot-l").addEventListener("click", () => {{ const c = Math.cos(-Math.PI / 12), s = Math.sin(-Math.PI / 12); transformCoords((x, y) => [x * c - y * s, x * s + y * c]); }});
-  q("#cdx-rot-r").addEventListener("click", () => {{ const c = Math.cos(Math.PI / 12), s = Math.sin(Math.PI / 12); transformCoords((x, y) => [x * c - y * s, x * s + y * c]); }});
-  q("#cdx-flip-h").addEventListener("click", () => transformCoords((x, y) => [-x, y]));
-  q("#cdx-clean").addEventListener("click", () => {{
-    const atoms = state.graph.atoms;
-    if (!atoms.length) return;
-    pushUndo();
-    const xs = atoms.map((a) => a.x), ys = atoms.map((a) => a.y);
-    const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
-    atoms.forEach((a) => {{ a.x = +(280 + (a.x - cx)).toFixed(2); a.y = +(145 + (a.y - cy)).toFixed(2); }});
-    render(); persistHostState();
-  }});
-  q("#cdx-undo").addEventListener("click", () => {{
-    if (!state.undoStack.length) return;
-    state.redoStack.push(JSON.stringify(state.graph));
-    state.graph = JSON.parse(state.undoStack.pop());
-    render(); persistHostState();
-  }});
-  q("#cdx-redo").addEventListener("click", () => {{
-    if (!state.redoStack.length) return;
-    state.undoStack.push(JSON.stringify(state.graph));
-    state.graph = JSON.parse(state.redoStack.pop());
-    render(); persistHostState();
-  }});
-  q("#cdx-clear").addEventListener("click", () => {{
-    pushUndo();
-    state.graph = {{ name: "Custom", atoms: [], bonds: [], arrows: [], pluses: [], texts: [], circles: [], spokes: [], ring_fills: [] }};
-    render(); persistHostState();
-  }});
-  styleSel.addEventListener("change", () => {{ state.style = styleSel.value; render(); persistHostState(); }});
 
-  q("#cdx-smi-load").addEventListener("click", () => {{
-    const raw = q("#cdx-smi-in").value.trim();
-    const parsed = parseSmilesClient(raw);
-    if (!parsed) {{ setStatus("Could not parse SMILES: " + raw); return; }}
-    pushUndo();
-    state.graph = parsed;
-    render(); persistHostState();
-    setStatus("Loaded SMILES: " + raw);
-  }});
+  // Tool & Element Selection Helpers
+  function selectTool(slot, subId) {{
+    state.ringTool = null;
+    document.querySelectorAll("#cdx-rings-bar .cdx-rbtn").forEach((b) => b.classList.remove("is-active"));
+    state.slot = slot;
+    if (subId) state.activeSub[slot] = subId;
+    state.tool = subId || state.activeSub[slot] || slot;
+    document.querySelectorAll(".cdx-left [data-slot]").forEach((b) => b.classList.toggle("is-active", b.dataset.slot === slot));
+    flyoutEl.hidden = true;
+    setToast(`Tool: ${{state.tool}}`);
+    render();
+  }}
 
-  q("#cdx-copy-smi").addEventListener("click", async () => {{
-    const smi = graphToSmiles(state.graph) || state.graph.smiles || "";
-    try {{ await navigator.clipboard.writeText(smi); setStatus("Copied SMILES: " + smi); }}
-    catch (_e) {{ setStatus("SMILES: " + smi); }}
+  function setActiveElem(el, iso = 0, qlock = null) {{
+    state.elem = el; state.iso = iso; state.qLock = qlock;
+    document.querySelectorAll(".cdx-right .cdx-elbtn").forEach((b) => b.classList.toggle("is-active", b.dataset.elem === el && !iso));
+    if (state.slot === "select" || state.slot === "erase") selectTool("bond", state.activeSub.bond);
+    setToast(`Active atom: ${{iso ? iso : ""}}${{el}}${{qlock ? " (" + qlock + ")" : ""}}`);
+  }}
+
+  // Left toolbar clicks & flyout menus
+  document.querySelectorAll(".cdx-left [data-slot]").forEach((btn) => {{
+    btn.addEventListener("click", (ev) => {{
+      ev.stopPropagation();
+      const slot = btn.dataset.slot;
+      const subs = SUBTOOLS[slot];
+      if (state.slot === slot && subs && !state.ringTool) {{
+        // Toggle flyout menu
+        if (!flyoutEl.hidden && flyoutEl.dataset.slot === slot) {{ flyoutEl.hidden = true; return; }}
+        flyoutEl.dataset.slot = slot;
+        flyoutEl.style.top = (btn.offsetTop + 2) + "px";
+        flyoutEl.innerHTML = subs.map((s) => `<button type="button" class="cdx-flybtn ${{state.tool === s.id ? "is-active" : ""}}" data-sub="${{s.id}}">${{esc(s.label)}}</button>`).join("");
+        flyoutEl.hidden = false;
+        flyoutEl.querySelectorAll("[data-sub]").forEach((sb) => sb.addEventListener("click", () => selectTool(slot, sb.dataset.sub)));
+        return;
+      }}
+      selectTool(slot, subs ? state.activeSub[slot] : slot);
+    }});
   }});
-  q("#cdx-dl-cdxml").addEventListener("click", () => {{
-    const blob = new Blob([generateCdxml(state.graph)], {{ type: "application/xml;charset=utf-8" }});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = ((state.graph.name || "structure").replace(/[^a-z0-9_-]+/gi, "_")) + ".cdxml";
-    a.click();
-  }});
-  q("#cdx-dl-svg").addEventListener("click", () => {{
-    const blob = new Blob([svg.outerHTML], {{ type: "image/svg+xml;charset=utf-8" }});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = ((state.graph.name || "structure").replace(/[^a-z0-9_-]+/gi, "_")) + ".svg";
-    a.click();
+  document.addEventListener("click", () => {{ flyoutEl.hidden = true; }});
+
+  // Right element buttons
+  document.querySelectorAll(".cdx-right [data-elem]").forEach((btn) => {{
+    btn.addEventListener("click", () => setActiveElem(btn.dataset.elem, 0, null));
   }});
 
-  // Universal Multi-Host Bridge (Inline Surface API + MCP Apps JSON-RPC + Local Live-Sync + Clipboard Fallback)
-  let rpcId = 1;
-  function postHost(msg) {{ try {{ window.parent.postMessage(msg, "*"); }} catch (_e) {{}} }}
-  function extractResultPayload(params) {{
-    if (!params) return null;
-    if (params.structuredContent && typeof params.structuredContent === "object") return params.structuredContent;
-    if (Array.isArray(params.content)) {{
-      for (const item of params.content) {{
-        if (item && item.type === "text" && typeof item.text === "string") {{
-          try {{ return JSON.parse(item.text); }} catch (_e) {{}}
+  // Bottom ring dock buttons
+  document.querySelectorAll("#cdx-rings-bar [data-ring]").forEach((btn) => {{
+    btn.addEventListener("click", () => {{
+      const rk = btn.dataset.ring;
+      state.ringTool = rk;
+      document.querySelectorAll(".cdx-left [data-slot]").forEach((b) => b.classList.remove("is-active"));
+      document.querySelectorAll("#cdx-rings-bar .cdx-rbtn").forEach((b) => b.classList.toggle("is-active", b === btn));
+      setToast(`Ring: ${{rk}} · Hover bond to fuse, atom for spiro, or canvas to place`);
+      render();
+    }});
+  }});
+
+  // Floating Hotbox for Atom Formula / R-Group / Arrow Conditions
+  let hotboxTarget = null;
+  function openHotbox(screenX, screenY, initVal, onCommit) {{
+    const rect = stageWrap.getBoundingClientRect();
+    hotboxEl.style.left = Math.max(6, Math.min(rect.width - 185, screenX - rect.left)) + "px";
+    hotboxEl.style.top = Math.max(6, Math.min(rect.height - 34, screenY - rect.top)) + "px";
+    hotboxIn.value = initVal || "";
+    hotboxTarget = onCommit;
+    hotboxEl.hidden = false;
+    setTimeout(() => {{ hotboxIn.focus(); hotboxIn.select(); }}, 10);
+  }}
+  function commitHotbox() {{
+    if (hotboxTarget) {{
+      const val = hotboxIn.value.trim();
+      hotboxTarget(val);
+      hotboxTarget = null;
+    }}
+    hotboxEl.hidden = true;
+    render(); syncHostState();
+  }}
+  document.getElementById("cdx-hotbox-ok").addEventListener("click", commitHotbox);
+  hotboxIn.addEventListener("keydown", (ev) => {{
+    if (ev.key === "Enter") {{ ev.preventDefault(); commitHotbox(); }}
+    else if (ev.key === "Escape") {{ hotboxTarget = null; hotboxEl.hidden = true; }}
+  }});
+
+  function deleteAtomAt(g, ai) {{
+    g.atoms.splice(ai, 1);
+    g.bonds = g.bonds.filter((b) => b.a !== ai && b.b !== ai).map((b) => ({{
+      ...b, a: b.a > ai ? b.a - 1 : b.a, b: b.b > ai ? b.b - 1 : b.b
+    }}));
+    state.selAtoms.clear();
+  }}
+
+  function pointInPolygon(pt, poly) {{
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {{
+      const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
+      if (((yi > pt.y) !== (yj > pt.y)) && (pt.x < ((xj - xi) * (pt.y - yi)) / (yj - yi + 1e-9) + xi)) inside = !inside;
+    }}
+    return inside;
+  }}
+
+  // Pointer Interactions on SVG Canvas
+  svg.addEventListener("dblclick", (ev) => {{
+    const p = svgPoint(ev);
+    const g = state.graph;
+    const ai = hitAtom(g, p, 14);
+    if (ai >= 0) {{
+      openHotbox(ev.clientX, ev.clientY, g.atoms[ai].s, (val) => {{
+        if (!val) return;
+        pushUndo();
+        g.atoms[ai].s = val;
+      }});
+      return;
+    }}
+    // Check arrow hit
+    const ari = g.arrows.findIndex((ar) => Math.hypot(p.x - (ar.x1 + ar.x2)/2, p.y - (ar.y1 + ar.y2)/2) < 35);
+    if (ari >= 0) {{
+      const cur = (g.arrows[ari].above || "") + " | " + (g.arrows[ari].below || "");
+      openHotbox(ev.clientX, ev.clientY, cur, (val) => {{
+        pushUndo();
+        const [ab, bl] = val.split("|").map((s) => s.trim());
+        g.arrows[ari].above = ab || "";
+        g.arrows[ari].below = bl || "";
+      }});
+    }}
+  }});
+
+  svg.addEventListener("pointerdown", (ev) => {{
+    if (!hotboxEl.hidden) commitHotbox();
+    const p = svgPoint(ev);
+    const g = state.graph;
+    const ai = hitAtom(g, p), bi = hitBond(g, p);
+
+    // Middle-button or Spacebar pan
+    if (ev.button === 1 || ev.altKey) {{
+      state.drag = {{kind: "pan", sx: ev.clientX, sy: ev.clientY, cx0: state.cam.x, cy0: state.cam.y}};
+      svg.setPointerCapture(ev.pointerId);
+      return;
+    }}
+
+    // Ring tool active
+    if (state.ringTool) {{
+      pushUndo();
+      placeRing(g, state.ringTool, p, ai, bi);
+      render(); syncHostState();
+      return;
+    }}
+
+    const t = state.tool;
+
+    // Selection modes + Bounding-box move & rotation handle
+    if (t.startsWith("sel-")) {{
+      if (state.selAtoms.size > 0) {{
+        const sPts = [...state.selAtoms].map((i) => g.atoms[i]).filter(Boolean);
+        const minX = Math.min(...sPts.map((q) => q.x)) - 14, maxX = Math.max(...sPts.map((q) => q.x)) + 14;
+        const minY = Math.min(...sPts.map((q) => q.y)) - 14, maxY = Math.max(...sPts.map((q) => q.y)) + 14;
+        const midX = (minX + maxX) / 2, cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+        if (Math.hypot(p.x - midX, p.y - (minY - 17)) < 10) {{
+          pushUndo();
+          const orig = new Map([...state.selAtoms].map((i) => [i, {{x: g.atoms[i].x, y: g.atoms[i].y}}]));
+          state.drag = {{kind: "rot-sel", cx, cy, a0: Math.atan2(p.y - cy, p.x - cx), orig}};
+          svg.setPointerCapture(ev.pointerId);
+          return;
+        }}
+        if (p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY) {{
+          pushUndo();
+          const orig = new Map([...state.selAtoms].map((i) => [i, {{x: g.atoms[i].x, y: g.atoms[i].y}}]));
+          state.drag = {{kind: "move-sel", p0: p, orig}};
+          svg.setPointerCapture(ev.pointerId);
+          return;
+        }}
+      }}
+      if (ai >= 0) {{
+        if (t === "sel-frag") {{
+          if (!ev.shiftKey) state.selAtoms.clear();
+          const q = [ai]; state.selAtoms.add(ai);
+          while (q.length) {{
+            const u = q.shift();
+            neighbors(g, u).forEach((nb) => {{ if (!state.selAtoms.has(nb.to)) {{ state.selAtoms.add(nb.to); q.push(nb.to); }} }});
+          }}
+        }} else {{
+          if (!ev.shiftKey) state.selAtoms.clear();
+          state.selAtoms.add(ai);
+        }}
+        pushUndo();
+        const orig = new Map([...state.selAtoms].map((i) => [i, {{x: g.atoms[i].x, y: g.atoms[i].y}}]));
+        state.drag = {{kind: "move-sel", p0: p, orig}};
+        svg.setPointerCapture(ev.pointerId);
+        render(); return;
+      }}
+      if (!ev.shiftKey) state.selAtoms.clear();
+      state.drag = t === "sel-box" ? {{kind: "box", x1: p.x, y1: p.y, x2: p.x, y2: p.y}} : {{kind: "lasso", pts: [p]}};
+      svg.setPointerCapture(ev.pointerId);
+      render(); return;
+    }}
+
+    // Eraser (click + drag sweep)
+    if (t === "erase") {{
+      pushUndo();
+      if (ai >= 0) deleteAtomAt(g, ai);
+      else if (bi >= 0) g.bonds.splice(bi, 1);
+      else {{
+        const ari = g.arrows.findIndex((ar) => Math.hypot(p.x - (ar.x1+ar.x2)/2, p.y - (ar.y1+ar.y2)/2) < 22);
+        if (ari >= 0) g.arrows.splice(ari, 1);
+        const pli = g.pluses.findIndex((pl) => Math.hypot(p.x - pl.x, p.y - pl.y) < 14);
+        if (pli >= 0) g.pluses.splice(pli, 1);
+      }}
+      state.drag = {{kind: "erase-sweep"}};
+      svg.setPointerCapture(ev.pointerId);
+      render(); return;
+    }}
+
+    // Charge / Radical tools
+    if (t.startsWith("chg-") && ai >= 0) {{
+      pushUndo();
+      const a = g.atoms[ai];
+      if (t === "chg-plus") a.chg = ((a.chg || 0) >= 3) ? 0 : (a.chg || 0) + 1;
+      else if (t === "chg-minus") a.chg = ((a.chg || 0) <= -3) ? 0 : (a.chg || 0) - 1;
+      else a.rad = ((a.rad || 0) + 1) % 3;
+      render(); syncHostState(); return;
+    }}
+
+    // Formula / Text tool
+    if (t === "text") {{
+      if (ai >= 0) {{
+        openHotbox(ev.clientX, ev.clientY, g.atoms[ai].s, (val) => {{
+          if (!val) return; pushUndo(); g.atoms[ai].s = val;
+        }});
+      }} else {{
+        openHotbox(ev.clientX, ev.clientY, "", (val) => {{
+          if (!val) return; pushUndo(); g.texts.push({{x: +p.x.toFixed(1), y: +p.y.toFixed(1), text: val}});
+        }});
+      }}
+      return;
+    }}
+
+    // Zigzag Alkane Chain Tool
+    if (t === "chain") {{
+      pushUndo();
+      const p0 = ai >= 0 ? {{x: g.atoms[ai].x, y: g.atoms[ai].y, ai}} : {{x: +p.x.toFixed(2), y: +p.y.toFixed(2), ai: -1}};
+      state.drag = {{kind: "chain", start: p0, pts: [p0]}};
+      svg.setPointerCapture(ev.pointerId);
+      render(); return;
+    }}
+
+    // Reaction & Mechanism tools
+    if (t.startsWith("rxn-")) {{
+      if (t === "rxn-plus") {{
+        pushUndo(); g.pluses.push({{x: +p.x.toFixed(1), y: +p.y.toFixed(1)}}); render(); syncHostState(); return;
+      }}
+      if (t === "rxn-map" && ai >= 0) {{
+        state.drag = {{kind: "map", src: ai, x1: g.atoms[ai].x, y1: g.atoms[ai].y, x2: p.x, y2: p.y}};
+        svg.setPointerCapture(ev.pointerId); render(); return;
+      }}
+      if (t === "rxn-curv2" || t === "rxn-curv1") {{
+        let sx = p.x, sy = p.y;
+        if (ai >= 0) {{ sx = g.atoms[ai].x; sy = g.atoms[ai].y; }}
+        else if (bi >= 0) {{ sx = (g.atoms[g.bonds[bi].a].x + g.atoms[g.bonds[bi].b].x)/2; sy = (g.atoms[g.bonds[bi].a].y + g.atoms[g.bonds[bi].b].y)/2; }}
+        state.drag = {{kind: "curv", el: t === "rxn-curv1" ? 1 : 2, x1: sx, y1: sy, x2: sx, y2: sy}};
+        svg.setPointerCapture(ev.pointerId); render(); return;
+      }}
+      state.drag = {{kind: "arrow", style: t.replace("rxn-", ""), x1: p.x, y1: p.y, x2: p.x + 80, y2: p.y, moved: false}};
+      svg.setPointerCapture(ev.pointerId); render(); return;
+    }}
+
+    // Markush & Polymer Brackets
+    if (t.startsWith("mk-")) {{
+      if (t === "mk-bracket") {{
+        state.drag = {{kind: "bracket", x1: p.x, y1: p.y, x2: p.x, y2: p.y}};
+        svg.setPointerCapture(ev.pointerId); render(); return;
+      }}
+      const rings = findSmallRings(g);
+      const hitRing = rings.find((r) => pointInPolygon(p, r.map((i) => g.atoms[i])));
+      if (t === "mk-fill" && hitRing) {{
+        pushUndo();
+        g.ring_fills.push({{atoms: hitRing, color: "rgba(56,189,248,0.24)"}});
+        render(); syncHostState(); return;
+      }}
+      if (t === "mk-var" && hitRing) {{
+        pushUndo();
+        const rcx = +(hitRing.reduce((s, i) => s + g.atoms[i].x, 0) / hitRing.length).toFixed(2);
+        const rcy = +(hitRing.reduce((s, i) => s + g.atoms[i].y, 0) / hitRing.length).toFixed(2);
+        const ci = g.atoms.length;
+        g.atoms.push({{s: "*", x: rcx, y: rcy, multicenterCenter: true}});
+        const ang = Math.atan2(p.y - rcy, p.x - rcx);
+        const ri = g.atoms.length;
+        g.atoms.push({{s: state.elem === "C" ? "R1" : state.elem, x: +(rcx + Math.cos(ang) * BOND_L * 1.45).toFixed(2), y: +(rcy + Math.sin(ang) * BOND_L * 1.45).toFixed(2)}});
+        g.bonds.push({{a: ci, b: ri, o: 1, multicenter: true}});
+        render(); syncHostState(); return;
+      }}
+      return;
+    }}
+
+    // Bond / Stereo / Query-Bond click on existing bond
+    if (bi >= 0 && ai < 0) {{
+      pushUndo();
+      const b = g.bonds[bi];
+      delete b.q; delete b.ez;
+      if (t.startsWith("qb-")) {{
+        b.o = 1; b.q = t.replace("qb-", "");
+      }} else if (t === "st-wedge") {{
+        if (b.o === 4) {{ const tmp = b.a; b.a = b.b; b.b = tmp; }} else b.o = 4;
+      }} else if (t === "st-hash") {{
+        if (b.o === 5) {{ const tmp = b.a; b.a = b.b; b.b = tmp; }} else b.o = 5;
+      }} else if (t === "st-wavy") b.o = 6;
+      else if (t === "st-bold") b.o = 7;
+      else if (t === "st-ez") {{ b.o = 2; b.ez = true; }}
+      else if (t === "bond-2") {{
+        if (b.o === 2) b.side = ((b.side || 0) + 1) % 4;
+        else {{ b.o = 2; b.side = 0; }}
+      }} else if (t === "bond-3") b.o = 3;
+      else b.o = b.o === 1 ? 2 : (b.o === 2 ? 3 : 1);
+      render(); syncHostState(); return;
+    }}
+
+    // Start Bond Drawing from Atom or Empty Space
+    pushUndo();
+    let src = ai;
+    let createdSrc = false;
+    if (src < 0) {{
+      src = g.atoms.length;
+      const na = {{s: state.elem, x: +p.x.toFixed(2), y: +p.y.toFixed(2)}};
+      if (state.iso) na.iso = state.iso;
+      if (state.qLock) na.qlock = state.qLock;
+      g.atoms.push(na);
+      createdSrc = true;
+    }}
+    const newOrd = t === "bond-2" ? 2 : (t === "bond-3" ? 3 : (t === "st-wedge" ? 4 : (t === "st-hash" ? 5 : (t === "st-wavy" ? 6 : (t === "st-bold" ? 7 : 1)))));
+    const spAng = sproutAngle(g, src, newOrd);
+    state.drag = {{
+      kind: "bond", src, createdSrc, ord: newOrd,
+      q: t.startsWith("qb-") ? t.replace("qb-", "") : null,
+      ez: t === "st-ez",
+      x1: g.atoms[src].x, y1: g.atoms[src].y,
+      x2: +(g.atoms[src].x + Math.cos(spAng) * BOND_L).toFixed(2),
+      y2: +(g.atoms[src].y + Math.sin(spAng) * BOND_L).toFixed(2),
+      moved: false, snapAi: -1
+    }};
+    svg.setPointerCapture(ev.pointerId);
+    render();
+  }});
+
+  svg.addEventListener("pointermove", (ev) => {{
+    const p = svgPoint(ev);
+    const g = state.graph;
+    state.hover.pt = p;
+    state.hover.ai = hitAtom(g, p);
+    state.hover.bi = state.hover.ai >= 0 ? -1 : hitBond(g, p);
+
+    if (!state.drag) {{
+      if (state.ringTool || state.hover.ai >= 0 || state.hover.bi >= 0) render();
+      return;
+    }}
+    const d = state.drag;
+    if (d.kind === "pan") {{
+      const rect = svg.getBoundingClientRect();
+      state.cam.x = d.cx0 - (ev.clientX - d.sx) * (state.cam.w / (rect.width || 680));
+      state.cam.y = d.cy0 - (ev.clientY - d.sy) * (state.cam.h / (rect.height || 356));
+      updateViewBox(); return;
+    }}
+    if (d.kind === "move-sel") {{
+      const dx = p.x - d.p0.x, dy = p.y - d.p0.y;
+      d.orig.forEach((pos, idx) => {{
+        g.atoms[idx].x = +(pos.x + dx).toFixed(2);
+        g.atoms[idx].y = +(pos.y + dy).toFixed(2);
+      }});
+      render(); return;
+    }}
+    if (d.kind === "rot-sel") {{
+      const da = Math.atan2(p.y - d.cy, p.x - d.cx) - d.a0;
+      const cs = Math.cos(da), sn = Math.sin(da);
+      d.orig.forEach((pos, idx) => {{
+        const rx = pos.x - d.cx, ry = pos.y - d.cy;
+        g.atoms[idx].x = +(d.cx + rx * cs - ry * sn).toFixed(2);
+        g.atoms[idx].y = +(d.cy + rx * sn + ry * cs).toFixed(2);
+      }});
+      render(); return;
+    }}
+    if (d.kind === "erase-sweep") {{
+      if (state.hover.ai >= 0) deleteAtomAt(g, state.hover.ai);
+      else if (state.hover.bi >= 0) g.bonds.splice(state.hover.bi, 1);
+      render(); return;
+    }}
+    if (d.kind === "box") {{ d.x2 = p.x; d.y2 = p.y; render(); return; }}
+    if (d.kind === "lasso") {{ d.pts.push(p); render(); return; }}
+    if (d.kind === "arrow" || d.kind === "map" || d.kind === "curv" || d.kind === "bracket") {{
+      d.moved = true; d.x2 = p.x; d.y2 = p.y; render(); return;
+    }}
+    if (d.kind === "chain") {{
+      const dx = p.x - d.start.x, dy = p.y - d.start.y, dist = Math.hypot(dx, dy);
+      const count = Math.max(2, Math.min(24, Math.floor(dist / (BOND_L * 0.86)) + 1));
+      const baseAng = Math.round(Math.atan2(dy, dx) / (Math.PI / 6)) * (Math.PI / 6);
+      const pts = [d.start];
+      for (let k = 1; k < count; k++) {{
+        const prev = pts[k - 1];
+        const a = baseAng + (k % 2 === 1 ? -Math.PI / 6 : Math.PI / 6);
+        pts.push({{x: +(prev.x + Math.cos(a) * BOND_L).toFixed(2), y: +(prev.y + Math.sin(a) * BOND_L).toFixed(2)}});
+      }}
+      d.pts = pts;
+      render(); return;
+    }}
+    if (d.kind === "bond") {{
+      if (Math.hypot(p.x - d.x1, p.y - d.y1) > 7) d.moved = true;
+      const near = hitAtom(g, p, 14);
+      if (near >= 0 && near !== d.src) {{
+        d.x2 = g.atoms[near].x; d.y2 = g.atoms[near].y; d.snapAi = near;
+      }} else {{
+        d.snapAi = -1;
+        if (d.moved) {{
+          const snapStep = ev.shiftKey ? Math.PI / 36 : Math.PI / 6;
+          const ang = Math.round(Math.atan2(p.y - d.y1, p.x - d.x1) / snapStep) * snapStep;
+          d.x2 = +(d.x1 + Math.cos(ang) * BOND_L).toFixed(2);
+          d.y2 = +(d.y1 + Math.sin(ang) * BOND_L).toFixed(2);
+        }}
+      }}
+      render();
+    }}
+  }});
+
+  svg.addEventListener("pointerup", () => {{
+    if (!state.drag) return;
+    const d = state.drag;
+    const g = state.graph;
+    state.drag = null;
+
+    if (d.kind === "box") {{
+      const x1 = Math.min(d.x1, d.x2), x2 = Math.max(d.x1, d.x2);
+      const y1 = Math.min(d.y1, d.y2), y2 = Math.max(d.y1, d.y2);
+      g.atoms.forEach((a, i) => {{ if (a.x >= x1 && a.x <= x2 && a.y >= y1 && a.y <= y2) state.selAtoms.add(i); }});
+    }} else if (d.kind === "lasso" && d.pts.length >= 3) {{
+      g.atoms.forEach((a, i) => {{ if (pointInPolygon(a, d.pts)) state.selAtoms.add(i); }});
+    }} else if (d.kind === "arrow") {{
+      pushUndo();
+      g.arrows.push({{x1: +d.x1.toFixed(1), y1: +d.y1.toFixed(1), x2: +(d.moved ? d.x2 : d.x1 + 92).toFixed(1), y2: +(d.moved ? d.y2 : d.y1).toFixed(1), style: d.style, above: "", below: ""}});
+    }} else if (d.kind === "map") {{
+      const dst = hitAtom(g, {{x: d.x2, y: d.y2}}, 14);
+      if (dst >= 0 && dst !== d.src) {{
+        pushUndo();
+        const m = g.atoms[d.src].map || state.nextMap++;
+        g.atoms[d.src].map = m; g.atoms[dst].map = m;
+        setToast(`Mapped atom [${{m}}]`);
+      }}
+    }} else if (d.kind === "curv" && Math.hypot(d.x2 - d.x1, d.y2 - d.y1) > 12) {{
+      pushUndo();
+      g.curved.push({{x1: +d.x1.toFixed(1), y1: +d.y1.toFixed(1), x2: +d.x2.toFixed(1), y2: +d.y2.toFixed(1), el: d.el}});
+    }} else if (d.kind === "bracket" && Math.hypot(d.x2 - d.x1, d.y2 - d.y1) > 14) {{
+      pushUndo();
+      g.brackets.push({{x1: +d.x1.toFixed(1), y1: +d.y1.toFixed(1), x2: +d.x2.toFixed(1), y2: +d.y2.toFixed(1), label: "n"}});
+    }} else if (d.kind === "chain") {{
+      let prevIdx = d.start.ai;
+      if (prevIdx < 0) {{
+        prevIdx = g.atoms.length;
+        g.atoms.push({{s: "C", x: d.pts[0].x, y: d.pts[0].y}});
+      }}
+      for (let k = 1; k < d.pts.length; k++) {{
+        const ex = hitAtom(g, d.pts[k], 9);
+        const curIdx = ex >= 0 ? ex : g.atoms.length;
+        if (ex < 0) g.atoms.push({{s: "C", x: d.pts[k].x, y: d.pts[k].y}});
+        if (curIdx !== prevIdx && bondExists(g, prevIdx, curIdx) < 0) g.bonds.push({{a: prevIdx, b: curIdx, o: 1}});
+        prevIdx = curIdx;
+      }}
+    }} else if (d.kind === "bond") {{
+      // Click on existing atom without dragging -> relabel if non-C element selected, else sprout!
+      if (!d.moved && !d.createdSrc && (state.elem !== "C" || state.iso || state.qLock) && g.atoms[d.src].s !== state.elem) {{
+        g.atoms[d.src].s = state.elem;
+        if (state.iso) g.atoms[d.src].iso = state.iso; else delete g.atoms[d.src].iso;
+        if (state.qLock) g.atoms[d.src].qlock = state.qLock; else delete g.atoms[d.src].qlock;
+      }} else {{
+        let dst = d.snapAi >= 0 ? d.snapAi : hitAtom(g, {{x: d.x2, y: d.y2}}, 10);
+        if (dst < 0) {{
+          dst = g.atoms.length;
+          const na = {{s: d.createdSrc ? "C" : state.elem, x: d.x2, y: d.y2}};
+          if (!d.createdSrc && state.iso) na.iso = state.iso;
+          if (!d.createdSrc && state.qLock) na.qlock = state.qLock;
+          g.atoms.push(na);
+        }}
+        if (dst !== d.src) {{
+          const eb = bondExists(g, d.src, dst);
+          if (eb >= 0) {{
+            g.bonds[eb].o = g.bonds[eb].o === 1 ? 2 : 1;
+          }} else {{
+            const nb = {{a: d.src, b: dst, o: d.ord}};
+            if (d.q) nb.q = d.q;
+            if (d.ez) nb.ez = true;
+            g.bonds.push(nb);
+          }}
         }}
       }}
     }}
-    return params;
-  }}
+    render(); syncHostState();
+  }});
 
-  window.addEventListener("message", (event) => {{
-    const msg = event.data;
-    if (!msg || typeof msg !== "object") return;
-    if (msg.id === 1 && msg.result) {{
-      postHost({{ jsonrpc: "2.0", method: "ui/notifications/initialized", params: {{}} }});
-      return;
+  // Wheel Zoom
+  svg.addEventListener("wheel", (ev) => {{
+    ev.preventDefault();
+    const factor = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
+    const nz = Math.max(0.4, Math.min(3.5, state.cam.zoom * factor));
+    const p = svgPoint(ev);
+    const nw = 680 / nz, nh = (root.classList.contains("is-tall") ? 520 : 356) / nz;
+    state.cam.x = p.x - ((p.x - state.cam.x) / state.cam.w) * nw;
+    state.cam.y = p.y - ((p.y - state.cam.y) / state.cam.h) * nh;
+    state.cam.w = nw; state.cam.h = nh; state.cam.zoom = nz;
+    updateViewBox();
+  }}, {{passive: false}});
+
+  function zoomBy(factor) {{
+    const cx = state.cam.x + state.cam.w / 2, cy = state.cam.y + state.cam.h / 2;
+    const nz = Math.max(0.4, Math.min(3.5, state.cam.zoom * factor));
+    const nw = 680 / nz, nh = (root.classList.contains("is-tall") ? 520 : 356) / nz;
+    state.cam.x = cx - nw / 2; state.cam.y = cy - nh / 2;
+    state.cam.w = nw; state.cam.h = nh; state.cam.zoom = nz;
+    updateViewBox();
+  }}
+  function fitZoom() {{
+    const g = state.graph;
+    const baseH = root.classList.contains("is-tall") ? 520 : 356;
+    if (!g.atoms.length) {{
+      state.cam = {{x: 0, y: 0, w: 680, h: baseH, zoom: 1}};
+      updateViewBox(); return;
     }}
-    if (msg.method === "ui/notifications/tool-result") {{
-      const p = extractResultPayload(msg.params);
-      if (p && p.graph) {{
-        state.graph = cloneGraph(p.graph);
-        if (p.style && p.style in STYLES) {{ state.style = p.style; styleSel.value = p.style; }}
-        render(); buildTemplatePane();
+    const xs = g.atoms.map((a) => a.x), ys = g.atoms.map((a) => a.y);
+    const pad = 55;
+    const spanX = Math.max(180, Math.max(...xs) - Math.min(...xs) + pad * 2);
+    const spanY = Math.max(120, Math.max(...ys) - Math.min(...ys) + pad * 2);
+    const z = Math.min(1.6, Math.min(680 / spanX, baseH / spanY));
+    const nw = 680 / z, nh = baseH / z;
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    state.cam = {{x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh, zoom: z}};
+    updateViewBox();
+  }}
+  document.getElementById("cdx-z-in").addEventListener("click", () => zoomBy(1.18));
+  document.getElementById("cdx-z-out").addEventListener("click", () => zoomBy(1 / 1.18));
+  document.getElementById("cdx-z-fit").addEventListener("click", fitZoom);
+
+  // Top Bar Actions
+  document.getElementById("cdx-act-new").addEventListener("click", () => {{
+    pushUndo(); state.graph = normalizeGraph({{}}); state.selAtoms.clear(); render(); syncHostState();
+  }});
+  document.getElementById("cdx-act-undo").addEventListener("click", () => {{
+    if (!state.undoStack.length) return;
+    state.redoStack.push(clone(state.graph));
+    state.graph = state.undoStack.pop(); render(); syncHostState();
+  }});
+  document.getElementById("cdx-act-redo").addEventListener("click", () => {{
+    if (!state.redoStack.length) return;
+    state.undoStack.push(clone(state.graph));
+    state.graph = state.redoStack.pop(); render(); syncHostState();
+  }});
+  document.getElementById("cdx-act-dup").addEventListener("click", () => {{
+    const g = state.graph;
+    const src = state.selAtoms.size > 0 ? [...state.selAtoms] : g.atoms.map((_, i) => i);
+    if (!src.length) return;
+    pushUndo();
+    const map = new Map();
+    state.selAtoms.clear();
+    src.forEach((i) => {{
+      const ni = g.atoms.length;
+      map.set(i, ni);
+      g.atoms.push({{...clone(g.atoms[i]), x: +(g.atoms[i].x + 42).toFixed(2), y: +(g.atoms[i].y + 24).toFixed(2)}});
+      state.selAtoms.add(ni);
+    }});
+    const snapBonds = [...g.bonds];
+    snapBonds.forEach((b) => {{
+      if (map.has(b.a) && map.has(b.b)) g.bonds.push({{...clone(b), a: map.get(b.a), b: map.get(b.b)}});
+    }});
+    selectTool("select", "sel-lasso");
+    render(); syncHostState();
+  }});
+  document.getElementById("cdx-act-clean").addEventListener("click", () => clean2D(state.graph));
+  document.getElementById("cdx-act-arom").addEventListener("click", () => {{
+    pushUndo(); state.graph.arom_circles = !state.graph.arom_circles; render();
+    setToast(state.graph.arom_circles ? "Thiele aromatic circles ON" : "Kekule double bonds ON");
+  }});
+  document.getElementById("cdx-act-expand").addEventListener("click", () => expandAbbreviations(state.graph));
+
+  function transformTargetAtoms(fn) {{
+    const g = state.graph;
+    const idxs = state.selAtoms.size > 0 ? [...state.selAtoms] : g.atoms.map((_, i) => i);
+    if (!idxs.length) return;
+    pushUndo();
+    const cx = idxs.reduce((s, i) => s + g.atoms[i].x, 0) / idxs.length;
+    const cy = idxs.reduce((s, i) => s + g.atoms[i].y, 0) / idxs.length;
+    idxs.forEach((i) => fn(g.atoms[i], cx, cy));
+    render(); syncHostState();
+  }}
+  document.getElementById("cdx-act-fliph").addEventListener("click", () => transformTargetAtoms((a, cx) => {{ a.x = +(2 * cx - a.x).toFixed(2); }}));
+  document.getElementById("cdx-act-flipv").addEventListener("click", () => transformTargetAtoms((a, _cx, cy) => {{ a.y = +(2 * cy - a.y).toFixed(2); }}));
+  document.getElementById("cdx-act-rot").addEventListener("click", () => transformTargetAtoms((a, cx, cy) => {{
+    const rx = a.x - cx, ry = a.y - cy, cs = Math.cos(Math.PI / 6), sn = Math.sin(Math.PI / 6);
+    a.x = +(cx + rx * cs - ry * sn).toFixed(2); a.y = +(cy + rx * sn + ry * cs).toFixed(2);
+  }}));
+  document.getElementById("cdx-act-grid").addEventListener("click", () => stageWrap.classList.toggle("no-grid"));
+  document.getElementById("cdx-act-tall").addEventListener("click", () => {{
+    root.classList.toggle("is-tall"); fitZoom(); notifyResize();
+  }});
+  document.getElementById("cdx-query-mode").addEventListener("change", updateMetrics);
+
+  // Modals: Periodic Table, Reaxys/SciFinder Query Generics, Import, Export, Templates
+  function openModal(html) {{
+    modalEl.innerHTML = html;
+    backdropEl.hidden = false;
+    const closeBtn = modalEl.querySelector("[data-close]");
+    if (closeBtn) closeBtn.addEventListener("click", () => {{ backdropEl.hidden = true; }});
+  }}
+  backdropEl.addEventListener("click", (ev) => {{ if (ev.target === backdropEl) backdropEl.hidden = true; }});
+
+  document.getElementById("cdx-open-pt").addEventListener("click", () => {{
+    let cells = "";
+    for (let r = 1; r <= 8; r++) {{
+      for (let c = 1; c <= 18; c++) {{
+        const item = PT_DATA.find((x) => x[2] === r && x[3] === c);
+        if (item) {{
+          cells += `<button type="button" class="cdx-pt-cell" data-pt="${{item[1]}}" style="background:${{item[4]}}"><small>${{item[0]}}</small>${{item[1]}}</button>`;
+        }} else {{
+          cells += `<div></div>`;
+        }}
       }}
     }}
+    openModal(`<div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>Periodic Table &amp; Isotopes</strong>
+        <button type="button" class="cdx-ibtn" data-close="1">✕</button>
+      </div>
+      <div class="cdx-pt-grid">${{cells}}</div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+        <span style="font-size:11px;font-weight:600;color:var(--cdx-muted)">Isotopes:</span>
+        <button type="button" class="cdx-ibtn" data-iso="D:0" style="border:1px solid var(--cdx-border)">D (²H)</button>
+        <button type="button" class="cdx-ibtn" data-iso="T:0" style="border:1px solid var(--cdx-border)">T (³H)</button>
+        <button type="button" class="cdx-ibtn" data-iso="C:13" style="border:1px solid var(--cdx-border)">¹³C</button>
+        <button type="button" class="cdx-ibtn" data-iso="N:15" style="border:1px solid var(--cdx-border)">¹⁵N</button>
+        <button type="button" class="cdx-ibtn" data-iso="O:18" style="border:1px solid var(--cdx-border)">¹⁸O</button>
+        <button type="button" class="cdx-ibtn" data-iso="F:19" style="border:1px solid var(--cdx-border)">¹⁹F</button>
+      </div>`);
+    modalEl.querySelectorAll("[data-pt]").forEach((b) => b.addEventListener("click", () => {{
+      setActiveElem(b.dataset.pt, 0, null); backdropEl.hidden = true;
+    }}));
+    modalEl.querySelectorAll("[data-iso]").forEach((b) => b.addEventListener("click", () => {{
+      const [s, m] = b.dataset.iso.split(":");
+      setActiveElem(s, parseInt(m, 10) || 0, null); backdropEl.hidden = true;
+    }}));
   }});
 
-  q("#cdx-open-3d").addEventListener("click", () => {{
-    const smi = graphToSmiles(state.graph) || state.graph.smiles || state.graph.name || "aspirin";
-    if (hostGlobal && typeof hostGlobal.sendFollowUpMessage === "function") {{
-      hostGlobal.sendFollowUpMessage({{ prompt: "Open 3D Mol* viewer for SMILES: " + smi, title: "Open in 3D Mol*" }});
+  document.getElementById("cdx-open-qry").addEventListener("click", () => {{
+    const gens = [
+      ["A","Any heavy atom (!H)"],["Q","Heteroatom (!C,!H)"],["X","Any halogen (F,Cl,Br,I)"],
+      ["M","Any metal"],["*","Attachment point *"],["R1","R1 group"],["R2","R2 group"],["R3","R3 group"],["Ar","Aryl (Ar)"]
+    ];
+    openModal(`<div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>Reaxys / SciFinder Substructure Query Generics &amp; Atom Locks</strong>
+        <button type="button" class="cdx-ibtn" data-close="1">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px">
+        ${{gens.map(([k, d]) => `<button type="button" class="cdx-ibtn" data-qel="${{k}}" style="justify-content:flex-start;border:1px solid var(--cdx-border);padding:4px 8px"><b>${{k}}</b>&nbsp;<span style="font-size:10.5px;color:var(--cdx-muted)">${{d}}</span></button>`).join("")}}
+      </div>
+      <div style="margin-top:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:600">Atom List / NOT List:</span>
+        <input id="cdx-alist" value="[N,O,S]" style="height:25px;padding:0 6px;border:1px solid var(--cdx-border);border-radius:4px;background:var(--cdx-frame)" />
+        <button type="button" class="cdx-ibtn is-active" id="cdx-alist-use" style="padding:0 9px">Use List</button>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:600">Substructure Atom Locks:</span>
+        <button type="button" class="cdx-ibtn" data-qlk="s*" style="border:1px solid var(--cdx-border);padding:0 8px">s* (Lock Open Sites / No Substitution)</button>
+        <button type="button" class="cdx-ibtn" data-qlk="R0" style="border:1px solid var(--cdx-border);padding:0 8px">R0 (Chain Atom Only)</button>
+        <button type="button" class="cdx-ibtn" data-qlk="R" style="border:1px solid var(--cdx-border);padding:0 8px">R (Must Be In Ring)</button>
+      </div>`);
+    modalEl.querySelectorAll("[data-qel]").forEach((b) => b.addEventListener("click", () => {{
+      document.getElementById("cdx-query-mode").value = "substructure";
+      setActiveElem(b.dataset.qel, 0, null); backdropEl.hidden = true;
+    }}));
+    modalEl.querySelector("#cdx-alist-use").addEventListener("click", () => {{
+      const v = modalEl.querySelector("#cdx-alist").value.trim() || "[N,O]";
+      document.getElementById("cdx-query-mode").value = "substructure";
+      setActiveElem(v.startsWith("[") ? v : `[${{v}}]`, 0, null); backdropEl.hidden = true;
+    }});
+    modalEl.querySelectorAll("[data-qlk]").forEach((b) => b.addEventListener("click", () => {{
+      const lk = b.dataset.qlk;
+      document.getElementById("cdx-query-mode").value = "substructure";
+      if (state.selAtoms.size > 0) {{
+        pushUndo();
+        state.selAtoms.forEach((i) => {{ state.graph.atoms[i].qlock = lk; }});
+        render();
+      }} else setActiveElem(state.elem, state.iso, lk);
+      backdropEl.hidden = true;
+    }}));
+  }});
+
+  // Templates & Functional Groups Modal
+  document.getElementById("cdx-act-tmpl").addEventListener("click", () => {{
+    const fgs = Object.keys(ABBR);
+    const tmplEntries = Object.entries(CATALOG).filter(([k]) => k !== "blank" && k !== "empty");
+    openModal(`<div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>Functional Group Stamps &amp; Structure Templates</strong>
+        <button type="button" class="cdx-ibtn" data-close="1">✕</button>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--cdx-muted);margin:6px 0 4px">FUNCTIONAL &amp; PROTECTING GROUPS (click to select stamp, then click/drag on canvas; use R→At to expand)</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+        ${{fgs.map((fg) => `<button type="button" class="cdx-ibtn" data-fg="${{fg}}" style="border:1px solid var(--cdx-border);font-weight:600">${{fg}}</button>`).join("")}}
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--cdx-muted);margin:10px 0 4px">SCAFFOLDS, CONFORMERS &amp; NAMED REACTIONS</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+        ${{tmplEntries.map(([k, v]) => `<button type="button" class="cdx-ibtn" data-load="${{k}}" style="justify-content:space-between;border:1px solid var(--cdx-border);padding:4px 8px"><span>${{esc(v.name || k)}}</span><small style="opacity:0.65">${{(v.atoms || []).length}}a</small></button>`).join("")}}
+      </div>`);
+    modalEl.querySelectorAll("[data-fg]").forEach((b) => b.addEventListener("click", () => {{
+      setActiveElem(b.dataset.fg, 0, null); backdropEl.hidden = true;
+    }}));
+    modalEl.querySelectorAll("[data-load]").forEach((b) => b.addEventListener("click", () => {{
+      const item = CATALOG[b.dataset.load];
+      if (item) {{ pushUndo(); state.graph = normalizeGraph(item); fitZoom(); render(); syncHostState(); }}
+      backdropEl.hidden = true;
+    }}));
+  }});
+
+  // Import Modal (SMILES / Molfile V2000 / CDXML)
+  document.getElementById("cdx-act-import").addEventListener("click", () => {{
+    openModal(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <strong>Import Structure (SMILES / Reaction SMILES / MDL Molfile V2000)</strong>
+        <button type="button" class="cdx-ibtn" data-close="1">✕</button>
+      </div>
+      <textarea id="cdx-imp-txt" class="cdx-code" placeholder="Paste SMILES (e.g. CC(=O)Oc1ccccc1C(=O)O or Brc1ccccc1>>c1ccc(-c2ccccc2)cc1) or MDL Molfile V2000 block..."></textarea>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:6px">
+        <button type="button" class="cdx-cta" id="cdx-imp-go">Load onto Canvas</button>
+      </div>`);
+    modalEl.querySelector("#cdx-imp-go").addEventListener("click", () => {{
+      const txt = modalEl.querySelector("#cdx-imp-txt").value.trim();
+      if (!txt) return;
+      const parsed = txt.includes("V2000") ? parseMolfileV2000(txt) : parseSmilesClient(txt);
+      if (parsed && parsed.atoms.length) {{
+        pushUndo(); state.graph = parsed; fitZoom(); render(); syncHostState();
+        backdropEl.hidden = true; setToast("Loaded structure onto canvas");
+      }} else setToast("Could not parse input");
+    }});
+  }});
+
+  // Export Modal (SMILES, SMARTS, Molfile V2000, CDXML, SVG)
+  function showExportModal(fmt = "mol") {{
+    const g = state.graph;
+    const getBody = (f) => f === "smiles" ? graphToSmiles(g, false) : (f === "smarts" ? graphToSmiles(g, true) : (f === "cdxml" ? toCdxml(g) : (f === "svg" ? svg.outerHTML : toMolfileV2000(g))));
+    openModal(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="display:flex;gap:4px">
+          <button type="button" class="cdx-ibtn ${{fmt==="smiles"?"is-active":""}}" data-ef="smiles">SMILES</button>
+          <button type="button" class="cdx-ibtn ${{fmt==="smarts"?"is-active":""}}" data-ef="smarts">SMARTS Query</button>
+          <button type="button" class="cdx-ibtn ${{fmt==="mol"?"is-active":""}}" data-ef="mol">Molfile V2000</button>
+          <button type="button" class="cdx-ibtn ${{fmt==="cdxml"?"is-active":""}}" data-ef="cdxml">ACS 1996 CDXML</button>
+          <button type="button" class="cdx-ibtn ${{fmt==="svg"?"is-active":""}}" data-ef="svg">SVG</button>
+        </div>
+        <button type="button" class="cdx-ibtn" data-close="1">✕</button>
+      </div>
+      <textarea id="cdx-exp-txt" class="cdx-code" readonly>${{esc(getBody(fmt))}}</textarea>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:6px">
+        <button type="button" class="cdx-cta" id="cdx-exp-copy">Copy to Clipboard</button>
+      </div>`);
+    modalEl.querySelectorAll("[data-ef]").forEach((b) => b.addEventListener("click", () => showExportModal(b.dataset.ef)));
+    modalEl.querySelector("#cdx-exp-copy").addEventListener("click", () => {{
+      const val = modalEl.querySelector("#cdx-exp-txt").value;
+      if (navigator.clipboard) navigator.clipboard.writeText(val).catch(() => {{}});
+      setToast("Copied to clipboard");
+    }});
+  }}
+  document.getElementById("cdx-act-export").addEventListener("click", () => showExportModal("mol"));
+
+  function downloadBlob(text, mime, filename) {{
+    const url = URL.createObjectURL(new Blob([text], {{type: mime}}));
+    const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }}
+  document.getElementById("cdx-btn-cdxml").addEventListener("click", () => downloadBlob(toCdxml(state.graph), "chemical/x-cdxml", "structure.cdxml"));
+  document.getElementById("cdx-btn-mol").addEventListener("click", () => downloadBlob(toMolfileV2000(state.graph), "chemical/x-mdl-molfile", "structure.mol"));
+
+  // Keyboard Shortcuts (ChemDraw / Reaxys / SciFinder standard)
+  document.addEventListener("keydown", (ev) => {{
+    if (ev.target && ["INPUT","TEXTAREA","SELECT"].includes(ev.target.tagName)) return;
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z") {{
+      ev.preventDefault(); document.getElementById(ev.shiftKey ? "cdx-act-redo" : "cdx-act-undo").click(); return;
     }}
-    postHost({{ jsonrpc: "2.0", id: ++rpcId, method: "tools/call", params: {{ name: "view_molecule_3d", arguments: {{ smiles: smi.split(">>").pop(), query: state.graph.name || "Structure" }} }} }});
-    postHost({{ jsonrpc: "2.0", id: ++rpcId, method: "ui/message", params: {{ role: "user", content: [{{ type: "text", text: "Open 3D Mol* view for: " + smi }}] }} }});
-    setStatus("Requested 3D Mol* view for " + smi);
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "y") {{
+      ev.preventDefault(); document.getElementById("cdx-act-redo").click(); return;
+    }}
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "d") {{
+      ev.preventDefault(); document.getElementById("cdx-act-dup").click(); return;
+    }}
+    if (ev.key === "Delete" || ev.key === "Backspace") {{
+      if (state.selAtoms.size > 0) {{
+        pushUndo();
+        [...state.selAtoms].sort((a, b) => b - a).forEach((i) => deleteAtomAt(state.graph, i));
+        render(); syncHostState(); return;
+      }}
+      if (state.hover.ai >= 0) {{ pushUndo(); deleteAtomAt(state.graph, state.hover.ai); render(); syncHostState(); return; }}
+    }}
+    const k = ev.key;
+    if (k === "Escape" || k === "v" || k === "V") selectTool("select", "sel-lasso");
+    else if (k === "1") selectTool("bond", "bond-1");
+    else if (k === "2") selectTool("bond", "bond-2");
+    else if (k === "3") selectTool("bond", "bond-3");
+    else if (k === "w" || k === "W") selectTool("stereo", "st-wedge");
+    else if (k === "h" || k === "H") selectTool("stereo", "st-hash");
+    else if (k === "e" || k === "E") selectTool("erase", "erase");
+    else if (["c","n","o","s","p","f","i","b"].includes(k.toLowerCase()) && state.hover.ai >= 0) {{
+      pushUndo(); state.graph.atoms[state.hover.ai].s = k.toUpperCase(); render(); syncHostState();
+    }}
   }});
 
-  q("#cdx-send-host").addEventListener("click", async () => {{
-    const cdxml = generateCdxml(state.graph);
-    const smi = graphToSmiles(state.graph) || state.graph.smiles || "";
-    const promptText = "Use this structure drawn in 2D Studio (style=" + state.style + ", SMILES=" + smi + ") and render editable ChemDraw CDXML:\\n\\n```xml\\n" + cdxml + "\\n```";
+  // Universal Host Bridge (Inline Agent Reply / MCP Apps / Live Sync Server / Clipboard)
+  let rpcId = 1;
+  function postHost(msg) {{
+    try {{ if (window.parent && window.parent !== window) window.parent.postMessage(msg, "*"); }} catch (_e) {{}}
+  }}
+  function notifyResize() {{
+    const rect = root.getBoundingClientRect();
+    postHost({{jsonrpc:"2.0", method:"ui/notifications/size-changed", params:{{width:Math.ceil(rect.width||760), height:Math.ceil(rect.height||470)}}}});
+  }}
+  function syncHostState() {{
+    const qMode = document.getElementById("cdx-query-mode").value;
+    const smi = graphToSmiles(state.graph, qMode === "substructure");
+    if (hostBridge && typeof hostBridge.setWidgetState === "function") {{
+      try {{
+        hostBridge.setWidgetState({{
+          modelContent: {{smiles: smi, queryMode: qMode, style: state.style, formula: document.getElementById("cdx-m-formula").textContent}},
+          privateContent: {{graph: state.graph}}
+        }}).catch(() => {{}});
+      }} catch (_e) {{}}
+    }}
+  }}
 
-    try {{ await navigator.clipboard.writeText(promptText); }} catch (_e) {{}}
+  window.addEventListener("message", (ev) => {{
+    const d = ev.data;
+    if (!d || typeof d !== "object") return;
+    const res = d.params?.result || d.result;
+    if (res && res.graph) {{
+      state.graph = normalizeGraph(res.graph); fitZoom(); render();
+    }}
+  }});
+  window.addEventListener("open" + "ai:set_globals", (ev) => {{
+    const ws = ev.detail?.globals?.widgetState;
+    if (ws?.privateContent?.graph) {{ state.graph = normalizeGraph(ws.privateContent.graph); render(); }}
+  }});
+
+  document.getElementById("cdx-btn-3d").addEventListener("click", () => {{
+    const smi = graphToSmiles(state.graph, false);
+    if (!smi) {{ setToast("Draw a molecule first"); return; }}
+    postHost({{jsonrpc:"2.0", id:++rpcId, method:"tools/call", params:{{name:"view_molecule_3d", arguments:{{smiles:smi, query:smi}}}}}});
+    if (hostBridge && typeof hostBridge.sendFollowUpMessage === "function") {{
+      hostBridge.sendFollowUpMessage({{prompt:`Show 3D conformer in Mol* for SMILES: ${{smi}}`, title:"Open in 3D Mol*"}});
+    }} else setToast("Requested 3D Mol* for " + smi);
+  }});
+
+  document.getElementById("cdx-btn-send").addEventListener("click", async () => {{
+    const qMode = document.getElementById("cdx-query-mode").value;
+    const smi = graphToSmiles(state.graph, false);
+    const smarts = graphToSmiles(state.graph, true);
+    const cdxml = toCdxml(state.graph);
+    const mol = toMolfileV2000(state.graph);
+    const prompt = `Edited 2D structure (${{qMode}} mode, style=${{state.style}}): SMILES=${{smi || "(custom)"}} | SMARTS=${{smarts || "(none)"}} | Formula=${{document.getElementById("cdx-m-formula").textContent}}. Render editable ACS 1996 CDXML / run requested analysis.`;
+
     if (window.__CDX_LIVE_SYNC_URL__) {{
       try {{
         await fetch(window.__CDX_LIVE_SYNC_URL__, {{
-          method: "POST",
-          headers: {{ "Content-Type": "application/json" }},
-          body: JSON.stringify({{ smiles: smi, style: state.style, cdxml, graph: state.graph }})
+          method: "POST", headers: {{"Content-Type": "application/json"}},
+          body: JSON.stringify({{smiles: smi, smarts, query_mode: qMode, style: state.style, cdxml, molfile: mol, graph: state.graph}})
         }});
-        setStatus("Saved live to workspace + copied prompt ✓");
-        return;
       }} catch (_e) {{}}
     }}
-    if (hostGlobal && typeof hostGlobal.sendFollowUpMessage === "function") {{
-      await hostGlobal.sendFollowUpMessage({{ prompt: promptText, title: "Render drawn structure in ChemDraw" }});
-      setStatus("Sent structure to conversation ✓");
+    if (hostBridge && typeof hostBridge.sendFollowUpMessage === "function") {{
+      syncHostState();
+      await hostBridge.sendFollowUpMessage({{prompt, title: "Transfer Structure to Agent"}});
       return;
     }}
-    postHost({{ jsonrpc: "2.0", id: ++rpcId, method: "ui/message", params: {{ role: "user", content: [{{ type: "text", text: promptText }}] }} }});
-    setStatus("Sent to host & copied prompt to clipboard ✓");
+    postHost({{jsonrpc:"2.0", id:++rpcId, method:"ui/message", params:{{role:"user", content:[{{type:"text", text:prompt}}]}}}});
+    if (navigator.clipboard) navigator.clipboard.writeText(prompt).catch(() => {{}});
+    setToast("Transferred structure & copied prompt to clipboard");
   }});
 
-  if (window.parent && window.parent !== window) {{
-    postHost({{
-      jsonrpc: "2.0", id: 1, method: "ui/initialize",
-      params: {{ appInfo: {{ name: "cdxml-drawing-studio", version: "2.0.0" }}, appCapabilities: {{}}, protocolVersion: "2026-01-26" }}
-    }});
-    if (typeof ResizeObserver !== "undefined") {{
-      const ro = new ResizeObserver((entries) => {{
-        for (const entry of entries) {{
-          const h = Math.ceil(entry.contentRect.height) + 8;
-          const w = Math.ceil(entry.contentRect.width);
-          if (h > 40) postHost({{ jsonrpc: "2.0", method: "ui/notifications/size-changed", params: {{ width: w, height: h }} }});
-        }}
-      }});
-      ro.observe(root);
-    }} else {{
-      postHost({{ jsonrpc: "2.0", method: "ui/notifications/size-changed", params: {{ width: 880, height: 440 }} }});
-    }}
+  if (typeof ResizeObserver !== "undefined") {{
+    new ResizeObserver(() => notifyResize()).observe(root);
   }}
-
-  buildTemplatePane();
+  postHost({{jsonrpc:"2.0", id:++rpcId, method:"ui/initialize", params:{{appInfo:{{name:"chemdraw-2d-studio", version:"2.0.0"}}}}}});
+  fitZoom();
   render();
 }})();
 </script>
 </div>"""
-
 
 def render_drawing_studio_app_html(
     initial_payload: dict[str, Any] | None = None,
@@ -2924,7 +3972,7 @@ view_molecule_3d._chemdraw_mcp_meta = {"ui": {"resourceUri": MOLSTAR_RESOURCE_UR
 
 
 def open_drawing_studio(
-    template: str = "aspirin",
+    template: str = "blank",
     *,
     cdxml_path: str | None = None,
     smiles: str | None = None,
@@ -2980,7 +4028,7 @@ def open_drawing_studio(
                 **built,
             }
     else:
-        norm = (template or "aspirin").strip().lower().replace("-", "_").replace(" ", "_")
+        norm = (template or "blank").strip().lower().replace("-", "_").replace(" ", "_")
         if norm in _STUDIO_TEMPLATES:
             graph = _build_studio_graph_for_template(norm)
             if name:
@@ -3065,7 +4113,7 @@ open_drawing_studio._chemdraw_mcp_meta = {"ui": {"resourceUri": DRAWING_STUDIO_R
 
 def serve_drawing_studio(
     *,
-    template: str = "aspirin",
+    template: str = "blank",
     cdxml_path: str | None = None,
     smiles: str | None = None,
     style: str = "acs1996",

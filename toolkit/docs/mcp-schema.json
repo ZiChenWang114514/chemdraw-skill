@@ -359,7 +359,7 @@
     },
     {
       "name": "open_drawing_studio",
-      "signature": "(template: str = 'aspirin', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]",
+      "signature": "(template: str = 'blank', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]",
       "group": "extended",
       "resource_class": null,
       "timeout_seconds": null,

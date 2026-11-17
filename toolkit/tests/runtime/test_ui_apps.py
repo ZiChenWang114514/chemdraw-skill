@@ -106,6 +106,25 @@ def test_open_drawing_studio_fragment_and_cdxml(tmp_path):
     assert 'id="cdx-studio-root"' in frag
     assert "fuseRingOnBond" in frag
     assert "graphToSmiles" in frag
+    assert "toMolfileV2000" in frag
+    assert "parseMolfileV2000" in frag
+    assert "clean2D" in frag
+    assert "PT_DATA" in frag
+
+    res_blank = ui_apps.open_drawing_studio(
+        output_path=str(tmp_path / "blank.html"),
+        launch_browser=False,
+    )
+    assert res_blank["ok"] is True
+    assert res_blank["template"] == "blank"
+    assert res_blank["atom_count"] == 0
+
+    res_pen = ui_apps.open_drawing_studio(
+        "penicillin",
+        output_path=str(tmp_path / "penicillin.html"),
+        launch_browser=False,
+    )
+    assert any(b.get("o") in {4, 5} for b in res_pen["graph"]["bonds"])
 
     cdxml_file = tmp_path / "phenol.cdxml"
     cdxml_file.write_text(mol_to_cdxml("Oc1ccccc1"), encoding="utf-8")

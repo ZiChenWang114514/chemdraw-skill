@@ -464,7 +464,7 @@ Descriptors are computed by RDKit from the structure as given; logP and TPSA are
 calculated estimates, not measurements, and generic atoms (R groups) are rejected.
 output_path ends in .json, .csv or .md and is never overwritten. At most 256 structures.
 
-### `open_drawing_studio(template: str = 'aspirin', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]`
+### `open_drawing_studio(template: str = 'blank', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, typing.Any]`
 
 Open the interactive 2D ChemDraw Studio with ring fusion, drag-bond drawing & templates.
 

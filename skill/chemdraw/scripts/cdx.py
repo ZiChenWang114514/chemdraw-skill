@@ -1213,7 +1213,7 @@ def cmd_studio(ns):
         from cdxml_toolkit.mcp_runtime.ui_apps import serve_drawing_studio
 
         server, url, sync_cdxml = serve_drawing_studio(
-            template=ns.template or 'aspirin',
+            template=ns.template or 'blank',
             cdxml_path=ns.cdxml,
             smiles=ns.smiles,
             style=ns.style,
@@ -1228,7 +1228,7 @@ def cmd_studio(ns):
             server.server_close()
         return 0
     kwargs = {
-        'template': ns.template or 'aspirin',
+        'template': ns.template or 'blank',
         'style': ns.style,
         'launch_browser': not ns.no_browser,
     }
