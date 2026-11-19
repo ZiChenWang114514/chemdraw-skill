@@ -266,7 +266,10 @@ def test_draw_figure_with_ring_fills_atom_halos_and_ts_bracket(tmp_path, monkeyp
     assert report["ok"] is True
     assert report["lint"]["issues"] == []
     assert report["readback"]["status"] == "matched"
-    assert report["checks_passed"] is True
+    # PhBr + KOH -> PhOH leaves KBr undrawn, so the balance (and checks_passed) fails.
+    assert report["steps"][0]["balanced"] is False
+    assert report["steps"][0]["arrow_reagents_counted"] == ["KOH"]
+    assert report["checks_passed"] is False
 
     root = ET.parse(out_path).getroot()
     page = root.find("page")
