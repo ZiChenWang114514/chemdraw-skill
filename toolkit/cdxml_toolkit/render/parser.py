@@ -29,10 +29,7 @@ from .schema import (
 )
 
 # Valid layout and wrap keywords
-VALID_LAYOUTS = {
-    "linear", "sequential", "divergent", "stacked-rows",
-    "numbered-parallel", "convergent",
-}
+from .schema import VALID_LAYOUTS  # noqa: E402  (one list, shared with the schema)
 VALID_WRAPS = {"repeat", "serpentine", "none"}
 VALID_ARROW_STYLES = {"solid", "dashed", "failed", "reversible", "resonance"}
 

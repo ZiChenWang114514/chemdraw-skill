@@ -756,6 +756,9 @@ _REGISTERED_PROMPT_NAMES = (
     "build_acs1996_figure",
 )
 _SLUG_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+from ..render.schema import VALID_LAYOUTS as _VALID_LAYOUTS  # noqa: E402
+
+SCHEME_LAYOUTS = tuple(sorted(_VALID_LAYOUTS))
 _BUILTIN_TEMPLATES: dict[str, str] = {
     "acs1996": json.dumps(
         {
@@ -799,17 +802,22 @@ _BUILTIN_TEMPLATES: dict[str, str] = {
         },
         indent=2,
     ),
-    "catalytic-cycle": (
-        "@layout catalytic-cycle\n"
-        'Cat: {[Pd]} "Pd(0)"\n'
-        'Int1: {c1ccccc1[Pd]Br} "Ar-Pd-Br"\n'
-        'Int2: {c1ccccc1[Pd]c2ccccc2} "Ar-Pd-Ar\'"\n'
-        'Cat -->|a| Int1\n'
-        '  above: "ArBr, OA"\n'
-        'Int1 -->|b| Int2\n'
-        '  above: "Ar\'B(OH)2, TM"\n'
-        'Int2 -->|c| Cat\n'
-        '  above: "RE"\n'
+    # A draw_figure brief: cycles are drawn by draw_figure, not by the scheme DSL.
+    "catalytic-cycle": json.dumps(
+        {
+            "layout": "catalytic-cycle",
+            "species": [
+                {"id": "Pd0", "smiles": "[Pd]", "label": "Pd(0)"},
+                {"id": "OA", "smiles": "Br[Pd]c1ccccc1", "label": "Ar-Pd-Br"},
+                {"id": "TM", "smiles": "c1ccccc1[Pd]c1ccccc1", "label": "Ar-Pd-Ar'"},
+            ],
+            "steps": [
+                {"substrates": ["Pd0"], "products": ["OA"]},
+                {"substrates": ["OA"], "products": ["TM"]},
+                {"substrates": ["TM"], "products": ["Pd0"]},
+            ],
+        },
+        indent=2,
     ),
 }
 
@@ -932,7 +940,8 @@ def _register_resources_and_prompts(mcp: typing.Any) -> None:
                 f"- Reactants: {reactants or '(resolve with resolve_name)'}\n"
                 f"- Products: {products or '(resolve or transform with modify_molecule)'}\n"
                 f"- Conditions: {conditions or '(specify above/below arrow)'}\n"
-                f"- Layout: {layout} (linear | sequential | stacked | divergent | catalytic-cycle)\n"
+                f"- Layout: {layout} (render_scheme: {' | '.join(SCHEME_LAYOUTS)}; "
+                "catalytic cycles: draw_figure with layout catalytic-cycle)\n"
                 "Steps:\n"
                 "1. Ground every species with resolve_name or modify_molecule.\n"
                 "2. Call draw_figure or render_scheme (yaml_text or compact_text).\n"

@@ -173,7 +173,7 @@ python <skill>/scripts/cdx.py doctor --text                               # 本�
 | **专利 Markush 通式** | 结合专利附图与权利要求提取 R 基、可变环、多中心键与重复单元，同步导出可编辑 CDXML、CXSMILES 与 V3000 MOL。 |
 | **图像识别** | 通过远程 DECIMER API 或本地模型权重输出候选结构、置信度与区域边框。 |
 | **引擎与预测** | 15 个按需安装的独立环境引擎：6 套 OCSR 互校、PDF 结构切分、逆合成、正向产物、反应条件与 1H/13C 核磁位移预测。[实测与体积](#预测与分析引擎)。 |
-| **计算器与报告** | ChemDraw 原生化学计量表生成与 JSON 回读、含 PMI 的批量 SI 原料表、HRMS 与 ACS 表征段落、116 条 GHS 安全警示、总收率与原子映射。[详见](#反应计算器与化学报告)。 |
+| **计算器与报告** | ChemDraw 原生化学计量表生成与 JSON 回读、含 PMI 的批量 SI 原料表、HRMS 与 ACS 表征段落、138 条 GHS 安全警示、总收率与原子映射。[详见](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板（泳道、斑点、Rf、共点样道、显色剂配色、二维板）及基于 ChemDraw 官方模板拼装的实验装置。 |
 | **谱图与科研绘图** | 解析 Bruker、JCAMP-DX、JEOL、Varian/Agilent 一维核磁（寻峰、积分、残留溶剂标注、局部放大与堆叠谱）并绘制数值曲线。 |
 | **实验记录** | 解析 Waters、OpenLynx、Shimadzu、Agilent 与 `mzML`/`mzXML` 的 LCMS 数据（Cl/Br 同位素核验、内标归一化、24/96 孔纯度热图）及 SciFinder RDF。 |
@@ -510,7 +510,7 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
 - **ChemDraw 原生计量表。** 对反应 SMILES 或 `.cdxml` 执行 **Structure &gt; Analyze Stoichiometry** 并另存为新文件（`--output`），不触碰你正在编辑的窗口（因菜单命令要求可见窗口，执行期间 ChemDraw 窗口会短暂闪现）。修改任意质量、体积或当量，ChemDraw 即自动重算整张表。
 - **跨平台 JSON 回读。** 保存后运行 `cdx.py calc --read reaction-stoichiometry.cdxml` 即可逐行导出 JSON（回读无需安装 ChemDraw），让 Agent 直接引用 ChemDraw 算出的精确数值而非自行心算。
 - **无界面批量替代。** 未安装 ChemDraw 时，`si_materials_tables` 可一次生成最多 100 个反应的原料表，含摩尔浓度、原子经济性与过程质量强度（PMI；E 因子 = PMI − 1）。
-- **116 种常见试剂安全提示。** 启用 `reagent_safety` 后自动附带 GHS 象形图、H 短语、沸点/闪点及叠氮、过氧化物、有机锂、酰氯、金属氢化物的 SMARTS 结构警示；未收录物质标为“未收录”而非“安全”，实验前请以供应商 SDS 为准。
+- **138 种常见试剂安全提示。** 启用 `reagent_safety` 后自动附带 GHS 象形图、H 短语、沸点/闪点及叠氮、过氧化物、有机锂、酰氯、金属氢化物的 SMARTS 结构警示；未收录物质标为“未收录”而非“安全”，实验前请以供应商 SDS 为准。
 
 <p align="center">
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
@@ -954,7 +954,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <summary><b>试剂安全提示与 15 个可选预测引擎能信到什么程度？</b></summary>
 <br>
 
-`reagent_safety` 来自内置 116 种常见试剂表与 SMARTS 结构警示（未收录物质标为“未收录”而非“安全”，实验前请以供应商 SDS 为准）。[15 个可选引擎](#十五个引擎一览)（单个 2 MB 至 8.5 GB，装好后离线运行）的所有输出均标明为候选预测：多模型一致可作参考线索，不一致则提示人工复核。请注意各模型权重许可限制（`molparser` 限非商用、`retrochimera` 仅供研究、`reacon` 未声明许可证）。
+`reagent_safety` 来自内置 138 种常见试剂表与 SMARTS 结构警示（未收录物质标为“未收录”而非“安全”，实验前请以供应商 SDS 为准）。[15 个可选引擎](#十五个引擎一览)（单个 2 MB 至 8.5 GB，装好后离线运行）的所有输出均标明为候选预测：多模型一致可作参考线索，不一致则提示人工复核。请注意各模型权重许可限制（`molparser` 限非商用、`retrochimera` 仅供研究、`reacon` 未声明许可证）。
 
 </details>
 

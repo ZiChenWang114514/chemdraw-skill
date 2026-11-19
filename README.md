@@ -173,7 +173,7 @@ Every chemistry task routes cleanly through five workflows:
 | **Patent Markush structures** | Generic structures from patent figures + claims (R groups, variable rings, multicentre bonds, repeat counts) exported as CDXML, CXSMILES and V3000 MOL. |
 | **Image recognition** | Candidate structures with confidence scores and bounding boxes via DECIMER API or local weights. |
 | **Engines and predictions** | 15 opt-in isolated engines: 6 OCSR readers, PDF segmentation, retrosynthesis, forward products, reaction conditions and 1H/13C shifts. [Benchmarks &amp; sizes](#prediction-and-analysis-engines). |
-| **Calculators and reports** | Native ChemDraw stoichiometry grids + JSON readback, batch SI materials tables with PMI, HRMS &amp; ACS characterization text, 116-entry GHS safety reminders, route yield and atom mapping. [Details](#reaction-calculator-and-chemistry-reports). |
+| **Calculators and reports** | Native ChemDraw stoichiometry grids + JSON readback, batch SI materials tables with PMI, HRMS &amp; ACS characterization text, 138-entry GHS safety reminders, route yield and atom mapping. [Details](#reaction-calculator-and-chemistry-reports). |
 | **TLC and apparatus** | Native TLC plates (lanes, spots, Rf, co-spots, stains, 2D plates) and laboratory apparatus assembled from ChemDraw templates. |
 | **Spectra and plots** | Processed 1D NMR (Bruker, JCAMP-DX, JEOL, Varian/Agilent) with peak picking, integration, solvent flags, zoom insets and stacked plots; numerical curves. |
 | **Experimental records** | LCMS plate &amp; chromatogram reports (Waters, OpenLynx, Shimadzu, Agilent, mzML/mzXML) with Cl/Br `M+2` checks, IS ratios and 24/96-well heatmaps; SciFinder RDF. |
@@ -510,7 +510,7 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
 - **Native ChemDraw grid.** Runs **Structure &gt; Analyze Stoichiometry** on a reaction SMILES or `.cdxml` and writes a new file (`--output`) without touching your open documents (a ChemDraw window appears briefly because menu commands require a visible window). Edit any mass, volume or equivalents cell and ChemDraw recomputes the rest.
 - **Portable JSON readback.** `cdx.py calc --read reaction-stoichiometry.cdxml` reads every row back as JSON (works without ChemDraw installed), so your agent quotes ChemDraw's exact numbers rather than doing mental arithmetic.
 - **Headless batch alternative.** Without ChemDraw, `si_materials_tables` computes up to 100 reactions with molarity, atom economy and process mass intensity (PMI; E-factor = PMI − 1).
-- **116-reagent safety reminders.** Adding `reagent_safety` attaches GHS pictograms, H-statements, boiling/flash points and SMARTS alerts (azides, peroxides, organolithiums, acyl chlorides, hydrides). Unlisted chemicals show `"not listed"`, never `"safe"`; always defer to the supplier's SDS.
+- **138-reagent safety reminders.** Adding `reagent_safety` attaches GHS pictograms, H-statements, boiling/flash points and SMARTS alerts (azides, peroxides, organolithiums, acyl chlorides, hydrides). Unlisted chemicals show `"not listed"`, never `"safe"`; always defer to the supplier's SDS.
 
 <p align="center">
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="ChemDraw's stoichiometry grid under the acetylation of benzyl alcohol, with 1.08 g of benzyl alcohol as the limiting reactant">
@@ -954,7 +954,7 @@ Yes. `cdx.py calc` runs ChemDraw's own **Structure &gt; Analyze Stoichiometry** 
 <summary><b>How far can I trust the safety reminders and optional ML engines?</b></summary>
 <br>
 
-`reagent_safety` is a bench reminder across 116 common reagents plus SMARTS structural alerts (unlisted compounds report `"not listed"`, never `"safe"`; always check your supplier's SDS). The [15 optional engines](#the-fifteen-engines) (2 MB to 8.5 GB each, offline after install) label every output as a candidate prediction: agreement across independent models is a useful hint, and disagreement signals manual review. Respect upstream model licences (`molparser` non-commercial, `retrochimera` research-only, `reacon` unstated).
+`reagent_safety` is a bench reminder across 138 common reagents plus SMARTS structural alerts (unlisted compounds report `"not listed"`, never `"safe"`; always check your supplier's SDS). The [15 optional engines](#the-fifteen-engines) (2 MB to 8.5 GB each, offline after install) label every output as a candidate prediction: agreement across independent models is a useful hint, and disagreement signals manual review. Respect upstream model licences (`molparser` non-commercial, `retrochimera` research-only, `reacon` unstated).
 
 </details>
 
