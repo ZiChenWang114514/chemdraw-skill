@@ -50,7 +50,10 @@ class VsCodeExtensionTests(unittest.TestCase):
         builder = _load_builder()
         with tempfile.TemporaryDirectory() as tmp:
             vsix_path = Path(tmp) / "chemdraw-studio-test.vsix"
+            icon = VSCODE_DIR / "media" / "icon.png"
+            icon_before = icon.read_bytes()
             built = builder.build_vsix(vsix_path)
+            self.assertEqual(icon.read_bytes(), icon_before, "a build must not rewrite the tracked icon")
             self.assertTrue(built.is_file())
             self.assertGreater(built.stat().st_size, 40_000)
 

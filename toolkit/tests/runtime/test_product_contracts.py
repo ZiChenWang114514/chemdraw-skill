@@ -27,7 +27,7 @@ def test_business_failure_propagates_without_losing_original_result(encoded, err
     original = json.dumps(value) if encoded else value
     result = interpret(original)
     assert result['ok'] is False
-    assert result['result'] == original
+    assert result['result'] == value  # JSON text is decoded: callers never parse twice
     assert result['error']['message'] == 'Invalid structure'
     assert result['warnings'] == ['review']
 

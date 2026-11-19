@@ -199,7 +199,10 @@ def build_vsix(output_path: Path | None = None) -> Path:
     DIST_DIR.mkdir(parents=True, exist_ok=True)
 
     (MEDIA_DIR / "activity-icon.svg").write_text(ACTIVITY_ICON_SVG, encoding="utf-8", newline="\n")
-    (MEDIA_DIR / "icon.png").write_bytes(_make_icon_png(256, 256))
+    icon_path = MEDIA_DIR / "icon.png"
+    if not icon_path.exists():
+        # zlib output differs between builds, so rewriting would dirty the tracked file on every run.
+        icon_path.write_bytes(_make_icon_png(256, 256))
 
     # Sync live 2D Reaxys/SciFinder Studio fragment & 3D Mol* HTML directly from toolkit/ui_apps.py
     (GEN_DIR / "studio-fragment.html").write_text(

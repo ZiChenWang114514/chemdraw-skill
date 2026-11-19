@@ -240,6 +240,18 @@ def _worker_crash(returncode: int, stdout: bytes, stderr: bytes) -> dict[str, st
     return {"code": "worker_crashed", "message": _safe_message(" | ".join(lines[-3:]))}
 
 
+def _decode_json_text(value: typing.Any) -> typing.Any:
+    """Return the object a tool serialized as JSON text; leave any other text alone."""
+    for _ in range(4):
+        if not isinstance(value, str) or not value.lstrip().startswith(("{", "[")):
+            break
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError:
+            break
+    return value
+
+
 def _interpret_worker_result(
     name: str,
     returncode: int,
@@ -287,22 +299,17 @@ def _interpret_worker_result(
             "metadata": {**metadata, "returncode": returncode},
         }
     if returncode == 0 and envelope["ok"]:
-        result = envelope.get("result")
-        decoded = result
-        if isinstance(result, str):
-            try:
-                decoded = json.loads(result)
-            except json.JSONDecodeError:
-                pass
-        result_dict = decoded if isinstance(decoded, dict) else {}
-        outputs = result_dict.get("outputs", result)
+        # One contract for every caller: ``result`` is an object, never JSON inside a string.
+        result = _decode_json_text(envelope.get("result"))
+        result_dict = result if isinstance(result, dict) else {}
         warnings = result_dict.get("warnings", [])
         artifacts = result_dict.get("artifacts", [])
         result_metadata = result_dict.get("metadata", {})
         outcome = {
+            # ``ok``: the call completed and the result passed its checks. The tool's own
+            # conclusion (for example ``needs_review``) travels in ``status``.
             "ok": result_dict.get("ok") is not False,
             "result": result,
-            "outputs": outputs,
             "warnings": warnings if isinstance(warnings, list) else [str(warnings)],
             "artifacts": artifacts if isinstance(artifacts, list) else [],
             "metadata": {
@@ -311,6 +318,10 @@ def _interpret_worker_result(
                 "duration_ms": round(duration * 1000),
             },
         }
+        if "outputs" in result_dict:
+            outcome["outputs"] = result_dict["outputs"]
+        if isinstance(result_dict.get("status"), str):
+            outcome["status"] = result_dict["status"]
         if not outcome["ok"]:
             error = result_dict.get("error")
             if not error and isinstance(result_dict.get("errors"), list):
@@ -321,6 +332,8 @@ def _interpret_worker_result(
                 "code": code if isinstance(code, str) and re.fullmatch(r"[a-z0-9_]{1,100}", code) else "tool_business_error",
                 "message": _safe_message(details.get("message") if details else error),
             }
+            if isinstance(details.get("hint"), str) and details["hint"]:
+                outcome["error"]["hint"] = _safe_message(details["hint"])
         return outcome
     error = envelope.get("error") if isinstance(envelope.get("error"), dict) else {}
     return {
@@ -535,6 +548,11 @@ def _adapt_tool(
 ) -> typing.Callable:
     """Preserve source parameters while routing execution through a worker."""
 
+    try:
+        declared_text = typing.get_type_hints(function).get("return") is str
+    except Exception:
+        declared_text = getattr(function, "__annotations__", {}).get("return") in (str, "str")
+
     @functools.wraps(function)
     async def invoke(*args, **kwargs):
         options = {"timeout_seconds": timeout_seconds}
@@ -559,7 +577,7 @@ def _adapt_tool(
                 )
             except Exception:
                 return text_body
-        if return_json_text and not isinstance(result, str):
+        if (return_json_text or declared_text) and not isinstance(result, str):
             return json.dumps(result, indent=2, default=str)
         return result
 

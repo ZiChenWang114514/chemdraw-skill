@@ -352,6 +352,15 @@ def _inline_payload(result):
     return result
 
 
+def _refuse_existing_out(ns):
+    """Every --out names a new file: refuse before the tool runs, not after it has written its outputs."""
+    out_path = getattr(ns, 'out', None)
+    if out_path and Path(out_path).resolve().exists():
+        target = Path(out_path).resolve()
+        raise SystemExit(f'Refusing to overwrite existing evidence file {target} '
+                         f'(next available: {_next_free_path(target)})')
+
+
 def _emit(tool, result, out_path=None, *, full=False, summary_only=False):
     full_text = json.dumps(result, ensure_ascii=False, indent=2)
     inline_text = json.dumps(_inline_payload(result), ensure_ascii=False, indent=2)
@@ -2160,6 +2169,7 @@ def main(argv=None):
     s.add_argument('--check', action='store_true', help='report stale pages and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_catalog)
     ns = p.parse_args(argv)
+    _refuse_existing_out(ns)
     try:
         return ns.fn(ns)
     except OSError as exc:  # a missing or unreadable file is the user's to fix, not a crash

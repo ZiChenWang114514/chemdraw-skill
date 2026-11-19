@@ -173,6 +173,15 @@ def test_existing_evidence_file_is_refused(tmp_path):
         cdx.main(['call', 'modify_molecule', '--json', '{}', '--out', str(target)])
 
 
+def test_existing_evidence_file_is_refused_before_the_tool_runs(tmp_path):
+    out = tmp_path / 'e.json'
+    out.write_text('{}', encoding='utf-8')
+    with mock.patch.object(cdx, '_worker', return_value={'ok': True}) as worker, pytest.raises(SystemExit):
+        cdx.main(['call', 'modify_molecule', '--json', '{}', '--out', str(out)])
+    worker.assert_not_called()
+    assert out.read_text(encoding='utf-8') == '{}'
+
+
 def test_nested_failure_is_reported(tmp_path, capsys):
     result = {'ok': True, 'result': json.dumps({'ok': False, 'error': 'bad input'})}
     with mock.patch.object(cdx, '_worker', return_value=result):
