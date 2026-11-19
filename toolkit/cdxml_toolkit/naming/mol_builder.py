@@ -958,7 +958,7 @@ def _parse_name_components(name: str) -> Optional[Dict]:
             prefix_part = ""
 
     if not prefix_part.strip("-"):
-        return {"parent": parent, "substituents": []}
+        return {"parent": parent, "substituents": [], "complete": not prefix_part}
 
     # Parse prefix_part into (locant, prefix) pairs
     prefix_str = prefix_part.rstrip("-")
@@ -967,12 +967,17 @@ def _parse_name_components(name: str) -> Optional[Dict]:
     # Pattern: locant(s)-[multiplier][(]prefix[)] or locant(s)-[multiplier]prefix
     # Walk through segments
     segments = _split_prefix_segments(prefix_str)
+    complete = True
     for seg in segments:
         parsed = _parse_single_prefix(seg)
         if parsed:
             substituents.extend(parsed)
+        else:
+            complete = False
 
-    return {"parent": parent, "substituents": substituents}
+    # ``complete`` is False when part of the name was not understood; rebuilding the
+    # name from the components would then silently drop it.
+    return {"parent": parent, "substituents": substituents, "complete": complete}
 
 
 def _split_prefix_segments(prefix_str: str) -> List[str]:
@@ -1081,6 +1086,13 @@ def _modify_add(name, prefix, locant, validate, use_network):
     if parsed is None:
         return {"ok": False, "error": f"Could not parse name '{name}'."}
 
+    if not parsed.get("complete", True):
+        # Keep the name as written and put the new prefix in front of it.
+        part = prefix if prefix.isalpha() else f"({prefix})"
+        joined = f"{locant}-{part}" + ("" if name[:1].isalpha() and prefix.isalpha() else "-") + name
+        smiles = _try_validate(joined, use_network=use_network) if validate else None
+        return {"ok": True, "name": joined, "valid": bool(smiles), "smiles": smiles}
+
     parsed["substituents"].append({"locant": locant, "prefix": prefix})
     return assemble_name(parsed["parent"], parsed["substituents"],
                          validate=validate, use_network=use_network)
@@ -1094,6 +1106,10 @@ def _modify_remove(name, target, validate, use_network):
     parsed = _parse_name_components(name)
     if parsed is None:
         return {"ok": False, "error": f"Could not parse name '{name}'."}
+
+    if not parsed.get("complete", True):
+        return {"ok": False,
+                "error": f"The substituents of '{name}' could not be told apart, so nothing was removed."}
 
     original_len = len(parsed["substituents"])
     parsed["substituents"] = [
@@ -2570,6 +2586,32 @@ def _build_aligned_names(input_smiles: str, output_smiles: str) -> str:
     return ""
 
 
+def _name_edit_keeps_the_rest(before, after, added: bool, removed: bool):
+    """A failed post-condition when a name edit disturbed atoms it was not asked to touch.
+
+    Adding substituents must leave the old structure inside the new one; removing them
+    must leave the new structure inside the old one. Editing through the name can renumber
+    or drop what was already there, and only the graphs show it.
+    """
+    from rdkit import Chem
+    from ..postconditions import PostconditionResult
+
+    if added and not removed:
+        small, large = before, after
+    elif removed and not added:
+        small, large = after, before
+    else:
+        return None
+    if large.GetNumHeavyAtoms() > small.GetNumHeavyAtoms() and large.HasSubstructMatch(small):
+        return None
+    return PostconditionResult(
+        False, "structure_not_preserved",
+        "The edited name describes a structure in which substituents that were already present "
+        "moved or disappeared.",
+        {"before": Chem.MolToSmiles(before), "after": Chem.MolToSmiles(after)},
+    )
+
+
 def modify_molecule(mol_json: Dict[str, Any],
                     operation: str,
                     **kwargs: Any) -> Dict[str, Any]:
@@ -2684,6 +2726,7 @@ def modify_molecule(mol_json: Dict[str, Any],
         )
     """
     from rdkit import Chem
+    from ..postconditions import check_changed, failure_payload, first_failure
 
     # ---- Validate input ----
     input_smiles_raw = mol_json.get("smiles", "")
@@ -2698,6 +2741,7 @@ def modify_molecule(mol_json: Dict[str, Any],
 
     output_smiles: Optional[str] = None
     alternative_products: List[Dict[str, Any]] = []
+    smarts_product_count: Optional[int] = None
 
     # ---- Dispatch operation ----
     if operation == "set_smiles":
@@ -2761,16 +2805,20 @@ def modify_molecule(mol_json: Dict[str, Any],
                 "input_smiles": input_smiles,
             }
 
+        distinct: List[str] = []
         for prod_tuple in product_sets:
             for prod in prod_tuple:
                 try:
                     Chem.SanitizeMol(prod)
-                    output_smiles = Chem.MolToSmiles(prod)
-                    break
+                    candidate = Chem.MolToSmiles(prod)
                 except Exception:
                     continue
-            if output_smiles:
-                break
+                if candidate not in distinct:
+                    distinct.append(candidate)
+        if distinct:
+            output_smiles = distinct[0]
+            smarts_product_count = len(distinct)
+            alternative_products = [{"smiles": other} for other in distinct[1:]]
 
         if not output_smiles:
             return {"ok": False,
@@ -2862,6 +2910,14 @@ def modify_molecule(mol_json: Dict[str, Any],
         out_mol = Chem.MolFromSmiles(output_smiles)
         if out_mol:
             output_smiles = Chem.MolToSmiles(out_mol)
+            kept = _name_edit_keeps_the_rest(in_mol, out_mol, bool(add_list), bool(remove_list))
+            if kept is not None:
+                return failure_payload(
+                    kept,
+                    {"output_smiles": output_smiles, "output_name": current_name},
+                    hint="Edit by atom index with rdkit_workbench (edit_structure), or give the full new "
+                         "structure with set_smiles.",
+                )
 
     elif operation == "reaction":
         # ---- Reaction: apply a named reaction template via apply_reaction ----
@@ -3073,6 +3129,13 @@ def modify_molecule(mol_json: Dict[str, Any],
                       "'set_smiles', 'set_name', or 'reaction'."),
         }
 
+    unchanged = first_failure(check_changed(input_smiles, output_smiles))
+    if unchanged is not None:
+        return failure_payload(
+            unchanged, {"output_smiles": output_smiles},
+            hint="The result is the input structure. Check the operation and its arguments.",
+        )
+
     # ---- Build output ----
     input_name = (mol_json.get("iupac_name")
                   or mol_json.get("name")
@@ -3099,6 +3162,13 @@ def modify_molecule(mol_json: Dict[str, Any],
     }
     if alternative_products:
         result["alternative_products"] = alternative_products
+    if smarts_product_count is not None:
+        result["product_count"] = smarts_product_count
+        if smarts_product_count > 1:
+            result["warnings"] = [
+                f"The pattern matches at several sites and gives {smarts_product_count} different products; "
+                "output_smiles is the first, the others are in alternative_products."
+            ]
     return result
 
 

@@ -147,42 +147,50 @@ def _parse_json_string(value):
 _KNOWN_OPERATIONS = {"analyze", "name_surgery", "smarts", "set_smiles", "set_name", "reaction"}
 
 
+# Other spellings of an operation. A name outside this table and the reaction
+# templates is refused: guessing picks a different chemistry than the one asked for.
+_OPERATION_ALIASES = {"analyse": "analyze", "inspect": "analyze"}
+
+
+class UnknownOperation(ValueError):
+    """An operation that is neither a known operation nor a reaction template."""
+
+    def __init__(self, operation: str, suggestions: list):
+        super().__init__(f"Unknown operation {operation!r}")
+        self.operation = operation
+        self.suggestions = suggestions
+
+
+def _operation_key(text: str) -> str:
+    return text.strip().lower().replace(" ", "_").replace("-", "_")
+
+
 def _normalize_operation(operation: str, reaction_name: Optional[str]) -> tuple:
-    """Normalize the operation string for modify_molecule.
+    """Return ``(operation, reaction_name)`` for an operation or a reaction-template name.
 
-    Handles:
-      - Case/whitespace: "BOC deprotection" → look up as reaction name
-      - If *operation* isn't one of the 6 known ops but matches a reaction
-        template, redirect to operation="reaction", reaction_name=<matched>.
-    Returns (operation, reaction_name).
+    Matching ignores case, spaces, hyphens and underscores, and nothing else. Anything
+    that does not match exactly raises :class:`UnknownOperation` with the nearest names.
     """
-    op = operation.strip()
-    # Exact match (case-insensitive)
-    op_lower = op.lower().replace(" ", "_").replace("-", "_")
-    for known in _KNOWN_OPERATIONS:
-        if op_lower == known.lower():
-            return known, reaction_name
+    import difflib
 
-    # Not a known operation — maybe it's a reaction name?
-    # Import lazily to check reaction templates
-    if reaction_name is None:
-        try:
-            from cdxml_toolkit.naming.mol_builder import list_reactions
-            result = list_reactions()
-            rxn_list = result.get("reactions", []) if isinstance(result, dict) else []
-            template_names = [r["name"] if isinstance(r, dict) else r for r in rxn_list]
-            # Try exact (case-insensitive, normalize underscores)
-            for name in template_names:
-                if op_lower == name.lower().replace(" ", "_").replace("-", "_"):
-                    return "reaction", name
-            # Try fuzzy substring
-            for name in template_names:
-                if op_lower in name.lower() or name.lower() in op_lower:
-                    return "reaction", name
-        except Exception:
-            pass
+    key = _operation_key(operation)
+    key = _OPERATION_ALIASES.get(key, key)
+    if key in _KNOWN_OPERATIONS:
+        return key, reaction_name
 
-    return op, reaction_name
+    from cdxml_toolkit.naming.mol_builder import list_reactions
+
+    listed = list_reactions()
+    reactions = listed.get("reactions", []) if isinstance(listed, dict) else []
+    templates = {_operation_key(r["name"] if isinstance(r, dict) else r): (r["name"] if isinstance(r, dict) else r)
+                 for r in reactions}
+    if reaction_name is None and key in templates:
+        return "reaction", templates[key]
+
+    near = [templates[name] for name in templates if key and (key in name or name in key)]
+    for name in difflib.get_close_matches(key, list(templates) + sorted(_KNOWN_OPERATIONS), n=5, cutoff=0.6):
+        near.append(templates.get(name, name))
+    raise UnknownOperation(operation.strip(), list(dict.fromkeys(near))[:8])
 
 
 def _validate_file(path: str, label: str) -> Path:
@@ -326,7 +334,21 @@ def modify_molecule(
         )
 
     # Normalize operation name (e.g. "BOC deprotection" → reaction + BOC_deprotection)
-    operation, reaction_name = _normalize_operation(operation, reaction_name)
+    asked_for = operation
+    try:
+        operation, reaction_name = _normalize_operation(operation, reaction_name)
+    except UnknownOperation as unknown:
+        return {
+            "ok": False,
+            "error": {
+                "code": "unknown_operation",
+                "message": f"{unknown}. Operations: {', '.join(sorted(_KNOWN_OPERATIONS))}.",
+                "hint": "Use one of the suggestions as reaction_name with operation='reaction', "
+                        "or call operation='reaction' without reaction_name to list every template.",
+                "suggestions": unknown.suggestions,
+            },
+        }
+    matched_reaction = reaction_name if _operation_key(asked_for) not in _KNOWN_OPERATIONS | set(_OPERATION_ALIASES) else None
 
     # Parse stringified JSON arrays (model sometimes sends "[{...}]" as a string)
     if add is not None:
@@ -354,7 +376,10 @@ def modify_molecule(
     if description is not None:
         kwargs["description"] = description
 
-    return _modify(mol_json, operation, **kwargs)
+    result = _modify(mol_json, operation, **kwargs)
+    if matched_reaction and isinstance(result, dict):
+        result["matched_reaction"] = matched_reaction
+    return result
 
 
 # ---------------------------------------------------------------------------
