@@ -168,6 +168,24 @@ class WorkerRuntimeTests(unittest.TestCase):
 
     @unittest.skipUnless(os.name == "nt" or sys.platform == "darwin", "ChemDraw automation platforms")
     def test_named_chemdraw_mutex_serializes_callers(self):
+        # A name of its own: the real one is held whenever the user (or another test run) is
+        # driving ChemDraw, which would make this test wait on work it has nothing to do with.
+        import tempfile
+        import uuid
+        from pathlib import Path
+
+        unique = uuid.uuid4().hex
+        own_mutex = mock.patch.object(resource_lock, "CHEMDRAW_COM_MUTEX", "Local" + chr(92) + "CdxTestLock" + unique)
+        own_file = mock.patch.object(resource_lock, "CHEMDRAW_LOCK_FILE",
+                                     Path(tempfile.gettempdir()) / f"cdx-test-lock-{unique}.lock")
+        own_mutex.start()
+        own_file.start()
+        self.addCleanup(own_mutex.stop)
+        self.addCleanup(own_file.stop)
+        no_holder = mock.patch.dict(os.environ)
+        no_holder.start()
+        self.addCleanup(no_holder.stop)
+        os.environ.pop(resource_lock.LOCK_HOLDER_ENV, None)
         first_entered = threading.Event()
         release_first = threading.Event()
         second_entered = threading.Event()
