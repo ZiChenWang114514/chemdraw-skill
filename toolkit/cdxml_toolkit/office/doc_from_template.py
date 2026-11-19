@@ -299,6 +299,24 @@ def _make_pptx_ole_xml(ole_idx, x, y, w, h):
     return safe_xml.fromstring(xml_str)
 
 
+def _highest_ole_index(package_path):
+    """Highest number an embedded object, its preview or its relationship already uses (0 if none).
+
+    A template may hold objects from an earlier fill; new ones are numbered after them so
+    that no part or relationship is written twice.
+    """
+    highest = 0
+    with safe_xml.open_package(package_path) as package:
+        for name in package.namelist():
+            for found in re.findall(r"(?:oleObject|olePreview)(\d+)\.(?:bin|emf)$", name):
+                highest = max(highest, int(found))
+            if name.endswith(".rels"):
+                text = package.read(name).decode("utf-8", errors="replace")
+                for found in re.findall(r"rIdOle(?:Img)?(\d+)", text):
+                    highest = max(highest, int(found))
+    return highest
+
+
 def pass2_pptx(input_path, output_path, cdxml_slots, ole_items):
     """Replace CDXML placeholder text boxes with OLE objects in PPTX.
 
@@ -307,7 +325,7 @@ def pass2_pptx(input_path, output_path, cdxml_slots, ole_items):
     from lxml import etree
 
     ph_to_file = {s["placeholder"]: s["file"] for s in cdxml_slots}
-    ole_counter = 0
+    ole_counter = first_free = _highest_ole_index(input_path)
     filled_ph = set()
 
     # Scan slides for placeholder shapes, build modifications
@@ -400,7 +418,7 @@ def pass2_pptx(input_path, output_path, cdxml_slots, ole_items):
                     zout.writestr(
                         f"ppt/media/olePreview{idx}.emf", item["emf_data"])
 
-    return ole_counter, filled_ph
+    return ole_counter - first_free, filled_ph
 
 
 # ---------------------------------------------------------------------------
@@ -450,7 +468,7 @@ def pass2_docx(input_path, output_path, cdxml_slots, ole_items):
     from lxml import etree
 
     ph_to_file = {s["placeholder"]: s["file"] for s in cdxml_slots}
-    ole_counter = 0
+    ole_counter = first_free = _highest_ole_index(input_path)
     filled_ph = set()
     oles = []  # [(ole_idx, item)]
 
@@ -512,7 +530,7 @@ def pass2_docx(input_path, output_path, cdxml_slots, ole_items):
                 zout.writestr(
                     f"word/media/olePreview{idx}.emf", item["emf_data"])
 
-    return ole_counter, filled_ph
+    return ole_counter - first_free, filled_ph
 
 
 # ---------------------------------------------------------------------------
