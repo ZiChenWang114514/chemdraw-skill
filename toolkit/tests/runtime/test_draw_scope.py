@@ -213,3 +213,31 @@ def test_the_scope_checks_are_the_publication_checks(tmp_path):
 
 def test_the_brief_validator_names_the_scope_keys():
     assert {"fields", "conditions", "footnotes", "width_mm", "height_mm"} <= figure_scope.SCOPE_KEYS
+
+
+def _page_root(report):
+    import xml.etree.ElementTree as ET
+
+    page = report["pages"][0]
+    return ET.parse(page["cdxml"] if isinstance(page, dict) and "cdxml" in page else page["path"]).getroot()
+
+
+def test_a_short_scope_page_is_as_tall_as_its_content(tmp_path):
+    report = draw_figure(_brief(), output_path=str(tmp_path / "scope"))
+    assert report["ok"] is True
+    height = float(_page_root(report).get("BoundingBox").split()[3])
+    assert height < 400, height  # one row of compounds, not a 680 pt sheet
+
+    fixed = draw_figure(_brief(height_mm=240), output_path=str(tmp_path / "fixed"))
+    assert float(_page_root(fixed).get("BoundingBox").split()[3]) == pytest.approx(240 * 72 / 25.4)
+
+
+def test_scope_compound_numbers_are_bold_and_conditions_have_subscripts(tmp_path):
+    brief = _brief()
+    brief["conditions"] = "K2CO3 (2 equiv), CH2Cl2, 80 C"
+    root = _page_root(draw_figure(brief, output_path=str(tmp_path / "scope")))
+    runs = [(s.text, int(s.get("face") or 0)) for s in root.iter("s")]
+    labels = {str(entry["label"]) for entry in brief["species"] if entry.get("label")}
+    assert labels and all(face & 1 for text, face in runs if text in labels)
+    assert ("2", 32) in runs and ("3", 32) in runs
+    assert "".join(text for text, _ in runs if text).count("K2CO3 (2 equiv), CH2Cl2, 80 C") == 1

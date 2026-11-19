@@ -301,7 +301,8 @@ def _apply_panel_house_labels(
     label_els = [figure_house._label_of(page, el, labels.get(sp_id)) for sp_id, el, _ in drawn]
     label_els = [t for t in label_els if t is not None]
     house_face = house.convention("compound_label_face") if house is not None else None
-    face = house_face if house_face in ("bold", "plain") else face_override
+    # Bold unless the house style or the numbering style says otherwise, as in schemes.
+    face = house_face if house_face in ("bold", "plain") else (face_override or "bold")
     changed = False
     if face in ("bold", "plain") and label_els:
         for t in label_els:
@@ -470,7 +471,7 @@ def _draw_once(
     cdxml = renderer.render_with(build)
     cdxml = figure_draw._apply_decorations(cdxml, brief, grounded)
     record: dict[str, list[str]] = {"applied": list(pre_applied or ()), "skipped": [], "warnings": []}
-    if house is not None or face_override is not None:
+    if True:
         cdxml, applied, skipped = _apply_panel_house_labels(cdxml, grounded, house, face_override=face_override)
         record["applied"] += applied
         record["skipped"] += skipped

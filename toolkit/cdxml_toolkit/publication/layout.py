@@ -81,6 +81,20 @@ def molecule_coordinates(mol, bond_length, reference=None):
     return mol,xy,warning
 
 
+def formula_runs(value, bold=False):
+    """Text as runs with formula digits subscripted (K2CO3, CH2Cl2), by the shared condition-text rule."""
+    from ..text_formatting import subscript_matches
+    runs=[]; at=0
+    def plain(text):
+        if text: runs.append({'text':text,**({'bold':True} if bold else {})})
+    for match in subscript_matches(value):
+        plain(value[at:match.start(2)])
+        runs.append({'text':match.group(2),'subscript':True,**({'bold':True} if bold else {})})
+        at=match.end(2)
+    plain(value[at:])
+    return runs or [{'text':value}]
+
+
 def prepare(records,spec):
     style=style_settings(spec); size=style['font_size']
     usable=style['width_mm']*72/25.4-32
@@ -127,10 +141,13 @@ def create_pages(records,spec,stage,start_index=0):
         objects=[{'type':'text','id':'title','text':title,'position':[margin,margin+size],'size':size}]
         top=margin+(title.count('\n')+1)*size*1.5+8
         if conditions:
-            objects.append({'type':'text','id':'conditions','text':conditions,'position':[margin,top+size],'size':size})
+            objects.append({'type':'text','id':'conditions','runs':formula_runs(conditions),'position':[margin,top+size],'size':size})
             top+=(conditions.count('\n')+1)*size*1.5+8
-        if footer: objects.append({'type':'text','id':'footnotes','text':footer,'position':[margin,bottom+size+8],'size':size})
-        current={'index':index,'objects':objects,'entries':[],'top':top}
+        foot=None
+        if footer:
+            foot={'type':'text','id':'footnotes','text':footer,'position':[margin,bottom+size+8],'size':size}
+            objects.append(foot)
+        current={'index':index,'objects':objects,'entries':[],'top':top,'footer':foot}
         manifests.append(current)
         return current,margin,top,0
     for p in arranged:
@@ -159,7 +176,9 @@ def create_pages(records,spec,stage,start_index=0):
                   'coordinates':[[a+x,b+y] for a,b in p['coords']]}]
         ty=y+p['molecule_bottom']+size*2.6
         for field,value in p['texts'].items():
-            objects.append({'type':'text','id':key+'_'+field,'text':value,'position':[x+6,ty],'size':size})
+            # Compound numbers are bold, as the journal style sheets set them.
+            objects.append({'type':'text','id':key+'_'+field,'position':[x+6,ty],'size':size,
+                            **({'runs':[{'text':value,'bold':True}]} if field=='label' else {'text':value})})
             ty+=(value.count('\n')+1)*size*1.45+4
         current['objects'].extend(objects)
         entry={'key':key,'cid':cid,'bbox':[x,y,x+p['width'],y+p['height']]}
@@ -168,7 +187,18 @@ def create_pages(records,spec,stage,start_index=0):
                         'display':p['texts'],'locked':False}
         x+=p['width']+gap; row_height=max(row_height,p['height'])
     stage=Path(stage)
+    fixed_height='height_mm' in spec.get('style',{})
+    full_height=height
     for page in manifests:
+        height=full_height
+        if not fixed_height and page['entries']:
+            # A page with one row of compounds is not printed on a full sheet.
+            content=max(entry['bbox'][3] for entry in page['entries'])
+            if page['footer'] is not None:
+                page['footer']['position']=[margin,content+gap+size]
+                content+=gap+(footer.count('\n')+1)*size*1.5
+            height=min(full_height,content+margin)
+        page['height']=height
         name=f"page-{page['index']+1:03d}.cdxml"
         manifest=stage/f"page-{page['index']+1:03d}.manifest.json"
         write_json(manifest,{'style':{k:style[k] for k in ('font','font_size','bond_length','line_width','bold_width','hash_spacing','margin_width') if k in style},'objects':page['objects']})
