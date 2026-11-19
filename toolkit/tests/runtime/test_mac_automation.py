@@ -38,6 +38,40 @@ def tearDownModule():
     _REGISTRY.cleanup()
 
 
+class BundleIdentifierValidationTests(unittest.TestCase):
+    """A bundle identifier reaches AppleScript source and command lines, so every entry checks it."""
+
+    HOSTILE = 'com.x" to quit\ndo shell script "touch /tmp/pwned'
+
+    def _refused(self, call):
+        with mock.patch.object(mac_automation, "run_applescript") as script, \
+                mock.patch.object(mac_automation.subprocess, "run") as run:
+            with self.assertRaises(mac_automation.MacAutomationError) as caught:
+                call()
+        script.assert_not_called()
+        run.assert_not_called()
+        self.assertEqual(caught.exception.error_code, "invalid_bundle_identifier")
+
+    def test_every_entry_refuses_a_malformed_identifier(self):
+        self._refused(lambda: mac_automation.is_running(self.HOSTILE))
+        self._refused(lambda: mac_automation.application_pid(self.HOSTILE))
+        self._refused(lambda: mac_automation.launch_hidden(self.HOSTILE))
+        self._refused(lambda: mac_automation.register_launch(1, self.HOSTILE))
+        self._refused(lambda: mac_automation._steps_script(self.HOSTILE))
+
+    def test_an_application_with_a_malformed_identifier_is_refused(self):
+        with mock.patch.object(mac_automation, "application_info",
+                               return_value={"CFBundleIdentifier": self.HOSTILE}):
+            self._refused(lambda: mac_automation.bundle_identifier(Path("/Applications/ChemDraw.app")))
+
+    def test_well_formed_identifiers_pass(self):
+        self.assertEqual(mac_automation.checked_bundle_id("com.revvity.ChemDraw"), "com.revvity.ChemDraw")
+        with mock.patch.object(mac_automation, "application_info",
+                               return_value={"CFBundleIdentifier": "com.perkinelmer.ChemDraw"}):
+            self.assertEqual(mac_automation.bundle_identifier(Path("/Applications/ChemDraw.app")),
+                             "com.perkinelmer.ChemDraw")
+
+
 MAC_FAMILIES = frozenset({"Arial", "Helvetica", "Helvetica Neue", "Songti SC", "PingFang SC", "Times New Roman"})
 
 
