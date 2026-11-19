@@ -140,6 +140,36 @@ def test_nmr_drawing_has_round_ticks_and_1h_integrals():
     assert "3.02" in xml
 
 
+def test_plot_styles_markers_error_bars_and_every_series_exported(tmp_path):
+    from cdxml_toolkit.scientific.plots import plot_xy
+
+    series = [
+        {"label": "A", "x": [0, 1, 2, 3], "y": [0, 1, 4, 9], "style": "scatter", "yerr": [0.1, 0.2, 0.3, 0.4]},
+        {"label": "B", "x": [0, 1, 2, 3], "y": [1, 2, 3, 4], "style": "both"},
+        {"label": "C", "x": [0, 1, 2, 3], "y": [2, 2, 2, 2], "style": "line"},
+    ]
+    out = plot_xy(None, None, tmp_path / "p", series=series)
+    csv = (tmp_path / "p" / "data.csv").read_text(encoding="utf-8").splitlines()
+    assert csv[0].startswith("series,label,x,y")
+    assert len(csv) == 1 + 12
+    xml = (tmp_path / "p" / "plot.cdxml").read_text(encoding="utf-8")
+    assert xml.count('Closed="yes"') >= 8  # a marker per point of A and B
+    assert out["series"][0]["error_bars"] is True
+    with pytest.raises(ValueError, match="line, scatter, both"):
+        plot_xy(None, None, tmp_path / "q", series=[{"x": [0, 1], "y": [0, 1], "style": "dots"}])
+
+
+def test_lcms_plate_accepts_well_dicts_and_marks_untested_wells():
+    from cdxml_toolkit.scientific.plots import build_lcms_plate_cdxml
+
+    by_list = build_lcms_plate_cdxml({"plate_format": 24, "wells": [{"well": "A1", "purity": 90}, {"well": "A2", "purity": 0}]})
+    by_dict = build_lcms_plate_cdxml({"plate_format": 24, "wells": {"A1": 90, "A2": {"purity": 0}}})
+    assert by_list["wells"] == by_dict["wells"]
+    counts = by_dict["tier_counts"]
+    assert counts["none"] == 1 and counts["untested"] == 22
+    assert "untested" in by_dict["cdxml"]
+
+
 def _timepoint(name, peaks):
     from cdxml_toolkit.analysis.deterministic.mzml_parser import LCMSAnalysis, LCMSPeak, MassSpectrum
 
