@@ -41,12 +41,13 @@ Use `cdx.py tools` / `cdx.py sig TOOL` for signatures, `cdx.py render a.cdxml` f
 | Task | Start here |
 | --- | --- |
 | Exam, lecture or paper drawings in ACS 1996 style (C10H21, Chinese notes, compound codes) | [ACS 1996 drawings](references/acs1996-drawings.md) |
-| New scheme, route, `catalytic-cycle`, scope panel or curved-arrow mechanism | [Scheme drawing](references/scheme-drawing.md) (`cdx.py draw`) |
+| New scheme, route or `catalytic-cycle` | [Scheme drawing](references/scheme-drawing.md) (`cdx.py draw`) |
+| Scope panel, curved-arrow mechanism, molecule grid | [Scope and mechanism figures](references/scope-mechanism-figures.md) |
 | Publication image or reaction screenshot (prefer supplied native objects over OCSR); many structures | [Image reconstruction](references/image-visual-review.md) |
 | Multi-engine OCSR, PDF structure extraction, product/retrosynthesis/condition/NMR predictions | [Prediction engines](references/engines.md) |
 | Molecule drawing, modification, comparison, reaction editing | Matching section in [workflow router](references/workflow-router.md) |
 | Exact coordinates, native template edits, arrows, crossings | [Figure manifest](references/publication-figures.md) |
-| Journal or group style: ChemDraw style sheets (Wiley, RSC, Nature) and house styles (bold numbers, yields, abbreviations, coloured bonds) | `cdx.py styles`, then `style` in [Scheme drawing](references/scheme-drawing.md) or [Figure manifest](references/publication-figures.md) |
+| Journal or group style: ChemDraw style sheets (Wiley, RSC, Nature) and house styles (bold numbers, yields, abbreviations) | `cdx.py styles`, then [Figure styles](references/figure-styles.md) |
 | Reader stereo disagreement, native-save H loss | [Stereo diagnosis](references/stereo-reconstruction.md) |
 | Saved-file and cross-reader validation | [Figure validation](references/figure-validation.md) |
 | Patent Markush / generic structures (R groups, variable rings, image + claims) | [Markush structures](references/markush.md) |
