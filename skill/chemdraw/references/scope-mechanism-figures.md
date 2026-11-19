@@ -16,10 +16,12 @@ The other kinds of `draw_figure` brief. They share the species, styling, checks 
   "fields": [{"key": "yield", "label": "Yield"}, {"key": "ee", "label": "ee"}],
   "species": [
     {"id": "3a", "smiles": "Cc1ccc(cc1)C(=O)N", "label": "3a", "group": "para", "values": {"yield": "88%", "ee": "95%"}},
-    {"id": "3b", "name": "benzamide", "label": "3b", "values": {"yield": "91%"}}
+    {"id": "3b", "name": "benzamide", "smiles": "NC(=O)c1ccccc1", "label": "3b", "values": {"yield": "91%"}}
   ]
 }
 ```
+
+- A species may give a `name`, a `smiles` or both; when both are given and the name resolves, they must describe the same structure.
 
 - `fields` is optional; without it the keys used in `values` become the columns, in first-seen order. A `unit` is added after the value, so do not repeat it in the text.
 - `group` makes a heading; groups and compounds keep first-seen order. A value you were not given is left out: the panel shows a dash, never zero, and the report names the compound.

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+from importlib.util import find_spec
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,6 +13,9 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import public_numbers  # noqa: E402
 
 
+# The counts come from the toolkit; the portable job has no runtime, the runtime job runs this file.
+@unittest.skipUnless(find_spec("rdkit") and find_spec("cdxml_toolkit") and find_spec("mcp"),
+                     "needs the toolkit runtime (RDKit, MCP and cdxml_toolkit)")
 class PublicNumberTests(unittest.TestCase):
     def test_every_quoted_number_matches_the_repository(self):
         self.assertEqual(public_numbers.wrong_claims(), [])

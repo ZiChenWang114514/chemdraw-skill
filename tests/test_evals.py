@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from importlib.util import find_spec
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,8 +21,13 @@ import score  # noqa: E402
 TASKS = json.loads((EVALS / "tasks.json").read_text(encoding="utf-8"))
 TRIGGERS = json.loads((EVALS / "triggers.json").read_text(encoding="utf-8"))
 
+# Structure scoring needs RDKit and the toolkit; the portable job has neither, the runtime job has both.
+needs_runtime = unittest.skipUnless(find_spec("rdkit") and find_spec("cdxml_toolkit"),
+                                    "needs the toolkit runtime (RDKit and cdxml_toolkit)")
+
 
 class ScorerTests(unittest.TestCase):
+    @needs_runtime
     def test_structures_are_compared_as_compounds(self):
         self.assertTrue(score.same_structure("OC(=O)c1ccccc1OC(C)=O", "CC(=O)Oc1ccccc1C(=O)O"))
         self.assertFalse(score.same_structure("CC(=O)Oc1ccccc1C(=O)OC", "CC(=O)Oc1ccccc1C(=O)O"))
@@ -44,6 +50,7 @@ class ScorerTests(unittest.TestCase):
         self.assertFalse(score.names_every_point("", points))
         self.assertFalse(score.names_every_point(None, points))
 
+    @needs_runtime
     def test_an_empty_run_scores_zero_and_the_reference_answers_score_full(self):
         self.assertEqual(score.score_tasks(TASKS, {})["passed"], 0)
         perfect = {}
@@ -57,6 +64,7 @@ class ScorerTests(unittest.TestCase):
         report = score.score_tasks(TASKS, perfect)
         self.assertEqual(report["passed"], report["total"])
 
+    @needs_runtime
     def test_the_command_line_exits_nonzero_when_nothing_passes(self):
         with tempfile.TemporaryDirectory() as folder:
             answers = Path(folder) / "answers.json"
@@ -89,6 +97,7 @@ class SetTests(unittest.TestCase):
         self.assertGreaterEqual(len(TRIGGERS["should_not_trigger"]), 10)
         self.assertFalse(set(TRIGGERS["should_trigger"]) & set(TRIGGERS["should_not_trigger"]))
 
+    @needs_runtime
     def test_every_structure_reference_is_what_the_offline_resolver_returns(self):
         from cdxml_toolkit.naming.mol_builder import resolve_to_smiles
 

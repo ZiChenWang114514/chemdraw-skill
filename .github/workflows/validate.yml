@@ -135,6 +135,10 @@ jobs:
       - name: Check the installed runtime with the doctor
         run: python skill/chemdraw/scripts/cdx.py doctor
 
+      - name: Check public numbers and the evaluation scorer against the runtime
+        # The portable job skips these two files because they need RDKit and the toolkit.
+        run: python -m pytest tests/test_public_numbers.py tests/test_evals.py -q
+
       - name: Exercise the command-line entry point
         run: |
           python skill/chemdraw/scripts/cdx.py tools --detail summary
