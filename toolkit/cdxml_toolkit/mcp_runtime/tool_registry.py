@@ -31,21 +31,6 @@ from .publication_figure import publication_figure
 from .ui_apps import UI_APP_TOOLS
 
 
-def _load_acs_builder():
-    import importlib.util
-    from pathlib import Path
-
-    script_path = Path(__file__).resolve().parents[3] / "skill" / "chemdraw" / "scripts" / "acs_builder.py"
-    if script_path.is_file():
-        mod_spec = importlib.util.spec_from_file_location("chemdraw_skill_acs_builder", script_path)
-        if mod_spec is not None and mod_spec.loader is not None:
-            module = importlib.util.module_from_spec(mod_spec)
-            mod_spec.loader.exec_module(module)
-            return module
-    import acs_builder  # type: ignore[import-not-found]
-    return acs_builder
-
-
 def build_acs_figure(
     spec: dict[str, Any] | str,
     output_path: str | None = None,
@@ -86,7 +71,8 @@ def build_acs_figure(
     if not isinstance(spec_dict, dict) or not isinstance(spec_dict.get("objects"), list):
         raise ValueError('spec must be a JSON object with an "objects" list')
 
-    acs_builder = _load_acs_builder()
+    from .. import acs_builder
+
     destination = artifact_safety.resolve_destination(
         source=source_anchor,
         output_path=output_path,

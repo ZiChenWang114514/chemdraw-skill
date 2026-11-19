@@ -22,11 +22,7 @@ from cdxml_toolkit.templates import (
     newman_projection,
 )
 
-SKILL_SCRIPTS = Path(__file__).resolve().parents[2] / "skill" / "chemdraw" / "scripts"
-if str(SKILL_SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(SKILL_SCRIPTS))
-
-import acs_builder  # noqa: E402
+from cdxml_toolkit import acs_builder
 
 
 # ---------------------------------------------------------------------------
@@ -266,7 +262,10 @@ def test_draw_figure_with_ring_fills_atom_halos_and_ts_bracket(tmp_path, monkeyp
     assert report["ok"] is True
     assert report["lint"]["issues"] == []
     assert report["readback"]["status"] == "matched"
-    assert report["checks_passed"] is True
+    # PhBr + KOH -> PhOH leaves KBr undrawn, so the balance (and checks_passed) fails.
+    assert report["steps"][0]["balanced"] is False
+    assert report["steps"][0]["arrow_reagents_counted"] == ["KOH"]
+    assert report["checks_passed"] is False
 
     root = ET.parse(out_path).getroot()
     page = root.find("page")

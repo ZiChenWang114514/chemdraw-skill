@@ -61,7 +61,8 @@ def test_each_brief_reports_what_the_corpus_expects(case, tmp_path):
         assert list(tmp_path.iterdir()) == []
         return
 
-    assert report["checks_passed"] is True
+    # An unbalanced step (an undrawn by-product) fails checks_passed; nothing else may.
+    assert report["checks_passed"] is all(s["balanced"] is not False for s in report.get("steps", []))
     assert report["readback"]["status"] == "matched"
     assert report["lint"]["issues"] == []
     assert report["native"]["status"] == "not_run"
