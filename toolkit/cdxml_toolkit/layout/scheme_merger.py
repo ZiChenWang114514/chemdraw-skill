@@ -1661,6 +1661,7 @@ def sequential_merge(schemes: List[ParsedScheme], *,
                 sd["graphic_id"] = new_id
             elif role == "other" and old_id not in label_owner and old_id not in plus_pairs:
                 sd["other_ids"].append(new_id)
+        sd["old_to_new"] = old_to_new
         copies = {old_id: el_copy for el_copy, _, old_id in sd["elements"]}
         sd["labels"] = [(copies[t], copies[f], _atom_anchor(copies[f])[:2])
                         for t, f in label_owner.items()
@@ -1669,9 +1670,10 @@ def sequential_merge(schemes: List[ParsedScheme], *,
         # If shared intermediate was skipped, use the previous step's product ID
         if step_idx > 0 and links[step_idx - 1][1]:
             prev_sd = step_data[step_idx - 1]
-            # The intermediate is the product of the previous step
-            if prev_sd["product_ids"]:
-                intermediate_id = prev_sd["product_ids"][0]
+            # The intermediate is the previous step's linked product (not
+            # simply its first product: a by-product may come first).
+            intermediate_id = prev_sd["old_to_new"].get(links[step_idx - 1][0])
+            if intermediate_id in prev_sd["product_ids"]:
                 sd["reactant_ids"].insert(0, intermediate_id)
                 # A "+" next to the skipped copy belongs to the intermediate drawn in the
                 # previous step, wherever that one ends up.
