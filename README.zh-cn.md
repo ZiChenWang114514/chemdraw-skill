@@ -401,11 +401,11 @@ python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_gr
 
 </details>
 
-同一份说明按六种画法风格渲染的 Suzuki 偶联（[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)展示全部 28 张风格卡与 4 个预设）：
+同一份说明按六种画法风格渲染的 Suzuki 偶联（[风格图库](showcase/house-styles/gallery/README.md)展示全部 28 张风格卡与 4 个预设）：
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="同一个 Suzuki 偶联按六个画法风格画出：acs_jacs、nature_portfolio、baran_group、macmillan_group、science_aaas 和 glorius_group"></p>
 
-- **47 个文献复现案例。** 每张卡片均用其原始证据图反向核验：精选 47 张已发表插图（涵盖单步反应、催化循环、底物拓展与全合成），按对应风格从说明文件重画，并归档参考截图、说明文件、原生渲染图与逐项核对的 `CASE.md`（[复现索引](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)）。
+- **47 个文献复现案例。** 每张卡片均用其原始证据图反向核验：精选 47 张已发表插图（涵盖单步反应、催化循环、底物拓展与全合成），按对应风格从说明文件重画，并归档参考截图、说明文件、原生渲染图与逐项核对的 `CASE.md`（[复现索引](showcase/house-styles/gallery/README.md#literature-replicas)）。
 - **开放许可溯源。** 每个风格目录均保存 CC BY 证据截图与来源 DOI；每次绘图报告都会逐条记录已应用与跳过的版式规则及原因。
 - **已知限制与 MCP 资源。** 母核左侧缩写基团坐标准确，但桌面版 ChemDraw 在运行 **Clean Up Structure** 前可能将部分左侧基团按从左向右拼写（如显示 `CO2Me` 而非 `MeO2C`）。完整选项见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)；MCP 客户端可通过 `chemdraw://style-guide/{name}` 读取卡片。
 
@@ -468,7 +468,7 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 | 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
 | 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
 
-更多复现实例见[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)（47 张已发表插图按原期刊/课题组画法重绘，均附说明文件）。图像识别仅上传选定的裁切图片至 DECIMER API（`cdx.py decimer --preflight` 可预先核查待发送内容；离线模式下零上传）。
+更多复现实例见[风格图库](showcase/house-styles/gallery/README.md#literature-replicas)（47 张已发表插图按原期刊/课题组画法重绘，均附说明文件）。图像识别仅上传选定的裁切图片至 DECIMER API（`cdx.py decimer --preflight` 可预先核查待发送内容；离线模式下零上传）。
 
 <details>
 <summary><b>离线重建两张复杂路线图</b></summary>
@@ -922,7 +922,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <summary><b>能按 JACS、Angew.、Nature、Science 或特定课题组的画法风格出图吗？</b></summary>
 <br>
 
-可以。项目内置 28 张实测画法风格卡（*JACS*、*Angew. Chem.*、*Nature*、*Science*、*Chem. Sci.*、Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer 等），叠加在 16 个 ChemDraw 官方尺寸预设之上。画图时传 `--style 名称` 即可（`cdx.py styles` 查看全部列表）。风格卡归纳自开放许可文献插图的版式规律，并非出版社官方模板，也不会复制任何原图。详见[期刊与课题组画法风格](#期刊与课题组画法风格)与[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)。
+可以。项目内置 28 张实测画法风格卡（*JACS*、*Angew. Chem.*、*Nature*、*Science*、*Chem. Sci.*、Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer 等），叠加在 16 个 ChemDraw 官方尺寸预设之上。画图时传 `--style 名称` 即可（`cdx.py styles` 查看全部列表）。风格卡归纳自开放许可文献插图的版式规律，并非出版社官方模板，也不会复制任何原图。详见[期刊与课题组画法风格](#期刊与课题组画法风格)与[风格图库](showcase/house-styles/gallery/README.md)。
 
 </details>
 

@@ -401,11 +401,11 @@ A brief can also style a single figure without modifying the house-style card (`
 
 </details>
 
-The same Suzuki coupling drawn from one brief across six house styles ([style gallery](skill/chemdraw/assets/house-styles/gallery/README.md) shows all 28 cards + 4 presets):
+The same Suzuki coupling drawn from one brief across six house styles ([style gallery](showcase/house-styles/gallery/README.md) shows all 28 cards + 4 presets):
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="One Suzuki coupling drawn in six house styles: acs_jacs, nature_portfolio, baran_group, macmillan_group, science_aaas and glorius_group"></p>
 
-- **47 literature replicas.** Every card was tested against its own evidence: 47 published figures (single schemes, catalytic cycles, scope grids and total syntheses) were redrawn from briefs and archived with their reference crop, brief, native render and `CASE.md` audit ([replica index](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)).
+- **47 literature replicas.** Every card was tested against its own evidence: 47 published figures (single schemes, catalytic cycles, scope grids and total syntheses) were redrawn from briefs and archived with their reference crop, brief, native render and `CASE.md` audit ([replica index](showcase/house-styles/gallery/README.md#literature-replicas)).
 - **Audited provenance.** Each style directory stores its CC BY evidence crops and source DOIs, and every draw report logs which conventions were applied or skipped and why.
 - **Known ChemDraw limit &amp; MCP URI.** Left-attached abbreviations sit at the right coordinates, though desktop ChemDraw spells some right-flowing (`CO2Me` rather than `MeO2C`) until **Clean Up Structure** runs. Full options: [drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md); MCP clients read `chemdraw://style-guide/{name}`.
 
@@ -468,7 +468,7 @@ Three openly licensed schemes are rebuilt end-to-end with their reference crop, 
 | Assemble the final scheme | Fixed-coordinate figures, rich conditions, arrows and native preview |
 | Work beyond drawing | RDKit stereo/tautomer enumeration, MCS and R-group decomposition |
 
-See 47 more redrawn figures with briefs in the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas). Recognition uploads only the selected crops to the DECIMER API (`cdx.py decimer --preflight` previews outgoing files; offline mode sends nothing).
+See 47 more redrawn figures with briefs in the [style gallery](showcase/house-styles/gallery/README.md#literature-replicas). Recognition uploads only the selected crops to the DECIMER API (`cdx.py decimer --preflight` previews outgoing files; offline mode sends nothing).
 
 <details>
 <summary><b>Rebuild the two complex schemes offline</b></summary>
@@ -922,7 +922,7 @@ Neither is required to start. `cdx.py` covers every tool over the CLI with worke
 <summary><b>Can it draw in the house style of JACS, Angew., Nature, Science, or a research group?</b></summary>
 <br>
 
-Yes: 28 empirical house styles (*JACS*, *Angew. Chem.*, *Nature*, *Science*, *Chem. Sci.*, Baran, MacMillan, Glorius, Houk, List, Sarpong, Studer, and more) layered on 16 ChemDraw measurement presets. Pass `--style NAME` (`cdx.py styles` lists all options). Styles apply conventions measured from openly licensed literature figures; they are not official publisher templates and never copy source artwork. See [journal and group house styles](#journal-and-group-house-styles) and the [style gallery](skill/chemdraw/assets/house-styles/gallery/README.md).
+Yes: 28 empirical house styles (*JACS*, *Angew. Chem.*, *Nature*, *Science*, *Chem. Sci.*, Baran, MacMillan, Glorius, Houk, List, Sarpong, Studer, and more) layered on 16 ChemDraw measurement presets. Pass `--style NAME` (`cdx.py styles` lists all options). Styles apply conventions measured from openly licensed literature figures; they are not official publisher templates and never copy source artwork. See [journal and group house styles](#journal-and-group-house-styles) and the [style gallery](showcase/house-styles/gallery/README.md).
 
 </details>
 

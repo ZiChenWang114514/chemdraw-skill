@@ -6,7 +6,7 @@
 
 <sub>Every picture below was drawn by <code>cdx.py draw</code> and rendered by desktop ChemDraw.</sub>
 
-<a href="#the-styles"><img src="../../../../../assets/readme/gallery/house-style-replicas.png" width="88%" alt="Two published figures next to the same figures redrawn in their house style"></a>
+<a href="#the-styles"><img src="../../../assets/readme/gallery/house-style-replicas.png" width="88%" alt="Two published figures next to the same figures redrawn in their house style"></a>
 
 [Styles](#the-styles) &nbsp;·&nbsp; [Literature replicas](#literature-replicas) &nbsp;·&nbsp; [Measurement presets](#measurement-presets) &nbsp;·&nbsp; [Regenerate](#regenerate)
 

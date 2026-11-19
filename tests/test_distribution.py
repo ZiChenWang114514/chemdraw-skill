@@ -87,8 +87,9 @@ class DistributionTests(unittest.TestCase):
         repository_markdown = {
             path.relative_to(ROOT).as_posix()
             for path in ROOT.rglob("*.md")
+            # showcase/ holds the style gallery: one README per style, one CASE.md per replica.
             if path.relative_to(ROOT).parts[0] not in {
-                ".git", "skill", "toolkit", "vscode",
+                ".git", "skill", "toolkit", "vscode", "showcase",
             }
             and not any(p.startswith(".") and p != ".github" for p in path.relative_to(ROOT).parts)
         }
