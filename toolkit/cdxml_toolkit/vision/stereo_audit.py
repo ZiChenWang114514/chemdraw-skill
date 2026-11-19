@@ -1883,8 +1883,12 @@ def edit_structure(
     set_ez: list[dict] | None = None,
     set_stereo: list[dict] | dict | None = None,
 ) -> EditedSmiles:
-    """Surgical atom-index molecular graph and stereochemistry editor."""
-    mol = Chem.MolFromSmiles(smiles or "")
+    """Surgical atom-index molecular graph and stereochemistry editor.
+
+    ``smiles`` may be a molecule object; its atom numbering is then the one the
+    operations refer to.
+    """
+    mol = _mol(smiles)
     if mol is None:
         raise ValueError("RDKit cannot parse this SMILES")
     all_ops = _normalize_edit_ops(

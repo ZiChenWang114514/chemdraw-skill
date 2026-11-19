@@ -531,3 +531,38 @@ def test_stereo_from_wedges_keeps_ring_cis_trans_without_cip_labels():
     up, down = run("wedge"), run("hash")
     assert "@" in up and "@" in down
     assert Chem.CanonSmiles(up) != Chem.CanonSmiles(down)
+
+
+def _molblock_in_written_order(smiles):
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
+    mol = Chem.MolFromSmiles(smiles)
+    AllChem.Compute2DCoords(mol)
+    return Chem.MolToMolBlock(mol)
+
+
+def test_edits_use_the_atom_numbers_of_the_structure_that_was_given():
+    """Atom 0 of a molblock is its first atom, not atom 0 of some canonical SMILES."""
+    from rdkit import Chem
+    from cdxml_toolkit.mcp_runtime.figure_tools import rdkit_workbench
+
+    serine = _molblock_in_written_order("OC[C@H](N)C(=O)O")  # atom 0: the hydroxyl oxygen
+    result = rdkit_workbench(
+        molecules=[{"molblock": serine}],
+        operation="edit_structure",
+        options={"set_atom": [{"atom": 0, "element": "S"}]},
+    )
+    assert Chem.CanonSmiles(result["smiles"]) == Chem.CanonSmiles("SC[C@H](N)C(=O)O")
+
+
+def test_wedges_use_the_atom_numbers_of_the_structure_that_was_given():
+    from rdkit import Chem
+    from cdxml_toolkit.mcp_runtime.figure_tools import rdkit_workbench
+
+    flat = _molblock_in_written_order("OCC(N)C(=O)O")  # atom 2: the stereocentre
+    result = rdkit_workbench(
+        molecules=[{"molblock": flat}], operation="read_wedges",
+        options={"wedges": [{"atom": 2, "neighbor": 3, "kind": "wedge"}]},
+    )
+    assert len(Chem.FindMolChiralCenters(Chem.MolFromSmiles(result["smiles"]))) == 1
