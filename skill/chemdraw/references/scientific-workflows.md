@@ -17,6 +17,7 @@ Each operation runs either via the CLI subcommand `cdx.py scientific <nmr|plot|t
 
 The example runner and JSON specifications are in [assets/scientific](../assets/scientific/run_examples.py). Requires the `scientific` extra (`cdx.py doctor` lists missing extras):
 
+<!-- example: commands -->
 ```console
 cdx.py py <skill>/assets/scientific/run_examples.py --output NEW_DIR
 ```
@@ -39,6 +40,7 @@ This produces TLC, substitution-mechanism and simulated kinetic-plot examples. T
    - **NMR zoom insets (`inset_region`):** pass `inset_region: [high_ppm, low_ppm]` (for example `[7.8, 7.1]`) to render an expanded zoom inset box above the main spectrum in the SVG, PNG, and editable CDXML outputs.
 5. Run the command and inspect the plotted spectrum for a distorted baseline, missing peaks or inappropriate integration limits. Report assignments as unperformed unless separately supported by evidence. To match measured peaks to a model prediction, give `predict_nmr` the measured ppm lists (`experimental_1h`, `experimental_13c`): it returns a model-assisted candidate assignment per peak with errors and outliers ([engines.md](engines.md#predictions)).
 
+<!-- example: commands -->
 ```console
 cdx.py scientific nmr nmr.json nmr-results
 ```
@@ -47,6 +49,7 @@ cdx.py scientific nmr nmr.json nmr-results
 
 To compare reaction timepoints, purification fractions, or multistep synthetic intermediates on a shared chemical-shift axis (with vertical offset, optional `match_shifts` dashed tracking lines, and `normalize: "each" | "max" | "none"`):
 
+<!-- example: commands -->
 ```console
 cdx.py scientific stack_nmr stack_nmr.json stacked.cdxml
 ```
@@ -54,8 +57,9 @@ cdx.py scientific stack_nmr stack_nmr.json stacked.cdxml
 ### TLC (`auto_cospot`, stain palettes, `mode="2d"`) & LCMS well plates (`lcms_plate`)
 
 - **TLC (`tlc`):** `draw_tlc` supports automatic co-spot lane generation (`"auto_cospot": true`), chemical stain palettes (`"stain": "uv254" | "kmno4" | "cam" | "ninhydrin" | "anisaldehyde" | "iodine" | "pma"`), and 2D stability TLC (`"mode": "2d"` with diagonal decomposition reference line and first/second-dimension spots).
-- **LCMS 24/96-well purity plates (`lcms_plate` / `build_lcms_plate_cdxml`):** render high-throughput screening plates (`rows: 4, cols: 6` or `rows: 8, cols: 12`) colored by target product purity % or internal-standard ratio (`"wells": {"A1": {"purity": 94.2, "label": "94%"}}`):
+- **LCMS 24/96-well purity plates (`lcms_plate` / `build_lcms_plate_cdxml`):** render high-throughput screening plates (`"plate_format": 24` for 4 x 6 or `96` for 8 x 12; without it the size follows the well IDs) colored by target product purity %. `wells` is a list of records, each with a `well` ID and a `purity` (or `area_pct` / `product_pct`), and optionally `rt` and `found_ion` (`{"plate_format": 24, "wells": [{"well": "A1", "purity": 94.2, "rt": 1.32}]}`); `input` may instead name a JSON file of that shape or a folder of LCMS reports:
 
+<!-- example: commands -->
 ```console
 cdx.py scientific lcms_plate plate.json plate.cdxml
 ```
@@ -64,6 +68,7 @@ The [NMR JSON example](../assets/scientific/nmr.json) uses integration ranges fr
 
 ## Scientific plots
 
+<!-- example: commands -->
 ```console
 cdx.py py -m cdxml_toolkit.scientific plot --spec plot.json --output plot-results
 ```
@@ -72,6 +77,7 @@ The JSON requires `x_label` and `y_label` plus either a single-series `input`, `
 
 ## Mechanisms
 
+<!-- example: commands -->
 ```console
 cdx.py py -m cdxml_toolkit.scientific mechanism --spec mechanism.json --output mechanism.cdxml
 ```

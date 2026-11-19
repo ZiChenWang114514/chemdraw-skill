@@ -10,10 +10,12 @@ Note structure labels, arrow connections, conditions, yields and X/R definitions
 
 Write `regions.json` in original-image pixels (top-left inclusive, bottom-right exclusive):
 
+<!-- example: fragment -->
 ```json
 [{"id":"A","box":[20,10,340,180],"kind":"structure","exclude_boxes":[]}]
 ```
 
+<!-- example: commands -->
 ```bash
 cdx.py py <skill>/scripts/image_review_workspace.py prepare source.png regions.json work/crops --scale 4
 cdx.py decimer work/crops/A.png --out work/A-decimer.json
@@ -25,6 +27,7 @@ Look at each crop: terminal labels (OMe, CN, …) and stereobonds must be comple
 
 A parseable SMILES is only a candidate. Before any typography, fix connectivity, bond orders, charges and abbreviation subgraphs:
 
+<!-- example: commands -->
 ```bash
 cdx.py call modify_molecule --json '{"mol_json": {"smiles": "<recognized>"}, "operation": "set_smiles", "new_smiles": "<corrected>", "description": "A: source shows OH, recognized as methyl"}'
 ```
@@ -45,6 +48,7 @@ At every crossing decide: occluded solid bond (keep one bond, set depth with `cr
 
 Place molecules with `compose_chemical_figure`:
 
+<!-- example: call compose_chemical_figure file=manifest_path output_path=figure-new.cdxml -->
 ```json
 {"version":1,"objects":[
   {"type":"molecule","id":"A","file":"A-corrected.mol","position":[120,100]}
@@ -53,6 +57,7 @@ Place molecules with `compose_chemical_figure`:
 
 For an exact source orientation, replace `position` with `coordinates` — one `[x,y]` (points, y down) per atom in MOL/SMILES order: `source_xy = crop_xy / scale + box_origin`, then `point_xy = source_xy * points_per_pixel + offset`, with uniform scaling. Do not mirror or stretch. Wedges are recalculated from the final coordinates.
 
+<!-- example: commands -->
 ```bash
 cdx.py call compose_chemical_figure --json '{"manifest_path": "<abs>/figure.json", "output_path": "<abs>/figure.cdxml"}'
 ```
@@ -61,6 +66,7 @@ R/X abbreviations must be real atom subgraphs with attachment points (see the ru
 
 ## 4. Render, compare, fix
 
+<!-- example: commands -->
 ```bash
 cdx.py render figure.cdxml
 cdx.py py <skill>/scripts/image_review_workspace.py compare work/crops/A.png figure.png work/A-review-r1.png --height 400
@@ -89,6 +95,7 @@ When authorized to run a queue, track each structure as pending, working, submit
 
 For a figure with repeated structures or many local corrections, a controller keeps linked records, caches recognition candidates, works out which fragments a change affects and gates delivery on an explicit review. It does not infer unknown chemistry. Prefer supplied CDXML/CDX or native Office objects (convert CDX first with `convert_cdx_cdxml`) and probe the hard cases early (bridged stereo, N-H/O-H abbreviations, charged nitrogen) before propagating a template. Embed X-ray panels as images.
 
+<!-- example: commands -->
 ```bash
 cdx.py py -m cdxml_toolkit.mcp_runtime.reconstruction --arguments operation.json
 ```

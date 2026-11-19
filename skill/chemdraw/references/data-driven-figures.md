@@ -14,6 +14,7 @@ ranges and units. Blank measurements are displayed as an em dash, never zero.
 
 Minimal specification:
 
+<!-- example: call publication_figure file=spec_path operation=create output_dir=new-project needs=chemdraw -->
 ```json
 {
   "mode": "scope",
@@ -77,6 +78,7 @@ assess final reproduction size when inserting them into a manuscript.
 Keep the generated project directory unchanged. Save hand-edited pages separately,
 then supply them through `edited_pages`; keys are **zero-based page indices**.
 
+<!-- example: call publication_figure file=spec_path operation=update output_dir=new-revision needs=chemdraw -->
 ```json
 {
   "project_path": "previous/project.json",
@@ -112,6 +114,7 @@ new `project.json`. Do not use a draft as a completed revision.
 
 The tool is `publication_figure` (`cdx.py sig publication_figure`). The equivalent CLI is:
 
+<!-- example: commands -->
 ```console
 cdx.py py -m cdxml_toolkit.mcp_runtime.publication_figure create --spec figure.json --output new-project
 cdx.py py -m cdxml_toolkit.mcp_runtime.publication_figure update --spec update.json --output new-revision
