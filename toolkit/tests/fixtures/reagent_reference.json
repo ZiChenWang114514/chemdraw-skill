@@ -1,0 +1,1388 @@
+{
+ "source": "PubChem PUG REST, MolecularFormula and Charge by name",
+ "entries": {
+  "pd2dba3": {
+   "status": "verified",
+   "query": "tris(dibenzylideneacetone)dipalladium(0)",
+   "cid": 9811564,
+   "formula": "C51H42O3Pd2",
+   "charge": 0
+  },
+  "pd2(dba)3": {
+   "status": "verified",
+   "query": "tris(dibenzylideneacetone)dipalladium(0)",
+   "cid": 9811564,
+   "formula": "C51H42O3Pd2",
+   "charge": 0
+  },
+  "pd(dba)2": {
+   "status": "verified",
+   "query": "bis(dibenzylideneacetone)palladium(0)",
+   "cid": 6505921,
+   "formula": "C34H28O2Pd",
+   "charge": 0
+  },
+  "pd(oac)2": {
+   "status": "verified",
+   "query": "palladium(II) acetate",
+   "cid": 167845,
+   "formula": "C4H6O4Pd",
+   "charge": 0
+  },
+  "pd(pph3)4": {
+   "status": "verified",
+   "query": "tetrakis(triphenylphosphine)palladium(0)",
+   "cid": 11979704,
+   "formula": "C72H60P4Pd",
+   "charge": 0
+  },
+  "pd(pph3)2cl2": {
+   "status": "verified",
+   "query": "bis(triphenylphosphine)palladium(II) dichloride",
+   "cid": 6102075,
+   "formula": "C36H30Cl2P2Pd",
+   "charge": 0
+  },
+  "pdcl2": {
+   "status": "verified",
+   "query": "palladium(II) chloride",
+   "cid": 24290,
+   "formula": "Cl2Pd",
+   "charge": 0
+  },
+  "pd/c": {
+   "status": "verified",
+   "query": "palladium",
+   "cid": 23938,
+   "formula": "Pd",
+   "charge": 0
+  },
+  "pd(oh)2/c": {
+   "status": "verified",
+   "query": "palladium hydroxide",
+   "cid": 9942167,
+   "formula": "H2O2Pd",
+   "charge": 0
+  },
+  "pd2cl2(allyl)2": {
+   "status": "verified",
+   "query": "allylpalladium(II) chloride dimer",
+   "cid": 61538,
+   "formula": "C6H10Cl2Pd2",
+   "charge": 0
+  },
+  "peppsi-ipr": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C32H40Cl3N3Pd",
+   "charge": 0,
+   "reason": "PubChem CID 16218181 stores the imidazoline C2-H2 form (C32H42Cl3N3Pd); the carbene complex is C32H40Cl3N3Pd (CAS 905459-27-0)"
+  },
+  "binap": {
+   "status": "verified",
+   "query": "BINAP",
+   "cid": 634876,
+   "formula": "C44H32P2",
+   "charge": 0
+  },
+  "rac-binap": {
+   "status": "verified",
+   "query": "BINAP",
+   "cid": 634876,
+   "formula": "C44H32P2",
+   "charge": 0
+  },
+  "xantphos": {
+   "status": "verified",
+   "query": "XantPhos",
+   "cid": 636044,
+   "formula": "C39H32OP2",
+   "charge": 0
+  },
+  "sphos": {
+   "status": "verified",
+   "query": "SPhos",
+   "cid": 11269872,
+   "formula": "C26H35O2P",
+   "charge": 0
+  },
+  "xphos": {
+   "status": "verified",
+   "query": "XPhos",
+   "cid": 11155794,
+   "formula": "C33H49P",
+   "charge": 0
+  },
+  "ruphos": {
+   "status": "verified",
+   "query": "2-dicyclohexylphosphino-2',6'-diisopropoxybiphenyl",
+   "cid": 16217985,
+   "formula": "C30H43O2P",
+   "charge": 0
+  },
+  "brettphos": {
+   "status": "verified",
+   "query": "BrettPhos",
+   "cid": 25112535,
+   "formula": "C35H53O2P",
+   "charge": 0
+  },
+  "dppp": {
+   "status": "verified",
+   "query": "1,3-bis(diphenylphosphino)propane",
+   "cid": 81219,
+   "formula": "C27H26P2",
+   "charge": 0
+  },
+  "dppf": {
+   "status": "verified",
+   "query": "1,1'-bis(diphenylphosphino)ferrocene",
+   "cid": 15182658,
+   "formula": "C34H28FeP2",
+   "charge": 0
+  },
+  "dcype": {
+   "status": "verified",
+   "query": "dcype",
+   "cid": 534202,
+   "formula": "C26H48P2",
+   "charge": 0
+  },
+  "catacxium a": {
+   "status": "verified",
+   "query": "butyldi-1-adamantylphosphine",
+   "cid": 11371790,
+   "formula": "C24H39P",
+   "charge": 0
+  },
+  "p(cy)3": {
+   "status": "verified",
+   "query": "tricyclohexylphosphine",
+   "cid": 75806,
+   "formula": "C18H33P",
+   "charge": 0
+  },
+  "p(tbu)3": {
+   "status": "verified",
+   "query": "tri-tert-butylphosphine",
+   "cid": 83681,
+   "formula": "C12H27P",
+   "charge": 0
+  },
+  "pph3": {
+   "status": "verified",
+   "query": "PPh3",
+   "cid": 11776,
+   "formula": "C18H15P",
+   "charge": 0
+  },
+  "dppe": {
+   "status": "verified",
+   "query": "1,2-bis(diphenylphosphino)ethane",
+   "cid": 74267,
+   "formula": "C26H24P2",
+   "charge": 0
+  },
+  "dtbpf": {
+   "status": "verified",
+   "query": "1,1'-bis(di-tert-butylphosphino)ferrocene",
+   "cid": 71310544,
+   "formula": "C26H44FeP2",
+   "charge": 0
+  },
+  "amphos": {
+   "status": "verified",
+   "query": "AmPhos",
+   "cid": 11714598,
+   "formula": "C16H28NP",
+   "charge": 0
+  },
+  "davephos": {
+   "status": "verified",
+   "query": "DavePhos",
+   "cid": 2734217,
+   "formula": "C26H36NP",
+   "charge": 0
+  },
+  "johnphos": {
+   "status": "verified",
+   "query": "JohnPhos",
+   "cid": 2734215,
+   "formula": "C20H27P",
+   "charge": 0
+  },
+  "cs2co3": {
+   "status": "verified",
+   "query": "cesium carbonate",
+   "cid": 10796,
+   "formula": "CCs2O3",
+   "charge": 0
+  },
+  "k2co3": {
+   "status": "verified",
+   "query": "potassium carbonate",
+   "cid": 11430,
+   "formula": "CK2O3",
+   "charge": 0
+  },
+  "na2co3": {
+   "status": "verified",
+   "query": "sodium carbonate",
+   "cid": 10340,
+   "formula": "CNa2O3",
+   "charge": 0
+  },
+  "k3po4": {
+   "status": "verified",
+   "query": "tripotassium phosphate",
+   "cid": 62657,
+   "formula": "K3O4P",
+   "charge": 0
+  },
+  "koh": {
+   "status": "verified",
+   "query": "potassium hydroxide",
+   "cid": 14797,
+   "formula": "HKO",
+   "charge": 0
+  },
+  "naoh": {
+   "status": "verified",
+   "query": "sodium hydroxide",
+   "cid": 14798,
+   "formula": "HNaO",
+   "charge": 0
+  },
+  "lioh": {
+   "status": "verified",
+   "query": "LiOH",
+   "cid": 3939,
+   "formula": "HLiO",
+   "charge": 0
+  },
+  "naot-bu": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C4H9NaO",
+   "charge": 0,
+   "reason": "PubChem lists tert-butanol beside a neutral Na atom (C4H10NaO); the alkoxide is C4H9NaO (CAS 865-48-5)"
+  },
+  "naotbu": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C4H9NaO",
+   "charge": 0,
+   "reason": "PubChem lists tert-butanol beside a neutral Na atom (C4H10NaO); the alkoxide is C4H9NaO (CAS 865-48-5)"
+  },
+  "kot-bu": {
+   "status": "verified",
+   "query": "potassium tert-butoxide",
+   "cid": 23665647,
+   "formula": "C4H9KO",
+   "charge": 0
+  },
+  "kotbu": {
+   "status": "verified",
+   "query": "potassium tert-butoxide",
+   "cid": 23665647,
+   "formula": "C4H9KO",
+   "charge": 0
+  },
+  "liotbu": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C4H9LiO",
+   "charge": 0,
+   "reason": "PubChem lists tert-butanol beside a neutral Li atom (C4H10LiO); the alkoxide is C4H9LiO (CAS 1907-33-1)"
+  },
+  "lihmds": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C6H18LiNSi2",
+   "charge": 0,
+   "reason": "PubChem CID 57426343 stores a neutral Li atom beside the N-H amine (C6H19LiNSi2); the salt is C6H18LiNSi2 (CAS 4039-32-1)"
+  },
+  "nahmds": {
+   "status": "verified",
+   "query": "sodium bis(trimethylsilyl)amide",
+   "cid": 2724254,
+   "formula": "C6H18NNaSi2",
+   "charge": 0
+  },
+  "ki": {
+   "status": "verified",
+   "query": "potassium iodide",
+   "cid": 4875,
+   "formula": "IK",
+   "charge": 0
+  },
+  "khmds": {
+   "status": "verified",
+   "query": "potassium bis(trimethylsilyl)amide",
+   "cid": 3251421,
+   "formula": "C6H18KNSi2",
+   "charge": 0
+  },
+  "nahco3": {
+   "status": "verified",
+   "query": "sodium bicarbonate",
+   "cid": 516892,
+   "formula": "CHNaO3",
+   "charge": 0
+  },
+  "khco3": {
+   "status": "verified",
+   "query": "KHCO3",
+   "cid": 516893,
+   "formula": "CHKO3",
+   "charge": 0
+  },
+  "lda": {
+   "status": "verified",
+   "query": "lithium diisopropylamide",
+   "cid": 2724682,
+   "formula": "C6H14LiN",
+   "charge": 0
+  },
+  "nah": {
+   "status": "verified",
+   "query": "sodium hydride",
+   "cid": 24758,
+   "formula": "HNa",
+   "charge": 0
+  },
+  "n-buli": {
+   "status": "verified",
+   "query": "n-butyllithium",
+   "cid": 53627823,
+   "formula": "C4H9Li",
+   "charge": 0
+  },
+  "t-buli": {
+   "status": "verified",
+   "query": "tert-butyllithium",
+   "cid": 53628101,
+   "formula": "C4H9Li",
+   "charge": 0
+  },
+  "et3n": {
+   "status": "verified",
+   "query": "triethylamine",
+   "cid": 8471,
+   "formula": "C6H15N",
+   "charge": 0
+  },
+  "diea": {
+   "status": "verified",
+   "query": "N,N-diisopropylethylamine",
+   "cid": 81531,
+   "formula": "C8H19N",
+   "charge": 0
+  },
+  "dipea": {
+   "status": "verified",
+   "query": "N,N-diisopropylethylamine",
+   "cid": 81531,
+   "formula": "C8H19N",
+   "charge": 0
+  },
+  "dbu": {
+   "status": "verified",
+   "query": "DBU",
+   "cid": 81184,
+   "formula": "C9H16N2",
+   "charge": 0
+  },
+  "dmap": {
+   "status": "verified",
+   "query": "DMAP",
+   "cid": 14284,
+   "formula": "C7H10N2",
+   "charge": 0
+  },
+  "pyridine": {
+   "status": "verified",
+   "query": "pyridine",
+   "cid": 1049,
+   "formula": "C5H5N",
+   "charge": 0
+  },
+  "2,6-lutidine": {
+   "status": "verified",
+   "query": "2,6-lutidine",
+   "cid": 7937,
+   "formula": "C7H9N",
+   "charge": 0
+  },
+  "dabco": {
+   "status": "verified",
+   "query": "DABCO",
+   "cid": 9237,
+   "formula": "C6H12N2",
+   "charge": 0
+  },
+  "tmeda": {
+   "status": "verified",
+   "query": "TMEDA",
+   "cid": 8037,
+   "formula": "C6H16N2",
+   "charge": 0
+  },
+  "hatu": {
+   "status": "verified",
+   "query": "HATU",
+   "cid": 6409673,
+   "formula": "C10H15F6N6OP",
+   "charge": 0
+  },
+  "hbtu": {
+   "status": "verified",
+   "query": "HBTU",
+   "cid": 2733084,
+   "formula": "C11H16F6N5OP",
+   "charge": 0
+  },
+  "edc": {
+   "status": "verified",
+   "query": "N-(3-dimethylaminopropyl)-N'-ethylcarbodiimide",
+   "cid": 15908,
+   "formula": "C8H17N3",
+   "charge": 0
+  },
+  "edc\u00b7hcl": {
+   "status": "verified",
+   "query": "N-(3-dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride",
+   "cid": 2723939,
+   "formula": "C8H18ClN3",
+   "charge": 0
+  },
+  "hobt": {
+   "status": "verified",
+   "query": "HOBt",
+   "cid": 75771,
+   "formula": "C6H5N3O",
+   "charge": 0
+  },
+  "hoat": {
+   "status": "verified",
+   "query": "HOAt",
+   "cid": 181649,
+   "formula": "C5H4N4O",
+   "charge": 0
+  },
+  "t3p": {
+   "status": "verified",
+   "query": "propylphosphonic anhydride",
+   "cid": 111923,
+   "formula": "C9H21O6P3",
+   "charge": 0
+  },
+  "pybop": {
+   "status": "verified",
+   "query": "PyBOP",
+   "cid": 2724699,
+   "formula": "C18H28F6N6OP2",
+   "charge": 0
+  },
+  "comu": {
+   "status": "verified",
+   "query": "COMU",
+   "cid": 44471148,
+   "formula": "C12H19F6N4O4P",
+   "charge": 0
+  },
+  "tbtu": {
+   "status": "verified",
+   "query": "TBTU",
+   "cid": 2733207,
+   "formula": "C11H16BF4N5O",
+   "charge": 0
+  },
+  "dcc": {
+   "status": "verified",
+   "query": "N,N'-dicyclohexylcarbodiimide",
+   "cid": 10868,
+   "formula": "C13H22N2",
+   "charge": 0
+  },
+  "dic": {
+   "status": "verified",
+   "query": "N,N'-diisopropylcarbodiimide",
+   "cid": 12734,
+   "formula": "C7H14N2",
+   "charge": 0
+  },
+  "cdmt": {
+   "status": "verified",
+   "query": "2-chloro-4,6-dimethoxy-1,3,5-triazine",
+   "cid": 18450,
+   "formula": "C5H6ClN3O2",
+   "charge": 0
+  },
+  "dead": {
+   "status": "verified",
+   "query": "diethyl azodicarboxylate",
+   "cid": 5462977,
+   "formula": "C6H10N2O4",
+   "charge": 0
+  },
+  "diad": {
+   "status": "verified",
+   "query": "diisopropyl azodicarboxylate",
+   "cid": 5363146,
+   "formula": "C8H14N2O4",
+   "charge": 0
+  },
+  "addp": {
+   "status": "verified",
+   "query": "1,1'-(azodicarbonyl)dipiperidine",
+   "cid": 73042,
+   "formula": "C12H20N4O2",
+   "charge": 0
+  },
+  "pbu3": {
+   "status": "verified",
+   "query": "tributylphosphine",
+   "cid": 13831,
+   "formula": "C12H27P",
+   "charge": 0
+  },
+  "nabh4": {
+   "status": "verified",
+   "query": "sodium borohydride",
+   "cid": 4311764,
+   "formula": "BH4Na",
+   "charge": 0
+  },
+  "nabh(oac)3": {
+   "status": "verified",
+   "query": "sodium triacetoxyborohydride",
+   "cid": 5049666,
+   "formula": "C6H10BNaO6",
+   "charge": 0
+  },
+  "nabh3cn": {
+   "status": "verified",
+   "query": "sodium cyanoborohydride",
+   "cid": 5003444,
+   "formula": "CH3BNNa",
+   "charge": 0
+  },
+  "lialh4": {
+   "status": "verified",
+   "query": "lithium aluminium hydride",
+   "cid": 28112,
+   "formula": "AlH4Li",
+   "charge": 0
+  },
+  "dibal-h": {
+   "status": "verified",
+   "query": "diisobutylaluminium hydride",
+   "cid": 14487,
+   "formula": "C8H19Al",
+   "charge": 0
+  },
+  "dmp": {
+   "status": "verified",
+   "query": "Dess-Martin periodinane",
+   "cid": 159087,
+   "formula": "C13H13IO8",
+   "charge": 0
+  },
+  "pcc": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C5H6ClCrNO3",
+   "charge": 0,
+   "reason": "PubChem has no record under its name or CAS 26299-14-9; supplier formula C5H6ClCrNO3"
+  },
+  "pdc": {
+   "status": "verified",
+   "query": "pyridinium dichromate",
+   "cid": 159879,
+   "formula": "C10H12Cr2N2O7",
+   "charge": 0
+  },
+  "tpap": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C12H28NO4Ru",
+   "charge": 0,
+   "reason": "PubChem's record under this name has a hydrated, non-stoichiometric formula (C12H35NO4Ru); the salt is C12H28NO4Ru (CAS 114615-82-6)"
+  },
+  "mcpba": {
+   "status": "verified",
+   "query": "m-cpba",
+   "cid": 70297,
+   "formula": "C7H5ClO3",
+   "charge": 0
+  },
+  "oxone": {
+   "status": "verified",
+   "query": "potassium peroxymonosulfate",
+   "cid": 23712892,
+   "formula": "HKO5S",
+   "charge": 0
+  },
+  "h2o2": {
+   "status": "verified",
+   "query": "H2O2",
+   "cid": 784,
+   "formula": "H2O2",
+   "charge": 0
+  },
+  "tbhp": {
+   "status": "verified",
+   "query": "tert-butyl hydroperoxide",
+   "cid": 6410,
+   "formula": "C4H10O2",
+   "charge": 0
+  },
+  "thf": {
+   "status": "verified",
+   "query": "THF",
+   "cid": 8028,
+   "formula": "C4H8O",
+   "charge": 0
+  },
+  "dmf": {
+   "status": "verified",
+   "query": "DMF",
+   "cid": 6228,
+   "formula": "C3H7NO",
+   "charge": 0
+  },
+  "dma": {
+   "status": "verified",
+   "query": "N,N-dimethylacetamide",
+   "cid": 31374,
+   "formula": "C4H9NO",
+   "charge": 0
+  },
+  "dmso": {
+   "status": "verified",
+   "query": "DMSO",
+   "cid": 679,
+   "formula": "C2H6OS",
+   "charge": 0
+  },
+  "dcm": {
+   "status": "verified",
+   "query": "dichloromethane",
+   "cid": 6344,
+   "formula": "CH2Cl2",
+   "charge": 0
+  },
+  "ch2cl2": {
+   "status": "verified",
+   "query": "CH2Cl2",
+   "cid": 6344,
+   "formula": "CH2Cl2",
+   "charge": 0
+  },
+  "meoh": {
+   "status": "verified",
+   "query": "MeOH",
+   "cid": 887,
+   "formula": "CH4O",
+   "charge": 0
+  },
+  "etoh": {
+   "status": "verified",
+   "query": "EtOH",
+   "cid": 702,
+   "formula": "C2H6O",
+   "charge": 0
+  },
+  "iproh": {
+   "status": "verified",
+   "query": "iPrOH",
+   "cid": 3776,
+   "formula": "C3H8O",
+   "charge": 0
+  },
+  "mecn": {
+   "status": "verified",
+   "query": "MeCN",
+   "cid": 6342,
+   "formula": "C2H3N",
+   "charge": 0
+  },
+  "dioxane": {
+   "status": "verified",
+   "query": "1,4-dioxane",
+   "cid": 31275,
+   "formula": "C4H8O2",
+   "charge": 0
+  },
+  "toluene": {
+   "status": "verified",
+   "query": "toluene",
+   "cid": 1140,
+   "formula": "C7H8",
+   "charge": 0
+  },
+  "acetone": {
+   "status": "verified",
+   "query": "acetone",
+   "cid": 180,
+   "formula": "C3H6O",
+   "charge": 0
+  },
+  "etoac": {
+   "status": "verified",
+   "query": "EtOAc",
+   "cid": 8857,
+   "formula": "C4H8O2",
+   "charge": 0
+  },
+  "mtbe": {
+   "status": "verified",
+   "query": "MTBE",
+   "cid": 15413,
+   "formula": "C5H12O",
+   "charge": 0
+  },
+  "dce": {
+   "status": "verified",
+   "query": "1,2-dichloroethane",
+   "cid": 11,
+   "formula": "C2H4Cl2",
+   "charge": 0
+  },
+  "nmp": {
+   "status": "verified",
+   "query": "NMP",
+   "cid": 13387,
+   "formula": "C5H9NO",
+   "charge": 0
+  },
+  "dmpu": {
+   "status": "verified",
+   "query": "DMPU",
+   "cid": 81646,
+   "formula": "C6H12N2O",
+   "charge": 0
+  },
+  "h2o": {
+   "status": "verified",
+   "query": "water",
+   "cid": 962,
+   "formula": "H2O",
+   "charge": 0
+  },
+  "acoh": {
+   "status": "verified",
+   "query": "AcOH",
+   "cid": 176,
+   "formula": "C2H4O2",
+   "charge": 0
+  },
+  "tfa": {
+   "status": "verified",
+   "query": "TFA",
+   "cid": 6422,
+   "formula": "C2HF3O2",
+   "charge": 0
+  },
+  "tfaa": {
+   "status": "verified",
+   "query": "trifluoroacetic anhydride",
+   "cid": 9845,
+   "formula": "C4F6O3",
+   "charge": 0
+  },
+  "boc2o": {
+   "status": "verified",
+   "query": "di-tert-butyl dicarbonate",
+   "cid": 90495,
+   "formula": "C10H18O5",
+   "charge": 0
+  },
+  "fmoc-cl": {
+   "status": "verified",
+   "query": "9-fluorenylmethyl chloroformate",
+   "cid": 34367,
+   "formula": "C15H11ClO2",
+   "charge": 0
+  },
+  "cbz-cl": {
+   "status": "verified",
+   "query": "benzyl chloroformate",
+   "cid": 10387,
+   "formula": "C8H7ClO2",
+   "charge": 0
+  },
+  "tbscl": {
+   "status": "verified",
+   "query": "tert-butyldimethylsilyl chloride",
+   "cid": 28928,
+   "formula": "C6H15ClSi",
+   "charge": 0
+  },
+  "tmscl": {
+   "status": "verified",
+   "query": "chlorotrimethylsilane",
+   "cid": 6397,
+   "formula": "C3H9ClSi",
+   "charge": 0
+  },
+  "tipscl": {
+   "status": "verified",
+   "query": "triisopropylsilyl chloride",
+   "cid": 139400,
+   "formula": "C9H21ClSi",
+   "charge": 0
+  },
+  "tbaf": {
+   "status": "verified",
+   "query": "tetrabutylammonium fluoride",
+   "cid": 2724141,
+   "formula": "C16H36FN",
+   "charge": 0
+  },
+  "hcl": {
+   "status": "verified",
+   "query": "HCl",
+   "cid": 313,
+   "formula": "ClH",
+   "charge": 0
+  },
+  "hcl in dioxane": {
+   "status": "unverified",
+   "reason": "entry stores no structure (a solution or mixture)"
+  },
+  "cui": {
+   "status": "verified",
+   "query": "copper(I) iodide",
+   "cid": 6432705,
+   "formula": "CuI",
+   "charge": 0
+  },
+  "cucl": {
+   "status": "verified",
+   "query": "copper(I) chloride",
+   "cid": 62652,
+   "formula": "ClCu",
+   "charge": 0
+  },
+  "cu(oac)2": {
+   "status": "verified",
+   "query": "copper(II) acetate",
+   "cid": 8895,
+   "formula": "C4H6CuO4",
+   "charge": 0
+  },
+  "cuso4": {
+   "status": "verified",
+   "query": "copper(II) sulfate",
+   "cid": 24462,
+   "formula": "CuO4S",
+   "charge": 0
+  },
+  "cuso4\u00b75h2o": {
+   "status": "verified",
+   "query": "copper(II) sulfate pentahydrate",
+   "cid": 24463,
+   "formula": "CuH10O9S",
+   "charge": 0
+  },
+  "ni(cod)2": {
+   "status": "verified",
+   "query": "bis(1,5-cyclooctadiene)nickel(0)",
+   "cid": 6433264,
+   "formula": "C16H24Ni",
+   "charge": 0
+  },
+  "nicl2": {
+   "status": "verified",
+   "query": "nickel(II) chloride",
+   "cid": 24385,
+   "formula": "Cl2Ni",
+   "charge": 0
+  },
+  "nicl2(dme)": {
+   "status": "verified",
+   "query": "NiCl2(DME)",
+   "cid": 15773433,
+   "formula": "C4H10Cl2NiO2",
+   "charge": 0
+  },
+  "b2pin2": {
+   "status": "verified",
+   "query": "bis(pinacolato)diboron",
+   "cid": 2733548,
+   "formula": "C12H24B2O4",
+   "charge": 0
+  },
+  "b(oh)3": {
+   "status": "verified",
+   "query": "boric acid",
+   "cid": 7628,
+   "formula": "BH3O3",
+   "charge": 0
+  },
+  "pinbh": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C6H13BO2",
+   "charge": 0,
+   "reason": "PubChem CID 6364989 stores a boron radical without the B-H hydrogen (C6H12BO2); pinacolborane is C6H13BO2 (CAS 25015-63-8)"
+  },
+  "hbpin": {
+   "status": "unverified",
+   "pinned": true,
+   "formula": "C6H13BO2",
+   "charge": 0,
+   "reason": "PubChem CID 6364989 stores a boron radical without the B-H hydrogen (C6H12BO2); pinacolborane is C6H13BO2 (CAS 25015-63-8)"
+  },
+  "kf": {
+   "status": "verified",
+   "query": "potassium fluoride",
+   "cid": 522689,
+   "formula": "FK",
+   "charge": 0
+  },
+  "csf": {
+   "status": "verified",
+   "query": "CsF",
+   "cid": 25953,
+   "formula": "CsF",
+   "charge": 0
+  },
+  "fecl3": {
+   "status": "verified",
+   "query": "iron(III) chloride",
+   "cid": 24380,
+   "formula": "Cl3Fe",
+   "charge": 0
+  },
+  "fecl2": {
+   "status": "verified",
+   "query": "iron(II) chloride",
+   "cid": 24458,
+   "formula": "Cl2Fe",
+   "charge": 0
+  },
+  "zncl2": {
+   "status": "verified",
+   "query": "ZnCl2",
+   "cid": 5727,
+   "formula": "Cl2Zn",
+   "charge": 0
+  },
+  "znbr2": {
+   "status": "verified",
+   "query": "zinc bromide",
+   "cid": 10421208,
+   "formula": "Br2Zn",
+   "charge": 0
+  },
+  "na2so4": {
+   "status": "verified",
+   "query": "Na2SO4",
+   "cid": 24436,
+   "formula": "Na2O4S",
+   "charge": 0
+  },
+  "mgso4": {
+   "status": "verified",
+   "query": "MgSO4",
+   "cid": 24083,
+   "formula": "MgO4S",
+   "charge": 0
+  },
+  "socl2": {
+   "status": "verified",
+   "query": "SOCl2",
+   "cid": 24386,
+   "formula": "Cl2OS",
+   "charge": 0
+  },
+  "alcl3": {
+   "status": "verified",
+   "query": "AlCl3",
+   "cid": 24012,
+   "formula": "AlCl3",
+   "charge": 0
+  },
+  "bbr3": {
+   "status": "verified",
+   "query": "BBr3",
+   "cid": 25134,
+   "formula": "BBr3",
+   "charge": 0
+  },
+  "bf3\u00b7oet2": {
+   "status": "verified",
+   "query": "boron trifluoride diethyl etherate",
+   "cid": 517922,
+   "formula": "C4H10BF3O",
+   "charge": 0
+  },
+  "tf2o": {
+   "status": "verified",
+   "query": "trifluoromethanesulfonic anhydride",
+   "cid": 67749,
+   "formula": "C2F6O5S2",
+   "charge": 0
+  },
+  "ticl4": {
+   "status": "verified",
+   "query": "TiCl4",
+   "cid": 24193,
+   "formula": "Cl4Ti",
+   "charge": 0
+  },
+  "zn dust": {
+   "status": "verified",
+   "query": "zinc",
+   "cid": 23994,
+   "formula": "Zn",
+   "charge": 0
+  },
+  "mg turnings": {
+   "status": "verified",
+   "query": "magnesium",
+   "cid": 5462224,
+   "formula": "Mg",
+   "charge": 0
+  },
+  "tmsi": {
+   "status": "verified",
+   "query": "iodotrimethylsilane",
+   "cid": 85247,
+   "formula": "C3H9ISi",
+   "charge": 0
+  },
+  "nbs": {
+   "status": "verified",
+   "query": "N-bromosuccinimide",
+   "cid": 67184,
+   "formula": "C4H4BrNO2",
+   "charge": 0
+  },
+  "ncs": {
+   "status": "verified",
+   "query": "N-chlorosuccinimide",
+   "cid": 31398,
+   "formula": "C4H4ClNO2",
+   "charge": 0
+  },
+  "nis": {
+   "status": "verified",
+   "query": "N-iodosuccinimide",
+   "cid": 120273,
+   "formula": "C4H4INO2",
+   "charge": 0
+  },
+  "selectfluor": {
+   "status": "verified",
+   "query": "Selectfluor",
+   "cid": 2724933,
+   "formula": "C7H14B2ClF9N2",
+   "charge": 0
+  },
+  "naso3cf3": {
+   "status": "verified",
+   "query": "sodium trifluoromethanesulfonate",
+   "cid": 23676748,
+   "formula": "CF3NaO3S",
+   "charge": 0
+  },
+  "dast": {
+   "status": "verified",
+   "query": "diethylaminosulfur trifluoride",
+   "cid": 123472,
+   "formula": "C4H10F3NS",
+   "charge": 0
+  },
+  "p(oet)3": {
+   "status": "verified",
+   "query": "triethyl phosphite",
+   "cid": 31215,
+   "formula": "C6H15O3P",
+   "charge": 0
+  },
+  "grubbs ii": {
+   "status": "verified",
+   "query": "Grubbs catalyst 2nd generation",
+   "cid": 11147261,
+   "formula": "C46H65Cl2N2PRu",
+   "charge": 0
+  },
+  "hoveyda-grubbs ii": {
+   "status": "verified",
+   "query": "Hoveyda-Grubbs catalyst 2nd generation",
+   "cid": 11763533,
+   "formula": "C31H38Cl2N2ORu",
+   "charge": 0
+  },
+  "morpholine": {
+   "status": "verified",
+   "query": "morpholine",
+   "cid": 8083,
+   "formula": "C4H9NO",
+   "charge": 0
+  },
+  "dme": {
+   "status": "verified",
+   "query": "1,2-dimethoxyethane",
+   "cid": 8071,
+   "formula": "C4H10O2",
+   "charge": 0
+  },
+  "chloroform": {
+   "status": "verified",
+   "query": "chcl3",
+   "cid": 6212,
+   "formula": "CHCl3",
+   "charge": 0
+  },
+  "benzene": {
+   "status": "verified",
+   "query": "benzene",
+   "cid": 241,
+   "formula": "C6H6",
+   "charge": 0
+  },
+  "hexane": {
+   "status": "verified",
+   "query": "hexane",
+   "cid": 8058,
+   "formula": "C6H14",
+   "charge": 0
+  },
+  "heptane": {
+   "status": "verified",
+   "query": "heptane",
+   "cid": 8900,
+   "formula": "C7H16",
+   "charge": 0
+  },
+  "tempo": {
+   "status": "verified",
+   "query": "TEMPO",
+   "cid": 2724126,
+   "formula": "C9H18NO",
+   "charge": 0
+  },
+  "tbuxphos": {
+   "status": "verified",
+   "query": "tBuXPhos",
+   "cid": 11618717,
+   "formula": "C29H45P",
+   "charge": 0
+  },
+  "pd(dppf)cl2": {
+   "status": "verified",
+   "query": "72287-26-4",
+   "cid": 71310626,
+   "formula": "C34H28Cl2FeP2Pd",
+   "charge": 0
+  },
+  "cubr": {
+   "status": "verified",
+   "query": "copper(I) bromide",
+   "cid": 24593,
+   "formula": "BrCu",
+   "charge": 0
+  },
+  "n-butanol": {
+   "status": "verified",
+   "query": "1-butanol",
+   "cid": 263,
+   "formula": "C4H10O",
+   "charge": 0
+  },
+  "ccl4": {
+   "status": "verified",
+   "query": "carbon tetrachloride",
+   "cid": 5943,
+   "formula": "CCl4",
+   "charge": 0
+  },
+  "chlorobenzene": {
+   "status": "verified",
+   "query": "PhCl",
+   "cid": 7964,
+   "formula": "C6H5Cl",
+   "charge": 0
+  },
+  "cyclohexane": {
+   "status": "verified",
+   "query": "cyclohexane",
+   "cid": 8078,
+   "formula": "C6H12",
+   "charge": 0
+  },
+  "et2o": {
+   "status": "verified",
+   "query": "diethyl ether",
+   "cid": 3283,
+   "formula": "C4H10O",
+   "charge": 0
+  },
+  "hmpa": {
+   "status": "verified",
+   "query": "hexamethylphosphoramide",
+   "cid": 12679,
+   "formula": "C6H18N3OP",
+   "charge": 0
+  },
+  "pentane": {
+   "status": "verified",
+   "query": "pentane",
+   "cid": 8003,
+   "formula": "C5H12",
+   "charge": 0
+  },
+  "d2o": {
+   "status": "verified",
+   "query": "deuterium oxide",
+   "cid": 24602,
+   "formula": "H2O",
+   "charge": 0
+  },
+  "ibx": {
+   "status": "verified",
+   "query": "2-iodoxybenzoic acid",
+   "cid": 108794,
+   "formula": "C7H5IO4",
+   "charge": 0
+  },
+  "pd(dppf)cl2\u00b7dcm": {
+   "status": "verified",
+   "query": "95464-05-4",
+   "cid": 51341998,
+   "formula": "C35H30Cl4FeP2Pd",
+   "charge": 0
+  },
+  "pd2(dba)3\u00b7chcl3": {
+   "status": "verified",
+   "query": "pd2(dba)3.chcl3",
+   "cid": 11029508,
+   "formula": "C52H43Cl3O3Pd2",
+   "charge": 0
+  },
+  "cutc": {
+   "status": "verified",
+   "query": "copper(i) thiophene-2-carboxylate",
+   "cid": 11194830,
+   "formula": "C5H3CuO2S",
+   "charge": 0
+  },
+  "phb(oh)2": {
+   "status": "verified",
+   "query": "phenylboronic acid",
+   "cid": 66827,
+   "formula": "C6H7BO2",
+   "charge": 0
+  },
+  "phmgbr": {
+   "status": "verified",
+   "query": "phenylmagnesium bromide",
+   "cid": 66852,
+   "formula": "C6H5BrMg",
+   "charge": 0
+  },
+  "memgbr": {
+   "status": "verified",
+   "query": "methylmagnesium bromide",
+   "cid": 6349,
+   "formula": "CH3BrMg",
+   "charge": 0
+  },
+  "cl2choch3": {
+   "status": "verified",
+   "query": "dichloromethyl methyl ether",
+   "cid": 21004,
+   "formula": "C2H4Cl2O",
+   "charge": 0
+  },
+  "bzcl": {
+   "status": "verified",
+   "query": "benzoyl chloride",
+   "cid": 7412,
+   "formula": "C7H5ClO",
+   "charge": 0
+  },
+  "mei": {
+   "status": "verified",
+   "query": "methyl iodide",
+   "cid": 6328,
+   "formula": "CH3I",
+   "charge": 0
+  },
+  "ag2o": {
+   "status": "verified",
+   "query": "Ag2O",
+   "cid": 9794626,
+   "formula": "Ag2O",
+   "charge": 0
+  },
+  "piperidine": {
+   "status": "verified",
+   "query": "Piperidine",
+   "cid": 8082,
+   "formula": "C5H11N",
+   "charge": 0
+  },
+  "nh4cl": {
+   "status": "verified",
+   "query": "ammonium chloride",
+   "cid": 25517,
+   "formula": "ClH4N",
+   "charge": 0
+  },
+  "cf3so2na": {
+   "status": "verified",
+   "query": "sodium trifluoromethanesulfinate",
+   "cid": 23690734,
+   "formula": "CF3NaO2S",
+   "charge": 0
+  },
+  "nmm": {
+   "status": "verified",
+   "query": "4-methylmorpholine",
+   "cid": 7972,
+   "formula": "C5H11NO",
+   "charge": 0
+  },
+  "ppts": {
+   "status": "verified",
+   "query": "pyridinium p-toluenesulfonate",
+   "cid": 466102,
+   "formula": "C12H13NO3S",
+   "charge": 0
+  },
+  "dppa": {
+   "status": "verified",
+   "query": "diphenylphosphoryl azide",
+   "cid": 123414,
+   "formula": "C12H10N3O3P",
+   "charge": 0
+  },
+  "pifa": {
+   "status": "verified",
+   "query": "[bis(trifluoroacetoxy)iodo]benzene",
+   "cid": 102317,
+   "formula": "C10H5F6IO4",
+   "charge": 0
+  },
+  "tesotf": {
+   "status": "verified",
+   "query": "triethylsilyl trifluoromethanesulfonate",
+   "cid": 2733308,
+   "formula": "C7H15F3O3SSi",
+   "charge": 0
+  },
+  "hmds": {
+   "status": "verified",
+   "query": "hexamethyldisilazane",
+   "cid": 13838,
+   "formula": "C6H19NSi2",
+   "charge": 0
+  }
+ }
+}

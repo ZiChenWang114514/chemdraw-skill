@@ -207,106 +207,163 @@ _MULTIPLIERS = {2: "di", 3: "tri", 4: "tetra", 5: "penta", 6: "hexa"}
 
 def _resolve_query(query: str, use_network: bool = True,
                    notes: Optional[List[str]] = None) -> Optional[Dict]:
-    """Multi-tier resolution chain: reagent DB → formula → ChemScript → PubChem.
+    """Resolve a name to SMILES; the tier order is decided here and only here.
 
-    Returns {"smiles": ..., "source": ...} or None.  ``notes`` collects why a
-    tier could not run, for the caller's error message.
+    1. ``primary``    curated reagent table (incl. salts/hydrates by component)
+    2. ``cas``        CAS number via PubChem (a valid CAS number stops here)
+    3. ``chemscript`` ChemDraw name conversion, then ``opsin`` (offline IUPAC)
+    4. ``pubchem``    PubChem by name, only when ``use_network`` and the
+       process-wide network policy both allow it
+    5. ``secondary``  large unreviewed table, quarantine removed; flagged
+       ``confidence: "low"``
+    6. ``condensed``  condensed-formula parser ("PhCH2Br")
+
+    Returns a dict with ``smiles``, ``source`` (legacy label), ``source_tier``,
+    ``confidence``, ``unspecified_stereocentres`` and ``components``, or None.
+    ``notes`` collects why a tier could not run, for the caller's error message.
     """
-    from rdkit import Chem
+    from cdxml_toolkit.resolve.network_policy import network_allowed
 
     clean = query.strip()
     if not clean:
         return None
+    online = use_network and network_allowed()
 
-    # Tier 1: Reagent DB
     try:
         from cdxml_toolkit.resolve.reagent_db import get_reagent_db
         db = get_reagent_db()
-        entry = db.entry_for_name(clean.lower())
-        if entry:
-            canon_smi = entry.get("canonical_smiles")
-            if isinstance(canon_smi, list):
-                canon_smi = canon_smi[0] if canon_smi else None
-            if canon_smi:
-                return {"smiles": canon_smi, "source": "reagent_db"}
-            smi = entry.get("smiles")
-            if isinstance(smi, list):
-                smi = smi[0]
-            if smi and Chem.MolFromSmiles(smi):
-                return {"smiles": _rdkit_canonical(smi), "source": "reagent_db"}
     except Exception:
-        pass
+        db = None
 
-    # Tier 1b: CAS number short-circuit (before formula / ChemScript / OPSIN)
+    # 1. Curated table
+    hit = _resolve_table(db, clean, "primary")
+    if hit:
+        return hit
+
+    # 2. CAS number short-circuit
     from ..resolve.cas_resolver import _validate_cas, resolve_cas
     if _validate_cas(clean):
-        if use_network:
+        if online:
             try:
                 cas_info = resolve_cas(clean)
                 smi = cas_info.get("smiles") if cas_info else None
                 if smi:
-                    canon = _rdkit_canonical(smi)
-                    if canon:
-                        return {
-                            "smiles": canon,
-                            "source": "pubchem",
-                            "iupac_name": cas_info.get("name") or None,
-                        }
+                    return _tier_result(smi, "pubchem", "cas",
+                                        iupac_name=cas_info.get("name") or None)
             except Exception:
                 pass
         return None
 
-    # Tier 2: Condensed formula
+    # 3. Name-to-structure converters
+    smi = _resolve_chemscript(clean, notes)
+    if smi:
+        return _tier_result(smi, "chemscript", "chemscript")
+    smi = _resolve_opsin(clean)
+    if smi:
+        return _tier_result(smi, "opsin", "opsin")
+
+    # 4. PubChem by name
+    if online:
+        smi = _resolve_pubchem(clean)
+        if smi:
+            return _tier_result(smi, "pubchem", "pubchem")
+
+    # 5. Secondary table (unreviewed)
+    hit = _resolve_table(db, clean, "secondary")
+    if hit:
+        return hit
+
+    # 6. Condensed formula
     try:
         from cdxml_toolkit.resolve.condensed_formula import resolve_condensed_formula
         smi = resolve_condensed_formula(clean)
         if smi:
-            canon = _rdkit_canonical(smi)
-            if canon:
-                return {"smiles": canon, "source": "formula"}
+            return _tier_result(smi, "formula", "condensed")
     except Exception:
         pass
 
-    # Tier 3: ChemScript (name → SMILES)
-    cs = _get_cs()
-    if cs is not None:
-        try:
-            smi = cs.write_data(clean, "smiles", source_format="name")
-            if smi and Chem.MolFromSmiles(smi):
-                return {"smiles": _rdkit_canonical(smi), "source": "chemscript"}
-        except Exception as exc:
-            from cdxml_toolkit.chemdraw.mac_automation import NAME_CONVERSION_IN_USE
-            if notes is not None and NAME_CONVERSION_IN_USE in str(exc):
-                notes.append("ChemDraw's own name conversion did not run because ChemDraw is open; "
-                             "quit ChemDraw and retry, or give a SMILES.")
+    return None
 
-    # Tier 3b: OPSIN (offline IUPAC name → SMILES, bundled JRE)
+
+def _tier_result(smiles: str, source: str, tier: str,
+                 components: Optional[List[Dict]] = None,
+                 **extra) -> Optional[Dict]:
+    """Canonicalize a resolver hit and attach its provenance fields."""
+    from rdkit import Chem
+    from cdxml_toolkit.resolve.reagent_quality import unspecified_stereocentres
+
+    mol = Chem.MolFromSmiles(smiles) if smiles else None
+    if mol is None:
+        return None
+    canon = Chem.MolToSmiles(mol)
+    if components is None:
+        counts: Dict[str, int] = {}
+        for frag in canon.split("."):
+            counts[frag] = counts.get(frag, 0) + 1
+        components = [{"smiles": frag, "count": n} for frag, n in counts.items()]
+    result = {
+        "smiles": canon,
+        "source": source,
+        "source_tier": tier,
+        "confidence": "low" if tier == "secondary" else "normal",
+        "unspecified_stereocentres": unspecified_stereocentres(mol),
+        "components": components,
+    }
+    result.update(extra)
+    return result
+
+
+def _resolve_table(db, name: str, tier: str) -> Optional[Dict]:
+    if db is None:
+        return None
+    found = db.lookup_name(name, (tier,))
+    if not found:
+        return None
+    entry, _ = found
+    smiles = db.entry_smiles(entry)
+    if not smiles:
+        return None
+    return _tier_result(smiles, "reagent_db", tier, components=entry.get("components"))
+
+
+def _resolve_chemscript(name: str, notes: Optional[List[str]] = None) -> Optional[str]:
+    from rdkit import Chem
+    cs = _get_cs()
+    if cs is None:
+        return None
+    try:
+        smi = cs.write_data(name, "smiles", source_format="name")
+        if smi and Chem.MolFromSmiles(smi):
+            return smi
+    except Exception as exc:
+        from cdxml_toolkit.chemdraw.mac_automation import NAME_CONVERSION_IN_USE
+        if notes is not None and NAME_CONVERSION_IN_USE in str(exc):
+            notes.append("ChemDraw's own name conversion did not run because ChemDraw is open; "
+                         "quit ChemDraw and retry, or give a SMILES.")
+    return None
+
+
+def _resolve_opsin(name: str) -> Optional[str]:
+    from rdkit import Chem
     try:
         from cdxml_toolkit.resolve.jre_manager import ensure_java_on_path
         if ensure_java_on_path():
             from py2opsin import py2opsin as _py2opsin
             from cdxml_toolkit.resolve.opsin_call import py2opsin_private
-            smi = py2opsin_private(_py2opsin, clean)
+            smi = py2opsin_private(_py2opsin, name)
             if smi and Chem.MolFromSmiles(smi):
-                return {"smiles": _rdkit_canonical(smi), "source": "opsin"}
-    except (ImportError, FileNotFoundError):
-        pass
+                return smi
     except Exception:
         pass
-
-    # Tier 4: PubChem (online)
-    if use_network:
-        try:
-            from cdxml_toolkit.resolve.cas_resolver import resolve_name_to_smiles
-            smi = resolve_name_to_smiles(clean)
-            if smi:
-                canon = _rdkit_canonical(smi)
-                if canon:
-                    return {"smiles": canon, "source": "pubchem"}
-        except Exception:
-            pass
-
     return None
+
+
+def _resolve_pubchem(name: str) -> Optional[str]:
+    try:
+        from cdxml_toolkit.resolve.cas_resolver import resolve_name_to_smiles
+        return resolve_name_to_smiles(name)
+    except Exception:
+        return None
 
 
 def _name_to_smiles_cs(name: str) -> Optional[str]:
@@ -452,7 +509,13 @@ def resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]:
         - ``exact_mass`` (float | None): Monoisotopic mass.
         - ``iupac_name`` (str | None): IUPAC name from ChemScript or PubChem.
         - ``source`` (str): Which tier resolved the SMILES (``"reagent_db"``,
-          ``"formula"``, ``"chemscript"``, ``"pubchem"``).
+          ``"formula"``, ``"chemscript"``, ``"opsin"``, ``"pubchem"``).
+        - ``source_tier`` (str): ``primary``, ``cas``, ``chemscript``,
+          ``opsin``, ``pubchem``, ``secondary`` or ``condensed``.
+        - ``confidence`` (str): ``"low"`` for the unreviewed secondary table.
+        - ``unspecified_stereocentres`` (int): stereocentres left unassigned.
+        - ``components`` (list): one item per distinct fragment (salts,
+          hydrates, solvates), with ``smiles`` and ``count``.
         - ``role`` (str | None): Reagent role from the curated DB if known
           (e.g. ``"base"``, ``"solvent"``, ``"catalyst"``).
         - ``display_text`` (str | None): Preferred display name from the
@@ -511,8 +574,11 @@ def resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]:
     try:
         from cdxml_toolkit.resolve.reagent_db import get_reagent_db
         db = get_reagent_db()
-        # Try by name first (fastest), then by resolved SMILES
-        entry = db.entry_for_name(query.lower())
+        # A table hit labels itself; other tiers only take a curated label
+        # for the same structure.
+        entry = None
+        if resolved.get("source_tier") in ("primary", "secondary"):
+            entry = db.entry_for_name(query.lower())
         if entry is None:
             entry = db.entry_for_smiles(smiles)
         if entry is not None:
@@ -545,6 +611,10 @@ def resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]:
         "exact_mass": props["exact_mass"],
         "iupac_name": iupac_name,
         "source": source,
+        "source_tier": resolved["source_tier"],
+        "confidence": resolved["confidence"],
+        "unspecified_stereocentres": resolved["unspecified_stereocentres"],
+        "components": resolved["components"],
         "role": role,
         "display_text": display_text,
         "prefix_form": prefix_form,
@@ -582,7 +652,9 @@ def resolve_to_smiles(query: str, use_network: bool = True) -> Dict[str, Any]:
     """
     result = resolve_compound(query, use_network=use_network)
     if result["ok"]:
-        return {"ok": True, "smiles": result["smiles"], "source": result["source"]}
+        return {"ok": True, "smiles": result["smiles"], "source": result["source"],
+                **{k: result[k] for k in ("source_tier", "confidence",
+                                          "unspecified_stereocentres", "components")}}
     return {"ok": False, "error": result.get("error", f"Could not resolve '{query}'.")}
 
 
