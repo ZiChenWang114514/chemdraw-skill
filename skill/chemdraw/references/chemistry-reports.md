@@ -20,27 +20,29 @@ All of them accept `output_path` (never overwritten) and return their data inlin
 
 ## Property sheet and MS peaks
 
+<!-- example: call molecule_report -->
 ```json
 {"molecules": [{"smiles": "CC(=O)Oc1ccccc1C(=O)O", "label": "aspirin"},
                {"file": "work/series.cdxml", "all_fragments": true}],
  "output_path": "work/properties.csv"}
 ```
 
-- Per structure: formula, average and monoisotopic mass, InChI/InChIKey, ESI adduct m/z (`[M+H]+`, `[M+Na]+`, `[M+NH4]+`, `[M+K]+`, `[M+2H]2+`, `[M-H]-`, `[M+Cl]-`, `[M+HCOO]-` and others, electron mass included), the isotope pattern scaled to the tallest peak (including diagnostic Cl/Br `M+2` and `M+4` isotopic envelopes), Crippen logP, TPSA, hydrogen-bond donors and acceptors, rotatable bonds, QED, stereocentre counts, Lipinski and Veber results, and (when `include_safety: true`) GHS hazard profiles from the 116-entry curated reagent safety database plus SMARTS structural alerts (azides, diazo/diazonium groups, peroxides/peroxyacids, acyl/sulfonyl halides, isocyanates, epoxides/aziridines, hydrazines, cyanides, and nitroaromatics).
+- Per structure: formula, average and monoisotopic mass, InChI/InChIKey, ESI adduct m/z (`[M+H]+`, `[M+Na]+`, `[M+NH4]+`, `[M+K]+`, `[M+2H]2+`, `[M-H]-`, `[M+Cl]-`, `[M+HCOO]-` and others, electron mass included), the isotope pattern scaled to the tallest peak (including diagnostic Cl/Br `M+2` and `M+4` isotopic envelopes), Crippen logP, TPSA, hydrogen-bond donors and acceptors, rotatable bonds, QED, stereocentre counts, and Lipinski and Veber results.
 - `markdown` is a ready-to-paste table; `output_path` ending in `.csv`, `.md` or `.json` writes that format.
 - logP, TPSA and QED are calculated estimates. State them as such; never present them as measured. A charged structure reports its intact ion; a salt reports the whole record (the result warns).
 - Compare an observed LCMS peak with the adduct list before concluding anything; one matching peak is not an identification.
 
 ## LCMS file parsing, Cl/Br `M+2` isotope verification, and internal standard (`IS`) normalization
 
-For experimental LCMS datasets (`parse_analysis_file`, `analyze_lcms_series`, `correlate_lcms_files`, and `format_lab_entry` with `lcms_files`), the parser supports:
+For experimental LCMS datasets (`parse_analysis_file`, `analyze_lcms_series`, and `format_lab_entry` with `lcms_files`), the parser supports:
 
 - **Supported LCMS formats:** Waters MassLynx PDF reports, Waters OpenLynx `.rpt` text reports, Waters `.raw` directories (`_HEADER.TXT` metadata, `_INLET.INF`, and `.rpt` / `.txt` sidecars), Shimadzu LabSolutions `.daml` XML files, Agilent ChemStation / OpenLab `Report.TXT` (and `.D` directories), and open `mzML` / `mzXML` spectra (zlib/base64 binary array decoding for TIC/BPC chromatograms and MS1 scans).
-- **Cl/Br `M+2` isotope verification:** when a target structure or formula contains chlorine or bromine, observed MS1 peak clusters are checked for the expected `[M+H]+` / `[M+2+H]+` (and `[M+4+H]+`) spacing ($\Delta m/z \approx 1.997\text{ Da}$) and intensity ratio ($32\%$ per Cl, $97.3\%$ per Br), returning `isotope_verification` (`matched`, `expected_m2_ratio`, `observed_m2_ratio`).
-- **Internal standard (`IS`) normalization:** multi-run tracking (`analyze_lcms_series`, `correlate_lcms_files`) accepts `internal_standard_rt` (retention time in min, $\pm 0.08\text{ min}$ window) or `internal_standard_mw` so target peak areas are reported both as raw UV area% and normalized `area / IS_area` ratios across timepoints or condition screens.
+- **Cl/Br `M+2` isotope verification:** when a target structure or formula contains chlorine or bromine, observed MS1 peak clusters are checked for the expected `[M+H]+` / `[M+2+H]+` spacing ($\Delta m/z \approx 1.997\text{ Da}$) and intensity ratio ($32\%$ per Cl, $97.3\%$ per Br). When the spectrum carries intensities and the cluster fits, the identified peak's `isotope_verified` holds a note such as `M/M+2 isotope cluster verified (I(M+2)/I(M)=0.98 for 1Br,0Cl)`; otherwise it is empty.
+- **Internal standard (`IS`) normalization:** multi-run tracking (`analyze_lcms_series`) accepts `internal_standard_rt` (retention time in min, $\pm 0.08\text{ min}$ window) or `internal_standard_mw` so target peak areas are reported both as raw UV area% and normalized `area / IS_area` ratios across timepoints or condition screens.
 
 ## Reaction balance
 
+<!-- example: call check_reaction_balance -->
 ```json
 {"reaction": "CC(=O)O.OCC>>CC(=O)OCC",
  "options": {"scale_mmol": 2.0}}
@@ -62,6 +64,7 @@ An unbalanced result is a finding about the species as drawn. After an image rec
 
 ChemDraw has its own reaction calculator: **Structure > Analyze Stoichiometry** puts an editable grid under a reaction, with formula, MW, equivalents, sample mass, molarity, density, volume and moles for each reactant and reagent, and expected mass, measured mass, purity and percent yield for each product. Typing a mass, volume or equivalents into a cell makes ChemDraw recompute the rest. `stoichiometry_grid` runs that command for you and reads the grid back; the numbers are ChemDraw's, nothing is recomputed outside it.
 
+<!-- example: call stoichiometry_grid needs=chemdraw -->
 ```json
 {"source": "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1",
  "mode": "analyze", "output_path": "work/acetylation-stoichiometry.cdxml", "options": {"open": true}}
@@ -76,6 +79,7 @@ ChemDraw has its own reaction calculator: **Structure > Analyze Stoichiometry** 
 
 ## HRMS characterization lines
 
+<!-- example: call hrms_line -->
 ```json
 {"molecules": [{"smiles": "CC(=O)OCc1ccccc1", "label": "3a", "adduct": "[M+Na]+", "found_mz": 173.0570}],
  "options": {"ionization": "ESI"}}
@@ -85,6 +89,7 @@ Per structure the result holds the ion formula, the calculated m/z and the line,
 
 ## Characterization paragraphs
 
+<!-- example: call characterization_text -->
 ```json
 {"compounds": [{"label": "3a", "smiles": "CC(=O)OCc1ccccc1", "appearance": "colorless oil",
                 "ir": {"medium": "neat", "values": [3034, 1738, 1229]},
@@ -103,6 +108,7 @@ Per structure the result holds the ion formula, the calculated m/z and the line,
 
 ## Materials tables for a batch of reactions
 
+<!-- example: call si_materials_tables -->
 ```json
 {"reactions": [{"label": "3a", "reaction": "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OCc1ccccc1"},
                {"label": "3b", "reaction": {"cdxml": "work/scheme.cdxml"}}],
@@ -114,6 +120,7 @@ Up to 100 reactions per call; each entry is a reaction string, a record, `{"cdxm
 
 ## Route summary: overall yield and cumulative PMI
 
+<!-- example: call route_summary -->
 ```json
 {"steps": [{"label": "1", "yield_percent": 80, "input_mg": 1000, "product_mg": 200, "used_mg": 100},
            {"label": "2", "yield_percent": 50, "input_mg": 500, "product_mg": 40}],
@@ -130,6 +137,7 @@ Steps are listed in the order they are run; the last one makes the final product
 
 ## Atom mapping
 
+<!-- example: call map_reaction_atoms -->
 ```json
 {"reaction": "CC(=O)O.OCC>>CC(=O)OCC", "options": {"method": "auto", "compare": false, "include_agents": false},
  "output_path": "work/mapping.svg"}
@@ -159,6 +167,7 @@ Three options build on a finished mapping (they also work on each entry of a lis
 
 ## Export every structure in a file
 
+<!-- example: call export_structures -->
 ```json
 {"source": "work/scheme.cdxml", "output_path": "work/structures.csv"}
 ```
@@ -169,6 +178,7 @@ Structures with R groups or other generic atoms are listed without an InChI and 
 
 ## Structure to name
 
+<!-- example: call structure_to_name needs=chemdraw -->
 ```json
 {"molecules": [{"smiles": "O=C(O)[C@@H]1CCCN1", "label": "L-proline"}]}
 ```

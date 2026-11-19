@@ -778,7 +778,7 @@ _BUILTIN_TEMPLATES: dict[str, str] = {
                     "type": "conformer",
                     "kind": "chair",
                     "at": [120, 100],
-                    "substituents": {"1_eq": "OH", "4_ax": "Me"},
+                    "substituents": {"1": {"eq": "OH"}, "4": {"ax": "Me"}},
                 }
             ]
         },

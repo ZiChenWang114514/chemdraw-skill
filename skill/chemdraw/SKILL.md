@@ -11,10 +11,11 @@ Editable chemistry via bundled `cdxml_toolkit` and licensed native ChemDraw (COM
 
 `<skill>` is this folder; `python` is any host Python 3.9+ (`python3` on macOS/Linux, `python` or `py` on Windows). `cdx.py` re-launches inside the toolkit runtime (Python 3.10–3.13); below, `cdx.py` means `python <skill>/scripts/cdx.py`.
 
+<!-- example: commands -->
 ```bash
-cdx.py doctor --text                       # check host capabilities
+cdx.py doctor --text                # check host capabilities
 cdx.py resolve aspirin Cs2CO3 --offline    # names/CAS -> SMILES
-cdx.py draw --name aspirin out.cdxml --render        # molecule (no JSON)
+cdx.py draw --name aspirin out.cdxml --render # molecule (no JSON)
 cdx.py draw --reaction "CCO>>CC=O" out.cdxml --render # scheme (--compact for DSL)
 cdx.py draw brief.json out.cdxml --render  # scheme, scope panel or mechanism
 cdx.py inspect FILE.cdxml                  # read CDXML/CDX/SDF/Office/LCMS

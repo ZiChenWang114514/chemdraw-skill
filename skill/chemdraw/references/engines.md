@@ -2,6 +2,7 @@
 
 Optional engines for reading structure images with more than one model, finding the structures in a PDF, and predicting products, precursors, reaction conditions and NMR shifts. Everything here is a **model prediction**: results carry `provenance: "model_prediction"`, are never merged or picked silently, and must be checked before they reach a figure or a report. Signatures: [mcp-signatures.md](mcp-signatures.md).
 
+<!-- example: commands -->
 ```bash
 cdx.py engines                              # installed or not, what each is for, disk used (as recorded at install)
 cdx.py engines --sizes                      # measure the folders again; slow with many large engines

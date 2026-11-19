@@ -72,6 +72,7 @@ All copies share one toolkit venv: `%LOCALAPPDATA%\chemdraw-skill\venv` on Windo
 
 Every Skill action is one command prefix, so a single allowlist entry stops repeated approval prompts. Allow `python <skill>/scripts/cdx.py` in your agent's command allowlist (use the interpreter name you actually run: `python3`, `python` or `py`). For example, in Claude Code `settings.json`:
 
+<!-- example: fragment -->
 ```json
 {"permissions": {"allow": ["Bash(python ~/.claude/skills/chemdraw/scripts/cdx.py:*)"]}}
 ```
@@ -86,6 +87,7 @@ This entry also allows `cdx.py py`, which runs any Python script or `-c` code in
 
 An MCP server remains available for clients that want typed tool calls. Register the runtime interpreter (the `"runtime"` value printed by `cdx.py doctor`) with no profile flag; the default profile is the full tool set. Most clients accept the common `mcpServers` JSON shape:
 
+<!-- example: fragment -->
 ```json
 {"mcpServers": {"cdxml-toolkit": {"command": "<runtime-python>", "args": ["-m", "cdxml_toolkit.mcp_runtime"]}}}
 ```
@@ -102,6 +104,7 @@ Command-line registration, for example `claude mcp add --scope user cdxml-toolki
 
 ## Command reference
 
+<!-- example: commands -->
 ```text
 cdx.py tools [QUERY] [--detail summary]   list tools, timeouts and native-lock use
 cdx.py sig TOOL...                        print one or more generated signatures

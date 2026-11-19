@@ -6,10 +6,12 @@ The style is fixed to ACS Document 1996: bond 14.4 pt, line 0.6, bold 2.0, hash 
 
 ## From a JSON spec
 
+<!-- example: commands -->
 ```bash
 cdx.py build spec.json out.cdxml --render
 ```
 
+<!-- example: call build_acs_figure arg=spec output_path=out.cdxml -->
 ```json
 {"objects": [
   {"type": "molecule", "smiles": "[*:1]/C=C/C(=O)OCC", "at": [80, 60], "labels": {"1": "C10H21"}},

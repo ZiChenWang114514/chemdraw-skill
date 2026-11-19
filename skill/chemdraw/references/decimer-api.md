@@ -67,6 +67,7 @@ Official live contract and documentation:
 
 The OpenAPI schema currently declares:
 
+<!-- example: fragment -->
 ```json
 {
   "message": "Success",
@@ -77,6 +78,7 @@ The OpenAPI schema currently declares:
 
 The live service returned this shape during verification:
 
+<!-- example: fragment -->
 ```json
 {
   "reference": null,
@@ -88,6 +90,7 @@ Therefore clients must accept `smiles` as either a string or a list of strings, 
 
 The skill client normalizes output to:
 
+<!-- example: fragment -->
 ```json
 {
   "ok": true,
@@ -107,6 +110,7 @@ The skill client normalizes output to:
 
 ## Skill Usage
 
+<!-- example: commands -->
 ```bash
 cdx.py decimer crop.png --out crop-decimer.json          # upload and recognize (default endpoint)
 cdx.py decimer sketch.png --hand-drawn
@@ -117,6 +121,7 @@ The tool behind it is `extract_structures_via_decimer_api` (signature in [mcp-si
 
 The built-in endpoint needs nothing else. For a **custom endpoint**, set `DECIMER_API_URL` (HTTPS) and pass its origin; to pin the exact bytes, take `sha256` from a `--preflight` run:
 
+<!-- example: commands -->
 ```bash
 DECIMER_API_URL=https://ocsr.example.org/process cdx.py call extract_structures_via_decimer_api --json '{"image_path": "<abs>/crop.png", "confirm_upload": true, "approved_origin": "https://ocsr.example.org", "approved_sha256": "<sha256 from --preflight>"}'
 ```

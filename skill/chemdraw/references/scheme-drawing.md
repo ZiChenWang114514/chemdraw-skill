@@ -16,6 +16,7 @@ Use this when the structures are known and the figure does not exist yet: a reac
 
 For simple reactions or multi-step schemes without writing a JSON file, pass `--reaction` directly (repeatable for multi-step linear/convergent/divergent routes):
 
+<!-- example: commands -->
 ```bash
 cdx.py draw --reaction "CC(=O)O.CCO>O=S(=O)(O)O>CCOC(C)=O" --below "rt, 2 h" --yield "85%" rxn.cdxml --render
 cdx.py draw --compact scheme.dsl scheme.cdxml --render   # Compact Scheme DSL via render_scheme
@@ -23,6 +24,7 @@ cdx.py draw --compact scheme.dsl scheme.cdxml --render   # Compact Scheme DSL vi
 
 For full styling (runs, highlights, boxes, atom colours, scope panels, mechanisms), turn the request into a brief, then run `cdx.py draw brief.json out.cdxml --render` (or `draw_figure(brief=..., output_path=..., render=true)`). You decide what the user asked for; the tool grounds the structures, checks the chemistry and the geometry, and reports what it verified. It draws one reaction, a linear route, a convergent route (arms that merge into one step) or one starting material with several products. A substrate-scope panel, a mechanism, and a standalone molecule or structure grid (kind: "molecule" / "structure_panel") each have their own brief, described after the report table below.
 
+<!-- example: call draw_figure arg=brief output_path=scheme.cdxml -->
 ```json
 {
   "species": [
@@ -44,7 +46,7 @@ For full styling (runs, highlights, boxes, atom colours, scope panels, mechanism
 - `steps` take `substrates`, `products`, `above` / `below` (text lines), `yield` and `arrow` (`solid`, `dashed`, `failed`, `reversible` for an equilibrium, `resonance` for a double-headed arrow). A product of one step may be the substrate of the next; list the steps in any order and the tool works out the route:
   - **Convergent branch-merge arrows (`layout: "convergent"`):** two synthesis arms that meet in one step can either be drawn with true Y-junction / T-junction convergent branch-merge arrows (upper and lower branch sequences merging into a vertical connector that feeds the shared coupling arrow) or as stacked rows with the merge row repeating the joined intermediates.
   - **Divergent routes (`layout: "divergent"`):** one substrate with several products is drawn once on the left, each product on its own row with a horizontal arrow, the arrows joined by a vertical line so every product reads as made from that substrate.
-  - **Catalytic cycles (`layout: "catalytic-cycle"`):** when `"layout": "catalytic-cycle"` is set (or when the steps form a closed catalytic loop), intermediates are arranged around a circle of radius `cycle_radius` (default `120.0` pt) with curved arrows along the circumference and entering reactants / departing products placed on radial in/out arrows around each step.
+  - **Catalytic cycles (`layout: "catalytic-cycle"`):** when `"layout": "catalytic-cycle"` is set (or when the steps form a closed catalytic loop), intermediates are arranged around a circle whose radius grows with the number of steps until the structures no longer overlap (there is no radius option), each step is a straight arrow along the chord between consecutive intermediates, and its `above` / `below` text is placed radially outside / inside that arrow.
   - Put in `above` / `below` only what the user gave: a step without conditions is drawn without them and the report says so.
 - `max_width` is the row budget in points (default 504). A longer route wraps onto more rows.
 - `style` is a journal preset from ChemDraw's stock style sheets (default `acs1996`; also `wiley`, `adv_synth_catal`, `rsc`, `rsc_1col`, `nature`, `synthesis` and others; `cdx.py styles` lists them, `cdx.py draw --style PRESET` sets it). The figure is laid out at ACS geometry and rescaled to the preset's bond length, fonts and line widths; `max_width` still applies to the styled figure, and the report's `style` field names the preset and bond length. Scope and mechanism briefs take the same key; `cdx.py build` specs take a top-level `style` too.
@@ -91,6 +93,7 @@ Read the report before you answer:
 
 `"kind": "scope"` draws many compounds with their labels and the numbers the user gave, packed onto as many editable pages as needed:
 
+<!-- example: call draw_figure arg=brief output_path=scope.cdxml -->
 ```json
 {
   "kind": "scope",
@@ -115,6 +118,7 @@ Read the report before you answer:
 
 `"kind": "mechanism"` draws the structures of a mechanism and one curved arrow for every electron move you list. You decide which electrons move; the tool places the structures, turns each move into an arrow from the drawn coordinates and checks the result. It never works out a mechanism: a step without `moves` is refused.
 
+<!-- example: call draw_figure arg=brief output_path=mechanism.cdxml -->
 ```json
 {
   "kind": "mechanism",
@@ -152,6 +156,7 @@ Pass exactly one of `compact_text`, `yaml_text` or `json_path` (a `parse_reactio
 
 Compact text, one scheme in a few lines:
 
+<!-- example: call render_scheme arg=compact_text output_path=compact.cdxml -->
 ```
 "1"{OC(=O)c1ccccc1O} + Ac2O{CC(=O)OC(C)=O} --> "2"{CC(=O)Oc1ccccc1C(=O)O} (85%)
   above: "H2SO4 (cat.)"
@@ -162,25 +167,24 @@ Compact text, one scheme in a few lines:
 - `-->` is a solid arrow, `..>` a dashed one, `<=>` an equilibrium arrow, `<->` a resonance arrow, `X>` a failed one. `A --> B --> C` makes two steps and draws the shared intermediate once.
 - `(85%)` after the last product is the yield, printed under the arrow.
 - `above:` and `below:` take quoted text lines or bare structure IDs (drawn as structures). For several steps use `step 1:`, `step 2:` blocks, or `-->|a|` with an `@conditions` block of lettered conditions.
-- `run: "2.15 g" -> "1.60 g, 72% yield"` or `run[1]: 85%` adds per-run scale and yield annotations.
-- Directives start with `@`: `@layout linear|sequential|stacked|divergent|convergent|stacked-rows|catalytic-cycle`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
+- `run: "2.15 g" -> "1.60 g, 72% yield"` (or `run[1]: ...` for step 1) adds per-run scale and yield annotations; each run line needs exactly one `->`.
+- Directives start with `@`: `@layout linear|sequential|divergent|convergent|stacked-rows|numbered-parallel`, `@wrap repeat|serpentine|none`, `@steps_per_row N`, `@max_row_width PT`, `@title "..."`.
 
 ### Compact Scheme DSL (`compact_text` — "Mermaid for reaction schemes")
 
-`compact_text` lets you write complete multi-step schemes, divergent routes, and catalytic cycles in a concise declarative syntax:
+`compact_text` lets you write complete multi-step schemes and divergent routes in a concise declarative syntax. A label is written `label "..."` after the SMILES, and a scheme has one reaction chain line. Catalytic cycles are not a `render_scheme` layout; draw them with `draw_figure` and `"layout": "catalytic-cycle"` (see above).
 
+<!-- example: call render_scheme arg=compact_text output_path=route.cdxml -->
 ```text
-@layout catalytic-cycle
-Cat: {[Pd]} "Pd(0)"
-Int1: {c1ccccc1[Pd]Br} "Ar-Pd-Br"
-Int2: {c1ccccc1[Pd]c2ccccc2} "Ar-Pd-Ar'"
-Cat -->|a| Int1
-  above: "ArBr, oxidative addition"
-Int1 -->|b| Int2
-  above: "Ar'B(OH)2, base"
-Int2 -->|c| Cat
-  above: "reductive elimination"
-  run[1]: 85%
+@layout sequential
+SA: {OC(=O)c1ccccc1O} label "1"
+ASP: {CC(=O)Oc1ccccc1C(=O)O} label "2"
+AMD: {CC(=O)Oc1ccccc1C(=O)N} label "3"
+SA -->|a| ASP -->|b| AMD
+  run[1]: "2.15 g" -> "1.60 g, 85%"
+@conditions
+(a) "Ac2O, H2SO4 (cat.), rt, 2 h"
+(b) "SOCl2, then NH3"
 ```
 
 ### JACS / Angew publication styling & 3D conformers
@@ -191,7 +195,7 @@ When a scheme or figure requires top-journal visual highlights, transition state
 - **`multi_attachments` ($\eta^5$-Cp ferrocene & organometallics):** native CDXML `NodeType="MultiAttachment"` centroid nodes with `Attachments="..."` atom ID lists and coordination bonds (`Display="Dash"` or `"WedgeBegin"`).
 - **`ts_bracket` (`[...]‡`):** square transition-state brackets (`BracketType="SquarePair"`) with a superscript double-dagger `‡` (`\u2021`) annotation. In a `draw_figure` brief, set `ts_bracket: true` (or `{superscript, bracket_type, lip_size}`) on the species, or `ts_bracket: "<species id>"` on a step; a step's `ts_bracket: true` is refused because it does not say which species is the transition state.
 - **`orbital` & `interaction`:** native `<orbital>` lobes (`s`, `p`, `sp3`, `dz2`, `lobe`, shaded/filled/unfilled) and non-covalent H-bond / $\pi$-stacking dashed interaction lines with distance labels (`"2.8 Å"`).
-- **Conformer templates (`chair`, `newman`, `haworth`, `fischer`, `norbornane`):** deterministic 2D coordinate generators for cyclohexane chairs (`1_ax`/`1_eq` through `6_ax`/`6_eq`, optional `flip`), Newman projections (`front`, `back`, `dihedral_deg`), Haworth pyranose/furanose rings, Fischer projections, and bridged bicyclic `[2.2.1]` norbornane skeletons.
+- **Conformer templates (`chair`, `newman`, `haworth`, `fischer`, `norbornane`):** deterministic 2D coordinate generators for cyclohexane chairs (`substituents` keyed by ring position 1-6, each `{"ax": label, "eq": label}`, for example `{"1": {"eq": "OH"}, "4": {"ax": "Me"}}`; optional `flip`), Newman projections (`front`, `back`, `dihedral_deg`), Haworth pyranose/furanose rings, Fischer projections, and bridged bicyclic `[2.2.1]` norbornane skeletons.
 
 A route stays on one row unless told otherwise. Set `@max_row_width 504` (points, the width of a two-column journal page) and the renderer picks the largest number of steps per row that fits; an explicit `@steps_per_row` always wins. In YAML the keys are `max_row_width` and `steps_per_row`.
 
