@@ -140,6 +140,21 @@ def install_help():
     ]
 
 
+def _warn_unusable_explicit_runtime():
+    """Say so when CHEMDRAW_MCP_PYTHON is set but cannot be used; another runtime may be picked."""
+    explicit = os.environ.get('CHEMDRAW_MCP_PYTHON')
+    if not explicit:
+        return
+    python = Path(explicit)
+    if not python.is_file():
+        reason = 'no such file'
+    elif not _has_toolkit(python):
+        reason = 'it cannot import cdxml_toolkit'
+    else:
+        return
+    sys.stderr.write(f'cdx.py: CHEMDRAW_MCP_PYTHON={explicit} is ignored ({reason}).\n')
+
+
 def _ensure_runtime(argv):
     try:
         import cdxml_toolkit.mcp_runtime  # noqa: F401
@@ -150,6 +165,7 @@ def _ensure_runtime(argv):
         pass
     if os.environ.get(REEXEC_FLAG):
         raise SystemExit(f'cdx.py: the selected runtime {sys.executable} cannot import cdxml_toolkit.')
+    _warn_unusable_explicit_runtime()
     for source, python in runtime_candidates():
         if python.is_file() and _has_toolkit(python):
             env = dict(os.environ, **{REEXEC_FLAG: '1'})
@@ -392,6 +408,17 @@ def _emit(tool, result, out_path=None, *, full=False, summary_only=False):
     return 0 if summary['ok'] else 1
 
 
+def _preflight_report(envelope):
+    """A preflight that uploaded nothing did what was asked: report the plan as a success."""
+    inner = envelope.get('result') if isinstance(envelope, dict) else None
+    engines = inner.get('engines') if isinstance(inner, dict) else None
+    plans = [e['preflight'] for e in engines or [] if isinstance(e, dict) and e.get('preflight')]
+    if not plans or len(plans) != len(engines):
+        return envelope
+    return {'ok': True, 'status': 'preflight', 'uploaded': False,
+            'result': {'image': inner.get('image'), 'preflight': plans[0] if len(plans) == 1 else plans}}
+
+
 def _parse_cli_value(raw):
     """Coerce --arg VALUE without corrupting SMILES, formulas, or CAS numbers."""
     s = raw.strip()
@@ -405,8 +432,12 @@ def _parse_cli_value(raw):
         return int(s)
     if re.fullmatch(r'-?(?:0|[1-9]\d*)\.\d+', s):
         return float(s)
-    if (s.startswith('{') and s.endswith('}')) or (s.startswith('[') and s.endswith(']')) \
-            or (s.startswith('"') and s.endswith('"')):
+    if s.startswith('[') and s.endswith(']'):
+        try:
+            return json.loads(s)
+        except ValueError:
+            return raw  # bracket atoms: [Na+].[Cl-], [Pd]
+    if (s.startswith('{') and s.endswith('}')) or (s.startswith('"') and s.endswith('"')):
         try:
             return json.loads(s)
         except ValueError as exc:
@@ -1833,7 +1864,10 @@ def cmd_ocsr(ns):
     ns.engines = ns.engines or 'decimer-api'
     kwargs = {'image_path': str(Path(ns.image).resolve()), 'engines': ns.engines, 'hand_drawn': ns.hand_drawn,
               'confirm_upload': not (ns.preflight or ns.no_upload), 'timeout_seconds': ns.timeout}
-    return _emit('recognize_structure', _worker('recognize_structure', kwargs), ns.out)
+    result = _worker('recognize_structure', kwargs)
+    if ns.preflight:
+        result = _preflight_report(result)
+    return _emit('recognize_structure', result, ns.out)
 
 
 PREDICT = {  # task: (tool, the argument SMILES fills, a working example)

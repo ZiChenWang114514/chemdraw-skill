@@ -1323,3 +1323,31 @@ def test_doctor_warns_on_stale_skill_copy_and_shows_chemscript_hint(tmp_path, mo
     out = capsys.readouterr().out
     assert 'Stale Skill copy at' in out
     assert '--configure-chemscript' in out
+
+
+def test_bracketed_smiles_is_a_string_not_broken_json():
+    assert cdx._parse_cli_value('[Na+].[Cl-]') == '[Na+].[Cl-]'
+    assert cdx._parse_cli_value('[Pd]') == '[Pd]'
+    assert cdx._parse_cli_value('[1, 2]') == [1, 2]
+    assert cdx._parse_cli_value('["CCO", "CC=O"]') == ['CCO', 'CC=O']
+    with pytest.raises(SystemExit):
+        cdx._parse_cli_value('{"a": 1,}')  # an object is never SMILES: a typo is reported
+
+
+def test_a_preflight_that_uploads_nothing_succeeded():
+    refused = {'ok': False, 'result': {'ok': False, 'image': 'a.png', 'engines': [
+        {'ok': False, 'engine': 'decimer-api', 'error': 'No upload was made (preflight only).',
+         'preflight': {'sha256': 'ab', 'bytes': 10, 'origin': 'https://example.org'}}]}}
+    report = cdx._preflight_report(refused)
+    assert report['ok'] is True and report['status'] == 'preflight' and report['uploaded'] is False
+    assert report['result']['preflight']['sha256'] == 'ab'
+    failed = {'ok': False, 'result': {'ok': False, 'engines': [{'ok': False, 'error': 'cannot read image'}]}}
+    assert cdx._preflight_report(failed) is failed
+
+
+def test_an_explicit_runtime_that_does_not_work_is_named(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv('CHEMDRAW_MCP_PYTHON', str(tmp_path / 'missing' / 'python.exe'))
+    cdx.runtime_candidates()
+    cdx._warn_unusable_explicit_runtime()
+    message = capsys.readouterr().err
+    assert 'CHEMDRAW_MCP_PYTHON' in message and 'missing' in message
