@@ -42,7 +42,7 @@ from ..lcms_analyzer import (
     lcms_format, report_datetime, method_basename,
 )
 from .lcms_file_categorizer import categorize_lcms_file, _AMBIGUOUS_SORT_KEYS
-from .mass_resolver import build_adducts
+from .mass_resolver import ADDUCTS, build_adducts
 
 
 class NormalizedRatio(float):
@@ -87,59 +87,36 @@ class MassResolver:
 
     @staticmethod
     def expected_adduct_mzs(mw: float) -> Dict[str, List[float]]:
-        adducts = build_adducts(float(mw))
-        pos_mzs: List[float] = [
-            float(mw) + 1.007276,
-            float(mw) + 1.0,
-            float(mw) + 22.9892,
-            float(mw) + 23.0,
-            float(mw) + 18.0338,
-            float(mw) + 18.0,
-            float(mw) + 38.9632,
-            float(mw) + 39.0,
-            float(mw),
-        ]
-        neg_mzs: List[float] = [
-            float(mw) - 1.007276,
-            float(mw) - 1.0,
-            float(mw) + 44.9982,
-            float(mw) + 45.0,
-            float(mw) + 34.9694,
-            float(mw) + 35.0,
-        ]
-        for label, val in adducts.items():
-            if label.endswith("+"):
-                pos_mzs.append(float(val))
-            elif label.endswith("-"):
-                neg_mzs.append(float(val))
-        return {"ES+": pos_mzs, "ES-": neg_mzs}
+        """Expected m/z per polarity, from the one adduct table in ``mass_resolver``."""
+        out: Dict[str, List[float]] = {"ES+": [], "ES-": []}
+        for label, val in build_adducts(float(mw)).items():
+            out[ADDUCTS[label][0]].append(float(val))
+        return out
 
     @classmethod
     def match_peak(cls, peak: Any, target_mw: float, mz_tol: float = 1.0) -> bool:
+        """True when an ion of ``peak`` matches an adduct of ``target_mw`` of the same polarity."""
         expected = cls.expected_adduct_mzs(target_mw)
-        spectra = getattr(peak, "ms_spectra", None) or []
+        spectra = list(getattr(peak, "ms_spectra", None) or [])
         spec_single = getattr(peak, "spectrum", None)
         if spec_single is not None and spec_single not in spectra:
-            spectra = list(spectra) + [spec_single]
+            spectra.append(spec_single)
         for spec in spectra:
             mode_raw = (getattr(spec, "mode", "ES+") or "ES+").upper()
             mode = "ES-" if "-" in mode_raw or "NEG" in mode_raw else "ES+"
             ions = list(getattr(spec, "top_ions", None) or []) + list(getattr(spec, "mz_values", None) or [])
-            targets = expected.get(mode, expected["ES+"]) + expected["ES+"]
             for obs_mz in ions:
-                for exp_mz in targets:
-                    if abs(float(obs_mz) - exp_mz) <= mz_tol:
-                        return True
-        # Also support direct peak.mz or peak.mz_values
+                if any(abs(float(obs_mz) - exp_mz) <= mz_tol for exp_mz in expected[mode]):
+                    return True
+        if spectra:
+            return False
+        # A bare peak with m/z values but no spectrum carries no polarity: accept either.
         direct_mzs = getattr(peak, "mz_values", None) or getattr(peak, "top_ions", None) or []
         if isinstance(direct_mzs, (int, float)):
             direct_mzs = [direct_mzs]
         all_targets = expected["ES+"] + expected["ES-"]
-        for obs_mz in direct_mzs:
-            for exp_mz in all_targets:
-                if abs(float(obs_mz) - exp_mz) <= mz_tol:
-                    return True
-        return False
+        return any(abs(float(obs_mz) - exp_mz) <= mz_tol
+                   for obs_mz in direct_mzs for exp_mz in all_targets)
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -1192,12 +1169,12 @@ def _find_internal_standard_peak(
     rt_matches: List[Any] = []
     if internal_standard_rt is not None:
         target_rt = float(internal_standard_rt)
-        rt_matches = [p for p in peaks if abs(float(p.rt) - target_rt) <= max(float(rt_tol), 0.15)]
+        rt_matches = [p for p in peaks if abs(float(p.rt) - target_rt) <= float(rt_tol)]
 
     mw_matches: List[Any] = []
     if internal_standard_mw is not None:
         target_mw = float(internal_standard_mw)
-        mw_matches = [p for p in peaks if MassResolver.match_peak(p, target_mw, mz_tol=max(float(mz_tol), 1.0))]
+        mw_matches = [p for p in peaks if MassResolver.match_peak(p, target_mw, mz_tol=float(mz_tol))]
 
     if internal_standard_rt is not None and internal_standard_mw is not None:
         both = [p for p in rt_matches if p in mw_matches]
@@ -1228,6 +1205,7 @@ def _apply_internal_standard_normalization(
     rt_tol: float = 0.15,
     mz_tol: float = 1.0,
 ) -> None:
+    # rt_tol / mz_tol: windows for finding the IS peak (min, Da).
     """Populate IS peak metadata and per-compound ``is_normalized_ratio`` across files."""
     if internal_standard_mw is None and internal_standard_rt is None:
         return
@@ -1240,10 +1218,14 @@ def _apply_internal_standard_normalization(
             fe.report.peaks,
             internal_standard_mw=internal_standard_mw,
             internal_standard_rt=internal_standard_rt,
-            rt_tol=max(rt_tol, 0.15),
-            mz_tol=max(mz_tol, 1.0),
+            rt_tol=rt_tol,
+            mz_tol=mz_tol,
         )
         if is_peak is None:
+            result.warnings.append(
+                f"Internal standard {internal_standard_name} not found in "
+                f"{fe.filename} (time point {fi + 1}); no IS-normalized ratio for that point."
+            )
             continue
         is_rt = round(float(is_peak.rt), 4)
         is_area_pct = round(float(getattr(is_peak, "area_pct", 0.0) or 0.0), 4)
@@ -1326,7 +1308,9 @@ def analyze(files: List[FileEntry], rt_tol: float = LCMS_RT_TOLERANCE,
             pick_biggest_group: bool = False,
             internal_standard_mw: Optional[float] = None,
             internal_standard_rt: Optional[float] = None,
-            internal_standard_name: str = "IS") -> List[AnalysisResult]:
+            internal_standard_name: str = "IS",
+            internal_standard_rt_tol: float = 0.15,
+            internal_standard_mz_tol: float = 1.0) -> List[AnalysisResult]:
     """
     Top-level analysis.  Groups files by (instrument, method) and runs
     peak matching within each group.
@@ -1478,8 +1462,8 @@ def analyze(files: List[FileEntry], rt_tol: float = LCMS_RT_TOLERANCE,
                 internal_standard_mw=internal_standard_mw,
                 internal_standard_rt=internal_standard_rt,
                 internal_standard_name=internal_standard_name,
-                rt_tol=max(rt_tol, 0.15),
-                mz_tol=max(mz_tol, 1.0),
+                rt_tol=internal_standard_rt_tol,
+                mz_tol=internal_standard_mz_tol,
             )
         results.append(result)
 
@@ -1559,6 +1543,8 @@ def analyze_multi_lcms(
     internal_standard_mw: Optional[float] = None,
     internal_standard_rt: Optional[float] = None,
     internal_standard_name: str = "IS",
+    internal_standard_rt_tol: float = 0.15,
+    internal_standard_mz_tol: float = 1.0,
     rt_tol: float = 0.15,
     mz_tol: float = LCMS_MZ_TOLERANCE,
     trend_threshold: float = LCMS_TREND_THRESHOLD,
@@ -1570,10 +1556,12 @@ def analyze_multi_lcms(
     """Collate multiple LCMS chromatograms/reports with optional internal standard (IS) normalization.
 
     Identifies the internal standard peak in each chromatogram (by matching
-    ``internal_standard_mw`` via :class:`MassResolver` or ``internal_standard_rt``
-    within tolerance ``0.15 min``) and computes ``is_area_pct`` and
+    ``internal_standard_mw`` via :class:`MassResolver` within
+    ``internal_standard_mz_tol`` Da, same polarity only, or ``internal_standard_rt``
+    within ``internal_standard_rt_tol`` min) and computes ``is_area_pct`` and
     ``is_normalized_ratio = round(species_area / is_area, 4)`` for each tracked
-    species across samples/timepoints.
+    species across samples/timepoints. A time point without an IS peak gets no
+    ratio and a warning naming the file.
     """
     raw_items = files if files is not None else (analyses if analyses is not None else (reports or []))
     entries = [_coerce_to_file_entry(item, idx) for idx, item in enumerate(raw_items)]
@@ -1590,6 +1578,8 @@ def analyze_multi_lcms(
         internal_standard_mw=internal_standard_mw,
         internal_standard_rt=internal_standard_rt,
         internal_standard_name=internal_standard_name,
+        internal_standard_rt_tol=internal_standard_rt_tol,
+        internal_standard_mz_tol=internal_standard_mz_tol,
     )
 
     if not results:
@@ -1750,6 +1740,8 @@ def main(argv=None) -> int:
                         help='Retention time (min) of an internal standard to normalise against')
     parser.add_argument('--internal-standard-name', default='IS',
                         help='Label for the internal standard (default: %(default)s)')
+    parser.add_argument('--internal-standard-rt-tolerance', type=float, default=0.15,
+                        help='RT window (min) for finding the internal standard (default: %(default)s)')
 
     args = parser.parse_args(argv)
 
@@ -1855,7 +1847,8 @@ def main(argv=None) -> int:
                       max_ion_rank=args.max_ion_rank,
                       internal_standard_mw=args.internal_standard_mw,
                       internal_standard_rt=args.internal_standard_rt,
-                      internal_standard_name=args.internal_standard_name)
+                      internal_standard_name=args.internal_standard_name,
+                      internal_standard_rt_tol=args.internal_standard_rt_tolerance)
 
     if not results:
         msg = "Analysis produced no results."
