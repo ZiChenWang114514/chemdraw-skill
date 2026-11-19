@@ -23,6 +23,10 @@
 
 **ChemDraw Skill** gives **Claude Code**, **Codex**, **Gemini CLI**, **GitHub Copilot**, **Cursor**, **OpenCode**, and any MCP or shell agent a deterministic chemistry workflow that outputs editable native ChemDraw documents (`.cdxml` and `.cdx`) and live Word or PowerPoint objects rather than static images or guessed SMILES. Turn plain reaction briefs, CSV or Excel substrate tables, published scheme crops, or patent Markush claims into verified figures across **28 empirical journal and research-group house styles** (*JACS*, *Angew. Chem.*, *Nature*, *Science*, *ACS Document 1996*, Baran, MacMillan, Studer, and more), alongside ChemDraw's **stoichiometry calculator**, **ACS characterization reports**, and **15 opt-in local OCSR, retrosynthesis, and NMR engines**.
 
+> **What you need:** 64-bit Python 3.10 to 3.13. Desktop ChemDraw is optional: without it you still get editable CDXML, structure checks and reports; native PNG rendering, `.cdx` files and Office objects need it.
+>
+> **Why not let the model write SMILES and draw them with RDKit?** A SMILES recalled from memory is often a different compound (a missing counter-ion, a lost stereocentre), and an RDKit picture cannot be edited in ChemDraw or Word. Here every structure comes from a resolver, a parser or your file and is read back after drawing, and the result is a native ChemDraw document.
+
 ## Quick start
 
 <p align="center">
@@ -85,6 +89,7 @@ Use the ChemDraw Skill to run ChemDraw's stoichiometry grid on "OCc1ccccc1.CC(=O
 > [!TIP]
 > **Prefer running directly from your terminal without an agent?** Call `cdx.py` zero-JSON shortcuts directly:
 > ```bash
+> python $HOME/.claude/skills/chemdraw/scripts/cdx.py resolve aspirin Cs2CO3 --offline   # needs no ChemDraw
 > python $HOME/.claude/skills/chemdraw/scripts/cdx.py draw --name aspirin aspirin.cdxml --style acs_jacs --render
 > python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
 > ```

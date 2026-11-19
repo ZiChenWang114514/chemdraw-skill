@@ -41,14 +41,14 @@ def counts() -> dict[str, int]:
 # (pattern with one captured number, count name). Both languages of a claim sit together.
 CLAIMS = (
     (r"(\d+) (?:empirical )?(?:journal (?:&amp; |and )?group )?house styles", "house_styles"),
-    (r"(\d+) 个(?:实测)?(?:期刊与课题组)?画法风格", "house_styles"),
+    (r"(\d+) \u4e2a(?:\u5b9e\u6d4b)?(?:\u671f\u520a\u4e0e\u8bfe\u9898\u7ec4)?\u753b\u6cd5\u98ce\u683c", "house_styles"),
     # "28 cards + 4 presets" is the gallery's own count of preset renders, a different number.
     (r"(?<!cards \+ )(?<!\d)(\d+) (?:ChemDraw |measurement )?presets\b", "style_presets"),
-    (r"(\d+) 个 ChemDraw 预设", "style_presets"),
+    (r"(\d+) \u4e2a ChemDraw \u9884\u8bbe", "style_presets"),
     (r"(\d+) openly licensed figures", "evidence_figures"),
-    (r"(\d+) 张开放许可插图", "evidence_figures"),
+    (r"(\d+) \u5f20\u5f00\u653e\u8bb8\u53ef\u63d2\u56fe", "evidence_figures"),
     (r"(\d+) (?:literature replicas|published figures|more redrawn figures|redraws)", "replicas"),
-    (r"(\d+) (?:个文献复现|张已发表)", "replicas"),
+    (r"(\d+) (?:\u4e2a\u6587\u732e\u590d\u73b0|\u5f20\u5df2\u53d1\u8868)", "replicas"),
     (r"(\d+)-(?:entry|reagent) (?:GHS |reagent )?safety reminders", "safety_entries"),
     (r"(\d+) common solvents", "safety_entries"),
 )

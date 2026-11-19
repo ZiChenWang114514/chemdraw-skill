@@ -23,6 +23,10 @@
 
 **ChemDraw Skill** 为 **Claude Code**、**Codex**、**Gemini CLI**、**GitHub Copilot**、**Cursor**、**OpenCode** 及任意支持命令行或 MCP 的 AI Agent 提供确定性的化学科研绘图与分析工作流，直接产出**原生可编辑的 ChemDraw 文档（`.cdxml` 与 `.cdx`）**以及可双击编辑的 **Word/PowerPoint 内嵌对象**，不输出无法修改的位图，也不凭记忆猜测 SMILES。只需一句自然语言反应描述、CSV 或 Excel 底物拓展与构效关系（SAR）数据表、文献反应截图或专利马库什（Markush）权利要求，即可按 **28 种实测期刊与课题组画法风格**（*JACS*、*Angew. Chem.*、*Nature*、*Science*、*ACS Document 1996*、Baran、MacMillan、Studer 等）输出发表级插图，同时集成 ChemDraw 原生**化学计量表**、**ACS 标准实验表征文段生成**以及 **15 个按需安装的本地结构识别（OCSR）、逆合成与核磁（NMR）预测引擎**。
 
+> **前提：** 64 位 Python 3.10 至 3.13。桌面版 ChemDraw 可选：没有它仍可得到可编辑的 CDXML、结构核对和报告；原生 PNG 渲染、`.cdx` 文件和 Office 对象需要它。
+>
+> **为什么不让大模型直接写 SMILES，再用 RDKit 画图？** 凭记忆写出的 SMILES 常常是另一个化合物（少了抗衡离子、丢了手性中心），RDKit 画出的图片也无法在 ChemDraw 或 Word 里继续编辑。这里每个结构都来自解析器、文件解析或你给的文件，画完后再读回核对，产物是原生 ChemDraw 文档。
+
 ## 快速开始
 
 <p align="center">
@@ -85,6 +89,7 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 > [!TIP]
 > **不想通过 Agent，想直接在终端一行命令出图或算投料？** 直接调用 `cdx.py` 零 JSON 快捷命令：
 > ```bash
+> python $HOME/.claude/skills/chemdraw/scripts/cdx.py resolve aspirin Cs2CO3 --offline   # 不需要 ChemDraw
 > python $HOME/.claude/skills/chemdraw/scripts/cdx.py draw --name aspirin aspirin.cdxml --style acs_jacs --render
 > python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
 > ```
