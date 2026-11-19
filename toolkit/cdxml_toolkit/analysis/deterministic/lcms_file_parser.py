@@ -40,7 +40,7 @@ def _report_to_analysis(report: LCMSReport, file_path: Path, fmt: str) -> LCMSAn
         ]
         peaks.append(
             LCMSPeak(
-                peak_id=p.peak_id,
+                peak_id=p.peak_num,
                 rt=p.rt,
                 area=p.area,
                 area_pct=p.area_pct,
@@ -49,10 +49,13 @@ def _report_to_analysis(report: LCMSReport, file_path: Path, fmt: str) -> LCMSAn
                 uv_lambda_max=list(p.uv_lambda_max),
                 area_220nm=p.area_220nm,
                 area_254nm=p.area_254nm,
+                area_pct_220nm=p.area_pct_220nm,
+                area_pct_254nm=p.area_pct_254nm,
             )
         )
     all_spectra = [s for pk in peaks for s in pk.ms_spectra]
-    acq_date = f"{report.date} {report.time}".strip()
+    acq_time = report.run_time or ""
+    acq_date = f"{report.date} {acq_time}".strip()
     sample_info = SampleInfoDict(
         {
             "Sample Description": report.sample_name,
@@ -61,7 +64,7 @@ def _report_to_analysis(report: LCMSReport, file_path: Path, fmt: str) -> LCMSAn
             "Instrument": report.instrument,
             "instrument": report.instrument,
             "Acquired Date": report.date,
-            "Acquired Time": report.time,
+            "Acquired Time": acq_time,
             "acquisition_date": acq_date,
             "Inlet Method": report.method_path,
             "Conditions": report.method_short,
@@ -82,7 +85,7 @@ def _report_to_analysis(report: LCMSReport, file_path: Path, fmt: str) -> LCMSAn
         method_short=report.method_short,
         sample_name=report.sample_name,
         date=report.date,
-        time=report.time,
+        time=acq_time,
         detector=report.detector,
     )
 
