@@ -28,10 +28,8 @@ from .schema import (
     StructureRef,
 )
 
-# Valid layout and wrap keywords
-from .schema import VALID_LAYOUTS  # noqa: E402  (one list, shared with the schema)
-VALID_WRAPS = {"repeat", "serpentine", "none"}
-VALID_ARROW_STYLES = {"solid", "dashed", "failed", "reversible", "resonance"}
+# Valid layout, wrap and arrow-style keywords (one list each, in the schema)
+from .schema import VALID_ARROW_STYLES, VALID_LAYOUTS, VALID_WRAPS  # noqa: E402
 
 # Unambiguous SMILES syntax characters (never appear in plain identifiers)
 _SMILES_SYNTAX_RE = re.compile(r'[=()\[\]#@\\\/]')
@@ -167,6 +165,46 @@ def _looks_like_smiles(s: str) -> bool:
     if _ORGANIC_CHAIN_RE.match(s) and "C" in s:
         return True
     return False
+
+
+def bare_species_is_structure(text: str) -> bool:
+    """Decide whether a bare species string is a structure (SMILES) or a name.
+
+    The rule, applied before any name lookup:
+
+    1. It must look like SMILES (see ``_looks_like_smiles``): identifiers,
+       prose and abbreviations with letters that are never atoms
+       (``CO2Me``, ``DMF``, ``TFA``) are names.
+    2. RDKit must parse it; ``Boc2O`` or ``Bn`` look like SMILES letters but
+       are not valid SMILES, so they are names.
+    3. A string of letters only that is valid SMILES can also spell a name
+       (ambiguous); it is a name when the reagent resolver knows it, and a
+       structure otherwise. Anything with SMILES syntax, digits or charges
+       that RDKit parses is a structure.
+
+    Names go to the existing resolver (reagent database, then PubChem when
+    allowed) unchanged.
+    """
+    if not _looks_like_smiles(text):
+        return False
+    try:
+        from rdkit import Chem, RDLogger
+    except ImportError:  # pragma: no cover - rdkit is a hard dependency
+        return True
+    RDLogger.DisableLog("rdApp.*")
+    try:
+        if Chem.MolFromSmiles(text) is None:
+            return False
+    finally:
+        RDLogger.EnableLog("rdApp.*")
+    if text.isalpha():
+        try:
+            from ..resolve.reagent_db import get_reagent_db
+            if get_reagent_db().entry_for_name(text.lower()):
+                return False
+        except ImportError:  # pragma: no cover
+            pass
+    return True
 
 
 def _normalize_entry_list(
@@ -390,7 +428,7 @@ def _register_bare_smiles(
     """
     result: List[str] = []
     for sid in ids:
-        if sid not in structures and _looks_like_smiles(sid):
+        if sid not in structures and bare_species_is_structure(sid):
             new_id = _smiles_id(sid, structures, counter)
             structures[new_id] = {"smiles": sid}
             result.append(new_id)
@@ -715,8 +753,10 @@ def _validate_refs(
     """
     for ref in refs:
         if ref not in structures:
-            # Auto-register as a bare ref — renderer will try reagent_db
-            structures[ref] = StructureRef(id=ref)
+            # A bare SMILES is drawn as given; anything else is a name that the
+            # renderer resolves (reagent_db, then PubChem when allowed).
+            smiles = ref if bare_species_is_structure(ref) else None
+            structures[ref] = StructureRef(id=ref, smiles=smiles)
 
 
 def _as_str_list(val: Any, context: str) -> List[str]:
