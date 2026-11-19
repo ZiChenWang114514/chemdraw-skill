@@ -48,10 +48,6 @@ jobs:
     needs: build
     runs-on: windows-latest
     timeout-minutes: 25
-    # Known packaging gap: build_acs_figure loads skill/chemdraw/scripts/acs_builder.py through a
-    # path relative to the source tree (tool_registry._load_acs_builder), which an installed wheel
-    # does not have, so its smoke case fails. Remove continue-on-error once the gap is closed.
-    continue-on-error: true
     env:
       PYTHONDONTWRITEBYTECODE: "1"
     steps:
