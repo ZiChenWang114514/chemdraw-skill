@@ -1075,34 +1075,12 @@ def _measure_fragment_xml(frag_xml: str) -> Tuple[float, float, float, float]:
     return min(xs), min(ys), max(xs), max(ys)
 
 
-def _best_smiles_component(smiles: str) -> str:
-    """For a multi-component SMILES (dot-separated), return the largest
-    drug-like component (most heavy atoms, filtering out pure alkyne chains)."""
-    components = smiles.split(".")
-    if len(components) <= 1:
-        return smiles
-
-    best = ""
-    best_score = -1
-    for comp in components:
-        comp = comp.strip()
-        if not comp:
-            continue
-        # Reject pure-alkyne chains
-        if re.fullmatch(r'[C#]+', comp):
-            continue
-        # Score by number of heavy-atom characters
-        score = sum(1 for c in comp if c.isalpha() and c.isupper())
-        if score > best_score:
-            best = comp
-            best_score = score
-
-    return best or smiles
-
-
 # ---------------------------------------------------------------------------
 # ChemScript cleanup: SMILES → ChemDraw-native fragment XML
 # ---------------------------------------------------------------------------
+
+from .components import main_component  # noqa: E402
+
 
 def _open_chemscript_bridge(verbose: bool = False):
     """Import and open a ChemScriptBridge instance.  Caller must call .close()."""
@@ -1152,7 +1130,7 @@ def _chemscript_fragment_xmls(
             if not smiles:
                 continue
             if "." in smiles:
-                smiles = _best_smiles_component(smiles)
+                smiles = main_component(entry, smiles)
 
             log(f"  ChemScript [{i}]: {smiles[:60]}...")
             try:

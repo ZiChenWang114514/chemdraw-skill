@@ -1373,37 +1373,7 @@ def _format_cdxml_header(bbox: str) -> str:
     )
 
 
-def _best_smiles_component(smiles: str) -> str:
-    """
-    For a dot-separated multi-component SMILES, return the single component
-    that is most likely to be the real chemical structure (largest heavy-atom
-    count that is also a valid RDKit molecule).  Filters out junk fragments
-    like lone alkyne chains, single atoms, very short chains, etc.
-    """
-    if "." not in smiles:
-        return smiles
-
-    parts = smiles.split(".")
-    best = ""
-    best_score = -1
-
-    for part in parts:
-        part = part.strip()
-        if not part:
-            continue
-        # Quick atom-count heuristic before RDKit parse
-        heavy = sum(1 for c in part if c.isupper())
-        if heavy < 3:
-            continue
-        # Penalise pure alkyne/alkene chains (no rings, no heteroatoms)
-        has_heteroatom = any(c in part for c in "NOSFPClBrI")
-        has_ring = "1" in part or "2" in part or "3" in part or "@" in part
-        score = heavy * 10 + (50 if has_heteroatom else 0) + (30 if has_ring else 0)
-        if score > best_score:
-            best = part
-            best_score = score
-
-    return best if best else smiles.split(".")[0]
+from .components import main_component  # noqa: E402
 
 
 def _translate_atoms_xml(frag_xml: str, dx: float, dy: float) -> str:
@@ -1483,7 +1453,7 @@ def results_to_cdxml(results: List[Dict]) -> str:
         # from only the best component so we don't get a stacked mess.
         smiles = entry.get("smiles", "")
         if smiles and "." in smiles:
-            best = _best_smiles_component(smiles)
+            best = main_component(entry, smiles)
             if best != smiles:
                 mol_data = smiles_to_coords(best, offset_index=0)
                 if mol_data:
@@ -1607,7 +1577,7 @@ def results_to_cdxml_chemscript(
 
             # For multi-component SMILES, pick the best fragment
             if "." in smiles:
-                smiles = _best_smiles_component(smiles)
+                smiles = main_component(entry, smiles)
 
             log(f"  ChemScript: {smiles[:60]}...")
             try:
