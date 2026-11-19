@@ -11,14 +11,32 @@ import xml.etree.ElementTree as ET
 
 # Attributes that hold the id of another object: (element, attribute) -> single id or list of ids.
 # Taken from the catalog; zero means "no object" in an id list.
+# Every attribute whose value is the id of another object, as
+# ``(element, attribute): is_list``. Checks, deletes and id remapping (scheme
+# merging) all read this one table.
 REFERENCES = {
     ("b", "B"): False,
     ("b", "E"): False,
+    ("b", "BondCircularOrdering"): True,
     ("n", "BondOrdering"): True,
+    ("n", "Attachments"): True,
+    ("fragment", "ConnectionOrder"): True,
     ("bracketedgroup", "BracketedObjectIDs"): True,
     ("bracketattachment", "GraphicID"): False,
+    ("crossingbond", "BondID"): False,
+    ("crossingbond", "InnerAtomID"): False,
     ("graphic", "SupersededBy"): False,
     ("chemicalproperty", "ChemicalPropertyDisplayID"): False,
+    ("chemicalproperty", "BasisObjects"): True,
+    ("step", "ReactionStepReactants"): True,
+    ("step", "ReactionStepProducts"): True,
+    ("step", "ReactionStepPlusses"): True,
+    ("step", "ReactionStepArrows"): True,
+    ("step", "ReactionStepObjectsAboveArrow"): True,
+    ("step", "ReactionStepObjectsBelowArrow"): True,
+    ("step", "ReactionStepAtomMap"): True,
+    ("step", "ReactionStepAtomMapManual"): True,
+    ("step", "ReactionStepAtomMapAuto"): True,
 }
 
 _STEP = re.compile(r"^(?P<tag>\*|[A-Za-z_][\w.-]*)?(?:#(?P<id>\d+))?(?P<filters>(?:\[[^\]=\[]+=[^\]\[]*\])*)$")
