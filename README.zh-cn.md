@@ -708,8 +708,8 @@ X-ray 图像裁自原论文，不在本仓库许可证范围内。
 | `reactiont5-retro` | 单步逆合成 | 3.9 GB | MIT | 是 |
 | `retrochimera` | 单步逆合成与多步路线 | 8.5 GB | 仅供研究使用 | 是 |
 | `magnet` | 1H 与 13C 化学位移 | 5.4 GB | MIT | 是 |
-| `nmrnet-pp` | 1H 与 13C 化学位移，第二个模型 | 2.8 GB | 代码 MIT，权重 CC BY 4.0 | 是 |
-| `reacon` | 催化剂、溶剂与试剂组合 | 1.9 GB | 作者未声明许可 | 是 |
+| `nmrnet-pp` | 1H 与 13C 化学位移，第二个模型 | 4.5 GB | 代码 MIT，权重 CC BY 4.0 | 是 |
+| `reacon` | 催化剂、溶剂与试剂组合 | 3.6 GB | 作者未声明许可 | 是 |
 
 上表体积按 Windows + CUDA 版 PyTorch 统计（纯 CPU 安装更小，完整清单见[引擎说明](skill/chemdraw/references/engines.md)）。下方实测在一台 Windows 笔记本（RTX 5090）上对照已人工核实的分子结构、实验记录或实测谱图运行，所有失误原样保留（[`assets/readme/engines/`](assets/readme/engines/provenance.json)）。冷启动耗时含模型加载；批量输入、多步搜索或显式加 `--accel on` 时工作进程常驻内存（重复执行 `predict products` 从 13.7 秒降至 0.6 秒，`cdx.py stop-daemons` 停止常驻进程），每次返回均记录 `execution.device`（`cuda:0` 或 `cpu`）。
 
@@ -780,7 +780,7 @@ X-ray 图像裁自原论文，不在本仓库许可证范围内。
 
 <img src="assets/readme/engines/forward/products.png" alt="用 ReactionT5 排第一的预测产物和实验记录的条件、收率画出的两步反应">
 
-**安装：** `retro`（AiZynthFinder，1.7 GB）、`products`（3.9 GB）、`conditions`（Reacon，1.9 GB）；SynPlanner 与 ReactionT5 逆合成按引擎名安装；`retro-chimera`（8.5 GB，运行时约需 14 GB 空闲内存）。RetroChimera 仅供研究使用；Reacon 的作者未声明许可证，只在你明确要求时从其仓库下载。[详见](skill/chemdraw/references/engines.md#predictions)
+**安装：** `retro`（AiZynthFinder，1.7 GB）、`products`（3.9 GB）、`conditions`（Reacon，3.6 GB）；SynPlanner 与 ReactionT5 逆合成按引擎名安装；`retro-chimera`（8.5 GB，运行时约需 14 GB 空闲内存）。RetroChimera 仅供研究使用；Reacon 的作者未声明许可证，只在你明确要求时从其仓库下载。[详见](skill/chemdraw/references/engines.md#predictions)
 
 </details>
 
@@ -839,7 +839,7 @@ X-ray 图像裁自原论文，不在本仓库许可证范围内。
 
 相比之下，MagNET 完全基于合成的 AIMNet2/GIAO DFT 屏蔽张量训练，训练中未使用任何实验核磁谱，其 0.21 ppm（<sup>1</sup>H）和 2.89 ppm（<sup>13</sup>C）误差属于真正意义上的跨分布实验盲测；而 NMRNet++ 的 0.11 与 1.14 ppm 含训练语料重合，应视为库内表现上限。GPU 上单分子耗时 MagNET 为 22 至 60 秒（均值 29 秒），NMRNet++ 为 24 至 62 秒（均值 33 秒）。预测值绝不会写入实验表征段落。
 
-**安装：** `nmr`（MagNET，5.4 GB）和 `nmr-pp`（NMRNet++，2.8 GB；权重为 CC BY 4.0，不接受溶剂参数）。[20 分子基准数据 JSON](assets/readme/engines/nmr/benchmark20.json) · [咖啡因图与数据](assets/readme/engines/nmr/caffeine/)
+**安装：** `nmr`（MagNET，5.4 GB）和 `nmr-pp`（NMRNet++，4.5 GB；权重为 CC BY 4.0，不接受溶剂参数）。[20 分子基准数据 JSON](assets/readme/engines/nmr/benchmark20.json) · [咖啡因图与数据](assets/readme/engines/nmr/caffeine/)
 
 </details>
 

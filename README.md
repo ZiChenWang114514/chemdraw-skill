@@ -708,8 +708,8 @@ Fifteen opt-in engines handle OCSR, PDF structure segmentation, retrosynthesis, 
 | `reactiont5-retro` | single-step retrosynthesis | 3.9 GB | MIT | yes |
 | `retrochimera` | single-step retrosynthesis and routes | 8.5 GB | research use only | yes |
 | `magnet` | 1H and 13C shifts | 5.4 GB | MIT | yes |
-| `nmrnet-pp` | 1H and 13C shifts, second model | 2.8 GB | code MIT, weights CC BY 4.0 | yes |
-| `reacon` | catalyst, solvent and reagent sets | 1.9 GB | none stated by the authors | yes |
+| `nmrnet-pp` | 1H and 13C shifts, second model | 4.5 GB | code MIT, weights CC BY 4.0 | yes |
+| `reacon` | catalyst, solvent and reagent sets | 3.6 GB | none stated by the authors | yes |
 
 Sizes reflect Windows + CUDA PyTorch installs (CPU installs are smaller; full registry in [engines.md](skill/chemdraw/references/engines.md)). Benchmarks below ran on a Windows laptop (RTX 5090) against reviewed structures, lab-book entries or measured spectra, keeping every miss ([`assets/readme/engines/`](assets/readme/engines/provenance.json)). Cold times include model loading; batch/multi-step runs or `--accel on` keep a resident worker (cutting repeated `predict products` from 13.7 s to 0.6 s; `cdx.py stop-daemons` stops workers), and every reply logs `execution.device` (`cuda:0` or `cpu`).
 
@@ -780,7 +780,7 @@ For KL-CC-002 no engine proposed the recorded last step. AiZynthFinder's top rou
 
 <img src="assets/readme/engines/forward/products.png" alt="The two recorded steps drawn with the products ReactionT5 predicted at rank 1 and the recorded conditions and yields">
 
-**Install:** `retro` (AiZynthFinder, 1.7 GB), `products` (3.9 GB), `conditions` (Reacon, 1.9 GB); SynPlanner and ReactionT5 retro by name; `retro-chimera` (8.5 GB, needs about 14 GB of free memory). RetroChimera is for research use only and Reacon's authors state no licence, so it is downloaded from their repository only when you ask. [Details](skill/chemdraw/references/engines.md#predictions)
+**Install:** `retro` (AiZynthFinder, 1.7 GB), `products` (3.9 GB), `conditions` (Reacon, 3.6 GB); SynPlanner and ReactionT5 retro by name; `retro-chimera` (8.5 GB, needs about 14 GB of free memory). RetroChimera is for research use only and Reacon's authors state no licence, so it is downloaded from their repository only when you ask. [Details](skill/chemdraw/references/engines.md#predictions)
 
 </details>
 
@@ -839,7 +839,7 @@ To measure accuracy systematically, both engines were run on **20 assigned organ
 
 MagNET was trained strictly on synthetic AIMNet2/GIAO DFT shieldings with zero experimental NMR spectra in training, so its 0.21 ppm (<sup>1</sup>H) and 2.89 ppm (<sup>13</sup>C) errors represent a genuine out-of-training experimental test, whereas NMRNet++'s 0.11 and 1.14 ppm reflect training-corpus overlap and should be read as an in-corpus ceiling. Runs took 22 to 60 s per molecule (mean 29 s) for MagNET and 24 to 62 s (mean 33 s) for NMRNet++ on GPU. Predicted values never go into an experimental characterization line.
 
-**Install:** `nmr` (MagNET, 5.4 GB) and `nmr-pp` (NMRNet++, 2.8 GB; its weights are CC BY 4.0, and it takes no solvent). [20-molecule benchmark JSON](assets/readme/engines/nmr/benchmark20.json) · [Caffeine chart and data](assets/readme/engines/nmr/caffeine/)
+**Install:** `nmr` (MagNET, 5.4 GB) and `nmr-pp` (NMRNet++, 4.5 GB; its weights are CC BY 4.0, and it takes no solvent). [20-molecule benchmark JSON](assets/readme/engines/nmr/benchmark20.json) · [Caffeine chart and data](assets/readme/engines/nmr/caffeine/)
 
 </details>
 

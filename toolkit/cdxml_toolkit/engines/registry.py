@@ -305,9 +305,9 @@ GUIDE = {
                                                   'and routes searched with them',
                      'skip_when': 'a quick idea is enough (AiZynthFinder is much smaller), or the work needs a commercial '
                                   'licence check first: the authors state research use only'},
-    'nmrnet-pp': {'disk_mb': 2800, 'use_when': 'a second opinion on predicted 1H and 13C shifts, including Br, I, Si, P and B',
+    'nmrnet-pp': {'disk_mb': 4500, 'use_when': 'a second opinion on predicted 1H and 13C shifts, including Br, I, Si, P and B',
                   'skip_when': 'measured spectra are available (those are plotted without a model)'},
-    'reacon': {'disk_mb': 1900, 'use_when': 'candidate catalysts, solvents and reagents for a reaction already drawn',
+    'reacon': {'disk_mb': 3600, 'use_when': 'candidate catalysts, solvents and reagents for a reaction already drawn',
                'skip_when': 'the conditions are in the source, or the reaction type is new (it learned from patents); '
                             "its authors' repository declares no licence"},
     'magnet': {'disk_mb': 5400, 'use_when': 'predicted 1H and 13C shifts of one molecule',
