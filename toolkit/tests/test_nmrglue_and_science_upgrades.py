@@ -466,7 +466,7 @@ def test_hazards_expanded_table_parent_salt_fallback_and_smarts_alerts():
         ("CCCCS(=O)(=O)Cl", "sulfonyl_halide"),
         ("CCOC(=O)C=[N+]=[N-]", "diazo"),
         ("O=C=Nc1ccccc1", "isocyanate"),
-        ("N#Cc1ccccc1", "nitrile_inorganic_cyanide"),
+        ("N#C[Cu]", "inorganic_cyanide"),
     ]
     for smi, expected_class in alert_cases:
         info = hazards.assess(smi)
