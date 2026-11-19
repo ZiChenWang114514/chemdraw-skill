@@ -159,6 +159,19 @@ def by_name_label(rows, label):
     return next(row for row in rows if row['label'] == label)
 
 
+def test_yield_is_against_the_reactant_in_shortest_supply():
+    result = check_reaction_balance(
+        {'reactants': [{'smiles': 'CC(=O)O', 'label': 'acid'},
+                       {'smiles': 'CO', 'label': 'methanol', 'equiv': 0.8}],
+         'products': [{'smiles': 'CC(=O)OC', 'label': 'ester', 'isolated_mg': 0.918 * 0.8 * 74.079},
+                      {'smiles': 'O'}]},
+        options={'scale_mmol': 1.0})
+    ester = by_name_label(result['reactions'][0]['stoichiometry'], 'ester')
+    assert ester['mmol'] == pytest.approx(0.8)
+    assert ester['yield_percent'] == pytest.approx(91.8, abs=0.05)
+    assert ester['yield_limited_by'] == 'methanol'
+
+
 def test_limiting_reagent_can_be_chosen():
     options = {'scale_mmol': 1.0, 'limiting': 1}
     rows = check_reaction_balance(ESTER, options=options)['reactions'][0]['stoichiometry']
