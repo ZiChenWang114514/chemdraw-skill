@@ -120,7 +120,12 @@ def lookup_mw(label: str) -> Optional[float]:
                 mol = Chem.AddHs(mol)
         if mol is None:
             return None
-        mw = Descriptors.MolWt(mol)
+        # About 120 entries are written in radical form ("[Si](CC)(CC)CC"):
+        # the unpaired electron marks the attachment point. Cap every open
+        # valence with H so all entries are standalone molecules and the
+        # caller's one-H subtraction per bond is applied exactly once.
+        radicals = sum(a.GetNumRadicalElectrons() for a in mol.GetAtoms())
+        mw = Descriptors.MolWt(mol) + radicals * Descriptors.MolWt(Chem.MolFromSmiles("[H]"))
         _MW_CACHE[smiles] = mw
         return mw
     except (ImportError, Exception):

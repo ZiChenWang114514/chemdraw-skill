@@ -131,6 +131,17 @@ class TestLookupMw:
         # CF3 standalone = C(F)(F)F = CHF3 = 70.01
         assert abs(mw - 70.01) < 0.1
 
+    def test_radical_form_entry_is_capped_at_its_attachment_atom(self):
+        # "et3si" is stored as the silyl radical [Si](CC)(CC)CC. Its standalone
+        # MW must still be triethylsilane (C6H16Si, 116.28) so that the caller's
+        # one-H subtraction per bond yields the Et3Si group (115.27), not 114.27.
+        from cdxml_toolkit.resolve.superatom_table import lookup_mw
+        assert abs(lookup_mw("Et3Si") - 116.28) < 0.05
+
+    def test_hydrogen_label_contributes_one_hydrogen(self):
+        from cdxml_toolkit.resolve.superatom_table import lookup_mw
+        assert abs(lookup_mw("H") - 1.008 - 1.008) < 0.01
+
 
 # =========================================================================
 # Label extraction from CDXML nodes

@@ -62,8 +62,8 @@
     "peppsi-ipr": {
         "display": "PEPPSI-IPr",
         "role": "catalyst",
-        "smiles": "CC(C)C1=C(C(=CC=C1)C(C)C)N2CN(C=C2)C3=C(C=CC=C3C(C)C)C(C)C.C1=CC(=CN=C1)Cl.Cl[Pd]Cl",
-        "canonical_smiles": "CC(C)c1cccc(C(C)C)c1N1C=CN(c2c(C(C)C)cccc2C(C)C)C1.Clc1cccnc1.[Cl][Pd][Cl]"
+        "smiles": "CC(C)c1cccc(C(C)C)c1N1C=CN(c2c(C(C)C)cccc2C(C)C)C1=[Pd](Cl)Cl.Clc1cccnc1",
+        "canonical_smiles": "CC(C)c1cccc(C(C)C)c1-n1ccn(-c2c(C(C)C)cccc2C(C)C)[c]1=[Pd]([Cl])[Cl].Clc1cccnc1"
     },
     "binap": {
         "display": "BINAP",
@@ -277,8 +277,8 @@
     "lihmds": {
         "display": "LiHMDS",
         "role": "base",
-        "smiles": "[Li][N](C(C)(C)C)C(C)(C)C",
-        "canonical_smiles": "[Li][N](C(C)(C)C)C(C)(C)C"
+        "smiles": "C[Si](C)(C)[N-][Si](C)(C)C.[Li+]",
+        "canonical_smiles": "C[Si](C)(C)[N-][Si](C)(C)C.[Li+]"
     },
     "nahmds": {
         "display": "NaHMDS",
@@ -480,8 +480,8 @@
     "dcc": {
         "display": "DCC",
         "role": "coupling_reagent",
-        "smiles": "C(=NC1CCCCC1)NC1CCCCC1",
-        "canonical_smiles": "C(=NC1CCCCC1)NC1CCCCC1"
+        "smiles": "C1CCC(CC1)N=C=NC2CCCCC2",
+        "canonical_smiles": "C(=NC1CCCCC1)=NC1CCCCC1"
     },
     "dic": {
         "display": "DIC",
@@ -853,8 +853,8 @@
     "cuso4·5h2o": {
         "display": "CuSO4·5H2O",
         "role": "catalyst",
-        "smiles": "[O-]S(=O)(=O)[O-].[Cu+2]",
-        "canonical_smiles": "O=S(=O)([O-])[O-].[Cu+2]"
+        "smiles": "O.O.O.O.O.[O-]S(=O)(=O)[O-].[Cu+2]",
+        "canonical_smiles": "O.O.O.O.O.O=S(=O)([O-])[O-].[Cu+2]"
     },
     "ni(cod)2": {
         "display": "Ni(cod)2",
@@ -889,14 +889,14 @@
     "pinbh": {
         "display": "pinBH",
         "role": "borylating_agent",
-        "smiles": "[B]1OC(C(O1)(C)C)(C)C",
-        "canonical_smiles": "CC1(C)O[B]OC1(C)C"
+        "smiles": "B1OC(C)(C)C(C)(C)O1",
+        "canonical_smiles": "CC1(C)OBOC1(C)C"
     },
     "hbpin": {
         "display": "HBpin",
         "role": "borylating_agent",
-        "smiles": "[B]1OC(C(O1)(C)C)(C)C",
-        "canonical_smiles": "CC1(C)O[B]OC1(C)C"
+        "smiles": "B1OC(C)(C)C(C)(C)O1",
+        "canonical_smiles": "CC1(C)OBOC1(C)C"
     },
     "kf": {
         "display": "KF",
@@ -994,11 +994,6 @@
         "smiles": "[Mg]",
         "canonical_smiles": "[Mg]"
     },
-    "cul": {
-        "display": "CuL",
-        "smiles": "[Cu+].[I-]",
-        "canonical_smiles": "[Cu+].[I-]"
-    },
     "tmsi": {
         "display": "TMSI",
         "role": "reagent",
@@ -1032,8 +1027,8 @@
     "naso3cf3": {
         "display": "NaSO3CF3",
         "role": "reagent",
-        "smiles": "C(F)(F)(F)S(=O)[O-].[Na+]",
-        "canonical_smiles": "O=S([O-])C(F)(F)F.[Na+]"
+        "smiles": "C(F)(F)(F)S(=O)(=O)[O-].[Na+]",
+        "canonical_smiles": "O=S(=O)([O-])C(F)(F)F.[Na+]"
     },
     "dast": {
         "display": "DAST",
@@ -1112,8 +1107,8 @@
     "pd(dppf)cl2": {
         "display": "Pd(dppf)Cl2",
         "role": "catalyst",
-        "smiles": "[CH-]1[CH-][CH-][C-]([CH-]1)P(C2=CC=CC=C2)C3=CC=CC=C3.C1=CC=C(C=C1)P([C-]2C=CC=C2)C3=CC=CC=C3.Cl[Pd]Cl.[Fe]",
-        "canonical_smiles": "[Cl][Pd][Cl].[Fe].c1ccc(P(c2ccccc2)[c-]2[cH-][cH-][cH-][cH-]2)cc1.c1ccc(P(c2ccccc2)[c-]2cccc2)cc1"
+        "smiles": "[CH-]1C=CC=C1P(C2=CC=CC=C2)C3=CC=CC=C3.[CH-]1C=CC=C1P(C2=CC=CC=C2)C3=CC=CC=C3.Cl[Pd]Cl.[Fe+2]",
+        "canonical_smiles": "[Cl][Pd][Cl].[Fe+2].c1ccc(P(c2ccccc2)c2ccc[cH-]2)cc1.c1ccc(P(c2ccccc2)c2ccc[cH-]2)cc1"
     },
     "cubr": {
         "display": "CuBr",
@@ -1305,5 +1300,72 @@
             "ammonium chloride"
         ],
         "canonical_smiles": "[Cl-].[NH4+]"
+    },
+    "cf3so2na": {
+        "display": "CF3SO2Na",
+        "role": "reagent",
+        "aliases": [
+            "sodium triflinate",
+            "langlois reagent",
+            "sodium trifluoromethanesulfinate"
+        ],
+        "smiles": "C(F)(F)(F)S(=O)[O-].[Na+]",
+        "canonical_smiles": "O=S([O-])C(F)(F)F.[Na+]"
+    },
+    "nmm": {
+        "display": "NMM",
+        "role": "base",
+        "aliases": [
+            "n-methylmorpholine",
+            "4-methylmorpholine"
+        ],
+        "smiles": "CN1CCOCC1",
+        "canonical_smiles": "CN1CCOCC1"
+    },
+    "ppts": {
+        "display": "PPTS",
+        "role": "acid",
+        "aliases": [
+            "pyridinium p-toluenesulfonate"
+        ],
+        "smiles": "CC1=CC=C(C=C1)S(=O)(=O)[O-].C1=CC=[NH+]C=C1",
+        "canonical_smiles": "Cc1ccc(S(=O)(=O)[O-])cc1.c1cc[nH+]cc1"
+    },
+    "dppa": {
+        "display": "DPPA",
+        "role": "reagent",
+        "aliases": [
+            "diphenylphosphoryl azide"
+        ],
+        "smiles": "C1=CC=C(C=C1)OP(=O)(N=[N+]=[N-])OC2=CC=CC=C2",
+        "canonical_smiles": "[N-]=[N+]=NP(=O)(Oc1ccccc1)Oc1ccccc1"
+    },
+    "pifa": {
+        "display": "PIFA",
+        "role": "oxidant",
+        "aliases": [
+            "[bis(trifluoroacetoxy)iodo]benzene"
+        ],
+        "smiles": "C1=CC=C(C=C1)I(OC(=O)C(F)(F)F)OC(=O)C(F)(F)F",
+        "canonical_smiles": "O=C(OI(OC(=O)C(F)(F)F)c1ccccc1)C(F)(F)F"
+    },
+    "tesotf": {
+        "display": "TESOTf",
+        "role": "protecting_group",
+        "aliases": [
+            "triethylsilyl triflate",
+            "triethylsilyl trifluoromethanesulfonate"
+        ],
+        "smiles": "CC[Si](CC)(CC)OS(=O)(=O)C(F)(F)F",
+        "canonical_smiles": "CC[Si](CC)(CC)OS(=O)(=O)C(F)(F)F"
+    },
+    "hmds": {
+        "display": "HMDS",
+        "role": "reagent",
+        "aliases": [
+            "hexamethyldisilazane"
+        ],
+        "smiles": "C[Si](C)(C)N[Si](C)(C)C",
+        "canonical_smiles": "C[Si](C)(C)N[Si](C)(C)C"
     }
 }

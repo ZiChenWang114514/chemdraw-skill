@@ -6,8 +6,10 @@ Loads a curated ``reagent_abbreviations.json`` (tier-1, ~172 entries with
 roles) and a larger ``chemscanner_abbreviations.json`` (tier-2, ~5,800
 entries, no roles) for name/SMILES → display/role resolution.
 
-Tier-1 always wins.  Tier-2 is consulted only when tier-1 returns None.
-Role lookups are tier-1 only (ChemScanner has no role data).
+Tier-1 always wins.  Tier-2 is consulted only when tier-1 returns None,
+and entries listed in ``chemscanner_quarantine.json`` are never loaded.
+Role lookups and ``entry_for_smiles`` are tier-1 only.  Salt, hydrate and
+solvate names ("Et3N·HCl") resolve component by component.
 
 Usage:
     from cdxml_toolkit.resolve.reagent_db import get_reagent_db
@@ -34,11 +36,11 @@ from typing import Dict, List, Optional, Tuple, Union
 # Unicode subscript digits → ASCII digits
 _SUBSCRIPT_MAP = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
 
-# Common solvate/salt suffixes to strip (middle-dot or ASCII dot)
-_SOLVATE_SUFFIXES = re.compile(
-    r"[·.](?:chcl3|dcm|ch2cl2|h2o|hcl|thf|dme|meoh|etoh|et2o)\s*$",
-    re.IGNORECASE,
-)
+# Separators between the components of a salt, hydrate or solvate name
+# ("Et3N·HCl", "CuSO4.5H2O"). Components are kept, never dropped.
+_COMPONENT_SEPARATOR = re.compile(r"\s*[·•⋅.]\s*")
+# Leading stoichiometric count of a component ("5h2o").
+_COMPONENT_COUNT = re.compile(r"^(\d+)\s*(?=[a-z(\[])")
 
 # Racemic/stereochemical prefixes to strip
 _RAC_PREFIX = re.compile(r"^(?:rac-|\(±\)-)", re.IGNORECASE)
@@ -90,6 +92,13 @@ class ReagentDB:
             try:
                 with open(secondary_path, encoding="utf-8") as f:
                     cs_raw: Dict[str, dict] = json.load(f)
+                # Quarantined entries (see reagent_quality.py) never take part.
+                quarantine_path = os.path.join(os.path.dirname(secondary_path),
+                                               "chemscanner_quarantine.json")
+                if os.path.exists(quarantine_path):
+                    with open(quarantine_path, encoding="utf-8") as f:
+                        quarantined = set(json.load(f).get("entries", {}))
+                    cs_raw = {k: v for k, v in cs_raw.items() if k not in quarantined}
                 self._index_entries(cs_raw, self._cs_by_name,
                                     self._cs_by_smiles,
                                     canonical_defaults_to_smiles=True)
@@ -164,46 +173,89 @@ class ReagentDB:
 
     # ----- name-based lookups -----
 
-    def _lookup_name_entry(self, name: str, tier1_only: bool = False
-                           ) -> Optional[dict]:
-        """Internal progressive-normalization name lookup.
-
-        Tries (in order):
-          1. Exact (lowered, subscript-normalized)
-          2. With solvate suffix stripped  ("·CHCl3", ".DCM", etc.)
-          3. With rac-/(±)- prefix stripped
-          4. With both solvate suffix and rac- prefix stripped
-
-        Each step checks tier-1 first, then tier-2 (unless tier1_only).
-        """
-        key = _normalize_name(name)
+    def _lookup_single(self, key: str, tiers: Tuple[str, ...]
+                       ) -> Optional[Tuple[dict, str]]:
+        """Exact, then rac-/(±)-stripped lookup of one normalized name."""
         candidates = [key]
-
-        # Strip solvate suffix
-        stripped_solvate = _SOLVATE_SUFFIXES.sub("", key).strip()
-        if stripped_solvate != key:
-            candidates.append(stripped_solvate)
-
-        # Strip rac-/(±)- prefix
         stripped_rac = _RAC_PREFIX.sub("", key).strip()
         if stripped_rac != key:
             candidates.append(stripped_rac)
-
-        # Strip both
-        stripped_both = _RAC_PREFIX.sub("", stripped_solvate).strip()
-        if stripped_both not in candidates:
-            candidates.append(stripped_both)
-
         for cand in candidates:
-            entry = self._by_name.get(cand)
-            if entry:
-                return entry
-            if not tier1_only:
-                entry = self._cs_by_name.get(cand)
+            for tier in tiers:
+                index = self._by_name if tier == "primary" else self._cs_by_name
+                entry = index.get(cand)
                 if entry:
-                    return entry
-
+                    return entry, tier
         return None
+
+    @staticmethod
+    def entry_smiles(entry: dict) -> Optional[str]:
+        for field in ("canonical_smiles", "smiles"):
+            value = entry.get(field)
+            if isinstance(value, list):
+                value = value[0] if value else None
+            if value:
+                return value
+        return None
+
+    def _lookup_composite(self, key: str, tiers: Tuple[str, ...]
+                          ) -> Optional[Tuple[dict, str]]:
+        """Resolve a salt, hydrate or solvate name component by component.
+
+        ``"et3n·hcl"`` becomes Et3N + HCl and ``"cuso4·5h2o"`` CuSO4 + 5 H2O;
+        every component must be known, otherwise the whole name is unknown.
+        """
+        parts = [p for p in _COMPONENT_SEPARATOR.split(key) if p]
+        if len(parts) < 2:
+            return None
+        components = []
+        for part in parts:
+            count = 1
+            match = _COMPONENT_COUNT.match(part)
+            if match:
+                count = int(match.group(1))
+                part = part[match.end():]
+            found = self._lookup_single(part, tiers)
+            if found is None:
+                return None
+            entry, tier = found
+            smiles = self.entry_smiles(entry)
+            if smiles is None:
+                return None
+            components.append({"name": part, "display": entry["display"],
+                               "smiles": smiles, "count": count, "tier": tier})
+        display = "·".join((f"{c['count']}" if c["count"] > 1 else "") + c["display"]
+                                for c in components)
+        smiles = ".".join(".".join([c["smiles"]] * c["count"]) for c in components)
+        tier = "primary" if all(c["tier"] == "primary" for c in components) else "secondary"
+        composite = {"display": display, "smiles": smiles, "components": components}
+        role = self._by_name.get(components[0]["name"], {}).get("role")
+        if role:
+            composite["role"] = role
+        return composite, tier
+
+    def lookup_name(self, name: str, tiers: Tuple[str, ...] = ("primary", "secondary")
+                    ) -> Optional[Tuple[dict, str]]:
+        """Return ``(entry, tier)`` for a name, or None.
+
+        ``tier`` is ``"primary"`` (curated table) or ``"secondary"`` (large
+        table, quarantined entries removed). Salt, hydrate and solvate names
+        without their own entry resolve to a composite entry whose
+        ``components`` list every part; nothing is silently dropped.
+        """
+        key = _normalize_name(name)
+        for tier in tiers:
+            found = self._lookup_single(key, (tier,))
+            if found:
+                return found
+        return self._lookup_composite(key, tiers)
+
+    def _lookup_name_entry(self, name: str, tier1_only: bool = False
+                           ) -> Optional[dict]:
+        """Name lookup: tier-1 first, then tier-2 (unless tier1_only)."""
+        tiers = ("primary",) if tier1_only else ("primary", "secondary")
+        found = self.lookup_name(name, tiers)
+        return found[0] if found else None
 
     def display_for_name(self, name: str) -> Optional[str]:
         """Return display string for a name/alias, or None if unknown.
@@ -271,14 +323,12 @@ class ReagentDB:
         return entry.get("role") if entry else None
 
     def entry_for_smiles(self, smiles: str) -> Optional[dict]:
-        """Return the full entry dict for a SMILES, or None.
+        """Return the curated (tier-1) entry for a SMILES, or None.
 
-        Checks tier-1 first, then tier-2.
+        Tier-2 is not consulted: its names are not reviewed, so a reverse
+        lookup there could label a structure with the wrong name.
         """
-        entry = self._lookup_smiles_entry(smiles, self._by_smiles)
-        if entry:
-            return entry
-        return self._lookup_smiles_entry(smiles, self._cs_by_smiles)
+        return self._lookup_smiles_entry(smiles, self._by_smiles)
 
     # ----- convenience -----
 

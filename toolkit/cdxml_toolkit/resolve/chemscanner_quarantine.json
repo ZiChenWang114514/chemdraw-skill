@@ -1,0 +1,2632 @@
+{
+ "generator": "cdxml_toolkit.resolve.reagent_quality.build_secondary_quarantine",
+ "criteria": [
+  "known_wrong: confirmed wrong against PubChem",
+  "unparsable: SMILES does not parse in RDKit",
+  "radical: unpaired electrons on a main-group atom",
+  "unspecified_stereocentres: 3 or more stereocentres left unassigned",
+  "name_stereo_missing_in_smiles: a name carries R/S, E/Z or (+)/(-) descriptors the SMILES lacks"
+ ],
+ "entries": {
+  "()-1,1'-binaphthyl-2,2'-diyl hydrogenphosphate": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(+)-10,2-camphorsultam": [
+   "name_stereo_missing_in_smiles",
+   "unspecified_stereocentres"
+  ],
+  "(+)-4,5-bis[hydroxy(diphenyl)methyl]-2,2-dimethyl-1,3-dioxolane": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(+)-4,5-bis[hydroxy(diphenyl)methyl]-2-methyl-2-phenyl-1,3-dioxolane": [
+   "name_stereo_missing_in_smiles",
+   "unspecified_stereocentres"
+  ],
+  "(+)-b-chlorodiisopinocampheylborane": [
+   "name_stereo_missing_in_smiles",
+   "unspecified_stereocentres"
+  ],
+  "(+)-nmdpp": [
+   "name_stereo_missing_in_smiles",
+   "unspecified_stereocentres"
+  ],
+  "(-)-b-chlorodiisopinocampheylborane": [
+   "name_stereo_missing_in_smiles",
+   "unspecified_stereocentres"
+  ],
+  "(-)-dmma": [
+   "name_stereo_missing_in_smiles",
+   "unspecified_stereocentres"
+  ],
+  "(-)-ephos": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(-)-isopinocampheylborane tmeda complex": [
+   "unspecified_stereocentres"
+  ],
+  "(1s)-3-(1,10-phenanthrolin-2-yl)-2'-phenyl-[1,1'-binaphthalen]-2-ol": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(2r,8as)-(+)-(camphorylsulfonyl)oxaziridine": [
+   "name_stereo_missing_in_smiles",
+   "unspecified_stereocentres"
+  ],
+  "(r)-(+)-1,1'-binaphthyl-2,2'-diamine": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-(+)-2-amino-2'-hydroxy-1,1'-binaphthyl": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-(+)-2-diphenylphosphino-2'-methoxy-1,1'-binaphthyl": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-(+)-3,3'-dibromo-5,5',6,6',7,7',8,8'-octahydro-1,1'-bi-2-naphthol": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-(+)-5,5',6,6',7,7',8,8'-octahydro-1,1'-bi-2-naphthol": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-(+)-n,n-dimethyl-1-ferrocenylethylamine": [
+   "radical"
+  ],
+  "(r)-(-)-1,1'-binaphthyl-2,2'-diyl bis(trifluoromethanesulfonate)": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-(-)-6,6'-dibromo-1,1'-bi-2-naphthol": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-2,2'-dimethoxy-1,1'-binaphthyl": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-3,3'-dibromo-1,1'-bi-2-naphthol": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-3,3'-dibromo-2,2'-dimethoxy-1,1'-binaphthyl": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r)-benzyl-2-[4-(trifluoromethyl)phenyl]-6,7-dihydro-5h-pyrrolo[2,1-c][1,2,4]triazolium tetrafluoroborate": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(r,r)-(-)-2,3-bis(tert-butylmethylphosphino)quinoxaline": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "(s,s)-1,2-bis[(tert-butyl)methylphosphino]ethane bis(borane)": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "1,1'-bi-2-naphthol": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "1,3,5-tris(3,3,3-trifluoropropyl)-1,3,5-trimethylcyclotrisiloxane": [
+   "unspecified_stereocentres"
+  ],
+  "1,3-bis(2,6-diisopropylphenyl)imidazol-2-ylidene": [
+   "radical"
+  ],
+  "1,3-bis(2,6-diisopropylphenyl)imidazolidin-2-ylidene": [
+   "radical"
+  ],
+  "1,3-di(1-adamantyl)imidazolinium tetrafluoroborate": [
+   "unspecified_stereocentres"
+  ],
+  "1,3-di(1-adamantyl)imidazolium tetrafluoroborate": [
+   "unspecified_stereocentres"
+  ],
+  "1,3-di-tert-butylimidazol-2-ylidene": [
+   "radical"
+  ],
+  "2-(3,4-epoxycyclohexyl)ethyltrimethoxysilane": [
+   "unspecified_stereocentres"
+  ],
+  "2-(5-norbornene-2,3-dicarboximido)-1,1,3,3-tetramethyluronium tetrafluoroborate": [
+   "unspecified_stereocentres"
+  ],
+  "2-hydroxy-2-azaadamantane": [
+   "unspecified_stereocentres"
+  ],
+  "31p": [
+   "unspecified_stereocentres"
+  ],
+  "4-[2-[2-(4-iodophenoxy)ethoxy]carbonyl]benzoyloxy-2,2,6,6-tetramethylpiperidin-1-oxyl": [
+   "radical"
+  ],
+  "4-acetamido-2,2,6,6-tetramethylpiperidine 1-oxyl": [
+   "radical"
+  ],
+  "4-hydroxy-2,2,6,6-tetramethylpiperidine 1-oxyl benzoate": [
+   "radical"
+  ],
+  "4-methoxy-2,2,6,6-tetramethylpiperidine 1-oxyl": [
+   "radical"
+  ],
+  "[(r)-2,2'-bis(diphenylphosphino)-1,1'-binaphthyl]ruthenium(ii) dichloride": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "[18]anep4o2": [
+   "unspecified_stereocentres"
+  ],
+  "a12": [
+   "unspecified_stereocentres"
+  ],
+  "aao": [
+   "unspecified_stereocentres"
+  ],
+  "abg": [
+   "unspecified_stereocentres"
+  ],
+  "abietane": [
+   "unspecified_stereocentres"
+  ],
+  "abiraterone": [
+   "unspecified_stereocentres"
+  ],
+  "achyrofuran": [
+   "unspecified_stereocentres"
+  ],
+  "ack": [
+   "unspecified_stereocentres"
+  ],
+  "acteoside": [
+   "unspecified_stereocentres"
+  ],
+  "actinomycin-d": [
+   "unspecified_stereocentres"
+  ],
+  "actinorhodin": [
+   "unspecified_stereocentres"
+  ],
+  "ad": [
+   "unspecified_stereocentres"
+  ],
+  "adenosine": [
+   "unspecified_stereocentres"
+  ],
+  "adenylate": [
+   "unspecified_stereocentres"
+  ],
+  "adn": [
+   "unspecified_stereocentres"
+  ],
+  "ado": [
+   "unspecified_stereocentres"
+  ],
+  "adoc": [
+   "unspecified_stereocentres"
+  ],
+  "adocn": [
+   "unspecified_stereocentres"
+  ],
+  "adoco": [
+   "unspecified_stereocentres"
+  ],
+  "adocs": [
+   "unspecified_stereocentres"
+  ],
+  "adp": [
+   "unspecified_stereocentres"
+  ],
+  "adpoc": [
+   "unspecified_stereocentres"
+  ],
+  "adpocn": [
+   "unspecified_stereocentres"
+  ],
+  "adpoco": [
+   "unspecified_stereocentres"
+  ],
+  "adpocs": [
+   "unspecified_stereocentres"
+  ],
+  "ads": [
+   "unspecified_stereocentres"
+  ],
+  "aerugidiol": [
+   "unspecified_stereocentres"
+  ],
+  "afb": [
+   "unspecified_stereocentres"
+  ],
+  "afinitor": [
+   "unspecified_stereocentres"
+  ],
+  "afzelin": [
+   "unspecified_stereocentres"
+  ],
+  "ajmalicine": [
+   "unspecified_stereocentres"
+  ],
+  "ajugol": [
+   "unspecified_stereocentres"
+  ],
+  "akba": [
+   "unspecified_stereocentres"
+  ],
+  "aldosterone": [
+   "unspecified_stereocentres"
+  ],
+  "aldrin": [
+   "unspecified_stereocentres"
+  ],
+  "alloferon": [
+   "unspecified_stereocentres"
+  ],
+  "allotetrahydrodeoxycorticosterone": [
+   "unspecified_stereocentres"
+  ],
+  "alnumycin": [
+   "unspecified_stereocentres"
+  ],
+  "alpha-tocopherol": [
+   "unspecified_stereocentres"
+  ],
+  "alt": [
+   "unspecified_stereocentres"
+  ],
+  "altenuene": [
+   "unspecified_stereocentres"
+  ],
+  "amikacin": [
+   "unspecified_stereocentres"
+  ],
+  "amoxicillin": [
+   "unspecified_stereocentres"
+  ],
+  "ampicillin": [
+   "unspecified_stereocentres"
+  ],
+  "amppnp": [
+   "unspecified_stereocentres"
+  ],
+  "amprenavir": [
+   "unspecified_stereocentres"
+  ],
+  "amx": [
+   "unspecified_stereocentres"
+  ],
+  "andalusol": [
+   "unspecified_stereocentres"
+  ],
+  "androstane": [
+   "unspecified_stereocentres"
+  ],
+  "androstenedione": [
+   "unspecified_stereocentres"
+  ],
+  "androstenol": [
+   "unspecified_stereocentres"
+  ],
+  "anidulafungin": [
+   "unspecified_stereocentres"
+  ],
+  "anilino": [
+   "radical"
+  ],
+  "anisomycin": [
+   "unspecified_stereocentres"
+  ],
+  "antheraxanthin": [
+   "unspecified_stereocentres"
+  ],
+  "aot": [
+   "unspecified_stereocentres"
+  ],
+  "ap5": [
+   "unspecified_stereocentres"
+  ],
+  "apetalactone": [
+   "unspecified_stereocentres"
+  ],
+  "aprepitant": [
+   "unspecified_stereocentres"
+  ],
+  "ara": [
+   "unspecified_stereocentres"
+  ],
+  "ara-c": [
+   "unspecified_stereocentres"
+  ],
+  "ara-u": [
+   "unspecified_stereocentres"
+  ],
+  "arabinotriose": [
+   "unspecified_stereocentres"
+  ],
+  "arbutin": [
+   "unspecified_stereocentres"
+  ],
+  "arjunetin": [
+   "unspecified_stereocentres"
+  ],
+  "ars": [
+   "radical"
+  ],
+  "artemether": [
+   "unspecified_stereocentres"
+  ],
+  "as2o3": [
+   "unspecified_stereocentres"
+  ],
+  "ascorbigen": [
+   "unspecified_stereocentres"
+  ],
+  "aspartyl": [
+   "radical"
+  ],
+  "asperlicin": [
+   "unspecified_stereocentres"
+  ],
+  "atp": [
+   "unspecified_stereocentres"
+  ],
+  "atropine": [
+   "unspecified_stereocentres"
+  ],
+  "atz": [
+   "unspecified_stereocentres"
+  ],
+  "aur": [
+   "unspecified_stereocentres"
+  ],
+  "avarol": [
+   "unspecified_stereocentres"
+  ],
+  "azithromycin": [
+   "unspecified_stereocentres"
+  ],
+  "azt": [
+   "unspecified_stereocentres"
+  ],
+  "azt-tp": [
+   "unspecified_stereocentres"
+  ],
+  "bac": [
+   "unspecified_stereocentres"
+  ],
+  "bacteriopheophytin": [
+   "unspecified_stereocentres"
+  ],
+  "baicalin": [
+   "unspecified_stereocentres"
+  ],
+  "batimastat": [
+   "unspecified_stereocentres"
+  ],
+  "bbh": [
+   "unspecified_stereocentres"
+  ],
+  "bdms": [
+   "radical"
+  ],
+  "bdz": [
+   "unspecified_stereocentres"
+  ],
+  "beclomethasone": [
+   "unspecified_stereocentres"
+  ],
+  "bellericoside": [
+   "unspecified_stereocentres"
+  ],
+  "benztropine": [
+   "unspecified_stereocentres"
+  ],
+  "bergenin": [
+   "unspecified_stereocentres"
+  ],
+  "bestatin": [
+   "unspecified_stereocentres"
+  ],
+  "beta-glucogallin": [
+   "unspecified_stereocentres"
+  ],
+  "betulin": [
+   "unspecified_stereocentres"
+  ],
+  "beyerane": [
+   "unspecified_stereocentres"
+  ],
+  "binap": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "biotin": [
+   "unspecified_stereocentres"
+  ],
+  "biphalin": [
+   "unspecified_stereocentres"
+  ],
+  "blm": [
+   "unspecified_stereocentres"
+  ],
+  "boceprevir": [
+   "unspecified_stereocentres"
+  ],
+  "bpde": [
+   "unspecified_stereocentres"
+  ],
+  "bradykinin": [
+   "unspecified_stereocentres"
+  ],
+  "brartemicin": [
+   "unspecified_stereocentres"
+  ],
+  "brdu": [
+   "unspecified_stereocentres"
+  ],
+  "bromocriptine": [
+   "unspecified_stereocentres"
+  ],
+  "bromodicarbonyl[bis[2-(diisopropylphosphino)ethyl]amine]manganese(i)": [
+   "radical"
+  ],
+  "brucine": [
+   "unspecified_stereocentres"
+  ],
+  "bti": [
+   "known_wrong: alias PIFA stores ring-substituted trifluoroacetates; PIFA is PhI(OCOCF3)2 (PubChem CID 102317)"
+  ],
+  "btx-b": [
+   "unspecified_stereocentres"
+  ],
+  "budesonide": [
+   "unspecified_stereocentres"
+  ],
+  "bufadienolide": [
+   "unspecified_stereocentres"
+  ],
+  "bup": [
+   "unspecified_stereocentres"
+  ],
+  "bvdu": [
+   "unspecified_stereocentres"
+  ],
+  "bzd": [
+   "unspecified_stereocentres"
+  ],
+  "c-amp": [
+   "unspecified_stereocentres"
+  ],
+  "c-c": [
+   "unspecified_stereocentres"
+  ],
+  "c-di-gmp": [
+   "unspecified_stereocentres"
+  ],
+  "c6": [
+   "unspecified_stereocentres"
+  ],
+  "c7": [
+   "unspecified_stereocentres"
+  ],
+  "cabazitaxel": [
+   "unspecified_stereocentres"
+  ],
+  "calcitriol": [
+   "unspecified_stereocentres"
+  ],
+  "calycanthoside": [
+   "unspecified_stereocentres"
+  ],
+  "camp": [
+   "unspecified_stereocentres"
+  ],
+  "campesterol": [
+   "unspecified_stereocentres"
+  ],
+  "canagliflozin": [
+   "unspecified_stereocentres"
+  ],
+  "canophyllol": [
+   "unspecified_stereocentres"
+  ],
+  "cantharidin": [
+   "unspecified_stereocentres"
+  ],
+  "carbenicillin": [
+   "unspecified_stereocentres"
+  ],
+  "carbonyl(dihydrido)tris(triphenylphosphine)ruthenium(ii)": [
+   "radical"
+  ],
+  "carbonylchlorobis(triphenylphosphine)iridium(i)": [
+   "radical"
+  ],
+  "carbonylhydridotris(triphenylphosphine)iridium(i)": [
+   "radical"
+  ],
+  "cardiolipin": [
+   "unspecified_stereocentres"
+  ],
+  "carnosol": [
+   "unspecified_stereocentres"
+  ],
+  "cassane": [
+   "unspecified_stereocentres"
+  ],
+  "catalpol": [
+   "unspecified_stereocentres"
+  ],
+  "cb7": [
+   "unspecified_stereocentres"
+  ],
+  "cdca": [
+   "unspecified_stereocentres"
+  ],
+  "cdp": [
+   "unspecified_stereocentres"
+  ],
+  "ce-ooh": [
+   "unspecified_stereocentres"
+  ],
+  "cefadroxil": [
+   "unspecified_stereocentres"
+  ],
+  "celastrol": [
+   "unspecified_stereocentres"
+  ],
+  "cephalexin": [
+   "unspecified_stereocentres"
+  ],
+  "cetrorelix": [
+   "unspecified_stereocentres"
+  ],
+  "cf3o": [
+   "radical"
+  ],
+  "cf3o2": [
+   "radical"
+  ],
+  "cgmp": [
+   "unspecified_stereocentres"
+  ],
+  "cgp": [
+   "unspecified_stereocentres"
+  ],
+  "ch2cn": [
+   "radical"
+  ],
+  "charcoal": [
+   "radical"
+  ],
+  "chbr2": [
+   "radical"
+  ],
+  "chelidonine": [
+   "unspecified_stereocentres"
+  ],
+  "chl": [
+   "unspecified_stereocentres"
+  ],
+  "chlordecone": [
+   "unspecified_stereocentres"
+  ],
+  "chlorophyll-a": [
+   "unspecified_stereocentres"
+  ],
+  "cholane": [
+   "unspecified_stereocentres"
+  ],
+  "cholesterol": [
+   "unspecified_stereocentres"
+  ],
+  "ciguatoxin": [
+   "unspecified_stereocentres"
+  ],
+  "cinnamolide": [
+   "unspecified_stereocentres"
+  ],
+  "cinobufagin": [
+   "unspecified_stereocentres"
+  ],
+  "clarithromycin": [
+   "unspecified_stereocentres"
+  ],
+  "clerosterol": [
+   "unspecified_stereocentres"
+  ],
+  "clofarabine": [
+   "unspecified_stereocentres"
+  ],
+  "clovanemagnolol": [
+   "unspecified_stereocentres"
+  ],
+  "cloxacillin": [
+   "unspecified_stereocentres"
+  ],
+  "cms": [
+   "radical"
+  ],
+  "cobicistat": [
+   "unspecified_stereocentres"
+  ],
+  "cocaine": [
+   "unspecified_stereocentres"
+  ],
+  "codeine": [
+   "unspecified_stereocentres"
+  ],
+  "coniferin": [
+   "unspecified_stereocentres"
+  ],
+  "cordycepin": [
+   "unspecified_stereocentres"
+  ],
+  "corilagin": [
+   "unspecified_stereocentres"
+  ],
+  "corticosterone": [
+   "unspecified_stereocentres"
+  ],
+  "cortisol": [
+   "unspecified_stereocentres"
+  ],
+  "cortisone": [
+   "unspecified_stereocentres"
+  ],
+  "cp*": [
+   "radical"
+  ],
+  "cp-2": [
+   "unspecified_stereocentres"
+  ],
+  "cpdms": [
+   "radical"
+  ],
+  "cpep": [
+   "radical"
+  ],
+  "crb": [
+   "unspecified_stereocentres"
+  ],
+  "crm": [
+   "unspecified_stereocentres"
+  ],
+  "crocin": [
+   "unspecified_stereocentres"
+  ],
+  "csa": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "cubebin": [
+   "unspecified_stereocentres"
+  ],
+  "cya": [
+   "unspecified_stereocentres"
+  ],
+  "cyclic-amp": [
+   "unspecified_stereocentres"
+  ],
+  "cycloartane": [
+   "unspecified_stereocentres"
+  ],
+  "cycloheximide": [
+   "unspecified_stereocentres"
+  ],
+  "cyclonerodiol": [
+   "unspecified_stereocentres"
+  ],
+  "cyclopentadienyliron dicarbonyl dimer": [
+   "radical"
+  ],
+  "cyclotriphosphazene": [
+   "unspecified_stereocentres"
+  ],
+  "cyfluthrin": [
+   "unspecified_stereocentres"
+  ],
+  "cynaropicrin": [
+   "unspecified_stereocentres"
+  ],
+  "cypermethrin": [
+   "unspecified_stereocentres"
+  ],
+  "cysteinyl": [
+   "radical"
+  ],
+  "d": [
+   "radical"
+  ],
+  "d-fagomine": [
+   "unspecified_stereocentres"
+  ],
+  "d-galn": [
+   "unspecified_stereocentres"
+  ],
+  "d2n": [
+   "radical"
+  ],
+  "d4t-6peg-tibo": [
+   "unspecified_stereocentres"
+  ],
+  "damgo": [
+   "unspecified_stereocentres"
+  ],
+  "dammarane": [
+   "unspecified_stereocentres"
+  ],
+  "damp": [
+   "unspecified_stereocentres"
+  ],
+  "danazol": [
+   "unspecified_stereocentres"
+  ],
+  "dapta": [
+   "unspecified_stereocentres"
+  ],
+  "darunavir": [
+   "unspecified_stereocentres"
+  ],
+  "datp": [
+   "unspecified_stereocentres"
+  ],
+  "daunomycin": [
+   "unspecified_stereocentres"
+  ],
+  "db-t-boc": [
+   "radical"
+  ],
+  "dcdp": [
+   "unspecified_stereocentres"
+  ],
+  "dcmp": [
+   "unspecified_stereocentres"
+  ],
+  "dctp": [
+   "unspecified_stereocentres"
+  ],
+  "deflazacort": [
+   "unspecified_stereocentres"
+  ],
+  "deips": [
+   "radical"
+  ],
+  "deoxycytidine": [
+   "unspecified_stereocentres"
+  ],
+  "deoxynivalenol": [
+   "unspecified_stereocentres"
+  ],
+  "deoxyuridine": [
+   "unspecified_stereocentres"
+  ],
+  "desmosterol": [
+   "unspecified_stereocentres"
+  ],
+  "desogestrel": [
+   "unspecified_stereocentres"
+  ],
+  "dextrorphan": [
+   "unspecified_stereocentres"
+  ],
+  "dfdu": [
+   "unspecified_stereocentres"
+  ],
+  "dgtp": [
+   "unspecified_stereocentres"
+  ],
+  "dha": [
+   "unspecified_stereocentres"
+  ],
+  "dhceo": [
+   "unspecified_stereocentres"
+  ],
+  "dhea": [
+   "unspecified_stereocentres"
+  ],
+  "dheas": [
+   "unspecified_stereocentres"
+  ],
+  "dhmeq": [
+   "unspecified_stereocentres"
+  ],
+  "dht": [
+   "unspecified_stereocentres"
+  ],
+  "di-1-adamantylphosphine": [
+   "unspecified_stereocentres"
+  ],
+  "diasesartemin": [
+   "unspecified_stereocentres"
+  ],
+  "dicloxacillin": [
+   "unspecified_stereocentres"
+  ],
+  "dico": [
+   "unspecified_stereocentres"
+  ],
+  "dicyclopentadiene": [
+   "unspecified_stereocentres"
+  ],
+  "dienogest": [
+   "unspecified_stereocentres"
+  ],
+  "digitoxin": [
+   "unspecified_stereocentres"
+  ],
+  "digoxin": [
+   "unspecified_stereocentres"
+  ],
+  "dihexa": [
+   "unspecified_stereocentres"
+  ],
+  "dimethyltitanocene": [
+   "radical"
+  ],
+  "dimsyl": [
+   "radical"
+  ],
+  "dimyristoylphosphatidylglycerol": [
+   "unspecified_stereocentres"
+  ],
+  "dioscin": [
+   "unspecified_stereocentres"
+  ],
+  "diosmin": [
+   "unspecified_stereocentres"
+  ],
+  "dipamp": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "dipotassium (r)-1,1'-binaphthyl-2,2'-disulfonate": [
+   "name_stereo_missing_in_smiles"
+  ],
+  "discodermolide": [
+   "unspecified_stereocentres"
+  ],
+  "dmag": [
+   "unspecified_stereocentres"
+  ],
+  "dmips": [
+   "radical"
+  ],
+  "dmm": [
+   "radical"
+  ],
+  "dmoc": [
+   "radical"
+  ],
+  "dmp": [
+   "radical"
+  ],
+  "dnj": [
+   "unspecified_stereocentres"
+  ],
+  "dnmbs": [
+   "radical"
+  ],
+  "dnpeoc": [
+   "radical"
+  ],
+  "dnr": [
+   "unspecified_stereocentres"
+  ],
+  "dns": [
+   "radical"
+  ],
+  "dnse": [
+   "radical"
+  ],
+  "dnseoc": [
+   "radical"
+  ],
+  "dobz": [
+   "radical"
+  ],
+  "doc": [
+   "radical"
+  ],
+  "doca": [
+   "unspecified_stereocentres"
+  ],
+  "dops": [
+   "radical"
+  ],
+  "doxazolidine": [
+   "unspecified_stereocentres"
+  ],
+  "doxil": [
+   "unspecified_stereocentres"
+  ],
+  "doxycycline": [
+   "unspecified_stereocentres"
+  ],
+  "dpips": [
+   "radical"
+  ],
+  "dpp": [
+   "radical"
+  ],
+  "dppa": [
+   "known_wrong: stores a phosphinic azide without the P-O-aryl oxygens; DPPA is (PhO)2P(O)N3 (PubChem CID 123414)"
+  ],
+  "dptbos": [
+   "radical"
+  ],
+  "dptbs": [
+   "radical"
+  ],
+  "ds": [
+   "radical"
+  ],
+  "dtb-fmoc": [
+   "radical"
+  ],
+  "dtbs": [
+   "radical"
+  ],
+  "dte": [
+   "radical"
+  ],
+  "dtmp": [
+   "unspecified_stereocentres"
+  ],
+  "dttp": [
+   "unspecified_stereocentres"
+  ],
+  "dtx": [
+   "unspecified_stereocentres"
+  ],
+  "dudp": [
+   "unspecified_stereocentres"
+  ],
+  "dun": [
+   "unspecified_stereocentres"
+  ],
+  "duphos": [
+   "unspecified_stereocentres"
+  ],
+  "dutasteride": [
+   "unspecified_stereocentres"
+  ],
+  "dutp": [
+   "unspecified_stereocentres"
+  ],
+  "dxm": [
+   "unspecified_stereocentres"
+  ],
+  "dydrogesterone": [
+   "unspecified_stereocentres"
+  ],
+  "dzn": [
+   "unspecified_stereocentres"
+  ],
+  "e-64d": [
+   "unspecified_stereocentres"
+  ],
+  "ecteinascidin": [
+   "unspecified_stereocentres"
+  ],
+  "edoxaban": [
+   "unspecified_stereocentres"
+  ],
+  "ee2": [
+   "unspecified_stereocentres"
+  ],
+  "eldecalcitol": [
+   "unspecified_stereocentres"
+  ],
+  "elemol": [
+   "unspecified_stereocentres"
+  ],
+  "elisidepsin": [
+   "unspecified_stereocentres"
+  ],
+  "emetine": [
+   "unspecified_stereocentres"
+  ],
+  "enalapril": [
+   "unspecified_stereocentres"
+  ],
+  "enalaprilate": [
+   "unspecified_stereocentres"
+  ],
+  "endomorphin-1": [
+   "unspecified_stereocentres"
+  ],
+  "endosulfan": [
+   "unspecified_stereocentres"
+  ],
+  "enmein": [
+   "unspecified_stereocentres"
+  ],
+  "enr": [
+   "unspecified_stereocentres"
+  ],
+  "ent-kaurane": [
+   "unspecified_stereocentres"
+  ],
+  "entecavir": [
+   "unspecified_stereocentres"
+  ],
+  "eplerenone": [
+   "unspecified_stereocentres"
+  ],
+  "ergone": [
+   "unspecified_stereocentres"
+  ],
+  "ergosterol": [
+   "unspecified_stereocentres"
+  ],
+  "eribulin": [
+   "unspecified_stereocentres"
+  ],
+  "ertapenem": [
+   "unspecified_stereocentres"
+  ],
+  "ertugliflozin": [
+   "unspecified_stereocentres"
+  ],
+  "erythrodiol": [
+   "unspecified_stereocentres"
+  ],
+  "erythromycin": [
+   "unspecified_stereocentres"
+  ],
+  "esculin": [
+   "unspecified_stereocentres"
+  ],
+  "estradiol": [
+   "unspecified_stereocentres"
+  ],
+  "estriol": [
+   "unspecified_stereocentres"
+  ],
+  "estrone": [
+   "unspecified_stereocentres"
+  ],
+  "etoposide": [
+   "unspecified_stereocentres"
+  ],
+  "eudesmane": [
+   "unspecified_stereocentres"
+  ],
+  "eudesmanolide": [
+   "unspecified_stereocentres"
+  ],
+  "eunicellin": [
+   "unspecified_stereocentres"
+  ],
+  "exemestane": [
+   "unspecified_stereocentres"
+  ],
+  "ezetimibe": [
+   "unspecified_stereocentres"
+  ],
+  "fawcettimine": [
+   "unspecified_stereocentres"
+  ],
+  "fbp": [
+   "unspecified_stereocentres"
+  ],
+  "fdu": [
+   "unspecified_stereocentres"
+  ],
+  "fdv": [
+   "unspecified_stereocentres"
+  ],
+  "fee": [
+   "unspecified_stereocentres"
+  ],
+  "finasteride": [
+   "unspecified_stereocentres"
+  ],
+  "flt": [
+   "unspecified_stereocentres"
+  ],
+  "flucloxacillin": [
+   "unspecified_stereocentres"
+  ],
+  "fludarabine": [
+   "unspecified_stereocentres"
+  ],
+  "flunisolide": [
+   "unspecified_stereocentres"
+  ],
+  "fluticasone": [
+   "unspecified_stereocentres"
+  ],
+  "fmca": [
+   "unspecified_stereocentres"
+  ],
+  "fmcap": [
+   "unspecified_stereocentres"
+  ],
+  "fmlf": [
+   "unspecified_stereocentres"
+  ],
+  "folfiri": [
+   "unspecified_stereocentres"
+  ],
+  "forskolin": [
+   "unspecified_stereocentres"
+  ],
+  "friedelin": [
+   "unspecified_stereocentres"
+  ],
+  "fst": [
+   "unspecified_stereocentres"
+  ],
+  "fucoxanthin": [
+   "unspecified_stereocentres"
+  ],
+  "fulvestrant": [
+   "unspecified_stereocentres"
+  ],
+  "furostanol": [
+   "unspecified_stereocentres"
+  ],
+  "gagaminine": [
+   "unspecified_stereocentres"
+  ],
+  "gala": [
+   "unspecified_stereocentres"
+  ],
+  "galantamine": [
+   "unspecified_stereocentres"
+  ],
+  "galnac": [
+   "unspecified_stereocentres"
+  ],
+  "ganodermanondiol": [
+   "unspecified_stereocentres"
+  ],
+  "gastrodin": [
+   "unspecified_stereocentres"
+  ],
+  "gd-bopta": [
+   "unspecified_stereocentres"
+  ],
+  "gdp": [
+   "unspecified_stereocentres"
+  ],
+  "gemcitabine": [
+   "unspecified_stereocentres"
+  ],
+  "genipin": [
+   "unspecified_stereocentres"
+  ],
+  "genistin": [
+   "unspecified_stereocentres"
+  ],
+  "gentiopicrin": [
+   "unspecified_stereocentres"
+  ],
+  "gfc": [
+   "unspecified_stereocentres"
+  ],
+  "gkb": [
+   "unspecified_stereocentres"
+  ],
+  "glucantime": [
+   "unspecified_stereocentres"
+  ],
+  "glucovanillin": [
+   "unspecified_stereocentres"
+  ],
+  "glucuronide": [
+   "unspecified_stereocentres"
+  ],
+  "glycitin": [
+   "unspecified_stereocentres"
+  ],
+  "glycodeoxycholate": [
+   "unspecified_stereocentres"
+  ],
+  "gnp": [
+   "unspecified_stereocentres"
+  ],
+  "gpv": [
+   "unspecified_stereocentres"
+  ],
+  "gssg": [
+   "unspecified_stereocentres"
+  ],
+  "gtp": [
+   "unspecified_stereocentres"
+  ],
+  "guanosine": [
+   "unspecified_stereocentres"
+  ],
+  "guanylate": [
+   "unspecified_stereocentres"
+  ],
+  "h": [
+   "radical"
+  ],
+  "h3b": [
+   "radical"
+  ],
+  "h3k5o18s4": [
+   "radical"
+  ],
+  "hbcd": [
+   "unspecified_stereocentres"
+  ],
+  "hdoc": [
+   "radical"
+  ],
+  "helenalin": [
+   "unspecified_stereocentres"
+  ],
+  "hemopressin": [
+   "unspecified_stereocentres"
+  ],
+  "hena": [
+   "unspecified_stereocentres"
+  ],
+  "heptachlor": [
+   "unspecified_stereocentres"
+  ],
+  "her": [
+   "unspecified_stereocentres"
+  ],
+  "herboxidiene": [
+   "unspecified_stereocentres"
+  ],
+  "heroin": [
+   "unspecified_stereocentres"
+  ],
+  "hesperidin": [
+   "unspecified_stereocentres"
+  ],
+  "hfb": [
+   "radical"
+  ],
+  "hippeastrine": [
+   "unspecified_stereocentres"
+  ],
+  "hmds": [
+   "known_wrong: stores a pentamethyl Si-H species; HMDS is (Me3Si)2NH (PubChem CID 13838)"
+  ],
+  "hmt": [
+   "unspecified_stereocentres"
+  ],
+  "hoc": [
+   "radical"
+  ],
+  "hoch2oo": [
+   "radical"
+  ],
+  "hopane": [
+   "unspecified_stereocentres"
+  ],
+  "hopene": [
+   "unspecified_stereocentres"
+  ],
+  "hsdis": [
+   "radical"
+  ],
+  "hsdms": [
+   "radical"
+  ],
+  "hsya": [
+   "unspecified_stereocentres"
+  ],
+  "hyperforin": [
+   "unspecified_stereocentres"
+  ],
+  "hyperoside": [
+   "unspecified_stereocentres"
+  ],
+  "icariin": [
+   "unspecified_stereocentres"
+  ],
+  "icy": [
+   "radical"
+  ],
+  "idtr": [
+   "radical"
+  ],
+  "ihn": [
+   "unspecified_stereocentres"
+  ],
+  "ile-phe": [
+   "unspecified_stereocentres"
+  ],
+  "iluvien": [
+   "unspecified_stereocentres"
+  ],
+  "imc": [
+   "unspecified_stereocentres"
+  ],
+  "imds": [
+   "radical"
+  ],
+  "imes": [
+   "radical"
+  ],
+  "imipenem": [
+   "unspecified_stereocentres"
+  ],
+  "inas": [
+   "radical"
+  ],
+  "inavir": [
+   "unspecified_stereocentres"
+  ],
+  "indinavir": [
+   "unspecified_stereocentres"
+  ],
+  "inegy": [
+   "unspecified_stereocentres"
+  ],
+  "ingliforib": [
+   "unspecified_stereocentres"
+  ],
+  "inosine": [
+   "unspecified_stereocentres"
+  ],
+  "inositol": [
+   "unspecified_stereocentres"
+  ],
+  "ipaoc": [
+   "radical"
+  ],
+  "ipc": [
+   "unspecified_stereocentres"
+  ],
+  "ipc2bh": [
+   "unspecified_stereocentres"
+  ],
+  "ipcn": [
+   "unspecified_stereocentres"
+  ],
+  "ipco": [
+   "unspecified_stereocentres"
+  ],
+  "ipcs": [
+   "unspecified_stereocentres"
+  ],
+  "iptg": [
+   "unspecified_stereocentres"
+  ],
+  "isdn": [
+   "unspecified_stereocentres"
+  ],
+  "isoacteoside": [
+   "unspecified_stereocentres"
+  ],
+  "isoambreinolide": [
+   "unspecified_stereocentres"
+  ],
+  "isoengeletin": [
+   "unspecified_stereocentres"
+  ],
+  "isoidide": [
+   "unspecified_stereocentres"
+  ],
+  "isolariciresinol": [
+   "unspecified_stereocentres"
+  ],
+  "isoliquiritin": [
+   "unspecified_stereocentres"
+  ],
+  "isomelezitose": [
+   "unspecified_stereocentres"
+  ],
+  "isoorientin": [
+   "unspecified_stereocentres"
+  ],
+  "isosteviol": [
+   "unspecified_stereocentres"
+  ],
+  "isovitexin": [
+   "unspecified_stereocentres"
+  ],
+  "istaroxime": [
+   "unspecified_stereocentres"
+  ],
+  "itz": [
+   "unspecified_stereocentres"
+  ],
+  "ivm": [
+   "unspecified_stereocentres"
+  ],
+  "ixabepilone": [
+   "unspecified_stereocentres"
+  ],
+  "k-selectride": [
+   "unspecified_stereocentres"
+  ],
+  "kainate": [
+   "unspecified_stereocentres"
+  ],
+  "kanamycin": [
+   "unspecified_stereocentres"
+  ],
+  "katp": [
+   "unspecified_stereocentres"
+  ],
+  "kinsenoside": [
+   "unspecified_stereocentres"
+  ],
+  "kutkin": [
+   "unspecified_stereocentres"
+  ],
+  "l-leucyl-l-isoleucine": [
+   "unspecified_stereocentres"
+  ],
+  "l-ribose": [
+   "unspecified_stereocentres"
+  ],
+  "l-selectride": [
+   "unspecified_stereocentres"
+  ],
+  "lab": [
+   "unspecified_stereocentres"
+  ],
+  "labdane": [
+   "unspecified_stereocentres"
+  ],
+  "lacdinac": [
+   "unspecified_stereocentres"
+  ],
+  "lag": [
+   "unspecified_stereocentres"
+  ],
+  "lagascatriol": [
+   "unspecified_stereocentres"
+  ],
+  "laninamivir": [
+   "unspecified_stereocentres"
+  ],
+  "lanostane": [
+   "unspecified_stereocentres"
+  ],
+  "lanosterol": [
+   "unspecified_stereocentres"
+  ],
+  "laponite": [
+   "unspecified_stereocentres"
+  ],
+  "lariciresinol": [
+   "unspecified_stereocentres"
+  ],
+  "lasiodin": [
+   "unspecified_stereocentres"
+  ],
+  "lathosterol": [
+   "unspecified_stereocentres"
+  ],
+  "laulimalide": [
+   "unspecified_stereocentres"
+  ],
+  "lca": [
+   "unspecified_stereocentres"
+  ],
+  "lestaurtinib": [
+   "unspecified_stereocentres"
+  ],
+  "levoglucosan": [
+   "unspecified_stereocentres"
+  ],
+  "levonorgestrel": [
+   "unspecified_stereocentres"
+  ],
+  "lex": [
+   "unspecified_stereocentres"
+  ],
+  "limonin": [
+   "unspecified_stereocentres"
+  ],
+  "linarin": [
+   "unspecified_stereocentres"
+  ],
+  "lincomycin": [
+   "unspecified_stereocentres"
+  ],
+  "liquiritin": [
+   "unspecified_stereocentres"
+  ],
+  "lisinopril": [
+   "unspecified_stereocentres"
+  ],
+  "litorin": [
+   "unspecified_stereocentres"
+  ],
+  "lmn": [
+   "unspecified_stereocentres"
+  ],
+  "loganin": [
+   "unspecified_stereocentres"
+  ],
+  "lovastatin": [
+   "unspecified_stereocentres"
+  ],
+  "lpi": [
+   "unspecified_stereocentres"
+  ],
+  "lpv": [
+   "unspecified_stereocentres"
+  ],
+  "lstc": [
+   "unspecified_stereocentres"
+  ],
+  "lucenin-2": [
+   "unspecified_stereocentres"
+  ],
+  "lupenone": [
+   "unspecified_stereocentres"
+  ],
+  "lupeol": [
+   "unspecified_stereocentres"
+  ],
+  "lurasidone": [
+   "unspecified_stereocentres"
+  ],
+  "lvm": [
+   "unspecified_stereocentres"
+  ],
+  "lxa4": [
+   "unspecified_stereocentres"
+  ],
+  "lycorenine": [
+   "unspecified_stereocentres"
+  ],
+  "lys-asp-glu-leu": [
+   "unspecified_stereocentres"
+  ],
+  "malonyl-coa": [
+   "unspecified_stereocentres"
+  ],
+  "mangiferin": [
+   "unspecified_stereocentres"
+  ],
+  "mannitol": [
+   "unspecified_stereocentres"
+  ],
+  "marimastat": [
+   "unspecified_stereocentres"
+  ],
+  "matrine": [
+   "unspecified_stereocentres"
+  ],
+  "mbe": [
+   "radical"
+  ],
+  "mbs": [
+   "radical"
+  ],
+  "mc-rr": [
+   "unspecified_stereocentres"
+  ],
+  "mds": [
+   "radical"
+  ],
+  "mdz": [
+   "unspecified_stereocentres"
+  ],
+  "mecamylamine": [
+   "unspecified_stereocentres"
+  ],
+  "medroxyprogesterone": [
+   "unspecified_stereocentres"
+  ],
+  "melittoside": [
+   "unspecified_stereocentres"
+  ],
+  "memantine": [
+   "unspecified_stereocentres"
+  ],
+  "menpoc": [
+   "radical"
+  ],
+  "menthol": [
+   "unspecified_stereocentres"
+  ],
+  "meropenem": [
+   "unspecified_stereocentres"
+  ],
+  "met-enkephalin": [
+   "unspecified_stereocentres"
+  ],
+  "methanabol": [
+   "unspecified_stereocentres"
+  ],
+  "methicillin": [
+   "unspecified_stereocentres"
+  ],
+  "methysergide": [
+   "unspecified_stereocentres"
+  ],
+  "mgadp": [
+   "unspecified_stereocentres"
+  ],
+  "mgs": [
+   "unspecified_stereocentres"
+  ],
+  "microcystin-lr": [
+   "unspecified_stereocentres"
+  ],
+  "mifepristone": [
+   "unspecified_stereocentres"
+  ],
+  "minocycline": [
+   "unspecified_stereocentres"
+  ],
+  "mip": [
+   "radical"
+  ],
+  "mirex": [
+   "unspecified_stereocentres"
+  ],
+  "misoprostol": [
+   "unspecified_stereocentres"
+  ],
+  "mith": [
+   "unspecified_stereocentres"
+  ],
+  "mitragynine": [
+   "unspecified_stereocentres"
+  ],
+  "mm": [
+   "unspecified_stereocentres"
+  ],
+  "mmc": [
+   "unspecified_stereocentres"
+  ],
+  "mmn": [
+   "known_wrong: alias NMM points to an unrelated menthyl ether; N-methylmorpholine is CN1CCOCC1 (PubChem CID 7972)"
+  ],
+  "mmo": [
+   "unspecified_stereocentres"
+  ],
+  "mms": [
+   "unspecified_stereocentres"
+  ],
+  "mmt": [
+   "radical"
+  ],
+  "moexipril": [
+   "unspecified_stereocentres"
+  ],
+  "monocrotaline": [
+   "unspecified_stereocentres"
+  ],
+  "monotropein": [
+   "unspecified_stereocentres"
+  ],
+  "morphin": [
+   "unspecified_stereocentres"
+  ],
+  "morphinan": [
+   "unspecified_stereocentres"
+  ],
+  "moz": [
+   "radical"
+  ],
+  "mpag": [
+   "unspecified_stereocentres"
+  ],
+  "mpe": [
+   "radical"
+  ],
+  "msib": [
+   "radical"
+  ],
+  "msz": [
+   "radical"
+  ],
+  "mta": [
+   "unspecified_stereocentres"
+  ],
+  "mte": [
+   "radical"
+  ],
+  "mtmb": [
+   "radical"
+  ],
+  "mtmeco": [
+   "radical"
+  ],
+  "mtmt": [
+   "radical"
+  ],
+  "mtpc": [
+   "radical"
+  ],
+  "mtr": [
+   "radical"
+  ],
+  "mts": [
+   "radical"
+  ],
+  "mtt": [
+   "radical"
+  ],
+  "mus": [
+   "unspecified_stereocentres"
+  ],
+  "muscarine": [
+   "unspecified_stereocentres"
+  ],
+  "myricitrin": [
+   "unspecified_stereocentres"
+  ],
+  "n-(9-deoxy-epi-cinchonidin-9-yl)picolinamide": [
+   "unspecified_stereocentres"
+  ],
+  "n-(9-deoxy-epi-cinchonin-9-yl)picolinamide": [
+   "unspecified_stereocentres"
+  ],
+  "n-hydroxy-5-norbornene-2,3-dicarboximide": [
+   "unspecified_stereocentres"
+  ],
+  "nadh": [
+   "unspecified_stereocentres"
+  ],
+  "naloxonazine": [
+   "unspecified_stereocentres"
+  ],
+  "naloxone": [
+   "unspecified_stereocentres"
+  ],
+  "naltrexone": [
+   "unspecified_stereocentres"
+  ],
+  "naltrindole": [
+   "unspecified_stereocentres"
+  ],
+  "nandrolone": [
+   "unspecified_stereocentres"
+  ],
+  "naringin": [
+   "unspecified_stereocentres"
+  ],
+  "narirutin": [
+   "unspecified_stereocentres"
+  ],
+  "nateglinide": [
+   "unspecified_stereocentres"
+  ],
+  "nebivolol": [
+   "unspecified_stereocentres"
+  ],
+  "neomycin": [
+   "unspecified_stereocentres"
+  ],
+  "neoprotosappanin": [
+   "unspecified_stereocentres"
+  ],
+  "nephthoacetal": [
+   "unspecified_stereocentres"
+  ],
+  "nhn": [
+   "unspecified_stereocentres"
+  ],
+  "niv": [
+   "unspecified_stereocentres"
+  ],
+  "nk1": [
+   "unspecified_stereocentres"
+  ],
+  "nka": [
+   "unspecified_stereocentres"
+  ],
+  "no2": [
+   "radical"
+  ],
+  "noc": [
+   "radical"
+  ],
+  "nor-binaltorphimine": [
+   "unspecified_stereocentres"
+  ],
+  "norbuprenorphine": [
+   "unspecified_stereocentres"
+  ],
+  "norcantharidin": [
+   "unspecified_stereocentres"
+  ],
+  "noroxycodone": [
+   "unspecified_stereocentres"
+  ],
+  "noroxymorphone": [
+   "unspecified_stereocentres"
+  ],
+  "norswertianolin": [
+   "unspecified_stereocentres"
+  ],
+  "nosyl": [
+   "radical"
+  ],
+  "noviose": [
+   "unspecified_stereocentres"
+  ],
+  "novobiocin": [
+   "unspecified_stereocentres"
+  ],
+  "npeoc": [
+   "radical"
+  ],
+  "nppoc": [
+   "radical"
+  ],
+  "nps": [
+   "radical"
+  ],
+  "npsspeoc": [
+   "radical"
+  ],
+  "npys": [
+   "radical"
+  ],
+  "nse": [
+   "radical"
+  ],
+  "nvoc": [
+   "radical"
+  ],
+  "nystose": [
+   "unspecified_stereocentres"
+  ],
+  "o4-tosyl": [
+   "radical"
+  ],
+  "obo": [
+   "radical"
+  ],
+  "octakis(dimethylsilyloxy)octasilsesquioxane": [
+   "unspecified_stereocentres"
+  ],
+  "octaphenyloctasilsesquioxane": [
+   "unspecified_stereocentres"
+  ],
+  "od": [
+   "radical"
+  ],
+  "oka": [
+   "unspecified_stereocentres"
+  ],
+  "oleanane": [
+   "unspecified_stereocentres"
+  ],
+  "oleandrin": [
+   "unspecified_stereocentres"
+  ],
+  "oleanolic": [
+   "unspecified_stereocentres"
+  ],
+  "omc": [
+   "unspecified_stereocentres"
+  ],
+  "onpg": [
+   "unspecified_stereocentres"
+  ],
+  "ooo": [
+   "unspecified_stereocentres"
+  ],
+  "oregonin": [
+   "unspecified_stereocentres"
+  ],
+  "orlistat": [
+   "unspecified_stereocentres"
+  ],
+  "orvepitant": [
+   "unspecified_stereocentres"
+  ],
+  "oseltamivir": [
+   "unspecified_stereocentres"
+  ],
+  "osu": [
+   "radical"
+  ],
+  "ouabain": [
+   "unspecified_stereocentres"
+  ],
+  "oxacillin": [
+   "unspecified_stereocentres"
+  ],
+  "oxycodone": [
+   "unspecified_stereocentres"
+  ],
+  "oxymatrine": [
+   "unspecified_stereocentres"
+  ],
+  "oxymorphone": [
+   "unspecified_stereocentres"
+  ],
+  "oxysporone": [
+   "unspecified_stereocentres"
+  ],
+  "oxytocin": [
+   "unspecified_stereocentres"
+  ],
+  "p2o5": [
+   "unspecified_stereocentres"
+  ],
+  "pach": [
+   "radical"
+  ],
+  "pacm": [
+   "radical"
+  ],
+  "paeoniflorin": [
+   "unspecified_stereocentres"
+  ],
+  "palbinone": [
+   "unspecified_stereocentres"
+  ],
+  "pallidol": [
+   "unspecified_stereocentres"
+  ],
+  "paloc": [
+   "radical"
+  ],
+  "palonosetron": [
+   "unspecified_stereocentres"
+  ],
+  "palygorskite": [
+   "radical"
+  ],
+  "panaxadiol": [
+   "unspecified_stereocentres"
+  ],
+  "paps": [
+   "unspecified_stereocentres"
+  ],
+  "par": [
+   "unspecified_stereocentres"
+  ],
+  "paricalcitol": [
+   "unspecified_stereocentres"
+  ],
+  "pasireotide": [
+   "unspecified_stereocentres"
+  ],
+  "pcbm": [
+   "unspecified_stereocentres"
+  ],
+  "pcn": [
+   "unspecified_stereocentres"
+  ],
+  "pdn": [
+   "unspecified_stereocentres"
+  ],
+  "pel": [
+   "radical"
+  ],
+  "peltatoside": [
+   "unspecified_stereocentres"
+  ],
+  "penb": [
+   "radical"
+  ],
+  "penp": [
+   "radical"
+  ],
+  "pentagastrin": [
+   "unspecified_stereocentres"
+  ],
+  "peoc": [
+   "radical"
+  ],
+  "peramivir": [
+   "unspecified_stereocentres"
+  ],
+  "pgd2": [
+   "unspecified_stereocentres"
+  ],
+  "pge2": [
+   "unspecified_stereocentres"
+  ],
+  "phac": [
+   "radical"
+  ],
+  "phenoc": [
+   "radical"
+  ],
+  "phlorizin": [
+   "unspecified_stereocentres"
+  ],
+  "phorbol": [
+   "unspecified_stereocentres"
+  ],
+  "phseh": [
+   "radical"
+  ],
+  "phyllostin": [
+   "unspecified_stereocentres"
+  ],
+  "phytate": [
+   "unspecified_stereocentres"
+  ],
+  "phytosphingosine": [
+   "unspecified_stereocentres"
+  ],
+  "piceid": [
+   "unspecified_stereocentres"
+  ],
+  "pimarane": [
+   "unspecified_stereocentres"
+  ],
+  "pino": [
+   "radical"
+  ],
+  "piperacillin": [
+   "unspecified_stereocentres"
+  ],
+  "platyphylloside": [
+   "unspecified_stereocentres"
+  ],
+  "plitidepsin": [
+   "unspecified_stereocentres"
+  ],
+  "pmc": [
+   "radical"
+  ],
+  "pme": [
+   "radical"
+  ],
+  "pmo": [
+   "unspecified_stereocentres"
+  ],
+  "pms": [
+   "radical"
+  ],
+  "pnz": [
+   "radical"
+  ],
+  "poc": [
+   "radical"
+  ],
+  "podocarpane": [
+   "unspecified_stereocentres"
+  ],
+  "podophyllotoxin": [
+   "unspecified_stereocentres"
+  ],
+  "poliothrysoside": [
+   "unspecified_stereocentres"
+  ],
+  "posaconazole": [
+   "unspecified_stereocentres"
+  ],
+  "pp": [
+   "radical"
+  ],
+  "ppca": [
+   "unspecified_stereocentres"
+  ],
+  "ppt": [
+   "radical"
+  ],
+  "ppts": [
+   "known_wrong: stores a thiophosphate; PPTS is pyridinium p-toluenesulfonate (PubChem CID 466102)"
+  ],
+  "prallethrin": [
+   "unspecified_stereocentres"
+  ],
+  "pravastatin": [
+   "unspecified_stereocentres"
+  ],
+  "prednisolone": [
+   "unspecified_stereocentres"
+  ],
+  "prednisone": [
+   "unspecified_stereocentres"
+  ],
+  "pregnane": [
+   "unspecified_stereocentres"
+  ],
+  "pregnenolone": [
+   "unspecified_stereocentres"
+  ],
+  "preoc": [
+   "radical"
+  ],
+  "pristimerin": [
+   "unspecified_stereocentres"
+  ],
+  "procurcumenol": [
+   "unspecified_stereocentres"
+  ],
+  "progesterone": [
+   "unspecified_stereocentres"
+  ],
+  "prostacyclin": [
+   "unspecified_stereocentres"
+  ],
+  "protopanaxatriol": [
+   "unspecified_stereocentres"
+  ],
+  "psec": [
+   "radical"
+  ],
+  "pseudojujubogenin": [
+   "unspecified_stereocentres"
+  ],
+  "psm": [
+   "unspecified_stereocentres"
+  ],
+  "psoc": [
+   "radical"
+  ],
+  "pua": [
+   "unspecified_stereocentres"
+  ],
+  "puerarin": [
+   "unspecified_stereocentres"
+  ],
+  "puromycin": [
+   "unspecified_stereocentres"
+  ],
+  "pyoc": [
+   "radical"
+  ],
+  "pyrrolysine": [
+   "unspecified_stereocentres"
+  ],
+  "qsymia": [
+   "unspecified_stereocentres"
+  ],
+  "quercetrin": [
+   "unspecified_stereocentres"
+  ],
+  "ramiprilat": [
+   "unspecified_stereocentres"
+  ],
+  "rapamycin": [
+   "unspecified_stereocentres"
+  ],
+  "rbv": [
+   "unspecified_stereocentres"
+  ],
+  "regadenoson": [
+   "unspecified_stereocentres"
+  ],
+  "reserpine": [
+   "unspecified_stereocentres"
+  ],
+  "rfrp-3": [
+   "unspecified_stereocentres"
+  ],
+  "rha": [
+   "unspecified_stereocentres"
+  ],
+  "riboflavin": [
+   "unspecified_stereocentres"
+  ],
+  "ribofuranose": [
+   "unspecified_stereocentres"
+  ],
+  "ribothymidine": [
+   "unspecified_stereocentres"
+  ],
+  "rimantadine": [
+   "unspecified_stereocentres"
+  ],
+  "rocaglaol": [
+   "unspecified_stereocentres"
+  ],
+  "rocuronium": [
+   "unspecified_stereocentres"
+  ],
+  "rolapitant": [
+   "unspecified_stereocentres"
+  ],
+  "romidepsin": [
+   "unspecified_stereocentres"
+  ],
+  "rotenone": [
+   "unspecified_stereocentres"
+  ],
+  "rtv": [
+   "unspecified_stereocentres"
+  ],
+  "rut": [
+   "unspecified_stereocentres"
+  ],
+  "sah": [
+   "unspecified_stereocentres"
+  ],
+  "salidroside": [
+   "unspecified_stereocentres"
+  ],
+  "santonin": [
+   "unspecified_stereocentres"
+  ],
+  "saquinavir": [
+   "unspecified_stereocentres"
+  ],
+  "sb2te3": [
+   "radical"
+  ],
+  "sclareol": [
+   "unspecified_stereocentres"
+  ],
+  "scopine": [
+   "unspecified_stereocentres"
+  ],
+  "scopolin": [
+   "unspecified_stereocentres"
+  ],
+  "scutellarin": [
+   "unspecified_stereocentres"
+  ],
+  "sdg": [
+   "unspecified_stereocentres"
+  ],
+  "secoxyloganin": [
+   "unspecified_stereocentres"
+  ],
+  "selenocysteine": [
+   "radical"
+  ],
+  "ses": [
+   "radical"
+  ],
+  "sesamin": [
+   "unspecified_stereocentres"
+  ],
+  "sesaminol": [
+   "unspecified_stereocentres"
+  ],
+  "sesamolinol": [
+   "unspecified_stereocentres"
+  ],
+  "sfa": [
+   "unspecified_stereocentres"
+  ],
+  "sgc": [
+   "unspecified_stereocentres"
+  ],
+  "silatrane": [
+   "radical"
+  ],
+  "silazane": [
+   "radical"
+  ],
+  "silybin": [
+   "unspecified_stereocentres"
+  ],
+  "silychristin": [
+   "unspecified_stereocentres"
+  ],
+  "simvastatin": [
+   "unspecified_stereocentres"
+  ],
+  "sis": [
+   "unspecified_stereocentres"
+  ],
+  "sisyl": [
+   "radical"
+  ],
+  "sitosterol": [
+   "unspecified_stereocentres"
+  ],
+  "slb": [
+   "unspecified_stereocentres"
+  ],
+  "sop": [
+   "unspecified_stereocentres"
+  ],
+  "sophocarpine": [
+   "unspecified_stereocentres"
+  ],
+  "sox": [
+   "unspecified_stereocentres"
+  ],
+  "span60": [
+   "unspecified_stereocentres"
+  ],
+  "span80": [
+   "unspecified_stereocentres"
+  ],
+  "speciophylline": [
+   "unspecified_stereocentres"
+  ],
+  "spironolactone": [
+   "unspecified_stereocentres"
+  ],
+  "spirostan": [
+   "unspecified_stereocentres"
+  ],
+  "spongiatriol": [
+   "unspecified_stereocentres"
+  ],
+  "squalamine": [
+   "unspecified_stereocentres"
+  ],
+  "squalane": [
+   "unspecified_stereocentres"
+  ],
+  "stearoyl-coa": [
+   "unspecified_stereocentres"
+  ],
+  "stigmasterol": [
+   "unspecified_stereocentres"
+  ],
+  "sto": [
+   "unspecified_stereocentres"
+  ],
+  "streptomycin": [
+   "unspecified_stereocentres"
+  ],
+  "streptozocin": [
+   "unspecified_stereocentres"
+  ],
+  "strychnine": [
+   "unspecified_stereocentres"
+  ],
+  "sucralose": [
+   "unspecified_stereocentres"
+  ],
+  "sucrose": [
+   "unspecified_stereocentres"
+  ],
+  "superhydride": [
+   "radical"
+  ],
+  "superoxide": [
+   "radical"
+  ],
+  "sweroside": [
+   "unspecified_stereocentres"
+  ],
+  "swertiamarin": [
+   "unspecified_stereocentres"
+  ],
+  "taddol": [
+   "unspecified_stereocentres"
+  ],
+  "tag": [
+   "unspecified_stereocentres"
+  ],
+  "tandemact": [
+   "unspecified_stereocentres"
+  ],
+  "taurocholate": [
+   "unspecified_stereocentres"
+  ],
+  "taxol": [
+   "unspecified_stereocentres"
+  ],
+  "taxotere": [
+   "unspecified_stereocentres"
+  ],
+  "tazobactam": [
+   "unspecified_stereocentres"
+  ],
+  "tbmps": [
+   "radical"
+  ],
+  "tbs": [
+   "radical"
+  ],
+  "tbtr": [
+   "radical"
+  ],
+  "tcb": [
+   "radical"
+  ],
+  "tdcm": [
+   "unspecified_stereocentres"
+  ],
+  "tde": [
+   "radical"
+  ],
+  "tds": [
+   "radical"
+  ],
+  "tecadenoson": [
+   "unspecified_stereocentres"
+  ],
+  "telaprevir": [
+   "unspecified_stereocentres"
+  ],
+  "tempo": [
+   "radical"
+  ],
+  "tempol": [
+   "radical"
+  ],
+  "teo2": [
+   "radical"
+  ],
+  "tes": [
+   "radical"
+  ],
+  "tesotf": [
+   "known_wrong: stores a trifluoroacetate; TESOTf is the triflate Et3SiOSO2CF3 (PubChem CID 2733308)"
+  ],
+  "testosterone": [
+   "unspecified_stereocentres"
+  ],
+  "thapsigargin": [
+   "unspecified_stereocentres"
+  ],
+  "theaflavin": [
+   "unspecified_stereocentres"
+  ],
+  "thienorphine": [
+   "unspecified_stereocentres"
+  ],
+  "thymidine": [
+   "unspecified_stereocentres"
+  ],
+  "tibolone": [
+   "unspecified_stereocentres"
+  ],
+  "tibs": [
+   "radical"
+  ],
+  "ticagrelor": [
+   "unspecified_stereocentres"
+  ],
+  "tigecycline": [
+   "unspecified_stereocentres"
+  ],
+  "tigliane": [
+   "unspecified_stereocentres"
+  ],
+  "tiotropium": [
+   "unspecified_stereocentres"
+  ],
+  "tips": [
+   "radical"
+  ],
+  "tirilazad": [
+   "unspecified_stereocentres"
+  ],
+  "tltr": [
+   "radical"
+  ],
+  "tms": [
+   "radical"
+  ],
+  "tmtr": [
+   "radical"
+  ],
+  "tnp": [
+   "radical"
+  ],
+  "tobramycine": [
+   "unspecified_stereocentres"
+  ],
+  "tomatidine": [
+   "unspecified_stereocentres"
+  ],
+  "topiramate": [
+   "unspecified_stereocentres"
+  ],
+  "tpgs": [
+   "unspecified_stereocentres"
+  ],
+  "tps": [
+   "radical"
+  ],
+  "trehalose": [
+   "unspecified_stereocentres"
+  ],
+  "trenbolone": [
+   "unspecified_stereocentres"
+  ],
+  "triamcinolone": [
+   "unspecified_stereocentres"
+  ],
+  "tricarbonyl(cyclooctatetraene)iron": [
+   "radical"
+  ],
+  "triethoxy[2-(7-oxabicyclo[4.1.0]heptan-3-yl)ethyl]silane": [
+   "unspecified_stereocentres"
+  ],
+  "triptolide": [
+   "unspecified_stereocentres"
+  ],
+  "triptorelin": [
+   "unspecified_stereocentres"
+  ],
+  "tris(3-hydroxypropyltriazolylmethyl)amine": [
+   "unspecified_stereocentres"
+  ],
+  "trovafloxacin": [
+   "unspecified_stereocentres"
+  ],
+  "trtf7": [
+   "radical"
+  ],
+  "trypsin": [
+   "unspecified_stereocentres"
+  ],
+  "ts": [
+   "radical"
+  ],
+  "tudca": [
+   "unspecified_stereocentres"
+  ],
+  "turinabol": [
+   "unspecified_stereocentres"
+  ],
+  "txa2": [
+   "unspecified_stereocentres"
+  ],
+  "txb2": [
+   "unspecified_stereocentres"
+  ],
+  "tyroscherin": [
+   "unspecified_stereocentres"
+  ],
+  "udp": [
+   "unspecified_stereocentres"
+  ],
+  "udpga": [
+   "unspecified_stereocentres"
+  ],
+  "urantide": [
+   "unspecified_stereocentres"
+  ],
+  "ursane": [
+   "unspecified_stereocentres"
+  ],
+  "uvaol": [
+   "unspecified_stereocentres"
+  ],
+  "val-pro-pro": [
+   "unspecified_stereocentres"
+  ],
+  "vancomycin": [
+   "unspecified_stereocentres"
+  ],
+  "venenatine": [
+   "unspecified_stereocentres"
+  ],
+  "vernakalant": [
+   "unspecified_stereocentres"
+  ],
+  "vin": [
+   "unspecified_stereocentres"
+  ],
+  "vincamine": [
+   "unspecified_stereocentres"
+  ],
+  "violaxanthin": [
+   "unspecified_stereocentres"
+  ],
+  "viridiflorene": [
+   "unspecified_stereocentres"
+  ],
+  "vitexin": [
+   "unspecified_stereocentres"
+  ],
+  "vizantin": [
+   "unspecified_stereocentres"
+  ],
+  "withawrightolide": [
+   "unspecified_stereocentres"
+  ],
+  "wortmannin": [
+   "unspecified_stereocentres"
+  ],
+  "xanthosine": [
+   "unspecified_stereocentres"
+  ],
+  "xe4": [
+   "unspecified_stereocentres"
+  ],
+  "xeroboside": [
+   "unspecified_stereocentres"
+  ],
+  "xylitol": [
+   "unspecified_stereocentres"
+  ],
+  "yohimbine": [
+   "unspecified_stereocentres"
+  ],
+  "yuanhuadine": [
+   "unspecified_stereocentres"
+  ],
+  "yuanhuahine": [
+   "unspecified_stereocentres"
+  ],
+  "z-devd-fmk": [
+   "unspecified_stereocentres"
+  ],
+  "z-leu-leu-leu-al": [
+   "unspecified_stereocentres"
+  ],
+  "zanamivir": [
+   "unspecified_stereocentres"
+  ],
+  "zosuquidar": [
+   "unspecified_stereocentres"
+  ]
+ }
+}
