@@ -22,11 +22,7 @@ from cdxml_toolkit.templates import (
     newman_projection,
 )
 
-SKILL_SCRIPTS = Path(__file__).resolve().parents[2] / "skill" / "chemdraw" / "scripts"
-if str(SKILL_SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(SKILL_SCRIPTS))
-
-import acs_builder  # noqa: E402
+from cdxml_toolkit import acs_builder
 
 
 # ---------------------------------------------------------------------------
