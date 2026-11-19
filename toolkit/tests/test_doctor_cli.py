@@ -172,3 +172,13 @@ def test_chemscript_bridge_self_heals_stale_python_path_in_config(tmp_path):
         bridge = chemscript_bridge.ChemScriptBridge()
     assert bridge._python32 == sys.executable
     assert saved and saved[-1]["python32"] == sys.executable
+
+
+def test_doctor_runs_the_test_suite_only_when_asked():
+    with mock.patch.object(doctor, "_print_diagnostics", return_value=True), mock.patch.object(
+        doctor, "_run_tests", return_value=3
+    ) as tests:
+        assert doctor.main([]) == 0
+        tests.assert_not_called()
+        assert doctor.main(["--tests"]) == 3
+        tests.assert_called_once()

@@ -43,7 +43,7 @@ Users do not install this folder by hand. `python scripts/install.py --runtime -
 | --- | --- |
 | `cdxml-mcp` | Complete MCP runtime (`full` profile by default) |
 | `cdxml-mcp-core` | Compatible 15-tool core server |
-| `cdxml-doctor` | Read-only diagnostics, tests and explicit ChemScript setup (`--no-tests --configure-chemscript`) |
+| `cdxml-doctor` | Read-only diagnostics, explicit ChemScript setup (`--configure-chemscript`) and, with `--tests`, the test suite |
 | `cdxml-render` | Render JSON, YAML or compact text to CDXML |
 | `cdxml-image` | Render CDXML to PNG or SVG |
 | `cdxml-merge` / `cdxml-layout` | Merge schemes or clean reaction layout |
