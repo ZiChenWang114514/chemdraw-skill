@@ -2,6 +2,25 @@
 
 > Generated from cdxml-toolkit 0.7.0a3. Curated guidance: [reviewed-exclusions.md](reviewed-exclusions.md).
 
+## `acs_builder`
+
+- **function**, line 691: `build_from_spec(spec_path, output_path = None)` - Build a CDXML from a JSON spec (or dict); coordinates are points, x right, y down.
+- **class**, line 178: `Fig` - No public docstring in the audited version.
+- **method**, line 605: `Fig.add_conformer(spec_or_template, **kwargs)` - Insert a 3D conformer or projection template from cdxml_toolkit.templates.conformers.
+- **method**, line 576: `Fig.add_interaction(p1, p2, style = 'dashed', color = 'jacs_blue', label = None, clip_margin = 3.5)` - Draw an endpoint-clipped dashed line for H-bonds, pi-stacking, or TS partial bonds.
+- **method**, line 552: `Fig.add_orbital(cx, cy, orbital_type = 'pShaded', angle_deg = -90.0, length = 18.0, width = 7.5, color = 'jacs_blue')` - Emit a native CDXML <graphic GraphicType="Orbital"> lobe at (cx, cy).
+- **method**, line 519: `Fig.add_ts_bracket(box, superscript = '‡', bracket_type = 'Square', lip_size = 5.0, object_ids = None)` - Emit left and right Square bracket graphics, <bracketedgroup>, and top-right superscript (e.g. double dagger).
+- **method**, line 497: `Fig.arrow(x1, y1, x2, y2, kind = 'forward')` - No public docstring in the audited version.
+- **method**, line 504: `Fig.box(x1, y1, x2, y2, round_ = True)` - No public docstring in the audited version.
+- **method**, line 509: `Fig.label_box(x, y, markup, w = None)` - bold Arial code in a rounded box centred at (x,y)
+- **method**, line 232: `Fig.mol(smiles, at = (100, 100), labels = None, coords = None, rotate = 0.0, flip = False, scale = BL, displays = None, radicals = (), wedge = True, explicitH = None, center = True, hide_charge_label = False, lone_pairs = (), double_pos = None, label_text = None, ring_fills = None, atom_halos = None, multi_attachments = None)` - smiles may contain [*:n] dummy atoms; labels maps n -> label text (e.g. 'C10H21'). coords: optional list of (x,y) in drawing units (y down) per atom index (overrides layout). displays: dict bond_idx -> CDXML Display (WedgeBegin etc., B = bond begin atom). label_text: dict atom_idx -> explicit label markup. ring_fills: optional list of {'ring_index': 0, 'color': 'pastel_blue', 'style': 'polygon'|'spline', 'inset': 1.0}. atom_halos: optional list of {'atoms': [0, 1], 'color': 'pastel_yellow', 'radius': 8.0}. multi_attachments: optional list of {'metal_atom': 0, 'ligand_atoms': [1..5], 'bond_display': 'Dash', 'bond_order': 'dative'}.
+- **method**, line 195: `Fig.resolve_color(color)` - Resolve a JACS_PALETTE name, #RRGGBB hex string, or integer index into a CDXML colortable index.
+- **method**, line 487: `Fig.text(x, y, markup, size = 10, align = 'Center', bold = False, font = 3, color = None)` - No public docstring in the audited version.
+- **method**, line 669: `Fig.to_cdxml()` - No public docstring in the audited version.
+- **method**, line 683: `Fig.write(path)` - Write the figure to a new file; FileExistsError if ``path`` exists.
+- **function**, line 107: `formula_markup(label)` - C10H21 -> C{sub:10}H{sub:21}; leaves already-marked text alone
+- **function**, line 87: `runs(markup, font = 3, size = 10, base = 0, color = None)` - No public docstring in the audited version.
+
 ## `atom_mapping`
 
 - **function**, line 300: `available_methods() -> list` - Methods that can run now: the built-in one plus every installed learned backend.
@@ -64,13 +83,16 @@
 
 ## `characterization`
 
-- **function**, line 60: `atoms_mass(mol) -> float` - Sum of the monoisotopic (or labelled-isotope) atom masses, without any electron correction.
-- **function**, line 73: `default_adduct(mol, mode: str = 'positive', ionization: str = 'ESI') -> str` - No public docstring in the audited version.
-- **function**, line 81: `hrms_entry(mol, adduct: str | None = '[M+H]+', *, ionization: str = 'ESI', decimals: int = 4, found: float | None = None, electron_mass: bool = True) -> dict` - {adduct, ion_formula, charge, calcd_mz, found_mz, error_ppm, line} for one ion of ``mol``.
+- **function**, line 113: `atoms_mass(mol) -> float` - Sum of the monoisotopic (or labelled-isotope) atom masses, without any electron correction.
+- **function**, line 126: `default_adduct(mol, mode: str = 'positive', ionization: str = 'ESI') -> str` - No public docstring in the audited version.
+- **function**, line 135: `hrms_entry(mol, adduct: str | None = '[M+H]+', *, ionization: str = 'ESI', decimals: int = 4, found: float | None = None, electron_mass: bool = True) -> dict` - {adduct, ion_formula, charge, calcd_mz, found_mz, error_ppm, line} for one ion of ``mol``.
+- **function**, line 93: `ion_component(mol)` - (component, kept_charge) of a multi-component record: the organic ion of a salt.
+- **function**, line 84: `organic_component(mol)` - The fragment with most carbons (then most heavy atoms); the molecule itself if it has one.
 
 ## `chemistry_diff`
 
-- **function**, line 6: `structural_diff(before: str, after: str, timeout: int = 5) -> dict` - No public docstring in the audited version.
+- **function**, line 12: `core_mappings(a, b, query, limit: int = MAX_CORE_MAPPINGS)` - Every mapping of *query* matches in *a* onto those in *b*, or None past *limit*.
+- **function**, line 93: `structural_diff(before: str, after: str, timeout: int = 5) -> dict` - No public docstring in the audited version.
 
 ## `chemistry_semantics`
 
@@ -193,24 +215,24 @@
 
 ## `mcp_runtime.artifact_safety`
 
-- **function**, line 160: `apply_default_mode(path: str | Path) -> None` - Give a staged file the mode a plain open() would: mkstemp() files are 0600.
-- **function**, line 274: `artifact_record(path: str | Path) -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 287: `artifact_records(paths: Iterable[str | Path]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **class**, line 18: `OutputExistsError` - An output already exists and the tool will not replace it.
-- **property**, line 28: `OutputExistsError.public_message` - No public docstring in the audited version.
-- **function**, line 299: `paths_from_value(value: Any) -> list[Path]` - No public docstring in the audited version.
-- **function**, line 245: `publish_directory(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 191: `publish_file(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 229: `publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None` - No public docstring in the audited version.
-- **function**, line 69: `resolve_destination(*, source: str | Path | None, output_path: str | Path | None, tag: str, suffix: str, base_dir: str | Path | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 104: `resolve_directory_destination(*, source: str | Path, output_dir: str | Path | None, tag: str) -> Path` - No public docstring in the audited version.
-- **function**, line 325: `rewrite_paths(value: Any, old_root: str | Path, new_root: str | Path) -> Any` - No public docstring in the audited version.
-- **function**, line 344: `stage_validate_publish(destination: str | Path, writer: Callable[[Path], Any], *, validator: Callable[[Path], Any] = validate_artifact) -> tuple[Any, Path]` - No public docstring in the audited version.
-- **function**, line 180: `staging_directory(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 170: `staging_file(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
-- **function**, line 124: `validate_artifact(path: str | Path) -> Path` - No public docstring in the audited version.
-- **function**, line 32: `validate_input_file(path: str | Path, *, suffixes: tuple[str, ...] | None = None) -> Path` - No public docstring in the audited version.
-- **function**, line 317: `with_artifacts(result: dict[str, Any], paths: Iterable[str | Path]) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 162: `apply_default_mode(path: str | Path) -> None` - Give a staged file the mode a plain open() would: mkstemp() files are 0600.
+- **function**, line 276: `artifact_record(path: str | Path) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 289: `artifact_records(paths: Iterable[str | Path]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **class**, line 20: `OutputExistsError` - An output already exists and the tool will not replace it.
+- **property**, line 30: `OutputExistsError.public_message` - No public docstring in the audited version.
+- **function**, line 301: `paths_from_value(value: Any) -> list[Path]` - No public docstring in the audited version.
+- **function**, line 247: `publish_directory(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 193: `publish_file(staged: str | Path, destination: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 231: `publish_files(staged_outputs: Iterable[tuple[Path, Path]]) -> None` - No public docstring in the audited version.
+- **function**, line 71: `resolve_destination(*, source: str | Path | None, output_path: str | Path | None, tag: str, suffix: str, base_dir: str | Path | None = None) -> Path` - No public docstring in the audited version.
+- **function**, line 106: `resolve_directory_destination(*, source: str | Path, output_dir: str | Path | None, tag: str) -> Path` - No public docstring in the audited version.
+- **function**, line 327: `rewrite_paths(value: Any, old_root: str | Path, new_root: str | Path) -> Any` - No public docstring in the audited version.
+- **function**, line 346: `stage_validate_publish(destination: str | Path, writer: Callable[[Path], Any], *, validator: Callable[[Path], Any] = validate_artifact) -> tuple[Any, Path]` - No public docstring in the audited version.
+- **function**, line 182: `staging_directory(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 172: `staging_file(destination: str | Path) -> Iterator[Path]` - No public docstring in the audited version.
+- **function**, line 126: `validate_artifact(path: str | Path) -> Path` - No public docstring in the audited version.
+- **function**, line 34: `validate_input_file(path: str | Path, *, suffixes: tuple[str, ...] | None = None) -> Path` - No public docstring in the audited version.
+- **function**, line 319: `with_artifacts(result: dict[str, Any], paths: Iterable[str | Path]) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.capabilities`
 
@@ -218,8 +240,8 @@
 
 ## `mcp_runtime.chemistry_compare`
 
-- **function**, line 241: `batch_compare_molecules(pairs: list[dict[str, Any]], fingerprint: str = 'morgan', radius: int = 2, n_bits: int = 2048) -> dict[str, Any]` - Compare up to 256 molecule pairs with one ChemScript bridge session.
-- **function**, line 180: `compare_molecules(molecule_a: str, molecule_b: str, fingerprint: str = 'morgan', radius: int = 2, n_bits: int = 2048) -> dict[str, Any]` - Compare two molecule representations using ChemScript identity and RDKit Tanimoto fingerprints.
+- **function**, line 265: `batch_compare_molecules(pairs: list[dict[str, Any]], fingerprint: str = 'morgan', radius: int = 2, n_bits: int = 2048) -> dict[str, Any]` - Compare up to 256 molecule pairs with one ChemScript bridge session.
+- **function**, line 203: `compare_molecules(molecule_a: str, molecule_b: str, fingerprint: str = 'morgan', radius: int = 2, n_bits: int = 2048) -> dict[str, Any]` - Compare two molecule representations using ChemScript identity and RDKit Tanimoto fingerprints.
 
 ## `mcp_runtime.chemscript_sdk`
 
@@ -318,29 +340,31 @@
 
 ## `mcp_runtime.extended_tools`
 
-- **function**, line 1159: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None, internal_standard_name: str = 'IS') -> dict[str, Any]` - Analyze a time series of standard LCMS data (PDF, .rpt, .daml, report.txt, mzML/mzXML or Waters .raw).
-- **function**, line 1252: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
-- **function**, line 818: `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, Any]` - Create PPTX or DOCX containing editable ChemDraw OLE objects.
-- **function**, line 470: `clean_scheme_layout(input_path: str, output_path: Optional[str] = None, approach: str = 'chemdraw_mimic', render_preview: bool = True) -> dict[str, Any]` - Clean an existing CDXML reaction layout without changing the source file.
-- **function**, line 1117: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
-- **function**, line 742: `fill_office_template(template_path: str, manifest_path: str, output_path: Optional[str] = None) -> dict[str, Any]` - Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
-- **function**, line 878: `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, Any]` - Inventory editable ChemDraw objects and extract numbered CDXML previews.
-- **function**, line 516: `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, Any]` - Merge parallel, sequential, or unrelated CDXML reaction schemes.
-- **function**, line 1286: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
-- **function**, line 603: `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, Any]` - Run the audited deterministic polishing pipeline on a CDXML scheme.
-- **function**, line 635: `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, Any]` - Render one or more CDXML files through native ChemDraw (COM or macOS).
-- **function**, line 984: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = False, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
-- **function**, line 1394: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
+- **function**, line 1161: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None, internal_standard_name: str = 'IS') -> dict[str, Any]` - Analyze a time series of standard LCMS data (PDF, .rpt, .daml, report.txt, mzML/mzXML or Waters .raw).
+- **function**, line 1254: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
+- **function**, line 820: `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, Any]` - Create PPTX or DOCX containing editable ChemDraw OLE objects.
+- **function**, line 472: `clean_scheme_layout(input_path: str, output_path: Optional[str] = None, approach: str = 'chemdraw_mimic', render_preview: bool = True) -> dict[str, Any]` - Clean an existing CDXML reaction layout without changing the source file.
+- **function**, line 1119: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
+- **function**, line 744: `fill_office_template(template_path: str, manifest_path: str, output_path: Optional[str] = None) -> dict[str, Any]` - Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
+- **function**, line 880: `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, Any]` - Inventory editable ChemDraw objects and extract numbered CDXML previews.
+- **function**, line 518: `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, Any]` - Merge parallel, sequential, or unrelated CDXML reaction schemes.
+- **function**, line 1307: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
+- **function**, line 605: `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, Any]` - Run the audited deterministic polishing pipeline on a CDXML scheme.
+- **function**, line 637: `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, Any]` - Render one or more CDXML files through native ChemDraw (COM or macOS).
+- **function**, line 986: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = False, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
+- **function**, line 1415: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
 
 ## `mcp_runtime.figure_draw`
 
-- **function**, line 618: `bold_arrows(cdxml: Any, slug: str) -> Any` - Arrows at 1.5 times the document's line width (the preset's unless a house style measured it).
-- **function**, line 584: `brief_house(brief: dict) -> HouseStyle | None` - The brief's house style, or None when ``style`` is a measurement preset or absent.
-- **function**, line 592: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug (a house style's base preset) and the factor from ACS geometry to it.
-- **function**, line 734: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
-- **function**, line 573: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is neither a built-in preset nor a house style, else None.
-- **function**, line 608: `style_report(slug: str, house: HouseStyle | None = None, applied: list[str] | None = None, skipped: list[str] | None = None) -> dict` - No public docstring in the audited version.
-- **function**, line 599: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
+- **function**, line 720: `bold_arrows(cdxml: Any, slug: str) -> Any` - Arrows at 1.5 times the document's line width (the preset's unless a house style measured it).
+- **function**, line 732: `bold_compound_numbers(cdxml: Any, grounded: list[dict], house: HouseStyle | None) -> tuple[Any, list[str]]` - Compound numbers in bold, as the journal style sheets set them.
+- **function**, line 686: `brief_house(brief: dict) -> HouseStyle | None` - The brief's house style, or None when ``style`` is a measurement preset or absent.
+- **function**, line 694: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug (a house style's base preset) and the factor from ACS geometry to it.
+- **function**, line 896: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 142: `offline_structure(name: str) -> str | None` - The SMILES a chemical name resolves to offline with normal confidence, else None.
+- **function**, line 675: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is neither a built-in preset nor a house style, else None.
+- **function**, line 710: `style_report(slug: str, house: HouseStyle | None = None, applied: list[str] | None = None, skipped: list[str] | None = None) -> dict` - No public docstring in the audited version.
+- **function**, line 701: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
 
 ## `mcp_runtime.figure_editing`
 
@@ -369,7 +393,7 @@
 
 ## `mcp_runtime.figure_lint`
 
-- **function**, line 306: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
+- **function**, line 376: `lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[str, Any]]` - Return a list of issues; an empty list means the geometry checks passed.
 
 ## `mcp_runtime.figure_mechanism`
 
@@ -377,7 +401,7 @@
 
 ## `mcp_runtime.figure_molecule`
 
-- **function**, line 496: `draw_molecule_figure(brief: dict, output_path: str | None, render: bool) -> dict` - Draw one molecule or a grid of structures; called by draw_figure for ``kind: molecule``.
+- **function**, line 497: `draw_molecule_figure(brief: dict, output_path: str | None, render: bool) -> dict` - Draw one molecule or a grid of structures; called by draw_figure for ``kind: molecule``.
 
 ## `mcp_runtime.figure_scope`
 
@@ -443,6 +467,15 @@
 - **function**, line 672: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
 - **function**, line 1126: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
+## `mcp_runtime.metal_templates`
+
+- **function**, line 225: `apply_hapto_templates(cdxml: str, templates: dict[str, MetalTemplate]) -> str` - Replace each drawn fragment whose structure is an eta-n template by the template drawing.
+- **function**, line 97: `find_template(name: str | None = None, smiles: str | None = None) -> MetalTemplate | None` - The template a species name or SMILES describes, else None.
+- **function**, line 111: `fragment_graph(fragment: ET.Element) -> Chem.Mol` - The drawn connectivity of a fragment, eta-n attachments counted as bonds to every ring atom.
+- **function**, line 179: `hapto_fragment(template: MetalTemplate, center_x: float, center_y: float, first_id: int) -> ET.Element` - A CDXML fragment of an eta-n template centred on the given point, ids from ``first_id``.
+- **class**, line 35: `MetalTemplate` - No public docstring in the audited version.
+- **function**, line 210: `strip_hapto(fragment: ET.Element) -> ET.Element` - A copy of a fragment without its multi-attachment nodes and their bonds (for structure read-back).
+
 ## `mcp_runtime.native_io`
 
 - **function**, line 153: `ascii_input_directory(source: str | Path, *, suffixes: Sequence[str] = ('.cdxml', '.cdx', '.csv', '.rxn')) -> Iterator[tuple[Path, dict[str, str]]]` - No public docstring in the audited version.
@@ -474,16 +507,16 @@
 
 ## `mcp_runtime.office_objects`
 
-- **function**, line 29: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
-- **function**, line 582: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
-- **function**, line 511: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 767: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 618: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
-- **function**, line 659: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
-- **function**, line 270: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
-- **function**, line 54: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
-- **function**, line 789: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 426: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 31: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
+- **function**, line 584: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
+- **function**, line 513: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 769: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 620: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+- **function**, line 661: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
+- **function**, line 272: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
+- **function**, line 56: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
+- **function**, line 791: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 428: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.official_overrides`
 
@@ -574,10 +607,10 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 49: `build_acs_figure(spec: dict[str, Any] | str, output_path: str | None = None, render: bool = False) -> dict[str, Any]` - Build an ACS Document 1996 CDXML figure from an acs_builder JSON spec.
-- **function**, line 287: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 279: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 149: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 34: `build_acs_figure(spec: dict[str, Any] | str, output_path: str | None = None, render: bool = False) -> dict[str, Any]` - Build an ACS Document 1996 CDXML figure from an acs_builder JSON spec.
+- **function**, line 273: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 265: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **class**, line 135: `ToolSpec` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_worker`
 
@@ -585,33 +618,33 @@
 
 ## `mcp_runtime.ui_apps`
 
-- **function**, line 3979: `open_drawing_studio(template: str = 'blank', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Open the interactive 2D ChemDraw Studio with ring fusion, drag-bond drawing & templates.
-- **function**, line 3735: `render_drawing_studio_app_html(initial_payload: dict[str, Any] | None = None, *, live_sync_url: str | None = None) -> str` - Render the standalone / MCP-App HTML document wrapping the 2D Studio fragment.
-- **function**, line 1129: `render_drawing_studio_fragment(initial_payload: dict[str, Any] | None = None) -> str` - Render a pure HTML fragment (<div id='cdx-studio-root'>...</div>) with NO document tags.
-- **function**, line 338: `render_molstar_app_html(initial_payload: dict[str, Any] | None = None) -> str` - Render the self-contained Mol* + offline 3D WebGL/Canvas MCP App HTML page.
-- **function**, line 4119: `serve_drawing_studio(*, template: str = 'blank', cdxml_path: str | None = None, smiles: str | None = None, style: str = 'acs1996', sync_dir: str | Path = '.', port: int = 0, open_browser: bool = True) -> tuple[ThreadingHTTPServer, str, Path]` - Start a local loopback HTTP bridge so terminal CLI agents receive live 2D edits.
-- **function**, line 3786: `view_molecule_3d(query: str = 'aspirin', *, structure_path: str | None = None, smiles: str | None = None, pdb_id: str | None = None, format: str | None = None, representation: str = 'ball-and-stick', output_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Build an interactive 3D Mol* + offline WebGL/Canvas viewer (MCP App + standalone HTML).
+- **function**, line 3984: `open_drawing_studio(template: str = 'blank', *, cdxml_path: str | None = None, smiles: str | None = None, name: str | None = None, style: str = 'acs1996', output_path: str | None = None, fragment_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Open the interactive 2D ChemDraw Studio with ring fusion, drag-bond drawing & templates.
+- **function**, line 3740: `render_drawing_studio_app_html(initial_payload: dict[str, Any] | None = None, *, live_sync_url: str | None = None) -> str` - Render the standalone / MCP-App HTML document wrapping the 2D Studio fragment.
+- **function**, line 1134: `render_drawing_studio_fragment(initial_payload: dict[str, Any] | None = None) -> str` - Render a pure HTML fragment (<div id='cdx-studio-root'>...</div>) with NO document tags.
+- **function**, line 343: `render_molstar_app_html(initial_payload: dict[str, Any] | None = None) -> str` - Render the self-contained Mol* + offline 3D WebGL/Canvas MCP App HTML page.
+- **function**, line 4124: `serve_drawing_studio(*, template: str = 'blank', cdxml_path: str | None = None, smiles: str | None = None, style: str = 'acs1996', sync_dir: str | Path = '.', port: int = 0, open_browser: bool = True) -> tuple[ThreadingHTTPServer, str, Path]` - Start a local loopback HTTP bridge so terminal CLI agents receive live 2D edits.
+- **function**, line 3791: `view_molecule_3d(query: str = 'aspirin', *, structure_path: str | None = None, smiles: str | None = None, pdb_id: str | None = None, format: str | None = None, representation: str = 'ball-and-stick', output_path: str | None = None, launch_browser: bool = False) -> dict[str, Any]` - Build an interactive 3D Mol* + offline WebGL/Canvas viewer (MCP App + standalone HTML).
 
 ## `model.document`
 
-- **function**, line 30: `catalog_index() -> dict[str, dict[str, dict[str, Any]]]` - Catalog elements as ``{element: {attribute: {kind, values?}}}``.
-- **class**, line 72: `Document` - A parsed CDXML file; ``prologue`` is the text before the root element.
-- **method**, line 236: `Document.add(parent: ET.Element, tag: str, props: Optional[dict[str, Any]] = None, *, children: Optional[list[dict[str, Any]]] = None, text: Optional[str] = None, allow_unknown: bool = False) -> ET.Element` - Append a new element (and nested ``children``) to ``parent``; ids are assigned.
-- **method**, line 154: `Document.check() -> list[dict[str, Any]]` - Structural problems: duplicate ids and references to objects that do not exist.
-- **method**, line 274: `Document.delete(element: ET.Element) -> int` - Remove ``element`` and its subtree; refuse the root and objects other objects point at.
-- **method**, line 137: `Document.describe(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> dict[str, Any]` - No public docstring in the audited version.
-- **method**, line 297: `Document.dump_bytes() -> bytes` - No public docstring in the audited version.
-- **method**, line 290: `Document.dumps() -> str` - No public docstring in the audited version.
-- **method**, line 81: `Document.elements() -> Iterable[ET.Element]` - No public docstring in the audited version.
-- **method**, line 91: `Document.ids() -> set[str]` - No public docstring in the audited version.
-- **method**, line 232: `Document.next_id() -> int` - No public docstring in the audited version.
-- **method**, line 84: `Document.parent_map() -> dict[int, ET.Element]` - ``{id(child): parent}`` for the whole tree; rebuild it after an edit.
-- **method**, line 88: `Document.parent_of(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> Optional[ET.Element]` - No public docstring in the audited version.
-- **method**, line 128: `Document.path_of(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> str` - No public docstring in the audited version.
-- **method**, line 94: `Document.select(selector: str) -> list[ET.Element]` - Elements matching ``step > step ...``; a step is ``tag#id[Attr=value]...``.
-- **method**, line 208: `Document.set_properties(element: ET.Element, props: dict[str, Any], *, allow_unknown: bool = False) -> dict[str, tuple]` - Set, replace or (with ``None``) remove attributes; returns ``{name: (old, new)}``.
-- **function**, line 319: `load(path: str | Path) -> Document` - No public docstring in the audited version.
-- **function**, line 301: `parse(source: str | bytes) -> Document` - Parse CDXML text or bytes; the root must be ``CDXML``.
+- **function**, line 48: `catalog_index() -> dict[str, dict[str, dict[str, Any]]]` - Catalog elements as ``{element: {attribute: {kind, values?}}}``.
+- **class**, line 90: `Document` - A parsed CDXML file; ``prologue`` is the text before the root element.
+- **method**, line 254: `Document.add(parent: ET.Element, tag: str, props: Optional[dict[str, Any]] = None, *, children: Optional[list[dict[str, Any]]] = None, text: Optional[str] = None, allow_unknown: bool = False) -> ET.Element` - Append a new element (and nested ``children``) to ``parent``; ids are assigned.
+- **method**, line 172: `Document.check() -> list[dict[str, Any]]` - Structural problems: duplicate ids and references to objects that do not exist.
+- **method**, line 292: `Document.delete(element: ET.Element) -> int` - Remove ``element`` and its subtree; refuse the root and objects other objects point at.
+- **method**, line 155: `Document.describe(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> dict[str, Any]` - No public docstring in the audited version.
+- **method**, line 315: `Document.dump_bytes() -> bytes` - No public docstring in the audited version.
+- **method**, line 308: `Document.dumps() -> str` - No public docstring in the audited version.
+- **method**, line 99: `Document.elements() -> Iterable[ET.Element]` - No public docstring in the audited version.
+- **method**, line 109: `Document.ids() -> set[str]` - No public docstring in the audited version.
+- **method**, line 250: `Document.next_id() -> int` - No public docstring in the audited version.
+- **method**, line 102: `Document.parent_map() -> dict[int, ET.Element]` - ``{id(child): parent}`` for the whole tree; rebuild it after an edit.
+- **method**, line 106: `Document.parent_of(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> Optional[ET.Element]` - No public docstring in the audited version.
+- **method**, line 146: `Document.path_of(element: ET.Element, parents: Optional[dict[int, ET.Element]] = None) -> str` - No public docstring in the audited version.
+- **method**, line 112: `Document.select(selector: str) -> list[ET.Element]` - Elements matching ``step > step ...``; a step is ``tag#id[Attr=value]...``.
+- **method**, line 226: `Document.set_properties(element: ET.Element, props: dict[str, Any], *, allow_unknown: bool = False) -> dict[str, tuple]` - Set, replace or (with ``None``) remove attributes; returns ``{name: (old, new)}``.
+- **function**, line 337: `load(path: str | Path) -> Document` - No public docstring in the audited version.
+- **function**, line 319: `parse(source: str | bytes) -> Document` - Parse CDXML text or bytes; the root must be ``CDXML``.
 
 ## `postconditions`
 
@@ -655,26 +688,27 @@
 
 ## `publication.layout`
 
-- **function**, line 197: `bounds(node, style)` - No public docstring in the audited version.
-- **function**, line 219: `check_pages(project, roots, spec)` - No public docstring in the audited version.
-- **function**, line 111: `create_pages(records, spec, stage, start_index = 0)` - No public docstring in the audited version.
+- **function**, line 227: `bounds(node, style)` - No public docstring in the audited version.
+- **function**, line 249: `check_pages(project, roots, spec)` - No public docstring in the audited version.
+- **function**, line 125: `create_pages(records, spec, stage, start_index = 0)` - No public docstring in the audited version.
 - **function**, line 25: `font_for(style, size = None)` - No public docstring in the audited version.
+- **function**, line 84: `formula_runs(value, bold = False)` - Text as runs with formula digits subscripted (K2CO3, CH2Cl2), by the shared condition-text rule.
 - **function**, line 53: `fragment_mol(fragment)` - No public docstring in the audited version.
 - **function**, line 64: `molecule_coordinates(mol, bond_length, reference = None)` - No public docstring in the audited version.
 - **function**, line 60: `node_text(node)` - No public docstring in the audited version.
-- **function**, line 215: `overlap(a, b)` - No public docstring in the audited version.
-- **function**, line 84: `prepare(records, spec)` - No public docstring in the audited version.
+- **function**, line 245: `overlap(a, b)` - No public docstring in the audited version.
+- **function**, line 98: `prepare(records, spec)` - No public docstring in the audited version.
 - **function**, line 15: `style_settings(spec)` - No public docstring in the audited version.
 - **function**, line 36: `text_width(value, style, size = None)` - No public docstring in the audited version.
 - **function**, line 41: `wrap(value, width, style)` - No public docstring in the audited version.
 
 ## `publication.update`
 
-- **function**, line 37: `match_objects(group, record)` - No public docstring in the audited version.
-- **function**, line 16: `matching_group(root, record)` - No public docstring in the audited version.
-- **function**, line 56: `replace_text(node, old, new)` - Preserve unchanged rich runs; single-run labels retain all their style.
-- **function**, line 86: `replacement_fragment(old_fragment, new_smiles, atom_map, stage, root, cid)` - No public docstring in the audited version.
-- **function**, line 151: `update_pages(base_project, base_dir, records, spec, spec_dir, stage)` - No public docstring in the audited version.
+- **function**, line 38: `match_objects(group, record)` - No public docstring in the audited version.
+- **function**, line 17: `matching_group(root, record)` - No public docstring in the audited version.
+- **function**, line 57: `replace_text(node, old, new)` - Preserve unchanged rich runs; single-run labels retain all their style.
+- **function**, line 87: `replacement_fragment(old_fragment, new_smiles, atom_map, stage, root, cid)` - No public docstring in the audited version.
+- **function**, line 152: `update_pages(base_project, base_dir, records, spec, spec_dir, stage)` - No public docstring in the audited version.
 
 ## `reaction_calculator.annotate`
 

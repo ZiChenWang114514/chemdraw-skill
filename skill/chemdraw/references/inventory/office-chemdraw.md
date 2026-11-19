@@ -43,23 +43,23 @@
 
 ## `chemdraw.chemscript_bridge`
 
-- **class**, line 304: `ChemScriptBridge` - High-level Python interface to ChemScript via a 32-bit subprocess server.
-- **method**, line 484: `ChemScriptBridge.cleanup(input_path: str, output: str = None) -> str` - Clean up a structure file — normalize coordinates, bond lengths, etc.
-- **method**, line 402: `ChemScriptBridge.close()` - Shut down the server.
-- **method**, line 539: `ChemScriptBridge.contains_substructure(target: str, query: str) -> bool` - Check if target contains query as a substructure.
-- **method**, line 428: `ChemScriptBridge.convert_file(input_path: str, output_path: str) -> dict` - Convert a chemistry file between formats.
-- **method**, line 515: `ChemScriptBridge.get_formula(source: str) -> str` - Get molecular formula for a structure file or SMILES string.
-- **method**, line 525: `ChemScriptBridge.get_info(source: str) -> dict` - Get full chemical info: name, formula, SMILES, InChI, atom/bond count.
-- **method**, line 505: `ChemScriptBridge.get_name(source: str) -> str` - Get IUPAC name for a structure file or SMILES string.
-- **method**, line 594: `ChemScriptBridge.largest_common_substructure(mol1: str, mol2: str) -> dict` - Find the largest common substructure between two molecules.
-- **method**, line 573: `ChemScriptBridge.load_reaction(source: str, include_cdxml: bool = False) -> dict` - Load a reaction file and return component information.
-- **method**, line 765: `ChemScriptBridge.mimetypes() -> List[str]` - List all supported mimetypes.
-- **method**, line 444: `ChemScriptBridge.name_to_cdxml(name: str, output: str = None) -> str` - Convert a chemical name to CDXML string.
-- **method**, line 615: `ChemScriptBridge.overlay(source: str, target: str, source_format: str = None, target_format: str = None) -> Tuple[str, bool]` - Overlay (2D-align) a molecule onto a reference molecule.
-- **method**, line 464: `ChemScriptBridge.smiles_to_cdxml(smiles: str, output: str = None) -> str` - Convert a SMILES string to CDXML.
-- **method**, line 643: `ChemScriptBridge.substructure_align(query: str, target: str, query_format: str = None, target_format: str = None) -> Optional[List]` - Align a small molecule (query) to its substructure match in a larger molecule (target).
-- **method**, line 556: `ChemScriptBridge.substructure_search(target: str, query: str) -> dict` - Perform atom-by-atom substructure search.
-- **method**, line 740: `ChemScriptBridge.write_data(source: str, target_format: str, source_format: str = None) -> str` - Convert a structure to a specific format string.
+- **class**, line 314: `ChemScriptBridge` - High-level Python interface to ChemScript via a 32-bit subprocess server.
+- **method**, line 528: `ChemScriptBridge.cleanup(input_path: str, output: str = None) -> str` - Clean up a structure file — normalize coordinates, bond lengths, etc.
+- **method**, line 446: `ChemScriptBridge.close()` - Shut down the server.
+- **method**, line 583: `ChemScriptBridge.contains_substructure(target: str, query: str) -> bool` - Check if target contains query as a substructure.
+- **method**, line 472: `ChemScriptBridge.convert_file(input_path: str, output_path: str) -> dict` - Convert a chemistry file between formats.
+- **method**, line 559: `ChemScriptBridge.get_formula(source: str) -> str` - Get molecular formula for a structure file or SMILES string.
+- **method**, line 569: `ChemScriptBridge.get_info(source: str) -> dict` - Get full chemical info: name, formula, SMILES, InChI, atom/bond count.
+- **method**, line 549: `ChemScriptBridge.get_name(source: str) -> str` - Get IUPAC name for a structure file or SMILES string.
+- **method**, line 638: `ChemScriptBridge.largest_common_substructure(mol1: str, mol2: str) -> dict` - Find the largest common substructure between two molecules.
+- **method**, line 617: `ChemScriptBridge.load_reaction(source: str, include_cdxml: bool = False) -> dict` - Load a reaction file and return component information.
+- **method**, line 809: `ChemScriptBridge.mimetypes() -> List[str]` - List all supported mimetypes.
+- **method**, line 488: `ChemScriptBridge.name_to_cdxml(name: str, output: str = None) -> str` - Convert a chemical name to CDXML string.
+- **method**, line 659: `ChemScriptBridge.overlay(source: str, target: str, source_format: str = None, target_format: str = None) -> Tuple[str, bool]` - Overlay (2D-align) a molecule onto a reference molecule.
+- **method**, line 508: `ChemScriptBridge.smiles_to_cdxml(smiles: str, output: str = None) -> str` - Convert a SMILES string to CDXML.
+- **method**, line 687: `ChemScriptBridge.substructure_align(query: str, target: str, query_format: str = None, target_format: str = None) -> Optional[List]` - Align a small molecule (query) to its substructure match in a larger molecule (target).
+- **method**, line 600: `ChemScriptBridge.substructure_search(target: str, query: str) -> dict` - Perform atom-by-atom substructure search.
+- **method**, line 784: `ChemScriptBridge.write_data(source: str, target_format: str, source_format: str = None) -> str` - Convert a structure to a specific format string.
 
 ## `chemdraw.chemscript_mac`
 
@@ -162,12 +162,12 @@
 
 ## `office.doc_from_template`
 
-- **function**, line 522: `create_test_template(output_dir = 'templates')` - Create a minimal 1-slide PPTX template with placeholder text boxes.
+- **function**, line 540: `create_test_template(output_dir = 'templates')` - Create a minimal 1-slide PPTX template with placeholder text boxes.
 - **function**, line 60: `load_manifest(manifest_path)` - Load JSON manifest. Resolve CDXML paths relative to manifest directory.
 - **function**, line 176: `pass1_docx(template_path, text_slots, temp_path)` - Replace text placeholders in DOCX template. Save to temp_path.
 - **function**, line 156: `pass1_pptx(template_path, text_slots, temp_path)` - Replace text placeholders in PPTX template. Save to temp_path.
-- **function**, line 445: `pass2_docx(input_path, output_path, cdxml_slots, ole_items)` - Replace CDXML placeholder paragraphs with OLE objects in DOCX.
-- **function**, line 302: `pass2_pptx(input_path, output_path, cdxml_slots, ole_items)` - Replace CDXML placeholder text boxes with OLE objects in PPTX.
+- **function**, line 463: `pass2_docx(input_path, output_path, cdxml_slots, ole_items)` - Replace CDXML placeholder paragraphs with OLE objects in DOCX.
+- **function**, line 320: `pass2_pptx(input_path, output_path, cdxml_slots, ole_items)` - Replace CDXML placeholder text boxes with OLE objects in PPTX.
 - **function**, line 97: `prepare_ole_items(cdxml_slots, margin_pt = 0.0)` - Convert unique CDXML files to OLE data via ChemDraw (COM or macOS).
 
 ## `office.emf_preview`
@@ -196,13 +196,15 @@
 
 ## `office.ole_extractor`
 
-- **function**, line 94: `extract_cdx_from_ole(ole_data: bytes) -> Optional[bytes]` - Extract raw CDX bytes from an OLE compound document.
-- **function**, line 325: `extract_from_office(input_path: str, output_dir: Optional[str] = None, output_format: str = 'cdxml', convert_method: str = 'auto') -> List[ExtractedObject]` - Extract all ChemDraw objects from an Office file.
-- **class**, line 52: `ExtractedObject` - A single extracted ChemDraw object.
-- **function**, line 61: `find_ole_entries(zip_path: str) -> List[str]` - List OLE embedding paths inside a PPTX/DOCX/XLSX ZIP.
-- **function**, line 78: `is_chemdraw_ole(ole: olefile.OleFileIO) -> bool` - Check if an OLE container holds a ChemDraw object.
-- **function**, line 367: `print_summary(results: List[ExtractedObject], input_path: str) -> None` - Print extraction summary to stdout.
+- **function**, line 96: `extract_cdx_from_ole(ole_data: bytes) -> Optional[bytes]` - Extract raw CDX bytes from an OLE compound document.
+- **function**, line 327: `extract_from_office(input_path: str, output_dir: Optional[str] = None, output_format: str = 'cdxml', convert_method: str = 'auto') -> List[ExtractedObject]` - Extract all ChemDraw objects from an Office file.
+- **class**, line 54: `ExtractedObject` - A single extracted ChemDraw object.
+- **function**, line 63: `find_ole_entries(zip_path: str) -> List[str]` - List OLE embedding paths inside a PPTX/DOCX/XLSX ZIP.
+- **function**, line 80: `is_chemdraw_ole(ole: olefile.OleFileIO) -> bool` - Check if an OLE container holds a ChemDraw object.
+- **function**, line 369: `print_summary(results: List[ExtractedObject], input_path: str) -> None` - Print extraction summary to stdout.
 
 ## `office.safe_xml`
 
-- **function**, line 10: `fromstring(data)` - No public docstring in the audited version.
+- **function**, line 48: `fromstring(data)` - No public docstring in the audited version.
+- **function**, line 24: `open_package(path) -> zipfile.ZipFile` - Open a package for reading after checking what it would unpack to.
+- **class**, line 20: `UnsafePackage` - The archive is not a plausible Office document and was not read.

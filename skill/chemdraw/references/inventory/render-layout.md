@@ -4,11 +4,11 @@
 
 ## `cdxml_builder`
 
-- **function**, line 840: `build_molecule_cdxml(atoms: Any, bonds: Optional[List[Dict]] = None, start_id: int = 1000) -> str` - Build a CDXML document containing a single molecule fragment.
-- **function**, line 891: `build_reaction_cdxml(reactants: List[Dict], products: List[Dict], conditions: Optional[Dict] = None, arrow_y: Optional[float] = None, arrow_tail_x: Optional[float] = None, arrow_head_x: Optional[float] = None, start_id: int = 1000) -> str` - Build a CDXML reaction scheme document.
-- **function**, line 114: `element_number(symbol: str) -> int` - Atomic number for *symbol*; 0 only when the symbol is not an element.
-- **function**, line 680: `mol_to_atom_bond_dicts(mol_or_smiles: Any, offset_index: int = 0, normalize: bool = True, center_x: float = 200.0, center_y: float = 300.0) -> Tuple[List[Dict], List[Dict]]` - Convert an RDKit Mol or SMILES string into (atoms, bonds) dicts preserving dative/coordination bonds (Order="dative"), radicals (Radical="Doublet" / "Triplet"), and axial chirality / tetrahedral stereochemistry.
-- **function**, line 834: `mol_to_cdxml(mol_or_smiles: Any, start_id: int = 1000) -> str` - Build a complete CDXML document directly from an RDKit Mol or SMILES string.
+- **function**, line 715: `build_molecule_cdxml(atoms: Any, bonds: Optional[List[Dict]] = None, start_id: int = 1000) -> str` - Build a CDXML document containing a single molecule fragment.
+- **function**, line 753: `build_reaction_cdxml(reactants: List[Dict], products: List[Dict], conditions: Optional[Dict] = None, arrow_y: Optional[float] = None, arrow_tail_x: Optional[float] = None, arrow_head_x: Optional[float] = None, start_id: int = 1000) -> str` - Build a CDXML reaction scheme document.
+- **function**, line 110: `element_number(symbol: str) -> int` - Atomic number for *symbol*; 0 only when the symbol is not an element.
+- **function**, line 555: `mol_to_atom_bond_dicts(mol_or_smiles: Any, offset_index: int = 0, normalize: bool = True, center_x: float = 200.0, center_y: float = 300.0) -> Tuple[List[Dict], List[Dict]]` - Convert an RDKit Mol or SMILES string into (atoms, bonds) dicts preserving dative/coordination bonds (Order="dative"), radicals (Radical="Doublet" / "Triplet"), and axial chirality / tetrahedral stereochemistry.
+- **function**, line 709: `mol_to_cdxml(mol_or_smiles: Any, start_id: int = 1000) -> str` - Build a complete CDXML document directly from an RDKit Mol or SMILES string.
 
 ## `cdxml_utils`
 
@@ -66,20 +66,20 @@
 
 ## `layout.scheme_merger`
 
-- **function**, line 1074: `adjacent_place(trees: List[ET.ElementTree], *, log = None) -> ET.ElementTree` - Place multiple independent schemes side by side on one page.
-- **function**, line 846: `auto_detect(schemes: List[ParsedScheme], log = None) -> MergePlan` - Analyze N schemes and determine merge strategy.
-- **function**, line 791: `classify_pair(ps_a: ParsedScheme, ps_b: ParsedScheme) -> str` - Classify the relationship between two parsed schemes.
-- **class**, line 70: `EquivInfo` - Equiv value for one reagent in one scheme.
-- **function**, line 968: `execute_merge_plan(schemes: List[ParsedScheme], plan: MergePlan, *, equiv_mode: str = 'default', ref_cdxml: str = None, allow_adjacent: bool = True, log = None) -> ET.ElementTree` - Execute a merge plan: parallel within groups, sequential between.
-- **class**, line 814: `MergePlan` - Result of auto-detection: how to merge N schemes.
-- **method**, line 823: `MergePlan.describe() -> str` - Human-readable summary of the merge plan.
-- **function**, line 1164: `parallel_merge(schemes: List[ParsedScheme], *, equiv_mode: str = 'default', strict: bool = True, log = None) -> ET.ElementTree` - Merge schemes for the same reaction into one with stacked run arrows.
-- **function**, line 229: `parse_scheme(path: str, log = None) -> ParsedScheme` - Parse an ELN-enriched CDXML scheme file.
-- **class**, line 77: `ParsedScheme` - A parsed ELN-enriched CDXML scheme with all metadata extracted.
-- **method**, line 130: `ParsedScheme.get_product_smiles_set() -> set` - Set of canonical SMILES for product fragments.
-- **method**, line 121: `ParsedScheme.get_reactant_smiles_set() -> set` - Set of canonical SMILES for reactant fragments.
-- **class**, line 62: `RunArrowData` - Data extracted from one run arrow (mass/yield for one run).
-- **function**, line 1465: `sequential_merge(schemes: List[ParsedScheme], *, ref_cdxml: str = None, log = None) -> ET.ElementTree` - Merge schemes where step N product = step N+1 starting material.
+- **function**, line 1075: `adjacent_place(trees: List[ET.ElementTree], *, log = None) -> ET.ElementTree` - Place multiple independent schemes side by side on one page.
+- **function**, line 847: `auto_detect(schemes: List[ParsedScheme], log = None) -> MergePlan` - Analyze N schemes and determine merge strategy.
+- **function**, line 792: `classify_pair(ps_a: ParsedScheme, ps_b: ParsedScheme) -> str` - Classify the relationship between two parsed schemes.
+- **class**, line 71: `EquivInfo` - Equiv value for one reagent in one scheme.
+- **function**, line 969: `execute_merge_plan(schemes: List[ParsedScheme], plan: MergePlan, *, equiv_mode: str = 'default', ref_cdxml: str = None, allow_adjacent: bool = True, log = None) -> ET.ElementTree` - Execute a merge plan: parallel within groups, sequential between.
+- **class**, line 815: `MergePlan` - Result of auto-detection: how to merge N schemes.
+- **method**, line 824: `MergePlan.describe() -> str` - Human-readable summary of the merge plan.
+- **function**, line 1166: `parallel_merge(schemes: List[ParsedScheme], *, equiv_mode: str = 'default', strict: bool = True, log = None) -> ET.ElementTree` - Merge schemes for the same reaction into one with stacked run arrows.
+- **function**, line 230: `parse_scheme(path: str, log = None) -> ParsedScheme` - Parse an ELN-enriched CDXML scheme file.
+- **class**, line 78: `ParsedScheme` - A parsed ELN-enriched CDXML scheme with all metadata extracted.
+- **method**, line 131: `ParsedScheme.get_product_smiles_set() -> set` - Set of canonical SMILES for product fragments.
+- **method**, line 122: `ParsedScheme.get_reactant_smiles_set() -> set` - Set of canonical SMILES for reactant fragments.
+- **class**, line 63: `RunArrowData` - Data extracted from one run arrow (mass/yield for one run).
+- **function**, line 1467: `sequential_merge(schemes: List[ParsedScheme], *, ref_cdxml: str = None, log = None) -> ET.ElementTree` - Merge schemes where step N product = step N+1 starting material.
 
 ## `render.auto_layout`
 
@@ -89,34 +89,39 @@
 ## `render.compact_parser`
 
 - **function**, line 294: `parse_compact(text: str) -> SchemeDescriptor` - Parse compact syntax text into a :class:`SchemeDescriptor`.
-- **function**, line 651: `parse_compact_file(path: str) -> SchemeDescriptor` - Read a file and parse it as compact syntax.
+- **function**, line 644: `parse_compact_file(path: str) -> SchemeDescriptor` - Read a file and parse it as compact syntax.
 - **class**, line 32: `ParseError` - Syntax or semantic error with optional line number.
 
 ## `render.parser`
 
-- **function**, line 59: `parse_yaml(source: Union[str, Path]) -> SchemeDescriptor` - Parse a YAML file or string into a SchemeDescriptor.
-- **class**, line 54: `SchemeParseError` - Raised when YAML content is invalid or violates schema rules.
+- **function**, line 170: `bare_species_is_structure(text: str) -> bool` - Decide whether a bare species string is a structure (SMILES) or a name.
+- **function**, line 57: `parse_yaml(source: Union[str, Path]) -> SchemeDescriptor` - Parse a YAML file or string into a SchemeDescriptor.
+- **class**, line 52: `SchemeParseError` - Raised when YAML content is invalid or violates schema rules.
 
 ## `render.renderer`
 
-- **function**, line 3133: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
-- **function**, line 3155: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
-- **function**, line 3121: `render_with(build) -> str` - Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
-- **class**, line 149: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
-- **class**, line 164: `ResolvedStep` - A step with all structures resolved and laid out.
+- **function**, line 728: `above_arrow_baseline(arrow_y: float, n_lines: int) -> float` - First-line baseline of an above-arrow text block whose lines stack upward.
+- **function**, line 737: `below_arrow_baseline(arrow_y: float) -> float` - First-line baseline of a below-arrow text block (its top LAYOUT_BELOW_GAP under the shaft).
+- **function**, line 3107: `content_bounds(inner_xml: str) -> Optional[Tuple[float, float, float, float]]` - ``(x1, y1, x2, y2)`` over every point and bounding box in *inner_xml*, or None.
+- **function**, line 3159: `render(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str` - Render a scheme and retain per-fragment output-derived validation receipts.
+- **function**, line 3181: `render_to_file(scheme: SchemeDescriptor, output_path: str, yaml_dir: Optional[str] = None) -> None` - Render and write to a file.
+- **function**, line 3147: `render_with(build) -> str` - Build page content with ``build(ids) -> inner_xml`` and wrap it like a rendered scheme.
+- **class**, line 142: `ResolvedFragment` - A structure that has been resolved to atom/bond data + XML.
+- **class**, line 157: `ResolvedStep` - A step with all structures resolved and laid out.
+- **function**, line 3123: `wrap_page(inner_xml: str, page_id: int) -> str` - A complete ACS-style CDXML document whose page fits *inner_xml* plus PAGE_MARGIN.
 
 ## `render.route_graph`
 
-- **function**, line 92: `classify_route(steps: list[StepDescriptor]) -> tuple[str, list[int]]` - Return ``(kind, order)``: kind is linear, convergent, divergent or catalytic-cycle.
-- **function**, line 116: `convergent_sections(steps: list[StepDescriptor]) -> list[list[StepDescriptor]]` - Rows of a convergent route: each arm first, then the merge row (with any chain after it).
-- **function**, line 70: `cycle_order(steps: list[StepDescriptor]) -> list[int]` - Return the step order for a catalytic cycle (or sequential order if open).
+- **function**, line 97: `classify_route(steps: list[StepDescriptor]) -> tuple[str, list[int]]` - Return ``(kind, order)``: kind is linear, convergent, divergent or catalytic-cycle.
+- **function**, line 121: `convergent_sections(steps: list[StepDescriptor]) -> list[list[StepDescriptor]]` - Rows of a convergent route: each arm first, then the merge row (with any chain after it).
+- **function**, line 75: `cycle_order(steps: list[StepDescriptor]) -> list[int]` - Return the step order for a catalytic cycle (or sequential order if open).
 
 ## `render.schema`
 
 - **class**, line 27: `ArrowContent` - Content placed above or below an arrow.
 - **class**, line 47: `RunArrowEntry` - A single run (one scale) of a reaction step.
-- **class**, line 80: `SchemeDescriptor` - Complete scheme description.
-- **class**, line 72: `SectionDescriptor` - A section in a stacked-rows layout.
+- **class**, line 81: `SchemeDescriptor` - Complete scheme description.
+- **class**, line 73: `SectionDescriptor` - A section in a stacked-rows layout.
 - **class**, line 34: `StepDescriptor` - A single reaction step.
 - **class**, line 55: `StepRunArrows` - Run arrows for a specific step (may have multiple scales).
 - **class**, line 15: `StructureRef` - Reference to a chemical structure — resolved later by the renderer.
@@ -127,18 +132,18 @@
 
 ## `render.scheme_yaml_writer`
 
-- **function**, line 1089: `build_merged_scheme_yaml_dict(json_paths: List[str], layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> Dict[str, Any]` - Build a combined YAML dict from multiple reaction JSONs.
-- **function**, line 131: `build_scheme_yaml_dict(json_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> Dict[str, Any]` - Read reaction JSON and return the YAML dict (without writing to disk).
-- **class**, line 487: `MergePlan` - How to combine N reaction JSONs into a merged scheme.
-- **method**, line 493: `MergePlan.describe() -> str` - No public docstring in the audited version.
-- **class**, line 470: `ReactionSummary` - Extracted summary of one reaction JSON for merge classification.
-- **function**, line 1356: `write_merged_scheme_yaml(json_paths: List[str], output_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> str` - Read multiple reaction JSONs, detect relationships, write merged YAML.
-- **function**, line 78: `write_scheme_yaml(json_path: str, output_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> str` - Read reaction JSON, make layout decisions, write YAML file.
+- **function**, line 1091: `build_merged_scheme_yaml_dict(json_paths: List[str], layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> Dict[str, Any]` - Build a combined YAML dict from multiple reaction JSONs.
+- **function**, line 133: `build_scheme_yaml_dict(json_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> Dict[str, Any]` - Read reaction JSON and return the YAML dict (without writing to disk).
+- **class**, line 489: `MergePlan` - How to combine N reaction JSONs into a merged scheme.
+- **method**, line 495: `MergePlan.describe() -> str` - No public docstring in the audited version.
+- **class**, line 472: `ReactionSummary` - Extracted summary of one reaction JSON for merge classification.
+- **function**, line 1358: `write_merged_scheme_yaml(json_paths: List[str], output_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> str` - Read multiple reaction JSONs, detect relationships, write merged YAML.
+- **function**, line 80: `write_scheme_yaml(json_path: str, output_path: str, layout: str = 'auto', include_run_arrows: bool = True, use_eln_labels: bool = False) -> str` - Read reaction JSON, make layout decisions, write YAML file.
 
 ## `text_formatting`
 
-- **function**, line 189: `build_formatted_s_xml(text: str, font: str = '3', size: str = '10', color: str = '0', italic_font: str | None = None) -> str` - Build one or more CDXML ``<s>`` elements with correct chemical styling.
-- **function**, line 123: `needs_subscript(text: str) -> bool` - Determine whether *text* contains chemical-formula digits that should be rendered as subscripts in ChemDraw.
-- **function**, line 105: `normalize_condition_text(text: str) -> str` - Write temperatures, room temperature and times the way papers do.
-- **function**, line 165: `split_italic_prefix(text: str) -> Tuple[str, str]` - Split *text* into ``(italic_prefix, remainder)`` if it starts with a recognised chemistry italic prefix (see :data:`ITALIC_PREFIXES`).
+- **function**, line 181: `build_formatted_s_xml(text: str, font: str = '3', size: str = '10', color: str = '0', italic_font: str | None = None) -> str` - Build one or more CDXML ``<s>`` elements with correct chemical styling.
+- **function**, line 126: `needs_subscript(text: str) -> bool` - Determine whether *text* contains chemical-formula digits that should be rendered as subscripts in ChemDraw.
+- **function**, line 108: `normalize_condition_text(text: str) -> str` - Write temperatures, room temperature and times the way papers do.
+- **function**, line 157: `split_italic_prefix(text: str) -> Tuple[str, str]` - Split *text* into ``(italic_prefix, remainder)`` if it starts with a recognised chemistry italic prefix (see :data:`ITALIC_PREFIXES`).
 - **function**, line 65: `subscript_matches(text: str) -> list[re.Match]` - Formula digit groups in *text* that should be subscripted.

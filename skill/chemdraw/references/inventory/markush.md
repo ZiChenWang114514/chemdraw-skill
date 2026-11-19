@@ -57,8 +57,8 @@
 
 ## `markush.workflow`
 
-- **function**, line 73: `init(workdir, image, text = None, crop = None, reuse = None) -> dict` - No public docstring in the audited version.
-- **function**, line 125: `next_task(workdir, renderer: Renderer | None = None) -> dict` - No public docstring in the audited version.
+- **function**, line 78: `init(workdir, image, text = None, crop = None, reuse = None) -> dict` - Start a run in an empty ``workdir``. A failed start removes what it created.
+- **function**, line 149: `next_task(workdir, renderer: Renderer | None = None) -> dict` - The next question for the model, after running every automatic step before it.
 - **function**, line 57: `parse_answer(text: str)` - Answers may arrive wrapped in a ```json fence or with prose around them.
-- **function**, line 103: `status(workdir) -> dict` - No public docstring in the audited version.
-- **function**, line 262: `submit(workdir, task, answer, renderer: Renderer | None = None, _state = None) -> dict` - No public docstring in the audited version.
+- **function**, line 127: `status(workdir) -> dict` - No public docstring in the audited version.
+- **function**, line 308: `submit(workdir, task, answer, renderer: Renderer | None = None, _state = None) -> dict` - No public docstring in the audited version.
