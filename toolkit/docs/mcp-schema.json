@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "distribution": "cdxml-toolkit-community",
-  "version": "0.7.0a3",
+  "version": "0.8.0",
   "profile": "full",
   "tool_count": 71,
   "tools": [

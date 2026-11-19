@@ -66,4 +66,6 @@ Tiers: **T1** A dedicated tool does the operation. **T2** Reachable through a ge
 | `tlcspot` | binary | T3 |  |  |  |
 
 ## Attributes
-- [cdxml-attributes-1.md](inventory/cdxml-attributes-1.md): CDXML, altgroup, annotation, arrow, b, bioshape, border, bracketattachment, bracketedgroup, chemicalproperty, color, colortable, curve, embeddedobject, font, fonttable, fragment, gepband, geplane, gepplate, graphic, group, marker, n, objecttag, page, plasmidmap, plasmidmarker, plasmidregion, represent, s, scheme, step, stoichiometrygrid, t, table, tlcplate.
+Members of one type: `cdx.py catalog cdxml CDXML` prints that type's block; `cdx.py catalog cdxml TEXT` lists the types whose name contains TEXT.
+
+Types: CDXML, altgroup, annotation, arrow, b, bioshape, border, bracketattachment, bracketedgroup, chemicalproperty, color, colortable, curve, embeddedobject, font, fonttable, fragment, gepband, geplane, gepplate, graphic, group, marker, n, objecttag, page, plasmidmap, plasmidmarker, plasmidregion, represent, s, scheme, step, stoichiometrygrid, t, table, tlcplate.

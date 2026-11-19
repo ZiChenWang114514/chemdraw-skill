@@ -1,6 +1,6 @@
 # Markush Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a3. Curated guidance: [../markush.md](../markush.md).
+> Generated from cdxml-toolkit 0.8.0. Curated guidance: [../markush.md](../markush.md).
 
 ## `markush.cdxml_writer`
 

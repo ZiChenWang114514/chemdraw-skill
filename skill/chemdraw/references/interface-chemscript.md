@@ -110,4 +110,6 @@ Collection wrappers are reached through a property of their owner; interop types
 - `VectorOfStructVector+VectorOfStructVectorEnumerator` (collection, 5 members)
 
 ## Member lists
-- [chemscript-1.md](inventory/chemscript-1.md): Atom, Atom+RadicalCodeEnum, Bond, BondCode, BondGStereo, BondOrder, ChemScript, ChemicalData, CombiChem, Element, Environment, FileOpenMode, GStereoCode, Isotope, LargestCommonSubstructure, NameToStructureOptions, NormOptions, PeriodicTable, Point, RDFileReader, RDFileWriter, ReactionData, ReactionStep, Ring, RingInfo, SDFileReader, SDFileWriter, SWIGTYPE_p_void, SaltTable, SearchOptions, SearchQuery, StructureData, StructureData+DekekMode, StructureData+SaltsOptions, Topology, XYZ.
+Members of one type: `cdx.py catalog chemscript Atom` prints that type's block; `cdx.py catalog chemscript TEXT` lists the types whose name contains TEXT.
+
+Types: Atom, Atom+RadicalCodeEnum, Bond, BondCode, BondGStereo, BondOrder, ChemScript, ChemicalData, CombiChem, Element, Environment, FileOpenMode, GStereoCode, Isotope, LargestCommonSubstructure, NameToStructureOptions, NormOptions, PeriodicTable, Point, RDFileReader, RDFileWriter, ReactionData, ReactionStep, Ring, RingInfo, SDFileReader, SDFileWriter, SWIGTYPE_p_void, SaltTable, SearchOptions, SearchQuery, StructureData, StructureData+DekekMode, StructureData+SaltsOptions, Topology, XYZ.

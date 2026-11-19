@@ -1,6 +1,6 @@
 # Analysis Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a3. Curated guidance: [../toolkit-analysis-interfaces.md](../toolkit-analysis-interfaces.md).
+> Generated from cdxml-toolkit 0.8.0. Curated guidance: [../toolkit-analysis-interfaces.md](../toolkit-analysis-interfaces.md).
 
 ## `analysis.agilent_txt`
 

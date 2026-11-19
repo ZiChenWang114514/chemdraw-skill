@@ -1,6 +1,6 @@
 # Reviewed Exclusions Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a3. Curated guidance: [reviewed-exclusions.md](reviewed-exclusions.md).
+> Generated from cdxml-toolkit 0.8.0. Curated guidance: [reviewed-exclusions.md](reviewed-exclusions.md).
 
 ## `acs_builder`
 
@@ -79,7 +79,9 @@
 
 ## `catalog.render`
 
-- **function**, line 345: `render_all(catalogs: dict[str, dict[str, Any]] | None = None, recipes: list[dict[str, Any]] | None = None, classification: dict[str, Any] | None = None) -> dict[str, str]` - No public docstring in the audited version.
+- **function**, line 368: `lookup(layer: str, name: str, blocks: dict[str, list[tuple[str, str]]] | None = None) -> dict[str, Any]` - The block of the type called ``name``, or the type names that contain it.
+- **function**, line 359: `member_blocks(catalogs: dict[str, dict[str, Any]] | None = None, recipes: list[dict[str, Any]] | None = None, classification: dict[str, Any] | None = None) -> dict[str, list[tuple[str, str]]]` - ``{layer: [(type name, Markdown block listing its members)]}`` for the layers that have members.
+- **function**, line 351: `render_all(catalogs: dict[str, dict[str, Any]] | None = None, recipes: list[dict[str, Any]] | None = None, classification: dict[str, Any] | None = None) -> dict[str, str]` - No public docstring in the audited version.
 
 ## `characterization`
 

@@ -3,7 +3,7 @@
 > Generated from the live community registry. Do not edit manually.
 > Lookup table, not a guide. Fetch one tool with `python scripts/cdx.py sig NAME` (several: `sig A B`; all names: `cdx.py tools`). Do not read this file end to end.
 
-Distribution: `cdxml-toolkit-community 0.7.0a3`
+Distribution: `cdxml-toolkit-community 0.8.0`
 Profile: `full (default)`
 Tools: `71`
 
