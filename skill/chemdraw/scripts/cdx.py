@@ -1163,6 +1163,11 @@ def _markush_render(source, png):
     return _summary('render_to_png', result)['ok'] and Path(png).is_file()
 
 
+def _markush_exit(out):
+    """Non-zero when the step failed (ok false) or the answer was not accepted."""
+    return 0 if out.get('ok', True) is not False and out.get('accepted', True) else 1
+
+
 def cmd_markush(ns):
     if ns.action == 'validate':
         return _emit('markush_validate', _worker('markush_validate', {'spec_path': ns.workdir}),
@@ -1211,7 +1216,7 @@ def cmd_markush(ns):
     else:
         out = workflow.status(ns.workdir)
     print(json.dumps(out, ensure_ascii=False, indent=2))
-    return 0 if out.get('accepted', True) else 1
+    return _markush_exit(out)
 
 
 def cmd_chemscript_info(ns):

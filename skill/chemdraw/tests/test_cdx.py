@@ -1351,3 +1351,10 @@ def test_an_explicit_runtime_that_does_not_work_is_named(tmp_path, monkeypatch, 
     cdx._warn_unusable_explicit_runtime()
     message = capsys.readouterr().err
     assert 'CHEMDRAW_MCP_PYTHON' in message and 'missing' in message
+
+
+def test_a_failed_markush_step_exits_non_zero():
+    assert cdx._markush_exit({'ok': True, 'accepted': True}) == 0
+    assert cdx._markush_exit({'status': 'waiting'}) == 0
+    assert cdx._markush_exit({'accepted': False}) == 1
+    assert cdx._markush_exit({'ok': False, 'error': {'code': 'init_failed'}}) == 1
