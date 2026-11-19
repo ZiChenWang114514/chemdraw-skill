@@ -1159,6 +1159,7 @@ def _materials_entry(label, source, options, hrms, safety=False):
              'procedure': materials.procedure(rows, result['limiting'], result['totals'])}
     if safety:
         entry['safety'] = hazards.for_rows(rows)
+        entry['incompatibilities'] = hazards.incompatibilities(rows)
     return entry
 
 

@@ -104,7 +104,7 @@ def _footer(entry: dict) -> list[str]:
     mapping = entry.get('mapping')
     if mapping:
         lines.append(f"Bond changes ({mapping['title']}): {mapping['summary']}.")
-    return lines + hazards.lines(entry.get('safety') or [])
+    return lines + hazards.lines(entry.get('safety') or [], entry.get('incompatibilities') or [])
 
 
 def markdown(entries: list[dict]) -> str:
