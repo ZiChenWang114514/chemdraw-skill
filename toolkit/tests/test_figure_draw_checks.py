@@ -92,3 +92,18 @@ def test_a_loose_reagent_table_smiles_is_upgraded_to_the_template(tmp_path):
     assert report["ok"] is True, report.get("errors")
     assert report["species"][1]["template"] == "pd_pph3_4"
     assert postconditions.check_connected_metal(report["species"][1]["smiles"]).ok
+
+
+@pytest.mark.parametrize("style", [None, "acs1996", "wiley", "rsc", "nature"])
+def test_compound_numbers_are_bold_under_journal_presets(tmp_path, style):
+    brief = {"species": [{"id": "a", "smiles": "Cc1ccccc1", "label": "1"},
+                         {"id": "b", "smiles": "OCc1ccccc1", "label": "2a"}],
+             "steps": [_step(["a"], ["b"])]}
+    if style:
+        brief["style"] = style
+    out = tmp_path / "x.cdxml"
+    report = figure_draw.draw_figure(brief, str(out))
+    assert report["ok"] is True
+    runs = [s for s in ET.parse(str(out)).getroot().iter("s") if s.text in ("1", "2a")]
+    assert len(runs) == 2
+    assert all(int(s.get("face")) & 1 for s in runs)

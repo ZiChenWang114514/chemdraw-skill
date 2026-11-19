@@ -729,6 +729,32 @@ def bold_arrows(cdxml: Any, slug: str) -> Any:
     return wrapped
 
 
+def bold_compound_numbers(cdxml: Any, grounded: list[dict], house: HouseStyle | None) -> tuple[Any, list[str]]:
+    """Compound numbers in bold, as the journal style sheets set them.
+
+    A house style that states its own compound-number face keeps it.
+    """
+    if house is not None and house.convention("compound_label_face") in ("bold", "plain"):
+        return cdxml, []
+    if not any(g.get("label") for g in grounded):
+        return cdxml, []
+    root = ET.fromstring(str(cdxml).split("?>", 1)[-1] if str(cdxml).lstrip().startswith("<?") else str(cdxml))
+    page = root.find("page")
+    labels = {g["id"]: (str(g["label"]) if g.get("label") else None) for g in grounded}
+    changed = False
+    for sp_id, frag_el, _ in figure_house._species_fragments(root, str(cdxml), grounded):
+        t = figure_house._label_of(page, frag_el, labels.get(sp_id))
+        for s in (t.iter("s") if t is not None else ()):
+            s.set("face", str(int(s.get("face") or 0) | 1))
+            changed = True
+    if not changed:
+        return cdxml, []
+    wrapped = renderer._ValidatedCDXML('<?xml version="1.0" encoding="UTF-8" ?>\n'
+                                       + ET.tostring(root, encoding="unicode"))
+    wrapped.chemistry_validation = getattr(cdxml, "chemistry_validation", None)
+    return wrapped, ["compound_label_face=bold"]
+
+
 def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float,
           line_chars: int | None = None):
     """Lay out with ``layout_width`` but always measure against the requested ``budget``.
@@ -752,6 +778,8 @@ def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: flo
     if house is not None:
         cdxml, record["applied"], record["skipped"], record["warnings"] = figure_house.apply_house_conventions(
             cdxml, brief, grounded, house)
+    cdxml, applied = bold_compound_numbers(cdxml, grounded, house)
+    record["applied"] += applied
     cdxml, applied, warnings = figure_house.apply_species_styling(cdxml, brief, grounded, house)
     record["applied"] += applied
     record["warnings"] += warnings
