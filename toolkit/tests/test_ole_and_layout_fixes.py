@@ -342,8 +342,8 @@ def test_scientific_plot_300_dpi_utf8_and_multi_series(tmp_path):
         "ylabel": "\u5f3a\u5ea6 (a.u.)",
         "reverse_x": True,
         "series": [
-            {"x": x, "y": y1, "label": "\u6837\u54c1 A (δ)", "color": "#185f72", "style": "-"},
-            {"x": x, "y": y2, "label": "\u6837\u54c1 B (\u5bf9\u7167)", "color": "#d95f02", "style": "--"},
+            {"x": x, "y": y1, "label": "\u6837\u54c1 A (δ)", "color": "#185f72", "style": "line"},
+            {"x": x, "y": y2, "label": "\u6837\u54c1 B (\u5bf9\u7167)", "color": "#d95f02", "style": "both"},
         ],
     }
 

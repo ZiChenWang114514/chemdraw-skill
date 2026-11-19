@@ -69,35 +69,59 @@ def parse_answer(text: str):
         return json.loads(text[start:text.rfind('}' if text[start] == '{' else ']') + 1])
 
 
+def _failure(code, exc, hint) -> dict:
+    """A tool-style failure result (the workspace state on disk stays consistent)."""
+    return {'ok': False, 'error': {'code': code, 'message': f'{type(exc).__name__}: {exc}', 'hint': hint}}
+
+
 # ------------------------------------------------------------------ init
 def init(workdir, image, text=None, crop=None, reuse=None) -> dict:
+    """Start a run in an empty ``workdir``. A failed start removes what it created."""
     work = Path(workdir)
     if work.exists() and any(work.iterdir()):
         raise FileExistsError(f'{work} is not empty; use a new folder for each run.')
-    (work / 'source').mkdir(parents=True)
-    src = work / 'source' / ('image' + Path(image).suffix.lower())
-    if crop:
-        img = cv2.imread(str(image))
-        x0, y0, x1, y1 = crop
-        cv2.imwrite(str(src.with_suffix('.png')), img[y0:y1, x0:x1])
-        src = src.with_suffix('.png')
-    else:
-        shutil.copyfile(image, src)
-    state = {'version': 1, 'image': str(src), 'image_sha': _sha(src), 'text': None, 'stage': 'labels',
-             'tasks': {}, 'texts': {}, 'edits': [], 'round': 0, 'notes': [], 'definitions': {}}
-    if text:
-        tsrc = work / 'source' / ('claims' + Path(text).suffix.lower())
-        shutil.copyfile(text, tsrc)
-        state['text'] = str(tsrc)
-    graph = layout_detect.detect(src)
-    _write(work / 'graph.json', graph)
-    layout_detect.overlay(src, graph, work / 'marks.png')
-    layout_detect.label_sheet(src, graph, work / 'labels.png')
-    state['graph_sha'] = _sha({k: v for k, v in graph.items() if k != 'image'})  # path differs per run
-    if reuse:
-        state['reuse'] = str(Path(reuse) / 'answers')
-    _write(work / 'state.json', state)
-    return status(work)
+    created = not work.exists()
+    try:
+        work.mkdir(parents=True, exist_ok=True)
+        # State first: a run is identified by its state.json, written before any other file.
+        state = {'version': 1, 'image': None, 'image_sha': None, 'text': None, 'stage': 'init',
+                 'tasks': {}, 'texts': {}, 'edits': [], 'round': 0, 'notes': [], 'definitions': {}}
+        _write(work / 'state.json', state)
+        (work / 'source').mkdir()
+        src = work / 'source' / ('image' + Path(image).suffix.lower())
+        if crop:
+            img = cv2.imread(str(image))
+            if img is None:
+                raise ValueError(f'Cannot read image {image}')
+            x0, y0, x1, y1 = crop
+            cv2.imwrite(str(src.with_suffix('.png')), img[y0:y1, x0:x1])
+            src = src.with_suffix('.png')
+        else:
+            shutil.copyfile(image, src)
+        state.update(image=str(src), image_sha=_sha(src))
+        if text:
+            tsrc = work / 'source' / ('claims' + Path(text).suffix.lower())
+            shutil.copyfile(text, tsrc)
+            state['text'] = str(tsrc)
+        graph = layout_detect.detect(src)
+        _write(work / 'graph.json', graph)
+        layout_detect.overlay(src, graph, work / 'marks.png')
+        layout_detect.label_sheet(src, graph, work / 'labels.png')
+        state['graph_sha'] = _sha({k: v for k, v in graph.items() if k != 'image'})  # path differs per run
+        if reuse:
+            state['reuse'] = str(Path(reuse) / 'answers')
+        state['stage'] = 'labels'
+        _write(work / 'state.json', state)
+    except Exception as exc:
+        if created:
+            shutil.rmtree(work, ignore_errors=True)
+        else:
+            for child in list(work.iterdir()):
+                shutil.rmtree(child, ignore_errors=True) if child.is_dir() else child.unlink(missing_ok=True)
+        return _failure('markush_init_failed', exc,
+                        'Check that the image is a readable PNG/JPEG figure (and the crop lies inside it), '
+                        'then run init again; the folder was left empty.')
+    return {'ok': True, **status(work)}
 
 
 def status(workdir) -> dict:
@@ -123,10 +147,24 @@ def _task_input(state, work, task):
 
 
 def next_task(workdir, renderer: Renderer | None = None) -> dict:
+    """The next question for the model, after running every automatic step before it.
+
+    A failing automatic step (drafting, rendering, finalizing) comes back as an ``ok: false``
+    result; the saved state still points at that step, so ``next`` retries it.
+    """
     work = Path(workdir)
+    try:
+        return _next_task(work, renderer)
+    except Exception as exc:
+        return _failure('markush_step_failed', exc,
+                        'Fix the cause (disk, renderer, input files) and run `cdx.py markush next` again; '
+                        'the step is repeated from saved state.')
+
+
+def _next_task(work, renderer):
     state = _read(work / 'state.json')
     while True:
-        task = _advance(state, work, renderer)
+        task = _advance(state, work, renderer, save=lambda: _write(work / 'state.json', state))
         _write(work / 'state.json', state)
         if task is None:
             return {'task': None, 'done': True, **status(work)}
@@ -160,8 +198,12 @@ def _open(state, work, task):
     return state['tasks'][task]['status'] == 'open'
 
 
-def _advance(state, work, renderer):
-    """Run automatic steps until a question is needed; return its task id or None."""
+def _advance(state, work, renderer, save=lambda: None):
+    """Run automatic steps until a question is needed; return its task id or None.
+
+    The state is saved before each step that writes files, so a step that fails part-way is
+    repeated (into a clean folder) by the next call instead of leaving the run stuck.
+    """
     while True:
         st = state['stage']
         if st == 'labels':
@@ -175,6 +217,9 @@ def _advance(state, work, renderer):
             state['stage'] = 'draft'
         elif st == 'draft':
             state['round'] += 1
+            state['stage'] = 'drafting'
+            save()
+        elif st == 'drafting':
             _draft(state, work, renderer)
             state['stage'] = 'review' if state.get('rendered') else 'definitions'
         elif st == 'review':
@@ -196,6 +241,7 @@ def _advance(state, work, renderer):
                     return f'definitions:{name}'
             state['stage'] = 'finalize'
         elif st == 'finalize':
+            save()
             _finalize(state, work, renderer)
             state['stage'] = 'done'
         else:
@@ -274,6 +320,9 @@ def submit(workdir, task, answer, renderer: Renderer | None = None, _state=None)
         errors = _apply(state, work, task, answer)
     except (ValueError, KeyError, TypeError) as exc:
         errors = [str(exc)]
+    except Exception as exc:  # not the answer's fault: nothing is counted or saved
+        return {'accepted': False, **_failure('markush_submit_failed', exc,
+                                              'Fix the cause and submit the same answer again.')}
     if errors:
         info['last_errors'] = errors
         if info['attempts'] >= MAX_ATTEMPTS:
@@ -432,7 +481,9 @@ def _readback(state, work):
 
 def _draft(state, work, renderer):
     rnd = work / 'rounds' / f'{state["round"]:02d}'
-    rnd.mkdir(parents=True, exist_ok=False)
+    if rnd.exists():  # left by a failed attempt at this round: start it again cleanly
+        shutil.rmtree(rnd)
+    rnd.mkdir(parents=True)
     graph = _graph(state, work)
     out = draft_spec.draft(graph, _texts(state))
     state['draft_notes'] = out['notes']
