@@ -730,124 +730,15 @@ def _check_rdkit() -> bool:
     return _HAS_RDKIT
 
 
-def _frag_to_mol(frag_elem: ET.Element):
-    """Convert a CDXML <fragment> to an RDKit Mol with atom metadata.
-
-    Returns (mol, atoms_data) where atoms_data is a list of dicts with
-    keys: id, idx, x, y, elem, num_h, is_abbrev, xml.
-
-    Abbreviation groups (NodeType="Fragment") become dummy atoms (element 0)
-    so they participate in connectivity but not MCS element matching.
-
-    Returns (None, None) if conversion fails.
-    """
-    from rdkit import Chem
-
-    atoms: List[dict] = []
-    id_map: Dict[int, int] = {}
-
-    for n in frag_elem.findall("n"):
-        nid = int(n.get("id"))
-        if n.get("NodeType") == "ExternalConnectionPoint":
-            continue
-
-        px, py = [float(v) for v in n.get("p", "0 0").split()]
-        elem = int(n.get("Element", "6"))
-        num_h_attr = n.get("NumHydrogens")
-        num_h = int(num_h_attr) if num_h_attr is not None else None
-        is_abbrev = n.get("NodeType") == "Fragment"
-
-        idx = len(atoms)
-        id_map[nid] = idx
-        atoms.append({
-            "id": nid, "idx": idx,
-            "x": px, "y": py,
-            "elem": elem, "num_h": num_h,
-            "is_abbrev": is_abbrev,
-            "xml": n,
-        })
-
-    bonds = []
-    for b in frag_elem.findall("b"):
-        bi, ei = int(b.get("B")), int(b.get("E"))
-        if bi in id_map and ei in id_map:
-            bonds.append((id_map[bi], id_map[ei], int(b.get("Order", "1"))))
-
-    em = Chem.RWMol()
-    for a in atoms:
-        ra = Chem.Atom(0 if a["is_abbrev"] else a["elem"])
-        if a["num_h"] is not None:
-            ra.SetNoImplicit(True)
-            ra.SetNumExplicitHs(a["num_h"])
-        em.AddAtom(ra)
-
-    BT = {1: Chem.BondType.SINGLE, 2: Chem.BondType.DOUBLE,
-          3: Chem.BondType.TRIPLE}
-    for bi, ei, order in bonds:
-        em.AddBond(bi, ei, BT.get(order, Chem.BondType.SINGLE))
-
-    mol = em.GetMol()
-    try:
-        Chem.SanitizeMol(mol)
-    except Exception:
-        try:
-            Chem.SanitizeMol(
-                mol,
-                Chem.SanitizeFlags.SANITIZE_ALL
-                ^ Chem.SanitizeFlags.SANITIZE_PROPERTIES,
-            )
-        except Exception:
-            pass
-
-    return mol, atoms
-
-
-_rdk_bl_cache: Optional[float] = None
-
-
-def _rdkit_default_bond_length() -> float:
-    """RDKit's default 2D depiction bond length (cached)."""
-    global _rdk_bl_cache
-    if _rdk_bl_cache is None:
-        from rdkit import Chem
-        from rdkit.Chem import AllChem
-        m = Chem.MolFromSmiles("CC")
-        AllChem.Compute2DCoords(m)
-        c = m.GetConformer()
-        p0, p1 = c.GetAtomPosition(0), c.GetAtomPosition(1)
-        _rdk_bl_cache = math.sqrt(
-            (p1.x - p0.x) ** 2 + (p1.y - p0.y) ** 2)
-    return _rdk_bl_cache
-
-
-def _avg_bond_length_from_atoms(atoms_data: List[dict], mol) -> float:
-    """Average bond length computed from CDXML atom coordinates."""
-    total, count = 0.0, 0
-    for bond in mol.GetBonds():
-        i, j = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-        dx = atoms_data[i]["x"] - atoms_data[j]["x"]
-        dy = atoms_data[i]["y"] - atoms_data[j]["y"]
-        total += math.sqrt(dx * dx + dy * dy)
-        count += 1
-    return total / count if count else ACS_BOND_LENGTH
-
-
-def _set_cdxml_conformer(mol, atoms_data: List[dict], scale: float = 1.0):
-    """Set conformer from CDXML coordinates (y-flipped, scaled to RDKit space).
-
-    CDXML y-axis points down; RDKit y-axis points up. The scale factor
-    converts from CDXML points (~14.40 pt bond length) to RDKit units
-    (~1.5 unit bond length).
-    """
-    from rdkit import Chem
-    from rdkit.Geometry import Point3D
-
-    conf = Chem.Conformer(mol.GetNumAtoms())
-    for a in atoms_data:
-        conf.SetAtomPosition(
-            a["idx"], Point3D(a["x"] * scale, -a["y"] * scale, 0.0))
-    mol.RemoveAllConformers()
-    mol.AddConformer(conf, assignId=True)
+# One CDXML reader and one coordinate convention for the whole toolkit.
+from ..rdkit_utils import (  # noqa: E402
+    avg_bond_length_from_atoms as _avg_bond_length_from_atoms,
+    frag_to_mol as _frag_to_mol,
+    keep_stereo_or_restore as _keep_stereo_or_restore,
+    rdkit_default_bond_length as _rdkit_default_bond_length,
+    set_cdxml_conformer as _set_cdxml_conformer,
+    snapshot_attributes as _snapshot_attributes,
+)
 
 
 def _find_mcs_match(ref_mol, target_mol, timeout: int = 30):
@@ -915,7 +806,9 @@ def _rdkit_align_and_write(
     Returns
     -------
     float
-        RMSD of MCS atoms after alignment (should be ~0).
+        RMSD of MCS atoms after alignment (should be ~0), or NaN when the
+        alignment was abandoned because it would change the stereochemistry
+        (the fragment then keeps its original coordinates).
     """
     from rdkit.Chem import rdDepictor
 
@@ -932,6 +825,8 @@ def _rdkit_align_and_write(
         (rc.GetAtomPosition(ri).y - tc.GetAtomPosition(ti).y) ** 2
         for ri, ti in atom_map)
     rmsd = math.sqrt(ss / len(atom_map)) if atom_map else 0.0
+
+    snapshot = _snapshot_attributes(frag_elem)
 
     # Convert aligned RDKit coords back to CDXML space
     conf = tgt_mol.GetConformer()
@@ -965,6 +860,13 @@ def _rdkit_align_and_write(
     bbox = drawn_fragment_bbox(frag_elem)
     if bbox is not None:
         frag_elem.set("BoundingBox", " ".join(f"{v:.2f}" for v in bbox))
+
+    # Moving atoms must not change the molecule: redraw the wedges for the
+    # new geometry, and keep the old coordinates if the stereo would change.
+    if not _keep_stereo_or_restore(frag_elem, snapshot, tgt_mol, tgt_atoms):
+        print(f"  [align] fragment {frag_elem.get('id', '?')}: alignment skipped, "
+              "it would change the stereochemistry", file=sys.stderr)
+        return float("nan")
 
     return rmsd
 

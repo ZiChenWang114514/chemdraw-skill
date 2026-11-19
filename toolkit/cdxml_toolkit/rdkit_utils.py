@@ -63,75 +63,38 @@ def _get_shared_chemscript_bridge() -> Any:
 # Core: CDXML <fragment> → RDKit Mol
 # ---------------------------------------------------------------------------
 
-def frag_to_mol(frag_elem: ET.Element):
-    """Convert a CDXML <fragment> to an RDKit Mol with atom metadata.
+_SKIP_NODETYPES = {"ExternalConnectionPoint"}
+_DUMMY_NODETYPES = {
+    "Fragment",          # Real abbreviation groups (Boc, OTs, Me, etc.)
+    "GenericNickname",   # Generic variable groups (R, X, Ar, etc.)
+    "Nickname",          # Alternative label form (may or may not be real)
+    "Unspecified",       # Uninterpretable text labels
+}
 
-    Returns ``(mol, atoms_data)`` where *atoms_data* is a list of dicts
-    with keys: id, idx, x, y, elem, num_h, is_abbrev, xml.
 
-    Abbreviation groups (``NodeType="Fragment"``) become dummy atoms
-    (element 0) so they participate in connectivity but not MCS element
-    matching.
+def _reader_fragment(frag_elem: ET.Element, atoms: List[dict]) -> ET.Element:
+    """A copy of *frag_elem* holding only the atoms in *atoms* and their bonds.
 
-    Returns ``(None, None)`` if conversion fails.
+    Abbreviation groups become ``GenericNickname`` placeholder nodes, which
+    the CDXML reader returns as dummy atoms, so one node stays one atom.
     """
-    from rdkit import Chem
-
-    atoms: List[dict] = []
-    id_map: Dict[int, int] = {}
-
-    # NodeTypes that are NOT real atoms — they become dummy atoms (element 0)
-    # or get skipped entirely.
-    _SKIP_NODETYPES = {"ExternalConnectionPoint"}
-    _DUMMY_NODETYPES = {
-        "Fragment",          # Real abbreviation groups (Boc, OTs, Me, etc.)
-        "GenericNickname",   # Generic variable groups (R, X, Ar, etc.)
-        "Nickname",          # Alternative label form (may or may not be real)
-        "Unspecified",       # Uninterpretable text labels
-    }
-
-    for n in frag_elem.findall("n"):
-        nid = int(n.get("id"))
-        node_type = n.get("NodeType")
-        if node_type in _SKIP_NODETYPES:
-            continue
-
-        px, py = [float(v) for v in n.get("p", "0 0").split()]
-        elem = int(n.get("Element", "6"))
-        num_h_attr = n.get("NumHydrogens")
-        num_h = int(num_h_attr) if num_h_attr is not None else None
-        is_abbrev = node_type in _DUMMY_NODETYPES
-
-        idx = len(atoms)
-        id_map[nid] = idx
-        atoms.append({
-            "id": nid, "idx": idx,
-            "x": px, "y": py,
-            "elem": elem, "num_h": num_h,
-            "is_abbrev": is_abbrev,
-            "xml": n,
-        })
-
-    bonds = []
-    for b in frag_elem.findall("b"):
-        bi, ei = int(b.get("B")), int(b.get("E"))
-        if bi in id_map and ei in id_map:
-            bonds.append((id_map[bi], id_map[ei], int(b.get("Order", "1"))))
-
-    em = Chem.RWMol()
+    reader = ET.Element("fragment", {"id": frag_elem.get("id", "1")})
+    kept = set()
     for a in atoms:
-        ra = Chem.Atom(0 if a["is_abbrev"] else a["elem"])
-        if a["num_h"] is not None:
-            ra.SetNoImplicit(True)
-            ra.SetNumExplicitHs(a["num_h"])
-        em.AddAtom(ra)
+        attrs = dict(a["xml"].attrib)
+        if a["is_abbrev"]:
+            attrs = {"id": attrs["id"], "p": attrs.get("p", "0 0"),
+                     "NodeType": "GenericNickname", "GenericNickname": "*"}
+        ET.SubElement(reader, "n", attrs)
+        kept.add(a["xml"].get("id"))
+    for b in frag_elem.findall("b"):
+        if b.get("B") in kept and b.get("E") in kept:
+            ET.SubElement(reader, "b", dict(b.attrib))
+    return reader
 
-    BT = {1: Chem.BondType.SINGLE, 2: Chem.BondType.DOUBLE,
-          3: Chem.BondType.TRIPLE}
-    for bi, ei, order in bonds:
-        em.AddBond(bi, ei, BT.get(order, Chem.BondType.SINGLE))
 
-    mol = em.GetMol()
+def _sanitize_leniently(mol) -> None:
+    from rdkit import Chem
     try:
         Chem.SanitizeMol(mol)
     except Exception:
@@ -144,7 +107,163 @@ def frag_to_mol(frag_elem: ET.Element):
         except Exception:
             pass
 
+
+def frag_to_mol(frag_elem: ET.Element):
+    """Convert a CDXML <fragment> to an RDKit Mol with atom metadata.
+
+    Returns ``(mol, atoms_data)`` where *atoms_data* is a list of dicts
+    with keys: id, idx, x, y, elem, num_h, is_abbrev, xml.  Atom ``idx``
+    follows the fragment's node order.
+
+    The molecule comes from the shared CDXML reader
+    (:func:`cdxml_toolkit.chemistry_semantics.read_fragment_element`), so
+    wedges, charges, isotopes, radicals and aromatic or dative bonds are kept.
+    Abbreviation groups (``NodeType="Fragment"``) become dummy atoms
+    (element 0) so they participate in connectivity but not MCS element
+    matching.
+
+    Returns ``(None, None)`` if conversion fails.
+    """
+    from rdkit import Chem
+    from .chemistry_semantics import read_fragment_element
+
+    atoms: List[dict] = []
+    for n in frag_elem.findall("n"):
+        node_type = n.get("NodeType")
+        if node_type in _SKIP_NODETYPES:
+            continue
+        px, py = [float(v) for v in n.get("p", "0 0").split()]
+        num_h_attr = n.get("NumHydrogens")
+        is_abbrev = node_type in _DUMMY_NODETYPES
+        atoms.append({
+            "id": int(n.get("id")), "idx": len(atoms),
+            "x": px, "y": py,
+            "elem": int(n.get("Element", "6")),
+            "num_h": int(num_h_attr) if num_h_attr is not None else None,
+            "is_abbrev": is_abbrev,
+            "xml": n,
+        })
+    if not atoms:
+        return None, None
+
+    try:
+        parsed = read_fragment_element(
+            _reader_fragment(frag_elem, atoms), sanitize=False, remove_hs=False)
+    except Exception:
+        return None, None
+    if not parsed:
+        return None, None
+    mol = parsed[0]
+    for extra in parsed[1:]:
+        mol = Chem.CombineMols(mol, extra)
+    if mol.GetNumAtoms() != len(atoms):
+        return None, None
+
+    # The reader keeps CDXML coordinates (y up) and node order; check both,
+    # then map atoms to nodes by position if the order ever differs.
+    conf = mol.GetConformer() if mol.GetNumConformers() else None
+    order = list(range(len(atoms)))
+    if conf is not None and len(atoms) > 1:
+        pos = [conf.GetAtomPosition(i) for i in range(len(atoms))]
+        span_xml = max(abs(a["x"]) + abs(a["y"]) for a in atoms) or 1.0
+        span_rd = max(abs(p.x) + abs(p.y) for p in pos) or 1.0
+        k = span_rd / span_xml
+
+        def _close(i, a):
+            return (abs(pos[i].x - a["x"] * k) <= 1e-3 * span_rd
+                    and abs(pos[i].y + a["y"] * k) <= 1e-3 * span_rd)
+
+        if not all(_close(i, a) for i, a in enumerate(atoms)):
+            order = []
+            for a in atoms:
+                hits = [i for i in range(len(atoms)) if _close(i, a) and i not in order]
+                if len(hits) != 1:
+                    return None, None
+                order.append(hits[0])
+            mol = Chem.RenumberAtoms(mol, order)
+
+    mol = Chem.RWMol(mol)
+    for a in atoms:
+        if a["num_h"] is not None and not a["is_abbrev"]:
+            ra = mol.GetAtomWithIdx(a["idx"])
+            ra.SetNoImplicit(True)
+            ra.SetNumExplicitHs(a["num_h"])
+    mol = mol.GetMol()
+    _sanitize_leniently(mol)
     return mol, atoms
+
+
+_WEDGE_DISPLAYS = {"WedgeBegin", "WedgeEnd", "WedgedHashBegin", "WedgedHashEnd"}
+
+
+def _stereo_key(mol) -> str:
+    """Chemical identity used to check that a re-layout changed nothing."""
+    from rdkit import Chem
+    from .chemistry_semantics import semantic_key
+    try:
+        return semantic_key(mol)
+    except Exception:
+        return Chem.MolToSmiles(mol)
+
+
+def rewrite_wedges(frag_elem: ET.Element, mol, atoms_data: List[dict]) -> None:
+    """Redraw wedge and hash bonds of *frag_elem* from *mol*'s stereo.
+
+    *mol* and *atoms_data* come from :func:`frag_to_mol` before the atoms
+    moved; the node coordinates are read from the XML as it now stands.
+    Other bond displays (wavy, bold, dashed) are left alone.
+    """
+    from rdkit import Chem
+    from rdkit.Geometry import Point3D
+
+    work = Chem.Mol(mol)
+    conf = Chem.Conformer(work.GetNumAtoms())
+    for a in atoms_data:
+        x, y = [float(v) for v in a["xml"].get("p", "0 0").split()]
+        conf.SetAtomPosition(a["idx"], Point3D(x, -y, 0.0))
+    work.RemoveAllConformers()
+    work.AddConformer(conf, assignId=True)
+    for bond in work.GetBonds():
+        bond.SetBondDir(Chem.BondDir.NONE)
+    Chem.WedgeMolBonds(work, work.GetConformer())
+
+    node_id = {a["idx"]: a["xml"].get("id") for a in atoms_data}
+    by_pair = {}
+    for b in frag_elem.findall("b"):
+        if b.get("Display") in _WEDGE_DISPLAYS:
+            del b.attrib["Display"]
+        by_pair[frozenset((b.get("B"), b.get("E")))] = b
+    for bond in work.GetBonds():
+        direction = bond.GetBondDir()
+        if direction not in (Chem.BondDir.BEGINWEDGE, Chem.BondDir.BEGINDASH):
+            continue
+        begin = node_id[bond.GetBeginAtomIdx()]
+        xml = by_pair.get(frozenset((begin, node_id[bond.GetEndAtomIdx()])))
+        if xml is None:
+            continue
+        kind = "Wedge" if direction == Chem.BondDir.BEGINWEDGE else "WedgedHash"
+        xml.set("Display", kind + ("Begin" if xml.get("B") == begin else "End"))
+
+
+def snapshot_attributes(frag_elem: ET.Element) -> List[Tuple[ET.Element, Dict[str, str]]]:
+    """Attributes of every element under *frag_elem*, for :func:`keep_stereo_or_restore`."""
+    return [(el, dict(el.attrib)) for el in frag_elem.iter()]
+
+
+def keep_stereo_or_restore(frag_elem: ET.Element, snapshot, mol,
+                           atoms_data: List[dict]) -> bool:
+    """After atoms of *frag_elem* moved, redraw its wedges and compare the
+    molecule with *mol* (read before the move).  If the chemistry changed,
+    restore the attributes in *snapshot* (taken before the move) and
+    return False: the re-layout is abandoned."""
+    rewrite_wedges(frag_elem, mol, atoms_data)
+    after, _ = frag_to_mol(frag_elem)
+    if after is not None and _stereo_key(after) == _stereo_key(mol):
+        return True
+    for el, attrs in snapshot:
+        el.attrib.clear()
+        el.attrib.update(attrs)
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -424,6 +543,10 @@ def cleanup_fragment_rdkit(frag_elem: ET.Element,
     not element matching.  When an abbreviation node moves, its inner
     fragment atoms and text label are translated by the same delta.
 
+    Wedges are redrawn for the new coordinates.  If the re-laid-out
+    fragment no longer reads as the same molecule (stereo included), the
+    original coordinates are kept and False is returned.
+
     Modifies *frag_elem* in place.  Returns True if cleanup was applied.
     """
     import copy as _copy
@@ -437,6 +560,7 @@ def cleanup_fragment_rdkit(frag_elem: ET.Element,
 
     if mol.GetNumAtoms() < 2:
         return False
+    snapshot = snapshot_attributes(frag_elem)
 
     # Save original coordinates
     orig_coords = [(a["x"], a["y"]) for a in atoms_data]
@@ -554,6 +678,14 @@ def cleanup_fragment_rdkit(frag_elem: ET.Element,
                     t_elem.set("BoundingBox",
                                f"{bvals[0]+dx:.4f} {bvals[1]+dy:.4f} "
                                f"{bvals[2]+dx:.4f} {bvals[3]+dy:.4f}")
+
+    if not keep_stereo_or_restore(frag_elem, snapshot, mol, atoms_data):
+        if verbose:
+            import sys
+            print(f"    [RDKit cleanup] fragment {frag_elem.get('id', '?')}: "
+                  "skipped, the new layout would change the stereochemistry",
+                  file=sys.stderr)
+        return False
 
     if verbose:
         import sys
