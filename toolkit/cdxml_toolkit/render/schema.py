@@ -58,14 +58,15 @@ class StepRunArrows:
     runs: list[RunArrowEntry] = field(default_factory=list)
 
 
+# Layout names; each has one renderer in ``renderer.LAYOUT_RENDERERS``.
 VALID_LAYOUTS = frozenset({
     "linear", "sequential", "divergent", "stacked-rows",
-    "numbered-parallel", "convergent",
+    "convergent", "catalytic-cycle",
 })
 
 VALID_WRAPS = frozenset({"repeat", "serpentine", "none"})
 
-VALID_ARROW_STYLES = frozenset({"solid", "dashed", "failed"})
+VALID_ARROW_STYLES = frozenset({"solid", "dashed", "failed", "reversible", "resonance"})
 
 
 @dataclass

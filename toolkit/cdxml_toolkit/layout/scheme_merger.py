@@ -38,6 +38,7 @@ from ..cdxml_utils import (
     write_cdxml,
     recompute_text_bbox,
 )
+from ..model.document import REFERENCES
 from ..rdkit_utils import frag_to_smiles, frag_to_mw
 from .reaction_cleanup import (
     PLUS_CLEARANCE, _atom_anchor, _carry_compound_labels, _compound_labels,
@@ -1126,6 +1127,7 @@ def adjacent_place(trees: List[ET.ElementTree], *,
         # as a whole so that its steps see the new ids of every object.
         page_copy = copy.deepcopy(extra_page)
         _remap_element_ids(page_copy, old_to_new, next_id, next_z)
+        _merge_style_tables(result_root, extra_root, page_copy)
         for el_copy in list(page_copy):
             # Shift horizontally
             _shift_element(el_copy, dx, 0)
@@ -1614,8 +1616,10 @@ def sequential_merge(schemes: List[ParsedScheme], *,
 
             el_copy = copy.deepcopy(el)
 
-            # Remap all IDs in this element subtree
-            _remap_element_ids(el_copy, old_to_new, next_id, next_z)
+            # New ids for this element subtree; references are remapped
+            # below, once every element of the step has its new id.
+            _assign_new_ids(el_copy, old_to_new, next_id, next_z)
+            _merge_style_tables(merged_root, s.root, el_copy)
             next_id = max(next_id, _get_max_id_in_element(el_copy) + 1)
             next_z = max(next_z, _get_max_z_in_element(el_copy) + 1)
 
@@ -1637,17 +1641,8 @@ def sequential_merge(schemes: List[ParsedScheme], *,
 
             sd["elements"].append((el_copy, role, eid))
 
-        # FIX 1: After all elements collected, fix cross-references with
-        # the complete old_to_new mapping. When _remap_element_ids processes
-        # elements individually, a graphic's SupersededBy might reference an
-        # arrow that hasn't been assigned a new ID yet. Now old_to_new is
-        # complete for this step, so we fix any stale references.
         for el_copy, role, old_id in sd["elements"]:
-            for node in el_copy.iter():
-                for attr in ("SupersededBy",):
-                    ref = node.get(attr)
-                    if ref and ref in old_to_new:
-                        node.set(attr, old_to_new[ref])
+            _remap_references(el_copy, old_to_new)
 
         # Build remapped ID lists
         for el_copy, role, old_id in sd["elements"]:
@@ -1666,6 +1661,7 @@ def sequential_merge(schemes: List[ParsedScheme], *,
                 sd["graphic_id"] = new_id
             elif role == "other" and old_id not in label_owner and old_id not in plus_pairs:
                 sd["other_ids"].append(new_id)
+        sd["old_to_new"] = old_to_new
         copies = {old_id: el_copy for el_copy, _, old_id in sd["elements"]}
         sd["labels"] = [(copies[t], copies[f], _atom_anchor(copies[f])[:2])
                         for t, f in label_owner.items()
@@ -1674,9 +1670,10 @@ def sequential_merge(schemes: List[ParsedScheme], *,
         # If shared intermediate was skipped, use the previous step's product ID
         if step_idx > 0 and links[step_idx - 1][1]:
             prev_sd = step_data[step_idx - 1]
-            # The intermediate is the product of the previous step
-            if prev_sd["product_ids"]:
-                intermediate_id = prev_sd["product_ids"][0]
+            # The intermediate is the previous step's linked product (not
+            # simply its first product: a by-product may come first).
+            intermediate_id = prev_sd["old_to_new"].get(links[step_idx - 1][0])
+            if intermediate_id in prev_sd["product_ids"]:
                 sd["reactant_ids"].insert(0, intermediate_id)
                 # A "+" next to the skipped copy belongs to the intermediate drawn in the
                 # previous step, wherever that one ends up.
@@ -1997,56 +1994,99 @@ def sequential_merge(schemes: List[ParsedScheme], *,
     return merged_tree
 
 
+def _assign_new_ids(el: ET.Element, old_to_new: Dict[str, str],
+                    start_id: int, start_z: int):
+    """Give every id and Z in *el* a new value; record old -> new ids in *old_to_new*.
+
+    References are left alone: call _remap_references once the mapping is
+    complete, so a reference to an object copied later still gets its new id.
+    """
+    next_id, next_z = start_id, start_z
+    for node in el.iter():
+        old_id = node.get("id")
+        if old_id:
+            if old_id not in old_to_new:
+                old_to_new[old_id] = str(next_id)
+                next_id += 1
+            node.set("id", old_to_new[old_id])
+        if node.get("Z"):
+            node.set("Z", str(next_z))
+            next_z += 1
+
+
+def _remap_references(el: ET.Element, old_to_new: Dict[str, str]):
+    """Rewrite every id reference in *el* (the attributes in model.document.REFERENCES)."""
+    for node in el.iter():
+        for attr in list(node.attrib):
+            is_list = REFERENCES.get((node.tag, attr))
+            if is_list is None:
+                continue
+            tokens = node.get(attr).split() if is_list else [node.get(attr).strip()]
+            node.set(attr, " ".join(old_to_new.get(t, t) for t in tokens))
+
+
 def _remap_element_ids(el: ET.Element, old_to_new: Dict[str, str],
                        start_id: int, start_z: int):
-    """Remap all id/Z attributes and cross-references in an element subtree.
+    """Renumber a self-contained subtree: new ids and Z, then its references."""
+    _assign_new_ids(el, old_to_new, start_id, start_z)
+    _remap_references(el, old_to_new)
 
-    Populates old_to_new mapping as a side effect.
+
+# Attributes that index the font table (by font id) or the colour table (by
+# position: 0 is black, 1 is white, entry k of the table is index k + 2).
+_FONT_ATTRS = ("font", "LabelFont", "CaptionFont")
+_COLOR_ATTRS = ("color", "bgcolor", "fgcolor")
+
+
+def _merge_style_tables(dst_root: ET.Element, src_root: ET.Element, el: ET.Element):
+    """Make *el* (copied from *src_root*) use *dst_root*'s font and colour tables.
+
+    Fonts and colours the destination lacks are appended to its tables, and
+    the font and colour attributes in *el* are rewritten to the destination's
+    ids, so copied text keeps its font and colour.
     """
-    # Phase 1: assign new IDs
-    counter = [start_id, start_z]
+    if src_root is dst_root:
+        return
+    font_map: Dict[str, str] = {}
+    src_fonts = src_root.find("fonttable")
+    if src_fonts is not None:
+        dst_fonts = dst_root.find("fonttable")
+        if dst_fonts is None:
+            dst_fonts = ET.Element("fonttable")
+            dst_root.insert(0, dst_fonts)
+        for font in src_fonts.findall("font"):
+            key = (font.get("name"), font.get("charset"))
+            match = next((f for f in dst_fonts.findall("font")
+                          if (f.get("name"), f.get("charset")) == key), None)
+            if match is None:
+                used = [int(f.get("id")) for f in dst_fonts.findall("font") if (f.get("id") or "").isdigit()]
+                match = copy.deepcopy(font)
+                match.set("id", str(max(used, default=2) + 1))
+                dst_fonts.append(match)
+            font_map[font.get("id")] = match.get("id")
+    color_map: Dict[str, str] = {}
+    src_colors = src_root.find("colortable")
+    if src_colors is not None:
+        dst_colors = dst_root.find("colortable")
+        if dst_colors is None:
+            dst_colors = ET.Element("colortable")
+            dst_root.insert(0, dst_colors)
+        for index, color in enumerate(src_colors.findall("color"), 2):
+            rgb = (color.get("r"), color.get("g"), color.get("b"))
+            entries = dst_colors.findall("color")
+            position = next((k for k, c in enumerate(entries)
+                             if (c.get("r"), c.get("g"), c.get("b")) == rgb), None)
+            if position is None:
+                dst_colors.append(copy.deepcopy(color))
+                position = len(entries)
+            color_map[str(index)] = str(position + 2)
     for node in el.iter():
-        old_id = node.get("id")
-        if old_id and old_id not in old_to_new:
-            new_id = str(counter[0])
-            old_to_new[old_id] = new_id
-            counter[0] += 1
-
-    # Phase 2: apply mapping
-    for node in el.iter():
-        # Remap id
-        old_id = node.get("id")
-        if old_id and old_id in old_to_new:
-            node.set("id", old_to_new[old_id])
-
-        # Remap Z (just increment to avoid conflicts)
-        z = node.get("Z")
-        if z:
-            node.set("Z", str(counter[1]))
-            counter[1] += 1
-
-        # Remap bond references
-        for attr in ("B", "E"):
-            ref = node.get(attr)
-            if ref and ref in old_to_new:
-                node.set(attr, old_to_new[ref])
-
-        # Remap SupersededBy
-        sup = node.get("SupersededBy")
-        if sup and sup in old_to_new:
-            node.set("SupersededBy", old_to_new[sup])
-
-        # Remap BondCircularOrdering
-        # Remap step references (reactants, products, arrows, atom maps)
-        for attr, ref in node.attrib.items():
-            if attr.startswith("ReactionStep"):
-                node.set(attr, " ".join(old_to_new.get(r, r) for r in ref.split()))
-
-        bco = node.get("BondCircularOrdering")
-        if bco:
-            parts = bco.split()
-            new_parts = [old_to_new.get(p, p) for p in parts]
-            node.set("BondCircularOrdering", " ".join(new_parts))
+        for attr in _FONT_ATTRS:
+            if node.get(attr) in font_map:
+                node.set(attr, font_map[node.get(attr)])
+        for attr in _COLOR_ATTRS:
+            if node.get(attr) in color_map:
+                node.set(attr, color_map[node.get(attr)])
 
 
 def _get_max_id_in_element(el: ET.Element) -> int:
@@ -2142,10 +2182,10 @@ def _write_temp_fragment_cdxml(frag: ET.Element,
     from ..constants import CDXML_MINIMAL_HEADER, CDXML_FOOTER
 
     frag_copy = copy.deepcopy(frag)
-    # Wrap in minimal CDXML
-    content = CDXML_MINIMAL_HEADER
+    # A minimal CDXML document; readers look for fragments on a <page>.
+    content = CDXML_MINIMAL_HEADER + '<page id="1">'
     content += ET.tostring(frag_copy, encoding="unicode")
-    content += CDXML_FOOTER
+    content += "</page>" + CDXML_FOOTER
 
     fd, path = tempfile.mkstemp(suffix=".cdxml")
     with os.fdopen(fd, "w", encoding="utf-8") as f:

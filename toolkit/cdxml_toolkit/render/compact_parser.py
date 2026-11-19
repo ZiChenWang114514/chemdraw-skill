@@ -82,7 +82,7 @@ _ARROW_PATTERNS = [
     # order matters: longer/more-specific first
     (re.compile(r"<=>"), "reversible"),  # equilibrium arrow
     (re.compile(r"<->"), "resonance"),   # double-headed resonance arrow
-    (re.compile(r"==>"), "solid"),       # parallel (arrow style is solid; layout implies parallel)
+    (re.compile(r"==>"), "solid"),       # a plain solid arrow (no separate parallel layout)
     (re.compile(r"\.\.>"), "dashed"),
     (re.compile(r"-->"), "solid"),
     (re.compile(r"[Xx]>"), "failed"),
@@ -305,7 +305,6 @@ def parse_compact(text: str) -> SchemeDescriptor:
     step_below: dict[int, list[tuple[str, int]]] = {}
     step_runs: dict[int, list[tuple[str, int]]] = {}
     condition_key_entries: dict[str, str] = {}
-    is_parallel = False
 
     current_step: int = 0  # 0 = implicit single-step context
     in_conditions_block = False
@@ -441,10 +440,6 @@ def parse_compact(text: str) -> SchemeDescriptor:
                 )
             reaction_chain_line = line
             reaction_chain_lineno = raw_lineno
-            # Detect parallel arrow
-            for _, _, style, _ in arrows:
-                if style == "solid" and '==>' in line:
-                    is_parallel = True
             continue
 
         # Before giving up, check for common syntax errors
@@ -583,9 +578,7 @@ def parse_compact(text: str) -> SchemeDescriptor:
     explicit_layout = 'layout' in directives
     layout = directives.get('layout', 'linear')
     if not explicit_layout:
-        if is_parallel:
-            layout = 'numbered-parallel'
-        elif num_steps > 1:
+        if num_steps > 1:
             layout = 'sequential'
     if layout not in VALID_LAYOUTS:
         raise ParseError(f"Unknown layout: {layout!r}")

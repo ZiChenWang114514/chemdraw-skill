@@ -61,7 +61,10 @@ def test_diff_timeout_is_not_empty_success():
 def test_diff_identical_and_symmetric():
     from cdxml_toolkit.chemistry_diff import structural_diff
     assert structural_diff('CCO', 'OCC')['status'] == 'completed'
-    result = structural_diff('c1ccccc1', 'Cc1ccccc1')
+    # Every mapping of benzene onto toluene gives the same change.
+    assert structural_diff('c1ccccc1', 'Cc1ccccc1')['status'] == 'completed'
+    # Methanol fits either end of the product: two different changes.
+    result = structural_diff('CO', 'COCCO')
     assert result['status'] == 'partial'
     assert result['reason'] == 'ambiguous_atom_mapping'
 

@@ -7,6 +7,7 @@ import tempfile
 from xml.etree import ElementTree as ET
 from rdkit import Chem
 from rdkit.Chem import rdDepictor, rdFMCS
+from ..chemistry_diff import core_mappings
 from ..chemistry_semantics import semantic_key
 from ..mcp_runtime.figure_tools import compose_chemical_figure
 from .data import field_text, local_path, write_json
@@ -89,12 +90,12 @@ def replacement_fragment(old_fragment,new_smiles,atom_map,stage,root,cid):
     if mcs.canceled or mcs.numAtoms<3: raise ValueError('No usable core; supply a new layout explicitly')
     query=Chem.MolFromSmarts(mcs.smartsString)
     if atom_map is None:
-        a=old.GetSubstructMatches(query,uniquify=False,maxMatches=128)
-        b=new.GetSubstructMatches(query,uniquify=False,maxMatches=128)
-        mappings={tuple(zip(i,j)) for i in a for j in b}
-        if len(mappings)!=1:
+        # Mappings that send each old atom to the same symmetry class of the
+        # new structure draw the same picture; only distinct ones are a choice.
+        mappings=core_mappings(old,new,query)
+        if not mappings or len(mappings)!=1:
             raise ValueError('Symmetric core mapping; supply atom_maps[compound_id] as old/new zero-based pairs')
-        pairs=list(next(iter(mappings)))
+        pairs=list(mappings[0].items())
     else:
         pairs=[tuple(map(int,p)) for p in atom_map]
         if len(pairs)<3 or len({a for a,b in pairs})!=len(pairs) or len({b for a,b in pairs})!=len(pairs):

@@ -70,14 +70,10 @@ from xml.sax.saxutils import escape as xml_escape
 
 from .constants import (
     ACS_BOND_LENGTH_STR as ACS_BOND_LENGTH,
-    ACS_CHAIN_ANGLE_STR as ACS_CHAIN_ANGLE,
     ACS_LABEL_FONT, ACS_LABEL_SIZE, ACS_LABEL_FACE,
-    ACS_CAPTION_SIZE, ACS_CAPTION_FACE,
-    ACS_LINE_WIDTH, ACS_BOLD_WIDTH, ACS_BOND_SPACING,
-    ACS_HASH_SPACING, ACS_MARGIN_WIDTH,
-    CDXML_HEADER as _CDXML_HEADER,
-    CDXML_FOOTER as _CDXML_FOOTER,
 )
+# Arrows, condition text and the page come from render.renderer, imported
+# where they are used (the renderer imports this module).
 from .cdxml_utils import hydrogens_lead
 
 # Element numbers for all 118 IUPAC elements
@@ -553,127 +549,6 @@ def _build_fragment(
 
 
 # ---------------------------------------------------------------------------
-# Conditions text builder
-# ---------------------------------------------------------------------------
-
-def _build_conditions_text(
-    lines: List[str],
-    x: float,
-    y: float,
-    ids: _IDGen,
-    justification: str = "Center",
-) -> Tuple[str, int]:
-    """
-    Build a standalone <t> element for reaction conditions (above or below arrow).
-
-    Returns (xml_string, text_xml_id).
-    """
-    tid = ids.next()
-    z = ids.next()
-
-    # Estimate bounding box: ~6 pt per char, 12 pt line height
-    max_chars = max((len(ln) for ln in lines), default=1)
-    w = max_chars * 5.8
-    h = len(lines) * 12.0
-
-    bx1 = x - w / 2.0
-    by1 = y - h
-    bx2 = x + w / 2.0
-    by2 = y
-
-    parts = [
-        f'<t id="{tid}" p="{x:.2f} {y:.2f}" '
-        f'BoundingBox="{bx1:.2f} {by1:.2f} {bx2:.2f} {by2:.2f}" '
-        f'Z="{z}" '
-        f'CaptionJustification="{justification}" '
-        f'Justification="{justification}" '
-        f'LineHeight="auto">'
-    ]
-    text = "\n".join(xml_escape(ln) for ln in lines)
-    parts.append(
-        f'<s font="{ACS_LABEL_FONT}" size="{ACS_CAPTION_SIZE}" '
-        f'color="0" face="{ACS_CAPTION_FACE}">{text}</s>'
-    )
-    parts.append("</t>")
-    return "\n".join(parts), tid
-
-
-# ---------------------------------------------------------------------------
-# Arrow builder
-# ---------------------------------------------------------------------------
-
-def _build_arrow(
-    tail_x: float, tail_y: float,
-    head_x: float, head_y: float,
-    ids: _IDGen,
-) -> Tuple[str, int]:
-    """
-    Build an <arrow> element (full solid arrowhead, reaction style).
-    Returns (xml_string, arrow_xml_id).
-    """
-    aid = ids.next()
-    z = ids.next()
-
-    # BoundingBox encloses the arrow shaft
-    bx1 = min(tail_x, head_x)
-    by1 = min(tail_y, head_y) - 4.0
-    bx2 = max(tail_x, head_x)
-    by2 = max(tail_y, head_y) + 4.0
-
-    # Center3D / MajorAxisEnd3D / MinorAxisEnd3D — ChemDraw uses these for
-    # internal geometry but they don't affect display in standard mode.
-    cx3 = (tail_x + head_x) / 2.0
-    cy3 = tail_y + 100.0
-    xml = (
-        f'<arrow id="{aid}" '
-        f'BoundingBox="{bx1:.2f} {by1:.2f} {bx2:.2f} {by2:.2f}" '
-        f'Z="{z}" '
-        f'FillType="None" '
-        f'ArrowheadHead="Full" '
-        f'ArrowheadType="Solid" '
-        f'HeadSize="1000" '
-        f'ArrowheadCenterSize="875" '
-        f'ArrowheadWidth="250" '
-        f'Head3D="{head_x:.2f} {head_y:.2f} 0" '
-        f'Tail3D="{tail_x:.2f} {tail_y:.2f} 0" '
-        f'Center3D="{cx3:.2f} {cy3:.2f} 0" '
-        f'MajorAxisEnd3D="{cx3 + 80:.2f} {cy3:.2f} 0" '
-        f'MinorAxisEnd3D="{cx3:.2f} {cy3 + 80:.2f} 0"'
-        f'/>'
-    )
-    return xml, aid
-
-
-# ---------------------------------------------------------------------------
-# Page templates
-# ---------------------------------------------------------------------------
-
-_PAGE_OPEN = (
-    '<page id="{page_id}" BoundingBox="0 0 1620 2160" '
-    'HeaderPosition="36" FooterPosition="36" '
-    'PrintTrimMarks="yes" HeightPages="3" WidthPages="3">'
-)
-_PAGE_CLOSE = "</page>"
-
-
-def _header(bbox: str) -> str:
-    return _CDXML_HEADER.format(
-        bbox=bbox,
-        label_font=ACS_LABEL_FONT,
-        label_size=ACS_LABEL_SIZE,
-        label_face=ACS_LABEL_FACE,
-        caption_size=ACS_CAPTION_SIZE,
-        hash_spacing=ACS_HASH_SPACING,
-        margin_width=ACS_MARGIN_WIDTH,
-        line_width=ACS_LINE_WIDTH,
-        bold_width=ACS_BOLD_WIDTH,
-        bond_length=ACS_BOND_LENGTH,
-        bond_spacing=ACS_BOND_SPACING,
-        chain_angle=ACS_CHAIN_ANGLE,
-    )
-
-
-# ---------------------------------------------------------------------------
 # Public API -- single molecule & RDKit Mol conversion
 # ---------------------------------------------------------------------------
 
@@ -867,21 +742,8 @@ def build_molecule_cdxml(
     atom_id_map: Dict[int, int] = {}
     frag_xml, atom_id_map, _ = _build_fragment(atoms, bonds, ids, atom_id_map)
 
-    # Document bounding box
-    xs = [a["x"] for a in atoms]
-    ys = [a["y"] for a in atoms]
-    bbox = f"{min(xs):.2f} {min(ys):.2f} {max(xs):.2f} {max(ys):.2f}"
-
-    page_id = ids.next()
-
-    lines = [
-        _header(bbox),
-        _PAGE_OPEN.format(page_id=page_id),
-        frag_xml,
-        _PAGE_CLOSE,
-        _CDXML_FOOTER,
-    ]
-    return "\n".join(lines)
+    from .render.renderer import wrap_page
+    return wrap_page(frag_xml, ids.next())
 
 
 # ---------------------------------------------------------------------------
@@ -994,46 +856,39 @@ def build_reaction_cdxml(
     if arrow_head_x is None:
         arrow_head_x = product_left - margin
 
-    # ---- Conditions text elements ----
+    # ---- Conditions text and arrow (shared with the scheme renderer) ----
+    from .render.renderer import (
+        _build_arrow, _build_text_element, above_arrow_baseline, below_arrow_baseline,
+    )
     above_ids: List[int] = []
     below_ids: List[int] = []
-
+    above_xml_parts: List[str] = []
+    below_xml_parts: List[str] = []
     arrow_mid_x = (arrow_tail_x + arrow_head_x) / 2.0
+
+    from .text_formatting import needs_subscript, split_italic_prefix
+
+    def chemical(lines: List[str]) -> bool:
+        # Formula or italic-prefix styling only when a line has formula digits
+        # or a prefix; plain conditions ("100 °C, 24 h") stay in caption face.
+        return any(needs_subscript(ln) or split_italic_prefix(ln)[0] for ln in lines)
 
     above_lines = conditions.get("above", [])
     below_lines = conditions.get("below", [])
-
-    above_xml_parts: List[str] = []
-    below_xml_parts: List[str] = []
-
     if above_lines:
-        txt_xml, txt_id = _build_conditions_text(
-            above_lines,
-            x=arrow_mid_x,
-            y=arrow_y - 8.0,   # above arrow shaft
-            ids=ids,
-        )
+        txt_xml, txt_id = _build_text_element(
+            above_lines, arrow_mid_x, above_arrow_baseline(arrow_y, len(above_lines)), ids,
+            use_formatting=chemical(above_lines))
         above_xml_parts.append(txt_xml)
         above_ids.append(txt_id)
-
     if below_lines:
-        txt_xml, txt_id = _build_conditions_text(
-            below_lines,
-            x=arrow_mid_x,
-            y=arrow_y + 20.0,  # below arrow shaft
-            ids=ids,
-        )
+        txt_xml, txt_id = _build_text_element(
+            below_lines, arrow_mid_x, below_arrow_baseline(arrow_y), ids,
+            use_formatting=chemical(below_lines))
         below_xml_parts.append(txt_xml)
         below_ids.append(txt_id)
 
-    # ---- Arrow ----
-    arrow_xml, arrow_id = _build_arrow(
-        tail_x=arrow_tail_x,
-        tail_y=arrow_y,
-        head_x=arrow_head_x,
-        head_y=arrow_y,
-        ids=ids,
-    )
+    arrow_xml, arrow_id = _build_arrow(arrow_tail_x, arrow_y, arrow_head_x, arrow_y, ids)
 
     # ---- Scheme / step ----
     scheme_id = ids.next()
@@ -1061,29 +916,9 @@ def build_reaction_cdxml(
         f'</scheme>'
     )
 
-    # ---- Document bounding box ----
-    extra_margin = 20.0
-    doc_x1 = min(all_xs) - extra_margin
-    doc_y1 = min(all_ys) - extra_margin
-    doc_x2 = max(all_xs) + extra_margin
-    doc_y2 = max(all_ys) + extra_margin
-    doc_bbox = f"{doc_x1:.2f} {doc_y1:.2f} {doc_x2:.2f} {doc_y2:.2f}"
-
-    page_id = ids.next()
-
-    # ---- Assemble document ----
-    sections = (
-        [_header(doc_bbox)]
-        + [_PAGE_OPEN.format(page_id=page_id)]
-        + all_xml_parts
-        + above_xml_parts
-        + below_xml_parts
-        + [arrow_xml]
-        + [scheme_xml]
-        + [_PAGE_CLOSE]
-        + [_CDXML_FOOTER]
-    )
-    return "\n".join(sections)
+    from .render.renderer import wrap_page
+    inner = all_xml_parts + above_xml_parts + below_xml_parts + [arrow_xml, scheme_xml]
+    return wrap_page("\n".join(inner), ids.next())
 
 
 # ---------------------------------------------------------------------------
