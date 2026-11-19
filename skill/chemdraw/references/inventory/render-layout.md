@@ -142,8 +142,9 @@
 
 ## `text_formatting`
 
-- **function**, line 181: `build_formatted_s_xml(text: str, font: str = '3', size: str = '10', color: str = '0', italic_font: str | None = None) -> str` - Build one or more CDXML ``<s>`` elements with correct chemical styling.
-- **function**, line 126: `needs_subscript(text: str) -> bool` - Determine whether *text* contains chemical-formula digits that should be rendered as subscripts in ChemDraw.
-- **function**, line 108: `normalize_condition_text(text: str) -> str` - Write temperatures, room temperature and times the way papers do.
-- **function**, line 157: `split_italic_prefix(text: str) -> Tuple[str, str]` - Split *text* into ``(italic_prefix, remainder)`` if it starts with a recognised chemistry italic prefix (see :data:`ITALIC_PREFIXES`).
-- **function**, line 65: `subscript_matches(text: str) -> list[re.Match]` - Formula digit groups in *text* that should be subscripted.
+- **function**, line 185: `build_formatted_s_xml(text: str, font: str = '3', size: str = '10', color: str = '0', italic_font: str | None = None) -> str` - Build one or more CDXML ``<s>`` elements with correct chemical styling.
+- **function**, line 130: `needs_subscript(text: str) -> bool` - Determine whether *text* contains chemical-formula digits that should be rendered as subscripts in ChemDraw.
+- **function**, line 112: `normalize_condition_text(text: str) -> str` - Write temperatures, room temperature and times the way papers do.
+- **function**, line 161: `split_italic_prefix(text: str) -> Tuple[str, str]` - Split *text* into ``(italic_prefix, remainder)`` if it starts with a recognised chemistry italic prefix (see :data:`ITALIC_PREFIXES`).
+- **function**, line 69: `subscript_matches(text: str) -> list[re.Match]` - Formula digit groups in *text* that should be subscripted.
+- **function**, line 32: `xml_escape(data: str) -> str` - Escape &, < and > as xml.sax.saxutils.escape does, without that module's import cost.

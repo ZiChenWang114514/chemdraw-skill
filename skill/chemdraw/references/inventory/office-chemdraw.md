@@ -60,6 +60,7 @@
 - **method**, line 687: `ChemScriptBridge.substructure_align(query: str, target: str, query_format: str = None, target_format: str = None) -> Optional[List]` - Align a small molecule (query) to its substructure match in a larger molecule (target).
 - **method**, line 600: `ChemScriptBridge.substructure_search(target: str, query: str) -> dict` - Perform atom-by-atom substructure search.
 - **method**, line 784: `ChemScriptBridge.write_data(source: str, target_format: str, source_format: str = None) -> str` - Convert a structure to a specific format string.
+- **function**, line 1110: `shared_bridge()` - The one bridge the naming code shares in this process.
 
 ## `chemdraw.chemscript_mac`
 

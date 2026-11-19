@@ -449,23 +449,23 @@
 
 ## `mcp_runtime.mcp_compat`
 
-- **function**, line 45: `install_legacy_fastmcp_alias() -> None` - Provide the legacy FastMCP import expected by the core MCP module.
-- **function**, line 19: `sdk_major(version: str | None = None) -> int` - Return a supported MCP SDK major version or raise a clear error.
-- **function**, line 14: `sdk_version() -> str` - Return the installed MCP Python SDK distribution version.
-- **function**, line 34: `server_class() -> type[Any]` - Return the high-level server class for the installed SDK.
+- **function**, line 46: `install_legacy_fastmcp_alias() -> None` - Provide the legacy FastMCP import expected by the core MCP module.
+- **function**, line 20: `sdk_major(version: str | None = None) -> int` - Return a supported MCP SDK major version or raise a clear error.
+- **function**, line 13: `sdk_version() -> str` - Return the installed MCP Python SDK distribution version.
+- **function**, line 35: `server_class() -> type[Any]` - Return the high-level server class for the installed SDK.
 
 ## `mcp_runtime.mcp_server`
 
-- **class**, line 608: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
-- **function**, line 1088: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
-- **function**, line 1017: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
-- **function**, line 999: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
-- **function**, line 1056: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
-- **function**, line 829: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
-- **function**, line 866: `read_style_guide_resource(preset: str) -> str` - JSON settings of one preset or house-style card, or of all of them for ``all``.
-- **function**, line 843: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
-- **function**, line 672: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
-- **function**, line 1126: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
+- **class**, line 671: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
+- **function**, line 1170: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
+- **function**, line 1099: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
+- **function**, line 1062: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
+- **function**, line 1138: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
+- **function**, line 892: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
+- **function**, line 929: `read_style_guide_resource(preset: str) -> str` - JSON settings of one preset or house-style card, or of all of them for ``all``.
+- **function**, line 906: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
+- **function**, line 735: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
+- **function**, line 1208: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.metal_templates`
 
@@ -508,15 +508,15 @@
 ## `mcp_runtime.office_objects`
 
 - **function**, line 31: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
-- **function**, line 584: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
-- **function**, line 513: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 769: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 620: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
-- **function**, line 661: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
-- **function**, line 272: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
+- **function**, line 602: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
+- **function**, line 531: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 787: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 638: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+- **function**, line 679: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
+- **function**, line 289: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
 - **function**, line 56: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
-- **function**, line 791: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 428: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 809: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 445: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.official_overrides`
 
@@ -607,13 +607,17 @@
 
 ## `mcp_runtime.tool_registry`
 
-- **function**, line 34: `build_acs_figure(spec: dict[str, Any] | str, output_path: str | None = None, render: bool = False) -> dict[str, Any]` - Build an ACS Document 1996 CDXML figure from an acs_builder JSON spec.
-- **function**, line 273: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
-- **function**, line 265: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
-- **class**, line 135: `ToolSpec` - No public docstring in the audited version.
+- **function**, line 38: `build_acs_figure(spec: dict[str, Any] | str, output_path: str | None = None, render: bool = False) -> dict[str, Any]` - Build an ACS Document 1996 CDXML figure from an acs_builder JSON spec.
+- **function**, line 376: `build_registry(profile: str | None = None) -> dict[str, ToolSpec]` - No public docstring in the audited version.
+- **function**, line 418: `load_tool(name: str) -> ToolSpec | None` - One tool's spec, importing only the module that defines it.
+- **function**, line 286: `normalize_profile(profile: str | None = None) -> str` - Return the canonical profile name; None means CHEMDRAW_MCP_PROFILE or the default.
+- **function**, line 391: `render_manifest() -> str` - The generated tool manifest: where each tool lives and how long it may run.
+- **function**, line 409: `tool_manifest() -> dict[str, dict[str, Any]]` - The committed manifest's tool table; empty when the file is missing or unreadable.
+- **class**, line 139: `ToolSpec` - No public docstring in the audited version.
 
 ## `mcp_runtime.tool_worker`
 
+- **function**, line 174: `common_path_names(fn) -> dict[str, str]` - The common names a caller may use for this tool's file arguments.
 - **function**, line 31: `worker_log_dir() -> Path` - Folder of ``worker-<id>.log`` files (``cdx.py doctor --paths`` prints it).
 
 ## `mcp_runtime.ui_apps`

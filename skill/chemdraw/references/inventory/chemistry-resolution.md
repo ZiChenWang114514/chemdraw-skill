@@ -45,22 +45,22 @@
 - **class**, line 42: `Alternative` - One alternative IUPAC name for the molecule.
 - **class**, line 31: `BracketNode` - A parenthesised group in an IUPAC name.
 - **function**, line 134: `classify_node(node: BracketNode) -> str` - Quick regex classification of a bracket group.
-- **function**, line 813: `construct_yl_form(parent_name: str, locant: str) -> List[str]` - Construct candidate '-yl' substituent forms from a parent name.
-- **function**, line 2192: `decompose_name(smiles: str, max_depth: int = -1, verbose: bool = False, timeout: Optional[float] = 30.0, _deadline: Optional[float] = None) -> DecompositionResult` - Main entry point: decompose an IUPAC name into alternatives.
-- **function**, line 2603: `decompose_name_with_rgroups(smiles: str, labels = None, verbose: bool = False) -> DecompositionResult` - Decompose a molecule with R-group placeholders using dual-probe consensus.
+- **function**, line 814: `construct_yl_form(parent_name: str, locant: str) -> List[str]` - Construct candidate '-yl' substituent forms from a parent name.
+- **function**, line 2193: `decompose_name(smiles: str, max_depth: int = -1, verbose: bool = False, timeout: Optional[float] = 30.0, _deadline: Optional[float] = None) -> DecompositionResult` - Main entry point: decompose an IUPAC name into alternatives.
+- **function**, line 2604: `decompose_name_with_rgroups(smiles: str, labels = None, verbose: bool = False) -> DecompositionResult` - Decompose a molecule with R-group placeholders using dual-probe consensus.
 - **class**, line 54: `DecompositionResult` - No public docstring in the audited version.
-- **function**, line 883: `find_prefix_substituents(name: str, verbose: bool = False, skip_single_prefix: bool = False) -> List[BracketNode]` - Detect non-bracketed substituent prefixes in a name.
-- **class**, line 1155: `FragmentResult` - Result of splitting a molecule into parent and substituent.
-- **function**, line 1420: `generate_alternative(full_name: str, canonical_smiles: str, node: BracketNode, verbose: bool = False, max_depth: int = 0, _deadline: Optional[float] = None) -> List[Alternative]` - Generate alternative names by swapping parent ↔ substituent at one bracket.
-- **function**, line 1267: `generate_alternative_from_prefix(full_name: str, canonical_smiles: str, node: BracketNode, verbose: bool = False, max_depth: int = 0, _deadline: Optional[float] = None) -> List[Alternative]` - Generate alternatives for a prefix substituent (no brackets).
-- **function**, line 848: `get_locant_via_at_probe(fragment_smiles: str, attach_idx: int) -> Optional[str]` - Add At at attachment point, name via ChemDraw, extract locant.
-- **function**, line 751: `get_parent_smiles_from_at_probe(full_name: str, node: BracketNode) -> Optional[Tuple[str, int]]` - Replace bracket group with 'astato', resolve to SMILES, remove the At to get the parent fragment + attachment index.
-- **function**, line 771: `get_sub_smiles_from_bracket(node: BracketNode) -> Optional[str]` - Try to resolve the bracket content as a standalone chemical name.
-- **function**, line 551: `name_fragment_as_substituent(frag_smiles: str, verbose: bool = False) -> Optional[str]` - Convert a [*]-bearing fragment SMILES to its IUPAC substituent prefix.
+- **function**, line 884: `find_prefix_substituents(name: str, verbose: bool = False, skip_single_prefix: bool = False) -> List[BracketNode]` - Detect non-bracketed substituent prefixes in a name.
+- **class**, line 1156: `FragmentResult` - Result of splitting a molecule into parent and substituent.
+- **function**, line 1421: `generate_alternative(full_name: str, canonical_smiles: str, node: BracketNode, verbose: bool = False, max_depth: int = 0, _deadline: Optional[float] = None) -> List[Alternative]` - Generate alternative names by swapping parent ↔ substituent at one bracket.
+- **function**, line 1268: `generate_alternative_from_prefix(full_name: str, canonical_smiles: str, node: BracketNode, verbose: bool = False, max_depth: int = 0, _deadline: Optional[float] = None) -> List[Alternative]` - Generate alternatives for a prefix substituent (no brackets).
+- **function**, line 849: `get_locant_via_at_probe(fragment_smiles: str, attach_idx: int) -> Optional[str]` - Add At at attachment point, name via ChemDraw, extract locant.
+- **function**, line 752: `get_parent_smiles_from_at_probe(full_name: str, node: BracketNode) -> Optional[Tuple[str, int]]` - Replace bracket group with 'astato', resolve to SMILES, remove the At to get the parent fragment + attachment index.
+- **function**, line 772: `get_sub_smiles_from_bracket(node: BracketNode) -> Optional[str]` - Try to resolve the bracket content as a standalone chemical name.
+- **function**, line 552: `name_fragment_as_substituent(frag_smiles: str, verbose: bool = False) -> Optional[str]` - Convert a [*]-bearing fragment SMILES to its IUPAC substituent prefix.
 - **function**, line 68: `parse_bracket_tree(name: str) -> BracketNode` - Parse parenthesised groups in an IUPAC name into a tree.
-- **function**, line 2489: `prepare_rgroup_smiles(smiles: str, labels = None, probe_set = None, label_probe_map = None) -> Tuple[Optional[str], List[RGroupMapping]]` - Replace dummy atoms (*) with halogen probe atoms.
-- **class**, line 2465: `RGroupMapping` - Tracks an R-group label and its position in the molecule.
-- **function**, line 679: `validate_as_substituent(full_name: str, node: BracketNode, verbose: bool = False) -> bool` - Check if replacing a bracket group with 'astato' gives a valid name.
+- **function**, line 2490: `prepare_rgroup_smiles(smiles: str, labels = None, probe_set = None, label_probe_map = None) -> Tuple[Optional[str], List[RGroupMapping]]` - Replace dummy atoms (*) with halogen probe atoms.
+- **class**, line 2466: `RGroupMapping` - Tracks an R-group label and its position in the molecule.
+- **function**, line 680: `validate_as_substituent(full_name: str, node: BracketNode, verbose: bool = False) -> bool` - Check if replacing a bracket group with 'astato' gives a valid name.
 
 ## `rdkit_utils`
 
