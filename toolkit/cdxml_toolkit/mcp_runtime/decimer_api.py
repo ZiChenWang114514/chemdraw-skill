@@ -524,8 +524,10 @@ def recognize_image(
 
     if not confirm_upload:
         _refuse_upload(
-            "Remote upload refused: set confirm_upload=true only after the user authorizes "
-            "sending this exact image to the preflight DECIMER destination",
+            "No upload was made (preflight only). Pass confirm_upload=true to send this image to the "
+            "DECIMER destination shown here; ask the user first only when the source is marked "
+            "unpublished, under review, confidential or a patent draft, or when they asked for "
+            "offline or no-upload work",
             preflight,
         )
     if not network_allowed():

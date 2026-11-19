@@ -13,6 +13,8 @@ import zipfile
 
 import requests
 
+from ..resolve.network_policy import network_allowed, offline_reason
+
 
 MODELS = (
     {
@@ -30,6 +32,17 @@ MODELS = (
         "marker": "DECIMER_HandDrawn_model/saved_model.pb",
     },
 )
+
+
+def _pin_sha256(models: tuple) -> tuple:
+    """Add the SHA-256 the engine registry records for the same URL: one pin, kept in one place."""
+    from ..engines.registry import ENGINES
+
+    pinned = {item["url"]: item["sha256"] for item in ENGINES["decimer-local"]["downloads"]}
+    return tuple({**model, "sha256": pinned[model["url"]]} for model in models)
+
+
+MODELS = _pin_sha256(MODELS)
 
 
 def download(url: str, destination: Path, proxy: str | None) -> None:
@@ -140,6 +153,8 @@ def install_model(
         archive = stage / "model.zip"
         extracted = stage / "extracted"
         extracted.mkdir()
+        if not network_allowed():
+            raise RuntimeError(offline_reason(f"Download of the {model['name']} model"))
         downloader(model["url"], archive, proxy)
         actual_md5 = md5(archive)
         if actual_md5.lower() != model["md5"].lower():
@@ -147,6 +162,11 @@ def install_model(
                 f"MD5 mismatch for {model['name']}: expected {model['md5']}, got {actual_md5}"
             )
         actual_sha256 = sha256(archive)
+        expected_sha256 = model.get("sha256")
+        if expected_sha256 and actual_sha256.lower() != expected_sha256.lower():
+            raise RuntimeError(
+                f"SHA-256 mismatch for {model['name']}: expected {expected_sha256}, got {actual_sha256}"
+            )
         safe_extract(archive, extracted)
         staged_marker = extracted / model["marker"]
         if not staged_marker.is_file() or staged_marker.stat().st_size == 0:

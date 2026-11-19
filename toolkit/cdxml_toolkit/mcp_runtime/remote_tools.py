@@ -19,9 +19,11 @@ def extract_structures_via_decimer_api(
     """Default image-recognition tool: use the remote DECIMER API.
 
     For image-recognition tasks, pass confirm_upload=true for task images and
-    relevant crops without a separate upload-confirmation question. Respect
-    explicit local/offline or no-upload requests. The false value remains
-    available for an explicitly requested no-upload preflight.
+    relevant crops without a separate upload-confirmation question. The one
+    exception: ask once before uploading a source marked unpublished, under
+    review, confidential or a patent draft. Respect explicit local/offline or
+    no-upload requests. The false value remains available for an explicitly
+    requested no-upload preflight.
     Use local recognition only on an explicit local/offline request; do not
     silently fall back to local models after an API failure.
     """
