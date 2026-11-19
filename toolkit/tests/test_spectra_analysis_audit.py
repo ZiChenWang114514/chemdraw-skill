@@ -233,3 +233,37 @@ def test_internal_standard_rt_tolerance_is_a_parameter():
     assert wide["internal_standard"]["area_pct"] == pytest.approx(20.0)
     narrow = analyze_multi_lcms([t0, t1], internal_standard_rt=2.0, internal_standard_rt_tol=0.05)
     assert narrow["internal_standard"]["area_pct"] is None
+
+
+def _lab_book_folder(tmp_path, procedure_names):
+    folder = tmp_path / "KL-CC-001"
+    folder.mkdir(parents=True)
+    src = Path(__file__).resolve().parent.parent / "samples" / "KL-CC-001" / "KL-CC-001.csv"
+    # the sample procedure omits morpholine; name it so the clean case really agrees
+    text = src.read_text(encoding="utf-8").replace(
+        "were dissolved in Dioxane", "and morpholine (1.06 g) were dissolved in Dioxane")
+    for old, new in procedure_names.items():
+        text = text.replace(old, new)
+    (folder / "KL-CC-001.csv").write_text(text, encoding="utf-8")
+    return folder
+
+
+def test_lab_book_is_written_beside_the_input_folder_and_never_overwrites(tmp_path):
+    from cdxml_toolkit.mcp_runtime import extended_tools
+
+    folder = _lab_book_folder(tmp_path, {})
+    first = extended_tools.assemble_lab_book(str(folder))
+    second = extended_tools.assemble_lab_book(str(folder))
+    a, b = Path(first["outputs"]["text"]), Path(second["outputs"]["text"])
+    assert a.parent == tmp_path.resolve() and b.parent == tmp_path.resolve() and a != b
+    assert [p.name for p in folder.iterdir()] == ["KL-CC-001.csv"]
+
+
+def test_lab_book_warns_when_table_and_procedure_name_different_reagents(tmp_path):
+    from cdxml_toolkit.mcp_runtime import extended_tools
+
+    folder = _lab_book_folder(tmp_path, {"BINAP (635 mg": "XPhos (635 mg"})
+    out = extended_tools.assemble_lab_book(str(folder))
+    assert any("BINAP" in w for w in out["warnings"])
+    clean = extended_tools.assemble_lab_book(str(_lab_book_folder(tmp_path / "x", {})))
+    assert not [w for w in clean["warnings"] if "procedure" in w]
