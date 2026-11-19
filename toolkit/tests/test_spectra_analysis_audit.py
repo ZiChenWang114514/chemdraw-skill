@@ -61,6 +61,85 @@ def test_waters_raw_without_readable_spectra_fails_with_a_conversion_hint(tmp_pa
     assert "spectra" in result["error"] and "msconvert" in result["error"]
 
 
+def _lines(offsets_hz, intensities, *, center=3.0, mhz=400.0):
+    return [{"ppm": center + o / mhz, "intensity": i, "prominence": i} for o, i in zip(offsets_hz, intensities)]
+
+
+def _one(lines, mhz=400.0, nucleus="1H"):
+    from cdxml_toolkit.scientific.spectra import _group_multiplets
+
+    found = _group_multiplets(lines, mhz, nucleus=nucleus)
+    assert len(found) == 1, found
+    return found[0]
+
+
+def test_first_order_multiplets_are_named_with_confidence():
+    dd = _one(_lines([0, 2, 8, 10], [1, 1, 1, 1]))
+    assert dd["multiplicity"] == "dd" and dd["j_hz"] == pytest.approx([8, 2], abs=0.1)
+    dt = _one(_lines([0, 3, 6, 10, 13, 16], [1, 2, 1, 1, 2, 1]))
+    assert dt["multiplicity"] == "dt" and dt["j_hz"] == pytest.approx([10, 3], abs=0.1)
+    td = _one(_lines([0, 2, 7, 9, 14, 16], [1, 1, 2, 2, 1, 1]))
+    assert td["multiplicity"] == "td" and td["j_hz"] == pytest.approx([7, 2], abs=0.1)
+    ddd = _one(_lines([0, 2, 5, 7, 8, 10, 13, 15], [1] * 8))
+    assert ddd["multiplicity"] == "ddd" and ddd["j_hz"] == pytest.approx([8, 5, 2], abs=0.1)
+    d = _one(_lines([0, 8], [1, 0.95]))
+    assert d["multiplicity"] == "d" and d["confidence"] > 0.8
+    for m in (dd, dt, td, ddd):
+        assert 0 < m["confidence"] <= 1
+
+
+def test_unequal_neighbours_are_not_called_a_doublet():
+    from cdxml_toolkit.scientific.spectra import _group_multiplets
+
+    found = _group_multiplets(_lines([0, 16], [1, 0.4]), 400.0, nucleus="1H")
+    assert all(m["multiplicity"] != "d" for m in found)
+    assert all(m["confidence"] < 0.5 for m in found)
+    # J beyond what H-H coupling gives is not a doublet either
+    found = _group_multiplets(_lines([0, 19.5], [1, 1]), 400.0, nucleus="1H")
+    assert all(m["multiplicity"] != "d" for m in found)
+
+
+def _csv(path, ppm, y):
+    path.write_text("ppm,intensity\n" + "".join(f"{a:.5f},{b:.6f}\n" for a, b in zip(ppm, y)), encoding="utf-8")
+    return path
+
+
+def test_13c_uses_the_carbon_frequency(tmp_path):
+    import numpy as np
+    from cdxml_toolkit.scientific.spectra import analyze_spectrum
+
+    ppm = np.linspace(0.0, 200.0, 40001)
+    y = np.exp(-((ppm - 120.0) / 0.02) ** 2)
+    out = analyze_spectrum(_csv(tmp_path / "c.csv", ppm, y), {"nucleus": "13C", "frequency_mhz": 400.0})
+    assert out["frequency_mhz"] == pytest.approx(100.58, abs=0.05)
+    assert any("13C" in w for w in out["warnings"])
+
+
+def test_solvent_table_has_water_for_every_solvent():
+    from cdxml_toolkit.scientific.spectra import RESIDUAL_SOLVENT_PEAKS
+
+    water = {"CDCl3": 1.56, "DMSO-d6": 3.33, "CD3OD": 4.87, "CD3CN": 2.13, "C6D6": 0.40,
+             "Acetone-d6": 2.84, "D2O": 4.79, "CD2Cl2": 1.52, "THF-d8": 2.46, "Toluene-d8": 0.43}
+    for solvent, shift in water.items():
+        assert shift in RESIDUAL_SOLVENT_PEAKS["1H"][solvent], solvent
+
+
+def test_nmr_drawing_has_round_ticks_and_1h_integrals():
+    import re
+    import numpy as np
+    from cdxml_toolkit.scientific.spectra import build_nmr_cdxml
+
+    ppm = np.linspace(0.37, 9.83, 2000)
+    y = np.exp(-((ppm - 7.2) / 0.01) ** 2) + np.exp(-((ppm - 1.2) / 0.01) ** 2)
+    xml = build_nmr_cdxml(ppm, y, nucleus="1H",
+                          integrals=[{"limits_ppm": [7.1, 7.3], "normalized": 1.0},
+                                     {"limits_ppm": [1.1, 1.3], "normalized": 3.02}])
+    labels = [float(v) for v in re.findall(r">(-?\d+(?:\.\d+)?)</s>", xml)]
+    ticks = [v for v in labels if v not in (1.0, 3.02)]
+    assert ticks and all(abs(v * 2 - round(v * 2)) < 1e-9 for v in ticks)
+    assert "3.02" in xml
+
+
 def _timepoint(name, peaks):
     from cdxml_toolkit.analysis.deterministic.mzml_parser import LCMSAnalysis, LCMSPeak, MassSpectrum
 
