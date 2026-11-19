@@ -17,6 +17,8 @@ from typing import Any, Optional
 import xml.etree.ElementTree as ET
 import zipfile
 
+from cdxml_toolkit.office import safe_xml
+
 from . import artifact_safety
 from . import native_io
 from . import native_renderer
@@ -210,7 +212,7 @@ def _validate_office_package(
     minimum_chemdraw_objects: int = 0,
 ) -> dict[str, int]:
     try:
-        with zipfile.ZipFile(path, "r") as package:
+        with safe_xml.open_package(path) as package:
             member_list = package.namelist()
             if len(member_list) != len(set(member_list)):
                 raise ValueError(f"OOXML package contains duplicate parts: {path}")
@@ -973,7 +975,7 @@ def _frame_scale(source: Path, record, emf_data: bytes) -> tuple[float, float] |
 
     from . import office_objects
 
-    with zipfile.ZipFile(source) as package:
+    with safe_xml.open_package(source) as package:
         old = office_objects.emf_frame_size(package.read(record["preview_part"]))
     new = office_objects.emf_frame_size(emf_data)
     if old is None or new is None:

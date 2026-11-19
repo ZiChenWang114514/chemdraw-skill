@@ -15,6 +15,8 @@ from typing import Any
 import xml.etree.ElementTree as ET
 import zipfile
 
+from cdxml_toolkit.office import safe_xml
+
 from . import native_io
 from . import native_renderer
 
@@ -275,7 +277,7 @@ def scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any
     from cdxml_toolkit.office.ole_extractor import extract_cdx_from_ole
 
     objects: list[dict[str, Any]] = []
-    with zipfile.ZipFile(source, "r") as package:
+    with safe_xml.open_package(source) as package:
         members = set(package.namelist())
         for relationship_part in sorted(
             name for name in members if name.endswith(".rels")
@@ -685,7 +687,7 @@ def rewrite_office_package(
                 (replacement["relationship_id"], scale_x, scale_y)
             )
     seen: set[str] = set()
-    with zipfile.ZipFile(source, "r") as package, zipfile.ZipFile(
+    with safe_xml.open_package(source) as package, zipfile.ZipFile(
         destination, "w", allowZip64=True
     ) as output:
         output.comment = package.comment

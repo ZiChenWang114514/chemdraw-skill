@@ -314,7 +314,7 @@ def pass2_pptx(input_path, output_path, cdxml_slots, ole_items):
     # mods: slide_entry -> (modified_xml_bytes, [(ole_idx, item)])
     mods = {}
 
-    with zipfile.ZipFile(input_path, "r") as zin:
+    with safe_xml.open_package(input_path) as zin:
         for entry in zin.namelist():
             if not re.match(r"ppt/slides/slide\d+\.xml$", entry):
                 continue
@@ -372,7 +372,7 @@ def pass2_pptx(input_path, output_path, cdxml_slots, ole_items):
         rels_updates[rp] = oles
 
     # Write output ZIP
-    with zipfile.ZipFile(input_path, "r") as zin:
+    with safe_xml.open_package(input_path) as zin:
         with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zout:
             for entry in zin.namelist():
                 data = zin.read(entry)
@@ -454,7 +454,7 @@ def pass2_docx(input_path, output_path, cdxml_slots, ole_items):
     filled_ph = set()
     oles = []  # [(ole_idx, item)]
 
-    with zipfile.ZipFile(input_path, "r") as zin:
+    with safe_xml.open_package(input_path) as zin:
         doc_xml = zin.read("word/document.xml")
         root = safe_xml.fromstring(doc_xml)
         body = root.find(f"{{{W_NS}}}body")
@@ -489,7 +489,7 @@ def pass2_docx(input_path, output_path, cdxml_slots, ole_items):
         root, xml_declaration=True, encoding="UTF-8", standalone=True)
 
     # Write output ZIP
-    with zipfile.ZipFile(input_path, "r") as zin:
+    with safe_xml.open_package(input_path) as zin:
         with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zout:
             for entry in zin.namelist():
                 data = zin.read(entry)

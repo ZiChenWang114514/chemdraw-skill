@@ -24,6 +24,8 @@ import os
 import sys
 import tempfile
 import zipfile
+
+from cdxml_toolkit.office import safe_xml
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
@@ -68,7 +70,7 @@ def find_ole_entries(zip_path: str) -> List[str]:
             f"Use .pptx, .docx, or .xlsx."
         )
 
-    with zipfile.ZipFile(zip_path, "r") as zf:
+    with safe_xml.open_package(zip_path) as zf:
         return [
             name for name in zf.namelist()
             if name.startswith(prefix) and name.lower().endswith(".bin")
@@ -261,7 +263,7 @@ def _extract_from_zip(
     ole_entries = find_ole_entries(input_path)
     raw_items: List[Tuple[bytes, str, str]] = []
 
-    with zipfile.ZipFile(input_path, "r") as zf:
+    with safe_xml.open_package(input_path) as zf:
         for entry in ole_entries:
             ole_data = zf.read(entry)
             cdx_data = extract_cdx_from_ole(ole_data)
