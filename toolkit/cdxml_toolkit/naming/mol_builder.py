@@ -77,8 +77,8 @@ def _get_cs():
     if _cs_instance is not None:
         return _cs_instance
     try:
-        from cdxml_toolkit.chemdraw.chemscript_bridge import ChemScriptBridge
-        _cs_instance = ChemScriptBridge()
+        from cdxml_toolkit.chemdraw.chemscript_bridge import shared_bridge
+        _cs_instance = shared_bridge()
         return _cs_instance
     except Exception as exc:
         logger.debug("ChemScript unavailable: %s", exc)

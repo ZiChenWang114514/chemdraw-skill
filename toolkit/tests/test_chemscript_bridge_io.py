@@ -51,3 +51,22 @@ def test_a_server_that_writes_a_lot_to_stderr_still_answers(bridge, monkeypatch)
     monkeypatch.setattr(chemscript_bridge, "CALL_TIMEOUT_SECONDS", 20.0)
     for _ in range(3):
         assert bridge._call("noisy") == {"ok": True, "cmd": "noisy"}
+
+
+def test_the_naming_modules_share_one_bridge(monkeypatch):
+    from cdxml_toolkit.chemdraw import chemscript_bridge
+    from cdxml_toolkit.naming import mol_builder, name_decomposer
+
+    made = []
+
+    class Bridge:
+        def __init__(self):
+            made.append(self)
+
+    monkeypatch.setattr(chemscript_bridge, "ChemScriptBridge", Bridge)
+    monkeypatch.setattr(chemscript_bridge, "_SHARED", None)
+    monkeypatch.setattr(mol_builder, "_cs_instance", None)
+    monkeypatch.setattr(mol_builder, "_cs_failed", False)
+    monkeypatch.setattr(name_decomposer, "_cs", None)
+    assert mol_builder._get_cs() is name_decomposer._get_cs()
+    assert len(made) == 1

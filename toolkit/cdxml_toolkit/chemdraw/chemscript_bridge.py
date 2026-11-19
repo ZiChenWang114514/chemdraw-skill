@@ -1103,5 +1103,21 @@ def main(argv: Optional[List[str]] = None) -> int:
         cs.close()
 
 
+
+_SHARED = None
+
+
+def shared_bridge():
+    """The one bridge the naming code shares in this process.
+
+    Each bridge starts its own ChemScript server (about a second), so the modules
+    that keep a bridge for the life of the process take this one, not one each.
+    """
+    global _SHARED
+    if _SHARED is None:
+        _SHARED = ChemScriptBridge()
+    return _SHARED
+
+
 if __name__ == "__main__":
     sys.exit(main())

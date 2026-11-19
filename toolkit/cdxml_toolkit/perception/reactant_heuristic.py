@@ -154,8 +154,8 @@ def _get_chemscript():
         return _cs_instance
     _cs_tried = True
     try:
-        from ..chemdraw.chemscript_bridge import ChemScriptBridge
-        _cs_instance = ChemScriptBridge()
+        from ..chemdraw.chemscript_bridge import shared_bridge
+        _cs_instance = shared_bridge()
     except Exception as e:
         print(f"  [warn] ChemScript not available: {e}", file=sys.stderr)
         _cs_instance = None
