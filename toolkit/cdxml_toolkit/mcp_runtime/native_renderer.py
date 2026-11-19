@@ -71,10 +71,23 @@ def _acquire_application():
         raise NativeRenderError("chemdraw_not_found", f"CHEMDRAW_EXE points to a missing file: {configured}")
     import win32com.client as win32
 
+    # ChemDraw registers as a multi-use COM server, so DispatchEx can still hand back the
+    # user's running instance. Whether this process launched ChemDraw is therefore decided
+    # by whether an instance was running before; only then may the caller quit it.
+    already_running = _chemdraw_running()
     dispatch_ex = getattr(win32, "DispatchEx", None)
-    if dispatch_ex is not None:
-        return progid.dispatch_ex(), True
-    return progid.dispatch(), True
+    application = progid.dispatch_ex() if dispatch_ex is not None else progid.dispatch()
+    return application, not already_running
+
+
+def _chemdraw_running() -> bool:
+    """True when a ChemDraw instance is registered as running before this process acquires one."""
+    try:
+        running = progid.get_active()
+    except Exception:  # noqa: BLE001 - "not running" is reported as a COM error
+        return False
+    del running
+    return True
 
 
 @contextmanager
@@ -163,23 +176,25 @@ class NativeRenderSession:
             self.application = None
             session.close()
             return
-        if self.launched:
-            try:
-                self.application.Quit()
-            except Exception as exc:
-                _cleanup_failed("quit", exc)
-        else:
-            if self.was_visible is not None:
-                try:
-                    self.application.Visible = self.was_visible
-                except Exception as exc:
-                    _cleanup_failed("restore visibility", exc)
+        # Preferences can outlive the instance (ChemDraw stores them for the user), so they
+        # are restored whether or not this process launched ChemDraw.
+        if self.original_transparent_pngs is not None or self.original_png_resolution is not None:
             try:
                 preferences = self.application.Preferences
                 preferences.TransparentPNGs = self.original_transparent_pngs
                 preferences.PNGResolution = self.original_png_resolution
             except Exception as exc:
                 _cleanup_failed("restore PNG preferences", exc)
+        if self.launched:
+            try:
+                self.application.Quit()
+            except Exception as exc:
+                _cleanup_failed("quit", exc)
+        elif self.was_visible is not None:
+            try:
+                self.application.Visible = self.was_visible
+            except Exception as exc:
+                _cleanup_failed("restore visibility", exc)
         self.application = None
 
     def render(self, source: str | Path, destination: str | Path, dpi: int = 300) -> str:

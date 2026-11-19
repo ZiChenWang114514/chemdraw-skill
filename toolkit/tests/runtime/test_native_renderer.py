@@ -112,14 +112,53 @@ class NativeRendererTests(unittest.TestCase):
         with mock.patch.dict(os.environ, environment, clear=True), mock.patch(
             "win32com.client.DispatchEx", return_value=application
         ) as dispatch_ex, mock.patch(
-            "win32com.client.GetActiveObject"
-        ) as get_active:
+            "win32com.client.Dispatch"
+        ) as dispatch, mock.patch(
+            "win32com.client.GetActiveObject", side_effect=OSError("operation unavailable")
+        ):
             acquired, launched = native_renderer._acquire_application()
 
         self.assertIs(acquired, application)
         self.assertTrue(launched)
         dispatch_ex.assert_called_once_with("ChemDraw_x64.Application")
-        get_active.assert_not_called()
+        dispatch.assert_not_called()
+
+    def test_a_running_chemdraw_is_reported_as_not_launched(self):
+        # DispatchEx attaches to the user's multi-use ChemDraw server when one runs, so the
+        # instance must not be reported as launched (and therefore never quit).
+        application = _Application(_Document())
+        environment = {key: value for key, value in os.environ.items() if key != "CHEMDRAW_EXE"}
+        with mock.patch.dict(os.environ, environment, clear=True), mock.patch(
+            "win32com.client.DispatchEx", return_value=application
+        ), mock.patch("win32com.client.GetActiveObject", return_value=object()):
+            acquired, launched = native_renderer._acquire_application()
+        self.assertIs(acquired, application)
+        self.assertFalse(launched)
+
+    def test_attached_session_restores_settings_and_never_quits(self):
+        application = _Application(_Document())
+        environment = {key: value for key, value in os.environ.items() if key != "CHEMDRAW_EXE"}
+        with mock.patch.dict(os.environ, environment, clear=True), mock.patch(
+            "win32com.client.DispatchEx", return_value=application
+        ), mock.patch("win32com.client.GetActiveObject", return_value=object()):
+            with native_renderer.NativeRenderSession(timeout_seconds=2) as session:
+                session.render(self.source, self.root / "attached.png", dpi=600)
+                self.assertFalse(session.launched)
+        self.assertEqual(application.quit_calls, 0)
+        self.assertTrue(application.Visible)
+        self.assertTrue(application.Preferences.TransparentPNGs)
+        self.assertEqual(application.Preferences.PNGResolution, 72)
+
+    def test_launched_session_restores_preferences_before_quitting(self):
+        application = _Application(_Document())
+        with mock.patch(
+            "cdxml_toolkit.mcp_runtime.native_renderer._acquire_application",
+            return_value=(application, True),
+        ):
+            native_renderer.render_cdxml(self.source, self.root / "own.png", dpi=600, timeout_seconds=2)
+        self.assertEqual(application.quit_calls, 1)
+        self.assertTrue(application.Preferences.TransparentPNGs)
+        self.assertEqual(application.Preferences.PNGResolution, 72)
 
     def test_reports_invalid_native_output_with_stable_error_code(self):
         output = self.root / "output.png"
@@ -198,6 +237,7 @@ class CleanupFailureTests(unittest.TestCase):
 
         session = native_renderer.NativeRenderSession()
         session.application, session.launched, session.was_visible = Application(), False, True
+        session.original_transparent_pngs, session.original_png_resolution = True, 72
         with self.assertLogs(native_renderer.__name__, "WARNING") as logs:
             session._release_application()
         self.assertIsNone(session.application)
