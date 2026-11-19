@@ -35,6 +35,51 @@ class RuntimeDiagnosticsTests(unittest.TestCase):
         self.assertTrue(result["timed_out"])
         self.assertIn("deadline", terminate.call_args.kwargs)
 
+    def test_timed_out_stage_is_asked_to_stop_before_its_tree_is_terminated(self):
+        process = mock.Mock()
+        process.pid = 987
+        process.poll.return_value = None
+        process.communicate.side_effect = [subprocess.TimeoutExpired(["probe"], 1), ("", "")]
+        order = []
+        process.send_signal.side_effect = lambda *_: order.append("stop")
+        process.terminate.side_effect = lambda *_: order.append("stop")
+        process.wait.side_effect = lambda **_: order.append("grace")
+        with mock.patch.object(
+            runtime_diagnostics, "snapshot_automation_processes", return_value={}
+        ), mock.patch.object(
+            runtime_diagnostics.subprocess, "Popen", return_value=process
+        ), mock.patch.object(
+            runtime_diagnostics, "_assign_kill_job", return_value=None
+        ), mock.patch.object(
+            runtime_diagnostics, "_terminate_process_tree",
+            side_effect=lambda *a, **k: order.append("terminate"),
+        ), mock.patch.object(
+            runtime_diagnostics, "_audit_stage_processes", return_value={"status": "confirmed"}
+        ):
+            result = runtime_diagnostics._run_probe_stage("native", 1)
+
+        self.assertTrue(result["timed_out"])
+        self.assertEqual(order, ["stop", "grace", "terminate"])
+
+    def test_timed_out_stage_cleanup_runs_on_every_platform(self):
+        # Before, only macOS got a cleanup window; elsewhere the audit returned
+        # "unconfirmed" at once and left a launched ChemDraw running.
+        import time
+
+        launched = {101: {"pid": 101, "parent_pid": 555, "name": "ChemDraw.exe"}}
+        for platform in ("win32", "linux"):
+            snapshots = iter([launched])
+            with mock.patch.object(runtime_diagnostics.sys, "platform", platform), \
+                    mock.patch.object(runtime_diagnostics, "snapshot_automation_processes",
+                                      side_effect=lambda **_: next(snapshots)), \
+                    mock.patch("cdxml_toolkit.mcp_runtime.process_control.terminate_pid",
+                               return_value=True) as terminate:
+                cleanup = runtime_diagnostics._audit_stage_processes(
+                    {}, stage_pid=555, timed_out=True, deadline=time.monotonic()
+                )
+            terminate.assert_called_once()
+            self.assertEqual(cleanup["terminated_pids"], [101], platform)
+
     def test_requested_probes_use_stage_specific_hard_timeouts(self):
         stages = {
             "chemscript": {
