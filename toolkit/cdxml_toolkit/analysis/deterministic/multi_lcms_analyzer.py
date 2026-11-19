@@ -207,8 +207,13 @@ def extract_run_datetime(pdf_path: str,
     Supports every format of the registry in ``lcms_analyzer`` (Waters MassLynx PDFs, OpenLynx ``.rpt``,
     Shimadzu ``.daml``, Agilent ``report.txt``, mzML / mzXML, Waters ``.raw``).
     """
-    if lcms_format(pdf_path) is not None:
+    fmt = lcms_format(pdf_path)
+    if fmt is not None:
         try:
+            if report is None and fmt.key == "waters_raw":
+                # The acquisition time is in _HEADER.TXT; no spectra are needed for it.
+                from .waters_raw import parse_waters_raw
+                report = parse_waters_raw(pdf_path, require_spectra=False)
             return report_datetime(report if report is not None else parse_reports(pdf_path)[0])
         except Exception:
             return None

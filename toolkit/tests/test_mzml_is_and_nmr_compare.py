@@ -270,16 +270,16 @@ $$ Inlet Method: C:\\MassLynx\\Methods\\AmF_2min.olp
     assert hdr["Conditions"] == "AmF_2min_10_95"
     assert hdr["Inlet Method"] == "C:\\MassLynx\\Methods\\AmF_2min.olp"
 
-    analysis = parse_waters_raw(raw_dir)
+    analysis = parse_waters_raw(raw_dir, require_spectra=False)
     assert analysis.instrument == "Acquity SQD2"
     assert "04-Nov-2026" in analysis.acquisition_date
     assert "16:45:12" in analysis.acquisition_date
     assert "KL-1001-042-2h reaction aliquot" in analysis.sample_info
     assert analysis.sample_info["Sample Description"] == "KL-1001-042-2h reaction aliquot"
 
-    # Also test via parse_lcms_file dispatcher
-    dispatched = parse_lcms_file(raw_dir)
-    assert dispatched.instrument == "Acquity SQD2"
+    # Without converted spectra the dispatcher refuses and says how to convert
+    with pytest.raises(ValueError, match="msconvert"):
+        parse_lcms_file(raw_dir)
 
 
 # ---------------------------------------------------------------------------

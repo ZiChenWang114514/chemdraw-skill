@@ -129,8 +129,20 @@ def parse_waters_header(raw_dir: Union[str, Path]) -> Dict[str, str]:
     return result
 
 
-def parse_waters_raw(raw_dir: Union[str, Path]) -> LCMSAnalysis:
-    """Parse a Waters ``.raw`` directory and attach ``_HEADER.TXT`` metadata onto ``LCMSAnalysis``."""
+RAW_UNREADABLE_HINT = (
+    "The toolkit cannot read Waters binary spectra (_FUNC*.DAT). Convert the folder to mzML with "
+    "ProteoWizard msconvert (for example: msconvert SAMPLE.raw --mzML --filter \"peakPicking true 1-\") "
+    "and pass the .mzML file, or put the converted .mzML inside the .raw folder."
+)
+
+
+def parse_waters_raw(raw_dir: Union[str, Path], *, require_spectra: bool = True) -> LCMSAnalysis:
+    """Parse a Waters ``.raw`` directory and attach ``_HEADER.TXT`` metadata onto ``LCMSAnalysis``.
+
+    Chromatograms and spectra come from a converted ``.mzML`` / ``.mzXML`` inside the folder;
+    the binary Waters files are not read. Without one, a ``ValueError`` explains how to convert
+    the folder, unless ``require_spectra`` is False (header metadata only, for acquisition times).
+    """
     p = Path(raw_dir)
     if not p.exists():
         raise FileNotFoundError(f"Waters .raw directory not found: {p}")
@@ -152,6 +164,9 @@ def parse_waters_raw(raw_dir: Union[str, Path]) -> LCMSAnalysis:
                     break
                 except Exception:
                     pass
+
+    if require_spectra and not (peaks or spectra or chromatograms):
+        raise ValueError(f"Could not read spectra from Waters folder {p.name}. {RAW_UNREADABLE_HINT}")
 
     acq_date = header.get("acquisition_date") or header.get("Acquired Date") or ""
     instrument = header.get("Instrument") or header.get("instrument") or "Unknown"

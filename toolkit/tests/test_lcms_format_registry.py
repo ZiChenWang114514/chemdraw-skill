@@ -61,11 +61,14 @@ def _write_mzml(path: Path, *, stamp: str, product_area: float, sm_area: float) 
     return path
 
 
-def _write_raw(path: Path, *, date: str = "04-Nov-2026", time: str = "16:45:12") -> Path:
+def _write_raw(path: Path, *, date: str = "04-Nov-2026", time: str = "16:45:12", converted: bool = True) -> Path:
+    """A Waters folder with its header and, by default, the msconvert mzML that carries its spectra."""
     path.mkdir()
     (path / "_HEADER.TXT").write_text(
         f"$$ Acquired Date: {date}\n$$ Acquired Time: {time}\n$$ Sample Description: {path.stem}\n"
         "$$ Instrument: Acquity SQD2\n$$ Conditions: AmF_2min\n", encoding="utf-8")
+    if converted:
+        _write_mzml(path / f"{path.stem}.mzML", stamp="2026-11-04T16:45:12Z", product_area=500.0, sm_area=500.0)
     return path
 
 
@@ -109,6 +112,7 @@ def test_report_datetime_comes_from_the_registry_for_every_format(tmp_path, seri
 
     raw = _write_raw(tmp_path / "S1.raw")
     assert extract_run_datetime(str(raw)) == "2026-11-04 16:45:12"
+    assert extract_run_datetime(str(_write_raw(tmp_path / "S4.raw", converted=False))) == "2026-11-04 16:45:12"
     assert lcms_analyzer.parse_report(str(raw)).source_format == "waters_raw"
 
 
@@ -122,6 +126,8 @@ def test_parse_analysis_file_reads_mzml_and_raw_without_dumping_whole_traces(tmp
 
     raw = parse_analysis_file(str(_write_raw(tmp_path / "S1.raw")))
     assert raw["ok"] is True and raw["data"]["instrument"] == "Acquity SQD2"
+    header_only = parse_analysis_file(str(_write_raw(tmp_path / "S3.raw", converted=False)))
+    assert header_only["ok"] is False and "msconvert" in header_only["error"]
 
     liar = tmp_path / "x.mzML"
     liar.write_text("nope", encoding="utf-8")

@@ -49,6 +49,18 @@ def test_salt_ions_come_from_the_organic_component():
     assert neutral == pytest.approx(122.0368, abs=1e-3)
 
 
+def test_waters_raw_without_readable_spectra_fails_with_a_conversion_hint(tmp_path):
+    from cdxml_toolkit.analysis.parse_analysis_file import parse_analysis_file
+
+    raw = tmp_path / "S1.raw"
+    raw.mkdir()
+    (raw / "_HEADER.TXT").write_text("$$ Instrument: Acquity SQD2\n", encoding="utf-8")
+    (raw / "_FUNC001.DAT").write_bytes(b"\x00" * 64)
+    result = parse_analysis_file(str(raw))
+    assert result["ok"] is False
+    assert "spectra" in result["error"] and "msconvert" in result["error"]
+
+
 def _timepoint(name, peaks):
     from cdxml_toolkit.analysis.deterministic.mzml_parser import LCMSAnalysis, LCMSPeak, MassSpectrum
 
