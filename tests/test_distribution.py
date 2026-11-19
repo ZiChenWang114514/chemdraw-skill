@@ -106,6 +106,7 @@ class DistributionTests(unittest.TestCase):
                 "docs/guide.zh-cn.md",
                 "docs/zh-cn.md",
                 "docs/website.md",
+                "evals/README.md",
             },
         )
 
