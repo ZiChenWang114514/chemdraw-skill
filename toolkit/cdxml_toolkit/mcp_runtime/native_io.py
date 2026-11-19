@@ -282,20 +282,21 @@ def bridge_file(
         shutil.copy2(source_path, native_source)
         normalize_cdxml_staging(native_source)
         result = operation(native_source, native_destination)
+        mapping = {
+            os.path.normcase(str(native_source)): str(source_path),
+            os.path.normcase(str(native_destination)): str(destination_path),
+        }
         if not native_destination.exists():
+            if isinstance(result, dict) and result.get("ok") is False:
+                # The operation reported its own failure; that reason is the answer.
+                return _rewrite_paths(result, mapping)
             raise NativeIOError(
                 "native_saveas_silent_failure",
                 "Native automation returned without creating its output",
             )
         validate_native_output(native_destination, output_kind)
         _publish_exclusive(native_destination, destination_path, output_kind)
-        return _rewrite_paths(
-            result,
-            {
-                os.path.normcase(str(native_source)): str(source_path),
-                os.path.normcase(str(native_destination)): str(destination_path),
-            },
-        )
+        return _rewrite_paths(result, mapping)
 
 
 def _validate_cdx_bytes(data: Any) -> bytes:

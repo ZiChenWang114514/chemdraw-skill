@@ -396,7 +396,8 @@ def rdkit_workbench(
     elif operation in ('edit_structure', 'set_stereo'):
         if len(mols) != 1:
             raise ValueError('edit_structure requires one molecule')
-        raw_smi = molecules[0].get('smiles') or Chem.MolToSmiles(mols[0])
+        # The structure as given: its atom numbers are the ones the caller counted.
+        raw_smi = molecules[0].get('smiles') or mols[0]
         if options.get('edit_smarts') or options.get('smarts'):
             rxn_smarts = str(options.get('edit_smarts') or options.get('smarts'))
             rxn = AllChem.ReactionFromSmarts(rxn_smarts)
@@ -427,6 +428,8 @@ def rdkit_workbench(
                 set_stereo=stereo_arg,
             )
             raw_smi = str(edited_smi)
+        if not isinstance(raw_smi, str):
+            raw_smi = Chem.MolToSmiles(raw_smi)
         edited_mol = Chem.MolFromSmiles(raw_smi)
         desc = _descriptor(edited_mol)
         desc['smiles'] = str(raw_smi)
@@ -456,7 +459,7 @@ def rdkit_workbench(
     elif operation == 'read_wedges':
         if len(mols) != 1:
             raise ValueError('read_wedges requires one molecule')
-        raw_smi = molecules[0].get('smiles') or Chem.MolToSmiles(mols[0])
+        raw_smi = molecules[0].get('smiles') or mols[0]
         wedges = options.get('wedges')
         if not wedges:
             raise ValueError('read_wedges requires a non-empty wedges list')

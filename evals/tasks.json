@@ -1,0 +1,117 @@
+[
+  {
+    "id": "resolve-lihmds",
+    "kind": "structure",
+    "prompt": "Give the structure of the base LiHMDS. Reply with one JSON object on the last line: {\"smiles\": \"...\"}",
+    "reference": {
+      "smiles": "C[Si](C)(C)[N-][Si](C)(C)C.[Li+]",
+      "resolves_from": "LiHMDS"
+    }
+  },
+  {
+    "id": "resolve-dcc",
+    "kind": "structure",
+    "prompt": "Give the structure of the coupling reagent DCC. Reply with one JSON object on the last line: {\"smiles\": \"...\"}",
+    "reference": {
+      "smiles": "C(=NC1CCCCC1)=NC1CCCCC1",
+      "resolves_from": "DCC"
+    }
+  },
+  {
+    "id": "resolve-hbpin",
+    "kind": "structure",
+    "prompt": "Give the structure of HBpin (pinacolborane). Reply with one JSON object on the last line: {\"smiles\": \"...\"}",
+    "reference": {
+      "smiles": "CC1(C)OBOC1(C)C",
+      "resolves_from": "HBpin"
+    }
+  },
+  {
+    "id": "resolve-salt",
+    "kind": "structure",
+    "prompt": "Give the structure of Et3N·HCl with every component. Reply with one JSON object on the last line: {\"smiles\": \"...\"}",
+    "reference": {
+      "smiles": "CCN(CC)CC.Cl",
+      "resolves_from": "Et3N·HCl"
+    }
+  },
+  {
+    "id": "condensed-tbubr",
+    "kind": "structure",
+    "prompt": "Give the structure written as (CH3)3CBr. Reply with one JSON object on the last line: {\"smiles\": \"...\"}",
+    "reference": {
+      "smiles": "CC(C)(C)Br",
+      "resolves_from": "(CH3)3CBr"
+    }
+  },
+  {
+    "id": "condensed-phno2",
+    "kind": "structure",
+    "prompt": "Give the structure written as PhNO2. Reply with one JSON object on the last line: {\"smiles\": \"...\"}",
+    "reference": {
+      "smiles": "O=[N+]([O-])c1ccccc1",
+      "resolves_from": "PhNO2"
+    }
+  },
+  {
+    "id": "edit-add-fluoro",
+    "kind": "structure",
+    "prompt": "Start from 4-chlorobenzoic acid and add a fluorine at position 2. Give the product. Reply with one JSON object on the last line: {\"smiles\": \"...\"}",
+    "reference": {
+      "smiles": "O=C(O)c1ccc(Cl)cc1F",
+      "resolves_from": "4-chloro-2-fluorobenzoic acid"
+    }
+  },
+  {
+    "id": "edit-keep-stereo",
+    "kind": "structure",
+    "prompt": "Replace the hydroxyl oxygen of L-serine by sulfur and keep the stereocentre. Give the product. Reply with one JSON object on the last line: {\"smiles\": \"...\"}",
+    "reference": {
+      "smiles": "N[C@@H](CS)C(=O)O",
+      "resolves_from": "cysteine"
+    }
+  },
+  {
+    "id": "yield-limiting-reagent",
+    "kind": "number",
+    "prompt": "Benzoic acid (122.12 g/mol, 1.221 g) and methanol (0.8 equiv) give methyl benzoate (136.15 g/mol); 1.000 g is isolated. What is the percent yield based on the limiting reagent? Reply with one JSON object on the last line: {\"value\": 0.0}",
+    "reference": {
+      "value": 91.8,
+      "tolerance": 0.3
+    }
+  },
+  {
+    "id": "hazard-cyanide-acid",
+    "kind": "safety",
+    "prompt": "A procedure quenches a reaction that contains KCN with 1 M HCl. State the hazard. Reply with one JSON object on the last line: {\"text\": \"...\"}",
+    "reference": {
+      "must_mention": [
+        [
+          "HCN",
+          "hydrogen cyanide"
+        ],
+        [
+          "toxic",
+          "lethal",
+          "fatal"
+        ]
+      ]
+    }
+  },
+  {
+    "id": "hazard-azide-dcm",
+    "kind": "safety",
+    "prompt": "A procedure stirs sodium azide in dichloromethane overnight. State the hazard. Reply with one JSON object on the last line: {\"text\": \"...\"}",
+    "reference": {
+      "must_mention": [
+        [
+          "diazidomethane",
+          "azidomethane"
+        ],
+        [
+          "explos"
+        ]
+      ]
+    }
+  }
+]

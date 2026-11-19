@@ -13,6 +13,11 @@ import xml.etree.ElementTree as ET
 from . import artifact_safety
 
 MOLSTAR_RESOURCE_URI = "ui://cdxml-toolkit/molstar-viewer.html"
+# One exact Mol* build, checked by the browser against these hashes: a changed file is not run.
+MOLSTAR_VERSION = "4.18.0"
+MOLSTAR_JS_SRI = "sha384-IiSuw0ZVWERio9X4J4ian0a+G3vZcCyeR8Cx1iRsQXhrRYcwTf28LGxwzvnnQiqT"
+MOLSTAR_CSS_SRI = "sha384-aRsrMWWFsk+900B52au0Ko9CyDCzgjjtE6C+oumkJpQmvmLh5CZSKbau6QRYGo/P"
+STUDIO_SYNC_MAX_BYTES = 32 * 1024 * 1024
 DRAWING_STUDIO_RESOURCE_URI = "ui://cdxml-toolkit/drawing-studio.html"
 
 MOLSTAR_CSP_META: dict[str, Any] = {
@@ -344,7 +349,7 @@ def render_molstar_app_html(initial_payload: dict[str, Any] | None = None) -> st
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ChemDraw Toolkit · Mol* 3D Viewer</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/molstar@latest/build/viewer/molstar.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/molstar@{MOLSTAR_VERSION}/build/viewer/molstar.css" integrity="{MOLSTAR_CSS_SRI}" crossorigin="anonymous">
 <style>
   :root {{
     --bg: #0f1419; --panel: #171e26; --panel-2: #1f2833;
@@ -805,7 +810,7 @@ def render_molstar_app_html(initial_payload: dict[str, Any] | None = None) -> st
   requestAnimationFrame(tick);
 }})();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/molstar@latest/build/viewer/molstar.js" async></script>
+<script src="https://cdn.jsdelivr.net/npm/molstar@{MOLSTAR_VERSION}/build/viewer/molstar.js" integrity="{MOLSTAR_JS_SRI}" crossorigin="anonymous" async></script>
 </body>
 </html>
 """
@@ -4137,7 +4142,24 @@ def serve_drawing_studio(
         launch_browser=False,
     )
     payload = {"graph": info["graph"], "style": info["style"], "styles": _STYLE_PRESETS}
-    html_bytes = render_drawing_studio_app_html(payload, live_sync_url="/api/studio-sync").encode("utf-8")
+    # The port is reachable from any page open in the user's browser. Writing files needs the
+    # token this page was served with, and the request must name this server and come from it.
+    import hmac
+    import secrets
+    from urllib.parse import parse_qs, urlsplit
+
+    token = secrets.token_urlsafe(32)
+    html_bytes = render_drawing_studio_app_html(
+        payload, live_sync_url=f"/api/studio-sync?token={token}").encode("utf-8")
+
+    def allowed(handler) -> bool:
+        port_now = handler.server.server_address[1]
+        own = {f"127.0.0.1:{port_now}", f"localhost:{port_now}"}
+        origin = handler.headers.get("Origin")
+        given = (parse_qs(urlsplit(handler.path).query).get("token") or [""])[0]
+        return (handler.headers.get("Host") in own
+                and (origin is None or origin in {f"http://{name}" for name in own})
+                and hmac.compare_digest(given, token))
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, _fmt: str, *_args: Any) -> None:
@@ -4151,11 +4173,18 @@ def serve_drawing_studio(
             self.wfile.write(html_bytes)
 
         def do_POST(self) -> None:  # noqa: N802
-            if self.path != "/api/studio-sync":
+            if urlsplit(self.path).path != "/api/studio-sync":
                 self.send_response(404)
                 self.end_headers()
                 return
-            length = int(self.headers.get("Content-Length") or "0")
+            try:
+                length = int(self.headers.get("Content-Length") or "0")
+            except ValueError:
+                length = -1
+            if not allowed(self) or not 0 <= length <= STUDIO_SYNC_MAX_BYTES:
+                self.send_response(413 if allowed(self) else 403)
+                self.end_headers()
+                return
             body = json.loads(self.rfile.read(length).decode("utf-8"))
             (sync_folder / "studio-live.cdxml").write_text(str(body.get("cdxml") or ""), encoding="utf-8")
             (sync_folder / "studio-live.json").write_text(

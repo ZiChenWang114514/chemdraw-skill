@@ -570,7 +570,7 @@ def _inject_pptx(source_pptx, output_path, items):
     """Inject OLE objects into each slide of a PPTX."""
     from lxml import etree
 
-    with zipfile.ZipFile(source_pptx, "r") as zin:
+    with safe_xml.open_package(source_pptx) as zin:
         with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zout:
             # Copy existing entries, modifying as needed
             for entry in zin.namelist():
@@ -762,7 +762,7 @@ def _inject_docx(source_docx, output_path, items):
     """Inject OLE objects into a DOCX."""
     from lxml import etree
 
-    with zipfile.ZipFile(source_docx, "r") as zin:
+    with safe_xml.open_package(source_docx) as zin:
         with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zout:
             for entry in zin.namelist():
                 data = zin.read(entry)

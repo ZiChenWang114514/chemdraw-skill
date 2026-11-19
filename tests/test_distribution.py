@@ -87,8 +87,9 @@ class DistributionTests(unittest.TestCase):
         repository_markdown = {
             path.relative_to(ROOT).as_posix()
             for path in ROOT.rglob("*.md")
+            # showcase/ holds the style gallery: one README per style, one CASE.md per replica.
             if path.relative_to(ROOT).parts[0] not in {
-                ".git", "skill", "toolkit", "vscode",
+                ".git", "skill", "toolkit", "vscode", "showcase",
             }
             and not any(p.startswith(".") and p != ".github" for p in path.relative_to(ROOT).parts)
         }
@@ -105,6 +106,7 @@ class DistributionTests(unittest.TestCase):
                 "docs/guide.zh-cn.md",
                 "docs/zh-cn.md",
                 "docs/website.md",
+                "evals/README.md",
             },
         )
 
@@ -124,6 +126,20 @@ class DistributionTests(unittest.TestCase):
             and (toolkit / "LICENSE-POLYFORM-STRICT.txt").is_file()
             and (toolkit / "NOTICE.md").is_file()
         )
+
+    def test_license_scope_names_every_tracked_directory(self) -> None:
+        import subprocess
+
+        scope = (ROOT / "LICENSE").read_text(encoding="utf-8")
+        tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
+        if not any(tracked):
+            self.skipTest("not a Git checkout")
+        folders = {path.split("/")[0] + "/" for path in tracked if "/" in path and not path.startswith(".")}
+        folders |= {"/".join(path.split("/")[:3]) + "/" for path in tracked if path.startswith("skill/chemdraw/")
+                    and path.count("/") >= 3}
+        folders.discard("skill/")
+        self.assertEqual(sorted(folder for folder in folders if f"  - {folder}" not in scope
+                                and f" {folder} " not in scope and f" in {folder}" not in scope), [])
 
     def test_noncommercial_dual_license_notices_are_consistent(self) -> None:
         root_license = (ROOT / "LICENSE").read_text(encoding="utf-8")

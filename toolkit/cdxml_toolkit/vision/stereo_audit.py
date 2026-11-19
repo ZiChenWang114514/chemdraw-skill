@@ -1414,6 +1414,8 @@ def read_wedges(
                 raise ValueError(f"h_at must be one of {', '.join(_COMPASS)}, not {b.get('h_at')!r}")
         by_center.setdefault(c, {})[nb] = kind
 
+    if not by_center:
+        raise ValueError("no wedge or hash bonds were given")
     for c, nbs in by_center.items():
         if not any(k != "plain" for k in nbs.values()):
             raise ValueError(f"atom {c}: no wedge or hash given; list the wedge or hashed bond at this centre")
@@ -1431,11 +1433,17 @@ def read_wedges(
         }
         pos_list = [default_pos]
         used_default = True
-    elif isinstance(positions, dict):
-        pos_list = [positions]
-        used_default = False
     else:
-        pos_list = list(positions)
+        # Positions that came through JSON have string keys: index them by int.
+        raw = [positions] if isinstance(positions, dict) else list(positions)
+        try:
+            pos_list = [
+                {int(k): (float(v[0]), float(v[1])) for k, v in (pm or {}).items()} for pm in raw
+            ]
+        except (TypeError, ValueError, IndexError, AttributeError):
+            raise ValueError("positions must map atom indices to (x, y) coordinates") from None
+        if not any(pos_list):
+            raise ValueError("no atom coordinates were given; pass positions or leave them out to use a 2D layout")
         used_default = False
 
     h_centers = [c for c, nbs in by_center.items() if "H" in nbs]
@@ -1883,8 +1891,12 @@ def edit_structure(
     set_ez: list[dict] | None = None,
     set_stereo: list[dict] | dict | None = None,
 ) -> EditedSmiles:
-    """Surgical atom-index molecular graph and stereochemistry editor."""
-    mol = Chem.MolFromSmiles(smiles or "")
+    """Surgical atom-index molecular graph and stereochemistry editor.
+
+    ``smiles`` may be a molecule object; its atom numbering is then the one the
+    operations refer to.
+    """
+    mol = _mol(smiles)
     if mol is None:
         raise ValueError("RDKit cannot parse this SMILES")
     all_ops = _normalize_edit_ops(

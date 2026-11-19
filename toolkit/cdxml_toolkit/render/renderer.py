@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 from copy import deepcopy
 from functools import partial
 from dataclasses import dataclass, field, replace as dataclass_replace
@@ -130,15 +131,7 @@ def _load_source_json(path: str) -> Dict[str, Dict]:
 # ID generator (same pattern as cdxml_builder)
 # ---------------------------------------------------------------------------
 
-class _IDGen:
-    """Simple incrementing integer ID generator."""
-    def __init__(self, start: int = 1000):
-        self._n = start
-
-    def next(self) -> int:
-        v = self._n
-        self._n += 1
-        return v
+from ..cdxml_builder import _IDGen  # noqa: E402  (one ID generator)
 
 
 # ---------------------------------------------------------------------------
@@ -730,6 +723,20 @@ def _build_text_element(
 
     parts.append("</t>")
     return "\n".join(parts), tid
+
+
+def above_arrow_baseline(arrow_y: float, n_lines: int) -> float:
+    """First-line baseline of an above-arrow text block whose lines stack upward.
+
+    The block's visual bottom sits LAYOUT_BELOW_GAP above the arrow shaft, so
+    extra lines push the first line up instead of running into the arrow.
+    """
+    return arrow_y - LAYOUT_BELOW_GAP - (max(0, n_lines - 1) * _LINE_ADVANCE + _DESCENT)
+
+
+def below_arrow_baseline(arrow_y: float) -> float:
+    """First-line baseline of a below-arrow text block (its top LAYOUT_BELOW_GAP under the shaft)."""
+    return arrow_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
 
 
 def _build_label_element(
@@ -1417,7 +1424,7 @@ def _layout_sequential(
         return xml, lowest_y
 
     if wrap == "serpentine":
-        return _layout_serpentine(scheme, ids, source_data=source_data,
+        return _layout_serpentine(scheme, ids, steps_per_row, source_data=source_data,
                                   reference_mol=reference_mol)
 
     # --- Multi-row wrap:repeat ---
@@ -1495,6 +1502,7 @@ def _drawn_extent(row_xml: str) -> Tuple[float, float]:
 def _layout_serpentine(
     scheme: SchemeDescriptor,
     ids: _IDGen,
+    steps_per_row: int,
     source_data: Optional[Dict[str, Dict]] = None,
     reference_mol: Optional[Any] = None,
 ) -> Tuple[str, float]:
@@ -1507,9 +1515,11 @@ def _layout_serpentine(
     Transition steps between rows are rendered as vertical arrows with
     their conditions placed beside the arrow.
 
+    *steps_per_row* is the row length chosen by the caller (given, or picked
+    from ``max_row_width``).
+
     Returns (inner_xml, lowest_y).
     """
-    steps_per_row = scheme.steps_per_row
     left_margin = 80.0
 
     rows, transitions = _split_serpentine_rows(scheme.steps, steps_per_row)
@@ -1809,14 +1819,13 @@ def _layout_divergent(
         # Above-arrow text (p.y = baseline of the first line), its visual bottom
         # LAYOUT_BELOW_GAP above the arrow like the text below it.
         if above_text:
-            text_below_baseline = max(0, len(above_text) - 1) * _LINE_ADVANCE + _DESCENT
-            text_y = branch_y - LAYOUT_BELOW_GAP - text_below_baseline
+            text_y = above_arrow_baseline(branch_y, len(above_text))
             txt_xml, txt_id = _build_text_element(above_text, arrow_mid_x, text_y, ids,
                                                   use_formatting=True)
             xml_parts.append(txt_xml)
             step_meta["above_ids"].append(txt_id)
         if below_text:
-            text_y = branch_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
+            text_y = below_arrow_baseline(branch_y)
             txt_xml, txt_id = _build_text_element(below_text, arrow_mid_x, text_y, ids)
             xml_parts.append(txt_xml)
             step_meta["below_ids"].append(txt_id)
@@ -2360,10 +2369,7 @@ def _layout_steps_row(
         # Position so that the visual bottom (last baseline + descent) sits
         # LAYOUT_BELOW_GAP above the arrow (same gap as below-arrow content).
         if rs.above_text:
-            n_abt = len(rs.above_text)
-            # Distance from first baseline to visual bottom
-            text_below_baseline = max(0, n_abt - 1) * _LINE_ADVANCE + _DESCENT
-            text_y = arrow_y - LAYOUT_BELOW_GAP - text_below_baseline
+            text_y = above_arrow_baseline(arrow_y, len(rs.above_text))
             if rs.above_structures:
                 # Text sits between above-arrow structures and the arrow.
                 # Structures were already pushed higher to make room.
@@ -2379,7 +2385,7 @@ def _layout_steps_row(
         # p.y is the BASELINE of the first line.
         # Visual top = p.y - _CAP_HEIGHT, so set p.y so that
         # (p.y - _CAP_HEIGHT) = arrow_y + LAYOUT_BELOW_GAP.
-        below_y = arrow_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
+        below_y = below_arrow_baseline(arrow_y)
 
         # Below-arrow structures first
         if rs.below_structures:
@@ -2612,9 +2618,10 @@ def _format_header(bbox: str) -> str:
 
 
 _PAGE_OPEN = (
-    '<page id="{page_id}" BoundingBox="0 0 1620 2160" '
+    '<page id="{page_id}" BoundingBox="0 0 {width:.0f} {height:.0f}" '
+    'Width="{width:.0f}" Height="{height:.0f}" '
     'HeaderPosition="36" FooterPosition="36" '
-    'PrintTrimMarks="yes" HeightPages="3" WidthPages="3">'
+    'PrintTrimMarks="yes" HeightPages="1" WidthPages="1">'
 )
 _PAGE_CLOSE = "</page>"
 
@@ -3029,6 +3036,17 @@ def _layout_catalytic_cycle(
     return "\n".join(xml_parts), lowest_y
 
 
+# One renderer per layout name; ``schema.VALID_LAYOUTS`` lists the same names.
+LAYOUT_RENDERERS = {
+    "linear": _layout_linear,
+    "sequential": _layout_sequential,
+    "divergent": _layout_divergent,
+    "stacked-rows": _layout_stacked_rows,
+    "convergent": _layout_convergent,
+    "catalytic-cycle": _layout_catalytic_cycle,
+}
+
+
 def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str:
     """
     Render a SchemeDescriptor to a CDXML document string.
@@ -3061,29 +3079,12 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
     ref_mol = _identify_product_mol(scheme, source_data)
 
     # Choose layout
-    if scheme.layout == "linear":
-        inner_xml, lowest_y = _layout_linear(scheme, ids, source_data=source_data,
-                                              reference_mol=ref_mol)
-    elif scheme.layout == "sequential":
-        inner_xml, lowest_y = _layout_sequential(scheme, ids, source_data=source_data,
-                                                  reference_mol=ref_mol)
-    elif scheme.layout == "divergent":
-        inner_xml, lowest_y = _layout_divergent(scheme, ids, source_data=source_data,
-                                                 reference_mol=ref_mol)
-    elif scheme.layout == "stacked-rows":
-        inner_xml, lowest_y = _layout_stacked_rows(scheme, ids, source_data=source_data,
-                                                    reference_mol=ref_mol)
-    elif scheme.layout == "convergent":
-        inner_xml, lowest_y = _layout_convergent(scheme, ids, source_data=source_data,
-                                                  reference_mol=ref_mol)
-    elif scheme.layout in ("catalytic-cycle", "cycle"):
-        inner_xml, lowest_y = _layout_catalytic_cycle(scheme, ids, source_data=source_data,
-                                                       reference_mol=ref_mol)
-    else:
-        raise NotImplementedError(
-            f"Layout '{scheme.layout}' is not yet implemented. "
-            f"Supported: linear, sequential, divergent, stacked-rows, convergent, catalytic-cycle"
+    layout = LAYOUT_RENDERERS.get(scheme.layout)
+    if layout is None:
+        raise ValueError(
+            f"Unknown layout '{scheme.layout}'. Supported: {', '.join(sorted(LAYOUT_RENDERERS))}"
         )
+    inner_xml, lowest_y = layout(scheme, ids, source_data=source_data, reference_mol=ref_mol)
 
     # Condition key block below the scheme
     if scheme.condition_key:
@@ -3097,21 +3098,46 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
     return _wrap_document(inner_xml, ids)
 
 
-def _wrap_document(inner_xml: str, ids: _IDGen) -> str:
-    """Put page content into a complete CDXML document."""
-    page_id = ids.next()
+PAGE_MARGIN = 36.0  # pt of white space kept to the right of and below the content
 
-    # Use a generous bounding box
-    bbox = "0 0 1620 2160"
+_POINT_ATTRS_RE = re.compile(r'\b(?:p|Head3D|Tail3D)="(-?[\d.]+) (-?[\d.]+)')
+_BOX_ATTR_RE = re.compile(r'\bBoundingBox="(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)"')
 
+
+def content_bounds(inner_xml: str) -> Optional[Tuple[float, float, float, float]]:
+    """``(x1, y1, x2, y2)`` over every point and bounding box in *inner_xml*, or None."""
+    xs: List[float] = []
+    ys: List[float] = []
+    for m in _POINT_ATTRS_RE.finditer(inner_xml):
+        xs.append(float(m.group(1)))
+        ys.append(float(m.group(2)))
+    for m in _BOX_ATTR_RE.finditer(inner_xml):
+        x1, y1, x2, y2 = (float(v) for v in m.groups())
+        xs += [x1, x2]
+        ys += [y1, y2]
+    if not xs:
+        return None
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def wrap_page(inner_xml: str, page_id: int) -> str:
+    """A complete ACS-style CDXML document whose page fits *inner_xml* plus PAGE_MARGIN."""
+    bounds = content_bounds(inner_xml) or (0.0, 0.0, 0.0, 0.0)
+    width = math.ceil(max(bounds[2], 0.0) + PAGE_MARGIN)
+    height = math.ceil(max(bounds[3], 0.0) + PAGE_MARGIN)
     doc_parts = [
-        _format_header(bbox),
-        _PAGE_OPEN.format(page_id=page_id),
+        _format_header("{:.2f} {:.2f} {:.2f} {:.2f}".format(*bounds)),
+        _PAGE_OPEN.format(page_id=page_id, width=width, height=height),
         inner_xml,
         _PAGE_CLOSE,
         CDXML_FOOTER,
     ]
     return "\n".join(doc_parts)
+
+
+def _wrap_document(inner_xml: str, ids: _IDGen) -> str:
+    """Put page content into a complete CDXML document sized to the content."""
+    return wrap_page(inner_xml, ids.next())
 
 
 class _ValidatedCDXML(str):

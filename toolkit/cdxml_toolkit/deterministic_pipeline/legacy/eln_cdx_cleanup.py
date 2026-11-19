@@ -186,17 +186,12 @@ def _restore_chemdraw_window():
 
 def _get_chemdraw():
     """
-    Get or launch ChemDraw COM instance.
-    Returns (cdApp, launched_new).
-    If an existing instance is found, it is reused.
+    Acquire ChemDraw through the shared acquisition path (a private instance).
+    Returns (cdApp, launched_new); launched_new is False when ChemDraw was
+    already running, and such an instance is never quit by the callers.
     """
-    import win32com.client
-    try:
-        cdApp = win32com.client.GetActiveObject('ChemDraw.Application')
-        return cdApp, False
-    except:
-        cdApp = win32com.client.Dispatch('ChemDraw.Application')
-        return cdApp, True
+    from cdxml_toolkit.mcp_runtime import native_renderer
+    return native_renderer.acquire_application()
 
 
 def _chemdraw_open(cdApp, filepath):

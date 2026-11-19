@@ -23,6 +23,7 @@ print(catalog)
 
 Minimal assembly specification (page indexes must come from the inspected library):
 
+<!-- example: call scientific_workflow file=spec_path operation=apparatus output_path=apparatus.cdxml needs=chemdraw -->
 ```json
 {
   "title": "Laboratory apparatus",
@@ -40,6 +41,7 @@ Minimal assembly specification (page indexes must come from the inspected librar
 
 `position` places the upper-left of the template bounds in CDXML points. Ports are fractions of those bounds. To attach a later component, give it a local port and `"attach": {"port": "bottom", "to": "flask.neck"}`. Inspect both port positions in the source artwork before using them. Optional connections have `from`, `to` and intermediate `via` points.
 
+<!-- example: commands -->
 ```console
 cdx.py py -m cdxml_toolkit.scientific apparatus --spec apparatus.json --output apparatus.cdxml
 ```
@@ -48,6 +50,7 @@ Template paths are relative to the specification. Use a new output path. Keep pr
 
 ## TLC
 
+<!-- example: commands -->
 ```console
 cdx.py py -m cdxml_toolkit.scientific tlc --spec tlc.json --output tlc.cdxml
 ```

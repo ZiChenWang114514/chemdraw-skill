@@ -27,10 +27,15 @@ from . import mcp_compat
 from . import telemetry
 mcp_compat.install_legacy_fastmcp_alias()
 
-from cdxml_toolkit.mcp_server import server as upstream
-
 from .process_control import _assign_kill_job, _close_job, _terminate_process_tree
-from .tool_registry import DEFAULT_PROFILE, PROFILE_CHOICES, build_registry, normalize_profile
+from .tool_registry import (
+    DEFAULT_PROFILE,
+    FULL_PROFILE,
+    PROFILE_CHOICES,
+    build_registry,
+    normalize_profile,
+    tool_manifest,
+)
 
 
 _WORKER_MODULE = "cdxml_toolkit.mcp_runtime.tool_worker"
@@ -240,6 +245,18 @@ def _worker_crash(returncode: int, stdout: bytes, stderr: bytes) -> dict[str, st
     return {"code": "worker_crashed", "message": _safe_message(" | ".join(lines[-3:]))}
 
 
+def _decode_json_text(value: typing.Any) -> typing.Any:
+    """Return the object a tool serialized as JSON text; leave any other text alone."""
+    for _ in range(4):
+        if not isinstance(value, str) or not value.lstrip().startswith(("{", "[")):
+            break
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError:
+            break
+    return value
+
+
 def _interpret_worker_result(
     name: str,
     returncode: int,
@@ -249,6 +266,7 @@ def _interpret_worker_result(
     timeout: int,
     duration: float,
     output_limit: int,
+    each: int | None = None,
 ) -> dict[str, typing.Any]:
     metadata = {"tool": name, "duration_seconds": round(duration, 3)}
     if returncode == _TIMEOUT_RETURN_CODE:
@@ -286,23 +304,42 @@ def _interpret_worker_result(
             "error": {"code": "worker_protocol_error", "message": "Worker response envelope is incomplete"},
             "metadata": {**metadata, "returncode": returncode},
         }
+    if each is not None:
+        items = envelope.get("result")
+        if returncode != 0 or not envelope["ok"] or not isinstance(items, list) or len(items) != each \
+                or not all(isinstance(item, dict) and isinstance(item.get("ok"), bool) for item in items):
+            if returncode == 0 and envelope["ok"]:
+                return {
+                    "ok": False,
+                    "error": {"code": "worker_protocol_error", "message": "Worker batch response is incomplete"},
+                    "metadata": {**metadata, "returncode": returncode},
+                }
+            return _interpret_envelope(name, envelope, returncode or 1, metadata, duration)
+        results = [_interpret_envelope(name, item, 0 if item["ok"] else 1, metadata, duration) for item in items]
+        return {"ok": all(item["ok"] for item in results), "results": results, "metadata": metadata}
+    return _interpret_envelope(name, envelope, returncode, metadata, duration)
+
+
+def _interpret_envelope(
+    name: str,
+    envelope: dict[str, typing.Any],
+    returncode: int,
+    metadata: dict[str, typing.Any],
+    duration: float,
+) -> dict[str, typing.Any]:
+    """One call's worker envelope as the result every caller receives."""
     if returncode == 0 and envelope["ok"]:
-        result = envelope.get("result")
-        decoded = result
-        if isinstance(result, str):
-            try:
-                decoded = json.loads(result)
-            except json.JSONDecodeError:
-                pass
-        result_dict = decoded if isinstance(decoded, dict) else {}
-        outputs = result_dict.get("outputs", result)
+        # One contract for every caller: ``result`` is an object, never JSON inside a string.
+        result = _decode_json_text(envelope.get("result"))
+        result_dict = result if isinstance(result, dict) else {}
         warnings = result_dict.get("warnings", [])
         artifacts = result_dict.get("artifacts", [])
         result_metadata = result_dict.get("metadata", {})
         outcome = {
+            # ``ok``: the call completed and the result passed its checks. The tool's own
+            # conclusion (for example ``needs_review``) travels in ``status``.
             "ok": result_dict.get("ok") is not False,
             "result": result,
-            "outputs": outputs,
             "warnings": warnings if isinstance(warnings, list) else [str(warnings)],
             "artifacts": artifacts if isinstance(artifacts, list) else [],
             "metadata": {
@@ -311,6 +348,10 @@ def _interpret_worker_result(
                 "duration_ms": round(duration * 1000),
             },
         }
+        if "outputs" in result_dict:
+            outcome["outputs"] = result_dict["outputs"]
+        if isinstance(result_dict.get("status"), str):
+            outcome["status"] = result_dict["status"]
         if not outcome["ok"]:
             error = result_dict.get("error")
             if not error and isinstance(result_dict.get("errors"), list):
@@ -321,6 +362,8 @@ def _interpret_worker_result(
                 "code": code if isinstance(code, str) and re.fullmatch(r"[a-z0-9_]{1,100}", code) else "tool_business_error",
                 "message": _safe_message(details.get("message") if details else error),
             }
+            if isinstance(details.get("hint"), str) and details["hint"]:
+                outcome["error"]["hint"] = _safe_message(details["hint"])
         return outcome
     error = envelope.get("error") if isinstance(envelope.get("error"), dict) else {}
     return {
@@ -345,11 +388,19 @@ def _run_worker_impl(
     timeout_seconds: int | None = None,
     cancellation: threading.Event | None = None,
     holder: dict[str, typing.Any] | None = None,
+    each: list[dict] | None = None,
 ) -> dict[str, typing.Any]:
     if timeout_seconds is None:
-        spec = build_registry().get(name)
-        timeout_seconds = spec.timeout_seconds if spec is not None else None
+        entry = tool_manifest().get(name)
+        if isinstance(entry, dict):
+            timeout_seconds = entry.get("timeout_seconds")
+        else:
+            spec = build_registry().get(name)
+            timeout_seconds = spec.timeout_seconds if spec is not None else None
     timeout = _timeout(timeout_seconds)
+    if each is not None:
+        # Each item may take the tool's time; an hour bounds the whole batch.
+        timeout = min(timeout * max(len(each), 1), max(timeout, 3600))
     input_limit = _positive_env_int(
         "CHEMDRAW_MCP_WORKER_INPUT_BYTES", DEFAULT_WORKER_INPUT_BYTES
     )
@@ -362,6 +413,7 @@ def _run_worker_impl(
         "kwargs": kwargs,
         "timeout_seconds": timeout,
         "profile": _CALL_PROFILE.get() or normalize_profile(),
+        **({"each": each} if each is not None else {}),
     }).encode("utf-8")
     if len(payload) > input_limit:
         return {
@@ -402,6 +454,7 @@ def _run_worker_impl(
         timeout=timeout,
         duration=time.monotonic() - started,
         output_limit=output_limit,
+        each=len(each) if each is not None else None,
     )
 
 
@@ -413,6 +466,25 @@ def _run_worker(
     timeout_seconds: int | None = None,
 ) -> dict[str, typing.Any]:
     return _run_worker_impl(name, args, kwargs, timeout_seconds=timeout_seconds)
+
+
+def _run_worker_each(
+    name: str,
+    calls: list[dict],
+    *,
+    timeout_seconds: int | None = None,
+) -> list[dict[str, typing.Any]]:
+    """Call one tool once per keyword-argument object, in a single worker process.
+
+    Returns one result per call, each shaped like `_run_worker`'s. When the worker itself
+    fails (timeout, crash), every call reports that failure.
+    """
+    calls = [dict(item) for item in calls]
+    if not calls:
+        return []
+    outcome = _run_worker_impl(name, [], {}, timeout_seconds=timeout_seconds, each=calls)
+    results = outcome.get("results")
+    return results if isinstance(results, list) else [outcome for _ in calls]
 
 
 def _native_async_lock() -> asyncio.Lock:
@@ -535,6 +607,11 @@ def _adapt_tool(
 ) -> typing.Callable:
     """Preserve source parameters while routing execution through a worker."""
 
+    try:
+        declared_text = typing.get_type_hints(function).get("return") is str
+    except Exception:
+        declared_text = getattr(function, "__annotations__", {}).get("return") in (str, "str")
+
     @functools.wraps(function)
     async def invoke(*args, **kwargs):
         options = {"timeout_seconds": timeout_seconds}
@@ -559,7 +636,7 @@ def _adapt_tool(
                 )
             except Exception:
                 return text_body
-        if return_json_text and not isinstance(result, str):
+        if (return_json_text or declared_text) and not isinstance(result, str):
             return json.dumps(result, indent=2, default=str)
         return result
 
@@ -568,9 +645,13 @@ def _adapt_tool(
     except Exception:
         hints = getattr(function, "__annotations__", {})
     signature = inspect.signature(function)
+    # A JSON schema has no *args or **kwargs: listed, they become a required string argument
+    # that no caller can satisfy. The named parameters are the tool's interface.
+    variadic = (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
     parameters = [
         parameter.replace(annotation=hints.get(parameter.name, parameter.annotation))
         for parameter in signature.parameters.values()
+        if parameter.kind not in variadic
     ]
     return_annotation = (
         typing.Any
@@ -738,6 +819,9 @@ _REGISTERED_PROMPT_NAMES = (
     "build_acs1996_figure",
 )
 _SLUG_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+from ..render.schema import VALID_LAYOUTS as _VALID_LAYOUTS  # noqa: E402
+
+SCHEME_LAYOUTS = tuple(sorted(_VALID_LAYOUTS))
 _BUILTIN_TEMPLATES: dict[str, str] = {
     "acs1996": json.dumps(
         {
@@ -760,7 +844,7 @@ _BUILTIN_TEMPLATES: dict[str, str] = {
                     "type": "conformer",
                     "kind": "chair",
                     "at": [120, 100],
-                    "substituents": {"1_eq": "OH", "4_ax": "Me"},
+                    "substituents": {"1": {"eq": "OH"}, "4": {"ax": "Me"}},
                 }
             ]
         },
@@ -781,17 +865,22 @@ _BUILTIN_TEMPLATES: dict[str, str] = {
         },
         indent=2,
     ),
-    "catalytic-cycle": (
-        "@layout catalytic-cycle\n"
-        'Cat: {[Pd]} "Pd(0)"\n'
-        'Int1: {c1ccccc1[Pd]Br} "Ar-Pd-Br"\n'
-        'Int2: {c1ccccc1[Pd]c2ccccc2} "Ar-Pd-Ar\'"\n'
-        'Cat -->|a| Int1\n'
-        '  above: "ArBr, OA"\n'
-        'Int1 -->|b| Int2\n'
-        '  above: "Ar\'B(OH)2, TM"\n'
-        'Int2 -->|c| Cat\n'
-        '  above: "RE"\n'
+    # A draw_figure brief: cycles are drawn by draw_figure, not by the scheme DSL.
+    "catalytic-cycle": json.dumps(
+        {
+            "layout": "catalytic-cycle",
+            "species": [
+                {"id": "Pd0", "smiles": "[Pd]", "label": "Pd(0)"},
+                {"id": "OA", "smiles": "Br[Pd]c1ccccc1", "label": "Ar-Pd-Br"},
+                {"id": "TM", "smiles": "c1ccccc1[Pd]c1ccccc1", "label": "Ar-Pd-Ar'"},
+            ],
+            "steps": [
+                {"substrates": ["Pd0"], "products": ["OA"]},
+                {"substrates": ["OA"], "products": ["TM"]},
+                {"substrates": ["TM"], "products": ["Pd0"]},
+            ],
+        },
+        indent=2,
     ),
 }
 
@@ -914,7 +1003,8 @@ def _register_resources_and_prompts(mcp: typing.Any) -> None:
                 f"- Reactants: {reactants or '(resolve with resolve_name)'}\n"
                 f"- Products: {products or '(resolve or transform with modify_molecule)'}\n"
                 f"- Conditions: {conditions or '(specify above/below arrow)'}\n"
-                f"- Layout: {layout} (linear | sequential | stacked | divergent | catalytic-cycle)\n"
+                f"- Layout: {layout} (render_scheme: {' | '.join(SCHEME_LAYOUTS)}; "
+                "catalytic cycles: draw_figure with layout catalytic-cycle)\n"
                 "Steps:\n"
                 "1. Ground every species with resolve_name or modify_molecule.\n"
                 "2. Call draw_figure or render_scheme (yaml_text or compact_text).\n"
@@ -987,13 +1077,32 @@ def list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, t
     }
 
 
+def _upstream_instructions() -> str | None:
+    # Imported here: a process that only launches workers never needs the core server module.
+    from cdxml_toolkit.mcp_server import server as upstream
+
+    return upstream.mcp.instructions
+
+
+def _server_instructions(profile: str, listed: int) -> str:
+    text = _upstream_instructions() or ""
+    if profile == FULL_PROFILE:
+        return text
+    total = len(tool_manifest()) or len(build_registry())
+    return (
+        f"{text} This server lists the `{profile}` tool set ({listed} of {total} tools); "
+        "start it with `--profile full` or CHEMDRAW_MCP_PROFILE=full for the rest "
+        "(Office batches, LCMS and lab-book analysis, Markush, prediction engines, ChemScript)."
+    ).strip()
+
+
 def build_server(*, profile: str | None = None, **server_settings):
     server_type = mcp_compat.server_class()
     selected_profile = normalize_profile(profile)
     registry = build_registry(profile=selected_profile)
     telemetry.configure_tools(registry)
     mcp = server_type(
-        "cdxml-toolkit", instructions=upstream.mcp.instructions, **server_settings
+        "cdxml-toolkit", instructions=_server_instructions(selected_profile, len(registry)), **server_settings
     )
     tool_decorator = mcp.tool
     tool_params = inspect.signature(tool_decorator).parameters

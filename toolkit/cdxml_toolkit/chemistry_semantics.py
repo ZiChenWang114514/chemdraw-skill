@@ -65,6 +65,12 @@ def require_supported(
         raise ValueError('unsupported_stereochemistry: atropisomer needs a native template')
 
 
+def read_fragment_element(fragment, *, sanitize=True, remove_hs=True):
+    """Molecules RDKit reads from one ``<fragment>`` element (a list; may be empty)."""
+    block = '<CDXML><page id="90000000">' + ET.tostring(fragment, encoding='unicode') + '</page></CDXML>'
+    return list(Chem.MolsFromCDXML(block, sanitize=sanitize, removeHs=remove_hs))
+
+
 def read_fragments(value):
     """Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order."""
     root = ET.parse(str(value)).getroot() if isinstance(value, Path) else ET.fromstring(value)
@@ -81,8 +87,7 @@ def read_fragments(value):
             parent = parents.get(parent)
         if nested:
             continue
-        block = '<CDXML><page id="90000000">' + ET.tostring(fragment, encoding='unicode') + '</page></CDXML>'
-        parsed = Chem.MolsFromCDXML(block)
+        parsed = read_fragment_element(fragment)
         if not parsed:
             raise ValueError('unreadable_chemical_fragment: ' + fragment.get('id', '?'))
         nodes = fragment.findall('n')

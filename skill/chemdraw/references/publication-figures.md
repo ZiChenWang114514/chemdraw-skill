@@ -24,6 +24,7 @@ Every object may have a unique string `id`, which `steps` can reference.
 
 ### Molecule
 
+<!-- example: fragment -->
 ```json
 {
   "type": "molecule", "id": "A",
@@ -57,6 +58,7 @@ Stereo AND/OR/ABS attributes are retained and round-trip checked. Native ChemDra
 
 Place rich chemical conditions with explicit runs when typography matters:
 
+<!-- example: fragment -->
 ```json
 {"type":"text","position":[180,75],"runs":[
   {"text":"H"},{"text":"2","subscript":true},{"text":"O"}
@@ -71,12 +73,14 @@ For a grid of compound structures, add `grid: {"columns":3,"cell_width":160,"row
 
 ### Native template preservation
 
+<!-- example: call compose_chemical_figure file=manifest_path output_path=copy.cdxml -->
 ```json
 {"version":1,"template_path":"original.cdxml"}
 ```
 
 With no other changes this copies the exact original bytes to a new output. To move an existing object or change a nonchemical label:
 
+<!-- example: fragment -->
 ```json
 {"template_path":"original.cdxml","edits":[
   {"id":"123","translate":[10,0]},
@@ -96,6 +100,7 @@ IDs are actual native IDs. Edits support translation of whole fragments/groups/t
 
 Write the keyword arguments to a JSON file and run:
 
+<!-- example: commands -->
 ```bash
 cdx.py call compose_chemical_figure --args arguments.json --out new-result.json
 ```

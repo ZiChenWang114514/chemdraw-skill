@@ -50,31 +50,50 @@ SOLVENT_ALIASES = {
     'toluene': 'Toluene-d8',
 }
 
-RESIDUAL_SOLVENT_PEAKS = {
-    '1H': {
-        'CDCl3': [7.26],
-        'DMSO-d6': [2.50],
-        'CD3OD': [3.31],
-        'CD3CN': [1.94],
-        'C6D6': [7.16],
-        'Acetone-d6': [2.05],
-        'D2O': [4.79],
-        'CD2Cl2': [5.32],
-        'THF-d8': [3.58, 1.72],
-        'Toluene-d8': [2.08, 6.97, 7.01, 7.09],
-    },
-    '13C': {
-        'CDCl3': [77.16],
-        'DMSO-d6': [39.52],
-        'CD3OD': [49.00],
-        'CD3CN': [1.32, 118.26],
-        'C6D6': [128.06],
-        'Acetone-d6': [29.84, 206.26],
-        'CD2Cl2': [53.84],
-        'THF-d8': [67.21, 25.31],
-        'Toluene-d8': [20.43, 125.13, 127.96, 128.87, 137.48],
-    },
-}
+def _residual_solvent_peaks():
+    """Residual solvent and water (HDO) shifts per solvent, from the tables in ``spectral_text``.
+
+    Water shifts are from Fulmer et al., Organometallics 2010, 29, 2176. THF-d8 water and
+    Toluene-d8 are not in ``spectral_text`` and are added here.
+    """
+    from ..spectral_text import SOLVENT_PEAKS_13C, SOLVENT_PEAKS_1H
+
+    proton = {name: [float(e['ppm']) for e in entries] for name, entries in SOLVENT_PEAKS_1H.items()}
+    carbon = {name: [float(e['ppm']) for e in entries] for name, entries in SOLVENT_PEAKS_13C.items()}
+    extra_1h = {'THF-d8': [2.46], 'Toluene-d8': [2.08, 6.97, 7.01, 7.09, 0.43]}
+    extra_13c = {'Toluene-d8': [20.43, 125.13, 127.96, 128.87, 137.48]}
+    for table, extra in ((proton, extra_1h), (carbon, extra_13c)):
+        for name, shifts in extra.items():
+            table.setdefault(name, [])
+            table[name] += [v for v in shifts if v not in table[name]]
+    return {'1H': proton, '13C': carbon}
+
+
+RESIDUAL_SOLVENT_PEAKS = _residual_solvent_peaks()
+WATER_PEAKS_1H = {'CDCl3': 1.56, 'DMSO-d6': 3.33, 'CD3OD': 4.87, 'CD3CN': 2.13, 'C6D6': 0.40,
+                  'Acetone-d6': 2.84, 'D2O': 4.79, 'CD2Cl2': 1.52, 'THF-d8': 2.46, 'Toluene-d8': 0.43}
+
+# Gyromagnetic ratio of a nucleus relative to 1H: observe frequency = 1H frequency x ratio.
+NUCLEUS_FREQUENCY_RATIO = {'1H': 1.0, '13C': 0.251449530, '19F': 0.940940080, '31P': 0.404807420}
+# Couplings a first-order multiplet of this nucleus can show (Hz); outside it a split is not a coupling.
+PLAUSIBLE_J_HZ = {'1H': (0.5, 18.0), '13C': (2.0, 300.0)}
+
+
+def nucleus_frequency(nucleus, frequency_mhz):
+    """(observe frequency of ``nucleus`` in MHz, warning or None).
+
+    A 13C (or other heteronucleus) frequency above what any magnet gives that nucleus is the
+    spectrometer's 1H frequency; it is converted with the gyromagnetic ratio.
+    """
+    if frequency_mhz is None:
+        return None, None
+    freq = float(frequency_mhz)
+    ratio = NUCLEUS_FREQUENCY_RATIO.get(nucleus)
+    if ratio and ratio < 1.0 and freq > 1300.0 * ratio:
+        converted = round(freq * ratio, 2)
+        return converted, (f'{freq:g} MHz is the 1H frequency of the spectrometer; '
+                           f'{nucleus} was analysed at {converted:g} MHz.')
+    return freq, None
 
 
 def _clean_tag(value):
@@ -549,15 +568,86 @@ def _flag_solvent_peaks(peaks, solvent, nucleus):
                 'solvent': norm_solvent,
                 'reference_ppm': matched_ref,
                 'nucleus': nuc,
+                'kind': 'water' if nuc == '1H' and WATER_PEAKS_1H.get(norm_solvent) == matched_ref
+                        and norm_solvent != 'D2O' else 'residual_solvent',
             })
             flagged_indices.append(idx)
     return flagged, flagged_indices
 
 
-def _group_multiplets(peaks, frequency_mhz, max_j_hz=20.0):
+_LETTERS = {1: 'd', 2: 't', 3: 'q'}
+
+
+def _stick_pattern(couplings, tol):
+    """Line positions (Hz, from the first line) and relative intensities of a first-order multiplet."""
+    lines = [(0.0, 1.0)]
+    for j in couplings:
+        lines = [(pos + shift, inten) for pos, inten in lines for shift in (0.0, j)]
+    lines.sort()
+    merged = []
+    for pos, inten in lines:
+        if merged and pos - merged[-1][0] <= tol:
+            merged[-1] = (merged[-1][0], merged[-1][1] + inten)
+        else:
+            merged.append((pos, inten))
+    return merged
+
+
+def _name_couplings(couplings, tol):
+    """('dt', [J_large, J_small]) from a coupling list, largest coupling first."""
+    groups = []
+    for j in sorted(couplings, reverse=True):
+        if groups and abs(groups[-1][0] - j) <= tol:
+            groups[-1][1].append(j)
+        else:
+            groups.append((j, [j]))
+    letters = ''.join(_LETTERS.get(len(js), 'm') for _j, js in groups)
+    return letters, [round(float(np.mean(js)), 2) for _j, js in groups]
+
+
+def _fit_first_order(offsets, intensities, tol, j_range):
+    """Best first-order pattern (name, J list, intensity error) for lines at ``offsets`` Hz, or None."""
+    from itertools import combinations_with_replacement
+
+    n = len(offsets)
+    obs = np.asarray(intensities, dtype=float)
+    obs = obs / obs.sum() if obs.sum() > 0 else np.full(n, 1.0 / n)
+    candidates = sorted({round(float(o), 2) for o in offsets[1:]})
+    candidates = [c for c in candidates if j_range[0] <= c <= j_range[1]][:8]
+    best = None
+    for k in range(1, 4):
+        if 2 ** k < n:
+            continue
+        for combo in combinations_with_replacement(candidates, k):
+            pattern = _stick_pattern(combo, tol)
+            if len(pattern) != n:
+                continue
+            if any(abs(pos - o) > tol for (pos, _i), o in zip(pattern, offsets)):
+                continue
+            pred = np.array([i for _p, i in pattern], dtype=float)
+            pred /= pred.sum()
+            error = float(np.abs(pred - obs).sum() / 2.0)
+            score = error + 0.02 * k
+            if best is None or score < best[0]:
+                best = (score, combo, error)
+    if best is None:
+        return None
+    _score, combo, error = best
+    name, js = _name_couplings(combo, tol)
+    return name, js, error
+
+
+def _group_multiplets(peaks, frequency_mhz, max_j_hz=20.0, nucleus='1H'):
+    """Group peaks into first-order multiplets (s, d, t, q, dd, dt, td, ddd, ...) with a confidence.
+
+    A split is only called a coupling when every J lies in the plausible range for ``nucleus``
+    and the line intensities match the first-order pattern (total-variation error <= 0.15).
+    Otherwise the lines are reported as separate singlets (two lines) or ``m``, at low confidence.
+    """
     if not frequency_mhz or float(frequency_mhz) <= 0 or not peaks:
         return []
     freq = float(frequency_mhz)
+    j_range = PLAUSIBLE_J_HZ.get(nucleus, (0.0, float(max_j_hz)))
     ordered = sorted(peaks, key=lambda p: p['ppm'])
     clusters = [[ordered[0]]]
     for pk in ordered[1:]:
@@ -567,56 +657,39 @@ def _group_multiplets(peaks, frequency_mhz, max_j_hz=20.0):
         else:
             clusters.append([pk])
 
+    def entry(cluster, mult, j_hz, confidence):
+        ppms = np.array([p['ppm'] for p in cluster], dtype=float)
+        weights = np.array([max(float(p['intensity']), 0.0) for p in cluster], dtype=float)
+        center = float(np.sum(ppms * weights) / weights.sum()) if weights.sum() > 0 else float(np.mean(ppms))
+        return {
+            'center_ppm': round(center, 4),
+            'multiplicity': mult,
+            'j_hz': j_hz,
+            'peak_count': len(cluster),
+            'peaks': [round(float(p['ppm']), 4) for p in cluster],
+            'confidence': round(float(confidence), 2),
+        }
+
     multiplets = []
     for cluster in clusters:
         n = len(cluster)
-        ppms = np.array([p['ppm'] for p in cluster], dtype=float)
-        intensities = np.array([max(float(p['intensity']), 0.0) for p in cluster], dtype=float)
-        if intensities.sum() > 0:
-            center_ppm = float(np.sum(ppms * intensities) / intensities.sum())
-        else:
-            center_ppm = float(np.mean(ppms))
-
         if n == 1:
-            mult = 's'
-            j_hz = []
+            multiplets.append(entry(cluster, 's', [], 0.9))
+            continue
+        ppms = np.array([p['ppm'] for p in cluster], dtype=float)
+        offsets = (ppms - ppms[0]) * freq
+        intensities = [max(float(p['intensity']), 0.0) for p in cluster]
+        tol = max(0.5, 0.06 * float(offsets[-1]) / max(n - 1, 1))
+        fit = _fit_first_order(offsets, intensities, tol, j_range) if n <= 8 else None
+        if fit is not None and fit[2] <= 0.15 and 'm' not in fit[0]:
+            name, js, error = fit
+            multiplets.append(entry(cluster, name, js, 1.0 - 2.0 * error))
+        elif n == 2:
+            # Two lines that are not a doublet: two singlets, low confidence.
+            multiplets.extend(entry([pk], 's', [], 0.4) for pk in cluster)
         else:
-            spacings = [round(float((ppms[i + 1] - ppms[i]) * freq), 2) for i in range(n - 1)]
-            mean_j = float(np.mean(spacings))
-            j_tol = max(1.5, 0.25 * mean_j)
-            uniform_j = all(abs(s - mean_j) <= j_tol for s in spacings)
-            if n == 2:
-                ratio = float(min(intensities) / max(intensities)) if max(intensities) > 0 else 1.0
-                mult = 'd' if ratio >= 0.35 else 'm'
-                j_hz = [round(spacings[0], 2)]
-            elif n == 3:
-                if uniform_j and intensities[1] >= intensities[0] and intensities[1] >= intensities[2]:
-                    mult = 't'
-                    j_hz = [round(mean_j, 2)]
-                else:
-                    mult = 'm'
-                    j_hz = spacings
-            elif n == 4:
-                if (
-                    uniform_j
-                    and min(intensities[1], intensities[2]) >= max(intensities[0], intensities[3])
-                ):
-                    mult = 'q'
-                    j_hz = [round(mean_j, 2)]
-                else:
-                    mult = 'm'
-                    j_hz = spacings
-            else:
-                mult = 'm'
-                j_hz = spacings
-
-        multiplets.append({
-            'center_ppm': round(center_ppm, 4),
-            'multiplicity': mult,
-            'j_hz': j_hz,
-            'peak_count': n,
-            'peaks': [round(float(p['ppm']), 4) for p in cluster],
-        })
+            spacings = [round(float(offsets[i + 1] - offsets[i]), 2) for i in range(n - 1)]
+            multiplets.append(entry(cluster, 'm', spacings, 0.3))
     return multiplets
 
 
@@ -719,6 +792,7 @@ def analyze_spectrum(path, options=None):
     if freq_mhz is not None:
         freq_mhz = number(freq_mhz, 'frequency_mhz', 1.0, 2000.0)
     nucleus = _normalize_nucleus(options.get('nucleus') or meta.get('nucleus'), x)
+    freq_mhz, freq_warning = nucleus_frequency(nucleus, freq_mhz)
 
     solvent_peaks, solvent_indices = _flag_solvent_peaks(peak_list, solvent, nucleus)
     exclude_solvent = bool(options.get('exclude_solvent', False))
@@ -728,7 +802,7 @@ def analyze_spectrum(path, options=None):
 
     max_j_hz = number(options.get('multiplet_max_j_hz', 20.0), 'multiplet_max_j_hz', 0.5, 200.0)
     multiplet_input = non_solvent_peaks if non_solvent_peaks else reported_peaks
-    multiplets = _group_multiplets(multiplet_input, freq_mhz, max_j_hz=max_j_hz)
+    multiplets = _group_multiplets(multiplet_input, freq_mhz, max_j_hz=max_j_hz, nucleus=nucleus)
 
     processing_info = {
         'baseline_windows': windows,
@@ -746,6 +820,8 @@ def analyze_spectrum(path, options=None):
         'axis_unit': 'ppm',
         'intensity_unit': 'arbitrary',
         'processing': processing_info,
+        'nucleus': nucleus,
+        'frequency_mhz': freq_mhz,
         'peaks': reported_peaks,
         'solvent_peaks': solvent_peaks,
         'multiplets': multiplets,
@@ -754,6 +830,7 @@ def analyze_spectrum(path, options=None):
         'warnings': (
             ['Peak positions are not automatic atom assignments; integration alone does not establish purity.']
             + (['Negative integrals are present.'] if any(i['area'] < 0 for i in integrals) else [])
+            + ([freq_warning] if freq_warning else [])
         ),
         'spectrum': {'ppm': x.tolist(), 'intensity': y.tolist()},
     }
@@ -761,7 +838,7 @@ def analyze_spectrum(path, options=None):
         ir = options['inset_region']
         out_result['inset_region'] = [float(min(ir)), float(max(ir))]
         out_result['cdxml'] = build_nmr_cdxml(
-            x, y, peaks=reported_peaks, inset_region=ir, nucleus=nucleus
+            x, y, peaks=reported_peaks, inset_region=ir, nucleus=nucleus, integrals=integrals
         )
     return out_result
 
@@ -860,11 +937,34 @@ def _downsample_indices(values: np.ndarray, max_points: int = 800) -> list[int]:
     return sorted(chosen)
 
 
+def nice_ticks(low: float, high: float, target: int = 6) -> list[float]:
+    """Round tick values (steps of 1, 2 or 5 x 10^k) covering [low, high]."""
+    span = float(high) - float(low)
+    if span <= 0:
+        return [round(float(low), 6)]
+    raw = span / max(target - 1, 1)
+    power = 10.0 ** np.floor(np.log10(raw))
+    step = next(m * power for m in (1.0, 2.0, 5.0, 10.0) if m * power >= raw)
+    first = np.ceil(float(low) / step - 1e-9) * step
+    ticks = []
+    value = first
+    while value <= float(high) + 1e-9 * step:
+        ticks.append(round(float(value), 10))
+        value += step
+    return ticks
+
+
+def _tick_label(value: float, step: float) -> str:
+    decimals = max(0, int(-np.floor(np.log10(step) + 1e-9))) if step < 1 else 0
+    return f'{value:.{decimals}f}'
+
+
 def build_nmr_cdxml(
     ppm: Any = None,
     intensity: Any = None,
     *,
     peaks: Optional[Sequence[Any]] = None,
+    integrals: Optional[Sequence[Mapping[str, Any]]] = None,
     inset_region: Optional[Union[Tuple[float, float], list[float]]] = None,
     title: str = '1H NMR Spectrum',
     nucleus: str = '1H',
@@ -878,6 +978,9 @@ def build_nmr_cdxml(
     When ``inset_region=(ppm_low, ppm_high)`` is passed, renders a secondary
     magnified inset box in the upper area of the spectrum showing the zoomed-in
     curve, peak ticks, and its own mini ppm axis for ``[min(inset_region), max(inset_region)]``.
+    ``integrals`` (``{'limits_ppm': [a, b], 'normalized' or 'area': value}``, as returned by
+    ``analyze_spectrum``) are drawn as integral curves with their values for 1H spectra.
+    Axis ticks are round numbers.
     """
     if isinstance(ppm, dict) and inset_region is None and ppm.get('inset_region') is not None:
         inset_region = ppm['inset_region']
@@ -910,11 +1013,34 @@ def build_nmr_cdxml(
     drawing.text((x0 + w * 0.38, y0 - 10.0), title, size=10, parent=main_group)
     drawing.text((x0 + w * 0.40, y0 + h + 28.0), f'{nucleus} Chemical Shift (ppm)', size=9, parent=main_group)
 
-    # Main ppm axis ticks
-    for tick_ppm in np.linspace(x_max, x_min, 6):
+    # Main ppm axis ticks (round values)
+    ticks = nice_ticks(x_min, x_max)
+    step = ticks[1] - ticks[0] if len(ticks) > 1 else 1.0
+    for tick_ppm in ticks:
         tx = sx_main(float(tick_ppm))
         drawing.line((tx, y0 + h), (tx, y0 + h + 5.0), main_group)
-        drawing.text((tx - 8.0, y0 + h + 15.0), f'{tick_ppm:.2f}', size=8, parent=main_group)
+        drawing.text((tx - 8.0, y0 + h + 15.0), _tick_label(tick_ppm, step), size=8, parent=main_group)
+
+    # Integral curves and values (1H only; 13C peak areas are not quantitative)
+    if integrals and _normalize_nucleus(nucleus) == '1H':
+        for integral in integrals:
+            lo, hi = sorted(float(v) for v in integral['limits_ppm'])
+            lo, hi = max(lo, x_min), min(hi, x_max)
+            sel = (x_arr >= lo) & (x_arr <= hi)
+            if int(sel.sum()) < 2:
+                continue
+            seg_x, seg_y = x_arr[sel], np.clip(y_arr[sel] - y_min, 0.0, None)
+            cumulative = np.concatenate([[0.0], np.cumsum((seg_y[1:] + seg_y[:-1]) / 2.0 * np.diff(seg_x))])
+            top = float(cumulative[-1]) or 1.0
+            base_y = y0 + h - 30.0
+            pts = [(sx_main(float(px)), base_y - 40.0 * float(c) / top)
+                   for px, c in zip(seg_x[::max(1, len(seg_x) // 60)], cumulative[::max(1, len(seg_x) // 60)])]
+            if len(pts) >= 2:
+                drawing.curve(pts, parent=main_group)
+            value = integral.get('normalized', integral.get('area'))
+            if value is not None:
+                drawing.text((sx_main((lo + hi) / 2.0) - 8.0, y0 + h - 8.0), f'{float(value):.2f}',
+                             size=7, parent=main_group)
 
     # Main spectrum trace
     idx_main = _downsample_indices(y_arr, max_points=800)
@@ -1019,6 +1145,7 @@ def nmr_to_cdxml(
     intensity: Any = None,
     *,
     peaks: Optional[Sequence[Any]] = None,
+    integrals: Optional[Sequence[Mapping[str, Any]]] = None,
     inset_region: Optional[Union[Tuple[float, float], list[float]]] = None,
     title: str = '1H NMR Spectrum',
     nucleus: str = '1H',
@@ -1032,6 +1159,7 @@ def nmr_to_cdxml(
         ppm,
         intensity,
         peaks=peaks,
+        integrals=integrals,
         inset_region=inset_region,
         title=title,
         nucleus=nucleus,

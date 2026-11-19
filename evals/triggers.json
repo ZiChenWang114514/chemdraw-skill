@@ -1,0 +1,28 @@
+{
+  "should_trigger": [
+    "Draw the Suzuki coupling of 4-bromoanisole with phenylboronic acid as an editable ChemDraw scheme.",
+    "Open reaction.cdxml and tell me which compounds are in it.",
+    "Turn this screenshot of a reaction scheme into a ChemDraw file.",
+    "Replace the ChemDraw structures in my PowerPoint with the corrected ones.",
+    "Make an ACS Document 1996 figure of these three molecules for my exam paper.",
+    "What is the exact mass and expected [M+H]+ for CC(=O)Oc1ccccc1C(=O)O?",
+    "Draw the Markush structure from claim 1 of this patent.",
+    "Lay out this three-step route in Org. Lett. style with yields under the arrows.",
+    "Convert these .cdx files to .cdxml.",
+    "ChemDraw rendering fails on my machine; diagnose it.",
+    "Summarise the LCMS run in sample.mzML against the expected product mass.",
+    "Give me the SMILES of LiHMDS and check it."
+  ],
+  "should_not_trigger": [
+    "Explain why SN2 reactions invert configuration.",
+    "Plot monthly revenue as a bar chart.",
+    "Dock this ligand into the kinase binding site.",
+    "Write a Python function that reverses a string.",
+    "Summarise this paper on perovskite solar cells.",
+    "Predict the folded structure of this protein sequence.",
+    "Draw an architecture diagram of our microservices.",
+    "What is the boiling point of ethanol?",
+    "Balance my household budget in a spreadsheet.",
+    "Translate this abstract into German."
+  ]
+}

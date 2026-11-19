@@ -41,7 +41,7 @@ from .multi_lcms_analyzer import (
 from cdxml_toolkit.constants import MASS_TOLERANCE
 from .mass_resolver import (
     ExpectedSpecies,
-    ADDUCTS, ADDUCT_PRIORITY, MODE_PREFERENCE,
+    ADDUCTS, ADDUCT_PRIORITY, MODE_PREFERENCE, adduct_mz,
     has_heavy_halogens, needs_m_plus_2,
 )
 
@@ -133,11 +133,9 @@ def match_ions_to_species(
             adduct_items = dict(species.adducts)
             if needs_m_plus_2(species.smiles):
                 if "[M+2+H]+" not in adduct_items:
-                    base_pos = adduct_items.get("[M+H]+", species.exact_mass + 1.008)
-                    adduct_items["[M+2+H]+"] = base_pos + 1.997
+                    adduct_items["[M+2+H]+"] = adduct_mz("[M+2+H]+", species.exact_mass)
                 if "[M+2-H]-" not in adduct_items:
-                    base_neg = adduct_items.get("[M-H]-", species.exact_mass - 1.008)
-                    adduct_items["[M+2-H]-"] = base_neg + 1.997
+                    adduct_items["[M+2-H]-"] = adduct_mz("[M+2-H]-", species.exact_mass)
 
             for adduct_name, expected_mz in adduct_items.items():
                 if adduct_name not in ADDUCTS:

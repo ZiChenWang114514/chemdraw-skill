@@ -46,7 +46,7 @@ if __name__ == "__main__":
 class HouseStyleGalleryTests(unittest.TestCase):
     """The style gallery lists every house style and every literature replica, and its links resolve."""
 
-    HOUSE = ROOT / "skill" / "chemdraw" / "assets" / "house-styles"
+    HOUSE = ROOT / "showcase" / "house-styles"
     CARDS = ROOT / "toolkit" / "cdxml_toolkit" / "publication" / "house_styles"
 
     def gallery(self) -> str:

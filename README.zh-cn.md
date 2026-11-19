@@ -23,6 +23,10 @@
 
 **ChemDraw Skill** 为 **Claude Code**、**Codex**、**Gemini CLI**、**GitHub Copilot**、**Cursor**、**OpenCode** 及任意支持命令行或 MCP 的 AI Agent 提供确定性的化学科研绘图与分析工作流，直接产出**原生可编辑的 ChemDraw 文档（`.cdxml` 与 `.cdx`）**以及可双击编辑的 **Word/PowerPoint 内嵌对象**，不输出无法修改的位图，也不凭记忆猜测 SMILES。只需一句自然语言反应描述、CSV 或 Excel 底物拓展与构效关系（SAR）数据表、文献反应截图或专利马库什（Markush）权利要求，即可按 **28 种实测期刊与课题组画法风格**（*JACS*、*Angew. Chem.*、*Nature*、*Science*、*ACS Document 1996*、Baran、MacMillan、Studer 等）输出发表级插图，同时集成 ChemDraw 原生**化学计量表**、**ACS 标准实验表征文段生成**以及 **15 个按需安装的本地结构识别（OCSR）、逆合成与核磁（NMR）预测引擎**。
 
+> **前提：** 64 位 Python 3.10 至 3.13。桌面版 ChemDraw 可选：没有它仍可得到可编辑的 CDXML、结构核对和报告；原生 PNG 渲染、`.cdx` 文件和 Office 对象需要它。
+>
+> **为什么不让大模型直接写 SMILES，再用 RDKit 画图？** 凭记忆写出的 SMILES 常常是另一个化合物（少了抗衡离子、丢了手性中心），RDKit 画出的图片也无法在 ChemDraw 或 Word 里继续编辑。这里每个结构都来自解析器、文件解析或你给的文件，画完后再读回核对，产物是原生 ChemDraw 文档。
+
 ## 快速开始
 
 <p align="center">
@@ -54,7 +58,7 @@ cd chemdraw-skill
 python scripts/install.py --agent claude agents --runtime --apply
 ```
 
-<sub>去掉 <code>--apply</code> 可先预览安装路径；若本机只有 Python 3.14+，请先安装 3.12（如 <code>uv python install 3.12</code>）或加 <code>--python &lt;解释器路径&gt;</code> 指定。</sub>
+<sub>去掉 <code>--apply</code> 可先预览安装路径；若本机只有 Python 3.14+，请先安装 3.12（如 <code>uv python install 3.12</code>）或加 <code>--python &lt;解释器路径&gt;</code> 指定。 每个发布版本还附带 Claude Code 插件压缩包（由 <code>scripts/build_plugin.py</code> 生成，附 <code>SHA256SUMS</code>）；插件只含 Skill，本体运行时仍需执行一次安装脚本并加 <code>--runtime-only --apply</code>。</sub>
 
 <img src="https://img.shields.io/badge/STEP_02-%E8%87%AA%E6%A3%80-1D7F5F?style=flat-square" height="20" alt="步骤 02"> **2. 检查本机能力**（自动检测桌面版 ChemDraw COM/AppleScript、Office OLE、Python 可选依赖与本地引擎）：
 
@@ -85,6 +89,7 @@ python $HOME/.claude/skills/chemdraw/scripts/cdx.py doctor
 > [!TIP]
 > **不想通过 Agent，想直接在终端一行命令出图或算投料？** 直接调用 `cdx.py` 零 JSON 快捷命令：
 > ```bash
+> python $HOME/.claude/skills/chemdraw/scripts/cdx.py resolve aspirin Cs2CO3 --offline   # 不需要 ChemDraw
 > python $HOME/.claude/skills/chemdraw/scripts/cdx.py draw --name aspirin aspirin.cdxml --style acs_jacs --render
 > python $HOME/.claude/skills/chemdraw/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>>CC(=O)OCc1ccccc1"
 > ```
@@ -173,7 +178,7 @@ python <skill>/scripts/cdx.py doctor --text                               # 本�
 | **专利 Markush 通式** | 结合专利附图与权利要求提取 R 基、可变环、多中心键与重复单元，同步导出可编辑 CDXML、CXSMILES 与 V3000 MOL。 |
 | **图像识别** | 通过远程 DECIMER API 或本地模型权重输出候选结构、置信度与区域边框。 |
 | **引擎与预测** | 15 个按需安装的独立环境引擎：6 套 OCSR 互校、PDF 结构切分、逆合成、正向产物、反应条件与 1H/13C 核磁位移预测。[实测与体积](#预测与分析引擎)。 |
-| **计算器与报告** | ChemDraw 原生化学计量表生成与 JSON 回读、含 PMI 的批量 SI 原料表、HRMS 与 ACS 表征段落、116 条 GHS 安全警示、总收率与原子映射。[详见](#反应计算器与化学报告)。 |
+| **计算器与报告** | ChemDraw 原生化学计量表生成与 JSON 回读、含 PMI 的批量 SI 原料表、HRMS 与 ACS 表征段落、138 条 GHS 安全警示、总收率与原子映射。[详见](#反应计算器与化学报告)。 |
 | **TLC 与装置** | 原生 TLC 板（泳道、斑点、Rf、共点样道、显色剂配色、二维板）及基于 ChemDraw 官方模板拼装的实验装置。 |
 | **谱图与科研绘图** | 解析 Bruker、JCAMP-DX、JEOL、Varian/Agilent 一维核磁（寻峰、积分、残留溶剂标注、局部放大与堆叠谱）并绘制数值曲线。 |
 | **实验记录** | 解析 Waters、OpenLynx、Shimadzu、Agilent 与 `mzML`/`mzXML` 的 LCMS 数据（Cl/Br 同位素核验、内标归一化、24/96 孔纯度热图）及 SciFinder RDF。 |
@@ -194,7 +199,7 @@ python <skill>/scripts/cdx.py doctor --text                               # 本�
   <tr>
     <td colspan="3" align="center">
       <a href="#期刊与课题组画法风格"><img src="assets/readme/gallery/house-style-chemdraw.png" width="82%" alt="按 Studer 课题组画法风格重画的已发表自由基探针反应式，新键为红色"></a>
-      <br><b>28 个实测期刊与课题组画法风格 + 16 个 ChemDraw 预设</b><br><sub>实测自 179 张开放许可插图，覆盖 23 类科研图，经 47 个文献复现案例逐项核验</sub>
+      <br><b>28 个实测期刊与课题组画法风格 + 16 个 ChemDraw 预设</b><br><sub>实测自 179 张开放许可插图，覆盖 23 类科研图；47 个文献复现案例逐条记录已复现的部分与同原图的差异</sub>
     </td>
   </tr>
   <tr>
@@ -401,11 +406,11 @@ python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_gr
 
 </details>
 
-同一份说明按六种画法风格渲染的 Suzuki 偶联（[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)展示全部 28 张风格卡与 4 个预设）：
+同一份说明按六种画法风格渲染的 Suzuki 偶联（[风格图库](showcase/house-styles/gallery/README.md)展示全部 28 张风格卡与 4 个预设）：
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="同一个 Suzuki 偶联按六个画法风格画出：acs_jacs、nature_portfolio、baran_group、macmillan_group、science_aaas 和 glorius_group"></p>
 
-- **47 个文献复现案例。** 每张卡片均用其原始证据图反向核验：精选 47 张已发表插图（涵盖单步反应、催化循环、底物拓展与全合成），按对应风格从说明文件重画，并归档参考截图、说明文件、原生渲染图与逐项核对的 `CASE.md`（[复现索引](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)）。
+- **47 个文献复现案例。** 精选 47 张已发表插图（涵盖单步反应、催化循环、底物拓展与全合成），按对应风格从说明文件重画，并归档参考截图、说明文件与原生渲染图。每份 `CASE.md` 逐条列出已复现的部分与同原图的差异，没有一例与原图完全一致（[复现索引](showcase/house-styles/gallery/README.md#literature-replicas)）。
 - **开放许可溯源。** 每个风格目录均保存 CC BY 证据截图与来源 DOI；每次绘图报告都会逐条记录已应用与跳过的版式规则及原因。
 - **已知限制与 MCP 资源。** 母核左侧缩写基团坐标准确，但桌面版 ChemDraw 在运行 **Clean Up Structure** 前可能将部分左侧基团按从左向右拼写（如显示 `CO2Me` 而非 `MeO2C`）。完整选项见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)；MCP 客户端可通过 `chemdraw://style-guide/{name}` 读取卡片。
 
@@ -468,7 +473,7 @@ python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example
 | 组装整张反应图 | 固定坐标、富文本条件、多种箭头和原生预览 |
 | 绘图之外的化学处理 | RDKit 立体异构体与互变异构体枚举、MCS 和 R-group 分解 |
 
-更多复现实例见[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md#literature-replicas)（47 张已发表插图按原期刊/课题组画法重绘，均附说明文件）。图像识别仅上传选定的裁切图片至 DECIMER API（`cdx.py decimer --preflight` 可预先核查待发送内容；离线模式下零上传）。
+更多复现实例见[风格图库](showcase/house-styles/gallery/README.md#literature-replicas)（47 张已发表插图按原期刊/课题组画法重绘，均附说明文件）。图像识别仅上传选定的裁切图片至 DECIMER API（`cdx.py decimer --preflight` 可预先核查待发送内容；离线模式下零上传）。
 
 <details>
 <summary><b>离线重建两张复杂路线图</b></summary>
@@ -510,7 +515,7 @@ python <skill>/scripts/cdx.py calc "OCc1ccccc1.CC(=O)Cl>CCN(CC)CC.ClCCl>CC(=O)OC
 - **ChemDraw 原生计量表。** 对反应 SMILES 或 `.cdxml` 执行 **Structure &gt; Analyze Stoichiometry** 并另存为新文件（`--output`），不触碰你正在编辑的窗口（因菜单命令要求可见窗口，执行期间 ChemDraw 窗口会短暂闪现）。修改任意质量、体积或当量，ChemDraw 即自动重算整张表。
 - **跨平台 JSON 回读。** 保存后运行 `cdx.py calc --read reaction-stoichiometry.cdxml` 即可逐行导出 JSON（回读无需安装 ChemDraw），让 Agent 直接引用 ChemDraw 算出的精确数值而非自行心算。
 - **无界面批量替代。** 未安装 ChemDraw 时，`si_materials_tables` 可一次生成最多 100 个反应的原料表，含摩尔浓度、原子经济性与过程质量强度（PMI；E 因子 = PMI − 1）。
-- **116 种常见试剂安全提示。** 启用 `reagent_safety` 后自动附带 GHS 象形图、H 短语、沸点/闪点及叠氮、过氧化物、有机锂、酰氯、金属氢化物的 SMARTS 结构警示；未收录物质标为“未收录”而非“安全”，实验前请以供应商 SDS 为准。
+- **138 种常见试剂安全提示。** 启用 `reagent_safety` 后自动附带 GHS 象形图、H 短语、沸点/闪点及叠氮、过氧化物、有机锂、酰氯、金属氢化物的 SMARTS 结构警示；未收录物质标为“未收录”而非“安全”，实验前请以供应商 SDS 为准。
 
 <p align="center">
   <img src="assets/readme/gallery/stoichiometry-grid.png" width="80%" alt="苯甲醇乙酰化反应下方的 ChemDraw 化学计量表，以 1.08 g 苯甲醇为限量反应物">
@@ -708,8 +713,8 @@ X-ray 图像裁自原论文，不在本仓库许可证范围内。
 | `reactiont5-retro` | 单步逆合成 | 3.9 GB | MIT | 是 |
 | `retrochimera` | 单步逆合成与多步路线 | 8.5 GB | 仅供研究使用 | 是 |
 | `magnet` | 1H 与 13C 化学位移 | 5.4 GB | MIT | 是 |
-| `nmrnet-pp` | 1H 与 13C 化学位移，第二个模型 | 2.8 GB | 代码 MIT，权重 CC BY 4.0 | 是 |
-| `reacon` | 催化剂、溶剂与试剂组合 | 1.9 GB | 作者未声明许可 | 是 |
+| `nmrnet-pp` | 1H 与 13C 化学位移，第二个模型 | 4.5 GB | 代码 MIT，权重 CC BY 4.0 | 是 |
+| `reacon` | 催化剂、溶剂与试剂组合 | 3.6 GB | 作者未声明许可 | 是 |
 
 上表体积按 Windows + CUDA 版 PyTorch 统计（纯 CPU 安装更小，完整清单见[引擎说明](skill/chemdraw/references/engines.md)）。下方实测在一台 Windows 笔记本（RTX 5090）上对照已人工核实的分子结构、实验记录或实测谱图运行，所有失误原样保留（[`assets/readme/engines/`](assets/readme/engines/provenance.json)）。冷启动耗时含模型加载；批量输入、多步搜索或显式加 `--accel on` 时工作进程常驻内存（重复执行 `predict products` 从 13.7 秒降至 0.6 秒，`cdx.py stop-daemons` 停止常驻进程），每次返回均记录 `execution.device`（`cuda:0` 或 `cpu`）。
 
@@ -780,7 +785,7 @@ X-ray 图像裁自原论文，不在本仓库许可证范围内。
 
 <img src="assets/readme/engines/forward/products.png" alt="用 ReactionT5 排第一的预测产物和实验记录的条件、收率画出的两步反应">
 
-**安装：** `retro`（AiZynthFinder，1.7 GB）、`products`（3.9 GB）、`conditions`（Reacon，1.9 GB）；SynPlanner 与 ReactionT5 逆合成按引擎名安装；`retro-chimera`（8.5 GB，运行时约需 14 GB 空闲内存）。RetroChimera 仅供研究使用；Reacon 的作者未声明许可证，只在你明确要求时从其仓库下载。[详见](skill/chemdraw/references/engines.md#predictions)
+**安装：** `retro`（AiZynthFinder，1.7 GB）、`products`（3.9 GB）、`conditions`（Reacon，3.6 GB）；SynPlanner 与 ReactionT5 逆合成按引擎名安装；`retro-chimera`（8.5 GB，运行时约需 14 GB 空闲内存）。RetroChimera 仅供研究使用；Reacon 的作者未声明许可证，只在你明确要求时从其仓库下载。[详见](skill/chemdraw/references/engines.md#predictions)
 
 </details>
 
@@ -839,7 +844,7 @@ X-ray 图像裁自原论文，不在本仓库许可证范围内。
 
 相比之下，MagNET 完全基于合成的 AIMNet2/GIAO DFT 屏蔽张量训练，训练中未使用任何实验核磁谱，其 0.21 ppm（<sup>1</sup>H）和 2.89 ppm（<sup>13</sup>C）误差属于真正意义上的跨分布实验盲测；而 NMRNet++ 的 0.11 与 1.14 ppm 含训练语料重合，应视为库内表现上限。GPU 上单分子耗时 MagNET 为 22 至 60 秒（均值 29 秒），NMRNet++ 为 24 至 62 秒（均值 33 秒）。预测值绝不会写入实验表征段落。
 
-**安装：** `nmr`（MagNET，5.4 GB）和 `nmr-pp`（NMRNet++，2.8 GB；权重为 CC BY 4.0，不接受溶剂参数）。[20 分子基准数据 JSON](assets/readme/engines/nmr/benchmark20.json) · [咖啡因图与数据](assets/readme/engines/nmr/caffeine/)
+**安装：** `nmr`（MagNET，5.4 GB）和 `nmr-pp`（NMRNet++，4.5 GB；权重为 CC BY 4.0，不接受溶剂参数）。[20 分子基准数据 JSON](assets/readme/engines/nmr/benchmark20.json) · [咖啡因图与数据](assets/readme/engines/nmr/caffeine/)
 
 </details>
 
@@ -922,7 +927,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <summary><b>能按 JACS、Angew.、Nature、Science 或特定课题组的画法风格出图吗？</b></summary>
 <br>
 
-可以。项目内置 28 张实测画法风格卡（*JACS*、*Angew. Chem.*、*Nature*、*Science*、*Chem. Sci.*、Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer 等），叠加在 16 个 ChemDraw 官方尺寸预设之上。画图时传 `--style 名称` 即可（`cdx.py styles` 查看全部列表）。风格卡归纳自开放许可文献插图的版式规律，并非出版社官方模板，也不会复制任何原图。详见[期刊与课题组画法风格](#期刊与课题组画法风格)与[风格图库](skill/chemdraw/assets/house-styles/gallery/README.md)。
+可以。项目内置 28 张实测画法风格卡（*JACS*、*Angew. Chem.*、*Nature*、*Science*、*Chem. Sci.*、Baran、MacMillan、Glorius、Houk、List、Sarpong、Studer 等），叠加在 16 个 ChemDraw 官方尺寸预设之上。画图时传 `--style 名称` 即可（`cdx.py styles` 查看全部列表）。风格卡归纳自开放许可文献插图的版式规律，并非出版社官方模板，也不会复制任何原图。详见[期刊与课题组画法风格](#期刊与课题组画法风格)与[风格图库](showcase/house-styles/gallery/README.md)。
 
 </details>
 
@@ -954,7 +959,7 @@ macOS 上的差异（自动化权限、隐藏的 ChemDraw 实例、字体替换�
 <summary><b>试剂安全提示与 15 个可选预测引擎能信到什么程度？</b></summary>
 <br>
 
-`reagent_safety` 来自内置 116 种常见试剂表与 SMARTS 结构警示（未收录物质标为“未收录”而非“安全”，实验前请以供应商 SDS 为准）。[15 个可选引擎](#十五个引擎一览)（单个 2 MB 至 8.5 GB，装好后离线运行）的所有输出均标明为候选预测：多模型一致可作参考线索，不一致则提示人工复核。请注意各模型权重许可限制（`molparser` 限非商用、`retrochimera` 仅供研究、`reacon` 未声明许可证）。
+`reagent_safety` 来自内置 138 种常见试剂表与 SMARTS 结构警示（未收录物质标为“未收录”而非“安全”，实验前请以供应商 SDS 为准）。[15 个可选引擎](#十五个引擎一览)（单个 2 MB 至 8.5 GB，装好后离线运行）的所有输出均标明为候选预测：多模型一致可作参考线索，不一致则提示人工复核。请注意各模型权重许可限制（`molparser` 限非商用、`retrochimera` 仅供研究、`reacon` 未声明许可证）。
 
 </details>
 
@@ -988,6 +993,14 @@ macOS 适配器通过 ChemDraw for macOS 的 AppleScript 字典驱动 ChemDraw�
 | [官网与分子实验室](https://zichenwang114514.github.io/chemdraw-skill/) | [落地页源码与部署说明](docs/website.md) |
 
 可部署的 Skill 位于 [`skill/chemdraw`](skill/chemdraw)。它所驱动的化学运行时，即 `cdxml_toolkit` Python 包，位于 [`toolkit`](toolkit)，并带有自己的测试。
+
+## 升级到 0.8.0
+
+- **MCP 服务器默认只列出 26 个工具**（`standard` 配置），不再是全部 71 个。需要其余工具时用 `--profile full` 启动，或设置 `CHEMDRAW_MCP_PROFILE=full`；`cdx.py call` 始终可以调用全部工具。
+- **返回结果统一为一种结构。** 只有工具完成且校验通过时 `ok` 才为 true；失败时带 `error`（含 `code`、`message`、`hint`），未通过化学校验的结果放在 `rejected_result` 里。`cdx.py` 的退出码与 `ok` 一致。
+- **名称按固定顺序解析，**只有二级缩写表认识的名称会标为低可信或不予解析。每个结果给出 `source_tier`、`components` 和未指定的手性中心数。
+- `render_scheme` 不再接受 `numbered-parallel` 布局。
+- **安装后的 Skill 约 2 MB。** 风格图库及其证据图移到 `showcase/house-styles/`；ChemDraw 成员列表改用 `cdx.py catalog LAYER NAME` 查询。
 
 ## 许可证
 

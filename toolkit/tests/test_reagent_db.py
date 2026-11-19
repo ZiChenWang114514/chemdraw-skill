@@ -10,6 +10,12 @@ from cdxml_toolkit.resolve.reagent_db import ReagentDB, get_reagent_db
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(PROJECT_ROOT, "cdxml_toolkit", "resolve", "reagent_abbreviations.json")
 CS_JSON_PATH = os.path.join(PROJECT_ROOT, "cdxml_toolkit", "resolve", "chemscanner_abbreviations.json")
+QUARANTINE_PATH = os.path.join(PROJECT_ROOT, "cdxml_toolkit", "resolve", "chemscanner_quarantine.json")
+
+
+def _quarantined_keys():
+    with open(QUARANTINE_PATH, encoding="utf-8") as f:
+        return set(json.load(f)["entries"])
 
 
 # =========================================================================
@@ -192,10 +198,11 @@ class TestTierTwoCascade:
             cs_data = json.load(f)
         with open(JSON_PATH, encoding="utf-8") as f:
             curated_data = json.load(f)
-        # Find a key in ChemScanner but not curated
+        quarantined = _quarantined_keys()
+        # Find a key in ChemScanner but not curated (and not quarantined)
         cs_only = None
         for key in cs_data:
-            if key not in curated_data:
+            if key not in curated_data and key not in quarantined:
                 cs_only = key
                 break
         if cs_only is None:
@@ -254,13 +261,16 @@ class TestNameNormalization:
         result = db.display_for_name("Pd2(dba)3.CHCl3")
         assert result is not None
 
-    def test_solvate_stripping_falls_back(self):
-        """Stripping ·HCl from an unknown base should try the base name."""
+    def test_salt_suffix_is_kept_as_a_component(self):
+        """A salt without its own entry resolves component by component."""
         db = get_reagent_db()
-        # "EDC·HCl" is an explicit entry, but "DIPEA·HCl" is not —
-        # solvate stripping should resolve to DIPEA
-        result = db.display_for_name("DIPEA·HCl")
-        assert result == "DIPEA"
+        # "EDC·HCl" is an explicit entry, but "DIPEA·HCl" is not: the HCl
+        # must stay part of the species instead of being dropped.
+        assert db.display_for_name("DIPEA·HCl") == "DIPEA·HCl"
+        entry = db.entry_for_name("DIPEA.HCl")
+        assert [c["display"] for c in entry["components"]] == ["DIPEA", "HCl"]
+        assert db.role_for_name("DIPEA·HCl") == "base"
+        assert db.entry_for_name("DIPEA·xyzzy") is None
 
     def test_rac_prefix_stripped(self):
         db = get_reagent_db()
@@ -371,7 +381,10 @@ class TestTierTwoCanonicalStorage:
         db = get_reagent_db()
         with open(CS_JSON_PATH, encoding="utf-8") as f:
             cs_data = json.load(f)
-        for entry in cs_data.values():
+        quarantined = _quarantined_keys()
+        for key, entry in cs_data.items():
+            if key in quarantined:
+                continue
             for field in ("smiles", "canonical_smiles"):
                 value = entry.get(field)
                 for smi in (value if isinstance(value, list) else [value] if value else []):

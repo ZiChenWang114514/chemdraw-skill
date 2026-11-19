@@ -24,9 +24,14 @@ def envelope_indices(values, limit=1600):
 DEFAULT_SERIES_COLORS = ('#185f72', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02')
 
 
-def _normalize_series(x, y, series):
+# Series styles: a connecting line, a marker per data point, or both.
+PLOT_STYLES = ('line', 'scatter', 'both')
+
+
+def _normalize_series(x, y, series, yerr=None, style=None):
     normalized = []
-    raw_series = list(series) if series is not None else [{'x': x, 'y': y}]
+    raw_series = list(series) if series is not None else [
+        {'x': x, 'y': y, **({'yerr': yerr} if yerr is not None else {}), **({'style': style} if style else {})}]
     if not raw_series:
         raise ValueError('At least one data series is required')
     for idx, item in enumerate(raw_series):
@@ -43,12 +48,23 @@ def _normalize_series(x, y, series):
             or not np.isfinite(sy).all()
         ):
             raise ValueError('Plot requires equal-length finite one-dimensional arrays')
+        style = item.get('style') or 'line'
+        if style not in PLOT_STYLES:
+            raise ValueError(f'Unknown plot style {style!r}; use one of: ' + ', '.join(PLOT_STYLES))
+        yerr = item.get('yerr')
+        if yerr is not None:
+            yerr = np.asarray(yerr, dtype=float)
+            if yerr.ndim == 0:
+                yerr = np.full(sy.shape, float(yerr))
+            if yerr.shape != sy.shape or not np.isfinite(yerr).all() or (yerr < 0).any():
+                raise ValueError('yerr must be one non-negative finite value per point')
         normalized.append({
             'x': sx,
             'y': sy,
+            'yerr': yerr,
             'label': item.get('label'),
             'color': item.get('color') or DEFAULT_SERIES_COLORS[idx % len(DEFAULT_SERIES_COLORS)],
-            'style': item.get('style') or '-',
+            'style': style,
         })
     all_x = np.concatenate([s['x'] for s in normalized])
     if all_x.max() == all_x.min():
@@ -68,7 +84,15 @@ def plot_xy(
     provenance=None,
     dpi=300,
     series=None,
+    yerr=None,
+    style=None,
 ):
+    """Plot one or more x/y series to SVG, PNG and editable CDXML, with the data as CSV.
+
+    Each series may set ``style`` (``line``, ``scatter`` or ``both``; markers are drawn at every
+    data point for ``scatter`` and ``both``) and ``yerr`` (one error per point, drawn as error bars).
+    ``data.csv`` holds every series in long form: series, label, x, y, yerr.
+    """
     if isinstance(x, dict):
         spec = x
         if output_dir is None and y is not None:
@@ -82,6 +106,8 @@ def plot_xy(
         provenance = spec.get('provenance', provenance)
         dpi = int(spec.get('dpi', dpi))
         series = spec.get('series', series)
+        yerr = spec.get('yerr', yerr)
+        style = spec.get('style', style)
         x = spec.get('x')
         y = spec.get('y')
     dpi = int(dpi)
@@ -89,9 +115,7 @@ def plot_xy(
         raise ValueError('dpi must be positive')
     if output_dir is None:
         raise ValueError('output_dir is required')
-    series_list = _normalize_series(x, y, series)
-    primary_x = series_list[0]['x']
-    primary_y = series_list[0]['y']
+    series_list = _normalize_series(x, y, series, yerr=yerr, style=style)
     target=Path(output_dir).resolve();target.mkdir(parents=True,exist_ok=False)
     import matplotlib
     matplotlib.use('Agg')
@@ -102,7 +126,14 @@ def plot_xy(
         lbl = s.get('label')
         if lbl:
             has_labels = True
-        ax.plot(s['x'], s['y'], color=s['color'], linestyle=s['style'], linewidth=.9, label=lbl)
+        line = s['style'] in ('line', 'both')
+        marker = 'o' if s['style'] in ('scatter', 'both') else None
+        if s['yerr'] is not None:
+            ax.errorbar(s['x'], s['y'], yerr=s['yerr'], color=s['color'], linestyle='-' if line else 'none',
+                        linewidth=.9, marker=marker, markersize=3.5, capsize=2.5, elinewidth=.7, label=lbl)
+        else:
+            ax.plot(s['x'], s['y'], color=s['color'], linestyle='-' if line else 'none', linewidth=.9,
+                    marker=marker, markersize=3.5, label=lbl)
     if has_labels:
         ax.legend(frameon=False, fontsize=8)
     ax.set(xlabel=xlabel,ylabel=ylabel,title=title)
@@ -113,7 +144,15 @@ def plot_xy(
     yticks=[float(v) for v in ax.get_yticks() if ymin<=v<=ymax]
     for extension in ('svg','png'):fig.savefig(target/f'plot.{extension}',dpi=dpi)
     plt.close(fig)
-    np.savetxt(target/'data.csv',np.c_[primary_x,primary_y],delimiter=',',header='x,y',comments='')
+    import csv
+    with open(target/'data.csv', 'w', newline='', encoding='utf-8') as handle:
+        writer = csv.writer(handle)
+        writer.writerow(['series', 'label', 'x', 'y', 'yerr'])
+        for idx, s in enumerate(series_list):
+            errs = s['yerr'] if s['yerr'] is not None else [None] * len(s['x'])
+            for xv, yv, ev in zip(s['x'], s['y'], errs):
+                writer.writerow([idx + 1, s.get('label') or '', repr(float(xv)), repr(float(yv)),
+                                 '' if ev is None else repr(float(ev))])
     d=Drawing(600,300);d.text([65,25],title,12)
     left,right,top,bottom=65,565,45,245
     def xx(v):return left+(right-left)*((xmax-v) if reverse_x else (v-xmin))/(xmax-xmin)
@@ -130,14 +169,31 @@ def plot_xy(
         total_display_samples += int(len(keep))
         # Separate curves avoid native per-object control-point limits.
         pts = [[xx(s['x'][i]), yy(s['y'][i])] for i in keep]
-        for i in range(0, len(pts) - 1, 250):
-            d.curve(pts[i:i+251], color=s.get('color'))
+        if s['style'] in ('line', 'both'):
+            for i in range(0, len(pts) - 1, 250):
+                d.curve(pts[i:i+251], color=s.get('color'))
+        if s['yerr'] is not None:
+            for xv, yv, ev in zip(s['x'], s['y'], s['yerr']):
+                px, lo, hi = xx(xv), yy(max(yv - ev, ymin)), yy(min(yv + ev, ymax))
+                d.line([px, lo], [px, hi], color=s.get('color'))
+                d.line([px - 2.5, lo], [px + 2.5, lo], color=s.get('color'))
+                d.line([px - 2.5, hi], [px + 2.5, hi], color=s.get('color'))
+        if s['style'] in ('scatter', 'both'):
+            r = 2.2
+            # Long series get a marker at each displayed (envelope) point only.
+            marked = range(len(s['x'])) if len(s['x']) <= 500 else keep
+            for xv, yv in ((s['x'][i], s['y'][i]) for i in marked):
+                px, py = xx(xv), yy(yv)
+                d.curve([[px - r, py], [px, py - r], [px + r, py], [px, py + r]], closed=True, filled=True,
+                        color=s.get('color'))
         if s.get('label'):
             d.text([right - 95, top + 12 + idx * 12], str(s['label']), 8, color=s.get('color'))
     d.save(target/'plot.cdxml')
     result={'source':provenance,'sample_count':int(sum(len(s['x']) for s in series_list)),
         'cdxml_display_samples':total_display_samples,
         'series_count':len(series_list),
+        'series':[{'label':s.get('label'),'style':s['style'],'points':int(len(s['x'])),
+                   'error_bars':s['yerr'] is not None} for s in series_list],
         'dpi':dpi,
         'display_reduction':'min/max envelope; analysis and CSV retain every sample',
         'xlabel':xlabel,'ylabel':ylabel,'reverse_x':reverse_x,
@@ -154,8 +210,9 @@ LCMS_PLATE_TIERS = (
     ('high', '>= 70%', '#c8e6c9'),
     ('medium', '30-70%', '#fff9c4'),
     ('low', '>0-30%', '#ffcdd2'),
-    ('none', '0% / empty', '#eeeeee'),
+    ('none', '0%', '#eeeeee'),
     ('no_data', 'no data', '#b0bec5'),
+    ('untested', 'untested', '#ffffff'),
 )
 LCMS_NO_DATA_COLOR = '#b0bec5'
 
@@ -372,6 +429,26 @@ def _purity_tier(purity: float | None) -> tuple[str, str]:
     return 'low', '#ffcdd2'
 
 
+def _well_records(wells: Any) -> list[dict[str, Any]]:
+    """Well records from a list of ``{"well", "purity", ...}`` or a dict keyed by well ID."""
+    if isinstance(wells, Mapping):
+        records = []
+        for key, value in wells.items():
+            well = str(key).strip().upper()
+            if isinstance(value, Mapping):
+                records.append({**dict(value), 'well': well})
+            elif value is None or isinstance(value, (int, float)):
+                records.append({'well': well, 'purity': value})
+            else:
+                raise ValueError(f'Well {well}: give a purity number or a record')
+        return records
+    if isinstance(wells, Sequence) and not isinstance(wells, (str, bytes)):
+        if not all(isinstance(item, Mapping) for item in wells):
+            raise ValueError('wells must be a list of records or a dict keyed by well ID')
+        return [dict(item) for item in wells]
+    raise ValueError('wells must be a list of records or a dict keyed by well ID')
+
+
 def build_lcms_plate_cdxml(
     source_or_spec: Any,
     output_path: str | Path | None = None,
@@ -382,7 +459,12 @@ def build_lcms_plate_cdxml(
     wavelength: int | str = 254,
     title: str = 'LCMS Plate Purity Heatmap',
 ) -> dict[str, Any]:
-    """Build an editable 24-well or 96-well LCMS purity heatmap in CDXML."""
+    """Build an editable 24-well or 96-well LCMS purity heatmap in CDXML.
+
+    ``wells`` is a list of records (``{"well": "A1", "purity": 94.2, "rt": 1.32}``) or a dict
+    keyed by well (``{"A1": 94.2}``). Wells missing from the input are drawn as untested
+    (white, dashed border), distinct from a tested well at 0 %.
+    """
     raw_wells: list[dict[str, Any]] = []
 
     if isinstance(source_or_spec, Mapping):
@@ -394,10 +476,8 @@ def build_lcms_plate_cdxml(
         wavelength = spec.get('wavelength', wavelength)
         title = spec.get('title', title)
 
-        if 'wells' in spec and isinstance(spec['wells'], Sequence):
-            for idx, item in enumerate(spec['wells']):
-                if isinstance(item, Mapping):
-                    raw_wells.append(dict(item))
+        if 'wells' in spec:
+            raw_wells = _well_records(spec['wells'])
         elif 'input' in spec or 'source' in spec or 'path' in spec:
             src_path = Path(spec.get('input') or spec.get('source') or spec.get('path'))
             if src_path.is_file() and src_path.suffix.lower() == '.json':
@@ -419,13 +499,9 @@ def build_lcms_plate_cdxml(
                 wavelength=wavelength,
             )
         else:
-            # Allow dict mapping well_id -> purity or dict
-            for k, v in spec.items():
-                if _WELL_RE.fullmatch(str(k).strip()) or str(k).strip().isdigit():
-                    if isinstance(v, (int, float)):
-                        raw_wells.append({'well': str(k).strip().upper(), 'purity': float(v)})
-                    elif isinstance(v, Mapping):
-                        raw_wells.append({'well': str(k).strip().upper(), **dict(v)})
+            # A dict keyed by well: {"A1": 94.2, "A2": {"purity": 0, "rt": 1.3}}
+            raw_wells = _well_records({k: v for k, v in spec.items()
+                                       if _WELL_RE.fullmatch(str(k).strip()) or str(k).strip().isdigit()})
     elif isinstance(source_or_spec, (str, Path)):
         src_path = Path(source_or_spec)
         if src_path.is_file() and src_path.suffix.lower() == '.json':
@@ -512,7 +588,7 @@ def build_lcms_plate_cdxml(
         cx = left_margin + c_idx * (cell_w + gap) + cell_w * 0.42
         drawing.text((cx, top_margin - 10.0), str(col_num), size=9, parent=plate_group)
 
-    tier_counts = {'high': 0, 'medium': 0, 'low': 0, 'none': 0, 'no_data': 0}
+    tier_counts = {name: 0 for name, _label, _color in LCMS_PLATE_TIERS}
 
     # Plate grid cells (draw background fills/borders first, then text overlays on top)
     deferred_cell_texts: list[tuple[tuple[float, float], str, int, str | None]] = []
@@ -529,9 +605,9 @@ def build_lcms_plate_cdxml(
                 purity = info['purity']
                 rt = info['rt']
             else:
-                tier_name = 'none'
-                fill_hex = '#eeeeee'
-                purity = 0.0
+                tier_name = 'untested'
+                fill_hex = '#ffffff'
+                purity = None
                 rt = None
             tier_counts[tier_name] += 1
 
@@ -544,13 +620,14 @@ def build_lcms_plate_cdxml(
                 border_color='#9e9e9e',
                 parent=plate_group,
             )
-            # Draw crisp cell border
+            # Draw crisp cell border (dashed for an untested well)
             drawing.curve(
                 [(cx, ry), (cx + cell_w, ry), (cx + cell_w, ry + cell_h), (cx, ry + cell_h)],
                 parent=plate_group,
                 closed=True,
                 filled=False,
                 color='#9e9e9e',
+                dashed=info is None,
             )
 
             if info is not None and purity is None:

@@ -142,12 +142,54 @@ def read_grid(path: str | Path) -> dict:
 
 # --- a reaction to analyze ---------------------------------------------------------------
 
-def reaction_document(reaction: str, destination: Path) -> Path:
-    """Draw a reaction SMILES "reactants>agents>products" as CDXML, agents above the arrow."""
+def _side_components(side: str) -> list[str]:
+    """One record per structure: "." at the top level separates records, a parenthesised
+    group "(A.B)" is one record, and consecutive ions are kept together until they are
+    neutral, so a salt such as "CC(=O)[O-].[Na+]" stays one structure."""
+    from rdkit import Chem
+
+    pieces, depth, start = [], 0, 0
+    for index, char in enumerate(side):
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif char == "." and depth == 0:
+            pieces.append(side[start:index])
+            start = index + 1
+    pieces.append(side[start:])
+    records: list[str] = []
+    open_ions: list[str] = []
+    charge = 0
+    for piece in filter(None, pieces):
+        if piece.startswith("(") and piece.endswith(")"):
+            records.append(piece[1:-1])
+            continue
+        mol = Chem.MolFromSmiles(piece)
+        piece_charge = sum(a.GetFormalCharge() for a in mol.GetAtoms()) if mol is not None else 0
+        if open_ions or piece_charge:
+            open_ions.append(piece)
+            charge += piece_charge
+            if charge == 0:
+                records.append(".".join(open_ions))
+                open_ions = []
+        else:
+            records.append(piece)
+    records.extend(open_ions)  # ions that never balance stay separate
+    return records
+
+
+def reaction_components(reaction: str) -> list[list[str]]:
+    """Reactant, agent and product records of a reaction SMILES "reactants>agents>products"."""
     parts = reaction.strip().split(">")
     if len(parts) != 3 or not parts[0] or not parts[2]:
         raise ValueError('Give a reaction SMILES "reactants>agents>products" or a .cdxml/.cdx file')
-    sides = [[smiles for smiles in part.split(".") if smiles] for part in parts]
+    return [_side_components(part) for part in parts]
+
+
+def reaction_document(reaction: str, destination: Path) -> Path:
+    """Draw a reaction SMILES "reactants>agents>products" as CDXML, agents above the arrow."""
+    sides = reaction_components(reaction)
     structures: list[str] = []
     keys: list[list[str]] = []
     for side in sides:

@@ -97,6 +97,33 @@ class DecimerInstallerTests(unittest.TestCase):
 
         self.assertEqual(sentinel.read_text(encoding="utf-8"), "existing")
 
+    def test_offline_work_downloads_nothing(self):
+        called = []
+        with mock.patch.dict("os.environ", {"CHEMDRAW_OFFLINE": "1"}):
+            with self.assertRaisesRegex(RuntimeError, "CHEMDRAW_OFFLINE"):
+                install_decimer_models.install_model(
+                    model_fixture(archive_bytes(self.root)), self.target, proxy=None,
+                    downloader=lambda *a: called.append(a),
+                )
+        self.assertEqual(called, [])
+
+    def test_sha256_mismatch_leaves_no_partial_model(self):
+        payload = archive_bytes(self.root)
+        model = {**model_fixture(payload), "sha256": "0" * 64}
+        with self.assertRaisesRegex(RuntimeError, "SHA-256"):
+            install_decimer_models.install_model(
+                model, self.target, proxy=None,
+                downloader=lambda _url, destination, _proxy: Path(destination).write_bytes(payload),
+            )
+        self.assertFalse((self.target / "DECIMER_model").exists())
+
+    def test_published_models_are_pinned_by_the_engine_registry_hashes(self):
+        from cdxml_toolkit.engines import registry
+
+        pinned = {d["url"]: d["sha256"] for d in registry.ENGINES["decimer-local"]["downloads"]}
+        for model in install_decimer_models.MODELS:
+            self.assertEqual(model["sha256"], pinned[model["url"]])
+
     def test_model_selection_is_explicit(self):
         selected = install_decimer_models.select_models(["handdrawn"])
         self.assertEqual([model["key"] for model in selected], ["handdrawn"])

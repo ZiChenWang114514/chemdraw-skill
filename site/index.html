@@ -87,7 +87,7 @@
         { "@type": "Question", "name": "能帮我算每种试剂该称多少吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "可以，用的是 ChemDraw 自带的计算器。 cdx.py calc 对以 SMILES 或 ChemDraw 文件给出的反应运行 Structure > Analyze Stoichiometry，并在 ChemDraw 里打开化学计量表。 在表里填质量、体积或当量，其余数值由 ChemDraw 算出。 cdx.py calc --read 把保存后的数值读回来。 没有 ChemDraw 时，SI 原料表也能给出用量，其中所有默认值都标明是假设值。见化学报告指南。" } },
         { "@type": "Question", "name": "安全信息可以信到什么程度？",
-          "acceptedAnswer": { "@type": "Answer", "text": "它只是提醒，请以你实际使用的产品的 SDS 为准。 内容来自内置的 116 种常用溶剂与试剂表以及 SMARTS 结构警示：GHS 图标、H 说明、沸点和闪点。 表里没有的物质显示“未收录”，不会显示成安全。" } },
+          "acceptedAnswer": { "@type": "Answer", "text": "它只是提醒，请以你实际使用的产品的 SDS 为准。 内容来自内置的 138 种常用溶剂与试剂表以及 SMARTS 结构警示：GHS 图标、H 说明、沸点和闪点。 表里没有的物质显示“未收录”，不会显示成安全。" } },
         { "@type": "Question", "name": "能把文献里的结构图复刻成可编辑 ChemDraw 文件吗？",
           "acceptedAnswer": { "@type": "Answer", "text": "可以，输出可编辑 CDXML 和 ChemDraw 原生预览。 论文图复刻流程结合 DECIMER 结构识别、结构确认、版式重建与原生视觉复核。见重建指南。 图片不能上传，或者想多一份识别结果时，可选的本地引擎也会读一遍。各引擎的结果只做比对，不会合并。" } },
         { "@type": "Question", "name": "预测引擎需要什么？结果能信到什么程度？",
@@ -281,7 +281,7 @@
     <div class="works">
       <figure class="lg">
         <div class="plate"><img decoding="async" data-zoom src="gallery/house-styles.webp" width="1440" height="900" loading="lazy" alt="同一个 Suzuki 偶联按 acs_jacs、nature_portfolio、baran_group、macmillan_group、science_aaas 和 glorius_group 六个画法风格画出"></div>
-        <figcaption><span class="work-tag">样式系统</span><b>28 个画法风格。</b>同一份说明，按 JACS、Nature、Baran、MacMillan、Science、Glorius 等的习惯画出，见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>。</figcaption>
+        <figcaption><span class="work-tag">样式系统</span><b>28 个画法风格。</b>同一份说明，按 JACS、Nature、Baran、MacMillan、Science、Glorius 等的习惯画出，见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/showcase/house-styles/gallery/README.md">样式图库</a>。</figcaption>
       </figure>
       <figure class="lg">
         <div class="plate"><img decoding="async" data-zoom src="gallery/house-style-replicas.webp" width="1440" height="900" loading="lazy" alt="两张已发表的图与按各自画法风格重画的 ChemDraw 文档并排对比：Nat. Prod. Rep. 的 Dragmacidin B 合成和 Houk 课题组的铑催化反应"></div>
@@ -391,10 +391,10 @@ Bonds:   13</code></pre></details></div>
         <div data-kind="read"><dt><span class="cap-tag">读图复刻</span>专利 Markush</dt><dd>从专利附图与权利要求提取通式结构，同步输出 CXSMILES、V3000 molfile 和可编辑 CDXML。<details class="try"><summary>试着这样说</summary><p class="ask">从这张专利图和权利要求里提取 Markush 通式，给我 CXSMILES、V3000 molfile 和 CDXML。</p></details></dd></div>
         <div data-kind="draw"><dt><span class="cap-tag">绘图</span>按需求新画图</dt><dd>从一句话或反应 SMILES（<code>cdx.py draw --reaction ...</code>、<code>--compact</code>）绘制单步反应、线性/汇聚/发散或催化循环路线与底物拓展图。条件只取自你的输入，缺项不补。<details class="try"><summary>试着这样说</summary><p class="ask">画苯甲醇被 PCC 氧化成苯甲醛的反应，条件写 PCC、CH<sub>2</sub>Cl<sub>2</sub>、室温，渲染后检查一遍。</p></details></dd></div>
         <div data-kind="draw"><dt><span class="cap-tag">绘图</span>试卷与讲义</dt><dd>由 JSON 生成 ACS 1996 插图，支持缩写节点、中文注释、带框编号、环着色与药效团光晕、η<sup>n</sup> 多点配位键、[…]‡ 过渡态方括号、轨道瓣及椅式/Newman/Haworth/Fischer 构象模板。<details class="try"><summary>试着这样说</summary><p class="ask">按 ACS Document 1996 画一道题：环己烯加氢生成环己烷，产物下面放一个带框的编号。</p></details></dd></div>
-        <div data-kind="draw"><dt><span class="cap-tag">绘图</span>期刊与课题组画法</dt><dd>内置 16 个 ChemDraw 尺寸预设（<code>cdx.py styles</code>）与测自 179 张论文图的 28 个期刊、专利、教材及课题组画法风格（覆盖 JACS、Nature、Science、Baran、MacMillan、Studer 等 23 类图）。详见含 47 张重绘对比的<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>。<details class="try"><summary>试着这样说</summary><p class="ask">按 Studer 课题组的习惯画这个反应，新键标红、收率写在编号后面，渲染后给我看。</p></details></dd></div>
+        <div data-kind="draw"><dt><span class="cap-tag">绘图</span>期刊与课题组画法</dt><dd>内置 16 个 ChemDraw 尺寸预设（<code>cdx.py styles</code>）与测自 179 张论文图的 28 个期刊、专利、教材及课题组画法风格（覆盖 JACS、Nature、Science、Baran、MacMillan、Studer 等 23 类图）。详见含 47 张重绘对比的<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/showcase/house-styles/gallery/README.md">样式图库</a>。<details class="try"><summary>试着这样说</summary><p class="ask">按 Studer 课题组的习惯画这个反应，新键标红、收率写在编号后面，渲染后给我看。</p></details></dd></div>
         <div data-kind="data"><dt><span class="cap-tag">数据与文档</span>SAR 与底物拓展</dt><dd>将可信结构绑定 CSV / Excel 实验数据，生成可持续更新的构效关系（SAR）图与底物拓展图，刷新数据时保留手工排版。<details class="try"><summary>试着这样说</summary><p class="ask">用 scope.xlsx 里的结构和收率生成底物拓展图，每个化合物下面标编号和收率。</p></details></dd></div>
         <div data-kind="calc"><dt><span class="cap-tag">计算</span>比较与性质</dt><dd>精确身份与相似度比较；<code>cdx.py report</code> 一步输出含 MS 加合物、HRMS 写法与 logP 的性质表；反应配平检查并指出缺失副产物；ChemDraw 命名自动回读核对。<details class="try"><summary>试着这样说</summary><p class="ask">这两个 SMILES 是同一个化合物吗？再列出它们的分子量、logP 和 [M+H]<sup>+</sup>。</p></details></dd></div>
-        <div data-kind="calc"><dt><span class="cap-tag">计算</span>反应计算器</dt><dd>调用 ChemDraw 原生化学计量表并将结果读回为结构化数据；无 ChemDraw 时可生成最多 100 个反应的 SI 原料表，含浓度、原子经济性、PMI 及 116 条试剂安全提示。<details class="try"><summary>试着这样说</summary><p class="ask">给苯甲醇和乙酰氯的乙酰化反应打开 ChemDraw 化学计量表，苯甲醇用 1.08 g。</p></details></dd></div>
+        <div data-kind="calc"><dt><span class="cap-tag">计算</span>反应计算器</dt><dd>调用 ChemDraw 原生化学计量表并将结果读回为结构化数据；无 ChemDraw 时可生成最多 100 个反应的 SI 原料表，含浓度、原子经济性、PMI 及 138 条试剂安全提示。<details class="try"><summary>试着这样说</summary><p class="ask">给苯甲醇和乙酰氯的乙酰化反应打开 ChemDraw 化学计量表，苯甲醇用 1.08 g。</p></details></dd></div>
         <div data-kind="data"><dt><span class="cap-tag">数据与文档</span>表征文字</dt><dd>生成 HRMS 表征句与按 ACS 顺序排列的完整实验表征段落（外观、Rf、熔点、旋光、IR、核磁、HRMS），按结构核对峰数，异常只提醒不篡改。<details class="try"><summary>试着这样说</summary><p class="ask">把这份核磁和 HRMS 数据整理成按 ACS 顺序的表征段落，并按结构核对峰数。</p></details></dd></div>
         <div data-kind="calc"><dt><span class="cap-tag">计算</span>路线收率与 PMI</dt><dd>计算线性或汇聚多步合成路线的总收率与累计过程质量强度（PMI），缺失步骤保持留空并明确提示。<details class="try"><summary>试着这样说</summary><p class="ask">这条四步线性路线每步收率是 85%、72%、90%、64%，投料在 materials.xlsx 里，算总收率和累计 PMI。</p></details></dd></div>
         <div data-kind="calc"><dt><span class="cap-tag">计算</span>原子映射</dt><dd>内置方法对歧义如实报告，也可一键安装 RXNMapper 与 LocalMapper；输出断键/成键、反应中心 SMARTS 与反应类型，并将映射编号写入副本。<details class="try"><summary>试着这样说</summary><p class="ask">给这个反应做原子映射，告诉我哪些键断了、哪些键生成了，并把映射编号写进图的副本。</p></details></dd></div>
@@ -567,7 +567,7 @@ cd chemdraw-skill
             <li>每个风格按 23 类图分节，并展示按原风格重画的 47 张已发表的图。</li>
             <li>某个习惯没有量到时就沿用默认值，不去猜。</li>
           </ul>
-          <p>见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/skill/chemdraw/assets/house-styles/gallery/README.md">样式图库</a>。</p>
+          <p>见<a href="https://github.com/ZiChenWang114514/chemdraw-skill/blob/main/showcase/house-styles/gallery/README.md">样式图库</a>。</p>
         </div>
       </details>
       <details id="faq-stoichiometry">
@@ -586,7 +586,7 @@ cd chemdraw-skill
         <summary>安全信息可以信到什么程度？</summary>
         <div class="answer">
           <p class="lead">它只是提醒，请以你实际使用的产品的 SDS 为准。</p>
-          <p>内容来自内置的 116 种常用溶剂与试剂表以及 SMARTS 结构警示：GHS 图标、H 说明、沸点和闪点。</p>
+          <p>内容来自内置的 138 种常用溶剂与试剂表以及 SMARTS 结构警示：GHS 图标、H 说明、沸点和闪点。</p>
           <p>表里没有的物质显示“未收录”，不会显示成安全。</p>
         </div>
       </details>

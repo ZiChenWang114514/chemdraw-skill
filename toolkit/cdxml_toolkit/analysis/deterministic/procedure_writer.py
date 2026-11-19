@@ -139,36 +139,48 @@ def extract_nmr_data(pdf_path: str) -> List[str]:
               file=sys.stderr)
         return []
 
-    results = []
+    return nmr_lines(text)
 
-    # Pattern for NMR data strings
-    # Match: "1H NMR" or "13C NMR" or "19F NMR" etc., followed by the data
-    # The data string continues until a period followed by newline, or
-    # until a non-NMR line is encountered.
-    nmr_pattern = re.compile(
-        r'(\d+[A-Z]\s+NMR\s*'       # nucleus: 1H, 13C, 19F, etc.
-        r'\([^)]+\)\s*'              # (400 MHz, solvent)
-        r'[\u03b4\u00b4d]\s*'        # delta or delta symbol
-        r'.+?)(?=\.\s*$|\.\s*\d+[A-Z]\s+NMR|\Z)',  # capture until end
-        re.MULTILINE | re.DOTALL
-    )
 
-    seen = set()
-    for m in nmr_pattern.finditer(text):
-        data_str = m.group(1).strip()
-        # Clean up: normalize whitespace, remove line breaks within data
-        data_str = re.sub(r'\s+', ' ', data_str)
-        # Ensure it ends with a period
-        if not data_str.endswith('.'):
-            # Find the last closing paren with H count
-            last_paren = data_str.rfind(')')
-            if last_paren > 0:
-                data_str = data_str[:last_paren + 1] + '.'
-        # Deduplicate — NMR PDFs often repeat data on each page
-        if data_str not in seen:
-            seen.add(data_str)
-            results.append(data_str)
+# The start of a reported line: nucleus, conditions in parentheses, then delta.
+_NMR_HEAD = re.compile(r'\d+[A-Z]\s+NMR\s*\([^)]+\)\s*[δ´d]\s*')
+# One reported signal: a shift (or a range), with an optional assignment in parentheses.
+_NMR_SIGNAL = re.compile(r'[-−]?\d+(?:\.\d+)?(?:\s*[-–]\s*\d+(?:\.\d+)?)?(?:\s*\([^)]*\))?')
 
+
+def nmr_lines(text: str) -> List[str]:
+    """Reported NMR lines in ``text``, one per nucleus, each ending with a period.
+
+    Line breaks are joined first, the text is cut at each nucleus heading, and a line
+    ends at its sentence period or, without one, after its last signal.
+    """
+    flat = re.sub(r'\s+', ' ', text)
+    heads = list(_NMR_HEAD.finditer(flat))
+    results: List[str] = []
+    for index, head in enumerate(heads):
+        stop = heads[index + 1].start() if index + 1 < len(heads) else len(flat)
+        body = flat[head.end():stop]
+        period = re.search(r'\.(?=\s|$)', body)
+        if period:
+            body = body[:period.start()]
+        else:
+            last = None
+            position = 0
+            while True:  # consecutive signals separated by commas or semicolons
+                signal = _NMR_SIGNAL.match(body, position)
+                if not signal or not signal.group().strip():
+                    break
+                last = signal.end()
+                separator = re.match(r'\s*[,;]\s*', body[last:])
+                if not separator:
+                    break
+                position = last + separator.end()
+            body = body[:last] if last else ''
+        if not body.strip():
+            continue
+        line = f"{head.group().strip()} {body.strip()}."
+        if line not in results:  # NMR PDFs repeat the line on each page
+            results.append(line)
     return results
 
 # ---------------------------------------------------------------------------

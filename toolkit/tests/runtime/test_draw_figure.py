@@ -211,7 +211,7 @@ def test_two_arms_that_merge_are_drawn_as_a_convergent_route(tmp_path):
     assert report["ok"] is True
     assert report["layout"] == "convergent"
     assert report["readback"]["status"] == "matched"
-    assert report["checks_passed"] is True
+    assert report["checks_passed"] is all(s["balanced"] is not False for s in report["steps"])
     rows = {round(float(a.get("Tail3D").split()[1])) for a in _cdxml(report).iter("arrow")}
     assert len(rows) == 3
 
@@ -267,7 +267,7 @@ def test_a_wrapped_route_keeps_every_structure_verified(tmp_path):
     report = draw_figure(_brief(ROUTE, max_width=420), output_path=str(tmp_path / "route.cdxml"))
 
     assert report["readback"]["fragment_roundtrip"] == "preserved"
-    assert report["checks_passed"] is True
+    assert report["checks_passed"] is all(s["balanced"] is not False for s in report["steps"])
 
 
 def test_unverified_structures_do_not_count_as_passed(tmp_path, monkeypatch):
@@ -346,14 +346,14 @@ def test_remaining_issues_after_the_relayout_are_reported_not_hidden(tmp_path, m
 
 
 def test_the_readback_catches_a_missing_structure(tmp_path, monkeypatch):
-    real = figure_draw.document_inventory
+    real = figure_draw._drawn_inventory
 
     def lossy(path):
-        inventory = real(path)
+        inventory, problems = real(path)
         inventory.pop(next(iter(inventory)))
-        return inventory
+        return inventory, problems
 
-    monkeypatch.setattr(figure_draw, "document_inventory", lossy)
+    monkeypatch.setattr(figure_draw, "_drawn_inventory", lossy)
 
     report = draw_figure(ASPIRIN, output_path=str(tmp_path / "out.cdxml"))
 

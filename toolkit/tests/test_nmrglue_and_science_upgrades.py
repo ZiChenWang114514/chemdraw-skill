@@ -402,7 +402,7 @@ def test_lcms_expanded_adducts_and_halogen_isotopologues():
     # High-MW compound (>=300 Da): includes [M+2H]2+
     large_adducts = build_adducts(450.200)
     assert "[M+2H]2+" in large_adducts
-    assert abs(large_adducts["[M+2H]2+"] - (450.200 + 2 * 1.008) / 2.0) < 1e-4
+    assert abs(large_adducts["[M+2H]2+"] - (450.200 + 2 * 1.007276) / 2.0) < 1e-4
 
     # Dibromobenzene (M = 233.868 Da; M+2 base peak at +1.997 Da -> [M+2+H]+ = 236.873)
     dibromo_smi = "Brc1ccc(Br)cc1"
@@ -466,7 +466,7 @@ def test_hazards_expanded_table_parent_salt_fallback_and_smarts_alerts():
         ("CCCCS(=O)(=O)Cl", "sulfonyl_halide"),
         ("CCOC(=O)C=[N+]=[N-]", "diazo"),
         ("O=C=Nc1ccccc1", "isocyanate"),
-        ("N#Cc1ccccc1", "nitrile_inorganic_cyanide"),
+        ("N#C[Cu]", "inorganic_cyanide"),
     ]
     for smi, expected_class in alert_cases:
         info = hazards.assess(smi)

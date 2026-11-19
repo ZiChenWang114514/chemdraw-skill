@@ -102,3 +102,80 @@ def test_a_misspelled_safety_option_is_reported_not_ignored():
     result = si_materials_tables([ACETYLATION], {'reagent_safty': True})
     assert result['reactions'][0]['ok'] is False
     assert 'reagent_safty' in result['reactions'][0]['error']
+
+
+def _classes(smiles):
+    return {alert['class'] for alert in hazards.class_alerts(smiles)}
+
+
+def test_cyanide_salts_are_listed_in_the_spelling_resolvers_return():
+    for smiles, name in (('[C-]#N.[K+]', 'potassium cyanide'), ('[C-]#N.[Na+]', 'sodium cyanide')):
+        entry = hazards.lookup(smiles)
+        assert entry is not None and entry['name'] == name and 'H300' in entry['h']
+    assert hazards.lookup('C#N')['name'] == 'hydrogen cyanide'
+
+
+def test_inorganic_cyanide_is_flagged_and_an_ordinary_nitrile_is_not():
+    for smiles in ('[C-]#N.[K+]', 'N#C[K]', 'N#C[Cu]', 'C#N', '[C-]#N.[Zn+2].[C-]#N', 'CC(C)(O)C#N'):
+        assert _classes(smiles) & {'inorganic_cyanide', 'cyanohydrin'}, smiles
+    for smiles in ('CC#N', 'N#Cc1ccccc1', 'N#CCCC#N'):
+        assert not _classes(smiles) & {'inorganic_cyanide', 'cyanohydrin'}, smiles
+
+
+def test_every_way_of_writing_an_azide_is_flagged():
+    for smiles in ('[N-]=[N+]=[N-].[Na+]', '[N-][N+]#N.[Na+]', 'CCCN=[N+]=[N-]', 'CCC[N-][N+]#N', 'CCCN=N#N'):
+        assert 'azide' in _classes(smiles), smiles
+    assert hazards.lookup('[N-][N+]#N.[Na+]')['name'] == 'sodium azide'
+
+
+def test_diazonium_salts_are_flagged():
+    assert 'diazonium' in _classes('N#[N+]c1ccccc1.F[B-](F)(F)F')
+    assert 'diazonium' in _classes('[N-]=[N+]=C1C=CC(=O)C=C1') or 'diazo' in _classes('[N-]=[N+]=C1C=CC(=O)C=C1')
+
+
+def test_a_hazardous_product_is_reported_and_an_ordinary_one_adds_no_noise():
+    rows = [
+        {'id': 'r1', 'name': 'benzyl bromide', 'role': 'reactant', 'smiles': 'BrCc1ccccc1'},
+        {'id': 'p1', 'name': 'benzyl azide', 'role': 'product', 'smiles': '[N-]=[N+]=NCc1ccccc1'},
+        {'id': 'p2', 'name': 'toluene derivative', 'role': 'product', 'smiles': 'CCc1ccccc1'},
+    ]
+    items = {item['id']: item for item in hazards.for_rows(rows)}
+    assert items['p1']['role'] == 'product' and items['p1']['class_alerts'][0]['class'] == 'azide'
+    assert 'p2' not in items
+
+
+def _pairs(*smiles):
+    rows = [{'id': f's{i}', 'name': s, 'role': 'reagent', 'smiles': s} for i, s in enumerate(smiles)]
+    return {item['key'] for item in hazards.incompatibilities(rows)}
+
+
+def test_known_dangerous_combinations_are_named_with_a_source():
+    assert 'azide_halogenated_solvent' in _pairs('[N-]=[N+]=[N-].[Na+]', 'ClCCl')
+    assert 'hydride_amide_solvent' in _pairs('[H-].[Na+]', 'CN(C)C=O')
+    assert 'hydride_amide_solvent' in _pairs('[NaH]', 'CS(C)=O')
+    assert 'cyanide_acid' in _pairs('[C-]#N.[K+]', 'CC(=O)O')
+    assert 'azide_acid' in _pairs('[N-][N+]#N.[Na+]', 'Cl')
+    assert 'azide_heavy_metal' in _pairs('[N-]=[N+]=[N-].[Na+]', '[Cu+2].[O-]S(=O)(=O)[O-]')
+    assert 'peroxide_acetone' in _pairs('OO', 'CC(C)=O')
+    assert 'hypochlorite_acid' in _pairs('[O-]Cl.[Na+]', 'Cl')
+    assert 'dmso_acyl_halide' in _pairs('CS(C)=O', 'O=C(Cl)C(=O)Cl')
+    rows = [{'id': 'a', 'name': 'NaN3', 'role': 'reagent', 'smiles': '[N-]=[N+]=[N-].[Na+]'},
+            {'id': 'b', 'name': 'DCM', 'role': 'solvent', 'smiles': 'ClCCl'}]
+    (item,) = hazards.incompatibilities(rows)
+    assert item['species'] == ['NaN3', 'DCM'] and item['warning'] and item['source']
+
+
+def test_ordinary_combinations_raise_no_incompatibility():
+    assert _pairs('OCc1ccccc1', 'CC(=O)Cl', 'CCN(CC)CC', 'ClCCl') == set()
+    assert _pairs('CCCN=[N+]=[N-]', 'C#Cc1ccccc1', '[Cu]I') == set()  # CuAAC with an organic azide
+
+
+def test_safety_lines_carry_incompatibilities():
+    result = si_materials_tables(['BrCc1ccccc1.[N-]=[N+]=[N-].[Na+]>ClCCl>[N-]=[N+]=NCc1ccccc1'],
+                                 {'reagent_safety': True})
+    entry = result['reactions'][0]
+    assert entry['incompatibilities'][0]['key'] == 'azide_halogenated_solvent'
+    assert any(item['role'] == 'product' for item in entry['safety'])
+    assert 'Incompatible combination' in result['markdown'] and 'diazidomethane' in result['markdown']
+    plain = si_materials_tables(['BrCc1ccccc1.[N-]=[N+]=[N-].[Na+]>ClCCl>[N-]=[N+]=NCc1ccccc1'])
+    assert 'incompatibilities' not in plain['reactions'][0]

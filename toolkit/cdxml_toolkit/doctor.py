@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-cdxml-doctor — Diagnostic and test runner for cdxml-toolkit.
+cdxml-doctor — Diagnostics for cdxml-toolkit (add --tests to run the test suite).
 
 Reports dependency availability, runs the test suite, and prints
 ChemScript setup instructions when needed.
@@ -313,10 +313,12 @@ def _run_tests():
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(
-        description="Diagnostic and test runner for cdxml-toolkit.",
+        description="Diagnostics for cdxml-toolkit.",
     )
+    parser.add_argument("--tests", action="store_true",
+                        help="Also run the test suite (needs a source checkout)")
     parser.add_argument("--no-tests", action="store_true",
-                        help="Skip running the test suite")
+                        help="Accepted for older commands; tests no longer run unless --tests is given")
     parser.add_argument(
         "--json",
         action="store_true",
@@ -347,7 +349,7 @@ def main(argv=None):
 
     cs_ok = _print_diagnostics()
 
-    if not args.no_tests:
+    if args.tests and not args.no_tests:
         exit_code = _run_tests()
         print()
     else:
@@ -357,7 +359,7 @@ def main(argv=None):
         _setup_chemscript(assume_yes=args.yes)
     elif not cs_ok:
         print("ChemScript configuration was not changed.")
-        print("Run cdxml-doctor --no-tests --configure-chemscript when ready.")
+        print("Run cdxml-doctor --configure-chemscript when ready.")
 
     return exit_code
 

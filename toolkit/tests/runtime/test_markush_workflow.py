@@ -122,3 +122,37 @@ def test_locate_definition_clauses():
     assert found['A'].startswith('Ring A is phenyl')
     assert 'fluoro' in found['X'] and 'n is 0, 1 or 2' in found['X']
     assert found['R'] == 'R is methyl or ethyl;'
+
+
+def test_markush_failed_init_leaves_no_half_made_workspace(tmp_path):
+    bad = tmp_path / "figure.png"
+    bad.write_text("not an image", encoding="utf-8")
+    work = tmp_path / "work"
+    out = workflow.init(work, bad)
+    assert out["ok"] is False and out["error"]["code"] and out["error"]["hint"]
+    assert not work.exists() or not any(work.iterdir())
+
+
+def test_markush_failed_draft_can_be_retried(tmp_path, monkeypatch):
+    image = tmp_path / "figure.png"
+    benzene_with_groups(image)
+    work = tmp_path / "work"
+    assert workflow.init(work, image)["ok"] is True
+    graph = json.loads((work / "graph.json").read_text(encoding="utf-8"))
+    texts = {lab["id"]: "A" if lab["in_circle"] is not None else
+             ("(X)_{n}" if lab["box"][2] - lab["box"][0] > 2 * graph["char_px"] else "R") for lab in graph["labels"]}
+    workflow.next_task(work)
+    workflow.submit(work, "labels", texts)
+    workflow.next_task(work)
+    workflow.submit(work, "labels_check", {"wrong": {}, "unboxed": []})
+
+    def broken(*_a, **_k):
+        raise RuntimeError("disk full")
+
+    monkeypatch.setattr(workflow, "write_cdxml", broken)
+    failed = workflow.next_task(work)
+    assert failed["ok"] is False and "disk full" in failed["error"]["message"]
+    monkeypatch.undo()
+    retried = workflow.next_task(work)
+    assert retried.get("ok", True) is not False
+    assert workflow.status(work)["round"] == 1

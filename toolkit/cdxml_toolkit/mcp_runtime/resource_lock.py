@@ -55,11 +55,33 @@ def native_resource_lock(
         raise ValueError(f"Unknown native resource class: {resource_class}")
     if timeout_seconds <= 0:
         raise ValueError("Resource lock timeout must be positive")
-    if os.name != "nt":
-        with _file_lock(resource_class, timeout_seconds):
+    depth = getattr(_held, "depth", 0)
+    if depth or _held_by_ancestor():
+        # Re-entrant within a thread, and shared with the workers a holder starts:
+        # a worker must not wait for the lock its own parent is holding.
+        _held.depth = depth + 1
+        try:
             yield
+        finally:
+            _held.depth -= 1
         return
+    acquire = _windows_mutex if os.name == "nt" else _file_lock
+    with acquire(resource_class, timeout_seconds):
+        _held.depth = 1
+        previous = os.environ.get(LOCK_HOLDER_ENV)
+        os.environ[LOCK_HOLDER_ENV] = str(os.getpid())
+        try:
+            yield
+        finally:
+            if previous is None:
+                os.environ.pop(LOCK_HOLDER_ENV, None)
+            else:
+                os.environ[LOCK_HOLDER_ENV] = previous
+            _held.depth = 0
 
+
+@contextmanager
+def _windows_mutex(resource_class: str, timeout_seconds: int) -> Iterator[None]:
     import win32api
     import win32event
 
@@ -83,17 +105,9 @@ def native_resource_lock(
 
 @contextmanager
 def _file_lock(resource_class: str, timeout_seconds: int) -> Iterator[None]:
-    """flock() a per-user file; re-entrant within a thread like the Windows mutex."""
+    """flock() a per-user file."""
     import fcntl
 
-    depth = getattr(_held, "depth", 0)
-    if depth or _held_by_ancestor():
-        _held.depth = depth + 1
-        try:
-            yield
-        finally:
-            _held.depth -= 1
-        return
     CHEMDRAW_LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
     descriptor = os.open(CHEMDRAW_LOCK_FILE, os.O_RDWR | os.O_CREAT, 0o600)
     try:
@@ -106,20 +120,36 @@ def _file_lock(resource_class: str, timeout_seconds: int) -> Iterator[None]:
                 if time.monotonic() >= deadline:
                     raise ResourceBusyError(resource_class, timeout_seconds) from None
                 time.sleep(0.05)
-        _held.depth = 1
-        previous = os.environ.get(LOCK_HOLDER_ENV)
-        os.environ[LOCK_HOLDER_ENV] = str(os.getpid())
         try:
             yield
         finally:
-            if previous is None:
-                os.environ.pop(LOCK_HOLDER_ENV, None)
-            else:
-                os.environ[LOCK_HOLDER_ENV] = previous
-            _held.depth = 0
             fcntl.flock(descriptor, fcntl.LOCK_UN)
     finally:
         os.close(descriptor)
+
+
+def _process_is_running(pid: int) -> bool:
+    if os.name == "nt":
+        # os.kill(pid, 0) terminates the process on Windows; ask for its exit code instead.
+        import win32api
+        import win32con
+        import win32process
+
+        try:
+            handle = win32api.OpenProcess(win32con.PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        except win32api.error:
+            return False
+        try:
+            return win32process.GetExitCodeProcess(handle) == win32con.STILL_ACTIVE
+        finally:
+            win32api.CloseHandle(handle)
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
 
 
 def _held_by_ancestor() -> bool:
@@ -127,10 +157,4 @@ def _held_by_ancestor() -> bool:
     value = os.environ.get(LOCK_HOLDER_ENV, "")
     if not value.isdigit() or int(value) == os.getpid():
         return False
-    try:
-        os.kill(int(value), 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    return True
+    return _process_is_running(int(value))

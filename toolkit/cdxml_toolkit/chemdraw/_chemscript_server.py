@@ -379,7 +379,7 @@ def cmd_load_reaction(args: dict) -> dict:
 
 def cmd_largest_common_substructure(args: dict) -> dict:
     """Find the largest common substructure between two molecules."""
-    from CambridgeSoft.ChemScript16 import LargestCommonSubstructure
+    LargestCommonSubstructure = _cs_module.LargestCommonSubstructure  # the configured assembly, 15 or 16
 
     m1 = _load_structure(args["mol1"], args.get("mol1_format"))
     m2 = _load_structure(args["mol2"], args.get("mol2_format"))

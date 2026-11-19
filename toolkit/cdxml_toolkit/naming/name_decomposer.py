@@ -161,7 +161,8 @@ _cs: Optional[ChemScriptBridge] = None
 def _get_cs() -> ChemScriptBridge:
     global _cs
     if _cs is None:
-        _cs = ChemScriptBridge()
+        from cdxml_toolkit.chemdraw.chemscript_bridge import shared_bridge
+        _cs = shared_bridge()
     return _cs
 
 

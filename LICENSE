@@ -17,8 +17,11 @@ Applies to:
   - skill/chemdraw/scripts/
   - skill/chemdraw/tests/
   - scripts/
+  - evals/
   - site/*.js
   - tests/
+  - vscode/ (extension source, build scripts and tests)
+  - Replay scripts (replay.py) under showcase/
   - Community-authored additions and modifications in toolkit/ (see also
     toolkit/LICENSE-POLYFORM-STRICT.txt)
 
@@ -91,7 +94,12 @@ Part II - Prompts, Style Cards, Documentation, and Website Content
 Applies to:
   - skill/chemdraw/SKILL.md
   - skill/chemdraw/references/
-  - skill/chemdraw/assets/house-styles/ (style cards and style documentation)
+  - skill/chemdraw/assets/ (templates, example drawings and their notes)
+  - showcase/ (style gallery, style documentation, replica case notes and the
+    drawings rendered for them; literature excerpts kept there as evidence
+    are third-party material under Part III)
+  - assets/ (README figures and their sources; third-party excerpts as
+    recorded in the provenance files are under Part III)
   - docs/
   - README.md and README.zh-cn.md
   - site/*.html and site/*.css

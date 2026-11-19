@@ -181,7 +181,7 @@ _ENTRIES = (
     ('[F-].[Cs+]', 'caesium fluoride', None, None, 'GHS05 GHS06 GHS08', 'H301 H315 H318 H332 H361f', 'hygroscopic'),
     ('CCCC[N+](CCCC)(CCCC)CCCC.[F-]', 'tetrabutylammonium fluoride', None, None, 'GHS05 GHS07', 'H302 H314', None),
 
-    # coupling reagents, azides and cyanides (12)
+    # coupling reagents, azides and cyanides
     ('C1CCC(CC1)N=C=NC1CCCCC1', 'N,N\'-dicyclohexylcarbodiimide', None, None, 'GHS05 GHS06', 'H302 H311 H317 H318', 'strong skin sensitiser'),
     ('CC(C)N=C=NC(C)C', 'N,N\'-diisopropylcarbodiimide', 146, 33, 'GHS02 GHS05 GHS06 GHS08', 'H226 H315 H317 H318 H330 H334', 'fatal if inhaled; potent sensitiser'),
     ('CCN=C=NCCCN(C)C', '1-ethyl-3-(3-dimethylaminopropyl)carbodiimide', 195, 79, 'GHS05 GHS06 GHS08 GHS09', 'H302 H311 H315 H317 H318 H373 H400 H410', 'contact sensitiser'),
@@ -192,8 +192,9 @@ _ENTRIES = (
     ('[N-]=[N+]=[N-].[Na+]', 'sodium azide', None, None, 'GHS06 GHS08 GHS09', 'H300 H310 H373 H410', 'forms explosive azides with heavy metals and toxic HN3 with acids'),
     ('C[Si](C)(C)N=[N+]=[N-]', 'trimethylsilyl azide', 95, 6, 'GHS02 GHS06 GHS08', 'H225 H300 H310 H330 H373', 'hydrolyses to toxic and explosive hydrazoic acid; never mix with acid'),
     ('O=P(N=[N+]=[N-])(Oc1ccccc1)Oc1ccccc1', 'diphenylphosphoryl azide', 157, 112, 'GHS06 GHS08', 'H300 H310 H330 H373', 'acutely toxic; thermal decomposition above 150 °C can be explosive'),
-    ('[C-]#[N+].[K+]', 'potassium cyanide', None, None, 'GHS05 GHS06 GHS08 GHS09', 'H290 H300 H310 H330 H372 H410', 'liberates lethal HCN gas on contact with acid'),
-    ('[C-]#[N+].[Na+]', 'sodium cyanide', None, None, 'GHS05 GHS06 GHS08 GHS09', 'H290 H300 H310 H330 H372 H410', 'liberates lethal HCN gas on contact with acid'),
+    ('[C-]#N.[K+]', 'potassium cyanide', None, None, 'GHS05 GHS06 GHS08 GHS09', 'H290 H300 H310 H330 H372 H410', 'liberates lethal HCN gas on contact with acid'),
+    ('[C-]#N.[Na+]', 'sodium cyanide', None, None, 'GHS05 GHS06 GHS08 GHS09', 'H290 H300 H310 H330 H372 H410', 'liberates lethal HCN gas on contact with acid'),
+    ('C#N', 'hydrogen cyanide', 26, -18, 'GHS02 GHS06 GHS09', 'H224 H300 H310 H330 H410', 'volatile and rapidly fatal; forms whenever a cyanide meets acid'),
     ('C[Si](C)(C)C#N', 'trimethylsilyl cyanide', 118, 1, 'GHS02 GHS06 GHS09', 'H225 H300 H310 H330 H410', 'volatile HCN equivalent; hydrolyses rapidly with moisture'),
 
     # oxidants, peroxides, halogens and fluorinating agents (15)
@@ -230,8 +231,12 @@ _ENTRIES = (
 
 
 # SMARTS structural class hazard alerts for compounds not explicitly in _ENTRIES.
+_AZIDE = '[$([N-]=[N+]=[N-]),$([NX1-][N+]#N),$([NX1]#[N+][N-]),$(*N=[N+]=[N-]),$(*[N-][N+]#N),$(*N=N#N)]'
+_IONIC_AZIDE = '[$([NX1-]=[N+]=[N-]),$([NX1-][N+]#N)]'
+# A cyanide ion, HCN, or CN on a metal or metalloid; a nitrile on carbon is a different hazard.
+_CYANIDE = '[$([C-]#N),$([CX2;H1]#N),$([CX2](#N)[!#1;!#6;!#7;!#8;!#16;!F;!Cl;!Br;!I])]'
 _CLASS_ALERT_SPECS = (
-    ('azide', 'Azide functional group', '[$(*-[N-]=[N+]=[N-]),$(*-N=[N+]=[N-]),$(*-N=N#N),$([N-]=[N+]=[N-])]',
+    ('azide', 'Azide functional group', _AZIDE,
      ['GHS01', 'GHS06'], 'shock/heat-sensitive energetic group; forms toxic and explosive HN3 with acids'),
     ('peroxide', 'Peroxide (O-O) group', '[OX2,OX1-][OX2,OX1-]',
      ['GHS02', 'GHS03'], 'peroxide O-O bond: thermal and radical decomposition hazard'),
@@ -241,10 +246,58 @@ _CLASS_ALERT_SPECS = (
      ['GHS05'], 'corrosive sulfonylating agent; moisture-sensitive'),
     ('diazo', 'Diazo functional group', '[$([#6]=[N+]=[N-]),$([#6-]-[N+]#[N]),$([#6]=N#N)]',
      ['GHS01', 'GHS06'], 'diazo compound: thermal/explosion hazard and acute toxicity'),
+    ('diazonium', 'Diazonium salt', '[#6][N+]#[NX1]',
+     ['GHS01'], 'diazonium salt: can detonate when dry or warmed; keep cold and in solution, and do not isolate '
+                'it unless the salt is known to be stable'),
     ('isocyanate', 'Isocyanate (-N=C=O)', '[#6]-N=C=O',
      ['GHS06', 'GHS08'], 'isocyanate: potent respiratory sensitiser and lachrymator'),
-    ('nitrile_inorganic_cyanide', 'Nitrile / inorganic cyanide', '[$([C-]#[N+]),$([*][C]#[N])]',
-     ['GHS06'], 'nitrile / cyanide group: acute toxicity or HCN release hazard with strong acid'),
+    ('inorganic_cyanide', 'Cyanide ion, HCN or metal cyanide', _CYANIDE,
+     ['GHS06'], 'cyanide: rapidly fatal; liberates HCN gas with acid, so quench and dispose under basic conditions'),
+    ('cyanohydrin', 'Cyanohydrin', '[CX4]([OX2H,OX1-])C#N',
+     ['GHS06'], 'cyanohydrin: releases HCN on warming or with base'),
+)
+
+# Combinations that are dangerous together although each species is routine on its own. Each rule
+# names two sets of species (SMARTS, or exact structures for solvents) and where the warning comes from.
+_BRETHERICK = "Bretherick's Handbook of Reactive Chemical Hazards, 8th ed., 2017"
+_ACID = ('[$([CX3](=O)[OX2H1]),$([SX4](=O)(=O)[OX2H1]),$([PX4](=O)[OX2H1]),$([ClH]),$([BrH]),$([IH]),$([FH]),'
+         '$([OH][N+](=O)[O-])]')
+_INCOMPATIBILITY_SPECS = (
+    ('azide_halogenated_solvent', {'smarts': _IONIC_AZIDE},
+     {'smarts': '[CX4;H2,H1]([Cl,Br])[Cl,Br]', 'smiles': ('ClCCCl',)},
+     'azide salts react with dichloromethane, chloroform and related halogenated solvents to give diazidomethane '
+     'or triazidomethane, which detonate without warning; use a non-halogenated solvent, also for work-up',
+     'Conrow, R. E.; Dean, W. D. Org. Process Res. Dev. 2008, 12, 1285'),
+    ('hydride_amide_solvent', {'smarts': '[$([H-]),$([NaH]),$([KH]),$([LiH])]'},
+     {'smiles': ('CN(C)C=O', 'CC(=O)N(C)C', 'CS(C)=O')},
+     'sodium or potassium hydride in DMF, DMAc or DMSO decomposes exothermically from mild temperatures and has '
+     'caused runaway reactions and explosions; prefer THF, or keep the mixture cold and dilute',
+     'Yang, Q. et al. Org. Process Res. Dev. 2019, 23, 2210'),
+    ('cyanide_acid', {'smarts': _CYANIDE}, {'smarts': _ACID},
+     'cyanide with acid liberates hydrogen cyanide gas; keep the mixture basic and work in a hood with an HCN monitor',
+     _BRETHERICK),
+    ('azide_acid', {'smarts': _IONIC_AZIDE}, {'smarts': _ACID},
+     'azide salts with acid give hydrazoic acid, which is volatile, highly toxic and explosive',
+     'Braese, S. et al. Angew. Chem. Int. Ed. 2005, 44, 5188'),
+    ('azide_heavy_metal', {'smarts': _IONIC_AZIDE}, {'smarts': '[Cu,Pb,Hg,Ag,Cd,Zn]'},
+     'azide salts form shock-sensitive heavy-metal azides with copper, lead, mercury, silver, cadmium and zinc; '
+     'avoid metal spatulas and never pour azide waste into metal drains',
+     'Braese, S. et al. Angew. Chem. Int. Ed. 2005, 44, 5188'),
+    ('peroxide_acetone', {'smiles': ('OO',)}, {'smiles': ('CC(C)=O', 'CCC(C)=O')},
+     'hydrogen peroxide with acetone or butanone forms shock-sensitive cyclic ketone peroxides, faster with acid; '
+     'do not use these ketones as solvent or to rinse peroxide residues',
+     _BRETHERICK),
+    ('hypochlorite_acid', {'smarts': '[$([O-]Cl),$([OH]Cl),$(O(Cl)[Na,K,Ca,Li])]'}, {'smarts': _ACID},
+     'hypochlorite with acid releases chlorine gas',
+     _BRETHERICK),
+    ('dmso_acyl_halide', {'smiles': ('CS(C)=O',)}, {'smarts': '[$([CX3](=[OX1])[Cl,Br]),$([SX3](=O)(Cl)Cl)]'},
+     'DMSO reacts violently with acyl halides, oxalyl chloride and thionyl chloride above about -20 °C; '
+     'add at -60 °C or below, as in a Swern oxidation, and never mix neat at room temperature',
+     _BRETHERICK),
+    ('nitric_acid_organic_solvent', {'smarts': '[OH][N+](=O)[O-]'},
+     {'smiles': ('CC(C)=O', 'CO', 'CCO', 'CC(C)O', 'CC(=O)OC(C)=O')},
+     'nitric acid with acetone, alcohols or acetic anhydride can react violently after an induction period',
+     _BRETHERICK),
 )
 
 
@@ -258,6 +311,29 @@ def _compiled_alerts():
     return tuple(compiled)
 
 
+_AZIDE_TRIPLE = Chem.MolFromSmarts('[N-;X1,X2:1]-[N+;X2:2]#[N;X1:3]')
+
+
+def _one_spelling(mol):
+    """One spelling for groups that are drawn in several resonance forms, so a lookup does not depend on the drawing."""
+    matches = mol.GetSubstructMatches(_AZIDE_TRIPLE)
+    if not matches:
+        return mol
+    editable = Chem.RWMol(mol)
+    for first, middle, last in matches:  # N(-)-N(+)#N  ->  N=N(+)=N(-)
+        editable.GetBondBetweenAtoms(first, middle).SetBondType(Chem.BondType.DOUBLE)
+        editable.GetBondBetweenAtoms(middle, last).SetBondType(Chem.BondType.DOUBLE)
+        start = editable.GetAtomWithIdx(first)
+        start.SetFormalCharge(0 if start.GetDegree() == 2 else -1)  # the free ion keeps a charge at both ends
+        start.SetNumRadicalElectrons(0)
+        editable.GetAtomWithIdx(last).SetFormalCharge(-1)
+    try:
+        Chem.SanitizeMol(editable)
+    except Exception:
+        return mol
+    return editable.GetMol()
+
+
 @lru_cache(maxsize=1)
 def _table() -> dict:
     table = {}
@@ -265,7 +341,7 @@ def _table() -> dict:
         mol = Chem.MolFromSmiles(smiles)
         codes = h.split()
         signal = None if not set(codes) - _NO_SIGNAL else ('Danger' if set(codes) & _DANGER else 'Warning')
-        entry = {'name': name, 'smiles': Chem.MolToSmiles(mol), 'bp_c': bp, 'flash_c': flash, 'ghs': ghs.split(),
+        entry = {'name': name, 'smiles': Chem.MolToSmiles(_one_spelling(mol)), 'bp_c': bp, 'flash_c': flash, 'ghs': ghs.split(),
                  'h': codes, 'signal': signal, 'note': note}
         table[entry['smiles']] = entry
     return table
@@ -308,6 +384,7 @@ def lookup(smiles: str) -> dict | None:
         return None
     flat = Chem.Mol(mol)
     Chem.RemoveStereochemistry(flat)
+    flat = _one_spelling(flat)
     table = _table()
     entry = table.get(Chem.MolToSmiles(flat))
     if entry is not None:
@@ -372,15 +449,58 @@ def summary(entry: dict) -> str:
     return '; '.join(parts)
 
 
+@lru_cache(maxsize=1)
+def _compiled_incompatibilities():
+    def side(spec):
+        patterns = [Chem.MolFromSmarts(spec['smarts'])] if spec.get('smarts') else []
+        exact = frozenset(Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in spec.get('smiles', ()))
+        return patterns, exact
+
+    return tuple((key, side(first), side(second), warning, source)
+                 for key, first, second, warning, source in _INCOMPATIBILITY_SPECS)
+
+
+def _on_side(mol, side) -> bool:
+    patterns, exact = side
+    if any(mol.HasSubstructMatch(pattern) for pattern in patterns):
+        return True
+    return bool(exact) and any(Chem.MolToSmiles(frag) in exact for frag in Chem.GetMolFrags(mol, asMols=True))
+
+
+def incompatibilities(rows: list[dict]) -> list[dict]:
+    """Dangerous combinations among the species of one reaction: ``key``, the two names, warning and source.
+
+    Only well-documented pairs are listed. An empty list means that none of them was recognised,
+    not that the mixture is safe.
+    """
+    species = []
+    for row in rows:
+        mol = Chem.MolFromSmiles(row.get('smiles') or '')
+        if mol is not None and mol.GetNumAtoms():
+            species.append((row['name'], mol))
+    found = []
+    for key, first, second, warning, source in _compiled_incompatibilities():
+        left = [name for name, mol in species if _on_side(mol, first)]
+        right = [name for name, mol in species if _on_side(mol, second)]
+        pair = next(((a, b) for a in left for b in right if a != b), None)
+        if pair:
+            found.append({'key': key, 'species': list(pair), 'warning': warning, 'source': source})
+    return found
+
+
 def for_rows(rows: list[dict]) -> list[dict]:
-    """A safety item per reactant, reagent, catalyst and solvent row: the entry, or ``listed: False``."""
+    """A safety item per reactant, reagent, catalyst and solvent row: the entry, or ``listed: False``.
+
+    A product gets an item only when it is listed or carries a structural class alert, so an
+    energetic or acutely toxic product is named without listing every ordinary product as unknown.
+    """
     items = []
     for row in rows:
-        if row['role'] == 'product':
-            continue
         smi = row.get('smiles') or ''
         found = lookup(smi)
         item = {'id': row['id'], 'name': row['name'], 'role': row['role']}
+        if row['role'] == 'product' and found is None and not class_alerts(smi):
+            continue
         if found is None:
             alerts = class_alerts(smi)
             unlisted_item = {**item, 'listed': False}
@@ -392,11 +512,13 @@ def for_rows(rows: list[dict]) -> list[dict]:
     return items
 
 
-def lines(items: list[dict]) -> list[str]:
-    """Text lines for a table footer: the heading, one line per listed species, the species not listed."""
-    if not items:
+def lines(items: list[dict], combinations: list[dict] | tuple = ()) -> list[str]:
+    """Footer lines: the heading, dangerous combinations, one line per listed species, the species not listed."""
+    if not items and not combinations:
         return []
     out = [f'Safety reminders ({DISCLAIMER}):']
+    out += [f"Incompatible combination ({' + '.join(c['species'])}): {c['warning']} [{c['source']}]."
+            for c in combinations]
     out += [f"{item['name']}: {summary(item)}." for item in items if item['listed']]
     for item in items:
         if not item['listed'] and item.get('class_alerts'):

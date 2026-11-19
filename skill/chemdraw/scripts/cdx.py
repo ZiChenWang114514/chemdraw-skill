@@ -140,6 +140,21 @@ def install_help():
     ]
 
 
+def _warn_unusable_explicit_runtime():
+    """Say so when CHEMDRAW_MCP_PYTHON is set but cannot be used; another runtime may be picked."""
+    explicit = os.environ.get('CHEMDRAW_MCP_PYTHON')
+    if not explicit:
+        return
+    python = Path(explicit)
+    if not python.is_file():
+        reason = 'no such file'
+    elif not _has_toolkit(python):
+        reason = 'it cannot import cdxml_toolkit'
+    else:
+        return
+    sys.stderr.write(f'cdx.py: CHEMDRAW_MCP_PYTHON={explicit} is ignored ({reason}).\n')
+
+
 def _ensure_runtime(argv):
     try:
         import cdxml_toolkit.mcp_runtime  # noqa: F401
@@ -150,6 +165,7 @@ def _ensure_runtime(argv):
         pass
     if os.environ.get(REEXEC_FLAG):
         raise SystemExit(f'cdx.py: the selected runtime {sys.executable} cannot import cdxml_toolkit.')
+    _warn_unusable_explicit_runtime()
     for source, python in runtime_candidates():
         if python.is_file() and _has_toolkit(python):
             env = dict(os.environ, **{REEXEC_FLAG: '1'})
@@ -220,10 +236,26 @@ def _next_free_path(path):
         index += 1
 
 
+def _tools_only():
+    """The command line calls tools and does not serve MCP, so it skips the MCP SDK import."""
+    from cdxml_toolkit.mcp_server import _compat
+    # Every tool is callable here; a server's default profile lists fewer.
+    os.environ.setdefault('CHEMDRAW_MCP_PROFILE', 'full')
+    switch = getattr(_compat, 'tools_only', None)  # absent in a runtime older than this Skill
+    if switch is not None:
+        switch()
+
+
 def _worker(tool, kwargs, args=()):
+    _tools_only()
+    from cdxml_toolkit.mcp_runtime import tool_registry
     from cdxml_toolkit.mcp_runtime.mcp_server import _run_worker
-    from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
-    reg = build_registry()
+    # The generated manifest answers "does this tool exist, how long may it run" without
+    # importing every tool module; a runtime without one builds the registry as before.
+    known = getattr(tool_registry, 'tool_manifest', dict)().get(tool)
+    if isinstance(known, dict):
+        return _run_worker(tool, list(args), kwargs, timeout_seconds=known.get('timeout_seconds'))
+    reg = tool_registry.build_registry()
     spec = reg.get(tool)
     if spec is None:
         hits = _suggest(tool, sorted(reg))
@@ -231,6 +263,20 @@ def _worker(tool, kwargs, args=()):
         raise SystemExit(f'Unknown tool {tool!r};{hint} run `cdx.py tools`. If the Skill documents it, the runtime '
                          'may be older than the Skill: `cdx.py doctor` reports runtime_matches_skill.')
     return _run_worker(tool, list(args), kwargs, timeout_seconds=spec.timeout_seconds)
+
+
+def _worker_each(tool, calls):
+    """One tool, once per keyword-argument dict, in a single worker when the runtime can batch."""
+    calls = list(calls)
+    if len(calls) < 2:
+        return [_worker(tool, kwargs) for kwargs in calls]
+    _tools_only()
+    from cdxml_toolkit.mcp_runtime import mcp_server, tool_registry
+    batch = getattr(mcp_server, '_run_worker_each', None)  # absent in a runtime older than this Skill
+    known = getattr(tool_registry, 'tool_manifest', dict)().get(tool)
+    if batch is None or not isinstance(known, dict):
+        return [_worker(tool, kwargs) for kwargs in calls]
+    return batch(tool, calls, timeout_seconds=known.get('timeout_seconds'))
 
 
 def _layers(result):
@@ -352,6 +398,15 @@ def _inline_payload(result):
     return result
 
 
+def _refuse_existing_out(ns):
+    """Every --out names a new file: refuse before the tool runs, not after it has written its outputs."""
+    out_path = getattr(ns, 'out', None)
+    if out_path and Path(out_path).resolve().exists():
+        target = Path(out_path).resolve()
+        raise SystemExit(f'Refusing to overwrite existing evidence file {target} '
+                         f'(next available: {_next_free_path(target)})')
+
+
 def _emit(tool, result, out_path=None, *, full=False, summary_only=False):
     full_text = json.dumps(result, ensure_ascii=False, indent=2)
     inline_text = json.dumps(_inline_payload(result), ensure_ascii=False, indent=2)
@@ -383,6 +438,17 @@ def _emit(tool, result, out_path=None, *, full=False, summary_only=False):
     return 0 if summary['ok'] else 1
 
 
+def _preflight_report(envelope):
+    """A preflight that uploaded nothing did what was asked: report the plan as a success."""
+    inner = envelope.get('result') if isinstance(envelope, dict) else None
+    engines = inner.get('engines') if isinstance(inner, dict) else None
+    plans = [e['preflight'] for e in engines or [] if isinstance(e, dict) and e.get('preflight')]
+    if not plans or len(plans) != len(engines):
+        return envelope
+    return {'ok': True, 'status': 'preflight', 'uploaded': False,
+            'result': {'image': inner.get('image'), 'preflight': plans[0] if len(plans) == 1 else plans}}
+
+
 def _parse_cli_value(raw):
     """Coerce --arg VALUE without corrupting SMILES, formulas, or CAS numbers."""
     s = raw.strip()
@@ -396,8 +462,12 @@ def _parse_cli_value(raw):
         return int(s)
     if re.fullmatch(r'-?(?:0|[1-9]\d*)\.\d+', s):
         return float(s)
-    if (s.startswith('{') and s.endswith('}')) or (s.startswith('[') and s.endswith(']')) \
-            or (s.startswith('"') and s.endswith('"')):
+    if s.startswith('[') and s.endswith(']'):
+        try:
+            return json.loads(s)
+        except ValueError:
+            return raw  # bracket atoms: [Na+].[Cl-], [Pd]
+    if (s.startswith('{') and s.endswith('}')) or (s.startswith('"') and s.endswith('"')):
         try:
             return json.loads(s)
         except ValueError as exc:
@@ -435,6 +505,7 @@ def _load_args(ns):
 
 # ---------------------------------------------------------------- commands
 def cmd_tools(ns):
+    _tools_only()
     from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
     reg = build_registry()
     query = getattr(ns, 'query', None)
@@ -879,8 +950,9 @@ def cmd_resolve(ns):
         return _emit('resolve_name', _worker('resolve_name', {'query': queries[0], 'use_network': use_network}),
                      ns.out, full=full, summary_only=summary_only)
     results = []
-    for q in queries:
-        inner = _unwrap_worker(_worker('resolve_name', {'query': q, 'use_network': use_network}))
+    answers = _worker_each('resolve_name', [{'query': q, 'use_network': use_network} for q in queries])
+    for q, answer in zip(queries, answers):
+        inner = _unwrap_worker(answer)
         if isinstance(inner, dict):
             results.append({'query': q, **inner})
         else:
@@ -943,8 +1015,11 @@ def cmd_inspect(ns):
             tool, res = _inspect_cdxml(tmp_cdxml, objects=getattr(ns, 'objects', False), display_source=target)
             return _emit(tool, res, ns.out, full=full, summary_only=summary_only)
     if ext in ('.pptx', '.docx', '.xlsx', '.xls'):
+        keep = getattr(ns, 'keep', None)
+        if keep and Path(keep).expanduser().exists():
+            raise SystemExit(f'inspect: --keep must name a new folder; {keep} exists')
         with tempfile.TemporaryDirectory(prefix='cdx-inspect-office-') as scratch:
-            inspection = Path(scratch) / 'inspection'
+            inspection = Path(keep).expanduser().resolve() if keep else Path(scratch) / 'inspection'
             res = _worker('inspect_chemdraw_objects_in_office',
                           {'input_path': str(target), 'output_dir': str(inspection), 'render_previews': False})
             if not _summary('inspect_chemdraw_objects_in_office', res)['ok']:
@@ -959,6 +1034,8 @@ def cmd_inspect(ns):
                     'source_sha256': manifest.get('source_sha256'),
                     'object_count': len(objects),
                     'objects': objects,
+                    # With --keep, each object's "cdxml" is a file under this folder.
+                    **({'output_dir': str(inspection)} if keep else {}),
                 },
             }
             return _emit('inspect_chemdraw_objects_in_office', payload, ns.out, full=full, summary_only=summary_only)
@@ -1123,6 +1200,11 @@ def _markush_render(source, png):
     return _summary('render_to_png', result)['ok'] and Path(png).is_file()
 
 
+def _markush_exit(out):
+    """Non-zero when the step failed (ok false) or the answer was not accepted."""
+    return 0 if out.get('ok', True) is not False and out.get('accepted', True) else 1
+
+
 def cmd_markush(ns):
     if ns.action == 'validate':
         return _emit('markush_validate', _worker('markush_validate', {'spec_path': ns.workdir}),
@@ -1171,7 +1253,7 @@ def cmd_markush(ns):
     else:
         out = workflow.status(ns.workdir)
     print(json.dumps(out, ensure_ascii=False, indent=2))
-    return 0 if out.get('accepted', True) else 1
+    return _markush_exit(out)
 
 
 def cmd_chemscript_info(ns):
@@ -1449,6 +1531,17 @@ def write_catalog():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(text.encode('utf-8'))
     return list(pages)
+
+
+def cmd_catalog(ns):
+    """Print one type's members from the ChemDraw interface catalogs the runtime carries."""
+    from cdxml_toolkit.catalog import render
+    found = render.lookup(ns.layer, ns.name)
+    if found.get('ok'):
+        sys.stdout.write(found['text'].rstrip('\n') + '\n')
+        return 0
+    print(json.dumps(found, indent=2, ensure_ascii=False))
+    return 1
 
 
 def cmd_regen_catalog(ns):
@@ -1824,7 +1917,10 @@ def cmd_ocsr(ns):
     ns.engines = ns.engines or 'decimer-api'
     kwargs = {'image_path': str(Path(ns.image).resolve()), 'engines': ns.engines, 'hand_drawn': ns.hand_drawn,
               'confirm_upload': not (ns.preflight or ns.no_upload), 'timeout_seconds': ns.timeout}
-    return _emit('recognize_structure', _worker('recognize_structure', kwargs), ns.out)
+    result = _worker('recognize_structure', kwargs)
+    if ns.preflight:
+        result = _preflight_report(result)
+    return _emit('recognize_structure', result, ns.out)
 
 
 PREDICT = {  # task: (tool, the argument SMILES fills, a working example)
@@ -1994,6 +2090,8 @@ def main(argv=None):
     s.add_argument('path', metavar='FILE')
     s.add_argument('--objects', action='store_true', help='for .cdxml/.cdx: list raw CDXML objects instead of exporting structures')
     s.add_argument('--out', help='new evidence file for the full result')
+    s.add_argument('--keep', metavar='DIR',
+                   help='for Office files: a new folder that keeps each embedded object as CDXML')
     _add_output_mode_flags(s)
     s.set_defaults(fn=cmd_inspect)
     s = sub.add_parser('report', help='property sheet, HRMS line, reaction balance or atom mapping without writing JSON')
@@ -2156,10 +2254,15 @@ def main(argv=None):
     s = sub.add_parser('regen-signatures')  # maintainer: sync toolkit-derived references, inventories and runtime.json
     s.add_argument('--check', action='store_true', help='report stale generated files and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_signatures)
+    s = sub.add_parser('catalog', help="one ChemDraw type's members: catalog com IChemDrawDocument")
+    s.add_argument('layer', help='chemscript, com or cdxml')
+    s.add_argument('name', help='a type or element name, or part of one')
+    s.set_defaults(fn=cmd_catalog)
     s = sub.add_parser('regen-catalog')  # maintainer: rewrite the generated interface pages; --check only reports
     s.add_argument('--check', action='store_true', help='report stale pages and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_catalog)
     ns = p.parse_args(argv)
+    _refuse_existing_out(ns)
     try:
         return ns.fn(ns)
     except OSError as exc:  # a missing or unreadable file is the user's to fix, not a crash

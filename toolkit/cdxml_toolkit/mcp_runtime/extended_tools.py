@@ -17,6 +17,8 @@ from typing import Any, Optional
 import xml.etree.ElementTree as ET
 import zipfile
 
+from cdxml_toolkit.office import safe_xml
+
 from . import artifact_safety
 from . import native_io
 from . import native_renderer
@@ -210,7 +212,7 @@ def _validate_office_package(
     minimum_chemdraw_objects: int = 0,
 ) -> dict[str, int]:
     try:
-        with zipfile.ZipFile(path, "r") as package:
+        with safe_xml.open_package(path) as package:
             member_list = package.namelist()
             if len(member_list) != len(set(member_list)):
                 raise ValueError(f"OOXML package contains duplicate parts: {path}")
@@ -973,7 +975,7 @@ def _frame_scale(source: Path, record, emf_data: bytes) -> tuple[float, float] |
 
     from . import office_objects
 
-    with zipfile.ZipFile(source) as package:
+    with safe_xml.open_package(source) as package:
         old = office_objects.emf_frame_size(package.read(record["preview_part"]))
     new = office_objects.emf_frame_size(emf_data)
     if old is None or new is None:
@@ -985,14 +987,16 @@ def replace_chemdraw_objects_in_office(
     input_path: str,
     replacements_manifest: str,
     output_path: Optional[str] = None,
-    render_pdf_preview: bool = True,
+    render_pdf_preview: bool = False,
     resize_frames: bool = False,
 ) -> dict[str, Any]:
     """Replace selected ChemDraw OLE contents and previews without moving them.
 
     With ``resize_frames``, each frame grows or shrinks with its drawing, as
     Office does after an object is edited in ChemDraw; its top-left corner
-    stays in place. Otherwise frames keep their size.
+    stays in place. Otherwise frames keep their size. ``render_pdf_preview`` (off by
+    default) also exports a PDF through PowerPoint or Word; only the file it opened is
+    closed, and Office is quit only when it was not already running.
     """
     source = _source(input_path, suffixes=(".pptx", ".docx"))
     manifest_path = _source(replacements_manifest, suffixes=(".json",))
@@ -1253,12 +1257,31 @@ def assemble_lab_book(
     tracking_json: Optional[str] = None,
     output_path: Optional[str] = None,
 ) -> dict[str, Any]:
-    """Assemble a deterministic lab-book entry from experiment files."""
+    """Assemble a deterministic lab-book entry from experiment files.
+
+    The default output is ``<folder>_assembled.txt`` beside the input folder (never inside it,
+    never over an existing file). A warning names any reagent in the ELN table that the
+    procedure text does not mention.
+    """
     directory = _directory(input_dir)
     tracking = str(_source(tracking_json, suffixes=(".json",))) if tracking_json else None
-    anchor = directory / "lab-book.txt"
+    anchor = directory.parent / f"{directory.name}.txt"
     destination = _destination(anchor, output_path, tag="assembled", suffix=".txt")
-    from cdxml_toolkit.analysis.deterministic.procedure_writer import main
+    from cdxml_toolkit.analysis.deterministic import procedure_writer
+    main = procedure_writer.main
+
+    warnings = []
+    try:
+        exp = procedure_writer.discover_files(str(directory), experiment)
+    except Exception:  # assembly below reports unreadable inputs itself
+        exp = None
+    procedure = " ".join(((exp.procedure_text if exp else "") or "").split()).casefold()
+    if procedure:
+        missing = [r.name for r in exp.reactants
+                   if r.name and " ".join(r.name.split()).casefold() not in procedure]
+        if missing:
+            warnings.append("Reagent table and procedure text disagree: the procedure does not "
+                            "mention " + ", ".join(missing) + "; check the entry before use.")
 
     with tempfile.TemporaryDirectory(prefix=".lab-book-", dir=destination.parent) as stage_dir:
         temporary = Path(stage_dir) / destination.name
@@ -1278,7 +1301,7 @@ def assemble_lab_book(
             raise RuntimeError(stderr.getvalue().strip() or "Lab-book assembly failed")
         _assert_output(temporary)
         _commit_staged_outputs([(temporary, destination)])
-    return _contract({"text": str(destination)}, metadata={"experiment": experiment})
+    return _contract({"text": str(destination)}, warnings=warnings, metadata={"experiment": experiment})
 
 
 def parse_scifinder_rdf(

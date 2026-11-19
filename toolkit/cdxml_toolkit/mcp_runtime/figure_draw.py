@@ -9,7 +9,9 @@ the brief does not contain is not drawn, and an unresolved name stops the run.
 """
 from __future__ import annotations
 
+import itertools
 import math
+import re
 
 import copy
 import json
@@ -21,12 +23,12 @@ import xml.etree.ElementTree as ET
 
 from rdkit import Chem
 
-from ..chemistry_semantics import document_inventory, read_fragments, semantic_key
+from ..chemistry_semantics import read_fragments, read_molecules, semantic_key
 from ..render import renderer
 from ..render.route_graph import classify_route
 from ..render.schema import ArrowContent, SchemeDescriptor, StepDescriptor, StructureRef
 from ..resolve.network_policy import network_allowed
-from . import artifact_safety, figure_lint, official_overrides
+from . import artifact_safety, figure_lint, metal_templates, official_overrides
 from .report_tools import check_reaction_balance
 from ..chemdraw.style_presets import (
     DEFAULT_STYLE_PRESET, STYLE_PRESETS, apply_style_preset, style_preset, style_preset_bond_length,
@@ -137,8 +139,37 @@ def _validate(brief: dict) -> list[str]:
     return errors
 
 
+def offline_structure(name: str) -> str | None:
+    """The SMILES a chemical name resolves to offline with normal confidence, else None.
+
+    Only the curated tables are consulted, so a free-text phrase or an unreviewed
+    abbreviation gives None rather than a guess.
+    """
+    from ..naming.mol_builder import resolve_compound
+
+    try:
+        found = resolve_compound(str(name), use_network=False)
+    except Exception:
+        return None
+    if found.get("ok") and found.get("smiles") and found.get("confidence", "normal") == "normal":
+        return str(found["smiles"])
+    return None
+
+
+def _same_structure(a: str, b: str) -> bool | None:
+    mol_a, mol_b = Chem.MolFromSmiles(a), Chem.MolFromSmiles(b)
+    if mol_a is None or mol_b is None:
+        return None
+    return semantic_key(mol_a) == semantic_key(mol_b)
+
+
 def _ground(species: list[dict]) -> tuple[list[dict], list[str]]:
-    """Attach a checked SMILES and its provenance to every species."""
+    """Attach a checked SMILES and its provenance to every species.
+
+    A species that gives both a name and a SMILES is cross-checked: when the name
+    resolves offline to a different structure the run stops. The display label is
+    free text and is never resolved.
+    """
     from ..naming.mol_builder import resolve_compound
 
     grounded: list[dict] = []
@@ -147,8 +178,24 @@ def _ground(species: list[dict]) -> tuple[list[dict], list[str]]:
         ident = str(entry["id"])
         record = {"id": ident, "label": entry.get("label"), "name": entry.get("name")}
         smiles = entry.get("smiles")
+        name_template = metal_templates.find_template(name=entry.get("name"))
         if smiles:
             source = "user"
+            named = offline_structure(entry["name"]) if entry.get("name") and not name_template else None
+            if named and _same_structure(named, smiles) is False:
+                errors.append(
+                    f"Species {ident}: the name {entry['name']!r} is {named}, but the SMILES given is "
+                    f"{smiles}. Correct the name or the SMILES so they describe the same structure."
+                )
+                continue
+            if name_template and metal_templates.find_template(smiles=smiles) is not name_template:
+                errors.append(
+                    f"Species {ident}: the name {entry['name']!r} is {name_template.smiles}, but the SMILES "
+                    f"given is {smiles}. Correct the name or the SMILES so they describe the same structure."
+                )
+                continue
+        elif name_template:
+            smiles, source = name_template.smiles, "metal_template"
         else:
             found = resolve_compound(str(entry["name"]), use_network=network_allowed())
             if not found.get("ok") or not found.get("smiles"):
@@ -161,21 +208,75 @@ def _ground(species: list[dict]) -> tuple[list[dict], list[str]]:
         if Chem.MolFromSmiles(smiles) is None:
             errors.append(f"Species {ident}: {smiles!r} is not a valid SMILES.")
             continue
+        template = name_template or metal_templates.find_template(smiles=smiles)
+        if template is not None:
+            # Draw the complex with its metal-ligand bonds instead of a lone metal atom.
+            record["template"] = template.id
+            smiles = template.smiles
         grounded.append({**record, "smiles": smiles, "source": source})
     return grounded, errors
 
 
+ARROW_REAGENT_SPLIT = re.compile(r"\s*[,;]\s*")
+MAX_ARROW_REAGENTS = 6
+
+
+def _arrow_reagents(step: dict, smiles: dict[str, str]) -> list[tuple[str, str]]:
+    """(text, SMILES) of each reagent written above the arrow that has a structure.
+
+    A reagent has a structure when its text is a species id of the brief or a name
+    that resolves offline with normal confidence; other text (temperatures, times,
+    "cat.") is not a reagent.
+    """
+    found: list[tuple[str, str]] = []
+    for line in _as_list(step.get("above")):
+        for token in ARROW_REAGENT_SPLIT.split(figure_house.condition_text(line)):
+            token = token.strip()
+            if not token:
+                continue
+            structure = smiles.get(token) or offline_structure(token)
+            if structure and Chem.MolFromSmiles(structure) is not None:
+                found.append((token, structure))
+    return found[:MAX_ARROW_REAGENTS]
+
+
+def _missing_atoms(result: dict) -> int:
+    total = 0
+    for key in ("missing_from_products", "missing_from_reactants"):
+        if result.get(key):
+            total += sum(int(n or 1) for n in re.findall(r"[A-Z][a-z]?(\d*)", result[key]["formula"]))
+    return total
+
+
+def _balance_step(substrates: list[dict], products: list[dict], reagents: list[tuple[str, str]]) -> tuple[dict, list[str]]:
+    """Balance with the subset of arrow reagents that leaves the fewest atoms unaccounted for."""
+    best: tuple[int, int, dict, list[str]] | None = None
+    for size in range(len(reagents) + 1):
+        for subset in itertools.combinations(reagents, size):
+            reaction = {"reactants": substrates + [{"smiles": s, "label": t} for t, s in subset],
+                        "agents": [], "products": products}
+            result = check_reaction_balance(reaction)["reactions"][0]
+            score = (0 if result["balanced"] else 1 + _missing_atoms(result), size)
+            if best is None or score < best[:2]:
+                best = (*score, result, [t for t, _ in subset])
+        if best is not None and best[0] == 0:
+            break
+    assert best is not None
+    return best[2], best[3]
+
+
 def _check_balance(brief: dict, smiles: dict[str, str]) -> tuple[list[dict], list[str]]:
+    """Atom balance of every step; reagents above the arrow that have structures are counted.
+
+    This is the one balance verdict: the step reports and ``checks_passed`` both read it.
+    """
     reports: list[dict] = []
     warnings: list[str] = []
     for number, step in enumerate(brief["steps"], 1):
-        reaction = {
-            "reactants": [{"smiles": smiles[i], "label": i} for i in _as_list(step["substrates"])],
-            "agents": [],
-            "products": [{"smiles": smiles[i], "label": i} for i in _as_list(step["products"])],
-        }
+        substrates = [{"smiles": smiles[i], "label": i} for i in _as_list(step["substrates"])]
+        products = [{"smiles": smiles[i], "label": i} for i in _as_list(step["products"])]
         try:
-            result = check_reaction_balance(reaction)["reactions"][0]
+            result, counted = _balance_step(substrates, products, _arrow_reagents(step, smiles))
         except Exception as exc:  # generic atoms, unsupported isotopes, ...
             reports.append({"step": number, "balanced": None, "missing": None, "error": str(exc)})
             warnings.append(f"Step {number}: the balance could not be checked ({exc}).")
@@ -185,7 +286,8 @@ def _check_balance(brief: dict, smiles: dict[str, str]) -> tuple[list[dict], lis
             if result.get(key):
                 missing = {"side": key.rsplit("_", 1)[-1], "formula": result[key]["formula"],
                            "name": result[key].get("common_name")}
-        reports.append({"step": number, "balanced": bool(result["balanced"]), "missing": missing})
+        reports.append({"step": number, "balanced": bool(result["balanced"]), "missing": missing,
+                        "arrow_reagents_counted": counted})
         if not result["balanced"]:
             what = ""
             if missing:
@@ -627,6 +729,33 @@ def bold_arrows(cdxml: Any, slug: str) -> Any:
     return wrapped
 
 
+def bold_compound_numbers(cdxml: Any, grounded: list[dict], house: HouseStyle | None) -> tuple[Any, list[str]]:
+    """Compound numbers in bold, as the journal style sheets set them.
+
+    A house style that states its own compound-number face keeps it.
+    """
+    if house is not None and house.convention("compound_label_face") in ("bold", "plain"):
+        return cdxml, []
+    if not any(g.get("label") for g in grounded):
+        return cdxml, []
+    root = ET.fromstring(str(cdxml).split("?>", 1)[-1] if str(cdxml).lstrip().startswith("<?") else str(cdxml))
+    page = root.find("page")
+    labels = {g["id"]: (str(g["label"]) if g.get("label") else None) for g in grounded}
+    changed = False
+    for sp_id, frag_el, _ in figure_house._species_fragments(root, str(cdxml), grounded):
+        t = figure_house._label_of(page, frag_el, labels.get(sp_id))
+        for s in (t.iter("s") if t is not None else ()):
+            s.set("face", str(int(s.get("face") or 0) | 1))
+            changed = True
+    if not changed:
+        return cdxml, []
+    wrapped = renderer._ValidatedCDXML('<?xml version="1.0" encoding="UTF-8" ?>\n'
+                                       + ET.tostring(root, encoding="unicode"))
+    wrapped.chemistry_validation = getattr(cdxml, "chemistry_validation", None)
+    # The default face, not a house convention, so nothing is listed as applied.
+    return wrapped, []
+
+
 def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float,
           line_chars: int | None = None):
     """Lay out with ``layout_width`` but always measure against the requested ``budget``.
@@ -644,11 +773,14 @@ def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: flo
         cdxml = renderer.render(_scheme(brief, grounded, layout_width / scale, gap_scale, line_chars, house))
     finally:
         renderer.MIN_ARROW_BONDS = saved
+    cdxml = metal_templates.apply_hapto_templates(cdxml, _hapto_templates(grounded))
     cdxml = _apply_decorations(cdxml, brief, grounded)
     record: dict = {"applied": [], "skipped": [], "warnings": []}
     if house is not None:
         cdxml, record["applied"], record["skipped"], record["warnings"] = figure_house.apply_house_conventions(
             cdxml, brief, grounded, house)
+    cdxml, applied = bold_compound_numbers(cdxml, grounded, house)
+    record["applied"] += applied
     cdxml, applied, warnings = figure_house.apply_species_styling(cdxml, brief, grounded, house)
     record["applied"] += applied
     record["warnings"] += warnings
@@ -694,13 +826,42 @@ def _relayout(issues: list[dict], max_width: float, gap_scale: float,
     return max_width, gap_scale, changed, line_chars
 
 
+def _hapto_templates(grounded: list[dict]) -> dict:
+    """Structure key -> eta-n metal template, for the grounded species drawn from one."""
+    out = {}
+    for item in grounded:
+        template = metal_templates.find_template(smiles=item["smiles"]) if item.get("template") else None
+        if template is not None and template.hapto:
+            out[semantic_key(Chem.MolFromSmiles(item["smiles"]))] = template
+    return out
+
+
+def _drawn_inventory(target: Path) -> tuple[Counter, list[str]]:
+    """Structure keys in a saved file (eta-n attachments set aside) and metal-connectivity findings."""
+    from ..postconditions import check_connected_metal
+
+    root = ET.parse(str(target)).getroot()
+    problems: list[str] = []
+    for page in root.iter("page"):
+        for k, fragment in enumerate(list(page)):
+            if fragment.tag != "fragment":
+                continue
+            result = check_connected_metal(metal_templates.fragment_graph(fragment))
+            if not result.ok:
+                problems.append(result.message)
+            page.remove(fragment)
+            page.insert(k, metal_templates.strip_hapto(fragment))
+    keys = Counter(semantic_key(m) for m in read_molecules(ET.tostring(root, encoding="unicode")))
+    return keys, problems
+
+
 def _readback(target: Path, grounded: list[dict], used: set[str], fragments: dict) -> dict:
     wanted: dict[str, list[str]] = {}
     for item in grounded:
         if item["id"] in used:
             key = semantic_key(Chem.MolFromSmiles(item["smiles"]))
             wanted.setdefault(key, []).append(item["id"])
-    found = Counter(document_inventory(target))
+    found, metal_problems = _drawn_inventory(target)
     missing = [i for key, ids in wanted.items() if key not in found for i in ids]
     extra = sum(1 for key in found if key not in wanted)
     return {
@@ -709,6 +870,7 @@ def _readback(target: Path, grounded: list[dict], used: set[str], fragments: dic
         "missing": missing,
         "unexpected": extra,
         "fragment_roundtrip": (fragments or {}).get("status", "unknown"),
+        "metal_connectivity": metal_problems,
     }
 
 
@@ -774,8 +936,13 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
     Only the conditions in the brief are drawn; a
     step without any is reported, never filled in. Structures given as SMILES are used
     as they are; names go through the curated reagent table and, when the network is
-    allowed, PubChem; a name that cannot be resolved stops the run. Each step is checked
-    for atom balance (a missing by-product is named, not drawn), the layout is measured
+    allowed, PubChem; a name that cannot be resolved stops the run. A species that gives
+    both a name and a SMILES stops the run when the name resolves offline to a different
+    structure. Pd(PPh3)4, Pd(dppf)Cl2, ferrocene, Grubbs II and Wilkinson's catalyst
+    (by name or structure) are drawn as connected complexes, with donor bonds and eta-5
+    ring attachments. Each step is checked for atom balance, counting reagents above the
+    arrow that are species ids or resolvable names (a missing by-product is named, not
+    drawn; an unbalanced step fails checks_passed), the layout is measured
     for overlaps, tiny text and width, and one automatic re-layout is tried if that
     fails; the report says what changed and what still fails. The saved file is read back
     and its structures compared with the brief. render=True also renders a PNG with
@@ -881,6 +1048,8 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         warnings.append(f"The saved file does not match the brief: missing {readback['missing']}, "
                         f"{readback['unexpected']} unexpected structure(s).")
 
+    for problem in readback["metal_connectivity"]:
+        warnings.append(f"Metal complex: {problem}")
     if readback["fragment_roundtrip"] != "preserved":
         warnings.append(f"Per-structure round-trip is {readback['fragment_roundtrip']}: "
                         "a structure may have changed while drawing.")
@@ -905,7 +1074,8 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         "operation": "draw_figure",
         "output_path": str(target),
         "layout": _route_layout(_step_descriptors(brief), brief.get("layout"))[0],
-        "species": [{k: g[k] for k in ("id", "label", "name", "smiles", "source")} for g in grounded],
+        "species": [{k: g[k] for k in ("id", "label", "name", "smiles", "source", "template") if k in g}
+                    for g in grounded],
         "steps": balance,
         "style": style_report(brief_style(brief)[0], house,
                               house_record["applied"] + ([highlight] if highlight else []),
@@ -914,7 +1084,9 @@ def draw_figure(brief: dict | str, output_path: str | None = None, render: bool 
         "readback": readback,
         "native": native,
         "checks_passed": (not issues and readback["status"] == "matched"
-                          and readback["fragment_roundtrip"] == "preserved"),
+                          and readback["fragment_roundtrip"] == "preserved"
+                          and not readback["metal_connectivity"]
+                          and all(step["balanced"] is not False for step in balance)),
         "notes": notes,
         "warnings": warnings,
     }

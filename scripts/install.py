@@ -292,6 +292,21 @@ def supported(info):
     return bool(info) and info[2] == 64 and (3, 10) <= info[:2] <= (3, 13)
 
 
+def uv_pythons():
+    """Interpreters uv manages (`uv python find`), newest supported first; empty without uv."""
+    uv = shutil.which('uv')
+    found = []
+    for version in ('3.12', '3.13', '3.11', '3.10') if uv else ():
+        try:
+            out = subprocess.run([uv, 'python', 'find', version], capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.TimeoutExpired):
+            break
+        path = out.stdout.strip().splitlines()[-1].strip() if out.returncode == 0 and out.stdout.strip() else ''
+        if path and Path(path).is_file() and path not in found:
+            found.append(path)
+    return found
+
+
 def probe_candidates(requested):
     """Return (first supported 64-bit Python 3.10-3.13 command, rejected [(command, info), ...])."""
     if requested:
@@ -308,6 +323,7 @@ def probe_candidates(requested):
         for name in ('python3.12', 'python3.13', 'python3.11', 'python3.10', 'python3', 'python'):
             if shutil.which(name):
                 commands.append([shutil.which(name)])
+        commands += [[path] for path in uv_pythons()]
     rejected = []
     seen = set()
     for command in commands:
@@ -412,11 +428,13 @@ def install_runtime(plan, skill):
 def needs_local_config(skill, python):
     """True when cdx.py's default search (a `chemdraw-venv` beside the Skill, then the shared venv) would not
     reach `python` first."""
-    python = Path(python).resolve()
+    def own(path):  # a venv's python is a link to its base interpreter: do not follow it
+        return os.path.normcase(os.path.abspath(str(path)))
+
     beside = venv_python(skill.parent / 'chemdraw-venv')
-    if python == beside.resolve():
+    if own(python) == own(beside):
         return False
-    return python != venv_python(cdx.default_runtime_dir()).resolve() or beside.is_file()
+    return own(python) != own(venv_python(cdx.default_runtime_dir())) or beside.is_file()
 
 
 def record_runtime(skills, python):
@@ -503,8 +521,75 @@ def _strip_jsonc(text):
         else:
             out.append(ch)
             i += 1
-    cleaned = re.sub(r',(\s*[}\]])', r'\1', ''.join(out))
-    return cleaned
+    return _drop_trailing_commas(''.join(out))
+
+
+def _drop_trailing_commas(text):
+    """Remove a comma that is followed only by whitespace and a closing bracket, outside strings."""
+    out = []
+    in_str = escape = False
+    for i, ch in enumerate(text):
+        if in_str:
+            out.append(ch)
+            if escape:
+                escape = False
+            elif ch == '\\':
+                escape = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == ',' and text[i + 1:].lstrip()[:1] in ('}', ']'):
+            continue
+        out.append(ch)
+    return ''.join(out)
+
+
+class ManualConfig(Exception):
+    """The file cannot be rewritten without losing something; the user gets the snippet instead."""
+
+    def __init__(self, reason, snippet):
+        super().__init__(reason)
+        self.snippet = snippet
+
+
+_CONFIG_BACKUPS = None  # folder for copies of configuration files, set while apply_mcp_configs runs
+_LAST_CONFIG_BACKUP = None
+
+
+def _write_config(path, text):
+    """Write a configuration file, keeping a copy of what was there."""
+    global _LAST_CONFIG_BACKUP
+    path = Path(path)
+    if path.is_file() and _CONFIG_BACKUPS is not None:
+        if path.read_text(encoding='utf-8', errors='replace') == text:
+            return
+        folder = Path(_CONFIG_BACKUPS) / 'configs' / f'{time.strftime("%Y%m%d-%H%M%S")}-{uuid.uuid4().hex[:8]}'
+        folder.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, folder / path.name)
+        (folder / 'BACKUP_ORIGIN.txt').write_text(f'{path}\n', encoding='utf-8')
+        _LAST_CONFIG_BACKUP = folder / path.name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding='utf-8')
+
+
+def _merge_json_config(path, change, *, ensure_ascii=True):
+    """Apply ``change(data)`` to a JSON configuration file.
+
+    A file with comments is left alone: writing it back as JSON would delete them.
+    """
+    raw = path.read_text(encoding='utf-8') if path.is_file() else '{}'
+    stripped = _strip_jsonc(raw)
+    data = json.loads(stripped or '{}')
+    if not isinstance(data, dict):
+        data = {}
+    fragment = {}
+    change(fragment)
+    if stripped != _drop_trailing_commas(raw):
+        raise ManualConfig('the file has comments', json.dumps(fragment, indent=2, ensure_ascii=ensure_ascii))
+    change(data)
+    _write_config(path, json.dumps(data, indent=2, ensure_ascii=ensure_ascii) + '\n')
 
 
 def _appdata_base(home):
@@ -651,8 +736,7 @@ def _upsert_codex_toml(path, python_cmd):
     else:
         sep = '' if not existing or existing.endswith('\n') else '\n'
         updated = existing + (sep + '\n' if existing else '') + block
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(updated, encoding='utf-8')
+    _write_config(path, updated)
 
 
 def _upsert_goose_yaml(path, python_cmd):
@@ -678,8 +762,7 @@ def _upsert_goose_yaml(path, python_cmd):
     else:
         sep = '' if not existing or existing.endswith('\n') else '\n'
         updated = existing + (sep if existing else '') + 'extensions:\n' + entry
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(updated, encoding='utf-8')
+    _write_config(path, updated)
 
 
 def _upsert_aider_yaml(path, skill_md_path):
@@ -692,8 +775,7 @@ def _upsert_aider_yaml(path, skill_md_path):
     else:
         sep = '' if not existing or existing.endswith('\n') else '\n'
         updated = existing + (sep if existing else '') + line
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(updated, encoding='utf-8')
+    _write_config(path, updated)
 
 
 def _upsert_dsh_cordis_yaml(path, python_cmd):
@@ -721,15 +803,18 @@ def _upsert_dsh_cordis_yaml(path, python_cmd):
     else:
         sep = '' if existing.endswith('\n') else '\n'
         updated = existing + sep + block
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(updated, encoding='utf-8')
+    _write_config(path, updated)
 
 
-def apply_mcp_configs(specs, python_cmd, skill_md_path):
+def apply_mcp_configs(specs, python_cmd, skill_md_path, backups=None):
+    """Write the MCP server entry into each client's configuration, keeping a copy of every file changed."""
+    global _CONFIG_BACKUPS, _LAST_CONFIG_BACKUP
+    _CONFIG_BACKUPS = backups
     results = []
     for spec in specs:
         path = Path(spec['path'])
         fmt = spec['format']
+        _LAST_CONFIG_BACKUP = None
         try:
             if fmt == 'codex_toml':
                 _upsert_codex_toml(path, python_cmd)
@@ -738,24 +823,13 @@ def apply_mcp_configs(specs, python_cmd, skill_md_path):
             elif fmt == 'dsh_cordis_yaml':
                 _upsert_dsh_cordis_yaml(path, python_cmd)
             elif fmt == 'zcode_json':
-                raw = path.read_text(encoding='utf-8') if path.is_file() else '{}'
-                data = json.loads(_strip_jsonc(raw) or '{}')
-                if not isinstance(data, dict):
-                    data = {}
-                mcp_obj = data.get('mcp')
-                if not isinstance(mcp_obj, dict):
-                    mcp_obj = {}
-                servers = mcp_obj.get('servers')
-                if not isinstance(servers, dict):
-                    servers = {}
-                servers['cdxml-toolkit'] = {
-                    'command': python_cmd,
-                    'args': ['-m', 'cdxml_toolkit.mcp_runtime'],
-                }
-                mcp_obj['servers'] = servers
-                data['mcp'] = mcp_obj
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+                def change(data):
+                    mcp_obj = data.get('mcp') if isinstance(data.get('mcp'), dict) else {}
+                    servers = mcp_obj.get('servers') if isinstance(mcp_obj.get('servers'), dict) else {}
+                    servers['cdxml-toolkit'] = {'command': python_cmd, 'args': ['-m', 'cdxml_toolkit.mcp_runtime']}
+                    mcp_obj['servers'] = servers
+                    data['mcp'] = mcp_obj
+                _merge_json_config(path, change, ensure_ascii=False)
             elif fmt == 'continue_yaml':
                 content = (
                     'name: ChemDraw Toolkit MCP\n'
@@ -768,43 +842,35 @@ def apply_mcp_configs(specs, python_cmd, skill_md_path):
                     '      - -m\n'
                     '      - cdxml_toolkit.mcp_runtime\n'
                 )
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(content, encoding='utf-8')
+                _write_config(path, content)
             elif fmt == 'aider_yaml':
                 _upsert_aider_yaml(path, skill_md_path)
             elif fmt == 'opencode_json':
-                raw = path.read_text(encoding='utf-8') if path.is_file() else '{}'
-                data = json.loads(_strip_jsonc(raw) or '{}')
-                if not isinstance(data, dict):
-                    data = {}
-                mcp_map = data.get('mcp')
-                if not isinstance(mcp_map, dict):
-                    mcp_map = {}
-                # Repair stale legacy chemdraw entry if pointing to removed scripts/mcp_server.py
-                legacy = mcp_map.get('chemdraw')
-                if isinstance(legacy, dict) and any('mcp_server.py' in str(c) for c in (legacy.get('command') or [])):
-                    mcp_map.pop('chemdraw', None)
-                mcp_map['cdxml-toolkit'] = {
-                    'type': 'local',
-                    'command': [python_cmd, '-m', 'cdxml_toolkit.mcp_runtime'],
-                    'enabled': True,
-                }
-                data['mcp'] = mcp_map
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
+                def change(data):
+                    mcp_map = data.get('mcp') if isinstance(data.get('mcp'), dict) else {}
+                    # Repair stale legacy chemdraw entry if pointing to removed scripts/mcp_server.py
+                    legacy = mcp_map.get('chemdraw')
+                    if isinstance(legacy, dict) and any(
+                            'mcp_server.py' in str(c) for c in (legacy.get('command') or [])):
+                        mcp_map.pop('chemdraw', None)
+                    mcp_map['cdxml-toolkit'] = {
+                        'type': 'local',
+                        'command': [python_cmd, '-m', 'cdxml_toolkit.mcp_runtime'],
+                        'enabled': True,
+                    }
+                    data['mcp'] = mcp_map
+                _merge_json_config(path, change)
             elif fmt == 'json_key':
-                raw = path.read_text(encoding='utf-8') if path.is_file() else '{}'
-                data = json.loads(_strip_jsonc(raw) or '{}')
-                if not isinstance(data, dict):
-                    data = {}
-                section = data.get(spec['root_key'])
-                if not isinstance(section, dict):
-                    section = {}
-                section[spec['entry_key']] = spec['value']
-                data[spec['root_key']] = section
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
-            results.append({**spec, 'status': 'configured'})
+                def change(data):
+                    section = data.get(spec['root_key']) if isinstance(data.get(spec['root_key']), dict) else {}
+                    section[spec['entry_key']] = spec['value']
+                    data[spec['root_key']] = section
+                _merge_json_config(path, change)
+            results.append({**spec, 'status': 'configured',
+                            'backup': str(_LAST_CONFIG_BACKUP) if _LAST_CONFIG_BACKUP else None})
+        except ManualConfig as manual:
+            results.append({**spec, 'status': 'manual', 'reason': f'{manual}; add this to {path} by hand',
+                            'snippet': manual.snippet})
         except Exception as exc:
             results.append({**spec, 'status': 'failed', 'error': str(exc)})
     return results
@@ -926,7 +992,7 @@ def main(argv=None):
         check_installation.write_manifest(target)
     if ns.mcp and mcp_specs:
         skill_ref = (targets[0] if targets else SOURCE) / 'SKILL.md'
-        record['mcp'] = apply_mcp_configs(mcp_specs, mcp_python, skill_ref)
+        record['mcp'] = apply_mcp_configs(mcp_specs, mcp_python, skill_ref, backups=backups)
         if any(item.get('status') == 'failed' for item in record['mcp']):
             code = 1
     print(json.dumps(record, indent=2))

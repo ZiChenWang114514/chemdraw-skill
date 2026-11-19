@@ -27,7 +27,7 @@ def _model_field(model, snake_case: str, camel_case: str):
     return value if value is not None else getattr(model, camel_case)
 
 
-async def _list_tools():
+async def _list_tools(*server_args):
     environment = {
         key: value
         for key, value in os.environ.items()
@@ -39,7 +39,7 @@ async def _list_tools():
     environment.update({"TF_CPP_MIN_LOG_LEVEL": "3", "TF_ENABLE_ONEDNN_OPTS": "0"})
     parameters = StdioServerParameters(
         command=sys.executable,
-        args=["-m", SERVER_MODULE],
+        args=["-m", SERVER_MODULE, *server_args],
         env=environment,
     )
     async with stdio_client(parameters) as (read_stream, write_stream):
@@ -50,7 +50,9 @@ async def _list_tools():
 
 class MCPStdioTests(unittest.TestCase):
     def test_server_initializes_and_lists_expected_schemas(self):
-        initialized, tools = asyncio.run(asyncio.wait_for(_list_tools(), timeout=30))
+        _, listed_by_default = asyncio.run(asyncio.wait_for(_list_tools(), timeout=30))
+        self.assertEqual({tool.name for tool in listed_by_default}, set(tool_registry.build_registry("standard")))
+        initialized, tools = asyncio.run(asyncio.wait_for(_list_tools("--profile", "full"), timeout=30))
         expected_protocol = LATEST_PROTOCOL_VERSION
         if mcp_compat.sdk_major() == 2:
             from mcp_types.version import LATEST_HANDSHAKE_VERSION

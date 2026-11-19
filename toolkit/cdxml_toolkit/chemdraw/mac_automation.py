@@ -327,12 +327,24 @@ def application_info(bundle: Path) -> dict:
         return {}
 
 
+# A bundle identifier is interpolated into AppleScript source and passed to ``open``
+# and ``lsappinfo``; anything outside this pattern could inject script text.
+_BUNDLE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.-]{0,254}$")
+
+
+def checked_bundle_id(bundle_id: object) -> str:
+    """``bundle_id`` if it is a well-formed bundle identifier; MacAutomationError otherwise."""
+    if not isinstance(bundle_id, str) or not _BUNDLE_ID_PATTERN.fullmatch(bundle_id):
+        raise MacAutomationError("invalid_bundle_identifier", "The application has an invalid bundle identifier")
+    return bundle_id
+
+
 def bundle_identifier(bundle: Optional[Path] = None) -> str:
     bundle = bundle or find_application()
     if bundle is None:
         raise MacAutomationError("chemdraw_not_found", "ChemDraw for macOS was not found")
     identifier = application_info(bundle).get("CFBundleIdentifier")
-    return identifier or BUNDLE_IDS[0]
+    return checked_bundle_id(identifier or BUNDLE_IDS[0])
 
 
 def _classify(returncode: int, stderr: str) -> MacAutomationError:
@@ -626,7 +638,7 @@ def run_applescript(script: str, args: Iterable[str] = (), *, timeout_seconds: f
 
 
 def is_running(bundle_id: str) -> bool:
-    script = f'return application id "{bundle_id}" is running'
+    script = f'return application id "{checked_bundle_id(bundle_id)}" is running'
     try:
         return run_applescript(script, timeout_seconds=15) == "true"
     except MacAutomationError:
@@ -635,6 +647,7 @@ def is_running(bundle_id: str) -> bool:
 
 def application_pid(bundle_id: str) -> Optional[int]:
     """Process id of the running application, read without Apple events."""
+    bundle_id = checked_bundle_id(bundle_id)
     try:
         completed = subprocess.run(
             ["lsappinfo", "info", "-only", "pid", "-app", bundle_id],
@@ -687,7 +700,7 @@ def _pid_alive(pid: int) -> bool:
 
 
 def register_launch(pid: int, bundle_id: str, *, owner_pid: Optional[int] = None) -> None:
-    record = {"pid": pid, "bundle_id": bundle_id, "owner_pid": owner_pid or os.getpid()}
+    record = {"pid": pid, "bundle_id": checked_bundle_id(bundle_id), "owner_pid": owner_pid or os.getpid()}
     try:
         LAUNCH_REGISTRY.mkdir(parents=True, exist_ok=True)
         (LAUNCH_REGISTRY / f"{pid}.json").write_text(json.dumps(record), encoding="utf-8")
@@ -710,8 +723,8 @@ def launched_instances() -> dict[int, dict]:
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
             pid, owner = int(record["pid"]), int(record["owner_pid"])
-            bundle_id = str(record["bundle_id"])
-        except (OSError, ValueError, KeyError, TypeError):
+            bundle_id = checked_bundle_id(record["bundle_id"])
+        except (OSError, ValueError, KeyError, TypeError, MacAutomationError):
             path.unlink(missing_ok=True)
             continue
         if not _pid_alive(pid):
@@ -723,6 +736,7 @@ def launched_instances() -> dict[int, dict]:
 
 def launch_hidden(bundle_id: str, *, timeout_seconds: float = 60) -> Optional[int]:
     """Launch an application in the background and hidden; record and return its pid."""
+    bundle_id = checked_bundle_id(bundle_id)
     subprocess.run(
         ["open", "-g", "-j", "-b", bundle_id], check=False, timeout=30,
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -749,13 +763,8 @@ def reap_orphans() -> list[int]:
     return reaped
 
 
-_BUNDLE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.-]{0,254}$")
-
-
 def _steps_script(bundle_id: str) -> str:
-    if not _BUNDLE_ID_PATTERN.match(bundle_id):
-        raise MacAutomationError("chemdraw_not_found", "ChemDraw has an invalid bundle identifier")
-    return _STEPS_SCRIPT.replace("@BUNDLE_ID@", bundle_id)
+    return _STEPS_SCRIPT.replace("@BUNDLE_ID@", checked_bundle_id(bundle_id))
 
 
 def save_type_for(path: Path) -> str:
@@ -1017,7 +1026,7 @@ class MacChemDrawSession:
         if self.launched and self.bundle_id:
             try:
                 run_applescript(
-                    f'tell application id "{self.bundle_id}" to quit saving no',
+                    f'tell application id "{checked_bundle_id(self.bundle_id)}" to quit saving no',
                     timeout_seconds=30,
                 )
             except MacAutomationError:

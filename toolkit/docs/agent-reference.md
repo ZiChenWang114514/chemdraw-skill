@@ -2,8 +2,9 @@
 
 ## What this is
 
-A chemistry office automation toolkit with 15 compatible core MCP tools and the
-71-tool `full` profile. Agents use these tools to draw molecules, render
+A chemistry office automation toolkit with 15 compatible core MCP tools, a
+26-tool `standard` profile that a server lists by default, and the 71-tool
+`full` profile. Agents use these tools to draw molecules, render
 reaction schemes, parse ELN exports, analyze LCMS/NMR data, complete lab books,
 and manipulate ChemDraw files in PowerPoint/Word.
 
@@ -19,7 +20,8 @@ and manipulate ChemDraw files in PowerPoint/Word.
 ## MCP server
 
 ```bash
-python -m cdxml_toolkit.mcp_runtime                              # stdio
+python -m cdxml_toolkit.mcp_runtime                              # stdio, standard profile
+python -m cdxml_toolkit.mcp_runtime --profile full               # every tool
 python -m cdxml_toolkit.mcp_runtime --profile office             # smaller profile
 python -m cdxml_toolkit.mcp_runtime --transport streamable-http  # network service
 ```

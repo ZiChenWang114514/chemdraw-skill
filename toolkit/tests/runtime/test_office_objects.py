@@ -580,5 +580,105 @@ class OleCompoundFileTests(unittest.TestCase):
         self.assertEqual(contents[len(cdx):].strip(b"\0"), b"")
 
 
+class _FakeFiles:
+    def __init__(self, application, count):
+        self.application = application
+        self.Count = count
+
+    def Open(self, path, *flags):
+        self.application.calls.append(("Open", flags))
+        self.Count += 1
+        return _FakeOfficeFile(self)
+
+
+class _FakeOfficeFile:
+    def __init__(self, files):
+        self.files = files
+
+    def SaveAs(self, path, file_format):
+        Path(path).write_bytes(b"%PDF-1.4")
+
+    def ExportAsFixedFormat(self, path, file_format):
+        Path(path).write_bytes(b"%PDF-1.4")
+
+    def Close(self, *args):
+        self.files.application.calls.append(("Close", args))
+        self.files.Count -= 1
+
+
+class _FakeOffice:
+    def __init__(self, open_files):
+        self.calls = []
+        self.Visible = True
+        self.Presentations = _FakeFiles(self, open_files)
+        self.Documents = _FakeFiles(self, open_files)
+
+    def Quit(self):
+        self.calls.append(("Quit", ()))
+
+
+class OfficePdfExportSessionTests(unittest.TestCase):
+    """PowerPoint is single-instance: the export must never close the user's PowerPoint."""
+
+    def _export(self, suffix, *, running, open_files):
+        application = _FakeOffice(open_files)
+
+        def get_active(prog_id):
+            if running:
+                return application
+            raise OSError("operation unavailable")
+
+        client = mock.Mock(DispatchEx=mock.Mock(return_value=application), GetActiveObject=get_active)
+        win32com = mock.Mock(client=client)
+        modules = {"win32com": win32com, "win32com.client": client, "pythoncom": mock.Mock()}
+        with tempfile.TemporaryDirectory() as temp, mock.patch.dict(sys.modules, modules):
+            source = Path(temp) / f"deck{suffix}"
+            source.write_bytes(b"office")
+            office_objects._export_pdf_windows(source, Path(temp) / "deck.pdf")
+        return application
+
+    def test_a_running_powerpoint_keeps_running_and_only_our_file_is_closed(self):
+        application = self._export(".pptx", running=True, open_files=2)
+        self.assertNotIn(("Quit", ()), application.calls)
+        self.assertEqual([call for call in application.calls if call[0] == "Close"], [("Close", ())])
+        self.assertEqual(application.Presentations.Count, 2)
+        self.assertTrue(application.Visible)
+
+    def test_powerpoint_started_for_the_export_is_quit(self):
+        application = self._export(".pptx", running=False, open_files=0)
+        self.assertEqual(application.calls[-1], ("Quit", ()))
+        self.assertEqual(application.calls[0], ("Open", (True, False, False)))
+
+    def test_a_running_word_is_left_visible_and_running(self):
+        application = self._export(".docx", running=True, open_files=1)
+        self.assertNotIn(("Quit", ()), application.calls)
+        self.assertIn(("Close", (0,)), application.calls)
+        self.assertTrue(application.Visible)
+
+    def test_word_started_for_the_export_is_hidden_and_quit(self):
+        application = self._export(".docx", running=False, open_files=0)
+        self.assertFalse(application.Visible)
+        self.assertEqual(application.calls[-1], ("Quit", ()))
+
+    def test_the_pdf_preview_is_off_by_default(self):
+        import inspect
+
+        signature = inspect.signature(extended_tools.replace_chemdraw_objects_in_office)
+        self.assertIs(signature.parameters["render_pdf_preview"].default, False)
+
+
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_each_inventoried_object_lists_its_structures(tmp_path):
+    from cdxml_toolkit.mcp_runtime import office_objects
+
+    ethanol = (
+        '<CDXML><page><fragment id="1"><n id="2" p="10 10"/><n id="3" p="24.4 10"/>'
+        '<n id="4" p="38.8 10" Element="8" NumHydrogens="1"/><b B="2" E="3"/><b B="3" E="4"/>'
+        '</fragment></page></CDXML>'
+    )
+    assert office_objects._object_structures(ethanol) == {"structures": [{"smiles": "CCO", "formula": "C2H6O"}]}
+    unreadable = office_objects._object_structures("<not-xml")
+    assert unreadable["structures"] == [] and unreadable["structures_error"]

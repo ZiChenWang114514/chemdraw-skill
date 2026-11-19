@@ -14,6 +14,8 @@ from typing import Any, Callable, Iterable, Iterator
 import xml.etree.ElementTree as ET
 import zipfile
 
+from cdxml_toolkit.office import safe_xml
+
 
 class OutputExistsError(ValueError):
     """An output already exists and the tool will not replace it.
@@ -138,7 +140,7 @@ def validate_artifact(path: str | Path) -> Path:
             if not artifact.read_bytes().startswith(b"VjCD"):
                 raise ValueError("CDX header is missing")
         elif suffix in {".pptx", ".docx", ".xlsx"}:
-            with zipfile.ZipFile(artifact, "r") as package:
+            with safe_xml.open_package(artifact) as package:
                 corrupt = package.testzip()
                 if corrupt:
                     raise ValueError(f"corrupt OOXML part: {corrupt}")

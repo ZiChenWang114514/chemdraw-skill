@@ -301,6 +301,16 @@ def _rescale_cdxml_coords(cdxml: str, scale: float) -> str:
 # ChemScriptBridge class — Python API
 # ---------------------------------------------------------------------------
 
+def _call_timeout():
+    try:
+        return max(1.0, float(os.environ.get("CHEMSCRIPT_CALL_TIMEOUT", "")))
+    except ValueError:
+        return 120.0
+
+
+CALL_TIMEOUT_SECONDS = _call_timeout()
+
+
 class ChemScriptBridge:
     """
     High-level Python interface to ChemScript via a 32-bit subprocess server.
@@ -376,11 +386,8 @@ class ChemScriptBridge:
             text=True,
             encoding="utf-8",
         )
-        # Wait for ready signal
-        ready_line = self._proc.stdout.readline()
-        if not ready_line:
-            err = self._proc.stderr.read()
-            raise RuntimeError(f"ChemScript server failed to start: {err}")
+        self._watch(self._proc)
+        ready_line = self._answer("start")
         ready = json.loads(ready_line)
         if not ready.get("ready"):
             raise RuntimeError(f"ChemScript server unexpected: {ready}")
@@ -393,11 +400,48 @@ class ChemScriptBridge:
         request = json.dumps({"cmd": cmd, "args": args})
         self._proc.stdin.write(request + "\n")
         self._proc.stdin.flush()
-        resp_line = self._proc.stdout.readline()
-        if not resp_line:
-            err = self._proc.stderr.read() if self._proc.stderr else "no output"
-            raise RuntimeError(f"ChemScript server died: {err}")
-        return json.loads(resp_line)
+        return json.loads(self._answer(cmd))
+
+    def _watch(self, process):
+        """Read both pipes in the background: a full stderr pipe must never stall the server."""
+        import collections
+        import queue
+        import threading
+
+        self._answers = answers = queue.Queue()
+        self._stderr_tail = tail = collections.deque(maxlen=200)
+
+        def read_answers():
+            for line in process.stdout:
+                answers.put(line)
+            answers.put(None)
+
+        def read_errors():
+            for line in process.stderr:
+                tail.append(line)
+
+        for reader in (read_answers, read_errors):
+            threading.Thread(target=reader, daemon=True).start()
+
+    def _answer(self, cmd):
+        """The server's next line, or an error once it has died or stayed silent too long."""
+        import queue
+
+        try:
+            line = self._answers.get(timeout=CALL_TIMEOUT_SECONDS)
+        except queue.Empty:
+            self._proc.kill()
+            self._proc = None
+            raise RuntimeError(
+                f"ChemScript did not answer within {CALL_TIMEOUT_SECONDS:g} s ({cmd}); the server was stopped. "
+                "Set CHEMSCRIPT_CALL_TIMEOUT to allow longer calls."
+            ) from None
+        if line is None:
+            self._proc.wait(timeout=5)
+            self._proc = None
+            detail = "".join(self._stderr_tail).strip() or "no output"
+            raise RuntimeError(f"ChemScript server died ({cmd}): {detail}")
+        return line
 
     def close(self):
         """Shut down the server."""
@@ -1057,6 +1101,22 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 1
     finally:
         cs.close()
+
+
+
+_SHARED = None
+
+
+def shared_bridge():
+    """The one bridge the naming code shares in this process.
+
+    Each bridge starts its own ChemScript server (about a second), so the modules
+    that keep a bridge for the life of the process take this one, not one each.
+    """
+    global _SHARED
+    if _SHARED is None:
+        _SHARED = ChemScriptBridge()
+    return _SHARED
 
 
 if __name__ == "__main__":

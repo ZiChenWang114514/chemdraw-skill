@@ -71,10 +71,32 @@ def _acquire_application():
         raise NativeRenderError("chemdraw_not_found", f"CHEMDRAW_EXE points to a missing file: {configured}")
     import win32com.client as win32
 
+    # ChemDraw registers as a multi-use COM server, so DispatchEx can still hand back the
+    # user's running instance. Whether this process launched ChemDraw is therefore decided
+    # by whether an instance was running before; only then may the caller quit it.
+    already_running = _chemdraw_running()
     dispatch_ex = getattr(win32, "DispatchEx", None)
-    if dispatch_ex is not None:
-        return progid.dispatch_ex(), True
-    return progid.dispatch(), True
+    application = progid.dispatch_ex() if dispatch_ex is not None else progid.dispatch()
+    return application, not already_running
+
+
+def acquire_application():
+    """``(application, launched)`` from the one shared acquisition path (a private instance).
+
+    For callers that cannot use :class:`NativeRenderSession`; ``launched`` is False when a
+    ChemDraw instance was already running, and such an instance must never be quit.
+    """
+    return _acquire_application()
+
+
+def _chemdraw_running() -> bool:
+    """True when a ChemDraw instance is registered as running before this process acquires one."""
+    try:
+        running = progid.get_active()
+    except Exception:  # noqa: BLE001 - "not running" is reported as a COM error
+        return False
+    del running
+    return True
 
 
 @contextmanager
@@ -150,6 +172,19 @@ class NativeRenderSession:
             self._finish_apartment()
             raise _classified_error(exc) from exc
 
+    def com_application(self):
+        """The session's private, hidden ChemDraw COM application (Windows only).
+
+        Callers that drive ChemDraw beyond :meth:`render` use this handle instead of
+        dispatching their own, so every caller shares one acquisition path: settings the
+        session changed are restored and ChemDraw is quit only if this session launched it.
+        Callers must close only the documents they open themselves.
+        """
+        if mac_automation.is_macos():
+            raise NativeRenderError("chemdraw_unavailable", "ChemDraw COM is not available on macOS")
+        self._start()
+        return self.application
+
     def _finish_apartment(self) -> None:
         if self._apartment is not None:
             apartment, self._apartment = self._apartment, None
@@ -163,23 +198,25 @@ class NativeRenderSession:
             self.application = None
             session.close()
             return
-        if self.launched:
-            try:
-                self.application.Quit()
-            except Exception as exc:
-                _cleanup_failed("quit", exc)
-        else:
-            if self.was_visible is not None:
-                try:
-                    self.application.Visible = self.was_visible
-                except Exception as exc:
-                    _cleanup_failed("restore visibility", exc)
+        # Preferences can outlive the instance (ChemDraw stores them for the user), so they
+        # are restored whether or not this process launched ChemDraw.
+        if self.original_transparent_pngs is not None or self.original_png_resolution is not None:
             try:
                 preferences = self.application.Preferences
                 preferences.TransparentPNGs = self.original_transparent_pngs
                 preferences.PNGResolution = self.original_png_resolution
             except Exception as exc:
                 _cleanup_failed("restore PNG preferences", exc)
+        if self.launched:
+            try:
+                self.application.Quit()
+            except Exception as exc:
+                _cleanup_failed("quit", exc)
+        elif self.was_visible is not None:
+            try:
+                self.application.Visible = self.was_visible
+            except Exception as exc:
+                _cleanup_failed("restore visibility", exc)
         self.application = None
 
     def render(self, source: str | Path, destination: str | Path, dpi: int = 300) -> str:

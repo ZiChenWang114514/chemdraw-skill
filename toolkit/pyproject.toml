@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cdxml-toolkit-community"
-version = "0.7.0a3"
+version = "0.8.0"
 description = "Community-maintained MCP server and Python toolkit for ChemDraw CDXML workflows."
 readme = "README.md"
 license = "MIT AND LicenseRef-PolyForm-Strict-1.0.0"
@@ -149,6 +149,7 @@ include = ["cdxml_toolkit*"]
 
 [tool.setuptools.package-data]
 "cdxml_toolkit.resolve" = ["*.json"]
+"cdxml_toolkit.mcp_runtime" = ["tool_manifest.json"]
 "cdxml_toolkit.naming" = ["*.json"]
 "cdxml_toolkit.catalog" = ["data/*.json"]
 "cdxml_toolkit.publication" = ["house_styles/*.json"]

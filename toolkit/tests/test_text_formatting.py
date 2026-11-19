@@ -178,3 +178,31 @@ def test_render_scheme_subscripts_reagents_above_the_arrow():
     )
     xml = render(scheme)
     assert re.search(r'face="96">K</s><s [^>]*face="32">2</s>', xml)
+
+
+# =========================================================================
+# Condition lines: temperatures versus isotope labels, mixed lines
+# =========================================================================
+
+import re  # noqa: E402
+
+from cdxml_toolkit.text_formatting import normalize_condition_text  # noqa: E402
+
+
+@pytest.mark.parametrize("text, normalized, subscripted", [
+    ("13C NMR", "13C NMR", False),
+    ("80 °C", "80 °C", False),
+    ("80 C", "80 °C", False),
+    ("K2CO3, DMF, 80 °C, 12 h", "K2CO3, DMF, 80 °C, 12 h", True),
+    ("H2O", "H2O", True),
+    ("Pd(PPh3)4", "Pd(PPh3)4", True),
+])
+def test_condition_lines(text, normalized, subscripted):
+    assert normalize_condition_text(text) == normalized
+    assert needs_subscript(normalized) is subscripted
+
+
+def test_a_mixed_line_lowers_only_its_formula_digits():
+    xml = build_formatted_s_xml("K2CO3, DMF, 80 °C, 12 h")
+    lowered = re.findall(r'face="32">([^<]*)</s>', xml)
+    assert lowered == ["2", "3"]

@@ -87,6 +87,21 @@ class NativeIOBridgeTests(unittest.TestCase):
             )
             self.assertFalse(destination.exists())
 
+    def test_a_reported_failure_is_returned_rather_than_called_a_silent_save(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source.cdxml"
+            source.write_text(MINIMAL_CDXML, encoding="utf-8")
+            failure = {"ok": False, "error": "ChemDraw is not installed"}
+
+            result = native_io.bridge_file(
+                source, root / "result.cdx", lambda _source, _destination: dict(failure),
+                output_kind="cdx",
+            )
+
+            self.assertEqual(result, failure)
+            self.assertFalse((root / "result.cdx").exists())
+
     def test_invalid_native_output_is_rejected_before_publication(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

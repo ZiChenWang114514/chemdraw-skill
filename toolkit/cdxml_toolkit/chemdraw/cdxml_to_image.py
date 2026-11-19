@@ -22,7 +22,6 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from cdxml_toolkit.chemdraw import progid
 from cdxml_toolkit.chemdraw.mac_automation import MacChemDrawSession, flatten_png, is_macos
 
 
@@ -30,18 +29,24 @@ from cdxml_toolkit.chemdraw.mac_automation import MacChemDrawSession, flatten_pn
 # ChemDraw COM helpers
 # ---------------------------------------------------------------------------
 
-def _get_chemdraw():
-    """Get a ChemDraw COM instance, reusing an existing session if available.
+def _com_session():
+    """A native session on a private ChemDraw instance (the shared acquisition path).
 
-    Returns (app, launched) where launched is True if we started a new instance.
+    The session turns TransparentPNGs off (solid white background), restores every
+    setting it changed and quits ChemDraw only if it launched it.
     """
+    from cdxml_toolkit.mcp_runtime.native_renderer import NativeRenderSession
+
+    return NativeRenderSession(timeout_seconds=120)
+
+
+def _save_as(app, cdxml_abs: str, out_abs: str) -> None:
+    """Open one file, export it and close only that document, unsaved."""
+    doc = app.Documents.Open(cdxml_abs)
     try:
-        app = progid.get_active()
-        launched = False
-    except Exception:
-        app = progid.dispatch()
-        launched = True
-    return app, launched
+        doc.SaveAs(out_abs)
+    finally:
+        doc.Close(False)
 
 
 # ---------------------------------------------------------------------------
@@ -84,33 +89,11 @@ def cdxml_to_image(
         with MacChemDrawSession() as session:
             return _render_macos(session, cdxml_abs, out_abs, png_dpi)
 
-    app, launched = _get_chemdraw()
-    was_visible = app.Visible
-    app.Visible = False
-    doc = None
-    try:
-        prefs = app.Preferences
-        prefs.TransparentPNGs = False   # solid white background
-        prefs.PNGResolution   = png_dpi
-
-        doc = app.Documents.Open(cdxml_abs)
-        doc.SaveAs(out_abs)
-
-        return out_abs
-
-    finally:
-        try:
-            if doc is not None:
-                doc.Close(False)
-        except Exception:
-            pass
-        if launched:
-            try:
-                app.Quit()
-            except Exception:
-                pass
-        else:
-            app.Visible = was_visible
+    with _com_session() as session:
+        app = session.com_application()
+        app.Preferences.PNGResolution = png_dpi
+        _save_as(app, cdxml_abs, out_abs)
+    return out_abs
 
 
 def _render_macos(session, cdxml_abs: str, out_abs: str, png_dpi: int) -> str:
@@ -148,34 +131,19 @@ def batch_render(
                     results[cdxml_path] = {"output": None, "error": str(e)}
         return results
 
-    app, launched = _get_chemdraw()
-    was_visible = app.Visible
-    app.Visible = False
-    try:
-        prefs = app.Preferences
-        prefs.TransparentPNGs = False
-        prefs.PNGResolution   = png_dpi
-
+    with _com_session() as session:
+        app = session.com_application()
+        app.Preferences.PNGResolution = png_dpi
         for cdxml_path in cdxml_paths:
             src = Path(cdxml_path)
             out_path = str(src.with_suffix(".png"))
             cdxml_abs = str(src.resolve())
             out_abs = str(Path(out_path).resolve())
             try:
-                doc = app.Documents.Open(cdxml_abs)
-                doc.SaveAs(out_abs)
-                doc.Close(False)
+                _save_as(app, cdxml_abs, out_abs)
                 results[cdxml_path] = {"output": out_abs, "error": None}
             except Exception as e:
                 results[cdxml_path] = {"output": None, "error": str(e)}
-    finally:
-        if launched:
-            try:
-                app.Quit()
-            except Exception:
-                pass
-        else:
-            app.Visible = was_visible
 
     return results
 

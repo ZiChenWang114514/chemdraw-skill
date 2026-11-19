@@ -22,6 +22,7 @@ Take the chemistry from the spec or the CXSMILES, never from reading the CDXML b
 
 The worked example ships with the Skill: `<skill>/assets/markush/indole-macrocycle.json` and its source layout `indole-macrocycle.layout.json`. Try it with `markush_compile(spec_path="<skill>/assets/markush/indole-macrocycle.json", output_dir="NEW_DIR", layout_path="<skill>/assets/markush/indole-macrocycle.layout.json")`.
 
+<!-- example: fragment -->
 ```json
 {"version": 1,
  "fragments": [{"id": "ind", "template": "indole", "double": [["C2","C3"], ["C3a","C7a"], ["C4","C5"], ["C6","C7"]]}],
@@ -40,6 +41,7 @@ The worked example ships with the Skill: `<skill>/assets/markush/indole-macrocyc
 
 A small, low-cost model can run the whole workflow, because code does everything that has to be exact: geometry, ids, the CXSMILES, the XML and validation. The model only reads text and answers small checklists. Each answer is JSON on a fixed schema, and code validates it.
 
+<!-- example: commands -->
 ```bash
 cdx.py markush init WORK --image figure.png --text claims.pdf   # --crop X0 Y0 X1 Y1 for a full page
 cdx.py markush next WORK                                        # prints one task

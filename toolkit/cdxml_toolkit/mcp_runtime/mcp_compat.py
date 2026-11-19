@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib.metadata
 import sys
 import types
 from typing import Any
@@ -13,6 +12,8 @@ SUPPORTED_MCP_MAJORS = {1, 2}
 
 def sdk_version() -> str:
     """Return the installed MCP Python SDK distribution version."""
+    import importlib.metadata
+
     return importlib.metadata.version("mcp")
 
 
@@ -44,6 +45,10 @@ def server_class() -> type[Any]:
 
 def install_legacy_fastmcp_alias() -> None:
     """Provide the legacy FastMCP import expected by the core MCP module."""
+    from cdxml_toolkit.mcp_server import _compat
+
+    if _compat._TOOLS_ONLY:
+        return  # this process calls tools; it never imports the SDK
     if sdk_major() == 1:
         return
 

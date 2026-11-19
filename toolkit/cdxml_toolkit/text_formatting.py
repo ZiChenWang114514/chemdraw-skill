@@ -27,7 +27,11 @@ from __future__ import annotations
 
 import re
 from typing import Tuple
-from xml.sax.saxutils import escape as xml_escape
+
+
+def xml_escape(data: str) -> str:
+    """Escape &, < and > as xml.sax.saxutils.escape does, without that module's import cost."""
+    return data.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
 
 # ---------------------------------------------------------------------------
 # Regex: letter (or closing paren) followed by one or more digits.
@@ -90,10 +94,13 @@ _ITALIC_PREFIXES = ITALIC_PREFIXES  # backward-compat alias
 # ---------------------------------------------------------------------------
 # Notation used in reaction conditions: temperature, room temperature, times.
 # The number must not be glued to a preceding word character, so formulas such
-# as "H2C" or "C10H21Br" are never read as temperatures.
+# as "H2C" or "C10H21Br" are never read as temperatures. A bare "C" (no degree
+# sign) followed by a capitalised word is an isotope label ("13C NMR"), not a
+# temperature.
 # ---------------------------------------------------------------------------
 _TEMPERATURE_RE = re.compile(
-    r'(?<![\w.])([-−]?\d+(?:\.\d+)?)\s*(?:°|deg(?:rees?)?\.?)?\s*C(?![\w-])'
+    r'(?<![\w.])([-−]?\d+(?:\.\d+)?)\s*'
+    r'(?:(?:°|deg(?:rees?)?\.?)\s*C|C(?!\s*[A-Z]{2}))(?![\w-])'
 )
 _ROOM_TEMP_RE = re.compile(
     r'(?<!\w)(?:r\.t\.|RT|room\s+temp(?:erature)?\.?)(?!\w)'
@@ -127,12 +134,10 @@ def needs_subscript(text: str) -> bool:
     Returns ``True`` for reagent formulas like ``"CH3OH"``, ``"Cs2CO3"``,
     ``"Pd2(dba)3"`` where trailing digits represent atom counts.
 
-    Returns ``False`` for non-formula text that happens to contain digits:
-
-    * Temperatures — ``"80 °C"``
-    * Durations — ``"2 h"``, ``"30 min"``
-    * Percentages — ``"95%"``
-    * Pure-numeric / unit-only strings — ``"120 °C, 2 h"``
+    Returns ``False`` for text whose digits are not atom counts: temperatures
+    (``"80 °C"``), durations (``"2 h"``), percentages (``"95%"``) and isotope
+    labels (``"13C NMR"``). A line that mixes both, such as
+    ``"K2CO3, DMF, 80 °C, 12 h"``, returns ``True``.
 
     Examples::
 
@@ -143,18 +148,9 @@ def needs_subscript(text: str) -> bool:
         >>> needs_subscript("80 °C")
         False
     """
-    # Temperature (digits before °)
-    if re.search(r'\d+\s*°', text):
-        return False
-    # Duration (digits before h/m at word boundary)
-    if re.search(r'\d+\s*[hm](?:\s|$|,)', text):
-        return False
-    # Percentage
-    if re.search(r'\d+\s*%', text):
-        return False
-    # Pure numeric / unit strings like "reflux", "rt", "120 °C, 2 h"
-    if re.fullmatch(r'[\d\s.,°ChmsMinHr/]+', text, re.IGNORECASE):
-        return False
+    # Temperatures, times, percentages and isotope labels have no digits
+    # glued after a letter, so they never match; a line that mixes them with
+    # formulas ("K2CO3, DMF, 80 °C") still needs its formula digits lowered.
     return bool(subscript_matches(text))
 
 

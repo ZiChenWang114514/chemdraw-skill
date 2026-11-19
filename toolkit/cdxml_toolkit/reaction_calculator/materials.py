@@ -8,6 +8,7 @@ from __future__ import annotations
 import csv
 import html
 import io
+from decimal import Decimal
 
 from . import hazards
 
@@ -20,8 +21,14 @@ def trim(value, digits: int = 3) -> str:
     """Significant digits without trailing zeros: 1.00 -> 1, 94.2 -> 94.2."""
     if value is None:
         return ''
-    text = f'{float(value):.{digits}g}'
-    return f'{float(value):.0f}' if 'e' in text else text
+    value = float(value)
+    text = f'{value:.{digits}g}'
+    if 'e' not in text:
+        return text
+    if abs(value) >= 1:
+        return f'{value:.0f}'
+    # small amounts in positional notation, keeping the significant digits (1.2e-05 -> 0.000012)
+    return format(Decimal(text), 'f')
 
 
 def volume_phrase(ml: float) -> str:
@@ -97,7 +104,7 @@ def _footer(entry: dict) -> list[str]:
     mapping = entry.get('mapping')
     if mapping:
         lines.append(f"Bond changes ({mapping['title']}): {mapping['summary']}.")
-    return lines + hazards.lines(entry.get('safety') or [])
+    return lines + hazards.lines(entry.get('safety') or [], entry.get('incompatibilities') or [])
 
 
 def markdown(entries: list[dict]) -> str:

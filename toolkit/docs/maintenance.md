@@ -130,7 +130,7 @@ approved GitHub environment.
 - `cdxml_toolkit.mcp_server` retains the 15 compatible core tools.
 - `cdxml_toolkit.mcp_runtime` owns worker isolation, native resource coordination,
   artifact validation, HTTP security, metrics, and the complete tool registry.
-- The `full` profile (default) holds the whole registry; `codex` is a compatibility alias.
+- A server lists the `standard` profile by default; the `full` profile holds the whole registry, and `codex` is a compatibility alias for it.
   Profile sizes are listed in the README table, and `toolkit/tests/runtime/test_capabilities.py` and the Skill's
   `test_doc_consistency.py` check them against the registry.
 - The runtime is client-neutral: no agent-specific configuration writers or

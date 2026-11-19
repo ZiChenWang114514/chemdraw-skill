@@ -126,6 +126,49 @@ def test_iterate_needs_a_collection_and_known_members():
     assert "blocked" in refusal([docs, {"op": "iterate", "target": "docs", "members": ["Print"]}])
 
 
+FOREIGN_HANDLES = {
+    "active": [{"op": "get", "member": "ActiveDocument", "as": "h"}],
+    "item": [{"op": "get", "member": "Documents", "as": "docs"},
+             {"op": "call", "target": "docs", "member": "Item", "args": [1], "as": "h"}],
+}
+
+
+@pytest.mark.parametrize("origin", sorted(FOREIGN_HANDLES))
+@pytest.mark.parametrize("change", [
+    {"op": "call", "target": "h", "member": "Close", "args": [False]},
+    {"op": "call", "target": "h", "member": "SaveAs", "args": ["C:/x/out.cdxml"]},
+    {"op": "call", "target": "h", "member": "Save"},
+    {"op": "call", "target": "h", "member": "Activate"},
+    {"op": "set", "target": "h", "member": "Magnification", "value": 2},
+    {"op": "call", "target": "objs", "member": "Clear"},
+    {"op": "call", "target": "objs", "member": "Scale", "args": [2.0]},
+])
+def test_documents_the_program_did_not_create_are_read_only(origin, change):
+    program = FOREIGN_HANDLES[origin] + [{"op": "get", "target": "h", "member": "Objects", "as": "objs"}, change]
+    with pytest.raises(com_call.HandleNotOwnedError) as caught:
+        com_call.validate_program(program, allow_file_io=True, allow_overwrite=True)
+    assert caught.value.error_code == "com_handle_not_owned"
+    assert "not created by this program" in caught.value.public_message
+
+
+def test_reading_existing_documents_is_still_allowed():
+    for prefix in FOREIGN_HANDLES.values():
+        assert com_call.validate_program(prefix + [
+            {"op": "get", "target": "h", "member": "Objects", "as": "objs"},
+            {"op": "get", "target": "objs", "member": "Formula"},
+            {"op": "get", "target": "objs", "member": "Atoms", "as": "atoms"},
+            {"op": "iterate", "target": "atoms", "members": ["Charge"]},
+        ])
+
+
+def test_documents_the_program_created_can_be_changed():
+    assert com_call.validate_program(OPEN_DOCUMENT[:3] + [
+        {"op": "call", "target": "objs", "member": "Clear"},
+        {"op": "set", "target": "doc", "member": "Magnification", "value": 2},
+        {"op": "call", "target": "doc", "member": "Close", "args": [False]},
+    ])
+
+
 def test_program_shape_limits():
     assert "non-empty list" in refusal([])
     assert "at most" in refusal([{"op": "get", "member": "Documents"}] * (com_call.MAX_PROGRAM_STEPS + 1))
@@ -273,6 +316,41 @@ def test_registered_as_a_native_tool_with_its_own_timeout():
     spec = registry["chemdraw_com_call"]
     assert spec.resource_class == "chemdraw_com" and spec.timeout_seconds == 240
     assert "chemdraw_com_call" not in build_registry("core")
+
+
+def test_an_already_running_chemdraw_is_never_quit_even_with_no_documents_open(monkeypatch):
+    from contextlib import nullcontext
+    from cdxml_toolkit.mcp_runtime import native_renderer
+
+    calls = []
+    application = FakeApplication(calls, open_documents=0)
+    monkeypatch.setattr(native_renderer, "_com_apartment", nullcontext)
+    monkeypatch.setattr(native_renderer, "_acquire_application", lambda: (application, False))
+    with com_call._open_application() as (_, owned):
+        assert owned is False
+    assert ("Quit", ()) not in calls and application.Visible is True
+
+
+def test_the_users_application_object_is_read_only_at_run_time(monkeypatch):
+    calls = []
+    application = FakeApplication(calls)
+
+    class Session:
+        def __enter__(self):
+            return application, False
+
+        def __exit__(self, *exc):
+            return False
+
+    monkeypatch.setattr(com_call, "_open_application", lambda: Session())
+    monkeypatch.setattr(com_call, "_windows", lambda: True)
+    with pytest.raises(com_call.HandleNotOwnedError) as caught:
+        com_call.chemdraw_com_call([{"op": "set", "member": "Visible", "value": False}])
+    assert caught.value.error_code == "com_handle_not_owned"
+    assert application.Visible is True
+    # Reading and working on its own new document stays possible on the user's ChemDraw.
+    assert com_call.chemdraw_com_call(OPEN_DOCUMENT)["ok"] is True
+    assert ("Close", (False,)) in calls and ("Quit", ()) not in calls
 
 
 def test_a_failed_quit_after_a_call_is_logged(monkeypatch, caplog):

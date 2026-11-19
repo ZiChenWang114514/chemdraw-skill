@@ -1,6 +1,6 @@
 name: Release
 
-# Pushing a version tag (for example v0.7.0a3) builds the toolkit and publishes a GitHub
+# Pushing a version tag (for example v0.8.0) builds the toolkit and publishes a GitHub
 # Release with the toolkit distributions and a zip of the Skill folder, after validate.yml passes.
 on:
   push:
@@ -40,7 +40,21 @@ jobs:
           path: dist
 
       - name: Package the Skill folder
-        run: git archive --format=zip --prefix=chemdraw/ -o "dist/chemdraw-skill-$GITHUB_REF_NAME.zip" HEAD:skill/chemdraw
+        # The archive is what the installer copies: the Skill without its tests.
+        run: |
+          zip="dist/chemdraw-skill-$GITHUB_REF_NAME.zip"
+          git archive --format=zip --prefix=chemdraw/ -o "$zip" HEAD:skill/chemdraw
+          zip -q -d "$zip" "chemdraw/tests/*"
+          unzip -Z1 "$zip" | grep -q '^chemdraw/SKILL.md$'
+          ! unzip -Z1 "$zip" | grep -q '^chemdraw/tests/'
+
+      - name: Build the Claude Code plugin
+        run: |
+          python3 scripts/build_plugin.py --out build/chemdraw-skill
+          (cd build && zip -q -r "../dist/chemdraw-skill-plugin-$GITHUB_REF_NAME.zip" chemdraw-skill)
+
+      - name: Write checksums
+        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
 
       - name: Create the release
         env:

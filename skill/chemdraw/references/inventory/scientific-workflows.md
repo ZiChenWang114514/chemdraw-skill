@@ -1,6 +1,6 @@
 # Scientific Workflows Public Symbols
 
-> Generated from cdxml-toolkit 0.7.0a3. Curated guidance: [../scientific-workflows.md](../scientific-workflows.md).
+> Generated from cdxml-toolkit 0.8.0. Curated guidance: [../scientific-workflows.md](../scientific-workflows.md).
 
 ## `scientific.__main__`
 
@@ -31,18 +31,20 @@
 
 ## `scientific.plots`
 
-- **function**, line 375: `build_lcms_plate_cdxml(source_or_spec: Any, output_path: str | Path | None = None, *, product_mass: float | None = None, sm_mass: float | None = None, plate_format: int | str | None = None, wavelength: int | str = 254, title: str = 'LCMS Plate Purity Heatmap') -> dict[str, Any]` - Build an editable 24-well or 96-well LCMS purity heatmap in CDXML.
+- **function**, line 452: `build_lcms_plate_cdxml(source_or_spec: Any, output_path: str | Path | None = None, *, product_mass: float | None = None, sm_mass: float | None = None, plate_format: int | str | None = None, wavelength: int | str = 254, title: str = 'LCMS Plate Purity Heatmap') -> dict[str, Any]` - Build an editable 24-well or 96-well LCMS purity heatmap in CDXML.
 - **function**, line 13: `envelope_indices(values, limit = 1600)` - No public docstring in the audited version.
-- **function**, line 59: `plot_xy(x = None, y = None, output_dir = None, *, title = 'Scientific plot', xlabel = 'x', ylabel = 'y', reverse_x = False, provenance = None, dpi = 300, series = None)` - No public docstring in the audited version.
+- **function**, line 75: `plot_xy(x = None, y = None, output_dir = None, *, title = 'Scientific plot', xlabel = 'x', ylabel = 'y', reverse_x = False, provenance = None, dpi = 300, series = None, yerr = None, style = None)` - Plot one or more x/y series to SVG, PNG and editable CDXML, with the data as CSV.
 
 ## `scientific.spectra`
 
-- **function**, line 623: `analyze_spectrum(path, options = None)` - No public docstring in the audited version.
-- **function**, line 863: `build_nmr_cdxml(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> str` - Build a ChemDraw CDXML document for an NMR spectrum with optional zoomed ``inset_region``.
-- **function**, line 1241: `build_stacked_nmr_cdxml(spectra: Sequence[str | Path | Mapping[str, Any]], output_path: str | Path | None = None, *, labels: Sequence[str] | None = None, ppm_range: tuple[float, float] | None = None, title: str = 'Stacked NMR Comparison', normalize: str = 'each', show_peaks: bool = True, match_shifts: Sequence[Mapping[str, Any]] | None = None) -> dict[str, Any]` - Build a multi-trace stacked NMR comparison CDXML figure (2 to 8 spectra).
-- **function**, line 1017: `nmr_to_cdxml(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> str` - Convert NMR spectrum arrays, peak list, or file path into a CDXML string (with optional ``inset_region``).
-- **function**, line 1045: `plot_nmr(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, output_dir: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> Union[str, dict[str, Any]]` - Plot an NMR spectrum to CDXML (and optional ``output_dir`` bundle) with ``inset_region`` zoom support.
-- **function**, line 522: `read_spectrum(path)` - No public docstring in the audited version.
+- **function**, line 696: `analyze_spectrum(path, options = None)` - No public docstring in the audited version.
+- **function**, line 962: `build_nmr_cdxml(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, integrals: Optional[Sequence[Mapping[str, Any]]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> str` - Build a ChemDraw CDXML document for an NMR spectrum with optional zoomed ``inset_region``.
+- **function**, line 1369: `build_stacked_nmr_cdxml(spectra: Sequence[str | Path | Mapping[str, Any]], output_path: str | Path | None = None, *, labels: Sequence[str] | None = None, ppm_range: tuple[float, float] | None = None, title: str = 'Stacked NMR Comparison', normalize: str = 'each', show_peaks: bool = True, match_shifts: Sequence[Mapping[str, Any]] | None = None) -> dict[str, Any]` - Build a multi-trace stacked NMR comparison CDXML figure (2 to 8 spectra).
+- **function**, line 940: `nice_ticks(low: float, high: float, target: int = 6) -> list[float]` - Round tick values (steps of 1, 2 or 5 x 10^k) covering [low, high].
+- **function**, line 1143: `nmr_to_cdxml(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, integrals: Optional[Sequence[Mapping[str, Any]]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> str` - Convert NMR spectrum arrays, peak list, or file path into a CDXML string (with optional ``inset_region``).
+- **function**, line 82: `nucleus_frequency(nucleus, frequency_mhz)` - (observe frequency of ``nucleus`` in MHz, warning or None).
+- **function**, line 1173: `plot_nmr(ppm: Any = None, intensity: Any = None, *, peaks: Optional[Sequence[Any]] = None, inset_region: Optional[Union[Tuple[float, float], list[float]]] = None, title: str = '1H NMR Spectrum', nucleus: str = '1H', output_path: Optional[Union[str, Path]] = None, output_dir: Optional[Union[str, Path]] = None, x: Any = None, y: Any = None, spectrum: Any = None) -> Union[str, dict[str, Any]]` - Plot an NMR spectrum to CDXML (and optional ``output_dir`` bundle) with ``inset_region`` zoom support.
+- **function**, line 541: `read_spectrum(path)` - No public docstring in the audited version.
 
 ## `scientific.tlc`
 

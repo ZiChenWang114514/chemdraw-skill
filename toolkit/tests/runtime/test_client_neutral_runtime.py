@@ -13,9 +13,8 @@ from cdxml_toolkit.mcp_runtime import capabilities, mcp_server, official_overrid
 PACKAGE = Path(tool_registry.__file__).resolve().parents[1]
 
 
-def test_full_profile_is_the_default_and_codex_stays_an_alias():
+def test_a_registry_built_without_a_profile_has_every_tool_and_codex_stays_an_alias():
     default = tool_registry.build_registry()
-    assert tool_registry.DEFAULT_PROFILE == "full"
     assert set(default) == set(tool_registry.build_registry("full"))
     # Existing client configurations that pass --profile codex keep working unchanged.
     assert set(tool_registry.build_registry("codex")) == set(default)
@@ -36,9 +35,24 @@ def test_cli_accepts_the_neutral_name_and_the_alias(value):
 def test_environment_default_profile_is_neutral():
     with mock.patch.dict(os.environ, {}, clear=False):
         os.environ.pop("CHEMDRAW_MCP_PROFILE", None)
-        assert mcp_server.parse_args([]).profile == "full"
+        assert mcp_server.parse_args([]).profile == "standard"
         summary = capabilities.get_toolkit_capabilities(detail="summary")
-        assert summary["outputs"]["tool_count"] == len(tool_registry.build_registry("full"))
+        assert summary["outputs"]["tool_count"] == len(tool_registry.build_registry("standard"))
+
+
+def test_a_server_lists_the_standard_set_by_default_and_says_how_to_get_the_rest():
+    import asyncio
+
+    standard = tool_registry.build_registry("standard")
+    full = tool_registry.build_registry("full")
+    assert tool_registry.DEFAULT_PROFILE == "standard"
+    assert 20 <= len(standard) <= 26 < len(full)
+    assert {"resolve_name", "draw_figure", "rdkit_workbench", "render_to_png", "diagnose_runtime",
+            "get_toolkit_capabilities"} <= set(standard) < set(full)
+    server = mcp_server.build_server()
+    assert {tool.name for tool in asyncio.run(server.list_tools())} == set(standard)
+    assert "--profile full" in server.instructions and f"{len(standard)} of {len(full)}" in server.instructions
+    assert "--profile full" not in mcp_server.build_server(profile="full").instructions
 
 
 def test_failure_logs_and_native_temp_use_neutral_folders(tmp_path):

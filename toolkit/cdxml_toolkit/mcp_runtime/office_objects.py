@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 import hashlib
 import json
+import logging
 from pathlib import Path, PurePosixPath
 import posixpath
 import re
@@ -14,8 +15,12 @@ from typing import Any
 import xml.etree.ElementTree as ET
 import zipfile
 
+from cdxml_toolkit.office import safe_xml
+
 from . import native_io
 from . import native_renderer
+
+logger = logging.getLogger(__name__)
 _R_ID = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
 _R_EMBED = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
 _RELATIONSHIP_TYPE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/"
@@ -241,6 +246,23 @@ def _docx_context(
     }
 
 
+def _object_structures(cdxml_text: str) -> dict[str, Any]:
+    """What an embedded drawing holds, so a caller need not open each extracted file."""
+    try:
+        from rdkit import Chem
+        from rdkit.Chem.rdMolDescriptors import CalcMolFormula
+
+        from cdxml_toolkit.chemistry_semantics import read_molecules
+
+        molecules = read_molecules(cdxml_text)
+        return {"structures": [
+            {"smiles": Chem.MolToSmiles(molecule), "formula": CalcMolFormula(molecule)}
+            for molecule in molecules
+        ]}
+    except Exception as exc:  # the object is still listed; its structures were not read
+        return {"structures": [], "structures_error": f"{type(exc).__name__}: {exc}"[:300]}
+
+
 def _object_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
     host = item["host"]
     relationship_match = re.search(r"(\d+)$", item["relationship_id"])
@@ -272,7 +294,7 @@ def scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any
     from cdxml_toolkit.office.ole_extractor import extract_cdx_from_ole
 
     objects: list[dict[str, Any]] = []
-    with zipfile.ZipFile(source, "r") as package:
+    with safe_xml.open_package(source) as package:
         members = set(package.namelist())
         for relationship_part in sorted(
             name for name in members if name.endswith(".rels")
@@ -458,6 +480,7 @@ def write_inspection(
         cdxml_path.write_text(cdxml_text, encoding="utf-8")
         public = {key: value for key, value in record.items() if not key.startswith("_")}
         public["cdxml"] = cdxml_relative.as_posix()
+        public.update(_object_structures(cdxml_text))
         if render_previews:
             preview_relative = Path("previews") / f"{stem}.png"
             preview_path = destination / preview_relative
@@ -682,7 +705,7 @@ def rewrite_office_package(
                 (replacement["relationship_id"], scale_x, scale_y)
             )
     seen: set[str] = set()
-    with zipfile.ZipFile(source, "r") as package, zipfile.ZipFile(
+    with safe_xml.open_package(source) as package, zipfile.ZipFile(
         destination, "w", allowZip64=True
     ) as output:
         output.comment = package.comment
@@ -699,6 +722,68 @@ def rewrite_office_package(
         raise ValueError(f"Replacement package parts are missing: {missing}")
 
 
+def _office_running(prog_id: str) -> bool:
+    """True when an Office application is already running for the user."""
+    import win32com.client
+
+    try:
+        running = win32com.client.GetActiveObject(prog_id)
+    except Exception:  # noqa: BLE001 - "not running" is reported as a COM error
+        return False
+    del running
+    return True
+
+
+def _export_pdf_windows(native_source: Path, native_destination: Path) -> None:
+    """Export one Office file to PDF without disturbing the user's Office session.
+
+    PowerPoint is single-instance, so DispatchEx returns the user's PowerPoint when it is
+    running. Only the file this call opened is closed (unsaved), and the application is
+    quit only when it was not running before and holds no other open files afterwards.
+    Nothing is made visible.
+    """
+    import pythoncom
+    import win32com.client
+
+    pythoncom.CoInitialize()
+    application = None
+    document = None
+    was_running = False
+    powerpoint = native_source.suffix.lower() == ".pptx"
+    try:
+        if powerpoint:
+            was_running = _office_running("PowerPoint.Application")
+            application = win32com.client.DispatchEx("PowerPoint.Application")
+            # ReadOnly, Untitled=False, WithWindow=False: no window is shown.
+            document = application.Presentations.Open(str(native_source), True, False, False)
+            document.SaveAs(str(native_destination), 32)
+        else:
+            was_running = _office_running("Word.Application")
+            application = win32com.client.DispatchEx("Word.Application")
+            if not was_running:
+                application.Visible = False
+            # ConfirmConversions=False, ReadOnly=True, AddToRecentFiles=False.
+            document = application.Documents.Open(str(native_source), False, True, False)
+            document.ExportAsFixedFormat(str(native_destination), 17)
+    finally:
+        if document is not None:
+            try:
+                # PowerPoint's Close takes no arguments; Word's 0 is wdDoNotSaveChanges.
+                document.Close() if powerpoint else document.Close(0)
+            except Exception as exc:
+                logger.warning("Office cleanup could not close the exported file (%s)", type(exc).__name__)
+        document = None
+        if application is not None and not was_running:
+            try:
+                remaining = application.Presentations if powerpoint else application.Documents
+                if int(remaining.Count) == 0:
+                    application.Quit()
+            except Exception as exc:
+                logger.warning("Office cleanup could not quit the application (%s)", type(exc).__name__)
+        application = None
+        pythoncom.CoUninitialize()
+
+
 def render_office_pdf(office_path: str | Path, output_path: str | Path) -> None:
     source = Path(office_path).resolve()
     destination = Path(output_path).resolve()
@@ -709,38 +794,7 @@ def render_office_pdf(office_path: str | Path, output_path: str | Path) -> None:
 
             mac_office.export_pdf(native_source, native_destination)
             return
-        import pythoncom
-        import win32com.client
-
-        pythoncom.CoInitialize()
-        application = None
-        document = None
-        try:
-            if native_source.suffix.lower() == ".pptx":
-                application = win32com.client.DispatchEx("PowerPoint.Application")
-                document = application.Presentations.Open(
-                    str(native_source), True, False, False
-                )
-                document.SaveAs(str(native_destination), 32)
-            else:
-                application = win32com.client.DispatchEx("Word.Application")
-                application.Visible = False
-                document = application.Documents.Open(
-                    str(native_source), False, True, False
-                )
-                document.ExportAsFixedFormat(str(native_destination), 17)
-        finally:
-            if document is not None:
-                try:
-                    document.Close()
-                except Exception:
-                    pass
-            if application is not None:
-                try:
-                    application.Quit()
-                except Exception:
-                    pass
-            pythoncom.CoUninitialize()
+        _export_pdf_windows(native_source, native_destination)
 
     native_io.bridge_file(
         source,

@@ -2,6 +2,7 @@
 
 Use for the final CDXML, and always for bridges, charge symbols and stereo-sensitive edits. Native saving goes through the locked worker.
 
+<!-- example: commands -->
 ```bash
 cdx.py py -m cdxml_toolkit.mcp_runtime.figure_tools validate_figure --arguments check.json
 ```

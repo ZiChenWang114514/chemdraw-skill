@@ -27,6 +27,8 @@ import sys
 from dataclasses import dataclass, field as dc_field
 from typing import Any, Dict, List, Optional, Tuple
 
+from .parser import YIELD_KEY
+
 try:
     import yaml
 except ImportError:
@@ -364,7 +366,7 @@ def _build_yaml_dict(
 
     # --- Run arrows ---
     # Run arrows already display yield in their output label, so only add
-    # yield_ to the step when run arrows are NOT present (avoids duplication).
+    # the yield to the step when run arrows are NOT present (avoids duplication).
     run_arrows_added = False
     if include_run_arrows and eln_data:
         run_arrows = _build_run_arrows(eln_data)
@@ -376,7 +378,7 @@ def _build_yaml_dict(
         yield_pct = eln_data.get("product_yield", "").strip()
         if yield_pct:
             yield_str = yield_pct.rstrip("%").strip()
-            step["yield_"] = f"{yield_str}%"
+            step[YIELD_KEY] = f"{yield_str}%"
 
     return yaml_dict
 

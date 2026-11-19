@@ -29,7 +29,8 @@ Users do not install this folder by hand. `python scripts/install.py --runtime -
 
 | Profile | Tools | Focus |
 | --- | ---: | --- |
-| `full` (default) | 71 | Complete local and remote collection |
+| `standard` (default) | 26 | Core tools, figure drawing, RDKit workbench, checks, diagnosis and the two interactive apps |
+| `full` | 71 | Complete local and remote collection |
 | `core` | 16 | Compatible core tools plus capability discovery |
 | `office` | 21 | Office inspection, replacement, templates and batch embedding |
 | `analysis` | 21 | Experiment discovery, LCMS series, lab books, SciFinder RDF and scientific workflows |
@@ -41,9 +42,9 @@ Users do not install this folder by hand. `python scripts/install.py --runtime -
 
 | Command | Purpose |
 | --- | --- |
-| `cdxml-mcp` | Complete MCP runtime (`full` profile by default) |
+| `cdxml-mcp` | MCP runtime (`standard` profile by default; `--profile full` lists every tool) |
 | `cdxml-mcp-core` | Compatible 15-tool core server |
-| `cdxml-doctor` | Read-only diagnostics, tests and explicit ChemScript setup (`--no-tests --configure-chemscript`) |
+| `cdxml-doctor` | Read-only diagnostics, explicit ChemScript setup (`--configure-chemscript`) and, with `--tests`, the test suite |
 | `cdxml-render` | Render JSON, YAML or compact text to CDXML |
 | `cdxml-image` | Render CDXML to PNG or SVG |
 | `cdxml-merge` / `cdxml-layout` | Merge schemes or clean reaction layout |

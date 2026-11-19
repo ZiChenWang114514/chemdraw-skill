@@ -168,6 +168,24 @@ class WorkerRuntimeTests(unittest.TestCase):
 
     @unittest.skipUnless(os.name == "nt" or sys.platform == "darwin", "ChemDraw automation platforms")
     def test_named_chemdraw_mutex_serializes_callers(self):
+        # A name of its own: the real one is held whenever the user (or another test run) is
+        # driving ChemDraw, which would make this test wait on work it has nothing to do with.
+        import tempfile
+        import uuid
+        from pathlib import Path
+
+        unique = uuid.uuid4().hex
+        own_mutex = mock.patch.object(resource_lock, "CHEMDRAW_COM_MUTEX", "Local" + chr(92) + "CdxTestLock" + unique)
+        own_file = mock.patch.object(resource_lock, "CHEMDRAW_LOCK_FILE",
+                                     Path(tempfile.gettempdir()) / f"cdx-test-lock-{unique}.lock")
+        own_mutex.start()
+        own_file.start()
+        self.addCleanup(own_mutex.stop)
+        self.addCleanup(own_file.stop)
+        no_holder = mock.patch.dict(os.environ)
+        no_holder.start()
+        self.addCleanup(no_holder.stop)
+        os.environ.pop(resource_lock.LOCK_HOLDER_ENV, None)
         first_entered = threading.Event()
         release_first = threading.Event()
         second_entered = threading.Event()
@@ -201,7 +219,7 @@ class WorkerRuntimeTests(unittest.TestCase):
             with resource_lock.native_resource_lock("chemdraw_com", 2):
                 pass
 
-    @unittest.skipUnless(sys.platform == "darwin", "macOS file lock")
+    @unittest.skipUnless(os.name == "nt" or sys.platform == "darwin", "ChemDraw automation platforms")
     def test_chemdraw_lock_excludes_other_processes(self):
         holder = subprocess.Popen(
             [sys.executable, "-c",
@@ -222,7 +240,7 @@ class WorkerRuntimeTests(unittest.TestCase):
         with resource_lock.native_resource_lock("chemdraw_com", 2):
             pass
 
-    @unittest.skipUnless(sys.platform == "darwin", "macOS file lock")
+    @unittest.skipUnless(os.name == "nt" or sys.platform == "darwin", "ChemDraw automation platforms")
     def test_child_processes_share_their_parents_chemdraw_lock(self):
         with resource_lock.native_resource_lock("chemdraw_com", 2):
             child = subprocess.run(
@@ -234,6 +252,24 @@ class WorkerRuntimeTests(unittest.TestCase):
             )
         self.assertEqual(child.stdout.strip(), "entered", child.stderr)
         self.assertNotIn(resource_lock.LOCK_HOLDER_ENV, os.environ)
+
+    def test_a_dead_lock_holder_is_not_an_ancestor(self):
+        finished = subprocess.Popen([sys.executable, "-c", "pass"])
+        finished.wait(20)
+        with mock.patch.dict(os.environ, {resource_lock.LOCK_HOLDER_ENV: str(finished.pid)}):
+            self.assertFalse(resource_lock._held_by_ancestor())
+        with mock.patch.dict(os.environ, {resource_lock.LOCK_HOLDER_ENV: str(os.getpid())}):
+            self.assertFalse(resource_lock._held_by_ancestor())
+
+    def test_checking_a_lock_holder_never_signals_it(self):
+        holder = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+        try:
+            with mock.patch.dict(os.environ, {resource_lock.LOCK_HOLDER_ENV: str(holder.pid)}):
+                self.assertTrue(resource_lock._held_by_ancestor())
+            self.assertIsNone(holder.poll())
+        finally:
+            holder.kill()
+            holder.wait(10)
 
     def test_worker_environment_keeps_the_posix_user_context(self):
         with mock.patch.dict(os.environ, {"HOME": "/Users/x", "TMPDIR": "/var/folders/t/", "LANG": "en_US.UTF-8"}):

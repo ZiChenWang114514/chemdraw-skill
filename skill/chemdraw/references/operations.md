@@ -6,6 +6,7 @@ Load for installation, upgrade, worker timeout, ChemDraw COM, ChemDraw for macOS
 
 ## Health check
 
+<!-- example: commands -->
 ```bash
 cdx.py doctor                 # Skill/toolkit/Python versions, missing extras, signature drift, installation manifest, capability matrix
 cdx.py doctor --text          # human-readable health summary (add --log latest or --log ERROR_ID to read worker logs)
@@ -51,6 +52,7 @@ Optional dependency groups (`pip` extras) and what fails without them:
 
 From a repository checkout, on any OS (preview first, then `--apply`):
 
+<!-- example: commands -->
 ```bash
 python scripts/install.py --agent <name> --runtime              # proposal
 python scripts/install.py --agent <name> --runtime --apply      # install; add --python <3.10-3.13> if none is found
@@ -73,6 +75,7 @@ On Windows the interpreter is `<venv>\Scripts\python.exe` (create the venv with 
 
 `install_runtime.py` builds from the repository's `toolkit/` folder when the Skill sits in a checkout, otherwise from the exact commit in `runtime.json`; `--toolkit-path` selects another toolkit source folder and `--print-requirement` only prints the requirement. Never upgrade the runtime unasked. After a toolkit change:
 
+<!-- example: commands -->
 ```bash
 cdx.py regen-signatures        # maintainer command, not in `--help`: rewrite generated references after a toolkit change
 cdx.py regen-catalog --check   # maintainer command: report stale generated interface pages (without --check, rewrite them)
@@ -84,6 +87,7 @@ cdx.py py -m pytest <skill>/tests -q
 
 `manifest.json` (written by the installer) lists a SHA-256 per file; text files are hashed after CRLF→LF normalization, so Git `autocrlf` checkouts do not show false modifications. `cdx.py doctor` reports drift; for details:
 
+<!-- example: commands -->
 ```bash
 cdx.py py <skill>/scripts/check_installation.py                        # installed copy vs its manifest
 cdx.py py <skill>/scripts/check_installation.py --source <repo>/skill/chemdraw   # installed copy vs a checkout

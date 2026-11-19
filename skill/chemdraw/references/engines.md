@@ -2,6 +2,7 @@
 
 Optional engines for reading structure images with more than one model, finding the structures in a PDF, and predicting products, precursors, reaction conditions and NMR shifts. Everything here is a **model prediction**: results carry `provenance: "model_prediction"`, are never merged or picked silently, and must be checked before they reach a figure or a report. Signatures: [mcp-signatures.md](mcp-signatures.md).
 
+<!-- example: commands -->
 ```bash
 cdx.py engines                              # installed or not, what each is for, disk used (as recorded at install)
 cdx.py engines --sizes                      # measure the folders again; slow with many large engines
@@ -54,9 +55,9 @@ Nothing here is installed or downloaded until the user agrees. The default path 
 | candidate products | `products` | <!--size:products-->about 3.9 GB<!--/size--> |
 | precursors or routes | `retro` | <!--size:retro-->about 1.7 GB<!--/size--> |
 | predicted 1H/13C shifts | `nmr` | <!--size:nmr-->about 5.4 GB<!--/size--> |
-| a second NMR model to compare, or Br, I, Si, P, B in the molecule | `nmr-pp` | <!--size:nmr-pp-->about 2.8 GB<!--/size--> |
+| a second NMR model to compare, or Br, I, Si, P, B in the molecule | `nmr-pp` | <!--size:nmr-pp-->about 4.5 GB<!--/size--> |
 | the strongest single-step precursors, or routes searched with them (research use) | `retro-chimera` | <!--size:retro-chimera-->about 8.5 GB<!--/size--> (4.2 GB download, then 15 to 70 minutes, depending on the CPU, to build the stock list once); needs about 14 GB of free memory to run |
-| catalyst, solvent and reagent candidates for a drawn reaction | `conditions` (code without a stated licence) | <!--size:conditions-->about 1.9 GB<!--/size--> (a 2 GB download that is partly deleted afterwards) |
+| catalyst, solvent and reagent candidates for a drawn reaction | `conditions` (code without a stated licence) | <!--size:conditions-->about 3.6 GB<!--/size--> (a 2 GB download that is partly deleted afterwards) |
 
 Sizes are measured folder sizes of finished Windows installs, which carry the CUDA build of PyTorch (about 2 GB per PyTorch engine); a CPU install is smaller (see the table above). A tool that needs a missing engine answers `ok: false` with an `install_hint` (engine, use, size, licence, command): relay it instead of searching the documentation, and install only after the user says yes.
 
