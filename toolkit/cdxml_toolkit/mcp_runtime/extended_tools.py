@@ -985,14 +985,16 @@ def replace_chemdraw_objects_in_office(
     input_path: str,
     replacements_manifest: str,
     output_path: Optional[str] = None,
-    render_pdf_preview: bool = True,
+    render_pdf_preview: bool = False,
     resize_frames: bool = False,
 ) -> dict[str, Any]:
     """Replace selected ChemDraw OLE contents and previews without moving them.
 
     With ``resize_frames``, each frame grows or shrinks with its drawing, as
     Office does after an object is edited in ChemDraw; its top-left corner
-    stays in place. Otherwise frames keep their size.
+    stays in place. Otherwise frames keep their size. ``render_pdf_preview`` (off by
+    default) also exports a PDF through PowerPoint or Word; only the file it opened is
+    closed, and Office is quit only when it was not already running.
     """
     source = _source(input_path, suffixes=(".pptx", ".docx"))
     manifest_path = _source(replacements_manifest, suffixes=(".json",))
