@@ -3032,6 +3032,17 @@ def _layout_catalytic_cycle(
     return "\n".join(xml_parts), lowest_y
 
 
+# One renderer per layout name; ``schema.VALID_LAYOUTS`` lists the same names.
+LAYOUT_RENDERERS = {
+    "linear": _layout_linear,
+    "sequential": _layout_sequential,
+    "divergent": _layout_divergent,
+    "stacked-rows": _layout_stacked_rows,
+    "convergent": _layout_convergent,
+    "catalytic-cycle": _layout_catalytic_cycle,
+}
+
+
 def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> str:
     """
     Render a SchemeDescriptor to a CDXML document string.
@@ -3064,29 +3075,12 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
     ref_mol = _identify_product_mol(scheme, source_data)
 
     # Choose layout
-    if scheme.layout == "linear":
-        inner_xml, lowest_y = _layout_linear(scheme, ids, source_data=source_data,
-                                              reference_mol=ref_mol)
-    elif scheme.layout == "sequential":
-        inner_xml, lowest_y = _layout_sequential(scheme, ids, source_data=source_data,
-                                                  reference_mol=ref_mol)
-    elif scheme.layout == "divergent":
-        inner_xml, lowest_y = _layout_divergent(scheme, ids, source_data=source_data,
-                                                 reference_mol=ref_mol)
-    elif scheme.layout == "stacked-rows":
-        inner_xml, lowest_y = _layout_stacked_rows(scheme, ids, source_data=source_data,
-                                                    reference_mol=ref_mol)
-    elif scheme.layout == "convergent":
-        inner_xml, lowest_y = _layout_convergent(scheme, ids, source_data=source_data,
-                                                  reference_mol=ref_mol)
-    elif scheme.layout in ("catalytic-cycle", "cycle"):
-        inner_xml, lowest_y = _layout_catalytic_cycle(scheme, ids, source_data=source_data,
-                                                       reference_mol=ref_mol)
-    else:
-        raise NotImplementedError(
-            f"Layout '{scheme.layout}' is not yet implemented. "
-            f"Supported: linear, sequential, divergent, stacked-rows, convergent, catalytic-cycle"
+    layout = LAYOUT_RENDERERS.get(scheme.layout)
+    if layout is None:
+        raise ValueError(
+            f"Unknown layout '{scheme.layout}'. Supported: {', '.join(sorted(LAYOUT_RENDERERS))}"
         )
+    inner_xml, lowest_y = layout(scheme, ids, source_data=source_data, reference_mol=ref_mol)
 
     # Condition key block below the scheme
     if scheme.condition_key:
