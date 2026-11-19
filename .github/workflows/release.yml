@@ -40,7 +40,16 @@ jobs:
           path: dist
 
       - name: Package the Skill folder
-        run: git archive --format=zip --prefix=chemdraw/ -o "dist/chemdraw-skill-$GITHUB_REF_NAME.zip" HEAD:skill/chemdraw
+        # The archive is what the installer copies: the Skill without its tests.
+        run: |
+          zip="dist/chemdraw-skill-$GITHUB_REF_NAME.zip"
+          git archive --format=zip --prefix=chemdraw/ -o "$zip" HEAD:skill/chemdraw
+          zip -q -d "$zip" "chemdraw/tests/*"
+          unzip -Z1 "$zip" | grep -q '^chemdraw/SKILL.md$'
+          ! unzip -Z1 "$zip" | grep -q '^chemdraw/tests/'
+
+      - name: Write checksums
+        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
 
       - name: Create the release
         env:

@@ -58,6 +58,9 @@ class WorkflowTests(unittest.TestCase):
         self.assertRegex(text, r"(?m)^    tags: \[\"v\*\"\]$")
         self.assertNotIn("branches", text)
         self.assertIn("gh release create", text)
+        # The Skill archive carries no tests, and every release file has a published checksum.
+        self.assertIn('zip -q -d "$zip" "chemdraw/tests/*"', text)
+        self.assertLess(text.index("sha256sum * > SHA256SUMS"), text.index("gh release create"))
         # Only the job that creates the release may write to the repository.
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read$")
         self.assertEqual(text.count("contents: write"), 1)
