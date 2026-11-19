@@ -1417,7 +1417,7 @@ def _layout_sequential(
         return xml, lowest_y
 
     if wrap == "serpentine":
-        return _layout_serpentine(scheme, ids, source_data=source_data,
+        return _layout_serpentine(scheme, ids, steps_per_row, source_data=source_data,
                                   reference_mol=reference_mol)
 
     # --- Multi-row wrap:repeat ---
@@ -1495,6 +1495,7 @@ def _drawn_extent(row_xml: str) -> Tuple[float, float]:
 def _layout_serpentine(
     scheme: SchemeDescriptor,
     ids: _IDGen,
+    steps_per_row: int,
     source_data: Optional[Dict[str, Dict]] = None,
     reference_mol: Optional[Any] = None,
 ) -> Tuple[str, float]:
@@ -1507,9 +1508,11 @@ def _layout_serpentine(
     Transition steps between rows are rendered as vertical arrows with
     their conditions placed beside the arrow.
 
+    *steps_per_row* is the row length chosen by the caller (given, or picked
+    from ``max_row_width``).
+
     Returns (inner_xml, lowest_y).
     """
-    steps_per_row = scheme.steps_per_row
     left_margin = 80.0
 
     rows, transitions = _split_serpentine_rows(scheme.steps, steps_per_row)
