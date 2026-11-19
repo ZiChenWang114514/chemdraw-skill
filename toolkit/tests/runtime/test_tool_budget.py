@@ -52,3 +52,10 @@ def test_every_profile_has_a_budget():
     from cdxml_toolkit.mcp_runtime.tool_registry import SUPPORTED_PROFILES
 
     assert set(SUPPORTED_PROFILES) == set(PROFILE_TOOL_COUNT_MAX)
+
+
+def test_no_tool_lists_a_catch_all_argument():
+    for tool in _listed_tools("full"):
+        schema = getattr(tool, "input_schema", None) or getattr(tool, "inputSchema", None)
+        assert not {"args", "kwargs"} & set(schema.get("properties", {})), tool.name
+        assert not {"args", "kwargs"} & set(schema.get("required", [])), tool.name

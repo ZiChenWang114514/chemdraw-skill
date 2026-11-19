@@ -645,9 +645,13 @@ def _adapt_tool(
     except Exception:
         hints = getattr(function, "__annotations__", {})
     signature = inspect.signature(function)
+    # A JSON schema has no *args or **kwargs: listed, they become a required string argument
+    # that no caller can satisfy. The named parameters are the tool's interface.
+    variadic = (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
     parameters = [
         parameter.replace(annotation=hints.get(parameter.name, parameter.annotation))
         for parameter in signature.parameters.values()
+        if parameter.kind not in variadic
     ]
     return_annotation = (
         typing.Any
