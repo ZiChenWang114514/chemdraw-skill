@@ -23,7 +23,9 @@ class ToolCountTests(unittest.TestCase):
         table = dict(
             PROFILE_ROW.findall((REPO / "toolkit" / "README.md").read_text(encoding="utf-8"))
         )
-        self.assertEqual(set(table), {"full", "core", "office", "analysis", "chemscript"})
+        self.assertEqual(set(table), set(tool_registry.SUPPORTED_PROFILES))
+        default = re.search(r"^\| `(\w+)` \(default\)", (REPO / "toolkit" / "README.md").read_text(encoding="utf-8"), re.M)
+        self.assertEqual(default.group(1), tool_registry.DEFAULT_PROFILE)
         live = {name: len(tool_registry.build_registry(name)) for name in table}
         self.assertEqual({k: int(v) for k, v in table.items()}, live)
 
@@ -36,10 +38,7 @@ class ToolCountTests(unittest.TestCase):
     def test_prose_tool_counts_are_real_profile_sizes(self):
         from cdxml_toolkit.mcp_runtime import tool_registry
 
-        known = {
-            len(tool_registry.build_registry(name))
-            for name in ("full", "core", "office", "analysis", "chemscript")
-        }
+        known = {len(tool_registry.build_registry(name)) for name in tool_registry.SUPPORTED_PROFILES}
         known.add(15)  # the compatible core server in cdxml_toolkit.mcp_server
         generated = {"mcp-tools.md", "mcp-schema.json"}
         stale: list[str] = []
