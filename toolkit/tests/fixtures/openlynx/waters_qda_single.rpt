@@ -9,11 +9,11 @@ Date	02-Mar-2023
 Time	08:59:45
 JobCode	AACM10177
 TaskCode
-UserName	Joseph D Mason (jd
+UserName	user
 LabName
 Instrument	ACQ-QDA#NotSet
 Conditions
-Submitter	Joseph D Mason (jdm73868)
+Submitter	user
 SampleType	0
 Plate	01TL,XY,SD,1: 8,2:12,3: 90.0,4: 90.0,5:  0.0,6:  0.0,7:O,8:O,9:1280.0,10:860.0,11:120.0,12: 70.0,13:144.0,14:112.0
 QCBatchName
@@ -23,7 +23,7 @@ QCTime
 QCStatus
 QCReason1
 QCReason2
-Method	E:\GSK.PRO\CSH~2min_HPH.olp
+Method	C:\Example.PRO\CSH~2min_HPH.olp
 Process	C:\MassLynx\OpenLynx.exe
 MSTune
 MSMethod	CSH~2min_HpH

@@ -23,7 +23,7 @@ QCTime
 QCStatus
 QCReason1
 QCReason2
-Method	Z:\Tyler.PRO\ACQUDB\Proteasome_70to85_25000to35000.olp
+Method	C:\Example.PRO\Proteasome_70to85_25000to35000.olp
 Process	OpenLynx
 MSTune	protein_2020-DEC-09
 MSMethod	60sec_384_MS
@@ -237,7 +237,7 @@ QCTime
 QCStatus
 QCReason1
 QCReason2
-Method	Z:\Tyler.PRO\ACQUDB\Proteasome_70to85_25000to35000.olp
+Method	C:\Example.PRO\Proteasome_70to85_25000to35000.olp
 Process	OpenLynx
 MSTune	protein_2020-DEC-09
 MSMethod	60sec_384_MS

@@ -9,11 +9,11 @@ Date	22-Sep-2022
 Time	13:11:04
 JobCode	GT102263
 TaskCode
-UserName	Joseph D Mason (jd
+UserName	user
 LabName
 Instrument	ACQ-QDA#KAD4447
 Conditions
-Submitter	Joseph D Mason (jdm73868)
+Submitter	user
 SampleType	0
 Plate	01TL,XY,SD,1: 8,2:12,3: 90.0,4: 90.0,5:  0.0,6:  0.0,7:O,8:O,9:1280.0,10:860.0,11:113.0,12: 70.0,13:144.0,14:112.0
 QCBatchName
@@ -23,7 +23,7 @@ QCTime
 QCStatus
 QCReason1
 QCReason2
-Method	E:\GSK.PRO\2min_HpH_SAW.olp
+Method	C:\Example.PRO\2min_HpH_SAW.olp
 Process	C:\MassLynx\OpenLynx.exe
 MSTune
 MSMethod	2min_HpH
@@ -1034,11 +1034,11 @@ Date	22-Sep-2022
 Time	13:18:16
 JobCode	GT102263
 TaskCode
-UserName	Joseph D Mason (jd
+UserName	user
 LabName
 Instrument	ACQ-QDA#KAD4447
 Conditions
-Submitter	Joseph D Mason (jdm73868)
+Submitter	user
 SampleType	0
 Plate	01TL,XY,SD,1: 8,2:12,3: 90.0,4: 90.0,5:  0.0,6:  0.0,7:O,8:O,9:1280.0,10:860.0,11:113.0,12: 70.0,13:144.0,14:112.0
 QCBatchName
@@ -1048,7 +1048,7 @@ QCTime
 QCStatus
 QCReason1
 QCReason2
-Method	E:\GSK.PRO\2min_HpH_SAW.olp
+Method	C:\Example.PRO\2min_HpH_SAW.olp
 Process	C:\MassLynx\OpenLynx.exe
 MSTune
 MSMethod	2min_HpH
@@ -1978,11 +1978,11 @@ Date	22-Sep-2022
 Time	13:23:05
 JobCode	GT102263
 TaskCode
-UserName	Joseph D Mason (jd
+UserName	user
 LabName
 Instrument	ACQ-QDA#KAD4447
 Conditions
-Submitter	Joseph D Mason (jdm73868)
+Submitter	user
 SampleType	0
 Plate	01TL,XY,SD,1: 8,2:12,3: 90.0,4: 90.0,5:  0.0,6:  0.0,7:O,8:O,9:1280.0,10:860.0,11:113.0,12: 70.0,13:144.0,14:112.0
 QCBatchName
@@ -1992,7 +1992,7 @@ QCTime
 QCStatus
 QCReason1
 QCReason2
-Method	E:\GSK.PRO\2min_HpH_SAW.olp
+Method	C:\Example.PRO\2min_HpH_SAW.olp
 Process	C:\MassLynx\OpenLynx.exe
 MSTune
 MSMethod	2min_HpH
@@ -3075,11 +3075,11 @@ Date	22-Sep-2022
 Time	13:47:09
 JobCode	GT102263
 TaskCode
-UserName	Joseph D Mason (jd
+UserName	user
 LabName
 Instrument	ACQ-QDA#KAD4447
 Conditions
-Submitter	Joseph D Mason (jdm73868)
+Submitter	user
 SampleType	0
 Plate	01TL,XY,SD,1: 8,2:12,3: 90.0,4: 90.0,5:  0.0,6:  0.0,7:O,8:O,9:1280.0,10:860.0,11:113.0,12: 70.0,13:144.0,14:112.0
 QCBatchName
@@ -3089,7 +3089,7 @@ QCTime
 QCStatus
 QCReason1
 QCReason2
-Method	E:\GSK.PRO\2min_HpH_SAW.olp
+Method	C:\Example.PRO\2min_HpH_SAW.olp
 Process	C:\MassLynx\OpenLynx.exe
 MSTune
 MSMethod	2min_HpH

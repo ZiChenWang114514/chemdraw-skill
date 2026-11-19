@@ -360,3 +360,14 @@ def test_full_xevo_export():
     assert len(reports) == 28
     assert all(r.detector == "MS TIC" and len(r.peaks) == 1 for r in reports)
     assert all(r.peaks[0].ms_spectra for r in reports)
+
+
+def test_fixtures_carry_placeholder_people_and_paths():
+    """Report fixtures come from real instruments; names and site paths stay out of the repository."""
+    for report in sorted(FIXTURES.glob("*.rpt")):
+        for line in report.read_text(encoding="latin-1").splitlines():
+            key, _, value = line.partition("\t")
+            if key in {"UserName", "Submitter"}:
+                assert value.strip() in {"", "user"}, f"{report.name}: {key}"
+            if key == "Method":
+                assert value.startswith("C:\Example.PRO\\"), f"{report.name}: Method"
