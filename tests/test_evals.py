@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -60,8 +61,10 @@ class ScorerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             answers = Path(folder) / "answers.json"
             answers.write_text("{}", encoding="utf-8")
+            # The child sees the toolkit wherever this process found it.
+            environment = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, sys.path))}
             done = subprocess.run([sys.executable, str(EVALS / "score.py"), "tasks", str(answers)],
-                                  capture_output=True, text=True)
+                                  capture_output=True, text=True, env=environment)
             self.assertEqual(done.returncode, 1, done.stderr)
             self.assertEqual(json.loads(done.stdout)["passed"], 0)
 
