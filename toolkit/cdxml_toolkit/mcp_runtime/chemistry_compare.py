@@ -119,6 +119,23 @@ def _normalized(info: dict[str, Any], molecule) -> dict[str, Any]:
     }
 
 
+def _enhanced_stereo_keys(raw, molecules):
+    """Identity keys that keep enhanced stereo groups, or None when neither input has any."""
+    from rdkit import Chem
+
+    from cdxml_toolkit.chemistry_semantics import semantic_key
+
+    if not raw:
+        return None
+    parsed = []
+    for text, fallback in zip(raw, molecules):
+        own = Chem.MolFromSmiles(text) if isinstance(text, str) and "|" in text else None
+        parsed.append(own if own is not None else fallback)
+    if not any(mol.GetStereoGroups() for mol in parsed):
+        return None
+    return tuple(semantic_key(mol) for mol in parsed)
+
+
 def _compare_infos(
     info_a: dict[str, Any],
     info_b: dict[str, Any],
@@ -126,6 +143,7 @@ def _compare_infos(
     fingerprint: str,
     radius: int,
     n_bits: int,
+    raw: tuple[str, str] | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     from rdkit import DataStructs
 
@@ -136,7 +154,12 @@ def _compare_infos(
     inchi_a = info_a.get("inchi")
     inchi_b = info_b.get("inchi")
     has_dummies = _has_dummy_atoms(molecule_a) or _has_dummy_atoms(molecule_b)
-    if has_dummies:
+    enhanced = _enhanced_stereo_keys(raw, (molecule_a, molecule_b))
+    if enhanced is not None:
+        # InChI and plain SMILES have no place for or/and stereo groups: (R or S) would equal (R).
+        exact_match = enhanced[0] == enhanced[1]
+        identity_basis = "RDKit CXSMILES with enhanced stereo groups"
+    elif has_dummies:
         exact_match = canonical_a["canonical_smiles"] == canonical_b["canonical_smiles"]
         identity_basis = "RDKit canonical isomeric SMILES (dummy atom labels preserved)"
     elif isinstance(inchi_a, str) and inchi_a and isinstance(inchi_b, str) and inchi_b:
@@ -196,6 +219,7 @@ def compare_molecules(
             fingerprint=fingerprint,
             radius=radius,
             n_bits=n_bits,
+            raw=(molecule_a, molecule_b),
         )
     finally:
         bridge.close()
@@ -269,6 +293,7 @@ def batch_compare_molecules(
                     fingerprint=fingerprint,
                     radius=radius,
                     n_bits=n_bits,
+                    raw=(molecule_a, molecule_b),
                 )
                 results.append(
                     {"pair_id": pair_id, "ok": True, **comparison, "warnings": pair_warnings}

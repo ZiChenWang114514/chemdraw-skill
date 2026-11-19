@@ -38,6 +38,20 @@ def info(smiles: str, inchi: str, formula: str = "C2H6O") -> dict:
 
 
 class MoleculeComparisonTests(unittest.TestCase):
+    def test_an_either_enantiomer_sample_is_not_the_single_enantiomer(self):
+        # ChemScript's SMILES and InChI drop the "or" group, so both inputs look identical there.
+        inchi = "InChI=1S/C4H10O/c1-3-4(2)5/h4-5H,3H2,1-2H3/t4-/m1/s1"
+        single, either = "CC[C@@H](C)O", "CC[C@@H](C)O |o1:2|"
+        bridge = FakeBridge({single: info("CC[C@@H](C)O", inchi), either: info("CC[C@@H](C)O", inchi)})
+        with mock.patch.object(chemistry_compare, "_bridge_factory", return_value=bridge):
+            different = chemistry_compare.compare_molecules(single, either)
+        self.assertFalse(different["outputs"]["exact_match"])
+        self.assertIn("enhanced stereo", different["outputs"]["identity_basis"])
+        bridge = FakeBridge({either: info("CC[C@@H](C)O", inchi)})
+        with mock.patch.object(chemistry_compare, "_bridge_factory", return_value=bridge):
+            same = chemistry_compare.compare_molecules(either, either)
+        self.assertTrue(same["outputs"]["exact_match"])
+
     def test_compare_uses_chemscript_identity_and_rdkit_fingerprint(self):
         bridge = FakeBridge(
             {
