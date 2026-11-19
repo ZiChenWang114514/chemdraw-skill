@@ -80,6 +80,15 @@ def _acquire_application():
     return application, not already_running
 
 
+def acquire_application():
+    """``(application, launched)`` from the one shared acquisition path (a private instance).
+
+    For callers that cannot use :class:`NativeRenderSession`; ``launched`` is False when a
+    ChemDraw instance was already running, and such an instance must never be quit.
+    """
+    return _acquire_application()
+
+
 def _chemdraw_running() -> bool:
     """True when a ChemDraw instance is registered as running before this process acquires one."""
     try:
@@ -162,6 +171,19 @@ class NativeRenderSession:
             self._release_application()
             self._finish_apartment()
             raise _classified_error(exc) from exc
+
+    def com_application(self):
+        """The session's private, hidden ChemDraw COM application (Windows only).
+
+        Callers that drive ChemDraw beyond :meth:`render` use this handle instead of
+        dispatching their own, so every caller shares one acquisition path: settings the
+        session changed are restored and ChemDraw is quit only if this session launched it.
+        Callers must close only the documents they open themselves.
+        """
+        if mac_automation.is_macos():
+            raise NativeRenderError("chemdraw_unavailable", "ChemDraw COM is not available on macOS")
+        self._start()
+        return self.application
 
     def _finish_apartment(self) -> None:
         if self._apartment is not None:
