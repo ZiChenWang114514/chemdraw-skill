@@ -103,3 +103,16 @@ def test_reverse_lookup_uses_the_primary_table_only():
     db = get_reagent_db()
     assert db.entry_for_smiles("CCN(CC)CC")["display"] == "Et3N"
     assert db.entry_for_smiles("C[N+]1([O-])CCOCC1") is None  # NMO lives in the secondary table only
+
+
+def test_offline_resolution_never_reaches_the_network_through_the_prefix_lookup(offline):
+    """``use_network=False`` holds for the whole call, including the substituent-prefix lookup."""
+    for query in ("an unlisted trivial name", "CC(C)(C)c1ccc(cc1)C(C)(C)C", "aspirin"):
+        mol_builder.resolve_compound(query, use_network=False)
+        mol_builder.get_prefix_form(query, use_network=False)
+
+
+def test_the_offline_switch_wins_over_the_argument(offline):
+    offline.setenv("CHEMDRAW_OFFLINE", "1")
+    mol_builder.resolve_compound("an unlisted trivial name", use_network=True)
+    mol_builder.get_prefix_form("an unlisted trivial name")

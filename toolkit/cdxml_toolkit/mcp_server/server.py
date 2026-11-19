@@ -1545,6 +1545,29 @@ def render_to_png(
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+def http_bind_host(host):
+    """The address the HTTP transport listens on: this machine only.
+
+    This server has no authentication. ``cdxml-mcp`` serves the same tools over
+    HTTP with an API key and host/origin checks, and is the one to expose.
+    """
+    import ipaddress
+
+    candidate = (host or "127.0.0.1").strip()
+    bare = candidate.strip("[]").lower()
+    try:
+        loopback = bare == "localhost" or ipaddress.ip_address(bare).is_loopback
+    except ValueError:
+        loopback = False
+    if not loopback:
+        raise SystemExit(
+            f"cdxml-mcp-core has no authentication and will not listen on {candidate!r}. "
+            "Use `cdxml-mcp --transport streamable-http --host ...` with an API key in "
+            "CHEMDRAW_MCP_HTTP_API_KEY for access from other machines."
+        )
+    return candidate
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="cdxml-toolkit MCP server",
@@ -1563,6 +1586,11 @@ def main():
         help="Port for HTTP transport (default: 8000)",
     )
     parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Loopback address for HTTP transport (default: 127.0.0.1)",
+    )
+    parser.add_argument(
         "--no-preload-decimer",
         action="store_true",
         help=(
@@ -1572,6 +1600,8 @@ def main():
         ),
     )
     args = parser.parse_args()
+    if args.transport == "http":
+        http_bind_host(args.host)  # refuse before loading models
 
     # Suppress TensorFlow C-level logging before any TF import.
     # This prevents TF's stdout/stderr writes from corrupting the
@@ -1632,7 +1662,7 @@ def main():
     if args.transport == "stdio":
         mcp.run(transport="stdio")
     else:
-        mcp.run(transport="streamable-http", host="0.0.0.0", port=args.port)
+        mcp.run(transport="streamable-http", host=http_bind_host(args.host), port=args.port)
 
 
 if __name__ == "__main__":

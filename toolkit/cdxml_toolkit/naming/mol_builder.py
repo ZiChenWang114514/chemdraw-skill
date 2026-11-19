@@ -593,12 +593,12 @@ def resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]:
 
     # --- Step 5: IUPAC substituent prefix form ---
     prefix_form: Optional[str] = None
-    pf_result = get_prefix_form(query)
+    pf_result = get_prefix_form(query, use_network=use_network)
     if pf_result.get("ok"):
         prefix_form = pf_result["prefix"]
     else:
         # Try on the resolved SMILES as a fallback
-        pf_result2 = get_prefix_form(smiles)
+        pf_result2 = get_prefix_form(smiles, use_network=use_network)
         if pf_result2.get("ok"):
             prefix_form = pf_result2["prefix"]
 
@@ -662,7 +662,7 @@ def resolve_to_smiles(query: str, use_network: bool = True) -> Dict[str, Any]:
 # Tool 2: get_prefix_form
 # ---------------------------------------------------------------------------
 
-def get_prefix_form(group: str) -> Dict[str, Any]:
+def get_prefix_form(group: str, use_network: bool = True) -> Dict[str, Any]:
     """Get the IUPAC substituent prefix form for a chemical group.
 
     Given a group name, abbreviation, or formula, returns the prefix
@@ -707,7 +707,7 @@ def get_prefix_form(group: str) -> Dict[str, Any]:
 
     # --- Se-probe via name_fragment_as_substituent ---
     # Resolve group to SMILES, add [*] attachment, call the decomposer.
-    resolved = _resolve_query(clean, use_network=True)
+    resolved = _resolve_query(clean, use_network=use_network)
     if resolved:
         from rdkit import Chem
         mol = Chem.MolFromSmiles(resolved["smiles"])
@@ -2798,7 +2798,7 @@ def modify_molecule(mol_json: Dict[str, Any],
 
         for prefix_to_remove in remove_list:
             # Auto-resolve abbreviations to IUPAC prefix form
-            pfx_r = get_prefix_form(prefix_to_remove)
+            pfx_r = get_prefix_form(prefix_to_remove, use_network=False)
             if pfx_r.get("ok"):
                 prefix_to_remove = pfx_r["prefix"]
             res = _modify_remove(current_name, prefix_to_remove,
@@ -2828,7 +2828,7 @@ def modify_molecule(mol_json: Dict[str, Any],
                 continue
             # Auto-resolve abbreviations/formulae to IUPAC prefix form
             # so the agent can say "CF3" instead of "trifluoromethyl".
-            pfx_result = get_prefix_form(prefix)
+            pfx_result = get_prefix_form(prefix, use_network=False)
             if pfx_result.get("ok"):
                 prefix = pfx_result["prefix"]
             res = _modify_add(current_name, prefix, locant,
@@ -3014,7 +3014,7 @@ def modify_molecule(mol_json: Dict[str, Any],
         # Get prefix form (substituent name)
         prefix_form: Optional[str] = None
         try:
-            pfx_result = get_prefix_form(canonical_name or input_smiles)
+            pfx_result = get_prefix_form(canonical_name or input_smiles, use_network=False)
             if pfx_result.get("ok"):
                 prefix_form = pfx_result["prefix"]
         except Exception:
@@ -3042,10 +3042,11 @@ def modify_molecule(mol_json: Dict[str, Any],
             return {"ok": False, "error": "'new_name' is required for set_name."}
 
         # Try to resolve the name to SMILES
-        output_smiles = _try_validate(new_name, use_network=True)
+        allow_network = bool(kwargs.get("use_network", True))
+        output_smiles = _try_validate(new_name, use_network=allow_network)
         if not output_smiles:
             # Also try resolve_to_smiles in case it's a common name
-            r = resolve_to_smiles(new_name, use_network=True)
+            r = resolve_to_smiles(new_name, use_network=allow_network)
             if r.get("ok"):
                 output_smiles = r["smiles"]
 
