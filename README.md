@@ -194,7 +194,7 @@ Every card below is a native ChemDraw render of an editable `.cdxml` file in thi
   <tr>
     <td colspan="3" align="center">
       <a href="#journal-and-group-house-styles"><img src="assets/readme/gallery/house-style-chemdraw.png" width="82%" alt="A published radical-probe scheme redrawn in the Studer group house style, new bonds in red"></a>
-      <br><b>28 empirical journal &amp; group house styles + 16 ChemDraw presets</b><br><sub>Measured from 179 openly licensed figures across 23 figure types, verified against 47 literature replicas</sub>
+      <br><b>28 empirical journal &amp; group house styles + 16 ChemDraw presets</b><br><sub>Measured from 179 openly licensed figures across 23 figure types; 47 literature replicas record what each style reproduces and where it differs</sub>
     </td>
   </tr>
   <tr>
@@ -405,7 +405,7 @@ The same Suzuki coupling drawn from one brief across six house styles ([style ga
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="One Suzuki coupling drawn in six house styles: acs_jacs, nature_portfolio, baran_group, macmillan_group, science_aaas and glorius_group"></p>
 
-- **47 literature replicas.** Every card was tested against its own evidence: 47 published figures (single schemes, catalytic cycles, scope grids and total syntheses) were redrawn from briefs and archived with their reference crop, brief, native render and `CASE.md` audit ([replica index](showcase/house-styles/gallery/README.md#literature-replicas)).
+- **47 literature replicas.** 47 published figures (single schemes, catalytic cycles, scope grids and total syntheses) were redrawn from briefs and archived with their reference crop, brief and native render. Each `CASE.md` lists what is reproduced and every difference from the paper; no case is a complete match ([replica index](showcase/house-styles/gallery/README.md#literature-replicas)).
 - **Audited provenance.** Each style directory stores its CC BY evidence crops and source DOIs, and every draw report logs which conventions were applied or skipped and why.
 - **Known ChemDraw limit &amp; MCP URI.** Left-attached abbreviations sit at the right coordinates, though desktop ChemDraw spells some right-flowing (`CO2Me` rather than `MeO2C`) until **Clean Up Structure** runs. Full options: [drawing a new reaction scheme](skill/chemdraw/references/scheme-drawing.md); MCP clients read `chemdraw://style-guide/{name}`.
 

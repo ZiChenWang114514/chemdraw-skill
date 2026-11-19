@@ -194,7 +194,7 @@ python <skill>/scripts/cdx.py doctor --text                               # 本�
   <tr>
     <td colspan="3" align="center">
       <a href="#期刊与课题组画法风格"><img src="assets/readme/gallery/house-style-chemdraw.png" width="82%" alt="按 Studer 课题组画法风格重画的已发表自由基探针反应式，新键为红色"></a>
-      <br><b>28 个实测期刊与课题组画法风格 + 16 个 ChemDraw 预设</b><br><sub>实测自 179 张开放许可插图，覆盖 23 类科研图，经 47 个文献复现案例逐项核验</sub>
+      <br><b>28 个实测期刊与课题组画法风格 + 16 个 ChemDraw 预设</b><br><sub>实测自 179 张开放许可插图，覆盖 23 类科研图；47 个文献复现案例逐条记录已复现的部分与同原图的差异</sub>
     </td>
   </tr>
   <tr>
@@ -405,7 +405,7 @@ python skill/chemdraw/scripts/cdx.py draw brief.json out.cdxml --style studer_gr
 
 <p align="center"><img src="assets/readme/gallery/house-styles.png" width="88%" alt="同一个 Suzuki 偶联按六个画法风格画出：acs_jacs、nature_portfolio、baran_group、macmillan_group、science_aaas 和 glorius_group"></p>
 
-- **47 个文献复现案例。** 每张卡片均用其原始证据图反向核验：精选 47 张已发表插图（涵盖单步反应、催化循环、底物拓展与全合成），按对应风格从说明文件重画，并归档参考截图、说明文件、原生渲染图与逐项核对的 `CASE.md`（[复现索引](showcase/house-styles/gallery/README.md#literature-replicas)）。
+- **47 个文献复现案例。** 精选 47 张已发表插图（涵盖单步反应、催化循环、底物拓展与全合成），按对应风格从说明文件重画，并归档参考截图、说明文件与原生渲染图。每份 `CASE.md` 逐条列出已复现的部分与同原图的差异，没有一例与原图完全一致（[复现索引](showcase/house-styles/gallery/README.md#literature-replicas)）。
 - **开放许可溯源。** 每个风格目录均保存 CC BY 证据截图与来源 DOI；每次绘图报告都会逐条记录已应用与跳过的版式规则及原因。
 - **已知限制与 MCP 资源。** 母核左侧缩写基团坐标准确，但桌面版 ChemDraw 在运行 **Clean Up Structure** 前可能将部分左侧基团按从左向右拼写（如显示 `CO2Me` 而非 `MeO2C`）。完整选项见[绘制新反应图](skill/chemdraw/references/scheme-drawing.md)；MCP 客户端可通过 `chemdraw://style-guide/{name}` 读取卡片。
 
