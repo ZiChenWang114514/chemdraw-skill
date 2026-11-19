@@ -1,0 +1,346 @@
+{
+  "tools": {
+    "analyze_lcms_series": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "assemble_lab_book": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "batch_compare_molecules": {
+      "attribute": "COMPARISON_TOOLS",
+      "group": "extended",
+      "module": "chemistry_compare",
+      "timeout_seconds": 300
+    },
+    "batch_embed_cdxml_in_office": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "build_acs_figure": {
+      "attribute": "build_acs_figure",
+      "group": "extended",
+      "module": "tool_registry"
+    },
+    "characterization_text": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools"
+    },
+    "check_reaction_balance": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools"
+    },
+    "chemdraw_chemical_properties": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools",
+      "timeout_seconds": 600
+    },
+    "chemdraw_com_call": {
+      "attribute": "COM_TOOLS",
+      "group": "extended",
+      "module": "com_call",
+      "timeout_seconds": 240
+    },
+    "chemdraw_inventory": {
+      "attribute": "OBJECT_TOOLS",
+      "group": "extended",
+      "module": "object_tools"
+    },
+    "chemdraw_object": {
+      "attribute": "OBJECT_TOOLS",
+      "group": "extended",
+      "module": "object_tools"
+    },
+    "clean_scheme_layout": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "compare_figure_images": {
+      "attribute": "FIGURE_TOOLS",
+      "group": "extended",
+      "module": "figure_tools"
+    },
+    "compare_molecules": {
+      "attribute": "COMPARISON_TOOLS",
+      "group": "extended",
+      "module": "chemistry_compare",
+      "timeout_seconds": 120
+    },
+    "compare_nmr_shifts": {
+      "attribute": "ENGINE_TOOLS",
+      "group": "extended",
+      "module": "engine_tools"
+    },
+    "compose_chemical_figure": {
+      "attribute": "FIGURE_TOOLS",
+      "group": "extended",
+      "module": "figure_tools"
+    },
+    "convert_cdx_cdxml": {
+      "group": "official"
+    },
+    "diagnose_runtime": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "discover_experiment_files": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "draw_figure": {
+      "attribute": "draw_figure",
+      "group": "extended",
+      "module": "figure_draw",
+      "timeout_seconds": 300
+    },
+    "draw_molecule": {
+      "group": "official"
+    },
+    "embed_cdxml_in_office": {
+      "group": "official"
+    },
+    "execute_chemscript_sdk": {
+      "attribute": "CHEMSCRIPT_SDK_TOOLS",
+      "group": "extended",
+      "module": "chemscript_sdk",
+      "timeout_seconds": 300
+    },
+    "export_structures": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools"
+    },
+    "extract_cdxml_from_office": {
+      "group": "official"
+    },
+    "extract_structures_from_document": {
+      "attribute": "ENGINE_TOOLS",
+      "group": "extended",
+      "module": "engine_tools",
+      "timeout_seconds": 3600
+    },
+    "extract_structures_from_image": {
+      "group": "official"
+    },
+    "extract_structures_via_decimer_api": {
+      "group": "remote"
+    },
+    "fill_office_template": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "format_lab_entry": {
+      "group": "official"
+    },
+    "get_toolkit_capabilities": {
+      "attribute": "SYSTEM_TOOLS",
+      "group": "extended",
+      "module": "capabilities"
+    },
+    "hrms_line": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools"
+    },
+    "inspect_chemdraw_objects_in_office": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "inspect_chemscript_sdk": {
+      "attribute": "CHEMSCRIPT_SDK_TOOLS",
+      "group": "extended",
+      "module": "chemscript_sdk",
+      "timeout_seconds": 240
+    },
+    "list_engines": {
+      "attribute": "ENGINE_TOOLS",
+      "group": "extended",
+      "module": "engine_tools"
+    },
+    "live_chemdraw_session": {
+      "attribute": "LIVE_CHEMDRAW_TOOLS",
+      "group": "extended",
+      "module": "live_chemdraw"
+    },
+    "map_reaction_atoms": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools"
+    },
+    "markush_compile": {
+      "attribute": "MARKUSH_TOOLS",
+      "group": "extended",
+      "module": "markush_tools",
+      "timeout_seconds": 180
+    },
+    "markush_detect": {
+      "attribute": "MARKUSH_TOOLS",
+      "group": "extended",
+      "module": "markush_tools",
+      "timeout_seconds": 120
+    },
+    "markush_enumerate": {
+      "attribute": "MARKUSH_TOOLS",
+      "group": "extended",
+      "module": "markush_tools"
+    },
+    "markush_validate": {
+      "attribute": "MARKUSH_TOOLS",
+      "group": "extended",
+      "module": "markush_tools"
+    },
+    "merge_reaction_schemes": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "modify_molecule": {
+      "group": "official",
+      "timeout_seconds": 90
+    },
+    "molecule_report": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools"
+    },
+    "open_drawing_studio": {
+      "attribute": "UI_APP_TOOLS",
+      "group": "extended",
+      "module": "ui_apps"
+    },
+    "parse_analysis_file": {
+      "group": "official"
+    },
+    "parse_reaction": {
+      "group": "official"
+    },
+    "parse_scheme": {
+      "group": "official"
+    },
+    "parse_scifinder_rdf": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "polish_reaction_scheme": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "predict_conditions": {
+      "attribute": "ENGINE_TOOLS",
+      "group": "extended",
+      "module": "engine_tools",
+      "timeout_seconds": 1200
+    },
+    "predict_nmr": {
+      "attribute": "ENGINE_TOOLS",
+      "group": "extended",
+      "module": "engine_tools",
+      "timeout_seconds": 1200
+    },
+    "predict_products": {
+      "attribute": "ENGINE_TOOLS",
+      "group": "extended",
+      "module": "engine_tools",
+      "timeout_seconds": 900
+    },
+    "predict_retrosynthesis": {
+      "attribute": "ENGINE_TOOLS",
+      "group": "extended",
+      "module": "engine_tools",
+      "timeout_seconds": 1200
+    },
+    "publication_figure": {
+      "attribute": "publication_figure",
+      "group": "extended",
+      "module": "publication_figure",
+      "timeout_seconds": 600
+    },
+    "rdkit_workbench": {
+      "attribute": "FIGURE_TOOLS",
+      "group": "extended",
+      "module": "figure_tools"
+    },
+    "recognize_structure": {
+      "attribute": "ENGINE_TOOLS",
+      "group": "extended",
+      "module": "engine_tools",
+      "timeout_seconds": 1800
+    },
+    "render_cdxml_files": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "render_scheme": {
+      "group": "official"
+    },
+    "render_to_png": {
+      "group": "official"
+    },
+    "replace_chemdraw_objects_in_office": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "resolve_name": {
+      "group": "official"
+    },
+    "route_summary": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools"
+    },
+    "scientific_workflow": {
+      "attribute": "SCIENTIFIC_TOOLS",
+      "group": "extended",
+      "module": "scientific_tool"
+    },
+    "search_compound": {
+      "group": "official"
+    },
+    "segment_large_scheme": {
+      "attribute": "PUBLIC_TOOLS",
+      "group": "extended",
+      "module": "extended_tools"
+    },
+    "si_materials_tables": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools"
+    },
+    "stoichiometry_grid": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools",
+      "timeout_seconds": 300
+    },
+    "structure_to_name": {
+      "attribute": "REPORT_TOOLS",
+      "group": "extended",
+      "module": "report_tools",
+      "timeout_seconds": 300
+    },
+    "summarize_reaction": {
+      "group": "official"
+    },
+    "view_molecule_3d": {
+      "attribute": "UI_APP_TOOLS",
+      "group": "extended",
+      "module": "ui_apps"
+    }
+  }
+}

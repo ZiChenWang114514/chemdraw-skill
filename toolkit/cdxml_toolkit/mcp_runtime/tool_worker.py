@@ -211,11 +211,16 @@ def main() -> int:
             from rdkit import RDLogger
 
             RDLogger.DisableLog("rdApp.*")
-            from .tool_registry import build_registry, normalize_profile
+            from cdxml_toolkit.mcp_server import _compat
+
+            _compat.tools_only()
+            from .tool_registry import build_registry, load_tool, normalize_profile
 
             profile = normalize_profile(payload.get("profile"))
             # Profiles filter public exposure, not internal calls between tool implementations.
-            registry = build_registry()
+            # The manifest names the one module this tool needs; without it, load them all.
+            known = load_tool(payload["tool"]) if isinstance(payload.get("tool"), str) else None
+            registry = {known.name: known} if known is not None else build_registry()
             # This worker handles one request; never mutate the parent server's environment.
             os.environ["CHEMDRAW_MCP_PROFILE"] = profile
         tool_name = payload["tool"]
@@ -229,18 +234,33 @@ def main() -> int:
         timeout_seconds = payload.get("timeout_seconds", 570)
         if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, int):
             raise ValueError("Worker timeout must be an integer")
-        call_args = list(payload.get("args", []))
-        call_kwargs = dict(payload.get("kwargs", {}))
-        with native_resource_lock(
-            spec.resource_class,
-            _resource_timeout(timeout_seconds),
-        ):
+        def call(call_args: list, call_kwargs: dict):
             with redirect_stdout(sys.stderr):
                 _bind_or_explain(tool_name, spec.function, call_args, call_kwargs)
                 result = spec.function(*call_args, **call_kwargs)
                 if inspect.isawaitable(result):
                     result = asyncio.run(result)
-        _write_envelope({"ok": True, "result": _jsonable(result)})
+            return _jsonable(result)
+
+        each = payload.get("each")
+        if each is not None and (not isinstance(each, list) or not all(isinstance(item, dict) for item in each)):
+            raise ValueError("Worker batch must be a list of keyword-argument objects")
+        with native_resource_lock(
+            spec.resource_class,
+            _resource_timeout(timeout_seconds),
+        ):
+            if each is None:
+                result = call(list(payload.get("args", [])), dict(payload.get("kwargs", {})))
+            else:
+                # The same tool, once per item, in this one process: the imports and any
+                # helper server are paid for once. One item failing does not stop the rest.
+                result = []
+                for call_kwargs in each:
+                    try:
+                        result.append({"ok": True, "result": call([], dict(call_kwargs))})
+                    except Exception as exc:
+                        result.append(_error_envelope(exc)[0])
+        _write_envelope({"ok": True, "result": result})
         return 0
     except BaseException as exc:
         envelope, return_code = _error_envelope(exc)

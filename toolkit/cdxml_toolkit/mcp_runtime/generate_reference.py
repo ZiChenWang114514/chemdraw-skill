@@ -100,7 +100,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--markdown", type=Path)
     parser.add_argument("--json", dest="json_path", type=Path)
     parser.add_argument("--output", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--tool-manifest", action="store_true",
+                        help="rewrite tool_manifest.json beside the registry (run from the toolkit checkout)")
     args = parser.parse_args(argv)
+    if args.tool_manifest:
+        from . import tool_registry
+
+        tool_registry.MANIFEST_PATH.write_text(tool_registry.render_manifest(), encoding="utf-8", newline="\n")
+        print(tool_registry.MANIFEST_PATH)
+        if not (args.output or args.markdown or args.json_path):
+            return 0
     if args.output:
         if args.markdown or args.json_path:
             parser.error("--output cannot be combined with --markdown or --json")

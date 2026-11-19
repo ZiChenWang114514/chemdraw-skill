@@ -27,10 +27,8 @@ from . import mcp_compat
 from . import telemetry
 mcp_compat.install_legacy_fastmcp_alias()
 
-from cdxml_toolkit.mcp_server import server as upstream
-
 from .process_control import _assign_kill_job, _close_job, _terminate_process_tree
-from .tool_registry import DEFAULT_PROFILE, PROFILE_CHOICES, build_registry, normalize_profile
+from .tool_registry import DEFAULT_PROFILE, PROFILE_CHOICES, build_registry, normalize_profile, tool_manifest
 
 
 _WORKER_MODULE = "cdxml_toolkit.mcp_runtime.tool_worker"
@@ -261,6 +259,7 @@ def _interpret_worker_result(
     timeout: int,
     duration: float,
     output_limit: int,
+    each: int | None = None,
 ) -> dict[str, typing.Any]:
     metadata = {"tool": name, "duration_seconds": round(duration, 3)}
     if returncode == _TIMEOUT_RETURN_CODE:
@@ -298,6 +297,30 @@ def _interpret_worker_result(
             "error": {"code": "worker_protocol_error", "message": "Worker response envelope is incomplete"},
             "metadata": {**metadata, "returncode": returncode},
         }
+    if each is not None:
+        items = envelope.get("result")
+        if returncode != 0 or not envelope["ok"] or not isinstance(items, list) or len(items) != each \
+                or not all(isinstance(item, dict) and isinstance(item.get("ok"), bool) for item in items):
+            if returncode == 0 and envelope["ok"]:
+                return {
+                    "ok": False,
+                    "error": {"code": "worker_protocol_error", "message": "Worker batch response is incomplete"},
+                    "metadata": {**metadata, "returncode": returncode},
+                }
+            return _interpret_envelope(name, envelope, returncode or 1, metadata, duration)
+        results = [_interpret_envelope(name, item, 0 if item["ok"] else 1, metadata, duration) for item in items]
+        return {"ok": all(item["ok"] for item in results), "results": results, "metadata": metadata}
+    return _interpret_envelope(name, envelope, returncode, metadata, duration)
+
+
+def _interpret_envelope(
+    name: str,
+    envelope: dict[str, typing.Any],
+    returncode: int,
+    metadata: dict[str, typing.Any],
+    duration: float,
+) -> dict[str, typing.Any]:
+    """One call's worker envelope as the result every caller receives."""
     if returncode == 0 and envelope["ok"]:
         # One contract for every caller: ``result`` is an object, never JSON inside a string.
         result = _decode_json_text(envelope.get("result"))
@@ -358,11 +381,19 @@ def _run_worker_impl(
     timeout_seconds: int | None = None,
     cancellation: threading.Event | None = None,
     holder: dict[str, typing.Any] | None = None,
+    each: list[dict] | None = None,
 ) -> dict[str, typing.Any]:
     if timeout_seconds is None:
-        spec = build_registry().get(name)
-        timeout_seconds = spec.timeout_seconds if spec is not None else None
+        entry = tool_manifest().get(name)
+        if isinstance(entry, dict):
+            timeout_seconds = entry.get("timeout_seconds")
+        else:
+            spec = build_registry().get(name)
+            timeout_seconds = spec.timeout_seconds if spec is not None else None
     timeout = _timeout(timeout_seconds)
+    if each is not None:
+        # Each item may take the tool's time; an hour bounds the whole batch.
+        timeout = min(timeout * max(len(each), 1), max(timeout, 3600))
     input_limit = _positive_env_int(
         "CHEMDRAW_MCP_WORKER_INPUT_BYTES", DEFAULT_WORKER_INPUT_BYTES
     )
@@ -375,6 +406,7 @@ def _run_worker_impl(
         "kwargs": kwargs,
         "timeout_seconds": timeout,
         "profile": _CALL_PROFILE.get() or normalize_profile(),
+        **({"each": each} if each is not None else {}),
     }).encode("utf-8")
     if len(payload) > input_limit:
         return {
@@ -415,6 +447,7 @@ def _run_worker_impl(
         timeout=timeout,
         duration=time.monotonic() - started,
         output_limit=output_limit,
+        each=len(each) if each is not None else None,
     )
 
 
@@ -426,6 +459,25 @@ def _run_worker(
     timeout_seconds: int | None = None,
 ) -> dict[str, typing.Any]:
     return _run_worker_impl(name, args, kwargs, timeout_seconds=timeout_seconds)
+
+
+def _run_worker_each(
+    name: str,
+    calls: list[dict],
+    *,
+    timeout_seconds: int | None = None,
+) -> list[dict[str, typing.Any]]:
+    """Call one tool once per keyword-argument object, in a single worker process.
+
+    Returns one result per call, each shaped like `_run_worker`'s. When the worker itself
+    fails (timeout, crash), every call reports that failure.
+    """
+    calls = [dict(item) for item in calls]
+    if not calls:
+        return []
+    outcome = _run_worker_impl(name, [], {}, timeout_seconds=timeout_seconds, each=calls)
+    results = outcome.get("results")
+    return results if isinstance(results, list) else [outcome for _ in calls]
 
 
 def _native_async_lock() -> asyncio.Lock:
@@ -1014,13 +1066,20 @@ def list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, t
     }
 
 
+def _upstream_instructions() -> str | None:
+    # Imported here: a process that only launches workers never needs the core server module.
+    from cdxml_toolkit.mcp_server import server as upstream
+
+    return upstream.mcp.instructions
+
+
 def build_server(*, profile: str | None = None, **server_settings):
     server_type = mcp_compat.server_class()
     selected_profile = normalize_profile(profile)
     registry = build_registry(profile=selected_profile)
     telemetry.configure_tools(registry)
     mcp = server_type(
-        "cdxml-toolkit", instructions=upstream.mcp.instructions, **server_settings
+        "cdxml-toolkit", instructions=_upstream_instructions(), **server_settings
     )
     tool_decorator = mcp.tool
     tool_params = inspect.signature(tool_decorator).parameters

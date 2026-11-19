@@ -27,7 +27,11 @@ from __future__ import annotations
 
 import re
 from typing import Tuple
-from xml.sax.saxutils import escape as xml_escape
+
+
+def xml_escape(data: str) -> str:
+    """Escape &, < and > as xml.sax.saxutils.escape does, without that module's import cost."""
+    return data.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
 
 # ---------------------------------------------------------------------------
 # Regex: letter (or closing paren) followed by one or more digits.

@@ -3,32 +3,36 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import importlib
 import inspect
+import json
+from pathlib import Path
 import sys
 from typing import Any, Callable
 
-from . import mcp_compat
-mcp_compat.install_legacy_fastmcp_alias()
-
-from cdxml_toolkit.mcp_server import server as upstream
-
-from .chemistry_compare import COMPARISON_TOOLS
-from .chemscript_sdk import CHEMSCRIPT_SDK_TOOLS
-from .capabilities import SYSTEM_TOOLS
-from .extended_tools import PUBLIC_TOOLS
-from .official_overrides import OFFICIAL_OVERRIDES
-from .remote_tools import REMOTE_TOOLS
-from .figure_tools import FIGURE_TOOLS
-from .markush_tools import MARKUSH_TOOLS
-from .com_call import COM_TOOLS
-from .object_tools import OBJECT_TOOLS
-from .report_tools import REPORT_TOOLS
-from .scientific_tool import SCIENTIFIC_TOOLS
-from .engine_tools import ENGINE_TOOLS
-from .live_chemdraw import LIVE_CHEMDRAW_TOOLS
-from .figure_draw import draw_figure
-from .publication_figure import publication_figure
-from .ui_apps import UI_APP_TOOLS
+# Where the extended tools live: (module in this package, attribute, what to call it in a
+# collision report). The attribute is a {name: function} table, or one function registered
+# under its own name. Modules are imported when a registry is built, or one at a time by
+# load_tool, so a process that calls a single tool does not import every tool's dependencies.
+EXTENDED_SOURCES = (
+    ("extended_tools", "PUBLIC_TOOLS", "public tools"),
+    ("chemistry_compare", "COMPARISON_TOOLS", "molecule comparison tools"),
+    ("chemscript_sdk", "CHEMSCRIPT_SDK_TOOLS", "ChemScript SDK tools"),
+    ("capabilities", "SYSTEM_TOOLS", "system tools"),
+    ("figure_tools", "FIGURE_TOOLS", "figure and RDKit tools"),
+    ("publication_figure", "publication_figure", "publication figures"),
+    ("figure_draw", "draw_figure", "figure drawing"),
+    ("object_tools", "OBJECT_TOOLS", "object and catalog tools"),
+    ("com_call", "COM_TOOLS", "ChemDraw COM tools"),
+    ("markush_tools", "MARKUSH_TOOLS", "Markush tools"),
+    ("report_tools", "REPORT_TOOLS", "report tools"),
+    ("scientific_tool", "SCIENTIFIC_TOOLS", "scientific workflow tools"),
+    ("engine_tools", "ENGINE_TOOLS", "prediction engine tools"),
+    ("live_chemdraw", "LIVE_CHEMDRAW_TOOLS", "live ChemDraw session tools"),
+    ("tool_registry", "build_acs_figure", "ACS figure builder"),
+    ("ui_apps", "UI_APP_TOOLS", "interactive UI apps"),
+)
+MANIFEST_PATH = Path(__file__).with_name("tool_manifest.json")
 
 
 def build_acs_figure(
@@ -270,7 +274,16 @@ def normalize_profile(profile: str | None = None) -> str:
     return PROFILE_ALIASES.get(selected, selected)
 
 
-def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
+def _source(module: str, attribute: str) -> dict[str, Callable[..., Any]]:
+    value = getattr(importlib.import_module(f"{__package__}.{module}"), attribute)
+    return dict(value) if isinstance(value, dict) else {attribute: value}
+
+
+def _official_specs() -> dict[str, ToolSpec]:
+    from cdxml_toolkit.mcp_server import server as upstream
+
+    from .official_overrides import OFFICIAL_OVERRIDES
+
     official: dict[str, ToolSpec] = {}
     for tool in upstream.mcp._tool_manager.list_tools():
         override = OFFICIAL_OVERRIDES.get(tool.name)
@@ -292,8 +305,11 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
             resource_class=_resource_class(tool.name),
             timeout_seconds=_tool_timeout(tool.name),
         )
+    return official
 
-    remote = {
+
+def _remote_specs() -> dict[str, ToolSpec]:
+    return {
         name: ToolSpec(
             name=name,
             function=function,
@@ -304,69 +320,44 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
             resource_class=_resource_class(name),
             timeout_seconds=_tool_timeout(name),
         )
-        for name, function in REMOTE_TOOLS.items()
+        for name, function in _source("remote_tools", "REMOTE_TOOLS").items()
     }
-    extended_functions = _merge_named_tools(
-        PUBLIC_TOOLS, COMPARISON_TOOLS, source="molecule comparison tools"
+
+
+def _extended_spec(name: str, function: Callable[..., Any]) -> ToolSpec:
+    return ToolSpec(
+        name=name,
+        function=function,
+        title=name.replace("_", " ").title(),
+        description=inspect.getdoc(function) or name,
+        return_json_text=True,
+        group="extended",
+        resource_class=_resource_class(name),
+        timeout_seconds=_tool_timeout(name),
+        meta=_enrich_ui_meta(getattr(function, "_chemdraw_mcp_meta", None)),
     )
-    extended_functions = _merge_named_tools(
-        extended_functions, CHEMSCRIPT_SDK_TOOLS, source="ChemScript SDK tools"
+
+
+def _all_specs() -> tuple[dict[str, ToolSpec], dict[str, tuple[str, str]]]:
+    """Every tool, and for each extended tool the (module, attribute) it came from."""
+    official = _official_specs()
+    registry = _merge_named_tools(official, _remote_specs(), source="remote tools")
+    extended: dict[str, Callable[..., Any]] = {}
+    origin: dict[str, tuple[str, str]] = {}
+    for module, attribute, label in EXTENDED_SOURCES:
+        table = _source(module, attribute)
+        extended = _merge_named_tools(extended, table, source=label)
+        origin.update({name: (module, attribute) for name in table})
+    registry = _merge_named_tools(
+        registry,
+        {name: _extended_spec(name, function) for name, function in extended.items()},
+        source="extended tools",
     )
-    extended_functions = _merge_named_tools(
-        extended_functions, SYSTEM_TOOLS, source="system tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, FIGURE_TOOLS, source="figure and RDKit tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, {"publication_figure": publication_figure}, source="publication figures"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, {"draw_figure": draw_figure}, source="figure drawing"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, OBJECT_TOOLS, source="object and catalog tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, COM_TOOLS, source="ChemDraw COM tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, MARKUSH_TOOLS, source="Markush tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, REPORT_TOOLS, source="report tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, SCIENTIFIC_TOOLS, source="scientific workflow tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, ENGINE_TOOLS, source="prediction engine tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, LIVE_CHEMDRAW_TOOLS, source="live ChemDraw session tools"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, {"build_acs_figure": build_acs_figure}, source="ACS figure builder"
-    )
-    extended_functions = _merge_named_tools(
-        extended_functions, UI_APP_TOOLS, source="interactive UI apps"
-    )
-    extended = {
-        name: ToolSpec(
-            name=name,
-            function=function,
-            title=name.replace("_", " ").title(),
-            description=inspect.getdoc(function) or name,
-            return_json_text=True,
-            group="extended",
-            resource_class=_resource_class(name),
-            timeout_seconds=_tool_timeout(name),
-            meta=_enrich_ui_meta(getattr(function, "_chemdraw_mcp_meta", None)),
-        )
-        for name, function in extended_functions.items()
-    }
-    registry = _merge_named_tools(official, remote, source="remote tools")
-    registry = _merge_named_tools(registry, extended, source="extended tools")
+    return registry, origin
+
+
+def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
+    registry, _origin = _all_specs()
     selected = PROFILE_ALIASES.get((profile or DEFAULT_PROFILE).strip().lower(),
                                    (profile or DEFAULT_PROFILE).strip().lower())
     if selected not in SUPPORTED_PROFILES:
@@ -374,7 +365,55 @@ def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
         raise ValueError(f"Unknown MCP profile {selected!r}; choose one of: {expected}")
     if selected == DEFAULT_PROFILE:
         return registry
-    names = set(official) | {"get_toolkit_capabilities"}
+    names = {name for name, spec in registry.items() if spec.group == "official"} | {"get_toolkit_capabilities"}
     if selected != "core":
         names |= PROFILE_EXTENSION_TOOLS[selected]
     return {name: spec for name, spec in registry.items() if name in names}
+
+
+def render_manifest() -> str:
+    """The generated tool manifest: where each tool lives and how long it may run.
+
+    A caller that only launches a worker reads this file instead of importing the registry,
+    and the worker uses it to import the one module its tool needs.
+    """
+    registry, origin = _all_specs()
+    tools = {}
+    for name, spec in sorted(registry.items()):
+        entry: dict[str, Any] = {"group": spec.group}
+        if name in origin:
+            entry["module"], entry["attribute"] = origin[name]
+        if spec.timeout_seconds is not None:
+            entry["timeout_seconds"] = spec.timeout_seconds
+        tools[name] = entry
+    return json.dumps({"tools": tools}, indent=2, sort_keys=True) + "\n"
+
+
+def tool_manifest() -> dict[str, dict[str, Any]]:
+    """The committed manifest's tool table; empty when the file is missing or unreadable."""
+    try:
+        tools = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))["tools"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return {}
+    return tools if isinstance(tools, dict) else {}
+
+
+def load_tool(name: str) -> ToolSpec | None:
+    """One tool's spec, importing only the module that defines it.
+
+    None when the manifest does not place the tool; the caller then builds the full registry,
+    so a stale manifest costs time, never correctness.
+    """
+    entry = tool_manifest().get(name)
+    if not isinstance(entry, dict):
+        return None
+    group = entry.get("group")
+    try:
+        if group == "official":
+            return _official_specs().get(name)
+        if group == "remote":
+            return _remote_specs().get(name)
+        function = _source(str(entry.get("module")), str(entry.get("attribute"))).get(name)
+    except (ImportError, AttributeError):
+        return None
+    return _extended_spec(name, function) if function is not None else None

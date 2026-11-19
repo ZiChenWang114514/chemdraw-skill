@@ -236,10 +236,24 @@ def _next_free_path(path):
         index += 1
 
 
+def _tools_only():
+    """The command line calls tools and does not serve MCP, so it skips the MCP SDK import."""
+    from cdxml_toolkit.mcp_server import _compat
+    switch = getattr(_compat, 'tools_only', None)  # absent in a runtime older than this Skill
+    if switch is not None:
+        switch()
+
+
 def _worker(tool, kwargs, args=()):
+    _tools_only()
+    from cdxml_toolkit.mcp_runtime import tool_registry
     from cdxml_toolkit.mcp_runtime.mcp_server import _run_worker
-    from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
-    reg = build_registry()
+    # The generated manifest answers "does this tool exist, how long may it run" without
+    # importing every tool module; a runtime without one builds the registry as before.
+    known = getattr(tool_registry, 'tool_manifest', dict)().get(tool)
+    if isinstance(known, dict):
+        return _run_worker(tool, list(args), kwargs, timeout_seconds=known.get('timeout_seconds'))
+    reg = tool_registry.build_registry()
     spec = reg.get(tool)
     if spec is None:
         hits = _suggest(tool, sorted(reg))
@@ -247,6 +261,20 @@ def _worker(tool, kwargs, args=()):
         raise SystemExit(f'Unknown tool {tool!r};{hint} run `cdx.py tools`. If the Skill documents it, the runtime '
                          'may be older than the Skill: `cdx.py doctor` reports runtime_matches_skill.')
     return _run_worker(tool, list(args), kwargs, timeout_seconds=spec.timeout_seconds)
+
+
+def _worker_each(tool, calls):
+    """One tool, once per keyword-argument dict, in a single worker when the runtime can batch."""
+    calls = list(calls)
+    if len(calls) < 2:
+        return [_worker(tool, kwargs) for kwargs in calls]
+    _tools_only()
+    from cdxml_toolkit.mcp_runtime import mcp_server, tool_registry
+    batch = getattr(mcp_server, '_run_worker_each', None)  # absent in a runtime older than this Skill
+    known = getattr(tool_registry, 'tool_manifest', dict)().get(tool)
+    if batch is None or not isinstance(known, dict):
+        return [_worker(tool, kwargs) for kwargs in calls]
+    return batch(tool, calls, timeout_seconds=known.get('timeout_seconds'))
 
 
 def _layers(result):
@@ -475,6 +503,7 @@ def _load_args(ns):
 
 # ---------------------------------------------------------------- commands
 def cmd_tools(ns):
+    _tools_only()
     from cdxml_toolkit.mcp_runtime.tool_registry import build_registry
     reg = build_registry()
     query = getattr(ns, 'query', None)
@@ -919,8 +948,9 @@ def cmd_resolve(ns):
         return _emit('resolve_name', _worker('resolve_name', {'query': queries[0], 'use_network': use_network}),
                      ns.out, full=full, summary_only=summary_only)
     results = []
-    for q in queries:
-        inner = _unwrap_worker(_worker('resolve_name', {'query': q, 'use_network': use_network}))
+    answers = _worker_each('resolve_name', [{'query': q, 'use_network': use_network} for q in queries])
+    for q, answer in zip(queries, answers):
+        inner = _unwrap_worker(answer)
         if isinstance(inner, dict):
             results.append({'query': q, **inner})
         else:

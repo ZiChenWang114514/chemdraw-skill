@@ -31,11 +31,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from ._compat import install_legacy_fastmcp_alias
+from ._compat import high_level_server
 
-install_legacy_fastmcp_alias()
-
-from mcp.server.fastmcp import FastMCP
+FastMCP = high_level_server()
 import functools
 
 import asyncio
