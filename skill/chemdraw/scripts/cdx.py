@@ -239,6 +239,8 @@ def _next_free_path(path):
 def _tools_only():
     """The command line calls tools and does not serve MCP, so it skips the MCP SDK import."""
     from cdxml_toolkit.mcp_server import _compat
+    # Every tool is callable here; a server's default profile lists fewer.
+    os.environ.setdefault('CHEMDRAW_MCP_PROFILE', 'full')
     switch = getattr(_compat, 'tools_only', None)  # absent in a runtime older than this Skill
     if switch is not None:
         switch()

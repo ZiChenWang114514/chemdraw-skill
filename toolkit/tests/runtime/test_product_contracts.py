@@ -117,7 +117,7 @@ def test_business_failure_is_counted_as_error(monkeypatch):
     assert count(after) == count(before) + 1
 
 
-@pytest.mark.parametrize('profile', ['core', 'full', 'codex', 'office', 'analysis', 'chemscript'])
+@pytest.mark.parametrize('profile', ['core', 'standard', 'full', 'codex', 'office', 'analysis', 'chemscript'])
 def test_stdio_capabilities_match_listed_tools_and_business_failure(profile):
     import os
     from mcp import ClientSession, StdioServerParameters

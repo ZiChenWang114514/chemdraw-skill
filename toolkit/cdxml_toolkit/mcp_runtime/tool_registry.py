@@ -235,6 +235,20 @@ def _merge_named_tools(existing: dict, incoming: dict, *, source: str) -> dict:
 
 
 PROFILE_EXTENSION_TOOLS = {
+    # What a server lists by default: the core tools and the everyday drawing, checking and
+    # diagnosis tools. A short list costs the client less context on every request.
+    "standard": {
+        "build_acs_figure",
+        "check_reaction_balance",
+        "chemdraw_object",
+        "diagnose_runtime",
+        "draw_figure",
+        "export_structures",
+        "molecule_report",
+        "open_drawing_studio",  # the two interactive apps exist only through MCP
+        "rdkit_workbench",
+        "view_molecule_3d",
+    },
     "office": {
         "batch_embed_cdxml_in_office",
         "fill_office_template",
@@ -258,11 +272,14 @@ PROFILE_EXTENSION_TOOLS = {
         "structure_to_name",
     },
 }
-DEFAULT_PROFILE = "full"
+FULL_PROFILE = "full"
+# The profile a server uses when none is named. Code that builds a registry without naming a
+# profile (the worker, the command line) gets every tool.
+DEFAULT_PROFILE = "standard"
 # Earlier releases called the full tool set "codex"; existing client configurations that
 # pass `--profile codex` keep working through this alias.
-PROFILE_ALIASES = {"codex": DEFAULT_PROFILE}
-SUPPORTED_PROFILES = {"core", DEFAULT_PROFILE, *PROFILE_EXTENSION_TOOLS}
+PROFILE_ALIASES = {"codex": FULL_PROFILE}
+SUPPORTED_PROFILES = {"core", FULL_PROFILE, *PROFILE_EXTENSION_TOOLS}
 PROFILE_CHOICES = tuple(sorted(SUPPORTED_PROFILES | set(PROFILE_ALIASES)))
 
 
@@ -358,12 +375,12 @@ def _all_specs() -> tuple[dict[str, ToolSpec], dict[str, tuple[str, str]]]:
 
 def build_registry(profile: str | None = None) -> dict[str, ToolSpec]:
     registry, _origin = _all_specs()
-    selected = PROFILE_ALIASES.get((profile or DEFAULT_PROFILE).strip().lower(),
-                                   (profile or DEFAULT_PROFILE).strip().lower())
+    selected = (profile or FULL_PROFILE).strip().lower()
+    selected = PROFILE_ALIASES.get(selected, selected)
     if selected not in SUPPORTED_PROFILES:
         expected = ", ".join(sorted(SUPPORTED_PROFILES))
         raise ValueError(f"Unknown MCP profile {selected!r}; choose one of: {expected}")
-    if selected == DEFAULT_PROFILE:
+    if selected == FULL_PROFILE:
         return registry
     names = {name for name, spec in registry.items() if spec.group == "official"} | {"get_toolkit_capabilities"}
     if selected != "core":

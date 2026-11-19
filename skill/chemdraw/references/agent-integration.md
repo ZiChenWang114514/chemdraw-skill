@@ -85,7 +85,7 @@ This entry also allows `cdx.py py`, which runs any Python script or `-c` code in
 - Large results go to a file and only a summary is printed, so tool output does not flood the conversation.
 - No resident server, no client registration to keep in sync, nothing to restart after an upgrade, and it works in every agent that has a shell.
 
-An MCP server remains available for clients that want typed tool calls. Register the runtime interpreter (the `"runtime"` value printed by `cdx.py doctor`) with no profile flag; the default profile is the full tool set. Most clients accept the common `mcpServers` JSON shape:
+An MCP server remains available for clients that want typed tool calls. Register the runtime interpreter (the `"runtime"` value printed by `cdx.py doctor`) with no profile flag for the `standard` set (the core tools plus `draw_figure`, `rdkit_workbench`, the checking and diagnosis tools and the two interactive apps), or add `"--profile", "full"` to the arguments to list every tool. `cdx.py call` reaches every tool either way. Most clients accept the common `mcpServers` JSON shape:
 
 <!-- example: fragment -->
 ```json

@@ -2,7 +2,8 @@
 
 Every listed tool costs a client context before any work starts, so growth must be a decision. The
 ceilings below are the only place these budgets live. They were set at the measured size plus about
-5 % (default profile: 100,035 bytes and 71 tools); later work is expected to lower them, never to
+5 % (default `standard` profile: about 50,000 bytes and 26 tools; `full` is 71 tools and about
+100,000 bytes); later work is expected to lower them, never to
 raise them silently. When a change trips a budget, shrink descriptions or schemas, move the tool
 to a narrower profile, or raise the ceiling in the same change with the reason in its message.
 """
@@ -17,9 +18,9 @@ from cdxml_toolkit.mcp_runtime import mcp_server
 from cdxml_toolkit.mcp_runtime.tool_registry import DEFAULT_PROFILE, build_registry
 
 # Compact JSON of the default profile's tools/list result, in UTF-8 bytes.
-DEFAULT_PROFILE_SCHEMA_BYTES_MAX = 105_000
+DEFAULT_PROFILE_SCHEMA_BYTES_MAX = 53_000
 # Most tools each profile may list.
-PROFILE_TOOL_COUNT_MAX = {"full": 71, "core": 16, "office": 21, "analysis": 21, "chemscript": 22}
+PROFILE_TOOL_COUNT_MAX = {"full": 71, "standard": 26, "core": 16, "office": 21, "analysis": 21, "chemscript": 22}
 
 
 def _listed_tools(profile: str):

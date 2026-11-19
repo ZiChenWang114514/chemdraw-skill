@@ -28,7 +28,14 @@ from . import telemetry
 mcp_compat.install_legacy_fastmcp_alias()
 
 from .process_control import _assign_kill_job, _close_job, _terminate_process_tree
-from .tool_registry import DEFAULT_PROFILE, PROFILE_CHOICES, build_registry, normalize_profile, tool_manifest
+from .tool_registry import (
+    DEFAULT_PROFILE,
+    FULL_PROFILE,
+    PROFILE_CHOICES,
+    build_registry,
+    normalize_profile,
+    tool_manifest,
+)
 
 
 _WORKER_MODULE = "cdxml_toolkit.mcp_runtime.tool_worker"
@@ -1073,13 +1080,25 @@ def _upstream_instructions() -> str | None:
     return upstream.mcp.instructions
 
 
+def _server_instructions(profile: str, listed: int) -> str:
+    text = _upstream_instructions() or ""
+    if profile == FULL_PROFILE:
+        return text
+    total = len(tool_manifest()) or len(build_registry())
+    return (
+        f"{text} This server lists the `{profile}` tool set ({listed} of {total} tools); "
+        "start it with `--profile full` or CHEMDRAW_MCP_PROFILE=full for the rest "
+        "(Office batches, LCMS and lab-book analysis, Markush, prediction engines, ChemScript)."
+    ).strip()
+
+
 def build_server(*, profile: str | None = None, **server_settings):
     server_type = mcp_compat.server_class()
     selected_profile = normalize_profile(profile)
     registry = build_registry(profile=selected_profile)
     telemetry.configure_tools(registry)
     mcp = server_type(
-        "cdxml-toolkit", instructions=_upstream_instructions(), **server_settings
+        "cdxml-toolkit", instructions=_server_instructions(selected_profile, len(registry)), **server_settings
     )
     tool_decorator = mcp.tool
     tool_params = inspect.signature(tool_decorator).parameters
