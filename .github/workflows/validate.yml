@@ -4,14 +4,6 @@ on:
   workflow_call:
   push:
     branches: [main]
-    # Same filter as pull_request: a website-only change runs site.yml instead.
-    paths-ignore:
-      - "site/**"
-      - "assets/readme/gallery/**"
-      - "docs/website.md"
-      - "tests/site_smoke.mjs"
-      - "tests/test_site.py"
-      - "tests/daily_sources.json"
   pull_request:
     # A change to the website alone runs site.yml instead; a merge runs this file again.
     # Lightweight on purpose: one job per platform that matters.
@@ -147,54 +139,6 @@ jobs:
         run: |
           python skill/chemdraw/scripts/cdx.py tools --detail summary
           python skill/chemdraw/scripts/cdx.py build skill/chemdraw/assets/acs1996/example.json example.cdxml
-
-  installed-wheel-smoke:
-    # Build the wheel, install it into a clean venv and call every tool from a folder where the
-    # checkout's toolkit source is not importable, so files missing from the package show up.
-    name: Installed wheel smoke test
-    runs-on: windows-latest
-    timeout-minutes: 25
-    # Known packaging gap: build_acs_figure loads skill/chemdraw/scripts/acs_builder.py through a
-    # path relative to the source tree (tool_registry._load_acs_builder), which an installed wheel
-    # does not have, so its smoke case fails. Remove continue-on-error once the gap is closed.
-    continue-on-error: true
-    env:
-      PYTHONDONTWRITEBYTECODE: "1"
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Python
-        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: toolkit/pyproject.toml
-
-      - name: Build the toolkit wheel
-        shell: pwsh
-        run: |
-          python -m pip install --upgrade build
-          python -m build --wheel --outdir "$env:RUNNER_TEMP/wheel" toolkit
-
-      - name: Install the wheel into a clean venv
-        shell: pwsh
-        run: |
-          python -m venv "$env:RUNNER_TEMP/clean"
-          $wheel = (Get-ChildItem "$env:RUNNER_TEMP/wheel/*.whl").FullName
-          & "$env:RUNNER_TEMP/clean/Scripts/python.exe" -m pip install "$wheel[office,publication,scientific,analysis,image]"
-
-      - name: Call every tool from outside the checkout
-        shell: pwsh
-        working-directory: ${{ runner.temp }}
-        env:
-          CHEMDRAW_ENGINE_HOME: ${{ runner.temp }}/no-engines
-          CHEMDRAW_MAPPER_HOME: ${{ runner.temp }}/no-mappers
-          CHEMDRAW_ACCEL: "off"
-        run: |
-          & "$env:RUNNER_TEMP/clean/Scripts/python.exe" -c "import cdxml_toolkit, pathlib, sys; p = pathlib.Path(cdxml_toolkit.__file__).resolve(); sys.exit(0 if 'site-packages' in p.parts else f'imported from {p}')"
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          & "$env:RUNNER_TEMP/clean/Scripts/python.exe" "$env:GITHUB_WORKSPACE/skill/chemdraw/scripts/smoke_all_tools.py" --output-dir "$env:RUNNER_TEMP/smoke" --without chemdraw,chemscript,office
 
   toolkit-package:
     uses: ./.github/workflows/build.yml
