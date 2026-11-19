@@ -44,21 +44,51 @@ except ImportError:
 # Constants
 # ---------------------------------------------------------------------------
 
-# Standard ESI adducts: name -> (ESI mode, mass offset from neutral)
-ADDUCTS = {
-    "[M+H]+":       ("ES+",  1.008),
-    "[M-H]-":       ("ES-", -1.008),
-    "[M+Na]+":      ("ES+", 22.990),
-    "[M+formate]-": ("ES-", 44.998),
-    "[M+NH4]+":     ("ES+", 18.034),
-    "[M+MeCN+H]+":  ("ES+", 42.034),
-    "[M+TFA-H]-":   ("ES-", 112.985),
-    "[M+2H]2+":     ("ES+",  1.008),
-    "[2M+H]+":      ("ES+",  1.008),
-    "[2M+Na]+":     ("ES+", 22.990),
-    "[M+2+H]+":     ("ES+",  3.005),
-    "[M+2-H]-":     ("ES-",  0.989),
+# Ion masses (monoisotopic, electron mass removed for cations, added for anions).
+# PROTON_MASS is the bare proton, not the hydrogen atom (1.007825).
+PROTON_MASS = 1.007276
+ELECTRON_MASS = 0.000549
+_NA_ION = 22.989769 - ELECTRON_MASS
+_K_ION = 38.963707 - ELECTRON_MASS
+_NH4_ION = 14.003074 + 3 * 1.007825 + PROTON_MASS
+_MECN = 2 * 12.0 + 3 * 1.007825 + 14.003074
+_FORMATE = 12.0 + 1.007825 + 2 * 15.994915 + ELECTRON_MASS
+_TFA = 2 * 12.0 + 3 * 18.998403 + 2 * 15.994915 + 1.007825
+_CL_ION = 34.968853 + ELECTRON_MASS
+# Heavy isotopologue spacing used for Br/Cl M+2 peaks (81Br-79Br ~ 1.998, 37Cl-35Cl ~ 1.997).
+M_PLUS_2_SHIFT = 1.997
+
+# The one adduct table: name -> (ESI mode, number of M, added mass, |charge|).
+ADDUCT_DEFINITIONS = {
+    "[M+H]+":       ("ES+", 1, PROTON_MASS, 1),
+    "[M-H]-":       ("ES-", 1, -PROTON_MASS, 1),
+    "[M+Na]+":      ("ES+", 1, _NA_ION, 1),
+    "[M+formate]-": ("ES-", 1, _FORMATE, 1),
+    "[M+NH4]+":     ("ES+", 1, _NH4_ION, 1),
+    "[M+K]+":       ("ES+", 1, _K_ION, 1),
+    "[M+Cl]-":      ("ES-", 1, _CL_ION, 1),
+    "[M+MeCN+H]+":  ("ES+", 1, _MECN + PROTON_MASS, 1),
+    "[M+TFA-H]-":   ("ES-", 1, _TFA - PROTON_MASS, 1),
+    "[M+2H]2+":     ("ES+", 1, 2 * PROTON_MASS, 2),
+    "[2M+H]+":      ("ES+", 2, PROTON_MASS, 1),
+    "[2M+Na]+":     ("ES+", 2, _NA_ION, 1),
+    "[M+2+H]+":     ("ES+", 1, M_PLUS_2_SHIFT + PROTON_MASS, 1),
+    "[M+2-H]-":     ("ES-", 1, M_PLUS_2_SHIFT - PROTON_MASS, 1),
+    "[M]+":         ("ES+", 1, -ELECTRON_MASS, 1),
+    "[M]-":         ("ES-", 1, ELECTRON_MASS, 1),
 }
+
+# name -> (ESI mode, mass offset from neutral); derived view kept for callers.
+ADDUCTS = {name: (mode, offset) for name, (mode, _n, offset, _z) in ADDUCT_DEFINITIONS.items()}
+
+_ALWAYS = ("[M+H]+", "[M-H]-", "[M+Na]+", "[M+formate]-", "[M+NH4]+", "[M+MeCN+H]+", "[M+TFA-H]-")
+
+
+def adduct_mz(name: str, exact_mass: float) -> float:
+    """m/z of adduct ``name`` for a neutral monoisotopic mass."""
+    _mode, n_m, offset, z = ADDUCT_DEFINITIONS[name]
+    return (n_m * float(exact_mass) + offset) / z
+
 
 # Adduct reporting priority: prefer [M+H]+/[M-H]- (proton transfer)
 # over [M+Na]+/[M+formate]- (adduct ions).  Lower number = preferred.
@@ -69,6 +99,10 @@ ADDUCT_PRIORITY = {
     "[M+formate]-": 1,
     "[M+2+H]+":     1,
     "[M+2-H]-":     1,
+    "[M]+":         0,
+    "[M]-":         0,
+    "[M+K]+":       2,
+    "[M+Cl]-":      2,
     "[M+NH4]+":     2,
     "[M+MeCN+H]+":  2,
     "[M+TFA-H]-":   2,
@@ -106,14 +140,38 @@ class ExpectedSpecies:
 # Mass computation
 # ---------------------------------------------------------------------------
 
+def main_component(mol):
+    """The organic ion of a salt: the fragment with most carbons, then most heavy atoms."""
+    frags = Chem.GetMolFrags(mol, asMols=True)
+    if len(frags) == 1:
+        return mol
+    return max(frags, key=lambda m: (sum(1 for a in m.GetAtoms() if a.GetAtomicNum() == 6),
+                                     m.GetNumHeavyAtoms()))
+
+
+def _neutral_component(mol):
+    """(component, kept_charge): the main component, neutralised where a proton can do it."""
+    comp = main_component(mol)
+    if Chem.GetFormalCharge(comp) == 0:
+        return comp, 0
+    try:
+        from rdkit.Chem.MolStandardize import rdMolStandardize
+        neutral = rdMolStandardize.Uncharger().uncharge(Chem.Mol(comp))
+    except Exception:
+        neutral = comp
+    return neutral, Chem.GetFormalCharge(neutral)
+
+
 def compute_masses(smiles: str) -> Optional[Tuple[float, float]]:
     """
     Compute monoisotopic masses from SMILES.
 
     Returns (neutral_mass, full_mass) where:
-      - neutral_mass: mass of the largest fragment (free base / free acid),
-        used for LCMS adduct matching
-      - full_mass: mass of the entire molecule including any counterions,
+      - neutral_mass: mass of the organic component of a salt (the fragment with
+        most carbons), neutralised by adding or removing protons (free base /
+        free acid), used for LCMS adduct matching. A permanently charged ion
+        (quaternary ammonium) keeps its own mass; see :func:`component_charge`.
+      - full_mass: mass of the entire record including any counterions,
         used for matching against CSV MW which may record the salt form
 
     For non-salt molecules, both values are identical.
@@ -121,18 +179,21 @@ def compute_masses(smiles: str) -> Optional[Tuple[float, float]]:
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None
-
     full_mass = Descriptors.ExactMolWt(mol)
+    if len(Chem.GetMolFrags(mol)) == 1 and Chem.GetFormalCharge(mol) == 0:
+        return (full_mass, full_mass)
+    neutral, _charge = _neutral_component(mol)
+    return (Descriptors.ExactMolWt(neutral), full_mass)
 
-    # Split multi-component SMILES (salts)
-    frags = Chem.GetMolFrags(mol, asMols=True)
-    if len(frags) > 1:
-        neutral_mol = max(frags, key=lambda m: m.GetNumHeavyAtoms())
-        neutral_mass = Descriptors.ExactMolWt(neutral_mol)
-    else:
-        neutral_mass = full_mass
 
-    return (neutral_mass, full_mass)
+def component_charge(smiles: str) -> int:
+    """Charge the organic component keeps after neutralisation (0 for ordinary salts)."""
+    if not smiles or not _HAS_RDKIT:
+        return 0
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return 0
+    return _neutral_component(mol)[1]
 
 
 # Backward-compatible aliases (were private, now public)
@@ -146,8 +207,7 @@ def has_heavy_halogens(smiles: str) -> Tuple[int, int]:
     if _HAS_RDKIT:
         mol = Chem.MolFromSmiles(smiles)
         if mol is not None:
-            frags = Chem.GetMolFrags(mol, asMols=True)
-            target = max(frags, key=lambda m: m.GetNumHeavyAtoms()) if len(frags) > 1 else mol
+            target = main_component(mol)
             n_br = sum(1 for a in target.GetAtoms() if a.GetAtomicNum() == 35)
             n_cl = sum(1 for a in target.GetAtoms() if a.GetAtomicNum() == 17)
             return (n_br, n_cl)
@@ -166,26 +226,24 @@ def build_adducts(
     smiles: str = "",
     include_isotopologues: Optional[bool] = None,
 ) -> Dict[str, float]:
-    """Build expected adduct m/z dict from neutral exact mass."""
-    adducts: Dict[str, float] = {
-        "[M+H]+":       exact_mass + 1.008,
-        "[M-H]-":       exact_mass - 1.008,
-        "[M+Na]+":      exact_mass + 22.990,
-        "[M+formate]-": exact_mass + 44.998,
-        "[M+NH4]+":     exact_mass + 18.034,
-        "[M+MeCN+H]+":  exact_mass + 42.034,
-        "[M+TFA-H]-":   exact_mass + 112.985,
-    }
-    if exact_mass >= 300.0:
-        adducts["[M+2H]2+"] = (exact_mass + 2.0 * 1.008) / 2.0
-    adducts["[2M+H]+"] = 2.0 * exact_mass + 1.008
-    adducts["[2M+Na]+"] = 2.0 * exact_mass + 22.990
+    """Build expected adduct m/z dict from the neutral exact mass of the organic component.
 
+    When ``smiles`` is a salt whose organic component is a permanent ion
+    (for example a quaternary ammonium), the only expected ion is [M]+ or [M]-
+    at the mass of that ion; ``exact_mass`` is then the ion's own mass.
+    """
+    charge = component_charge(smiles)
+    if charge:
+        name = "[M]+" if charge > 0 else "[M]-"
+        return {name: adduct_mz(name, exact_mass)}
+    names = list(_ALWAYS)
+    if exact_mass >= 300.0:
+        names.append("[M+2H]2+")
+    names += ["[2M+H]+", "[2M+Na]+"]
     use_iso = include_isotopologues if include_isotopologues is not None else needs_m_plus_2(smiles)
     if use_iso:
-        adducts["[M+2+H]+"] = exact_mass + 1.997 + 1.008
-        adducts["[M+2-H]-"] = exact_mass + 1.997 - 1.008
-    return adducts
+        names += ["[M+2+H]+", "[M+2-H]-"]
+    return {name: adduct_mz(name, exact_mass) for name in names}
 
 
 # Backward-compatible aliases

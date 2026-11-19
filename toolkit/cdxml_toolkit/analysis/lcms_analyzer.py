@@ -1039,13 +1039,14 @@ def identify_peak(peak: ChromPeak, sm_mass: float, product_mass: float,
     that's likely SM with in-source fragmentation (e.g. Boc loss). We collect
     evidence from both polarities and resolve conflicts.
     """
+    from .deterministic.mass_resolver import ADDUCTS
     adducts_pos = [
-        ("M+H", 1.008),
-        ("M+Na", 22.990),
+        ("M+H", ADDUCTS["[M+H]+"][1]),
+        ("M+Na", ADDUCTS["[M+Na]+"][1]),
     ]
     adducts_neg = [
-        ("M-H", -1.008),
-        ("M+formate", 44.998),
+        ("M-H", ADDUCTS["[M-H]-"][1]),
+        ("M+formate", ADDUCTS["[M+formate]-"][1]),
     ]
 
     # Collect all evidence: list of (identity, mode, adduct_name, mz, is_base_peak)
@@ -1154,15 +1155,16 @@ def format_annotation(report: LCMSReport, sm_mass: float, product_mass: float) -
 
 def _find_best_ion_for(peak: ChromPeak, exact_mass: float) -> str:
     """Find the best matching ion and return formatted string like 'ESI+ 346.0' or 'ESI- 444.1'."""
+    from .deterministic.mass_resolver import PROTON_MASS
     tolerance = 1.5
 
     for spec in peak.ms_spectra:
         for mz in spec.top_ions:
             if spec.mode == "ES+":
-                if abs(mz - (exact_mass + 1.008)) < tolerance:
+                if abs(mz - (exact_mass + PROTON_MASS)) < tolerance:
                     return f"ESI+ {mz:.1f}"
             elif spec.mode == "ES-":
-                if abs(mz - (exact_mass - 1.008)) < tolerance:
+                if abs(mz - (exact_mass - PROTON_MASS)) < tolerance:
                     return f"ESI- {mz:.1f}"
 
     return "mass not confirmed"
