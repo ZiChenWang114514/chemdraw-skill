@@ -11,9 +11,9 @@ Use this page only when the workflow router does not identify an entry point.
 | Installed console commands | [toolkit-cli-interfaces.md](toolkit-cli-interfaces.md) |
 | Runtime and installation | [operations.md](operations.md) |
 | Every audited public symbol | [toolkit-public-inventory.md](toolkit-public-inventory.md), then one shard |
-| ChemScript SDK types and members | [interface-chemscript.md](interface-chemscript.md), then one `inventory/chemscript-N.md` shard |
-| ChemDraw COM objects (`Application`, `Document`, `Objects`, ...) | [interface-com.md](interface-com.md), then one `inventory/com-N.md` shard |
-| CDXML elements, attributes and their evidence | [interface-cdxml-model.md](interface-cdxml-model.md), then `inventory/cdxml-attributes-N.md` |
+| ChemScript SDK types and members | [interface-chemscript.md](interface-chemscript.md), then `cdx.py catalog chemscript TYPE` |
+| ChemDraw COM objects (`Application`, `Document`, `Objects`, ...) | [interface-com.md](interface-com.md), then `cdx.py catalog com TYPE` |
+| CDXML elements, attributes and their evidence | [interface-cdxml-model.md](interface-cdxml-model.md), then `cdx.py catalog cdxml ELEMENT` |
 | ChemDraw menu commands and their command ids | [interface-menu.md](interface-menu.md) |
 | Query these catalogs without opening a page | `chemdraw_inventory(layer, query, tier)` |
 | Read or edit a CDXML element generically | `chemdraw_object` ([workflow router](workflow-router.md#inspect-or-edit-cdxml-objects)) |

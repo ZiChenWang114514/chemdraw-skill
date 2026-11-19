@@ -1533,6 +1533,17 @@ def write_catalog():
     return list(pages)
 
 
+def cmd_catalog(ns):
+    """Print one type's members from the ChemDraw interface catalogs the runtime carries."""
+    from cdxml_toolkit.catalog import render
+    found = render.lookup(ns.layer, ns.name)
+    if found.get('ok'):
+        sys.stdout.write(found['text'].rstrip('\n') + '\n')
+        return 0
+    print(json.dumps(found, indent=2, ensure_ascii=False))
+    return 1
+
+
 def cmd_regen_catalog(ns):
     # Same guard as regen-signatures: a stale runtime would write pages for another toolkit revision.
     if runtime_fingerprint() != expected_fingerprint():
@@ -2243,6 +2254,10 @@ def main(argv=None):
     s = sub.add_parser('regen-signatures')  # maintainer: sync toolkit-derived references, inventories and runtime.json
     s.add_argument('--check', action='store_true', help='report stale generated files and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_signatures)
+    s = sub.add_parser('catalog', help="one ChemDraw type's members: catalog com IChemDrawDocument")
+    s.add_argument('layer', help='chemscript, com or cdxml')
+    s.add_argument('name', help='a type or element name, or part of one')
+    s.set_defaults(fn=cmd_catalog)
     s = sub.add_parser('regen-catalog')  # maintainer: rewrite the generated interface pages; --check only reports
     s.add_argument('--check', action='store_true', help='report stale pages and exit 1 instead of writing')
     s.set_defaults(fn=cmd_regen_catalog)

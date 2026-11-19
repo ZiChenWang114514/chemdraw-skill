@@ -109,7 +109,8 @@ Command-line registration, for example `claude mcp add --scope user cdxml-toolki
 cdx.py tools [QUERY] [--detail summary]   list tools, timeouts and native-lock use
 cdx.py sig TOOL...                        print one or more generated signatures
 cdx.py resolve QUERY... [--offline] [--out FILE] [--full|--summary]   resolve names, CAS numbers or formulas to SMILES
-cdx.py inspect FILE [--objects] [--out FILE] [--full|--summary]       inspect structures, objects or peaks in CDXML/CDX/SDF/Office/LCMS
+cdx.py inspect FILE [--objects] [--keep DIR] [--out FILE] [--full|--summary]   inspect structures, objects or peaks in CDXML/CDX/SDF/Office/LCMS; --keep saves each Office object as CDXML
+cdx.py catalog LAYER NAME                 one ChemDraw type's members (layer: chemscript, com, cdxml)
 cdx.py report [TARGET...] [--smiles S] [--name N] [--balance RXN] [--hrms] [--map RXN] [--output FILE] [--out FILE] [--full|--summary]   property sheet, HRMS, balance or atom mapping
 cdx.py call TOOL [-a KEY=VAL ...] [--json '{...}' | --args FILE] [--out NEW.json] [--full|--summary] [--accel auto|on|off]
 cdx.py render A.cdxml [B.cdxml ...] [--out-dir DIR] [--replace]

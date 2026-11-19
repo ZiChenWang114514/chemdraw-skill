@@ -152,6 +152,17 @@ class SkillEntryTests(unittest.TestCase):
         self.assertLessEqual(len(self.skill.splitlines()), 70)
         self.assertLessEqual(len(self.skill.encode("utf-8")), 7700)
 
+    def test_description_names_the_triggers_and_what_is_out_of_scope(self):
+        description = re.search(r"^description: (.+)$", self.skill, re.M).group(1)
+        self.assertLessEqual(len(description), 1024)
+        for trigger in ("SMILES", "OCSR", "Markush", "HRMS", "NMR", "LCMS", ".cdxml", ".cdx", "Office"):
+            self.assertIn(trigger, description)
+        self.assertIn("Not for", description)
+
+    def test_rules_forbid_recalled_smiles_and_unviewed_visual_claims(self):
+        self.assertIn("Never write a SMILES from memory", self.skill)
+        self.assertIn("Never claim a visual match for an image you did not view", self.skill)
+
     def test_first_command_form_needs_no_shell_quoting(self):
         self.assertIn("--args", self.skill)
         self.assertIn("cdx.py call", self.skill)
