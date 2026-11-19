@@ -170,6 +170,7 @@ def test_yield_is_against_the_reactant_in_shortest_supply():
     assert ester['mmol'] == pytest.approx(0.8)
     assert ester['yield_percent'] == pytest.approx(91.8, abs=0.05)
     assert ester['yield_limited_by'] == 'methanol'
+    assert any('shorter supply' in warning for warning in result['warnings'])
 
 
 def test_limiting_reagent_can_be_chosen():

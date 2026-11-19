@@ -529,7 +529,7 @@ def _stoichiometry(reactants, agents, products, options):
         if r['volume_ml'] is not None:
             row['volume_ml'] = round(r['volume_ml'], 4)
         rows.append(row)
-    return rows
+    return rows, list(computed['warnings'])
 
 
 def _balance_one(reactants, agents, products, options, step_id=None):
@@ -571,7 +571,8 @@ def _balance_one(reactants, agents, products, options, step_id=None):
             reaction['suggested_coefficients'] = {'reactants': suggestion[:len(reactants)],
                                                   'products': suggestion[len(reactants):]}
     if 'scale_mmol' in options:
-        reaction['stoichiometry'] = _stoichiometry(reactants, agents, products, options)
+        reaction['stoichiometry'], reaction['stoichiometry_warnings'] = _stoichiometry(
+            reactants, agents, products, options)
     return reaction
 
 
@@ -624,6 +625,8 @@ def check_reaction_balance(reaction: str | dict, options: dict | None = None,
     if not result['balanced']:
         result['warnings'].append('Unbalanced as drawn: confirm every structure against its source before '
                                   'treating a missing by-product as chemistry.')
+    for reaction in reactions:
+        result['warnings'].extend(reaction.pop('stoichiometry_warnings', []))
     if output_path:
         target = _publish(output_path, {'.json': lambda: json.dumps(result, ensure_ascii=False, indent=2)})
         result = artifact_safety.with_artifacts({**result, 'output_path': str(target)}, [target])
