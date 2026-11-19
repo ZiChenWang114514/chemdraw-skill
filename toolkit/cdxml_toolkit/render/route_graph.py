@@ -15,6 +15,11 @@ _UNSUPPORTED = (
     "reactions from one starting material, so they cannot be laid out."
 )
 
+_CYCLE = (
+    "The steps form a cycle: a product feeds back into its own route. Draw it with "
+    "layout catalytic-cycle, or remove the step that closes the loop."
+)
+
 
 def _graph(steps: list[StepDescriptor]):
     producer: dict[str, int] = {}
@@ -83,7 +88,7 @@ def _topological(feeders: list[list[int]]) -> list[int]:
     while remaining:
         ready = [i for i in sorted(remaining) if all(f not in remaining for f in feeders[i])]
         if not ready:
-            raise ValueError("The steps form a cycle: a product feeds back into its own route.")
+            raise ValueError(_CYCLE)
         order.append(ready[0])
         remaining.discard(ready[0])
     return order
@@ -118,13 +123,20 @@ def convergent_sections(steps: list[StepDescriptor]) -> list[list[StepDescriptor
     kind, order = classify_route(steps)
     if kind == "divergent":
         raise ValueError("A route from one starting material is divergent, not convergent.")
+    if kind == "catalytic-cycle":
+        raise ValueError(_CYCLE)
     _, _, feeders = _graph(steps)
     sections: list[list[StepDescriptor]] = []
+    seen: set[int] = set()
 
     def build(last: int) -> None:
         chain, current = [last], last
+        seen.add(last)
         while len(feeders[current]) == 1:
             current = feeders[current][0]
+            if current in seen:
+                raise ValueError(_CYCLE)
+            seen.add(current)
             chain.insert(0, current)
         for feeder in feeders[current]:
             build(feeder)
