@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 from copy import deepcopy
 from functools import partial
 from dataclasses import dataclass, field, replace as dataclass_replace
@@ -2615,9 +2616,10 @@ def _format_header(bbox: str) -> str:
 
 
 _PAGE_OPEN = (
-    '<page id="{page_id}" BoundingBox="0 0 1620 2160" '
+    '<page id="{page_id}" BoundingBox="0 0 {width:.0f} {height:.0f}" '
+    'Width="{width:.0f}" Height="{height:.0f}" '
     'HeaderPosition="36" FooterPosition="36" '
-    'PrintTrimMarks="yes" HeightPages="3" WidthPages="3">'
+    'PrintTrimMarks="yes" HeightPages="1" WidthPages="1">'
 )
 _PAGE_CLOSE = "</page>"
 
@@ -3094,21 +3096,46 @@ def _render_impl(scheme: SchemeDescriptor, yaml_dir: Optional[str] = None) -> st
     return _wrap_document(inner_xml, ids)
 
 
-def _wrap_document(inner_xml: str, ids: _IDGen) -> str:
-    """Put page content into a complete CDXML document."""
-    page_id = ids.next()
+PAGE_MARGIN = 36.0  # pt of white space kept to the right of and below the content
 
-    # Use a generous bounding box
-    bbox = "0 0 1620 2160"
+_POINT_ATTRS_RE = re.compile(r'\b(?:p|Head3D|Tail3D)="(-?[\d.]+) (-?[\d.]+)')
+_BOX_ATTR_RE = re.compile(r'\bBoundingBox="(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)"')
 
+
+def content_bounds(inner_xml: str) -> Optional[Tuple[float, float, float, float]]:
+    """``(x1, y1, x2, y2)`` over every point and bounding box in *inner_xml*, or None."""
+    xs: List[float] = []
+    ys: List[float] = []
+    for m in _POINT_ATTRS_RE.finditer(inner_xml):
+        xs.append(float(m.group(1)))
+        ys.append(float(m.group(2)))
+    for m in _BOX_ATTR_RE.finditer(inner_xml):
+        x1, y1, x2, y2 = (float(v) for v in m.groups())
+        xs += [x1, x2]
+        ys += [y1, y2]
+    if not xs:
+        return None
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def wrap_page(inner_xml: str, page_id: int) -> str:
+    """A complete ACS-style CDXML document whose page fits *inner_xml* plus PAGE_MARGIN."""
+    bounds = content_bounds(inner_xml) or (0.0, 0.0, 0.0, 0.0)
+    width = math.ceil(max(bounds[2], 0.0) + PAGE_MARGIN)
+    height = math.ceil(max(bounds[3], 0.0) + PAGE_MARGIN)
     doc_parts = [
-        _format_header(bbox),
-        _PAGE_OPEN.format(page_id=page_id),
+        _format_header("{:.2f} {:.2f} {:.2f} {:.2f}".format(*bounds)),
+        _PAGE_OPEN.format(page_id=page_id, width=width, height=height),
         inner_xml,
         _PAGE_CLOSE,
         CDXML_FOOTER,
     ]
     return "\n".join(doc_parts)
+
+
+def _wrap_document(inner_xml: str, ids: _IDGen) -> str:
+    """Put page content into a complete CDXML document sized to the content."""
+    return wrap_page(inner_xml, ids.next())
 
 
 class _ValidatedCDXML(str):
