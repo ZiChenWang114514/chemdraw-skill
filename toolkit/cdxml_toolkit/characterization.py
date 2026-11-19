@@ -1,5 +1,8 @@
 """High-resolution MS characterization lines ("calcd for C9H10O2Na [M+Na]+ 173.0573").
 
+A salt is calculated for its organic ion (see :func:`ion_component`); isotope labels stay in the
+formula (D, T, 13C ...).
+
 The ion formula and m/z are computed from a grounded structure: the neutral monoisotopic mass
 plus the atoms an adduct adds or removes, less the electron mass for a positive ion and plus it
 for a negative one. This is the convention of ``molecule_report``; ``electron_mass=False``
@@ -39,22 +42,72 @@ DEFAULT = {'positive': '[M+H]+', 'negative': '[M-H]-'}
 IONIZATION = re.compile(r'^[A-Za-z0-9][A-Za-z0-9 \-+/]{0,19}$')
 
 
+_ISOTOPE_SYMBOLS = {('H', 2): 'D', ('H', 3): 'T'}
+
+
+def _symbol(atom) -> str:
+    """Formula symbol of an atom: D and T for hydrogen isotopes, '13C' style for other labels."""
+    symbol, isotope = atom.GetSymbol(), atom.GetIsotope()
+    if not isotope:
+        return symbol
+    return _ISOTOPE_SYMBOLS.get((symbol, isotope), f'{isotope}{symbol}')
+
+
+def _element(symbol: str) -> str:
+    return {'D': 'H', 'T': 'H'}.get(symbol, symbol.lstrip('0123456789'))
+
+
 def _hill(counts) -> str:
+    """Hill order; an isotope label follows its element (C, 13C, H, D, T, then the rest)."""
     def part(symbol):
         return f'{symbol}{counts[symbol]}' if counts[symbol] > 1 else symbol
     symbols = [s for s, n in counts.items() if n]
-    if counts.get('C'):
-        order = [s for s in ('C', 'H') if s in symbols] + sorted(s for s in symbols if s not in ('C', 'H'))
-    else:
-        order = sorted(symbols)
-    return ''.join(part(s) for s in order)
+
+    def key(symbol):
+        element = _element(symbol)
+        plain = symbol == element
+        if counts.get('C') or any(_element(s) == 'C' for s in symbols):
+            rank = {'C': 0, 'H': 1}.get(element, 2)
+        else:
+            rank = 2
+        return (rank, element, not plain, symbol)
+    return ''.join(part(s) for s in sorted(symbols, key=key))
 
 
 def _counts(mol) -> Counter:
     counts = Counter()
     for atom in Chem.AddHs(mol).GetAtoms():
-        counts[atom.GetSymbol()] += 1
+        counts[_symbol(atom)] += 1
     return counts
+
+
+def organic_component(mol):
+    """The fragment with most carbons (then most heavy atoms); the molecule itself if it has one."""
+    frags = Chem.GetMolFrags(mol, asMols=True)
+    if len(frags) == 1:
+        return mol
+    return max(frags, key=lambda m: (sum(1 for a in m.GetAtoms() if a.GetAtomicNum() == 6),
+                                     m.GetNumHeavyAtoms()))
+
+
+def ion_component(mol):
+    """(component, kept_charge) of a multi-component record: the organic ion of a salt.
+
+    The component is the fragment with most carbons (then most heavy atoms). A charge that a
+    proton can remove or add (an ammonium or carboxylate) is neutralised; a permanent charge
+    (quaternary ammonium) is kept and returned. A single-component molecule is returned as is.
+    """
+    if len(Chem.GetMolFrags(mol)) == 1:
+        return mol, Chem.GetFormalCharge(mol)
+    comp = organic_component(mol)
+    if Chem.GetFormalCharge(comp) == 0:
+        return comp, 0
+    try:
+        from rdkit.Chem.MolStandardize import rdMolStandardize
+        comp = rdMolStandardize.Uncharger().uncharge(Chem.Mol(comp))
+    except Exception:
+        pass
+    return comp, Chem.GetFormalCharge(comp)
 
 
 def atoms_mass(mol) -> float:
@@ -71,6 +124,7 @@ def atoms_mass(mol) -> float:
 
 
 def default_adduct(mol, mode: str = 'positive', ionization: str = 'ESI') -> str:
+    mol, _charge = ion_component(mol)
     if Chem.GetFormalCharge(mol):
         return '[M]+' if Chem.GetFormalCharge(mol) > 0 else '[M]-'
     if ionization.upper() == 'EI':
@@ -88,6 +142,7 @@ def hrms_entry(mol, adduct: str | None = '[M+H]+', *, ionization: str = 'ESI', d
     mol = Chem.RemoveHs(mol)
     if any(a.GetAtomicNum() == 0 for a in mol.GetAtoms()):
         raise ValueError('generic atoms (R groups, *) have no mass; draw a specific structure first')
+    mol, _charge = ion_component(mol)  # a salt is measured as its organic ion
     charge_of_mol = Chem.GetFormalCharge(mol)
     neutral = _counts(mol)
     exact = atoms_mass(mol)

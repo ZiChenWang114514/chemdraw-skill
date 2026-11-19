@@ -170,6 +170,29 @@ def test_lcms_plate_accepts_well_dicts_and_marks_untested_wells():
     assert "untested" in by_dict["cdxml"]
 
 
+def test_hrms_formula_keeps_isotope_labels():
+    from rdkit import Chem
+    from cdxml_toolkit import characterization
+
+    d3 = characterization.hrms_entry(Chem.MolFromSmiles("[2H]C([2H])([2H])O"), "[M+H]+")
+    assert d3["ion_formula"] == "CH2D3O"
+    c13 = characterization.hrms_entry(Chem.MolFromSmiles("[13CH3]C(=O)O"), "[M+H]+")
+    assert "13C" in c13["ion_formula"] and c13["ion_formula"].startswith("C")
+
+
+def test_hrms_of_a_salt_uses_the_ion_component():
+    from rdkit import Chem
+    from cdxml_toolkit import characterization
+
+    salt = Chem.MolFromSmiles("CC[NH+](CC)CC.[Cl-]")
+    entry = characterization.hrms_entry(salt, characterization.default_adduct(salt))
+    assert entry["ion_formula"] == "C6H16N"
+    assert entry["calcd_mz"] == pytest.approx(102.1277, abs=1e-4)
+    quat = Chem.MolFromSmiles("C[N+](C)(C)C.[Br-]")
+    entry = characterization.hrms_entry(quat, characterization.default_adduct(quat))
+    assert entry["adduct"] == "[M]+" and entry["ion_formula"] == "C4H12N"
+
+
 def _timepoint(name, peaks):
     from cdxml_toolkit.analysis.deterministic.mzml_parser import LCMSAnalysis, LCMSPeak, MassSpectrum
 

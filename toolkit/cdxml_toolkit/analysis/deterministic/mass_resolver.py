@@ -140,26 +140,16 @@ class ExpectedSpecies:
 # Mass computation
 # ---------------------------------------------------------------------------
 
-def main_component(mol):
-    """The organic ion of a salt: the fragment with most carbons, then most heavy atoms."""
-    frags = Chem.GetMolFrags(mol, asMols=True)
-    if len(frags) == 1:
-        return mol
-    return max(frags, key=lambda m: (sum(1 for a in m.GetAtoms() if a.GetAtomicNum() == 6),
-                                     m.GetNumHeavyAtoms()))
-
-
 def _neutral_component(mol):
-    """(component, kept_charge): the main component, neutralised where a proton can do it."""
-    comp = main_component(mol)
-    if Chem.GetFormalCharge(comp) == 0:
-        return comp, 0
-    try:
-        from rdkit.Chem.MolStandardize import rdMolStandardize
-        neutral = rdMolStandardize.Uncharger().uncharge(Chem.Mol(comp))
-    except Exception:
-        neutral = comp
-    return neutral, Chem.GetFormalCharge(neutral)
+    """(component, kept_charge): the organic ion of a salt, neutralised where a proton can do it."""
+    from cdxml_toolkit.characterization import ion_component
+    return ion_component(mol)
+
+
+def main_component(mol):
+    """The organic component of a salt (one rule, in ``characterization.organic_component``)."""
+    from cdxml_toolkit.characterization import organic_component
+    return organic_component(mol)
 
 
 def compute_masses(smiles: str) -> Optional[Tuple[float, float]]:
