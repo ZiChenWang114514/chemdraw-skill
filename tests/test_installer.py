@@ -89,11 +89,15 @@ class InstallerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as raw:
             managed = Path(raw) / "python"
             managed.write_text("", encoding="utf-8")
-            answer = subprocess.CompletedProcess([], 0, stdout=f"{managed}
-", stderr="")
-            with mock.patch.object(installer.shutil, "which", lambda name: "uv" if name == "uv" else None),                     mock.patch.object(installer.subprocess, "run", return_value=answer),                     mock.patch.object(installer, "probe_python",
-                                      lambda command: (3, 12, 64) if command == [str(managed)] else (3, 14, 64)):
-                command, _rejected = installer.probe_candidates(None)
+            answer = subprocess.CompletedProcess([], 0, stdout=f"{managed}\n", stderr="")
+
+            def probe(command):
+                return (3, 12, 64) if command == [str(managed)] else (3, 14, 64)
+
+            with mock.patch.object(installer.shutil, "which", lambda name: "uv" if name == "uv" else None):
+                with mock.patch.object(installer.subprocess, "run", return_value=answer):
+                    with mock.patch.object(installer, "probe_python", probe):
+                        command, _rejected = installer.probe_candidates(None)
             self.assertEqual(command, [str(managed)])
 
     def _installer(self):
