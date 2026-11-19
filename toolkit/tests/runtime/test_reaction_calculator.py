@@ -61,6 +61,41 @@ def test_coefficients_scale_the_theoretical_yield():
     assert by_id(compute(state))['p']['theory_mmol'] == pytest.approx(4.0)
 
 
+def substoichiometric_alcohol():
+    # 1.0 equiv acid sets the scale, but only 0.8 equiv methanol is charged
+    return {'limiting': 'acid', 'rows': [
+        row('acid', 'reactant', 'mass', 100.0, mw=100.0),
+        row('meoh', 'reactant', 'equiv', 0.8, mw=32.04),
+        row('ester', 'product', 'mass', 110.16, mw=150.0),
+    ]}
+
+
+def test_theoretical_yield_follows_the_reactant_in_shortest_supply():
+    result = compute(substoichiometric_alcohol())
+    ester = by_id(result)['ester']
+    assert ester['theory_mmol'] == pytest.approx(0.8)
+    assert ester['yield_percent'] == pytest.approx(91.8)  # not 73.4 % against the acid
+    assert result['yield_limiting'] == 'meoh' and result['limiting'] == 'acid'
+    assert any('meoh' in w and 'acid' in w for w in result['warnings'])
+
+
+def test_coefficients_enter_the_limiting_reactant_choice():
+    state = substoichiometric_alcohol()
+    state['rows'][0]['coefficient'] = 2      # 2 acid + 1 methanol: 1 mmol acid gives 0.5 mmol
+    result = compute(state)
+    assert result['yield_limiting'] == 'acid'
+    assert not any('shorter supply' in w for w in result['warnings'])
+    assert by_id(result)['ester']['theory_mmol'] == pytest.approx(0.5)
+
+
+def test_small_amounts_keep_significant_figures():
+    from cdxml_toolkit.reaction_calculator.materials import trim, volume_phrase
+    assert trim(0.000012) == '0.000012'
+    assert trim(0.0012345) == '0.00123'
+    assert trim(1.00) == '1' and trim(94.2) == '94.2' and trim(12345.0) == '12345'
+    assert volume_phrase(0.00001) == '0.01 µL'
+
+
 def test_process_mass_intensity_counts_every_input_and_solvent_over_the_isolated_product():
     totals = compute(esterification())['totals']
     # inputs 200 + 150 + 400 mg, 10 mL of solvent at 1.325 g/mL, 240 mg isolated

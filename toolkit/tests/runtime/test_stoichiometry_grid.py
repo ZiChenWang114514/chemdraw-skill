@@ -236,6 +236,14 @@ class ReactionSmilesTests(unittest.TestCase):
         self.assertEqual(len(step.get("ReactionStepObjectsAboveArrow").split()), 1)
         self.assertEqual(len(step.get("ReactionStepProducts").split()), 1)
 
+    def test_salts_and_grouped_components_stay_one_structure(self):
+        sides = sg.reaction_components("CC(=O)O.[Na+].[OH-]>>CC(=O)[O-].[Na+].O")
+        self.assertEqual(sides, [["CC(=O)O", "[Na+].[OH-]"], [], ["CC(=O)[O-].[Na+]", "O"]])
+        sides = sg.reaction_components("(CC(=O)[O-].[K+]).OCC>(Cl.Cl)>CC(=O)OCC")
+        self.assertEqual(sides, [["CC(=O)[O-].[K+]", "OCC"], ["Cl.Cl"], ["CC(=O)OCC"]])
+        self.assertEqual(sg.reaction_components("[K+].[K+].[O-]C([O-])=O.Oc1ccccc1>>c1ccccc1O")[0],
+                         ["[K+].[K+].[O-]C([O-])=O", "Oc1ccccc1"])
+
     def test_text_that_is_not_a_reaction_is_refused(self):
         with self.assertRaisesRegex(ValueError, "reaction SMILES"):
             sg.reaction_document("OCc1ccccc1", Path("unused.cdxml"))

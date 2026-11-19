@@ -20,6 +20,7 @@ from rdkit.Chem import Descriptors, Lipinski, QED, rdMolDescriptors
 from rdkit.Chem import Crippen
 
 from ..chemistry_semantics import read_fragments
+from ..reaction_calculator.engine import compute as compute_stoichiometry
 from . import artifact_safety
 from .chemistry_compare import _bridge_factory
 from .figure_tools import _mol as _single_molecule
@@ -475,36 +476,58 @@ def _stoichiometry(reactants, agents, products, options):
     limiting = options.get('limiting', 0)
     if not isinstance(limiting, int) or not 0 <= limiting < len(reactants):
         raise ValueError(f'limiting must be a reactant index between 0 and {len(reactants) - 1}')
-    base = reactants[limiting]['coefficient']
-    rows = []
+    base = float(reactants[limiting]['coefficient'])
+    # The amounts and the theoretical yield come from the reaction calculator, which takes the
+    # yield against the reactant in shortest supply rather than the scale-setting one.
+    state_rows, species = [], {}
     for role, group in (('reactant', reactants), ('agent', agents)):
         for index, s in enumerate(group):
             record = s['record']
-            if 'equiv' in record:
-                equiv = float(record['equiv'])
+            if role == 'reactant' and index == limiting:
+                basis, value = 'mmol', float(scale) * float(record.get('equiv', 1.0))
+            elif 'equiv' in record:
+                basis, value = 'equiv', float(record['equiv'])
             elif role == 'reactant':
-                equiv = 1.0 if group is reactants and index == limiting else s['coefficient'] / base
+                basis, value = 'equiv', float(s['coefficient']) / base
             else:
                 continue
-            mmol = scale * equiv
-            mass = mmol * s['mw']
-            row = {'label': s['label'], 'role': role, 'formula': s['formula'], 'mw': round(s['mw'], 3),
-                   'equiv': round(equiv, 4) if equiv != int(equiv) else int(equiv),
-                   'mmol': round(mmol, 4), 'mass_mg': round(mass, 3)}
-            if record.get('density_g_ml'):
-                row['volume_ml'] = round(mass / 1000.0 / float(record['density_g_ml']), 4)
-            elif record.get('concentration_m'):
-                row['volume_ml'] = round(mmol / float(record['concentration_m']), 4)
-            rows.append(row)
-    for s in products:
-        mmol = scale * s['coefficient'] / base
-        theoretical = mmol * s['mw']
-        row = {'label': s['label'], 'role': 'product', 'formula': s['formula'], 'mw': round(s['mw'], 3),
-               'mmol': round(mmol, 4), 'theoretical_mg': round(theoretical, 3)}
+            key = f'{role}{index}'
+            species[key] = s
+            state_rows.append({'id': key, 'name': s['label'], 'role': 'reactant' if role == 'reactant' else 'reagent',
+                               'mw': float(s['mw']), 'basis': basis, 'value': value,
+                               'coefficient': float(s['coefficient']) if role == 'reactant' else 1.0,
+                               'density': float(record['density_g_ml']) if record.get('density_g_ml') else None,
+                               'solution_m': float(record['concentration_m'])
+                               if not record.get('density_g_ml') and record.get('concentration_m') else None})
+    for index, s in enumerate(products):
+        key = f'product{index}'
+        species[key] = s
         isolated = s['record'].get('isolated_mg')
-        if isolated is not None:
-            row['isolated_mg'] = isolated
-            row['yield_percent'] = round(float(isolated) / theoretical * 100.0, 1)
+        state_rows.append({'id': key, 'name': s['label'], 'role': 'product', 'mw': float(s['mw']),
+                           'coefficient': float(s['coefficient']),
+                           'basis': 'mass' if isolated is not None else None,
+                           'value': float(isolated) if isolated is not None else None})
+    computed = compute_stoichiometry({'limiting': f'reactant{limiting}', 'rows': state_rows})
+    yield_basis = species[computed['yield_limiting']]['label']
+    rows = []
+    for r in computed['rows']:
+        s = species[r['id']]
+        if r['role'] == 'product':
+            row = {'label': s['label'], 'role': 'product', 'formula': s['formula'], 'mw': round(s['mw'], 3),
+                   'mmol': round(r['theory_mmol'], 4), 'theoretical_mg': round(r['theory_mg'], 3),
+                   'yield_limited_by': yield_basis}
+            if r['actual_mg'] is not None:
+                row['isolated_mg'] = s['record']['isolated_mg']
+                row['yield_percent'] = round(r['yield_percent'], 1)
+            rows.append(row)
+            continue
+        equiv = r['mmol'] / scale
+        row = {'label': s['label'], 'role': 'reactant' if r['id'].startswith('reactant') else 'agent',
+               'formula': s['formula'], 'mw': round(s['mw'], 3),
+               'equiv': round(equiv, 4) if equiv != int(equiv) else int(equiv),
+               'mmol': round(r['mmol'], 4), 'mass_mg': round(r['mass_mg'], 3)}
+        if r['volume_ml'] is not None:
+            row['volume_ml'] = round(r['volume_ml'], 4)
         rows.append(row)
     return rows
 

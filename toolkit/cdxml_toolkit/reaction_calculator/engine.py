@@ -9,6 +9,8 @@ A row is a dict. Rows with an amount (role reactant, reagent or catalyst) carry 
 ``density`` or of a solution with ``solution_m``). The limiting row cannot use ``equiv``.
 Solvent rows use ``volume`` or ``conc`` (the molarity of the limiting row once dissolved).
 Product rows use ``mass`` (isolated mg), ``yield`` (percent of theoretical) or nothing.
+The theoretical yield follows the reactant in shortest supply (smallest mmol / coefficient),
+reported as ``yield_limiting``; a warning says so when that is not the designated limiting row.
 """
 
 from __future__ import annotations
@@ -99,13 +101,23 @@ def compute(state: dict) -> dict:
             density = _number(r, 'density', positive=True)
             r['mass_mg'] = r['volume_ml'] * density * 1000.0 if density else None
             solvent_ml += r['volume_ml']
-    first_reactant = limiting['coefficient'] if limiting.get('coefficient') else 1.0
+    # The theoretical yield follows the reactant in shortest supply: min(mmol / coefficient).
+    candidates = [r for r in rows if r['role'] == 'reactant' or r is limiting]
+    extent_row = min(candidates, key=lambda r: r['mmol'] / _number(r, 'coefficient', positive=True, default=1.0))
+    extent = extent_row['mmol'] / _number(extent_row, 'coefficient', positive=True, default=1.0)
+    if extent_row is not limiting and \
+            extent < limiting['mmol'] / _number(limiting, 'coefficient', positive=True, default=1.0) * (1 - 1e-9):
+        warnings.append(f"{extent_row.get('name') or extent_row['id']} is in shorter supply than the designated "
+                        f"limiting reagent {limiting.get('name') or limiting['id']}; yields are calculated "
+                        f"against {extent_row.get('name') or extent_row['id']}")
+    else:
+        extent_row = limiting
     for r in rows:
         if r['role'] != 'product':
             continue
         coefficient = _number(r, 'coefficient', positive=True, default=1.0)
         mw = _number(r, 'mw', positive=True)
-        r['theory_mmol'] = base * coefficient / first_reactant
+        r['theory_mmol'] = extent * coefficient
         r['theory_mg'] = r['theory_mmol'] * mw
         r['actual_mg'] = r['yield_percent'] = None
         value = _number(r, 'value')
@@ -141,4 +153,4 @@ def compute(state: dict) -> dict:
         totals['pmi'] = (totals['input_mg'] + solvent_mg) / actual
         totals['e_factor'] = totals['pmi'] - 1.0
         totals['pmi_no_solvent'] = totals['input_mg'] / actual
-    return {'limiting': limiting['id'], 'rows': rows, 'totals': totals, 'warnings': warnings}
+    return {'limiting': limiting['id'], 'yield_limiting': extent_row['id'], 'rows': rows, 'totals': totals, 'warnings': warnings}

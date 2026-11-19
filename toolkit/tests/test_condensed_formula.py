@@ -290,3 +290,52 @@ class TestCaseInsensitivity:
         """Standard case: PhB(OH)2."""
         result = resolve_condensed_formula("PhB(OH)2")
         assert result is not None
+
+
+# ===================================================================
+# Group multipliers, functional groups and salts
+# ===================================================================
+
+class TestMultipliersAndGroups:
+    """Every group in the notation must survive into the molecule."""
+
+    @pytest.mark.parametrize("notation, expected", [
+        ("(CH3)3CBr", "CC(C)(C)Br"),
+        ("(CH3)2CO", "CC(C)=O"),
+        ("(CH3)2CHOH", "CC(C)O"),
+        ("(CH3)3COH", "CC(C)(C)O"),
+        ("PhNO2", "O=[N+]([O-])c1ccccc1"),
+        ("CH3CH2OH", "CCO"),
+        ("CH3COOH", "CC(=O)O"),
+        ("CH3COCH3", "CC(C)=O"),
+        ("CH3CO2Et", "CCOC(C)=O"),
+        ("CH3CN", "CC#N"),
+        ("PhCHO", "O=Cc1ccccc1"),
+        ("PhSO3H", "O=S(=O)(O)c1ccccc1"),
+        ("PhCO2H", "O=C(O)c1ccccc1"),
+        ("CH3(CH2)4CH3", "CCCCCC"),
+        ("Et3N", "CCN(CC)CC"),
+        ("Cl2CHOCH3", "COC(Cl)Cl"),
+        ("CHCl3", "ClC(Cl)Cl"),
+        ("(CH3)2SO", "CS(C)=O"),
+        ("PhMe2SiCl", "C[Si](C)(Cl)c1ccccc1"),
+        ("CH3CH(OH)CH3", "CC(C)O"),
+    ])
+    def test_notation(self, notation, expected):
+        _assert_same_molecule(resolve_condensed_formula(notation), expected, notation)
+
+    @pytest.mark.parametrize("notation, expected", [
+        ("K2CO3", "[K+].[K+].[O-]C([O-])=O"),
+        ("Cs2CO3", "[Cs+].[Cs+].[O-]C([O-])=O"),
+        ("NaOtBu", "CC(C)(C)[O-].[Na+]"),
+        ("Ca(OH)2", "[OH-].[OH-].[Ca+2]"),
+        ("K3PO4", "[K+].[K+].[K+].[O-]P(=O)([O-])[O-]"),
+        ("NaBH4", "[BH4-].[Na+]"),
+        ("NaCl", "[Cl-].[Na+]"),
+    ])
+    def test_ionic_salts_are_charge_separated(self, notation, expected):
+        _assert_same_molecule(resolve_condensed_formula(notation), expected, notation)
+
+    @pytest.mark.parametrize("notation", ["C(", "(CH3", "CH3)", "Ph(", "(CH3)3", "Na2Cl", "CH5", "Q3X"])
+    def test_garbage_returns_none(self, notation):
+        assert resolve_condensed_formula(notation) is None
