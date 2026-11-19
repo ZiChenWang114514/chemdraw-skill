@@ -994,6 +994,14 @@ Please open a focused issue or pull request with the exact macOS version, chip, 
 
 The deployable Skill lives in [`skill/chemdraw`](skill/chemdraw). The chemistry runtime it drives, the `cdxml_toolkit` Python package, lives in [`toolkit`](toolkit) with its own tests.
 
+## Upgrading to 0.8.0
+
+- **MCP servers list 26 tools by default** (the `standard` profile) instead of all 71. Start the server with `--profile full` or set `CHEMDRAW_MCP_PROFILE=full` for the rest; `cdx.py call` reaches every tool either way.
+- **Results have one shape.** `ok` is true only when the tool finished and its checks passed; a failure carries `error` with `code`, `message` and `hint`, and a result that failed a chemistry check is returned under `rejected_result`. The exit code of `cdx.py` follows `ok`.
+- **Names resolve in a fixed order,** and a name that only the secondary abbreviation table knows is marked low confidence or not resolved. Each result reports `source_tier`, `components` and unspecified stereocentres.
+- `render_scheme` no longer accepts the `numbered-parallel` layout.
+- **The installed Skill is about 2 MB.** The style gallery and its evidence moved to `showcase/house-styles/`; ChemDraw member lists are read with `cdx.py catalog LAYER NAME`.
+
 ## License
 
 Repository-authored code and scripts by ZiChenWang114514 are licensed for noncommercial use under the **PolyForm Strict License 1.0.0**, and prompts, house-style cards, documentation and website content are licensed under **CC BY-NC-ND 4.0**; see [LICENSE](LICENSE) for full terms and commercial inquiries. Original upstream `cdxml-toolkit` code in [`toolkit/`](toolkit) by Hiu Fung Kevin Lee retains its [MIT License](toolkit/LICENSE), alongside community additions under [PolyForm Strict 1.0.0](toolkit/LICENSE-POLYFORM-STRICT.txt) and [third-party notices](toolkit/NOTICE.md). ChemDraw, Microsoft Office, agent clients, the MCP Python SDK, RDKit, DECIMER and their dependencies retain their respective licenses and usage terms.

@@ -994,6 +994,14 @@ macOS 适配器通过 ChemDraw for macOS 的 AppleScript 字典驱动 ChemDraw�
 
 可部署的 Skill 位于 [`skill/chemdraw`](skill/chemdraw)。它所驱动的化学运行时，即 `cdxml_toolkit` Python 包，位于 [`toolkit`](toolkit)，并带有自己的测试。
 
+## 升级到 0.8.0
+
+- **MCP 服务器默认只列出 26 个工具**（`standard` 配置），不再是全部 71 个。需要其余工具时用 `--profile full` 启动，或设置 `CHEMDRAW_MCP_PROFILE=full`；`cdx.py call` 始终可以调用全部工具。
+- **返回结果统一为一种结构。** 只有工具完成且校验通过时 `ok` 才为 true；失败时带 `error`（含 `code`、`message`、`hint`），未通过化学校验的结果放在 `rejected_result` 里。`cdx.py` 的退出码与 `ok` 一致。
+- **名称按固定顺序解析，**只有二级缩写表认识的名称会标为低可信或不予解析。每个结果给出 `source_tier`、`components` 和未指定的手性中心数。
+- `render_scheme` 不再接受 `numbered-parallel` 布局。
+- **安装后的 Skill 约 2 MB。** 风格图库及其证据图移到 `showcase/house-styles/`；ChemDraw 成员列表改用 `cdx.py catalog LAYER NAME` 查询。
+
 ## 许可证
 
 本仓库由 ZiChenWang114514 编写的代码与脚本采用 **PolyForm Strict License 1.0.0** 仅供非商业使用，提示词、期刊与课题组风格卡片、文档及网页内容采用 **CC BY-NC-ND 4.0** 许可；完整条款与商业授权咨询见 [LICENSE](LICENSE)。[`toolkit/`](toolkit) 中来自 Hiu Fung Kevin Lee 原始 `cdxml-toolkit` 的上游代码保留其 [MIT 许可证](toolkit/LICENSE)，社区新增与修改适用 [PolyForm Strict 1.0.0](toolkit/LICENSE-POLYFORM-STRICT.txt)，并附有[第三方声明](toolkit/NOTICE.md)。ChemDraw、Microsoft Office、各 Agent 客户端、MCP Python SDK、RDKit、DECIMER 及其依赖项继续适用各自的许可证与使用条款。
