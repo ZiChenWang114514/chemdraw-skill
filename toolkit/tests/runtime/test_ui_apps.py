@@ -154,15 +154,30 @@ def test_serve_drawing_studio_live_sync_roundtrip(tmp_path):
         with urllib.request.urlopen(url, timeout=5) as resp:
             page = resp.read().decode("utf-8")
         assert "__CDX_LIVE_SYNC_URL__" in page
-        req = urllib.request.Request(
-            url + "api/studio-sync",
-            data=json.dumps({"smiles": "c1ccccc1", "style": "acs1996", "cdxml": "<CDXML/>", "graph": {}}).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=5) as resp2:
-            out = json.loads(resp2.read().decode("utf-8"))
-        assert out["ok"] is True
+        import re
+        from urllib.error import HTTPError
+
+        sync_path = re.search(r'__CDX_LIVE_SYNC_URL__ = "(/api/studio-sync[?]token=[^"]+)"', page).group(1)
+        body = json.dumps({"smiles": "c1ccccc1", "style": "acs1996", "cdxml": "<CDXML/>", "graph": {}}).encode("utf-8")
+
+        def post(path, **headers):
+            req = urllib.request.Request(url.rstrip("/") + path, data=body, method="POST",
+                                         headers={"Content-Type": "application/json", **headers})
+            try:
+                with urllib.request.urlopen(req, timeout=5) as answer:
+                    return answer.status, json.loads(answer.read().decode("utf-8"))
+            except HTTPError as refused:
+                return refused.code, None
+
+        # Another page in the browser can reach a loopback port: it must not be able to write files.
+        assert post("/api/studio-sync")[0] == 403
+        assert post("/api/studio-sync?token=guess")[0] == 403
+        assert post(sync_path, Origin="https://example.org")[0] == 403
+        assert post(sync_path, Host="attacker.example:80")[0] == 403
+        assert not sync_cdxml.exists()
+
+        status, out = post(sync_path, Origin=url.rstrip("/"))
+        assert status == 200 and out["ok"] is True
         assert sync_cdxml.read_text(encoding="utf-8") == "<CDXML/>"
     finally:
         server.shutdown()
@@ -202,3 +217,10 @@ def test_mcp_server_registers_ui_apps_metadata_structured_content_and_resources(
     assert ui_apps.DRAWING_STUDIO_RESOURCE_URI in by_uri
     mime_3d = getattr(by_uri[ui_apps.MOLSTAR_RESOURCE_URI], "mime_type", None) or getattr(by_uri[ui_apps.MOLSTAR_RESOURCE_URI], "mimeType", None)
     assert mime_3d == "text/html;profile=mcp-app"
+
+
+def test_the_3d_viewer_loads_one_pinned_build_with_integrity_checks():
+    page = ui_apps.render_molstar_app_html()
+    assert "molstar@latest" not in page
+    assert page.count(f"molstar@{ui_apps.MOLSTAR_VERSION}/") == 2
+    assert page.count('integrity="sha384-') == 2 and page.count('crossorigin="anonymous"') == 2
