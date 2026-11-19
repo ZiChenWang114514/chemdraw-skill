@@ -35,7 +35,8 @@ def test_capability_report_is_content_free_and_has_schema_digest():
 
     assert result["ok"] is True
     assert result["metadata"] == {"content_free": True}
-    assert result["outputs"]["tool_count"] == len(tool_registry.build_registry("full"))
+    # With no profile named, the report describes what a server lists by default.
+    assert result["outputs"]["tool_count"] == len(tool_registry.build_registry(tool_registry.DEFAULT_PROFILE))
     assert len(result["outputs"]["tool_schema_sha256"]) == 64
     assert "request_payload" not in result["outputs"]
 
