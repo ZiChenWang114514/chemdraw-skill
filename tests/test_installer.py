@@ -36,6 +36,66 @@ class InstallerTests(unittest.TestCase):
             self.assertIn("chemscript", installer.default_extras(platform))
         self.assertNotIn("office", installer.default_extras("linux"))
 
+    def test_jsonc_reader_leaves_commas_inside_strings_alone(self) -> None:
+        installer = self._installer()
+        text = '{"note": "a,]", /* c */ "list": [1, 2, ], // tail\n "url": "http://x/y", }'
+        self.assertEqual(json.loads(installer._strip_jsonc(text)),
+                         {"note": "a,]", "list": [1, 2], "url": "http://x/y"})
+
+    def test_config_is_backed_up_before_it_is_changed(self) -> None:
+        installer = self._installer()
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            config = root / "settings.json"
+            config.write_text('{"mcpServers": {"other": {"command": "x"}}}', encoding="utf-8")
+            spec = {"path": str(config), "format": "json_key", "root_key": "mcpServers",
+                    "entry_key": "cdxml-toolkit", "value": {"command": "python"}}
+            result = installer.apply_mcp_configs([spec], "python", "SKILL.md", backups=root / "backups")[0]
+            self.assertEqual(result["status"], "configured")
+            self.assertEqual(Path(result["backup"]).read_text(encoding="utf-8"),
+                             '{"mcpServers": {"other": {"command": "x"}}}')
+            written = json.loads(config.read_text(encoding="utf-8"))
+            self.assertEqual(set(written["mcpServers"]), {"other", "cdxml-toolkit"})
+
+    def test_a_commented_config_is_not_rewritten(self) -> None:
+        installer = self._installer()
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            config = root / "settings.json"
+            original = '{\n  // my servers\n  "mcpServers": {"other": {"command": "x"}}\n}\n'
+            config.write_text(original, encoding="utf-8")
+            spec = {"path": str(config), "format": "json_key", "root_key": "mcpServers",
+                    "entry_key": "cdxml-toolkit", "value": {"command": "python"}}
+            result = installer.apply_mcp_configs([spec], "python", "SKILL.md", backups=root / "backups")[0]
+            self.assertEqual(result["status"], "manual")
+            self.assertIn("cdxml-toolkit", result["snippet"])
+            self.assertEqual(config.read_text(encoding="utf-8"), original)
+
+    def test_a_venv_interpreter_is_compared_by_its_own_path(self) -> None:
+        installer = self._installer()
+        with tempfile.TemporaryDirectory() as raw:
+            skill = Path(raw) / "skills" / "chemdraw"
+            skill.mkdir(parents=True)
+            shared = installer.venv_python(installer.cdx.default_runtime_dir())
+            other = Path(raw) / "elsewhere" / "python"
+            # A venv's python is often a link to the base interpreter: following links
+            # would make two different environments look like the same one.
+            with mock.patch.object(Path, "resolve", lambda self, *a, **k: Path("/usr/bin/python3")):
+                self.assertFalse(installer.needs_local_config(skill, shared))
+                self.assertTrue(installer.needs_local_config(skill, other))
+
+    def test_a_python_managed_by_uv_is_found(self) -> None:
+        installer = self._installer()
+        with tempfile.TemporaryDirectory() as raw:
+            managed = Path(raw) / "python"
+            managed.write_text("", encoding="utf-8")
+            answer = subprocess.CompletedProcess([], 0, stdout=f"{managed}
+", stderr="")
+            with mock.patch.object(installer.shutil, "which", lambda name: "uv" if name == "uv" else None),                     mock.patch.object(installer.subprocess, "run", return_value=answer),                     mock.patch.object(installer, "probe_python",
+                                      lambda command: (3, 12, 64) if command == [str(managed)] else (3, 14, 64)):
+                command, _rejected = installer.probe_candidates(None)
+            self.assertEqual(command, [str(managed)])
+
     def _installer(self):
         import importlib.util
 
@@ -500,10 +560,11 @@ class InstallerTests(unittest.TestCase):
                 parsed_toml = tomllib.loads(toml_text)
                 self.assertIn("cdxml-toolkit", parsed_toml["mcp_servers"])
                 self.assertIn("other", parsed_toml["mcp_servers"])
-            oc_data = json.loads((oc_dir / "opencode.jsonc").read_text(encoding="utf-8"))
-            self.assertEqual(oc_data["theme"], "dark")
-            self.assertNotIn("chemdraw", oc_data["mcp"])
-            self.assertIn("cdxml-toolkit", oc_data["mcp"])
+            # The user's commented file is left as it is; they get the entry to add by hand.
+            self.assertIn("// user comment", (oc_dir / "opencode.jsonc").read_text(encoding="utf-8"))
+            manual = [item for item in rec["mcp"] if item["status"] == "manual"]
+            self.assertEqual([Path(item["path"]).name for item in manual], ["opencode.jsonc"])
+            self.assertIn("cdxml-toolkit", manual[0]["snippet"])
             self.assertIn("cdxml-toolkit:", (home / ".config" / "goose" / "config.yaml").read_text(encoding="utf-8"))
             self.assertIn("cdxml-toolkit", json.loads((home / ".cursor" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"])
             self.assertTrue((home / ".qwen" / "skills" / "chemdraw" / "SKILL.md").is_file())
