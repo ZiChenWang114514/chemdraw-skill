@@ -323,6 +323,7 @@ def _fragments(table):
                 atom = piece.GetAtomWithIdx(index[k])
                 source = mol.GetAtomWithIdx(k)
                 atom.SetFormalCharge(source.GetFormalCharge())
+                atom.SetIsotope(source.GetIsotope())  # a labelled atom only matches its label
                 atom.SetIsAromatic(source.GetIsAromatic())
                 atom.SetNumExplicitHs(source.GetTotalNumHs())
                 atom.SetNoImplicit(True)
@@ -343,10 +344,11 @@ def _numbers_on(side, table, what):
         parsed = Chem.MolFromSmiles(text)
         if parsed is None:
             raise ValueError(f'the mapper returned an unreadable {what} "{text}"')
+        # Remove hydrogens first: it renumbers atoms, so map numbers are read afterwards.
+        parsed = Chem.RemoveHs(parsed)
         marks = {atom.GetIdx(): atom.GetAtomMapNum() for atom in parsed.GetAtoms()}
         for atom in parsed.GetAtoms():
             atom.SetAtomMapNum(0)
-        parsed = Chem.RemoveHs(parsed)
         key = Chem.MolToSmiles(parsed, isomericSmiles=False)
         for n, (_, other, fragment, gids) in enumerate(pieces):
             if n in used or other != key:
