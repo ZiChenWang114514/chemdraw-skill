@@ -246,6 +246,23 @@ def _docx_context(
     }
 
 
+def _object_structures(cdxml_text: str) -> dict[str, Any]:
+    """What an embedded drawing holds, so a caller need not open each extracted file."""
+    try:
+        from rdkit import Chem
+        from rdkit.Chem.rdMolDescriptors import CalcMolFormula
+
+        from cdxml_toolkit.chemistry_semantics import read_molecules
+
+        molecules = read_molecules(cdxml_text)
+        return {"structures": [
+            {"smiles": Chem.MolToSmiles(molecule), "formula": CalcMolFormula(molecule)}
+            for molecule in molecules
+        ]}
+    except Exception as exc:  # the object is still listed; its structures were not read
+        return {"structures": [], "structures_error": f"{type(exc).__name__}: {exc}"[:300]}
+
+
 def _object_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
     host = item["host"]
     relationship_match = re.search(r"(\d+)$", item["relationship_id"])
@@ -463,6 +480,7 @@ def write_inspection(
         cdxml_path.write_text(cdxml_text, encoding="utf-8")
         public = {key: value for key, value in record.items() if not key.startswith("_")}
         public["cdxml"] = cdxml_relative.as_posix()
+        public.update(_object_structures(cdxml_text))
         if render_previews:
             preview_relative = Path("previews") / f"{stem}.png"
             preview_path = destination / preview_relative

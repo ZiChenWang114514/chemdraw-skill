@@ -669,3 +669,16 @@ class OfficePdfExportSessionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_each_inventoried_object_lists_its_structures(tmp_path):
+    from cdxml_toolkit.mcp_runtime import office_objects
+
+    ethanol = (
+        '<CDXML><page><fragment id="1"><n id="2" p="10 10"/><n id="3" p="24.4 10"/>'
+        '<n id="4" p="38.8 10" Element="8" NumHydrogens="1"/><b B="2" E="3"/><b B="3" E="4"/>'
+        '</fragment></page></CDXML>'
+    )
+    assert office_objects._object_structures(ethanol) == {"structures": [{"smiles": "CCO", "formula": "C2H6O"}]}
+    unreadable = office_objects._object_structures("<not-xml")
+    assert unreadable["structures"] == [] and unreadable["structures_error"]

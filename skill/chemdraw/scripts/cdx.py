@@ -1015,8 +1015,11 @@ def cmd_inspect(ns):
             tool, res = _inspect_cdxml(tmp_cdxml, objects=getattr(ns, 'objects', False), display_source=target)
             return _emit(tool, res, ns.out, full=full, summary_only=summary_only)
     if ext in ('.pptx', '.docx', '.xlsx', '.xls'):
+        keep = getattr(ns, 'keep', None)
+        if keep and Path(keep).expanduser().exists():
+            raise SystemExit(f'inspect: --keep must name a new folder; {keep} exists')
         with tempfile.TemporaryDirectory(prefix='cdx-inspect-office-') as scratch:
-            inspection = Path(scratch) / 'inspection'
+            inspection = Path(keep).expanduser().resolve() if keep else Path(scratch) / 'inspection'
             res = _worker('inspect_chemdraw_objects_in_office',
                           {'input_path': str(target), 'output_dir': str(inspection), 'render_previews': False})
             if not _summary('inspect_chemdraw_objects_in_office', res)['ok']:
@@ -1031,6 +1034,8 @@ def cmd_inspect(ns):
                     'source_sha256': manifest.get('source_sha256'),
                     'object_count': len(objects),
                     'objects': objects,
+                    # With --keep, each object's "cdxml" is a file under this folder.
+                    **({'output_dir': str(inspection)} if keep else {}),
                 },
             }
             return _emit('inspect_chemdraw_objects_in_office', payload, ns.out, full=full, summary_only=summary_only)
@@ -2074,6 +2079,8 @@ def main(argv=None):
     s.add_argument('path', metavar='FILE')
     s.add_argument('--objects', action='store_true', help='for .cdxml/.cdx: list raw CDXML objects instead of exporting structures')
     s.add_argument('--out', help='new evidence file for the full result')
+    s.add_argument('--keep', metavar='DIR',
+                   help='for Office files: a new folder that keeps each embedded object as CDXML')
     _add_output_mode_flags(s)
     s.set_defaults(fn=cmd_inspect)
     s = sub.add_parser('report', help='property sheet, HRMS line, reaction balance or atom mapping without writing JSON')
