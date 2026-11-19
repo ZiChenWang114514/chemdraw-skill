@@ -595,11 +595,25 @@ def _parse_step(index: int, data: Any) -> StepDescriptor:
         products=products,
         above_arrow=above,
         below_arrow=below,
-        yield_=data.get("yield"),
+        yield_=_step_yield(data),
         number=data.get("number"),
         id=data.get("id"),
         arrow_style=_validate_arrow_style(data.get("arrow_style", "solid"), index),
     )
+
+
+# The YAML key for a step's yield is ``yield``; ``yield_`` (the dataclass field
+# name, written by older versions of the scheme writer) is read as an alias.
+YIELD_KEY = "yield"
+_YIELD_ALIASES = ("yield_",)
+
+
+def _step_yield(data: Dict[str, Any]) -> Optional[str]:
+    for key in (YIELD_KEY, *_YIELD_ALIASES):
+        value = data.get(key)
+        if value is not None:
+            return str(value)
+    return None
 
 
 def _parse_arrow_content(data: Any, context: str) -> Optional[ArrowContent]:
