@@ -46,6 +46,13 @@ class VsCodeExtensionTests(unittest.TestCase):
         for view in pkg["contributes"]["views"]["chemdraw-workbench"]:
             self.assertIn(f'"{view["id"]}"', ext_js)
 
+    def test_the_editor_never_overwrites_a_file_it_cannot_fully_write_back(self) -> None:
+        ext_js = (VSCODE_DIR / "src" / "extension.js").read_text(encoding="utf-8")
+        save = ext_js[ext_js.index("saveCustomDocument: async (msg) => {"):]
+        save = save[:save.index("renderNativePng")]
+        self.assertLess(save.index("cdxmlLossReport(document.getText())"), save.index("applyEdit"))
+        self.assertLess(save.index("return;", save.index("studioCopyPath")), save.index("applyEdit"))
+
     def test_build_vsix_produces_valid_opc_archive_and_parsers_work(self) -> None:
         builder = _load_builder()
         with tempfile.TemporaryDirectory() as tmp:
@@ -96,6 +103,16 @@ const g2 = ext.parseMolfileToGraph(mol, 'etoh.mol');
 if (g2.atoms.length !== 3 || g2.bonds[1].o !== 4) process.exit(3);
 const s3 = ext.parse3DTextScene('2\nh2\nH 0 0 0\nH 0.74 0 0\n', '.xyz');
 if (s3.atoms.length !== 2 || s3.bonds.length !== 1) process.exit(4);
+const plain = '<CDXML><page><fragment><n id="1" p="10 10"><t><s>C</s></t></n><n id="2" p="24.4 10" Element="8"/><b id="9" B="1" E="2"/></fragment></page></CDXML>';
+if (ext.cdxmlLossReport(plain).length !== 0) process.exit(5);
+const label = '<CDXML><page><fragment><n id="1" p="1 1" NodeType="Nickname"><t p="1 1"><s font="3" size="10">OMe</s></t></n></fragment></page></CDXML>';
+if (ext.cdxmlLossReport(label).length !== 0) process.exit(8);
+const expanded = '<CDXML><page><fragment><n id="1" p="1 1" NodeType="Fragment"><fragment><n id="2" p="1 1"/></fragment><t><s>Boc</s></t></n></fragment></page></CDXML>';
+if (!ext.cdxmlLossReport(expanded).join(';').includes('abbreviation with its own structure')) process.exit(9);
+const rich = '<CDXML><page><fragment><n id="1" p="1 1" AS="R"/></fragment><t p="5 5"><s>THF, rt</s></t><graphic id="7"/><scheme><step/></scheme></page><page/></CDXML>';
+const lost = ext.cdxmlLossReport(rich).join('; ');
+for (const word of ['extra page', 'text object', 'graphic', 'reaction scheme record', 'stereo']) if (!lost.includes(word)) process.exit(6);
+if (ext.studioCopyPath('/a/b/scheme.cdxml') !== '/a/b/scheme.studio.cdxml') process.exit(7);
 console.log('EXTENSION_PARSERS_OK');
 """
             res = subprocess.run(

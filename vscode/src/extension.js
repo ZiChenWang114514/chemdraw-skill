@@ -61,6 +61,45 @@ function findCdxScript() {
 }
 
 /** Fast, dependency-free CDXML -> Studio Graph parser so .cdxml CustomEditors open in < 10 ms. */
+/**
+ * What a CDXML document holds that the Studio graph (atoms, bonds, arrows) cannot carry.
+ * Saving the graph back over such a file would delete these, so the editor saves a copy instead.
+ */
+function cdxmlLossReport(xmlText) {
+  const text = String(xmlText || "").replace(/<!--[\s\S]*?-->/g, "");
+  const count = (re) => (text.match(re) || []).length;
+  const lost = [];
+  const add = (n, label) => { if (n > 0) lost.push(`${n} ${label}${n === 1 ? "" : "s"}`); };
+  // Text that is not an atom label: captions, conditions, compound numbers.
+  const withoutNodes = text.replace(/<n\b[^>]*?(?:\/>|>[\s\S]*?<\/n>)/g, "");
+  add(count(/<page\b/g) - 1, "extra page");
+  add((withoutNodes.match(/<t\b/g) || []).length, "text object");
+  add(count(/<graphic\b/g), "graphic");
+  add(count(/<curve\b/g), "curve");
+  add(count(/<(?:bracketedgroup|bracketattachment)\b/g), "bracket");
+  add(count(/<(?:scheme|step)\b/g), "reaction scheme record");
+  add(count(/<(?:embeddedobject|objecttag|table|spectrum|tlcplate|plasmidmap|geometry|constraint|annotation|altgroup|chemicalproperty)\b/g), "other object");
+  // A node that holds its own fragment (an expanded abbreviation) or stands for several atoms.
+  let depth = 0, nested = 0;
+  const token = /<n\b[^>]*?(\/?)>|<\/n>|<fragment\b/g;
+  let hit;
+  while ((hit = token.exec(text)) !== null) {
+    if (hit[0] === "</n>") depth = Math.max(0, depth - 1);
+    else if (hit[0].startsWith("<fragment")) { if (depth > 0) nested += 1; }
+    else if (hit[1] !== "/") depth += 1;
+  }
+  add(nested, "abbreviation with its own structure");
+  add(count(/<n\b[^>]*\bNodeType="(?:MultiAttachment|VariableAttachment)"/g), "multi-centre node");
+  add(count(/\b(?:AS|BS|EnhancedStereoType|Geometry|Radical|NumHydrogens)="/g), "stereo, radical or hydrogen attribute");
+  return lost;
+}
+
+/** Where the Studio writes when it must not overwrite: `name.studio.cdxml` beside the original. */
+function studioCopyPath(fsPath) {
+  const ext = path.extname(fsPath);
+  return fsPath.slice(0, fsPath.length - ext.length) + ".studio" + ext;
+}
+
 function parseCdxmlToGraph(xmlText, title) {
   const atoms = [];
   const bonds = [];
@@ -630,6 +669,17 @@ class Structure2DCustomEditorProvider {
     wireStudioMessages(webviewPanel.webview, this.context, {
       saveCustomDocument: async (msg) => {
         if (!msg.content) return;
+        const lost = this.format === "cdxml" ? cdxmlLossReport(document.getText()) : [];
+        if (lost.length) {
+          // The original holds more than the Studio can write back: keep it, save beside it.
+          const copy = vscode.Uri.file(studioCopyPath(document.uri.fsPath));
+          await vscode.workspace.fs.writeFile(copy, Buffer.from(msg.content, "utf8"));
+          vscode.window.showWarningMessage(
+            `${path.basename(document.uri.fsPath)} was left unchanged: the Studio cannot keep its ${lost.join(", ")}. ` +
+            `Your edit was saved as ${path.basename(copy.fsPath)}.`
+          );
+          return;
+        }
         lastSavedText = msg.content;
         const edit = new vscode.WorkspaceEdit();
         edit.replace(
@@ -905,6 +955,8 @@ module.exports = {
   activate,
   deactivate,
   parseCdxmlToGraph,
+  cdxmlLossReport,
+  studioCopyPath,
   parseMolfileToGraph,
   parse3DTextScene
 };
