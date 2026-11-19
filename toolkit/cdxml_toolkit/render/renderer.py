@@ -131,15 +131,7 @@ def _load_source_json(path: str) -> Dict[str, Dict]:
 # ID generator (same pattern as cdxml_builder)
 # ---------------------------------------------------------------------------
 
-class _IDGen:
-    """Simple incrementing integer ID generator."""
-    def __init__(self, start: int = 1000):
-        self._n = start
-
-    def next(self) -> int:
-        v = self._n
-        self._n += 1
-        return v
+from ..cdxml_builder import _IDGen  # noqa: E402  (one ID generator)
 
 
 # ---------------------------------------------------------------------------
@@ -731,6 +723,20 @@ def _build_text_element(
 
     parts.append("</t>")
     return "\n".join(parts), tid
+
+
+def above_arrow_baseline(arrow_y: float, n_lines: int) -> float:
+    """First-line baseline of an above-arrow text block whose lines stack upward.
+
+    The block's visual bottom sits LAYOUT_BELOW_GAP above the arrow shaft, so
+    extra lines push the first line up instead of running into the arrow.
+    """
+    return arrow_y - LAYOUT_BELOW_GAP - (max(0, n_lines - 1) * _LINE_ADVANCE + _DESCENT)
+
+
+def below_arrow_baseline(arrow_y: float) -> float:
+    """First-line baseline of a below-arrow text block (its top LAYOUT_BELOW_GAP under the shaft)."""
+    return arrow_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
 
 
 def _build_label_element(
@@ -1813,14 +1819,13 @@ def _layout_divergent(
         # Above-arrow text (p.y = baseline of the first line), its visual bottom
         # LAYOUT_BELOW_GAP above the arrow like the text below it.
         if above_text:
-            text_below_baseline = max(0, len(above_text) - 1) * _LINE_ADVANCE + _DESCENT
-            text_y = branch_y - LAYOUT_BELOW_GAP - text_below_baseline
+            text_y = above_arrow_baseline(branch_y, len(above_text))
             txt_xml, txt_id = _build_text_element(above_text, arrow_mid_x, text_y, ids,
                                                   use_formatting=True)
             xml_parts.append(txt_xml)
             step_meta["above_ids"].append(txt_id)
         if below_text:
-            text_y = branch_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
+            text_y = below_arrow_baseline(branch_y)
             txt_xml, txt_id = _build_text_element(below_text, arrow_mid_x, text_y, ids)
             xml_parts.append(txt_xml)
             step_meta["below_ids"].append(txt_id)
@@ -2364,10 +2369,7 @@ def _layout_steps_row(
         # Position so that the visual bottom (last baseline + descent) sits
         # LAYOUT_BELOW_GAP above the arrow (same gap as below-arrow content).
         if rs.above_text:
-            n_abt = len(rs.above_text)
-            # Distance from first baseline to visual bottom
-            text_below_baseline = max(0, n_abt - 1) * _LINE_ADVANCE + _DESCENT
-            text_y = arrow_y - LAYOUT_BELOW_GAP - text_below_baseline
+            text_y = above_arrow_baseline(arrow_y, len(rs.above_text))
             if rs.above_structures:
                 # Text sits between above-arrow structures and the arrow.
                 # Structures were already pushed higher to make room.
@@ -2383,7 +2385,7 @@ def _layout_steps_row(
         # p.y is the BASELINE of the first line.
         # Visual top = p.y - _CAP_HEIGHT, so set p.y so that
         # (p.y - _CAP_HEIGHT) = arrow_y + LAYOUT_BELOW_GAP.
-        below_y = arrow_y + LAYOUT_BELOW_GAP + _CAP_HEIGHT
+        below_y = below_arrow_baseline(arrow_y)
 
         # Below-arrow structures first
         if rs.below_structures:
