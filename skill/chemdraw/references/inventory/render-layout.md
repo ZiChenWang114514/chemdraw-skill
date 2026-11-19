@@ -35,7 +35,7 @@
 
 ## `layout.alignment`
 
-- **function**, line 972: `align_product_to_reference(root: ET.Element, ref_cdxml_path: str, verbose: bool = False, timeout: int = 30) -> bool` - Align the product fragment to the best-matching structure in a reference CDXML file.
+- **function**, line 874: `align_product_to_reference(root: ET.Element, ref_cdxml_path: str, verbose: bool = False, timeout: int = 30) -> bool` - Align the product fragment to the best-matching structure in a reference CDXML file.
 - **function**, line 120: `compute_rigid_rotation_2d(old_pts: List[Tuple[float, float]], new_pts: List[Tuple[float, float]]) -> Tuple[float, float]` - Compute the optimal 2D rotation from matched point pairs (Kabsch).
 - **function**, line 60: `filtered_atom_nodes(frag: ET.Element) -> List[ET.Element]` - Return only real atom <n> nodes from a fragment, filtering out ExternalConnectionPoint, Fragment, and Unspecified pseudo-nodes.
 - **function**, line 72: `fragment_centroid(frag: ET.Element) -> Tuple[float, float]` - Compute centroid from direct-child node positions.
@@ -44,9 +44,9 @@
 - **function**, line 594: `kabsch_align_to_product(root: ET.Element, cs_bridge = None, verbose: bool = False, frag_ids: Optional[Set[str]] = None) -> List[str]` - Align fragments to product orientation using Kabsch rigid rotation.
 - **function**, line 277: `make_abbrev_dummy_copy(frag: ET.Element) -> ET.Element` - Create a deep copy of a fragment with abbreviation nodes replaced by dummy atoms (Iodine, Element=53).
 - **function**, line 151: `match_and_compute_rotation(src_positions: List[Tuple[float, float]], tgt_positions: List[Tuple[float, float]]) -> Tuple[float, float, float]` - Match atoms by normalized nearest-neighbor and compute Kabsch rotation.
-- **function**, line 1136: `rdkit_align_to_product(root: ET.Element, verbose: bool = False, timeout: int = 30) -> int` - Align all non-product fragments to the product's orientation.
+- **function**, line 1038: `rdkit_align_to_product(root: ET.Element, verbose: bool = False, timeout: int = 30) -> int` - Align all non-product fragments to the product's orientation.
 - **function**, line 211: `rotate_fragment_in_place(frag: ET.Element, cos_a: float, sin_a: float, cx: float, cy: float) -> None` - Rotate all coordinates in a fragment around (cx, cy).
-- **function**, line 1262: `rxnmapper_align_to_product(root: ET.Element, verbose: bool = False, timeout: int = 120) -> int` - Align non-product fragments using RXNMapper atom maps.
+- **function**, line 1164: `rxnmapper_align_to_product(root: ET.Element, verbose: bool = False, timeout: int = 120) -> int` - Align non-product fragments using RXNMapper atom maps.
 - **function**, line 44: `sp_fragment_to_cdxml(frag: ET.Element) -> str` - Wrap a single <fragment> element in a minimal CDXML document.
 - **function**, line 306: `translate_subtree(elem: ET.Element, dx: float, dy: float) -> None` - Recursively shift all p and BoundingBox attributes by (dx, dy).
 
@@ -94,8 +94,8 @@
 
 ## `render.parser`
 
-- **function**, line 62: `parse_yaml(source: Union[str, Path]) -> SchemeDescriptor` - Parse a YAML file or string into a SchemeDescriptor.
-- **class**, line 57: `SchemeParseError` - Raised when YAML content is invalid or violates schema rules.
+- **function**, line 59: `parse_yaml(source: Union[str, Path]) -> SchemeDescriptor` - Parse a YAML file or string into a SchemeDescriptor.
+- **class**, line 54: `SchemeParseError` - Raised when YAML content is invalid or violates schema rules.
 
 ## `render.renderer`
 

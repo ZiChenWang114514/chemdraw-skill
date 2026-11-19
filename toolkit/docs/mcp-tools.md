@@ -114,6 +114,9 @@ listed members of each item: {"op": "iterate", "target": "atoms", "members": ["C
 Every member is checked against the committed COM catalog before ChemDraw starts, with
 the result types followed through the program (see the interface-com reference for the
 members). Printing, the clipboard, menus, preference changes and Quit are blocked.
+Only documents the program adds or opens in this call (and objects reached from them)
+may be changed; ActiveDocument, Documents.Item and everything reached from them are
+read-only, and the application itself is read-only when ChemDraw was already running.
 Opening, saving or exporting files needs allow_file_io; an existing file is never
 replaced unless allow_overwrite is also true (Document.Save and Close with saveChanges
 true need it too). Documents the program opens are closed without saving and ChemDraw
@@ -563,13 +566,15 @@ offline refusal); local engines never upload.
 
 Render one or more CDXML files through native ChemDraw (COM or macOS).
 
-### `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, typing.Any]`
+### `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = False, resize_frames: bool = False) -> dict[str, typing.Any]`
 
 Replace selected ChemDraw OLE contents and previews without moving them.
 
 With ``resize_frames``, each frame grows or shrinks with its drawing, as
 Office does after an object is edited in ChemDraw; its top-left corner
-stays in place. Otherwise frames keep their size.
+stays in place. Otherwise frames keep their size. ``render_pdf_preview`` (off by
+default) also exports a PDF through PowerPoint or Word; only the file it opened is
+closed, and Office is quit only when it was not already running.
 
 ### `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict`
 
@@ -1184,8 +1189,10 @@ Returns:
 Default image-recognition tool: use the remote DECIMER API.
 
 For image-recognition tasks, pass confirm_upload=true for task images and
-relevant crops without a separate upload-confirmation question. Respect
-explicit local/offline or no-upload requests. The false value remains
-available for an explicitly requested no-upload preflight.
+relevant crops without a separate upload-confirmation question. The one
+exception: ask once before uploading a source marked unpublished, under
+review, confidential or a patent draft. Respect explicit local/offline or
+no-upload requests. The false value remains available for an explicitly
+requested no-upload preflight.
 Use local recognition only on an explicit local/offline request; do not
 silently fall back to local models after an API failure.

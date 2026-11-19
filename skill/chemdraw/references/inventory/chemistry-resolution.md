@@ -25,20 +25,20 @@
 
 ## `naming.mol_builder`
 
-- **function**, line 1827: `apply_reaction(reaction_name: str, substrate: str, reagent: Optional[str] = None) -> Dict[str, Any]` - Apply a named reaction template to transform a substrate.
-- **function**, line 669: `assemble_name(parent: str, substituents: List[Dict[str, str]], validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Assemble an IUPAC name from a parent and substituent list.
-- **function**, line 2030: `deprotect(smiles: str) -> Dict[str, Any]` - Remove common protecting groups from a molecule.
-- **function**, line 2180: `draw_molecule(mol_json: Dict[str, Any], output_path: Optional[str] = None) -> Dict[str, Any]` - Render a single molecule to a standalone CDXML document.
-- **function**, line 1160: `enumerate_names(identifier: str, use_network: bool = True) -> Dict[str, Any]` - Enumerate alternative IUPAC name forms for a molecule.
-- **function**, line 593: `get_prefix_form(group: str) -> Dict[str, Any]` - Get the IUPAC substituent prefix form for a chemical group.
-- **function**, line 3036: `get_tool_definitions() -> List[Dict[str, Any]]` - Return tool schemas suitable for LLM function calling.
-- **function**, line 1778: `list_reactions(category: Optional[str] = None) -> Dict[str, Any]` - List available named reaction templates.
-- **function**, line 2501: `modify_molecule(mol_json: Dict[str, Any], operation: str, **kwargs: Any) -> Dict[str, Any]` - Modify a molecule and verify the change with a structural diff.
-- **function**, line 782: `modify_name(name: str, operation: str, target: Optional[str] = None, replacement: Optional[str] = None, locant: Optional[str] = None, validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Modify an IUPAC name by swapping, adding, or removing a substituent.
-- **function**, line 1083: `name_to_structure(name: str, output_format: str = 'cdxml') -> Dict[str, Any]` - Convert a chemical name to a structure in the requested format.
-- **function**, line 430: `resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve any chemical identifier to a rich molecule descriptor.
-- **function**, line 558: `resolve_to_smiles(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve a chemical identifier to its canonical SMILES string.
-- **function**, line 1045: `validate_name(name: str, use_network: bool = True) -> Dict[str, Any]` - Validate an IUPAC name and return its SMILES if valid.
+- **function**, line 1915: `apply_reaction(reaction_name: str, substrate: str, reagent: Optional[str] = None) -> Dict[str, Any]` - Apply a named reaction template to transform a substrate.
+- **function**, line 741: `assemble_name(parent: str, substituents: List[Dict[str, str]], validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Assemble an IUPAC name from a parent and substituent list.
+- **function**, line 2118: `deprotect(smiles: str) -> Dict[str, Any]` - Remove common protecting groups from a molecule.
+- **function**, line 2268: `draw_molecule(mol_json: Dict[str, Any], output_path: Optional[str] = None) -> Dict[str, Any]` - Render a single molecule to a standalone CDXML document.
+- **function**, line 1248: `enumerate_names(identifier: str, use_network: bool = True) -> Dict[str, Any]` - Enumerate alternative IUPAC name forms for a molecule.
+- **function**, line 665: `get_prefix_form(group: str, use_network: bool = True) -> Dict[str, Any]` - Get the IUPAC substituent prefix form for a chemical group.
+- **function**, line 3179: `get_tool_definitions() -> List[Dict[str, Any]]` - Return tool schemas suitable for LLM function calling.
+- **function**, line 1866: `list_reactions(category: Optional[str] = None) -> Dict[str, Any]` - List available named reaction templates.
+- **function**, line 2615: `modify_molecule(mol_json: Dict[str, Any], operation: str, **kwargs: Any) -> Dict[str, Any]` - Modify a molecule and verify the change with a structural diff.
+- **function**, line 854: `modify_name(name: str, operation: str, target: Optional[str] = None, replacement: Optional[str] = None, locant: Optional[str] = None, validate: bool = True, use_network: bool = True) -> Dict[str, Any]` - Modify an IUPAC name by swapping, adding, or removing a substituent.
+- **function**, line 1171: `name_to_structure(name: str, output_format: str = 'cdxml') -> Dict[str, Any]` - Convert a chemical name to a structure in the requested format.
+- **function**, line 487: `resolve_compound(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve any chemical identifier to a rich molecule descriptor.
+- **function**, line 628: `resolve_to_smiles(query: str, use_network: bool = True) -> Dict[str, Any]` - Resolve a chemical identifier to its canonical SMILES string.
+- **function**, line 1133: `validate_name(name: str, use_network: bool = True) -> Dict[str, Any]` - Validate an IUPAC name and return its SMILES if valid.
 
 ## `naming.name_decomposer`
 
@@ -64,16 +64,19 @@
 
 ## `rdkit_utils`
 
-- **function**, line 591: `avg_bond_length_from_atoms(atoms_data: List[dict], mol) -> float` - Average bond length computed from CDXML atom coordinates.
-- **function**, line 415: `cleanup_fragment_rdkit(frag_elem: ET.Element, verbose: bool = False) -> bool` - Clean up a single fragment's 2D geometry using RDKit.
-- **function**, line 66: `frag_to_mol(frag_elem: ET.Element)` - Convert a CDXML <fragment> to an RDKit Mol with atom metadata.
-- **function**, line 389: `frag_to_molblock(frag_elem: ET.Element) -> Optional[str]` - Convert a CDXML <fragment> to a MOL block string (with CDXML coords).
-- **function**, line 333: `frag_to_mw(frag_elem: ET.Element) -> Optional[float]` - Compute molecular weight from a CDXML <fragment>.
-- **function**, line 154: `frag_to_smiles(frag_elem: ET.Element) -> Optional[str]` - Convert a CDXML <fragment> to a canonical SMILES string.
-- **function**, line 274: `frag_to_smiles_chemscript(frag_elem: ET.Element) -> Optional[str]` - Convert a CDXML ``<fragment>`` to SMILES using ChemScript.
-- **function**, line 171: `frag_to_smiles_resolved(frag_elem: ET.Element) -> Optional[str]` - Convert a CDXML <fragment> to SMILES, resolving abbreviation groups.
-- **function**, line 576: `rdkit_default_bond_length() -> float` - RDKit's default 2D depiction bond length (cached).
-- **function**, line 596: `set_cdxml_conformer(mol, atoms_data: List[dict], scale: float = 1.0)` - Set conformer from CDXML coordinates (y-flipped, scaled to RDKit space).
+- **function**, line 723: `avg_bond_length_from_atoms(atoms_data: List[dict], mol) -> float` - Average bond length computed from CDXML atom coordinates.
+- **function**, line 534: `cleanup_fragment_rdkit(frag_elem: ET.Element, verbose: bool = False) -> bool` - Clean up a single fragment's 2D geometry using RDKit.
+- **function**, line 111: `frag_to_mol(frag_elem: ET.Element)` - Convert a CDXML <fragment> to an RDKit Mol with atom metadata.
+- **function**, line 508: `frag_to_molblock(frag_elem: ET.Element) -> Optional[str]` - Convert a CDXML <fragment> to a MOL block string (with CDXML coords).
+- **function**, line 452: `frag_to_mw(frag_elem: ET.Element) -> Optional[float]` - Compute molecular weight from a CDXML <fragment>.
+- **function**, line 273: `frag_to_smiles(frag_elem: ET.Element) -> Optional[str]` - Convert a CDXML <fragment> to a canonical SMILES string.
+- **function**, line 393: `frag_to_smiles_chemscript(frag_elem: ET.Element) -> Optional[str]` - Convert a CDXML ``<fragment>`` to SMILES using ChemScript.
+- **function**, line 290: `frag_to_smiles_resolved(frag_elem: ET.Element) -> Optional[str]` - Convert a CDXML <fragment> to SMILES, resolving abbreviation groups.
+- **function**, line 253: `keep_stereo_or_restore(frag_elem: ET.Element, snapshot, mol, atoms_data: List[dict]) -> bool` - After atoms of *frag_elem* moved, redraw its wedges and compare the molecule with *mol* (read before the move).  If the chemistry changed, restore the attributes in *snapshot* (taken before the move) and return False: the re-layout is abandoned.
+- **function**, line 708: `rdkit_default_bond_length() -> float` - RDKit's default 2D depiction bond length (cached).
+- **function**, line 209: `rewrite_wedges(frag_elem: ET.Element, mol, atoms_data: List[dict]) -> None` - Redraw wedge and hash bonds of *frag_elem* from *mol*'s stereo.
+- **function**, line 728: `set_cdxml_conformer(mol, atoms_data: List[dict], scale: float = 1.0)` - Set conformer from CDXML coordinates (y-flipped, scaled to RDKit space).
+- **function**, line 248: `snapshot_attributes(frag_elem: ET.Element) -> List[Tuple[ET.Element, Dict[str, str]]]` - Attributes of every element under *frag_elem*, for :func:`keep_stereo_or_restore`.
 
 ## `resolve.cas_resolver`
 
@@ -83,7 +86,7 @@
 
 ## `resolve.condensed_formula`
 
-- **function**, line 453: `resolve_condensed_formula(formula: str) -> Optional[str]` - Parse a condensed structural formula to canonical SMILES.
+- **function**, line 617: `resolve_condensed_formula(formula: str) -> Optional[str]` - Parse a condensed structural formula to canonical SMILES.
 - **function**, line 81: `tokenize(formula: str) -> List[Tuple[str, Any]]` - Tokenize a condensed structural formula.
 
 ## `resolve.jre_manager`
@@ -103,20 +106,29 @@
 
 ## `resolve.reagent_db`
 
-- **function**, line 313: `get_reagent_db() -> ReagentDB` - Return the shared ReagentDB singleton (loaded on first call).
-- **class**, line 55: `ReagentDB` - In-memory reagent database with two-tier lookup.
-- **method**, line 208: `ReagentDB.display_for_name(name: str) -> Optional[str]` - Return display string for a name/alias, or None if unknown.
-- **method**, line 254: `ReagentDB.display_for_smiles(smiles: str) -> Optional[str]` - Return display string for a SMILES, or None if unknown.
-- **method**, line 226: `ReagentDB.entry_for_name(name: str) -> Optional[dict]` - Return the full entry dict for a name/alias, or None.
-- **method**, line 273: `ReagentDB.entry_for_smiles(smiles: str) -> Optional[dict]` - Return the full entry dict for a SMILES, or None.
-- **method**, line 285: `ReagentDB.resolve_display(name: str) -> str` - Return the display string for *name*, or *name* itself if unknown.
-- **method**, line 218: `ReagentDB.role_for_name(name: str) -> Optional[str]` - Return role string for a name/alias, or None.
-- **method**, line 265: `ReagentDB.role_for_smiles(smiles: str) -> Optional[str]` - Return role string for a SMILES, or None.
-- **method**, line 294: `ReagentDB.smiles_role_display(smiles: str) -> Optional[Tuple[str, str]]` - Return (role, display) for a SMILES, matching the old ROLE_BY_SMILES dict interface.
+- **function**, line 363: `get_reagent_db() -> ReagentDB` - Return the shared ReagentDB singleton (loaded on first call).
+- **class**, line 57: `ReagentDB` - In-memory reagent database with two-tier lookup.
+- **method**, line 260: `ReagentDB.display_for_name(name: str) -> Optional[str]` - Return display string for a name/alias, or None if unknown.
+- **method**, line 306: `ReagentDB.display_for_smiles(smiles: str) -> Optional[str]` - Return display string for a SMILES, or None if unknown.
+- **method**, line 278: `ReagentDB.entry_for_name(name: str) -> Optional[dict]` - Return the full entry dict for a name/alias, or None.
+- **method**, line 325: `ReagentDB.entry_for_smiles(smiles: str) -> Optional[dict]` - Return the curated (tier-1) entry for a SMILES, or None.
+- **method**, line 192: `ReagentDB.entry_smiles(entry: dict) -> Optional[str]` - No public docstring in the audited version.
+- **method**, line 237: `ReagentDB.lookup_name(name: str, tiers: Tuple[str, ...] = ('primary', 'secondary')) -> Optional[Tuple[dict, str]]` - Return ``(entry, tier)`` for a name, or None.
+- **method**, line 335: `ReagentDB.resolve_display(name: str) -> str` - Return the display string for *name*, or *name* itself if unknown.
+- **method**, line 270: `ReagentDB.role_for_name(name: str) -> Optional[str]` - Return role string for a name/alias, or None.
+- **method**, line 317: `ReagentDB.role_for_smiles(smiles: str) -> Optional[str]` - Return role string for a SMILES, or None.
+- **method**, line 344: `ReagentDB.smiles_role_display(smiles: str) -> Optional[Tuple[str, str]]` - Return (role, display) for a SMILES, matching the old ROLE_BY_SMILES dict interface.
+
+## `resolve.reagent_quality`
+
+- **function**, line 102: `build_secondary_quarantine(secondary: dict) -> dict` - Return the quarantine document for the secondary table.
+- **function**, line 45: `nonmetal_radical_atoms(mol) -> List[str]` - Symbols of main-group atoms that carry unpaired electrons.
+- **function**, line 64: `same_formula(a: str, b: str) -> bool` - Compare two molecular formulae element by element (D and T count as H).
+- **function**, line 51: `unspecified_stereocentres(mol) -> int` - No public docstring in the audited version.
 
 ## `resolve.superatom_table`
 
-- **function**, line 130: `get_abbrev_label(node) -> Optional[str]` - Extract the visible abbreviation label text from a CDXML node.
+- **function**, line 135: `get_abbrev_label(node) -> Optional[str]` - Extract the visible abbreviation label text from a CDXML node.
 - **function**, line 78: `get_superatom_table() -> Dict[str, str]` - Return the label → SMILES lookup table (singleton, built on first call).
 - **function**, line 95: `lookup_mw(label: str) -> Optional[float]` - Look up a superatom label and return its standalone MW, or None.
 - **function**, line 90: `lookup_smiles(label: str) -> Optional[str]` - Look up a superatom label and return its SMILES, or None.

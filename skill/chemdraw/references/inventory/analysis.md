@@ -119,7 +119,8 @@
 
 - **function**, line 77: `discover_files(input_dir: str, experiment_name: Optional[str] = None) -> ExperimentData` - Discover all files for an experiment.
 - **function**, line 126: `extract_nmr_data(pdf_path: str) -> List[str]` - Extract reported NMR data strings from an NMR PDF.
-- **function**, line 178: `parse_all_nmr(exp: ExperimentData) -> None` - Extract NMR data from all NMR PDFs (with cross-file deduplication).
+- **function**, line 151: `nmr_lines(text: str) -> List[str]` - Reported NMR lines in ``text``, one per nucleus, each ending with a period.
+- **function**, line 190: `parse_all_nmr(exp: ExperimentData) -> None` - Extract NMR data from all NMR PDFs (with cross-file deduplication).
 
 ## `analysis.deterministic.waters_raw`
 

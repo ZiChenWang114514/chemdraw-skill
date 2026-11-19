@@ -6,8 +6,8 @@
 
 - **function**, line 300: `available_methods() -> list` - Methods that can run now: the built-in one plus every installed learned backend.
 - **function**, line 32: `hill(counts) -> str` - No public docstring in the audited version.
-- **function**, line 583: `map_atoms(left, right, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> dict` - Map the heavy atoms of products ``right`` onto reactants ``left`` (lists of (label, mol)).
-- **function**, line 529: `map_atoms_many(reactions, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> list[dict]` - Map many reactions at once; ``reactions`` is a list of ``(left, right)`` as in :func:`map_atoms`.
+- **function**, line 585: `map_atoms(left, right, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> dict` - Map the heavy atoms of products ``right`` onto reactants ``left`` (lists of (label, mol)).
+- **function**, line 531: `map_atoms_many(reactions, *, resolve_ambiguity: bool = False, method: str = 'auto', compare: bool = False) -> list[dict]` - Map many reactions at once; ``reactions`` is a list of ``(left, right)`` as in :func:`map_atoms`.
 
 ## `catalog.cdxml`
 
@@ -74,13 +74,14 @@
 
 ## `chemistry_semantics`
 
-- **function**, line 135: `document_inventory(path)` - No public docstring in the audited version.
-- **function**, line 68: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
-- **function**, line 114: `read_molecules(value)` - No public docstring in the audited version.
+- **function**, line 140: `document_inventory(path)` - No public docstring in the audited version.
+- **function**, line 68: `read_fragment_element(fragment, *, sanitize = True, remove_hs = True)` - Molecules RDKit reads from one ``<fragment>`` element (a list; may be empty).
+- **function**, line 74: `read_fragments(value)` - Top-level CDXML fragments as ``(fragment_id, mol)`` pairs, in document order.
+- **function**, line 119: `read_molecules(value)` - No public docstring in the audited version.
 - **function**, line 36: `require_supported(mol, *, allow_radicals: bool = False, allow_dative: bool = True, allow_atropisomers: bool = True)` - No public docstring in the audited version.
 - **function**, line 10: `semantic_key(mol)` - No public docstring in the audited version.
-- **function**, line 139: `validate_document_preserved(source, output)` - No public docstring in the audited version.
-- **function**, line 118: `validate_fragment(smiles, xml, *, allow_radicals: bool = True)` - No public docstring in the audited version.
+- **function**, line 144: `validate_document_preserved(source, output)` - No public docstring in the audited version.
+- **function**, line 123: `validate_fragment(smiles, xml, *, allow_radicals: bool = True)` - No public docstring in the audited version.
 
 ## `engines.accel`
 
@@ -288,10 +289,11 @@
 
 ## `mcp_runtime.com_call`
 
-- **function**, line 422: `chemdraw_com_call(program: list[dict[str, Any]], allow_file_io: bool = False, allow_overwrite: bool = False, max_items: int = 100) -> dict[str, Any]` - Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).
+- **function**, line 476: `chemdraw_com_call(program: list[dict[str, Any]], allow_file_io: bool = False, allow_overwrite: bool = False, max_items: int = 100) -> dict[str, Any]` - Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).
 - **class**, line 66: `ComCallError` - A ChemDraw failure with a stable public code.
-- **function**, line 322: `execute_program(application: Any, steps: list[dict[str, Any]], *, max_items: int = 100, allow_overwrite: bool = False, created: Optional[list[Any]] = None) -> dict[str, Any]` - Run validated steps against ``application``; returns results and written files.
-- **function**, line 151: `validate_program(program: list[dict[str, Any]], *, allow_file_io: bool = False, allow_overwrite: bool = False) -> list[dict[str, Any]]` - Check the program against the COM catalog and return the steps with their types.
+- **function**, line 366: `execute_program(application: Any, steps: list[dict[str, Any]], *, max_items: int = 100, allow_overwrite: bool = False, created: Optional[list[Any]] = None, application_launched: bool = False) -> dict[str, Any]` - Run validated steps against ``application``; returns results and written files.
+- **class**, line 75: `HandleNotOwnedError` - A write or destructive call on an object the program did not create itself.
+- **function**, line 181: `validate_program(program: list[dict[str, Any]], *, allow_file_io: bool = False, allow_overwrite: bool = False) -> list[dict[str, Any]]` - Check the program against the COM catalog and return the steps with their types.
 
 ## `mcp_runtime.decimer_api`
 
@@ -316,19 +318,19 @@
 
 ## `mcp_runtime.extended_tools`
 
-- **function**, line 1157: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None, internal_standard_name: str = 'IS') -> dict[str, Any]` - Analyze a time series of standard LCMS data (PDF, .rpt, .daml, report.txt, mzML/mzXML or Waters .raw).
-- **function**, line 1250: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
+- **function**, line 1159: `analyze_lcms_series(files: list[str], output_path: Optional[str] = None, rt_tolerance: float = 0.02, mz_tolerance: float = 0.5, trend_threshold: float = 0.2, ignore_instrument: bool = False, internal_standard_mw: Optional[float] = None, internal_standard_rt: Optional[float] = None, internal_standard_name: str = 'IS') -> dict[str, Any]` - Analyze a time series of standard LCMS data (PDF, .rpt, .daml, report.txt, mzML/mzXML or Waters .raw).
+- **function**, line 1252: `assemble_lab_book(input_dir: str, experiment: Optional[str] = None, tracking_json: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Assemble a deterministic lab-book entry from experiment files.
 - **function**, line 818: `batch_embed_cdxml_in_office(cdxml_paths: list[str], output_path: str, margin_pt: float = 0) -> dict[str, Any]` - Create PPTX or DOCX containing editable ChemDraw OLE objects.
 - **function**, line 470: `clean_scheme_layout(input_path: str, output_path: Optional[str] = None, approach: str = 'chemdraw_mimic', render_preview: bool = True) -> dict[str, Any]` - Clean an existing CDXML reaction layout without changing the source file.
-- **function**, line 1115: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
+- **function**, line 1117: `discover_experiment_files(input_dir: str, experiment: Optional[str] = None, output_path: Optional[str] = None) -> dict[str, Any]` - Discover and classify files belonging to one experiment.
 - **function**, line 742: `fill_office_template(template_path: str, manifest_path: str, output_path: Optional[str] = None) -> dict[str, Any]` - Fill PPTX/DOCX text and editable ChemDraw placeholders from a manifest.
 - **function**, line 878: `inspect_chemdraw_objects_in_office(input_path: str, output_dir: Optional[str] = None, render_previews: bool = True) -> dict[str, Any]` - Inventory editable ChemDraw objects and extract numbered CDXML previews.
 - **function**, line 516: `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, Any]` - Merge parallel, sequential, or unrelated CDXML reaction schemes.
-- **function**, line 1284: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
+- **function**, line 1286: `parse_scifinder_rdf(input_path: str, resolve_cas: bool = False, output_path: Optional[str] = None, confirm_pubchem: bool = False) -> dict[str, Any]` - Parse SciFinder RDF and optionally enrich CAS data over the network.
 - **function**, line 603: `polish_reaction_scheme(input_path: str, output_path: Optional[str] = None, merge_conditions: bool = True, approach: str = 'chemdraw_mimic', align_mode: str = 'rdkit', eln_csv: Optional[str] = None, reference_cdxml: Optional[str] = None, render_preview: bool = True) -> dict[str, Any]` - Run the audited deterministic polishing pipeline on a CDXML scheme.
 - **function**, line 635: `render_cdxml_files(input_paths: list[str], output_dir: Optional[str] = None, format: str = 'png', dpi: int = 300) -> dict[str, Any]` - Render one or more CDXML files through native ChemDraw (COM or macOS).
-- **function**, line 984: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
-- **function**, line 1392: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
+- **function**, line 984: `replace_chemdraw_objects_in_office(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = False, resize_frames: bool = False) -> dict[str, Any]` - Replace selected ChemDraw OLE contents and previews without moving them.
+- **function**, line 1394: `segment_large_scheme(cdxml_path: str, output_path: Optional[str] = None, verbose: bool = False) -> dict[str, Any]` - Segment a disconnected or multi-panel CDXML scheme into logical regions.
 
 ## `mcp_runtime.figure_draw`
 
@@ -383,8 +385,8 @@
 
 ## `mcp_runtime.figure_tools`
 
-- **function**, line 1468: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
-- **function**, line 608: `compose_chemical_figure(manifest_path: str, output_path: str) -> dict` - Compose editable CDXML using explicit point coordinates and grounded molecules.
+- **function**, line 1471: `compare_figure_images(reference_path: str, candidate_path: str, output_path: str) -> dict` - Compare aligned local raster previews without resizing or warping.
+- **function**, line 611: `compose_chemical_figure(manifest_path: str, output_path: str) -> dict` - Compose editable CDXML using explicit point coordinates and grounded molecules.
 - **function**, line 165: `rdkit_workbench(molecules: list[dict] | str | None = None, operation: str = 'inspect', options: dict | None = None, output_path: str | None = None, **kwargs) -> dict` - Analyze and edit grounded molecules: inspect, stereoisomers, tautomers, mcs, r_groups, set_stereo, edit_structure, edit_smarts, read_wedges, depict_like, enumerate_markush.
 
 ## `mcp_runtime.figure_validation`
@@ -402,13 +404,13 @@
 
 ## `mcp_runtime.install_decimer_models`
 
-- **function**, line 35: `download(url: str, destination: Path, proxy: str | None) -> None` - No public docstring in the audited version.
-- **function**, line 45: `file_hash(path: Path, algorithm: str) -> str` - No public docstring in the audited version.
-- **function**, line 116: `install_model(model: dict[str, str], target: Path, *, proxy: str | None, downloader = download) -> dict[str, str]` - No public docstring in the audited version.
-- **function**, line 53: `md5(path: Path) -> str` - No public docstring in the audited version.
-- **function**, line 61: `safe_extract(archive: Path, destination: Path) -> None` - No public docstring in the audited version.
-- **function**, line 74: `select_models(keys: list[str] | None) -> list[dict[str, str]]` - No public docstring in the audited version.
-- **function**, line 57: `sha256(path: Path) -> str` - No public docstring in the audited version.
+- **function**, line 48: `download(url: str, destination: Path, proxy: str | None) -> None` - No public docstring in the audited version.
+- **function**, line 58: `file_hash(path: Path, algorithm: str) -> str` - No public docstring in the audited version.
+- **function**, line 129: `install_model(model: dict[str, str], target: Path, *, proxy: str | None, downloader = download) -> dict[str, str]` - No public docstring in the audited version.
+- **function**, line 66: `md5(path: Path) -> str` - No public docstring in the audited version.
+- **function**, line 74: `safe_extract(archive: Path, destination: Path) -> None` - No public docstring in the audited version.
+- **function**, line 87: `select_models(keys: list[str] | None) -> list[dict[str, str]]` - No public docstring in the audited version.
+- **function**, line 70: `sha256(path: Path) -> str` - No public docstring in the audited version.
 
 ## `mcp_runtime.live_chemdraw`
 
@@ -430,16 +432,16 @@
 
 ## `mcp_runtime.mcp_server`
 
-- **class**, line 590: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
-- **function**, line 1061: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
-- **function**, line 990: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
-- **function**, line 972: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
-- **function**, line 1029: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
-- **function**, line 803: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
-- **function**, line 840: `read_style_guide_resource(preset: str) -> str` - JSON settings of one preset or house-style card, or of all of them for ``all``.
-- **function**, line 817: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
-- **function**, line 654: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
-- **function**, line 1099: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
+- **class**, line 608: `ApiKeyMiddleware` - Require a bearer token without placing it in logs or worker environments.
+- **function**, line 1088: `build_http_app(args: argparse.Namespace, *, environ = None)` - No public docstring in the audited version.
+- **function**, line 1017: `build_server(*, profile: str | None = None, **server_settings)` - No public docstring in the audited version.
+- **function**, line 999: `list_registered_resources_and_prompts(mcp: typing.Any = None) -> dict[str, typing.Any]` - Return the MCP resource URI templates and prompt names registered on the server.
+- **function**, line 1056: `parse_args(argv: list[str] | None = None) -> argparse.Namespace` - No public docstring in the audited version.
+- **function**, line 829: `read_reference_resource(slug: str) -> str` - No public docstring in the audited version.
+- **function**, line 866: `read_style_guide_resource(preset: str) -> str` - JSON settings of one preset or house-style card, or of all of them for ``all``.
+- **function**, line 843: `read_template_resource(slug: str) -> str` - No public docstring in the audited version.
+- **function**, line 672: `resolve_http_configuration(*, host: str, port: int, allowed_hosts: list[str], allowed_origins: list[str], environ: typing.Mapping[str, str] | None = None, api_key_env: str = 'CHEMDRAW_MCP_HTTP_API_KEY') -> dict[str, typing.Any]` - Validate remote HTTP exposure and return non-secret server settings.
+- **function**, line 1126: `run_streamable_http(args: argparse.Namespace) -> None` - No public docstring in the audited version.
 
 ## `mcp_runtime.native_io`
 
@@ -457,10 +459,12 @@
 
 ## `mcp_runtime.native_renderer`
 
+- **function**, line 83: `acquire_application()` - ``(application, launched)`` from the one shared acquisition path (a private instance).
 - **class**, line 37: `NativeRenderError` - ChemDraw rendering failure with a stable public error code.
-- **class**, line 110: `NativeRenderSession` - Lazily acquire and reuse one ChemDraw application for native exports.
-- **method**, line 185: `NativeRenderSession.render(source: str | Path, destination: str | Path, dpi: int = 300) -> str` - No public docstring in the audited version.
-- **function**, line 256: `render_cdxml(source: str | Path, destination: str | Path, *, dpi: int = 300, timeout_seconds: int = 30) -> str` - No public docstring in the audited version.
+- **class**, line 132: `NativeRenderSession` - Lazily acquire and reuse one ChemDraw application for native exports.
+- **method**, line 175: `NativeRenderSession.com_application()` - The session's private, hidden ChemDraw COM application (Windows only).
+- **method**, line 222: `NativeRenderSession.render(source: str | Path, destination: str | Path, dpi: int = 300) -> str` - No public docstring in the audited version.
+- **function**, line 293: `render_cdxml(source: str | Path, destination: str | Path, *, dpi: int = 300, timeout_seconds: int = 30) -> str` - No public docstring in the audited version.
 - **function**, line 32: `renderer_name() -> str` - The native renderer on this platform, as written in render receipts.
 
 ## `mcp_runtime.object_tools`
@@ -470,16 +474,16 @@
 
 ## `mcp_runtime.office_objects`
 
-- **function**, line 26: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
-- **function**, line 579: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
-- **function**, line 508: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
-- **function**, line 702: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 615: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
-- **function**, line 656: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
-- **function**, line 267: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
-- **function**, line 51: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
-- **function**, line 755: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
-- **function**, line 423: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
+- **function**, line 29: `com_apartment()` - Initialize COM for the current worker thread and release it symmetrically.
+- **function**, line 582: `emf_frame_size(data: bytes) -> tuple[int, int] | None` - Width and height of an EMF picture frame in 0.01 mm, or None if not an EMF.
+- **function**, line 511: `load_replacement_manifest(manifest_path: str | Path, *, source_sha256: str, objects: list[dict[str, Any]]) -> list[dict[str, Any]]` - No public docstring in the audited version.
+- **function**, line 767: `render_office_pdf(office_path: str | Path, output_path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 618: `resize_ole_frame(xml: bytes, relationship_id: str, scale_x: float, scale_y: float) -> bytes` - Scale the frame of the OLE object ``relationship_id`` in a slide or document part.
+- **function**, line 659: `rewrite_office_package(input_path: str | Path, output_path: str | Path, replacement_parts: dict[str, dict[str, bytes]]) -> None` - Write a copy of an Office package with replaced OLE objects and previews.
+- **function**, line 270: `scan_office_objects(input_path: str | Path) -> tuple[str, list[dict[str, Any]]]` - No public docstring in the audited version.
+- **function**, line 54: `sha256_file(path: str | Path) -> str` - No public docstring in the audited version.
+- **function**, line 789: `validate_pdf(path: str | Path) -> None` - No public docstring in the audited version.
+- **function**, line 426: `write_inspection(input_path: str | Path, output_dir: str | Path, *, render_previews: bool) -> dict[str, Any]` - No public docstring in the audited version.
 
 ## `mcp_runtime.official_overrides`
 
@@ -511,18 +515,18 @@
 
 ## `mcp_runtime.report_tools`
 
-- **function**, line 1582: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
-- **function**, line 568: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
-- **function**, line 853: `chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict` - Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
-- **function**, line 630: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
-- **function**, line 996: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
-- **function**, line 1498: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
-- **function**, line 290: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
-- **function**, line 1278: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
-- **function**, line 1142: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
-- **function**, line 446: `signs(species)` - No public docstring in the audited version.
-- **function**, line 961: `stoichiometry_grid(source: str, mode: str = 'analyze', output_path: str | None = None, options: dict | None = None) -> dict` - ChemDraw's own stoichiometry grid (Structure > Analyze Stoichiometry), drawn or read back.
-- **function**, line 723: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
+- **function**, line 1609: `characterization_text(compounds: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - ACS-style characterization paragraph per compound, in the order of the ACS Style Guide.
+- **function**, line 592: `check_reaction_balance(reaction: str | dict, options: dict | None = None, output_path: str | None = None) -> dict` - Check that a reaction conserves atoms and charge, and optionally tabulate its stoichiometry.
+- **function**, line 879: `chemdraw_chemical_properties(molecules: list[dict], output_path: str | None = None) -> dict` - Formula, masses, elemental analysis, logP and molar refractivity as ChemDraw computes them.
+- **function**, line 656: `export_structures(source: str | list, options: dict | None = None, output_path: str | None = None) -> dict` - Export every structure in a file or list as SMILES, InChI, InChIKey, formula and mass.
+- **function**, line 1022: `hrms_line(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - HRMS characterization lines: "HRMS (ESI) m/z calcd for C9H10O2Na [M+Na]+ 173.0573, found 173.0570".
+- **function**, line 1525: `map_reaction_atoms(reaction: str | dict | list, options: dict | None = None, output_path: str | None = None) -> dict` - Map each product atom to the reactant atom it comes from (atom-to-atom mapping).
+- **function**, line 291: `molecule_report(molecules: list[dict], output_path: str | None = None) -> dict` - Property sheet for grounded molecules: formula, masses, MS adducts, drug-likeness.
+- **function**, line 1305: `route_summary(steps: list, options: dict | None = None, output_path: str | None = None) -> dict` - Overall yield and cumulative process mass intensity (PMI) of a synthetic route.
+- **function**, line 1169: `si_materials_tables(reactions: list, options: dict | None = None, output_path: str | None = None) -> dict` - Materials tables for a batch of reactions, ready for a Supporting Information file.
+- **function**, line 447: `signs(species)` - No public docstring in the audited version.
+- **function**, line 987: `stoichiometry_grid(source: str, mode: str = 'analyze', output_path: str | None = None, options: dict | None = None) -> dict` - ChemDraw's own stoichiometry grid (Structure > Analyze Stoichiometry), drawn or read back.
+- **function**, line 749: `structure_to_name(molecules: list[dict], options: dict | None = None, output_path: str | None = None) -> dict` - Name grounded structures with ChemDraw's own structure-to-name engine and check each name.
 
 ## `mcp_runtime.resource_lock`
 
@@ -531,7 +535,7 @@
 
 ## `mcp_runtime.runtime_diagnostics`
 
-- **function**, line 659: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
+- **function**, line 704: `diagnose_runtime(run_native_probe: bool = False, run_office_probe: bool = False, run_chemscript_probe: bool = False) -> dict[str, Any]` - Report local runtime capabilities; native probes are explicit and temporary.
 
 ## `mcp_runtime.runtime_discovery`
 
@@ -609,6 +613,23 @@
 - **function**, line 319: `load(path: str | Path) -> Document` - No public docstring in the audited version.
 - **function**, line 301: `parse(source: str | bytes) -> Document` - Parse CDXML text or bytes; the root must be ``CDXML``.
 
+## `postconditions`
+
+- **function**, line 234: `check_cdxml_annotations(cdxml: Union[str, Path]) -> PostconditionResult` - Charges and radicals a reader sees in the drawing agree with the semantic structure.
+- **function**, line 65: `check_changed(before: Structure, after: Structure) -> PostconditionResult` - An edit must change the structure; a no-op is not a successful edit.
+- **function**, line 127: `check_charge_conserved(before: Structure, after: Structure, *, expected_change: int = 0) -> PostconditionResult` - Net charge of ``after`` equals that of ``before`` plus ``expected_change``.
+- **function**, line 145: `check_connected_metal(value: Structure, *, max_ligand_fragments: int = 1) -> PostconditionResult` - Flag an organometallic drawn as a neutral lone metal atom beside several ligand pieces.
+- **function**, line 213: `check_formula(expected: Union[str, Mapping[str, int]], value: Structure) -> PostconditionResult` - The formula computed from the input notation equals the formula of the result.
+- **function**, line 73: `check_preserved(before: Structure, after: Structure, *, targeted_atoms: Iterable[int] = (), timeout: int = 5) -> PostconditionResult` - Atoms and bonds outside ``targeted_atoms`` (atom indices of ``before``) are unchanged.
+- **function**, line 112: `check_stereocentres(value: Structure, *, max_unspecified: int = 0) -> PostconditionResult` - At most ``max_unspecified`` stereocentres may lack a configuration.
+- **function**, line 291: `failure_payload(result: PostconditionResult, rejected_result: Any = None, *, hint: str | None = None) -> dict` - Tool-level failure for a failed post-condition, keeping the rejected output for inspection.
+- **function**, line 305: `first_failure(*results: PostconditionResult) -> PostconditionResult | None` - The first failed result, or None when every check passed.
+- **function**, line 168: `formula_counts(value: Union[str, Mapping[str, int], 'Chem.Mol']) -> Counter` - Element counts (hydrogens included) of a molecule, a mapping, or a plain formula such as ``C4H9Br`` or ``Ca(OH)2``. A SMILES string is not a formula: pass a Mol.
+- **function**, line 206: `hill_formula(counts: Mapping[str, int]) -> str` - No public docstring in the audited version.
+- **class**, line 29: `PostconditionResult` - Outcome of one check. ``code`` is a stable machine-readable identifier.
+- **function**, line 123: `total_charge(value: Structure) -> int` - No public docstring in the audited version.
+- **function**, line 105: `unspecified_stereocentres(value: Structure) -> list[int]` - Indices of tetrahedral stereocentres without an assigned configuration.
+
 ## `publication.data`
 
 - **function**, line 146: `field_text(record, field)` - No public docstring in the audited version.
@@ -662,17 +683,18 @@
 
 ## `reaction_calculator.engine`
 
-- **function**, line 63: `compute(state: dict) -> dict` - Amounts of every row from the limiting row and the quantity fixed on each row.
+- **function**, line 65: `compute(state: dict) -> dict` - Amounts of every row from the limiting row and the quantity fixed on each row.
 
 ## `reaction_calculator.hazards`
 
-- **function**, line 346: `assess(smiles: str) -> dict` - Inspect ``smiles`` against the table and structural class alerts.
-- **function**, line 334: `class_alerts(smiles: str) -> list[dict]` - Return SMARTS structural hazard class alerts matched by ``smiles``.
-- **function**, line 355: `entries() -> list[dict]` - No public docstring in the audited version.
-- **function**, line 375: `for_rows(rows: list[dict]) -> list[dict]` - A safety item per reactant, reagent, catalyst and solvent row: the entry, or ``listed: False``.
-- **function**, line 395: `lines(items: list[dict]) -> list[str]` - Text lines for a table footer: the heading, one line per listed species, the species not listed.
-- **function**, line 300: `lookup(smiles: str) -> dict | None` - The entry for a structure (stereo and drawing coordinates ignored), or None when it is not listed.
-- **function**, line 359: `summary(entry: dict) -> str` - One line: signal word, pictograms, statements, boiling and flash point, note.
+- **function**, line 423: `assess(smiles: str) -> dict` - Inspect ``smiles`` against the table and structural class alerts.
+- **function**, line 411: `class_alerts(smiles: str) -> list[dict]` - Return SMARTS structural hazard class alerts matched by ``smiles``.
+- **function**, line 432: `entries() -> list[dict]` - No public docstring in the audited version.
+- **function**, line 491: `for_rows(rows: list[dict]) -> list[dict]` - A safety item per reactant, reagent, catalyst and solvent row: the entry, or ``listed: False``.
+- **function**, line 470: `incompatibilities(rows: list[dict]) -> list[dict]` - Dangerous combinations among the species of one reaction: ``key``, the two names, warning and source.
+- **function**, line 515: `lines(items: list[dict], combinations: list[dict] | tuple = ()) -> list[str]` - Footer lines: the heading, dangerous combinations, one line per listed species, the species not listed.
+- **function**, line 376: `lookup(smiles: str) -> dict | None` - The entry for a structure (stereo and drawing coordinates ignored), or None when it is not listed.
+- **function**, line 436: `summary(entry: dict) -> str` - One line: signal word, pictograms, statements, boiling and flash point, note.
 
 ## `reaction_calculator.library`
 
@@ -682,12 +704,12 @@
 
 ## `reaction_calculator.materials`
 
-- **function**, line 120: `csv_text(entries: list[dict]) -> str` - No public docstring in the audited version.
-- **function**, line 162: `html_text(entries: list[dict]) -> str` - No public docstring in the audited version.
-- **function**, line 103: `markdown(entries: list[dict]) -> str` - No public docstring in the audited version.
-- **function**, line 42: `procedure(rows: list[dict], limiting: str, totals: dict) -> str` - One sentence in the usual experimental style, from computed rows.
-- **function**, line 19: `trim(value, digits: int = 3) -> str` - Significant digits without trailing zeros: 1.00 -> 1, 94.2 -> 94.2.
-- **function**, line 27: `volume_phrase(ml: float) -> str` - No public docstring in the audited version.
+- **function**, line 127: `csv_text(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 169: `html_text(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 110: `markdown(entries: list[dict]) -> str` - No public docstring in the audited version.
+- **function**, line 49: `procedure(rows: list[dict], limiting: str, totals: dict) -> str` - One sentence in the usual experimental style, from computed rows.
+- **function**, line 20: `trim(value, digits: int = 3) -> str` - Significant digits without trailing zeros: 1.00 -> 1, 94.2 -> 94.2.
+- **function**, line 34: `volume_phrase(ml: float) -> str` - No public docstring in the audited version.
 
 ## `reaction_calculator.state`
 
@@ -732,21 +754,21 @@
 - **function**, line 1172: `audit(cand_smiles: str, reading: dict, image: Image.Image | str | Path | None = None) -> dict | None` - Backward-compatible wrapper around audit_stereo_wedges returning None when unusable.
 - **function**, line 1038: `audit_stereo_wedges(candidate_smiles: str, molscribe_reading: dict, image_path: str | Path | Image.Image | None = None) -> dict` - Map candidate_smiles onto molscribe_reading via MCS and return stereocenter agreement/conflict diagnostics.
 - **function**, line 1180: `audit_text(a: dict, confidence: float | None = None) -> str` - Format human-readable stereocenter audit report.
-- **function**, line 1792: `check_smiles(smiles: str) -> dict` - Validity, canonical form, formula, stereocenters, and warnings of a SMILES.
+- **function**, line 1800: `check_smiles(smiles: str) -> dict` - Validity, canonical form, formula, stereocenters, and warnings of a SMILES.
 - **function**, line 333: `cip_labels(mol: Chem.Mol | str) -> dict[int, str]` - Atom index -> R/S (or '?' when unassigned) for each tetrahedral stereocenter.
 - **function**, line 763: `compare(a_smiles: str, b_smiles: str, a_name: str = 'yours', b_name: str = 'the reading', stereo: bool = True) -> list[str]` - Plain-language differences between two SMILES; atom indices are those of a_smiles.
 - **function**, line 377: `copy_stereo(tgt: Chem.Mol, src: Chem.Mol, s2t: dict[int, int]) -> tuple[Chem.Mol, list[dict]]` - Target molecule (same atom order) carrying the source's tetrahedral stereo over the atom map s2t.
-- **function**, line 1550: `depict_like(smiles: str, reference_image_path: str | Path | Image.Image, output_path: str | Path | None = None, annotate_indices: bool = True, *, size: int = 500, annotate: bool | None = None, coords: bool = False)` - Search all 16 rotations/reflections (8 x 45 deg x flip) against reference_image_path ink mask.
-- **function**, line 1694: `diagnose_smiles_error(smiles: str) -> SmilesErrorDiagnosis` - Capture RDKit parse errors and pinpoint unclosed parens/brackets, unclosed ring digits, and bare-bracket radicals.
-- **function**, line 1875: `edit_structure(smiles: str, ops: list[dict] | None = None, *, set_atom: list[dict] | None = None, set_bond: list[dict] | None = None, add_group: list[dict] | None = None, remove_atoms: list[int] | list[dict] | None = None, set_ez: list[dict] | None = None, set_stereo: list[dict] | dict | None = None) -> EditedSmiles` - Surgical atom-index molecular graph and stereochemistry editor.
+- **function**, line 1558: `depict_like(smiles: str, reference_image_path: str | Path | Image.Image, output_path: str | Path | None = None, annotate_indices: bool = True, *, size: int = 500, annotate: bool | None = None, coords: bool = False)` - Search all 16 rotations/reflections (8 x 45 deg x flip) against reference_image_path ink mask.
+- **function**, line 1702: `diagnose_smiles_error(smiles: str) -> SmilesErrorDiagnosis` - Capture RDKit parse errors and pinpoint unclosed parens/brackets, unclosed ring digits, and bare-bracket radicals.
+- **function**, line 1883: `edit_structure(smiles: str, ops: list[dict] | None = None, *, set_atom: list[dict] | None = None, set_bond: list[dict] | None = None, add_group: list[dict] | None = None, remove_atoms: list[int] | list[dict] | None = None, set_ez: list[dict] | None = None, set_stereo: list[dict] | dict | None = None) -> EditedSmiles` - Surgical atom-index molecular graph and stereochemistry editor.
 - **class**, line 80: `EditedSmiles` - A canonical SMILES string that also supports dict-style metadata lookup.
 - **method**, line 97: `EditedSmiles.get(key: str, default = None)` - No public docstring in the audited version.
 - **method**, line 100: `EditedSmiles.to_dict() -> dict[str, Any]` - No public docstring in the audited version.
-- **function**, line 2202: `enumerate_markush_r_groups(core_smiles: str, r_groups_by_label: dict[str, list[str] | str] | list[str] | str)` - Take a [*:1]/[*:2] core SMILES and r_groups_by_label (e.g. {'5a': ['[*:1]F', '[*:2]C']}) and enumerate products via Chem.molzip.
-- **function**, line 2306: `find_structures(im: Image.Image | str | Path, min_side: int = 40) -> list[list[int]]` - Candidate boxes [x0, y0, x1, y1] of drawn structures, from connected ink.
+- **function**, line 2214: `enumerate_markush_r_groups(core_smiles: str, r_groups_by_label: dict[str, list[str] | str] | list[str] | str)` - Take a [*:1]/[*:2] core SMILES and r_groups_by_label (e.g. {'5a': ['[*:1]F', '[*:2]C']}) and enumerate products via Chem.molzip.
+- **function**, line 2318: `find_structures(im: Image.Image | str | Path, min_side: int = 40) -> list[list[int]]` - Candidate boxes [x0, y0, x1, y1] of drawn structures, from connected ink.
 - **class**, line 234: `ImageResultDict` - JSON-serializable result dictionary that also proxies PIL.Image.Image attributes.
 - **property**, line 242: `ImageResultDict.image` - No public docstring in the audited version.
-- **function**, line 1517: `ink(im: Image.Image, n: int = 64) -> np.ndarray` - No public docstring in the audited version.
+- **function**, line 1525: `ink(im: Image.Image, n: int = 64) -> np.ndarray` - No public docstring in the audited version.
 - **class**, line 295: `MarkushEnumerationResult` - Dictionary mapping label -> canonical SMILES while also exposing .products/.results metadata.
 - **method**, line 309: `MarkushEnumerationResult.get(key, default = None)` - No public docstring in the audited version.
 - **function**, line 346: `mcs_map(tgt: Chem.Mol, src: Chem.Mol, timeout: int = 20) -> tuple[dict[int, int], int]` - Source atom index -> target atom index over the maximum common substructure, and its size.
@@ -757,7 +779,7 @@
 - **function**, line 753: `reader_labels(yours: str, reader: str) -> dict[int, str] | None` - CIP label each stereocentre of yours has in reader's SMILES; None when skeletons differ.
 - **class**, line 209: `ReadWedgesResult` - Result of read_wedges(smiles, wedges), usable as dict or unpacked as (smiles, cip_labels).
 - **function**, line 1322: `render_diff_overlay(image_path: str | Path | Image.Image, candidate_smiles: str, molscribe_reading: dict, output_path: str | Path | None = None) -> ImageResultDict` - Render green (shared), red (candidate-only), and blue (reading-only) bond overlays plus 240x240 patches.
-- **function**, line 1770: `smiles_warnings(mol: Chem.Mol, centers = None) -> list[str]` - Things that parse in RDKit but are almost never what a journal figure shows.
+- **function**, line 1778: `smiles_warnings(mol: Chem.Mol, centers = None) -> list[str]` - Things that parse in RDKit but are almost never what a journal figure shows.
 - **class**, line 104: `SmilesErrorDiagnosis` - Diagnostic string from diagnose_smiles_error that also exposes structured fields.
 - **method**, line 125: `SmilesErrorDiagnosis.get(key: str, default = None)` - No public docstring in the audited version.
 - **method**, line 128: `SmilesErrorDiagnosis.to_dict() -> dict[str, Any]` - No public docstring in the audited version.
@@ -768,10 +790,10 @@
 - **property**, line 281: `SnappedPointsList.shape` - No public docstring in the audited version.
 - **function**, line 715: `stereo_compare(cand: Chem.Mol, src: Chem.Mol, s2t: dict[int, int]) -> list[dict]` - Per candidate stereocenter: compare implied source label with candidate's own label.
 - **function**, line 631: `stereo_from_wedges(atoms: list[dict[str, Any]] | str, bonds: list[dict[str, Any]] | dict[int, dict[int, tuple]], *, flip_y: bool = True) -> StereoFromWedgesResult | str` - Build an RDKit 2D conformer from MolScribe (x, y) + wedges and extract per-atom (R/S, confidence).
-- **function**, line 1503: `stereo_notes(smiles: str) -> list[str]` - 'atom 3 C: R' for each stereocenter, in the atom order of smiles.
+- **function**, line 1511: `stereo_notes(smiles: str) -> list[str]` - 'atom 3 C: R' for each stereocenter, in the atom order of smiles.
 - **class**, line 132: `StereoFromWedgesResult` - Result of stereo_from_wedges(atoms, bonds), supporting both dict keys and atom-index lookup.
 - **property**, line 140: `StereoFromWedgesResult.mol` - No public docstring in the audited version.
 - **function**, line 428: `transfer_stereo(src_mol: Chem.Mol | str, dst_mol: Chem.Mol | str, timeout: int = 20) -> TransferStereoResult` - Transfer tetrahedral stereocenters from src_mol onto dst_mol over their MCS map.
 - **class**, line 163: `TransferStereoResult` - Result of transfer_stereo, usable as dict, (smiles, report) tuple, or RDKit Mol proxy.
 - **property**, line 176: `TransferStereoResult.mol` - No public docstring in the audited version.
-- **function**, line 2103: `visual_checkpoints(smiles: str, limit: int = 12) -> list[str]` - Flag terminal =CH2, Si carbon counts (TMS/TES/TBS/TIPS), and benzene ortho/meta/para substitution indices.
+- **function**, line 2115: `visual_checkpoints(smiles: str, limit: int = 12) -> list[str]` - Flag terminal =CH2, Si carbon counts (TMS/TES/TBS/TIPS), and benzene ortho/meta/para substitution indices.

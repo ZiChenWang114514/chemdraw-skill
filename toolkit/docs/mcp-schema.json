@@ -75,7 +75,7 @@
       "group": "extended",
       "resource_class": "chemdraw_com",
       "timeout_seconds": 240,
-      "description": "Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).\n\nprogram is a list of steps; the root object is the alias \"app\" (ChemDraw.Application).\nEach step has op get, set, call, iterate or release, an optional target alias (default\napp), and for get/set/call the member; call takes args, set takes value, and as stores\nthe result under a new alias. Arguments and values are strings, numbers, booleans, null,\n{\"constant\": \"kCDFormatPNG\"} (any constant of the ChemDraw type library) or\n{\"ref\": alias}. iterate walks a collection (Count and Item, counted from 1) and reads the\nlisted members of each item: {\"op\": \"iterate\", \"target\": \"atoms\", \"members\": [\"Charge\"]}.\nEvery member is checked against the committed COM catalog before ChemDraw starts, with\nthe result types followed through the program (see the interface-com reference for the\nmembers). Printing, the clipboard, menus, preference changes and Quit are blocked.\nOpening, saving or exporting files needs allow_file_io; an existing file is never\nreplaced unless allow_overwrite is also true (Document.Save and Close with saveChanges\ntrue need it too). Documents the program opens are closed without saving and ChemDraw\nis quit afterwards if the tool started it. Object results are reported as their type;\nmax_items caps the items iterate reads."
+      "description": "Run a declarative program over ChemDraw's COM automation objects (Windows, ChemDraw installed).\n\nprogram is a list of steps; the root object is the alias \"app\" (ChemDraw.Application).\nEach step has op get, set, call, iterate or release, an optional target alias (default\napp), and for get/set/call the member; call takes args, set takes value, and as stores\nthe result under a new alias. Arguments and values are strings, numbers, booleans, null,\n{\"constant\": \"kCDFormatPNG\"} (any constant of the ChemDraw type library) or\n{\"ref\": alias}. iterate walks a collection (Count and Item, counted from 1) and reads the\nlisted members of each item: {\"op\": \"iterate\", \"target\": \"atoms\", \"members\": [\"Charge\"]}.\nEvery member is checked against the committed COM catalog before ChemDraw starts, with\nthe result types followed through the program (see the interface-com reference for the\nmembers). Printing, the clipboard, menus, preference changes and Quit are blocked.\nOnly documents the program adds or opens in this call (and objects reached from them)\nmay be changed; ActiveDocument, Documents.Item and everything reached from them are\nread-only, and the application itself is read-only when ChemDraw was already running.\nOpening, saving or exporting files needs allow_file_io; an existing file is never\nreplaced unless allow_overwrite is also true (Document.Save and Close with saveChanges\ntrue need it too). Documents the program opens are closed without saving and ChemDraw\nis quit afterwards if the tool started it. Object results are reported as their type;\nmax_items caps the items iterate reads."
     },
     {
       "name": "chemdraw_inventory",
@@ -227,7 +227,7 @@
       "group": "remote",
       "resource_class": null,
       "timeout_seconds": null,
-      "description": "Default image-recognition tool: use the remote DECIMER API.\n\nFor image-recognition tasks, pass confirm_upload=true for task images and\nrelevant crops without a separate upload-confirmation question. Respect\nexplicit local/offline or no-upload requests. The false value remains\navailable for an explicitly requested no-upload preflight.\nUse local recognition only on an explicit local/offline request; do not\nsilently fall back to local models after an API failure."
+      "description": "Default image-recognition tool: use the remote DECIMER API.\n\nFor image-recognition tasks, pass confirm_upload=true for task images and\nrelevant crops without a separate upload-confirmation question. The one\nexception: ask once before uploading a source marked unpublished, under\nreview, confidential or a patent draft. Respect explicit local/offline or\nno-upload requests. The false value remains available for an explicitly\nrequested no-upload preflight.\nUse local recognition only on an explicit local/offline request; do not\nsilently fall back to local models after an API failure."
     },
     {
       "name": "fill_office_template",
@@ -487,11 +487,11 @@
     },
     {
       "name": "replace_chemdraw_objects_in_office",
-      "signature": "(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = True, resize_frames: bool = False) -> dict[str, typing.Any]",
+      "signature": "(input_path: str, replacements_manifest: str, output_path: Optional[str] = None, render_pdf_preview: bool = False, resize_frames: bool = False) -> dict[str, typing.Any]",
       "group": "extended",
       "resource_class": "chemdraw_com",
       "timeout_seconds": null,
-      "description": "Replace selected ChemDraw OLE contents and previews without moving them.\n\nWith ``resize_frames``, each frame grows or shrinks with its drawing, as\nOffice does after an object is edited in ChemDraw; its top-left corner\nstays in place. Otherwise frames keep their size."
+      "description": "Replace selected ChemDraw OLE contents and previews without moving them.\n\nWith ``resize_frames``, each frame grows or shrinks with its drawing, as\nOffice does after an object is edited in ChemDraw; its top-left corner\nstays in place. Otherwise frames keep their size. ``render_pdf_preview`` (off by\ndefault) also exports a PDF through PowerPoint or Word; only the file it opened is\nclosed, and Office is quit only when it was not already running."
     },
     {
       "name": "resolve_name",
