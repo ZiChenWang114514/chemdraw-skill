@@ -171,6 +171,39 @@ def _resource_timeout(worker_timeout_seconds: int) -> int:
     return max(1, worker_timeout_seconds - 5)
 
 
+def common_path_names(fn) -> dict[str, str]:
+    """The common names a caller may use for this tool's file arguments.
+
+    Most tools take `input_path`, `output_path` and `output_dir`. A tool that names its one
+    required file argument for its content (`cdxml_path`, `image_path`, `source`) also answers
+    to `input_path`; `output_cdxml` answers to `output_path` and `out_dir` to `output_dir`.
+    Nothing is offered when the tool has the common name itself or the choice is not unique.
+    """
+    parameters = inspect.signature(fn).parameters
+    if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in parameters.values()):
+        return {}
+
+    def sole(names: list[str]) -> str | None:
+        return names[0] if len(names) == 1 else None
+
+    candidates = {
+        "input_path": sole([
+            name for name, parameter in parameters.items()
+            if parameter.default is inspect.Parameter.empty and not name.startswith("output")
+            and (name in ("path", "source") or name.endswith("_path"))
+        ]),
+        "output_path": sole([name for name in parameters if name.startswith("output_") and name != "output_dir"]),
+        "output_dir": "out_dir" if "out_dir" in parameters else None,
+    }
+    return {common: own for common, own in candidates.items() if own and common not in parameters}
+
+
+def _use_common_path_names(fn, call_kwargs: dict) -> None:
+    for common, own in common_path_names(fn).items():
+        if common in call_kwargs and own not in call_kwargs:
+            call_kwargs[own] = call_kwargs.pop(common)
+
+
 def _bind_or_explain(tool_name: str, fn, call_args: list, call_kwargs: dict) -> None:
     """Validate call signature before execution so TypeError names valid parameters and close matches."""
     sig = inspect.signature(fn)
@@ -236,6 +269,7 @@ def main() -> int:
             raise ValueError("Worker timeout must be an integer")
         def call(call_args: list, call_kwargs: dict):
             with redirect_stdout(sys.stderr):
+                _use_common_path_names(spec.function, call_kwargs)
                 _bind_or_explain(tool_name, spec.function, call_args, call_kwargs)
                 result = spec.function(*call_args, **call_kwargs)
                 if inspect.isawaitable(result):
