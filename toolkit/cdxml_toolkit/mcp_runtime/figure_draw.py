@@ -752,7 +752,8 @@ def bold_compound_numbers(cdxml: Any, grounded: list[dict], house: HouseStyle | 
     wrapped = renderer._ValidatedCDXML('<?xml version="1.0" encoding="UTF-8" ?>\n'
                                        + ET.tostring(root, encoding="unicode"))
     wrapped.chemistry_validation = getattr(cdxml, "chemistry_validation", None)
-    return wrapped, ["compound_label_face=bold"]
+    # The default face, not a house convention, so nothing is listed as applied.
+    return wrapped, []
 
 
 def _draw(brief: dict, grounded: list[dict], layout_width: float, gap_scale: float, budget: float,
