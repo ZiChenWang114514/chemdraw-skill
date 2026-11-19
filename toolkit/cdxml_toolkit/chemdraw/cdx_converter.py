@@ -122,35 +122,30 @@ def sanitise_cdxml_file(path: str) -> None:
 # COM backend
 # ---------------------------------------------------------------------------
 
-def _get_chemdraw():
-    """Get a ChemDraw COM instance, reusing an existing session if available.
+def _com_session():
+    """A native session on a private ChemDraw instance (the shared acquisition path).
 
-    Returns (app, launched) where launched is True if we started a new instance.
-    Always sets Visible=False to suppress flashing.
+    The session hides only an instance it launched, restores every setting it changed
+    and never quits a ChemDraw that was already running.
     """
+    from cdxml_toolkit.mcp_runtime.native_renderer import NativeRenderSession
+
+    return NativeRenderSession(timeout_seconds=120)
+
+
+def _com_save_as(app, input_path: str, output_path: str) -> None:
+    """Open ``input_path``, save it as ``output_path`` and close only that document."""
+    doc = app.Documents.Open(os.path.abspath(input_path))
     try:
-        app = progid.get_active()
-        launched = False
-    except Exception:
-        app = progid.dispatch()
-        launched = True
-    return app, launched
+        doc.SaveAs(os.path.abspath(output_path))
+    finally:
+        doc.Close(False)
 
 
 def _com_convert_file(input_path: str, output_path: str) -> None:
     """Convert using ChemDraw COM automation."""
-    app, launched = _get_chemdraw()
-    was_visible = app.Visible
-    app.Visible = False
-    try:
-        doc = app.Documents.Open(os.path.abspath(input_path))
-        doc.SaveAs(os.path.abspath(output_path))
-        doc.Close()
-    finally:
-        if launched:
-            app.Quit()
-        else:
-            app.Visible = was_visible
+    with _com_session() as session:
+        _com_save_as(session.com_application(), input_path, output_path)
     if output_path.lower().endswith(".cdxml"):
         sanitise_cdxml_file(output_path)
 
@@ -390,8 +385,9 @@ def batch_convert_files(
     Returns dict mapping input_path -> {"output": path, "error": None} on
     success, or {"output": None, "error": message} on failure.
 
-    For COM backend: one GetActiveObject/Dispatch, loop through all files,
-    one conditional Quit.  For non-COM backends: falls back to per-file
+    For COM backend: one private ChemDraw session (NativeRenderSession), loop
+    through all files, quit only if the session launched ChemDraw.  For
+    non-COM backends: falls back to per-file
     convert_file().
     """
     results = {}
@@ -401,10 +397,8 @@ def batch_convert_files(
     name, _ = _pick_backend(method, _FILE_CONVERTERS)
 
     if name == "com":
-        app, launched = _get_chemdraw()
-        was_visible = app.Visible
-        app.Visible = False
-        try:
+        with _com_session() as session:
+            app = session.com_application()
             for inp in input_paths:
                 in_ext = os.path.splitext(inp)[1].lower()
                 if in_ext == ".cdx":
@@ -419,19 +413,12 @@ def batch_convert_files(
                     continue
                 out = os.path.splitext(inp)[0] + out_ext
                 try:
-                    doc = app.Documents.Open(os.path.abspath(inp))
-                    doc.SaveAs(os.path.abspath(out))
-                    doc.Close()
+                    _com_save_as(app, inp, out)
                     if out.lower().endswith(".cdxml"):
                         sanitise_cdxml_file(out)
                     results[inp] = {"output": out, "error": None}
                 except Exception as e:
                     results[inp] = {"output": None, "error": str(e)}
-        finally:
-            if launched:
-                app.Quit()
-            else:
-                app.Visible = was_visible
     elif name == "applescript":
         with _mac.MacChemDrawSession() as session:
             for inp in input_paths:

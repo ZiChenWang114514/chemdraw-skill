@@ -72,6 +72,36 @@ class ComCallError(RuntimeError):
         self.public_message = message
 
 
+class HandleNotOwnedError(ComCallError, ValueError):
+    """A write or destructive call on an object the program did not create itself."""
+
+    def __init__(self, message: str):
+        super().__init__("com_handle_not_owned", message)
+
+
+# Provenance of every alias. Only documents the program obtains from Documents.Add or
+# Documents.Open in this call (and objects reached from them) are "owned" and may be
+# changed. Everything else reached from the application, such as ActiveDocument,
+# Documents.Item(...) and their objects, belongs to the user and is read-only.
+OWNED, FOREIGN, APPLICATION = "owned", "foreign", "application"
+ACQUIRING = {("IChemDrawDocuments", "Add"), ("IChemDrawDocuments", "Open")}
+# Methods that only read; any other method may change the object it is called on.
+READ_ONLY_METHODS = {"Item", "Contains", "Overlaps", "PtInRect", "OtherAtom", "IsWithin", "_NewEnum"}
+READ_ONLY_PREFIXES = ("Get", "FilterByTag")
+
+
+def _reads_only(name: str) -> bool:
+    return name in READ_ONLY_METHODS or name.startswith(READ_ONLY_PREFIXES)
+
+
+def _not_owned(index: int, type_name: str, name: str, what: str) -> HandleNotOwnedError:
+    return HandleNotOwnedError(
+        f"program step {index}: {what} {type_name}.{name} is refused because the object was not created by "
+        "this program; only documents from Documents.Add or Documents.Open in the same call (and objects "
+        "reached from them) may be changed, while ActiveDocument, Documents.Item and other existing "
+        "documents are read-only")
+
+
 # ---------------------------------------------------------------------------- catalog
 
 
@@ -168,6 +198,7 @@ def validate_program(
 
     types = _catalog()["types"]
     aliases: dict[str, Optional[str]] = {ROOT: "IChemDrawApplication"}
+    provenance: dict[str, str] = {ROOT: APPLICATION}
     used: set[str] = set()
     steps: list[dict[str, Any]] = []
     for index, original in enumerate(program):
@@ -184,6 +215,7 @@ def validate_program(
             if target == ROOT:
                 raise ValueError(f"program step {index} cannot release the reserved alias {ROOT}")
             aliases.pop(target)
+            provenance.pop(target, None)
             steps.append(step)
             continue
         owner = aliases[target]
@@ -246,6 +278,14 @@ def validate_program(
                     raise ValueError(f"program step {index}: {owner}.{name} takes at most {len(parameters)} argument(s)")
                 step["args"] = [_check_value(index, item, aliases, "argument") for item in arguments]
                 _check_files(index, owner, name, step["args"], allow_file_io, allow_overwrite)
+            origin = provenance[target]
+            changes = operation == "set" or (
+                operation == "call" and (owner, name) not in ACQUIRING and not _reads_only(name))
+            if changes and origin == FOREIGN:
+                raise _not_owned(index, owner, name, "setting" if operation == "set" else "calling")
+            # The application itself may be changed only when this call launched it; that is
+            # known once ChemDraw is acquired, so it is checked again at run time.
+            step["needs_launched_application"] = bool(changes and origin == APPLICATION)
             declared = member.get("type") if member["kind"] == "property" else member.get("returns")
             step["result_type"] = _type_of(declared)
             if step["result_type"] is None and name == "Item" and _is_collection(owner):
@@ -261,6 +301,10 @@ def validate_program(
                 raise ValueError(f"program step {index}: the alias {alias} is already used")
             used.add(alias)
             aliases[alias] = step["result_type"]
+            if operation == "call" and (owner, step["member"]) in ACQUIRING:
+                provenance[alias] = OWNED
+            else:
+                provenance[alias] = OWNED if provenance[target] == OWNED else FOREIGN
         steps.append(step)
     return steps
 
@@ -326,12 +370,20 @@ def execute_program(
     max_items: int = 100,
     allow_overwrite: bool = False,
     created: Optional[list[Any]] = None,
+    application_launched: bool = False,
 ) -> dict[str, Any]:
     """Run validated steps against ``application``; returns results and written files.
 
     Documents the program adds or opens are appended to ``created`` as they appear, so the
-    caller can close them even when a later step fails.
+    caller can close them even when a later step fails. Changes to the application object
+    itself are refused unless ``application_launched`` says this call started ChemDraw.
     """
+    if not application_launched:
+        for index, step in enumerate(steps):
+            if step.get("needs_launched_application"):
+                raise HandleNotOwnedError(
+                    f"program step {index}: changing {step['owner_type']}.{step['member']} is refused because "
+                    "ChemDraw was already running; the user's ChemDraw application is read-only")
     objects: dict[str, Any] = {ROOT: application}
     types: dict[str, Optional[str]] = {ROOT: "IChemDrawApplication"}
     created = created if created is not None else []
@@ -390,8 +442,10 @@ def _open_application() -> Iterator[tuple[Any, bool]]:
 
     with native_renderer._com_apartment():
         try:
-            application, _ = native_renderer._acquire_application()
-            owned = int(application.Documents.Count) == 0
+            # Whether this call launched ChemDraw comes from the acquisition itself, never from
+            # guessing at the documents that happen to be open.
+            application, owned = native_renderer._acquire_application()
+            owned = bool(owned)
             was_visible = bool(application.Visible)
             if owned:
                 application.Visible = False
@@ -437,6 +491,9 @@ def chemdraw_com_call(
     Every member is checked against the committed COM catalog before ChemDraw starts, with
     the result types followed through the program (see the interface-com reference for the
     members). Printing, the clipboard, menus, preference changes and Quit are blocked.
+    Only documents the program adds or opens in this call (and objects reached from them)
+    may be changed; ActiveDocument, Documents.Item and everything reached from them are
+    read-only, and the application itself is read-only when ChemDraw was already running.
     Opening, saving or exporting files needs allow_file_io; an existing file is never
     replaced unless allow_overwrite is also true (Document.Save and Close with saveChanges
     true need it too). Documents the program opens are closed without saving and ChemDraw
@@ -456,10 +513,11 @@ def chemdraw_com_call(
     created: list[Any] = []
     closed = 0
     try:
-        with _open_application() as (application, _owned):
+        with _open_application() as (application, launched):
             try:
                 outcome = execute_program(
-                    application, steps, max_items=max_items, allow_overwrite=allow_overwrite, created=created)
+                    application, steps, max_items=max_items, allow_overwrite=allow_overwrite, created=created,
+                    application_launched=bool(launched))
             finally:
                 # Documents the program opened are closed unsaved, even when a step failed.
                 for document in reversed(created):

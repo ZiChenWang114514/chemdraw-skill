@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -29,9 +30,15 @@ NATIVE_PROBE_TIMEOUT_SECONDS = 75
 CHEMSCRIPT_PROBE_TIMEOUT_SECONDS = 30
 OFFICE_PROBE_TIMEOUT_SECONDS = 60
 PROBE_HARD_LIMIT_SECONDS = 240
-# macOS has no Job Object to kill what a timed-out stage launched; the audit
-# gets this long to stop those applications itself.
-MAC_TIMEOUT_CLEANUP_SECONDS = 10
+# After a stage times out, the audit gets this long to stop the automation
+# applications the stage launched (macOS has no Job Object at all, and on Windows
+# a COM-launched ChemDraw or Office is not inside the stage's Job Object).
+TIMEOUT_CLEANUP_SECONDS = 10
+MAC_TIMEOUT_CLEANUP_SECONDS = TIMEOUT_CLEANUP_SECONDS
+# A timed-out stage is first asked to stop, so its own cleanup (closing its
+# documents, quitting the ChemDraw or Office it launched) can run; only then is
+# its process tree terminated.
+STOP_GRACE_SECONDS = 5.0
 
 
 def _status(available: bool, **details: Any) -> dict[str, Any]:
@@ -499,8 +506,8 @@ def _audit_stage_processes(
     timed_out: bool,
     deadline: float,
 ) -> dict[str, Any]:
-    if timed_out and sys.platform == "darwin":
-        deadline = max(deadline, time.monotonic() + MAC_TIMEOUT_CLEANUP_SECONDS)
+    if timed_out:
+        deadline = max(deadline, time.monotonic() + TIMEOUT_CLEANUP_SECONDS)
     while True:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
@@ -531,6 +538,43 @@ def _audit_stage_processes(
                 deadline=deadline,
             )
         time.sleep(min(0.5, max(0.0, deadline - time.monotonic())))
+
+
+def _request_stop(process: subprocess.Popen, *, grace_seconds: float) -> bool:
+    """Ask a timed-out stage to stop and wait up to ``grace_seconds``; True if it exited.
+
+    The stage starts in its own process group, so CTRL_BREAK on Windows and SIGTERM
+    elsewhere reach only it; it turns either into SystemExit so its cleanup runs.
+    """
+    if process.poll() is not None:
+        return True
+    try:
+        if os.name == "nt":
+            process.send_signal(signal.CTRL_BREAK_EVENT)
+        else:
+            process.terminate()
+    except (OSError, ValueError, AttributeError):
+        return False
+    try:
+        process.wait(timeout=max(0.0, grace_seconds))
+    except subprocess.TimeoutExpired:
+        return False
+    return True
+
+
+def _exit_cleanly_on_stop_request() -> None:
+    """In a probe stage, turn the stop request into SystemExit so ``finally`` blocks run."""
+
+    def stop(_signum, _frame):
+        raise SystemExit(1)
+
+    for name in ("SIGBREAK", "SIGTERM"):
+        number = getattr(signal, name, None)
+        if number is not None:
+            try:
+                signal.signal(number, stop)
+            except (OSError, ValueError):
+                pass
 
 
 def _run_probe_stage(stage: str, timeout_seconds: int) -> dict[str, Any]:
@@ -583,6 +627,7 @@ def _run_probe_stage(stage: str, timeout_seconds: int) -> dict[str, Any]:
             )
         except subprocess.TimeoutExpired:
             timed_out = True
+            _request_stop(process, grace_seconds=min(STOP_GRACE_SECONDS, cleanup_reserve))
             _terminate_process_tree(process, job, deadline=stage_deadline)
             job = None
             remaining = stage_deadline - time.monotonic()
@@ -791,6 +836,7 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     if args.probe_stage:
+        _exit_cleanly_on_stop_request()
         with redirect_stdout(sys.stderr):
             result = _probe_stage(args.probe_stage)
         print(json.dumps(result, separators=(",", ":")))
