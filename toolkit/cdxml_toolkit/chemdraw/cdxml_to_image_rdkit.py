@@ -10,13 +10,10 @@ installed (e.g. a remote server, CI, or a colleague's machine).
 Known limitations vs ChemDraw COM
 ----------------------------------
 - Single molecules only — reaction schemes with arrows are NOT supported.
-- Bond geometry is recomputed by RDKit from scratch; the original ChemDraw
-  layout is discarded.
 - Aromatic systems are re-perceived by RDKit, which may differ from the
   Kekulé form stored in the CDXML.
 - Superatom / nickname nodes (R-groups, OTs, Boc, etc.) are not rendered;
   the script will abort with an error if any are present.
-- Stereo wedges are not transferred from the CDXML.
 - No reaction conditions text, no yield labels, no compound numbering.
 - RDKit in this environment lacks Cairo support, so PNG output requires
   cairosvg or wand to be installed; otherwise only SVG is produced.
@@ -33,31 +30,17 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 
 # ---------------------------------------------------------------------------
-# CDXML → atom/bond parser  (minimal — just what RDKit needs)
+# CDXML → RDKit molecule (shared toolkit reader)
 # ---------------------------------------------------------------------------
 
-ELEMENT_SYMBOLS: Dict[int, str] = {
-    1: "H",  5: "B",  6: "C",  7: "N",  8: "O",
-    9: "F",  14: "Si", 15: "P", 16: "S", 17: "Cl",
-    34: "Se", 35: "Br", 53: "I",
-}
-
-_BOND_ORDER_MAP = {"1": 1, "2": 2, "3": 3, "1.5": 4, "": 1}
+_ABBREVIATION_NODETYPES = ("Fragment", "Nickname", "Unspecified", "GenericNickname")
 
 
-def _parse_cdxml(path: str):
-    """
-    Parse a CDXML file and return (atoms, bonds).
-
-    atoms : dict  id → {"symbol": str, "x": float, "y": float}
-    bonds : list  of {"b": int, "e": int, "order": int}
-
-    Raises ValueError if reaction arrows or unsupported node types are found.
-    """
+def _read_root(path: str) -> ET.Element:
     with open(path, "rb") as fh:
         raw_bytes = fh.read()
 
@@ -67,110 +50,59 @@ def _parse_cdxml(path: str):
     raw = raw_bytes.decode("latin-1", errors="replace")
     raw = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\ufffe\uffff]', '', raw)
     raw = re.sub(r'<!DOCTYPE[^>]*>', '', raw)
+    return ET.fromstring(raw)
 
-    root = ET.fromstring(raw)
 
-    atoms: Dict[int, dict] = {}
-    bonds: List[dict] = []
-    has_arrows = False
+def cdxml_to_rdkit_mol(path: str):
+    """Read a single-molecule CDXML into one RDKit Mol with its drawn 2D layout.
 
-    def walk(elem):
-        nonlocal has_arrows
-        tag = elem.tag
+    Atoms, charges, isotopes and stereo come from the toolkit's CDXML reader
+    (:func:`cdxml_toolkit.rdkit_utils.frag_to_mol`); the conformer holds the
+    CDXML coordinates with the Y axis flipped (CDXML Y grows downward).
 
-        if tag == "arrow":
-            has_arrows = True
+    Raises ValueError for reaction schemes and abbreviated groups.
+    """
+    from rdkit import Chem
+    from ..rdkit_utils import frag_to_mol, set_cdxml_conformer
 
-        elif tag == "n":
-            aid = int(elem.get("id", "0"))
-            px, py = elem.get("p", "0 0").split()[:2]
-
-            el_num = elem.get("Element")
-            symbol = ELEMENT_SYMBOLS.get(int(el_num), "?") if el_num else "C"
-
-            node_type = elem.get("NodeType", "")
-            if node_type in ("Fragment", "Nickname", "Unspecified"):
-                raise ValueError(
-                    f"Superatom / nickname node (id={aid}) found — "
-                    "RDKit cannot render abbreviated groups. "
-                    "Use cdxml_to_image.py (ChemDraw COM) instead."
-                )
-
-            atoms[aid] = {"symbol": symbol, "x": float(px), "y": float(py)}
-
-        elif tag == "b":
-            order_str = elem.get("Order", "1")
-            bonds.append({
-                "b": int(elem.get("B", "0")),
-                "e": int(elem.get("E", "0")),
-                "order": _BOND_ORDER_MAP.get(order_str, 1),
-            })
-
-        for child in elem:
-            if tag == "n" and child.tag in ("n", "t"):
-                continue
-            walk(child)
-
-    walk(root)
-
-    if has_arrows:
+    root = _read_root(path)
+    if root.find(".//arrow") is not None:
         raise ValueError(
             "Reaction scheme detected (arrow elements present). "
             "RDKit cannot render multi-fragment reaction schemes. "
             "Use cdxml_to_image.py (ChemDraw COM) instead."
         )
-
-    return atoms, bonds
+    nested = {id(f) for n in root.iter("n") for f in n.iter("fragment")}
+    mol = None
+    for frag in root.iter("fragment"):
+        if id(frag) in nested:
+            continue
+        for node in frag.findall("n"):
+            if node.get("NodeType", "") in _ABBREVIATION_NODETYPES:
+                raise ValueError(
+                    f"Superatom / nickname node (id={node.get('id')}) found — "
+                    "RDKit cannot render abbreviated groups. "
+                    "Use cdxml_to_image.py (ChemDraw COM) instead."
+                )
+        part, atoms = frag_to_mol(frag)
+        if part is None:
+            raise ValueError(f"RDKit could not read fragment {frag.get('id', '?')}.")
+        set_cdxml_conformer(part, atoms, scale=1.0)
+        mol = part if mol is None else Chem.CombineMols(mol, part)
+    if mol is None or mol.GetNumAtoms() == 0:
+        raise ValueError("No atoms found in CDXML.")
+    return mol
 
 
 # ---------------------------------------------------------------------------
 # RDKit renderer
 # ---------------------------------------------------------------------------
 
-def _render(atoms: dict, bonds: list, output_path: str,
-            width: int, height: int) -> str:
+def _render(mol, output_path: str, width: int, height: int) -> str:
     try:
-        from rdkit import Chem
         from rdkit.Chem.Draw import rdMolDraw2D
     except ImportError:
         raise RuntimeError("RDKit is not installed in this environment.")
-
-    rw = Chem.RWMol()
-    atom_idx: Dict[int, int] = {}
-
-    bond_type_map = {
-        1: Chem.BondType.SINGLE,
-        2: Chem.BondType.DOUBLE,
-        3: Chem.BondType.TRIPLE,
-        4: Chem.BondType.AROMATIC,
-    }
-
-    for aid, atom in atoms.items():
-        sym = atom["symbol"]
-        try:
-            rd_atom = Chem.Atom(sym)
-        except Exception:
-            raise ValueError(f"RDKit does not recognise element '{sym}'.")
-        atom_idx[aid] = rw.AddAtom(rd_atom)
-
-    for bond in bonds:
-        b = atom_idx.get(bond["b"])
-        e = atom_idx.get(bond["e"])
-        if b is None or e is None:
-            raise ValueError(f"Bond references unknown atom id: {bond}")
-        rw.AddBond(b, e, bond_type_map.get(bond["order"], Chem.BondType.SINGLE))
-
-    mol = rw.GetMol()
-    try:
-        Chem.SanitizeMol(mol)
-    except Exception as exc:
-        raise ValueError(f"RDKit sanitization failed: {exc}")
-
-    # Attach original 2D coordinates from CDXML
-    conf = Chem.Conformer(mol.GetNumAtoms())
-    for aid, rd_idx in atom_idx.items():
-        conf.SetAtomPosition(rd_idx, (atoms[aid]["x"], atoms[aid]["y"], 0.0))
-    mol.AddConformer(conf, assignId=True)
 
     out = Path(output_path)
     ext = out.suffix.lower()
@@ -241,12 +173,7 @@ def cdxml_to_image_rdkit(
     if output_path is None:
         output_path = str(src.with_suffix(".png"))
 
-    atoms, bonds = _parse_cdxml(str(src))
-
-    if not atoms:
-        raise ValueError("No atoms found in CDXML.")
-
-    return _render(atoms, bonds, output_path, width, height)
+    return _render(cdxml_to_rdkit_mol(str(src)), output_path, width, height)
 
 
 # ---------------------------------------------------------------------------
