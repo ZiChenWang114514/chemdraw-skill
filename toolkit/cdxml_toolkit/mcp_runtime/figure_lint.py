@@ -8,7 +8,11 @@ Every object is measured by its ``BoundingBox`` (or, when the file stores none,
 from its atoms, arrow ends or text anchor); a structure also includes the
 atom labels that overhang its own box.  When a structure's box meets another
 object, only its ink counts: its bonds and atom labels, so a caption in the
-empty corner of a bent molecule is not an overlap.
+empty corner of a bent molecule is not an overlap.  Two structures whose bonds
+cross, and a text label over a bond or atom, are overlaps by this rule.
+Objects inside a group are checked like any other.  A curved arrow (a
+``<curve>`` with an arrowhead) is sampled as a polyline and reported when its
+middle runs through a structure's bonds or atom labels; its ends may touch.
 """
 
 from __future__ import annotations
@@ -46,6 +50,10 @@ TEXT_LINE_PITCH = 1.2
 # A text box already includes line spacing, so text gets no clearance, and
 # boxes that meet a text box by no more than this (pt) only share that spacing.
 TEXT_SLACK = 1.0
+# Curved arrows: samples per Bezier segment, and how far from either end the
+# arrow may touch ink (it starts and ends on an atom or a bond).
+CURVE_SAMPLES = 16
+CURVE_END_REACH = 6.0
 
 Box = Tuple[float, float, float, float]
 Point = Tuple[float, float]
@@ -240,9 +248,71 @@ def _measured_box(node: ET.Element) -> Optional[Box]:
             left + width, y + ((lines - 1) * TEXT_LINE_PITCH + TEXT_DESCENT) * size)
 
 
+def _page_objects(page: ET.Element):
+    """Children of the page, with the members of groups in place of the group."""
+    for child in page:
+        if child.tag == "group":
+            yield from _page_objects(child)
+        else:
+            yield child
+
+
+def _bezier(points: List[Point], per_segment: int = CURVE_SAMPLES) -> List[Point]:
+    """Sample a CDXML curve (anchor, control, control, anchor, ...) as a polyline."""
+    if len(points) < 4:
+        return points
+    # ChemDraw stores a leading and trailing control point around the anchors.
+    pts = points[1:-1] if (len(points) - 4) % 3 == 2 else points
+    out: List[Point] = [pts[0]]
+    for i in range(0, len(pts) - 3, 3):
+        p0, p1, p2, p3 = pts[i:i + 4]
+        for k in range(1, per_segment + 1):
+            t = k / per_segment
+            u = 1 - t
+            out.append((u ** 3 * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t ** 3 * p3[0],
+                        u ** 3 * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t ** 3 * p3[1]))
+    return out
+
+
+def _curve_path(node: ET.Element) -> List[Point]:
+    values = [float(v) for v in node.get("CurvePoints", "").split()]
+    points = list(zip(values[0::2], values[1::2]))
+    path = _bezier(points)
+    if len(path) < 2:
+        return []
+    start, end = path[0], path[-1]
+    # A curved arrow starts and ends on its atoms or bonds; only its middle must stay clear.
+    return [p for p in path if math.dist(p, start) > CURVE_END_REACH and math.dist(p, end) > CURVE_END_REACH]
+
+
+def _curve_issues(page: ET.Element, objects: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    issues: List[Dict[str, Any]] = []
+    arrowheads = ("ArrowheadHead", "ArrowheadTail", "ArrowheadType")
+    for curve in (c for c in _page_objects(page)
+                  if c.tag == "curve" and any(c.get(a, "None") != "None" for a in arrowheads)):
+        path = _curve_path(curve)
+        if len(path) < 2:
+            continue
+        box = _union([(x, y, x, y) for x, y in path])
+        for obj in objects:
+            if obj["tag"] != "fragment" or not obj.get("ink") or not _overlaps(_pad(box, INK_CLEARANCE), obj["box"]):
+                continue
+            bonds, labels = obj["ink"]
+            pieces = list(zip(path, path[1:]))
+            hit = any(_segment_hits_box(a, b, _pad(label, INK_CLEARANCE)) for a, b in pieces for label in labels) \
+                or any(_segment_distance(a, b, c, d) < INK_CLEARANCE for a, b in pieces for c, d in bonds)
+            if hit:
+                issues.append({
+                    "kind": "curve_collision",
+                    "ids": [curve.get("id", ""), obj["id"]],
+                    "message": f"Curved arrow {curve.get('id', '')} runs through fragment {obj['id']}.",
+                })
+    return issues
+
+
 def _objects(page: ET.Element) -> List[Dict[str, Any]]:
     found: List[Dict[str, Any]] = []
-    for child in page:
+    for child in _page_objects(page):
         if child.tag not in ("fragment", "arrow", "t"):
             continue
         box = _box(child.get("BoundingBox")) or _measured_box(child)
@@ -351,6 +421,7 @@ def lint_cdxml(cdxml_text: str, max_width: Optional[float] = None) -> List[Dict[
                 })
 
     issues.extend(_plus_issues(objects))
+    issues.extend(_curve_issues(page, objects))
 
     if max_width is not None:
         left, _, right, _ = _union([o["box"] for o in objects])
