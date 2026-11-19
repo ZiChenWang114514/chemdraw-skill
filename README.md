@@ -58,7 +58,7 @@ cd chemdraw-skill
 python scripts/install.py --agent claude agents --runtime --apply
 ```
 
-<sub>Omit <code>--apply</code> to preview target paths first. If Python 3.14+ is your only interpreter, install 3.12 (e.g. <code>uv python install 3.12</code>) or pass <code>--python &lt;interpreter&gt;</code>.</sub>
+<sub>Omit <code>--apply</code> to preview target paths first. If Python 3.14+ is your only interpreter, install 3.12 (e.g. <code>uv python install 3.12</code>) or pass <code>--python &lt;interpreter&gt;</code>. Each release also carries the Skill as a Claude Code plugin archive (built by <code>scripts/build_plugin.py</code>, with <code>SHA256SUMS</code>); the plugin holds the Skill only, so run the installer once with <code>--runtime-only --apply</code> for the toolkit runtime.</sub>
 
 <img src="https://img.shields.io/badge/STEP_02-DOCTOR-1D7F5F?style=flat-square" height="20" alt="Step 02"> **2. Check your machine** (reports desktop ChemDraw COM/AppleScript, Office OLE, Python extras, and installed engines):
 

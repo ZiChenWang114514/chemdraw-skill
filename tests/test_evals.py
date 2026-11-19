@@ -62,7 +62,10 @@ class ScorerTests(unittest.TestCase):
             answers = Path(folder) / "answers.json"
             answers.write_text("{}", encoding="utf-8")
             # The child sees the toolkit wherever this process found it.
-            environment = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, sys.path))}
+            import cdxml_toolkit
+
+            home = str(Path(cdxml_toolkit.__file__).resolve().parents[1])
+            environment = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, [home, *sys.path]))}
             done = subprocess.run([sys.executable, str(EVALS / "score.py"), "tasks", str(answers)],
                                   capture_output=True, text=True, env=environment)
             self.assertEqual(done.returncode, 1, done.stderr)

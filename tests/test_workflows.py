@@ -61,6 +61,7 @@ class WorkflowTests(unittest.TestCase):
         # The Skill archive carries no tests, and every release file has a published checksum.
         self.assertIn('zip -q -d "$zip" "chemdraw/tests/*"', text)
         self.assertLess(text.index("sha256sum * > SHA256SUMS"), text.index("gh release create"))
+        self.assertLess(text.index("scripts/build_plugin.py"), text.index("sha256sum * > SHA256SUMS"))
         # Only the job that creates the release may write to the repository.
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read$")
         self.assertEqual(text.count("contents: write"), 1)

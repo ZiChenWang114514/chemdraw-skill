@@ -48,6 +48,11 @@ jobs:
           unzip -Z1 "$zip" | grep -q '^chemdraw/SKILL.md$'
           ! unzip -Z1 "$zip" | grep -q '^chemdraw/tests/'
 
+      - name: Build the Claude Code plugin
+        run: |
+          python3 scripts/build_plugin.py --out build/chemdraw-skill
+          (cd build && zip -q -r "../dist/chemdraw-skill-plugin-$GITHUB_REF_NAME.zip" chemdraw-skill)
+
       - name: Write checksums
         run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
 

@@ -58,7 +58,7 @@ cd chemdraw-skill
 python scripts/install.py --agent claude agents --runtime --apply
 ```
 
-<sub>去掉 <code>--apply</code> 可先预览安装路径；若本机只有 Python 3.14+，请先安装 3.12（如 <code>uv python install 3.12</code>）或加 <code>--python &lt;解释器路径&gt;</code> 指定。</sub>
+<sub>去掉 <code>--apply</code> 可先预览安装路径；若本机只有 Python 3.14+，请先安装 3.12（如 <code>uv python install 3.12</code>）或加 <code>--python &lt;解释器路径&gt;</code> 指定。 每个发布版本还附带 Claude Code 插件压缩包（由 <code>scripts/build_plugin.py</code> 生成，附 <code>SHA256SUMS</code>）；插件只含 Skill，本体运行时仍需执行一次安装脚本并加 <code>--runtime-only --apply</code>。</sub>
 
 <img src="https://img.shields.io/badge/STEP_02-%E8%87%AA%E6%A3%80-1D7F5F?style=flat-square" height="20" alt="步骤 02"> **2. 检查本机能力**（自动检测桌面版 ChemDraw COM/AppleScript、Office OLE、Python 可选依赖与本地引擎）：
 
