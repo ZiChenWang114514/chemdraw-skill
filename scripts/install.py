@@ -343,6 +343,48 @@ def base_python(requested):
     return probe_candidates(requested)[0]
 
 
+def _git(folder, *args):
+    """Output of a read-only git command in ``folder``; None when git or the repository is missing."""
+    try:
+        out = subprocess.run(['git', *args], cwd=folder, capture_output=True, text=True,
+                             encoding='utf-8', errors='replace', timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return out.stdout.strip() if out.returncode == 0 else None
+
+
+def toolkit_source(path):
+    """Which toolkit the runtime is built from: commit, branch, local edits, distance behind the remote.
+
+    ``behind`` counts the commits that change this folder on the remote default branch and are
+    missing here, as of the last fetch. Nothing is fetched, so the installer stays offline.
+    """
+    path = Path(path)
+    commit = _git(path, 'rev-parse', 'HEAD') if path.is_dir() else None
+    state = {'path': str(path), 'commit': commit, 'branch': None, 'modified': False,
+             'behind': None, 'compared_with': None}
+    if not commit:
+        return state
+    state['branch'] = _git(path, 'rev-parse', '--abbrev-ref', 'HEAD')
+    state['modified'] = bool(_git(path, 'status', '--porcelain', '--', '.'))
+    remote = _git(path, 'rev-parse', '--abbrev-ref', 'origin/HEAD') or 'origin/main'
+    behind = _git(path, 'rev-list', '--count', f'HEAD..{remote}', '--', '.')
+    if behind is not None:
+        state.update(behind=int(behind), compared_with=remote)
+    return state
+
+
+def stale_toolkit_warning(state):
+    """A sentence for the user when the toolkit source is older than the remote default branch."""
+    if not state.get('behind'):
+        return None
+    count = state['behind']
+    return (f"The runtime will be built from toolkit commit {state['commit'][:7]} (branch {state['branch']}), "
+            f"which is {count} commit{'s' if count != 1 else ''} behind {state['compared_with']} as of the last "
+            'fetch. Newer brief keys and tools will be missing. Update this checkout, or pass --toolkit-path '
+            'with a current toolkit folder.')
+
+
 def runtime_plan(ns, targets):
     if not ns.runtime:
         return {'action': 'skip'}
@@ -352,8 +394,10 @@ def runtime_plan(ns, targets):
         legacy = [t.parent / 'chemdraw-venv' for t in targets if venv_python(t.parent / 'chemdraw-venv').is_file()]
         venv = legacy[0] if legacy else cdx.default_runtime_dir()
     action = 'reuse' if venv_python(venv).is_file() else 'create'
+    if action == 'reuse' and ns.rebuild_runtime:
+        action = 'rebuild'
     base = None
-    if action == 'create':
+    if action != 'reuse':
         base, rejected = probe_candidates(ns.python)
         if base is None:
             detail = ', '.join(
@@ -368,12 +412,12 @@ def runtime_plan(ns, targets):
                 'or the python.org 64-bit 3.12 installer (Windows: `py -3.12`) — and re-run.'
             )
     extras = ns.extras if ns.extras is not None else default_extras()
+    toolkit = Path(ns.toolkit_path).expanduser().resolve() if ns.toolkit_path else TOOLKIT
     # base_python stays a command list: interpreter paths may contain spaces ("Program Files").
     return {'action': action, 'venv': str(venv), 'python': str(venv_python(venv)),
             'base_python': list(base) if base else None, 'extras': extras,
             # Always build from this checkout's toolkit/ so the runtime matches the Skill exactly.
-            'toolkit_path': str(Path(ns.toolkit_path).expanduser().resolve()) if ns.toolkit_path
-            else str(TOOLKIT)}
+            'toolkit_path': str(toolkit), 'toolkit_source': toolkit_source(toolkit)}
 
 
 def backup_root(ns):
@@ -414,11 +458,16 @@ def install_one(target, source_print, backups):
 def install_runtime(plan, skill):
     """Create or reuse the venv and install the pinned toolkit; progress goes to stderr."""
     venv, python = Path(plan['venv']), Path(plan['python'])
-    if plan['action'] == 'create':
+    if plan['action'] in ('create', 'rebuild'):
         venv.parent.mkdir(parents=True, exist_ok=True)
+        clear = ['--clear'] if plan['action'] == 'rebuild' else []
         # Creating a venv takes seconds; past this limit the step is stuck, not slow.
-        subprocess.run([*plan['base_python'], '-m', 'venv', str(venv)], check=True,
+        subprocess.run([*plan['base_python'], '-m', 'venv', *clear, str(venv)], check=True,
                        stdout=sys.stderr, timeout=600)
+    elif probe_python([str(python)]) is None:
+        # Typical cause: the interpreter the venv was created from has been removed.
+        raise OSError(f'The runtime venv at {venv} cannot start its Python. '
+                      'Re-run with --rebuild-runtime to recreate it.')
     command = [str(python), str(skill / 'scripts' / 'install_runtime.py'), '--extras', *plan['extras']]
     if plan['toolkit_path']:
         command += ['--toolkit-path', plan['toolkit_path']]
@@ -478,6 +527,8 @@ def parse(argv):
                    help=f'download the OPSIN {OPSIN_VERSION} JAR (SHA-256 verified) next to the shared venv')
     p.add_argument('--mcp', action='store_true',
                    help='register the cdxml-toolkit MCP server config for targeted agents')
+    p.add_argument('--rebuild-runtime', action='store_true',
+                   help='recreate the runtime venv from scratch (use when it no longer starts)')
     p.add_argument('--toolkit-path', help='toolkit source folder to build the runtime from (default: toolkit/ of this checkout)')
     p.add_argument('--backup-root', help=f'where replaced installations go (default: {data_dir() / "backups"})')
     p.add_argument('--apply', action='store_true', help='install; without it only the proposal is printed')
@@ -905,11 +956,16 @@ def main(argv=None):
     warnings = [] if (ns.project or ns.destination or ns.runtime_only) else legacy_shadow_warnings(
         Path.home().resolve(), targets, source_print
     )
+    runtime_proposal = runtime_plan(ns, targets)
+    stale = stale_toolkit_warning(runtime_proposal.get('toolkit_source') or {})
+    if stale:
+        warnings = [*warnings, stale]
+        log(f'Warning: {stale}')
     record = {
         'apply': ns.apply, 'source': str(SOURCE), 'source_fingerprint': source_print,
         'backup_root': str(backups),
         'installations': installations,
-        'runtime': runtime_plan(ns, targets),
+        'runtime': runtime_proposal,
         'opsin': opsin_plan(ns),
         'mapping': {'backends': mapping_backends(ns)},
         **({'warnings': warnings} if warnings else {}),
@@ -918,7 +974,7 @@ def main(argv=None):
     home_dir = Path.home().resolve()
     mcp_python = (
         record['runtime'].get('python')
-        if record['runtime'].get('action') in ('create', 'reuse')
+        if record['runtime'].get('action') in ('create', 'reuse', 'rebuild')
         else str(venv_python(Path(ns.runtime_dir).expanduser().resolve() if ns.runtime_dir else cdx.default_runtime_dir()))
     )
     resolved_agents = [] if (ns.project or ns.destination or ns.runtime_only) else resolve_agents(

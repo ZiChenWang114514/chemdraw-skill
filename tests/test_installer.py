@@ -441,6 +441,88 @@ class InstallerTests(unittest.TestCase):
         install_one.assert_not_called()
         self.assertEqual(install_runtime.call_args.args[1], install.SOURCE)
 
+    def _git(self, folder: Path, *args: str) -> str:
+        out = subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid", *args],
+                             cwd=folder, capture_output=True, text=True, check=True)
+        return out.stdout.strip()
+
+    def _toolkit_checkout_behind_its_remote(self, tmp: Path) -> tuple[Path, str]:
+        """A clone whose toolkit/ is one commit behind origin, as of its last fetch."""
+        upstream, clone = tmp / "upstream", tmp / "clone"
+        (upstream / "toolkit").mkdir(parents=True)
+        (upstream / "toolkit" / "a.py").write_text("a = 1\n", encoding="utf-8")
+        self._git(upstream, "init", "-q", "-b", "main")
+        self._git(upstream, "add", "-A")
+        self._git(upstream, "commit", "-q", "-m", "first")
+        self._git(tmp, "clone", "-q", str(upstream), str(clone))
+        (upstream / "toolkit" / "a.py").write_text("a = 2\n", encoding="utf-8")
+        self._git(upstream, "commit", "-q", "-am", "second")
+        self._git(clone, "fetch", "-q")
+        return clone / "toolkit", self._git(clone, "rev-parse", "HEAD")
+
+    def test_toolkit_source_records_its_commit_and_how_far_it_is_behind(self) -> None:
+        install = self._module()
+        with tempfile.TemporaryDirectory() as tmp:
+            toolkit, head = self._toolkit_checkout_behind_its_remote(Path(tmp).resolve())
+            state = install.toolkit_source(toolkit)
+            self.assertEqual(state["commit"], head)
+            self.assertEqual(state["branch"], "main")
+            self.assertEqual(state["behind"], 1)
+            self.assertFalse(state["modified"])
+            warning = install.stale_toolkit_warning(state)
+            self.assertIn("1 commit", warning)
+            self.assertIn(head[:7], warning)
+            (toolkit / "a.py").write_text("a = 3\n", encoding="utf-8")
+            self.assertTrue(install.toolkit_source(toolkit)["modified"])
+
+    def test_toolkit_source_outside_git_has_no_commit_and_no_warning(self) -> None:
+        install = self._module()
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.dict(os.environ, {"GIT_CEILING_DIRECTORIES": str(Path(tmp).resolve().parent)}):
+                state = install.toolkit_source(Path(tmp))
+        self.assertIsNone(state["commit"])
+        self.assertIsNone(install.stale_toolkit_warning(state))
+
+    def test_runtime_proposal_names_the_toolkit_commit_it_builds_from(self) -> None:
+        install = self._module()
+        ns = install.parse(["--runtime"])
+        with tempfile.TemporaryDirectory() as tmp:
+            ns.runtime_dir = str(Path(tmp) / "venv")
+            with mock.patch.object(install, "probe_candidates", return_value=(["py"], [])):
+                plan = install.runtime_plan(ns, [])
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+        self.assertEqual(plan["toolkit_source"]["commit"], head)
+
+    def test_a_venv_that_cannot_start_is_reported_with_the_fix(self) -> None:
+        install = self._module()
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = {"action": "reuse", "venv": tmp, "python": str(Path(tmp) / "python"), "extras": [],
+                    "toolkit_path": None}
+            with mock.patch.object(install, "probe_python", return_value=None), \
+                    mock.patch.object(install.subprocess, "run") as ran:
+                with self.assertRaises(OSError) as exc:
+                    install.install_runtime(plan, install.SOURCE)
+        ran.assert_not_called()
+        self.assertIn("--rebuild-runtime", str(exc.exception))
+        self.assertIn(tmp, str(exc.exception))
+
+    def test_rebuild_runtime_clears_and_recreates_the_venv(self) -> None:
+        install = self._module()
+        ns = install.parse(["--runtime", "--rebuild-runtime"])
+        with tempfile.TemporaryDirectory() as tmp:
+            venv = Path(tmp) / "venv"
+            python = install.venv_python(venv)
+            python.parent.mkdir(parents=True)
+            python.write_bytes(b"")
+            ns.runtime_dir = str(venv)
+            with mock.patch.object(install, "probe_candidates", return_value=(["py"], [])):
+                plan = install.runtime_plan(ns, [])
+            self.assertEqual(plan["action"], "rebuild")
+            with mock.patch.object(install.subprocess, "run") as ran, \
+                    mock.patch.object(install, "probe_python", return_value=(3, 12, 64)):
+                install.install_runtime(plan, install.SOURCE)
+        self.assertEqual(ran.call_args_list[0].args[0][:4], ["py", "-m", "venv", "--clear"])
+
     def test_mapping_flag_plans_the_optional_atom_mapping_backends(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             home = Path(tmp)

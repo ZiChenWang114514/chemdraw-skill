@@ -59,6 +59,7 @@ python scripts/install.py --agent <name> --runtime --apply      # install; add -
 python scripts/install.py --destination <other skills folder>/chemdraw --apply
 python scripts/install.py --runtime --opsin --apply             # also download the OPSIN JAR (SHA-256 verified)
 python scripts/install.py --runtime-only --apply                # only the runtime; installed Skill copies stay as they are
+python scripts/install.py --runtime-only --rebuild-runtime --apply   # recreate a venv that no longer starts
 python scripts/install.py --runtime --mapping --apply           # also RXNMapper and LocalMapper for map_reaction_atoms (cdx.py install-mappers does the same later)
 ```
 

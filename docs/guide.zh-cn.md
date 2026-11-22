@@ -14,7 +14,7 @@ python scripts/install.py --agent claude agents --runtime            # 预览
 python scripts/install.py --agent claude agents --runtime --apply    # 安装 Skill 副本 + 共享运行时
 ```
 
-`--agent` 可以指定 `auto`（自动检测本机已存在的 agent 目录），或同时指定主目标 `claude`、`agents`（大多数 agent 都会读取的共享目录 `~/.agents/skills`）、`gemini`、`copilot`、`cursor`、`opencode`、`kimi` 和 `pi` 以及扩展 harness 别名 `codex`、`antigravity`、`windsurf`、`cline`、`roo`、`goose`、`trae`、`kiro`、`aider`、`amp`、`qwen`、`continue`、`zed`、`openhands`（搭配 `--mcp --apply` 可同步写入各客户端 MCP 配置）；`--project <仓库>` 改为安装项目级副本，`--destination <目录>` 可安装到任意位置，而 `--runtime-only --apply` 只从当前仓库更新共享运行时而不复制 Skill 目录。自动检测找不到合适解释器时用 `--python <解释器>` 指定基础解释器，`--extras` 选择 toolkit 的可选依赖组（默认安装适用于当前操作系统的全部依赖组），`--runtime-dir` 可改变共享 venv 的位置。
+`--agent` 可以指定 `auto`（自动检测本机已存在的 agent 目录），或同时指定主目标 `claude`、`agents`（大多数 agent 都会读取的共享目录 `~/.agents/skills`）、`gemini`、`copilot`、`cursor`、`opencode`、`kimi` 和 `pi` 以及扩展 harness 别名 `codex`、`antigravity`、`windsurf`、`cline`、`roo`、`goose`、`trae`、`kiro`、`aider`、`amp`、`qwen`、`continue`、`zed`、`openhands`（搭配 `--mcp --apply` 可同步写入各客户端 MCP 配置）；`--project <仓库>` 改为安装项目级副本，`--destination <目录>` 可安装到任意位置，而 `--runtime-only --apply` 只从当前仓库更新共享运行时而不复制 Skill 目录。自动检测找不到合适解释器时用 `--python <解释器>` 指定基础解释器，`--extras` 选择 toolkit 的可选依赖组（默认安装适用于当前操作系统的全部依赖组），`--runtime-dir` 可改变共享 venv 的位置。安装报告会写明运行时所用的 toolkit 提交（`runtime.toolkit_source`），并在该 toolkit 落后于远端默认分支（以上次 fetch 为准）时给出警告。如果 venv 已无法启动，例如它的基础解释器被删除，可用 `--rebuild-runtime` 重新创建。
 
 安装器会先暂存并校验每一份副本，把已有安装移到共享备份目录（位于所有 Skill 目录之外），失败时自动还原，然后为所有副本安装一次运行时，并写入 `manifest.json` 以便日后检测漂移。重复运行即升级 Skill 并复用 venv。当 `cdx.py` 自己不会选中这个 venv 时（它放在自定义位置，或者 Skill 目录旁边还有一个会优先被选中的旧版 `chemdraw-venv`），安装器会把 `runtime.local.json` 写入每份副本和当前仓库检出目录（该文件已被 Git 忽略），因此在仓库里直接运行 `cdx.py` 也会用上它；不再需要的旧 `runtime.local.json` 会被删除。
 
