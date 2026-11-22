@@ -21,10 +21,21 @@ def _new_dir(output_dir):
 
 
 def markush_validate(spec_path: str) -> dict:
-    """Check a markush.json spec; every error says what to change."""
+    """Check a markush.json spec; every error says what to change.
+
+    ``warnings`` lists atoms that cannot carry all the groups required on them:
+    the spec still draws, but ``markush_enumerate`` could build no member.
+    """
+    from ..markush.compile import SpecError, capacity_warnings
     from ..markush.spec import validate_spec
     errors = validate_spec(spec_path)
-    return {'ok': not errors, 'errors': errors}
+    if errors:
+        return {'ok': False, 'errors': errors, 'warnings': []}
+    try:
+        warnings = capacity_warnings(spec_path)
+    except SpecError as exc:  # the chemistry check that compiling would also fail
+        return {'ok': False, 'errors': exc.errors, 'warnings': []}
+    return {'ok': True, 'errors': [], 'warnings': warnings}
 
 
 def markush_compile(spec_path: str, output_dir: str, layout_path: str | None = None,

@@ -444,9 +444,9 @@
 
 ## `mcp_runtime.markush_tools`
 
-- **function**, line 30: `markush_compile(spec_path: str, output_dir: str, layout_path: str | None = None, render: bool = True) -> dict` - Compile a spec into markush.cxsmiles, markush.mol (V3000), markush.cdxml and a native PNG.
-- **function**, line 83: `markush_detect(image_path: str, output_dir: str) -> dict` - Find text boxes, bonds and ring circles in a clean Markush drawing.
-- **function**, line 62: `markush_enumerate(spec_path: str, count: int = 5, seed: int = 0) -> dict` - Sample concrete members from the definition values of a spec (SMILES).
+- **function**, line 41: `markush_compile(spec_path: str, output_dir: str, layout_path: str | None = None, render: bool = True) -> dict` - Compile a spec into markush.cxsmiles, markush.mol (V3000), markush.cdxml and a native PNG.
+- **function**, line 94: `markush_detect(image_path: str, output_dir: str) -> dict` - Find text boxes, bonds and ring circles in a clean Markush drawing.
+- **function**, line 73: `markush_enumerate(spec_path: str, count: int = 5, seed: int = 0) -> dict` - Sample concrete members from the definition values of a spec (SMILES).
 - **function**, line 23: `markush_validate(spec_path: str) -> dict` - Check a markush.json spec; every error says what to change.
 
 ## `mcp_runtime.mcp_compat`

@@ -200,6 +200,39 @@ def to_molblock(cxsmiles: str, coords: dict[int, tuple[float, float]] | None = N
     return Chem.MolToV3KMolBlock(mol)
 
 
+def capacity_warnings(spec) -> list[str]:
+    """Atoms that cannot carry every group the spec requires on them.
+
+    A group attaches by a single bond and uses one hydrogen of its atom.  A group
+    whose minimum count covers all of its sites must sit on each of them, so an
+    atom with fewer free hydrogens than such groups can never give a real member.
+    The drawing is still valid, which is why these are warnings and not errors.
+    """
+    spec = load_spec(spec)
+    graph = build_graph(spec)
+    defs = spec.get('definitions') or {}
+    required: dict[str, list[str]] = {}
+    for g in graph.groups:
+        sites = [r for r in g['on'] if graph.atoms[graph.index[r]].get('kind') != 'ring']
+        low = ((defs.get(g['group']) or {}).get('count_range') or [1, 1])[0]
+        if sites and low >= len(sites):
+            for ref in sites:
+                required.setdefault(ref, []).append(g['group'])
+    warnings = []
+    for ref, groups in required.items():
+        atom = graph.mol.GetAtomWithIdx(graph.index[ref])
+        if not atom.GetAtomicNum():
+            continue
+        free = atom.GetTotalNumHs()
+        if len(groups) > free:
+            names = ', '.join(sorted(groups))
+            warnings.append(
+                f'Atom {ref!r} ({atom.GetSymbol()}) has {free} open position(s) but {len(groups)} '
+                f'required group(s) attach there ({names}); no member can be enumerated. '
+                f'Move a group to another atom, or give it "count_range": [0, n] if it is optional.')
+    return warnings
+
+
 class MemberError(ValueError):
     """One sampled member could not be built; ``groups`` are the spec groups involved."""
 

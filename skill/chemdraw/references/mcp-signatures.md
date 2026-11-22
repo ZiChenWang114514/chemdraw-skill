@@ -454,6 +454,9 @@ Sample concrete members from the definition values of a spec (SMILES).
 
 Check a markush.json spec; every error says what to change.
 
+``warnings`` lists atoms that cannot carry all the groups required on them:
+the spec still draws, but ``markush_enumerate`` could build no member.
+
 ### `merge_reaction_schemes(input_paths: list[str], output_path: Optional[str] = None, mode: str = 'auto', equiv_mode: str = 'default', reference_cdxml: Optional[str] = None, allow_adjacent: bool = True, render_preview: bool = True, force_sequential: bool = False) -> dict[str, typing.Any]`
 
 Merge parallel, sequential, or unrelated CDXML reaction schemes.

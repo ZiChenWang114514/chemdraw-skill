@@ -30,7 +30,7 @@ def test_compile_writes_the_three_formats_and_refuses_an_existing_folder(tmp_pat
 
 
 def test_validate_and_enumerate(tmp_path):
-    assert markush_validate(str(EXAMPLE)) == {'ok': True, 'errors': []}
+    assert markush_validate(str(EXAMPLE)) == {'ok': True, 'errors': [], 'warnings': []}
     assert markush_enumerate(str(EXAMPLE), count=2)['ok']
     assert not markush_enumerate(str(EXAMPLE), count=0)['ok']
 
@@ -69,6 +69,35 @@ def test_enumerate_warns_when_only_some_members_fail(tmp_path):
     assert result['failed_attempts'] > 0 and result['failed_groups'] == ['RA', 'RB']
     assert result['not_enumerated'] == []
     assert any('could not be built' in warning for warning in result['warnings'])
+
+
+def test_validate_warns_when_groups_need_more_room_than_an_atom_has(tmp_path):
+    result = markush_validate(_overloaded_carbonyl(tmp_path))
+    # The spec still draws, so this is a warning: the carbonyl carbon has room for one group, two are required.
+    assert result['ok'] is True and result['errors'] == []
+    assert len(result['warnings']) == 1
+    warning = result['warnings'][0]
+    assert "'cc'" in warning and 'RA' in warning and 'RB' in warning and 'count_range' in warning
+
+
+def test_validate_is_quiet_when_an_optional_group_makes_room(tmp_path):
+    assert markush_validate(_overloaded_carbonyl(tmp_path, min_count=0))['warnings'] == []
+
+
+def test_validate_warns_when_a_group_has_no_open_site(tmp_path):
+    spec = {
+        'version': 1,
+        'atoms': [{'id': 'c1', 'element': 'C', 'h': 3}, {'id': 'cq', 'element': 'C'},
+                  {'id': 'c2', 'element': 'C', 'h': 3}, {'id': 'c3', 'element': 'C', 'h': 3},
+                  {'id': 'c4', 'element': 'C', 'h': 3}],
+        'bonds': [['c1', 'cq'], ['cq', 'c2'], ['cq', 'c3'], ['cq', 'c4']],
+        'variable_position': [{'group': 'RA', 'label': 'R^A', 'on': ['cq']}],
+        'definitions': {'RA': {'text': 'hydroxy', 'values': ['[*:1]O']}},
+    }
+    path = tmp_path / 'quaternary.json'
+    path.write_text(json.dumps(spec), encoding='utf-8')
+    warning = markush_validate(str(path))['warnings'][0]
+    assert "'cq'" in warning and 'RA' in warning
 
 
 def test_detect_writes_marks_and_label_sheet(tmp_path):

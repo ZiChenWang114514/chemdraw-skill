@@ -12,12 +12,13 @@
 ## `markush.compile`
 
 - **function**, line 50: `build_graph(spec) -> Graph` - No public docstring in the audited version.
+- **function**, line 203: `capacity_warnings(spec) -> list[str]` - Atoms that cannot carry every group the spec requires on them.
 - **function**, line 172: `check_cxsmiles(graph: Graph, cxsmiles: str) -> list[str]` - Parse the written CXSMILES back and compare labels and attachment sets.
-- **function**, line 363: `compile_spec(spec) -> dict` - Spec -> {'cxsmiles', 'molblock', 'labels', 'checks'} plus the graph for writers.
+- **function**, line 396: `compile_spec(spec) -> dict` - Spec -> {'cxsmiles', 'molblock', 'labels', 'checks'} plus the graph for writers.
 - **function**, line 35: `cx_label(info: dict) -> str` - No public docstring in the audited version.
-- **function**, line 211: `enumerate_members(spec, n: int = 5, seed: int = 0) -> dict` - Sample concrete molecules using definition ``values`` (``[*:1]`` fragments).
+- **function**, line 244: `enumerate_members(spec, n: int = 5, seed: int = 0) -> dict` - Sample concrete molecules using definition ``values`` (``[*:1]`` fragments).
 - **class**, line 25: `Graph` - No public docstring in the audited version.
-- **class**, line 203: `MemberError` - One sampled member could not be built; ``groups`` are the spec groups involved.
+- **class**, line 236: `MemberError` - One sampled member could not be built; ``groups`` are the spec groups involved.
 - **class**, line 18: `SpecError` - No public docstring in the audited version.
 - **function**, line 147: `to_cxsmiles(graph: Graph) -> str` - No public docstring in the audited version.
 - **function**, line 193: `to_molblock(cxsmiles: str, coords: dict[int, tuple[float, float]] | None = None) -> str` - No public docstring in the audited version.
