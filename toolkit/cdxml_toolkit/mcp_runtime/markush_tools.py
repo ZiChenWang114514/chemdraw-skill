@@ -65,9 +65,19 @@ def markush_enumerate(spec_path: str, count: int = 5, seed: int = 0) -> dict:
     if not 1 <= int(count) <= 200:
         return {'ok': False, 'error': 'count must be 1..200'}
     try:
-        return {'ok': True, **enumerate_members(spec_path, int(count), int(seed))}
+        result = enumerate_members(spec_path, int(count), int(seed))
     except SpecError as exc:
         return {'ok': False, 'errors': exc.errors}
+    if not result['members']:
+        # Nothing was built: an empty list must not read as a successful enumeration.
+        reason = result['failures'][0] if result['failures'] else 'the spec defines nothing to substitute'
+        return {'ok': False, **result,
+                'error': {'code': 'no_member_built',
+                          'message': f'No member could be built: {reason}',
+                          'hint': 'Check the attachment atoms and count_range of the groups in failed_groups.'}}
+    warnings = ([f"{result['failed_attempts']} sampled member(s) could not be built; see failures"]
+                if result['failed_attempts'] else [])
+    return {'ok': True, **result, 'warnings': warnings}
 
 
 def markush_detect(image_path: str, output_dir: str) -> dict:

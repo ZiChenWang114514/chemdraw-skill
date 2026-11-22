@@ -15,7 +15,7 @@ Take the chemistry from the spec or the CXSMILES, never from reading the CDXML b
 | --- | --- |
 | `markush_validate(spec_path)` | Every error names the fix, for example `unknown atom 'ind:C9'; indole has N1, C2, C3, C3a, ...`. |
 | `markush_compile(spec_path, output_dir, layout_path=None, render=True)` | Writes all four files into a new folder. `layout_path` makes the drawing follow the source figure. |
-| `markush_enumerate(spec_path, count=5, seed=0)` | Samples concrete members from the definition values, as a sanity check. |
+| `markush_enumerate(spec_path, count=5, seed=0)` | Samples concrete members from the definition values, as a sanity check. `ok` is false when no member could be built; `failures` names the spec atom and `failed_groups` the groups placed on it. |
 | `markush_detect(image_path, output_dir)` | Writes the image geometry (`graph.json`), the numbered marks (`marks.png`) and one row per text box (`labels.png`). |
 
 ## Spec format
