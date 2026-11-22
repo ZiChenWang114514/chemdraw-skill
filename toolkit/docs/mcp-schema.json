@@ -331,7 +331,7 @@
       "group": "extended",
       "resource_class": null,
       "timeout_seconds": null,
-      "description": "Check a markush.json spec; every error says what to change."
+      "description": "Check a markush.json spec; every error says what to change.\n\n``warnings`` lists atoms that cannot carry all the groups required on them:\nthe spec still draws, but ``markush_enumerate`` could build no member."
     },
     {
       "name": "merge_reaction_schemes",

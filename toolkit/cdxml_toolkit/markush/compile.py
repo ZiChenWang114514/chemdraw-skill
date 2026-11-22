@@ -200,41 +200,100 @@ def to_molblock(cxsmiles: str, coords: dict[int, tuple[float, float]] | None = N
     return Chem.MolToV3KMolBlock(mol)
 
 
+def capacity_warnings(spec) -> list[str]:
+    """Atoms that cannot carry every group the spec requires on them.
+
+    A group attaches by a single bond and uses one hydrogen of its atom.  A group
+    whose minimum count covers all of its sites must sit on each of them, so an
+    atom with fewer free hydrogens than such groups can never give a real member.
+    The drawing is still valid, which is why these are warnings and not errors.
+    """
+    spec = load_spec(spec)
+    graph = build_graph(spec)
+    defs = spec.get('definitions') or {}
+    required: dict[str, list[str]] = {}
+    for g in graph.groups:
+        sites = [r for r in g['on'] if graph.atoms[graph.index[r]].get('kind') != 'ring']
+        low = ((defs.get(g['group']) or {}).get('count_range') or [1, 1])[0]
+        if sites and low >= len(sites):
+            for ref in sites:
+                required.setdefault(ref, []).append(g['group'])
+    warnings = []
+    for ref, groups in required.items():
+        atom = graph.mol.GetAtomWithIdx(graph.index[ref])
+        if not atom.GetAtomicNum():
+            continue
+        free = atom.GetTotalNumHs()
+        if len(groups) > free:
+            names = ', '.join(sorted(groups))
+            warnings.append(
+                f'Atom {ref!r} ({atom.GetSymbol()}) has {free} open position(s) but {len(groups)} '
+                f'required group(s) attach there ({names}); no member can be enumerated. '
+                f'Move a group to another atom, or give it "count_range": [0, n] if it is optional.')
+    return warnings
+
+
+class MemberError(ValueError):
+    """One sampled member could not be built; ``groups`` are the spec groups involved."""
+
+    def __init__(self, message: str, groups=()):
+        super().__init__(message)
+        self.groups = sorted(set(groups))
+
+
 def enumerate_members(spec, n: int = 5, seed: int = 0) -> dict:
-    """Sample concrete molecules using definition ``values`` (``[*:1]`` fragments)."""
+    """Sample concrete molecules using definition ``values`` (``[*:1]`` fragments).
+
+    ``failures`` holds the distinct reasons a sampled member could not be built,
+    ``failed_attempts`` how many samples failed and ``failed_groups`` the groups
+    involved.  When no member at all was built, those groups are also listed in
+    ``not_enumerated``.
+    """
     spec = load_spec(spec)
     graph = build_graph(spec)
     defs = spec.get('definitions') or {}
     rng = random.Random(seed)
     missing = sorted({cx_label(a) for a in graph.atoms
                       if a.get('kind') in ('generic', 'ring') and not _definition(defs, a)})
-    results, failures = [], []
+    results, failures, failed_groups, failed_attempts = [], [], set(), 0
     for k in range(n * 4):
         if len(results) >= n:
             break
         try:
             smi = _one_member(spec, graph, defs, rng)
         except Exception as exc:  # noqa: BLE001 - report and keep sampling
-            failures.append(str(exc))
+            failed_attempts += 1
+            failed_groups.update(getattr(exc, 'groups', ()))
+            if str(exc) not in failures:
+                failures.append(str(exc))
             continue
         if smi and smi not in results:
             results.append(smi)
     skipped = [g['group'] for g in graph.groups
                if all(graph.atoms[graph.index[r]].get('kind') == 'ring' for r in g['on'])]
+    if not results:
+        skipped = sorted(set(skipped) | failed_groups)
     return {'members': results, 'undefined': missing, 'failures': failures[:5],
+            'failed_attempts': failed_attempts, 'failed_groups': sorted(failed_groups),
             'not_enumerated': skipped,
             'note': '[*:1], [*:2] follow the order in which the bonds of that atom are listed in the spec'}
 
 
+_SPEC_REF = '_spec_ref'
+
+
 def _one_member(spec, graph, defs, rng):
     mol = Chem.RWMol(graph.mol)
+    for i, info in enumerate(graph.atoms):
+        mol.GetAtomWithIdx(i).SetProp(_SPEC_REF, str(info['ref']))
+    placed: dict[str, list[str]] = {}  # spec atom id -> the groups attached to it in this sample
     # variable-position groups: attach the group value at random allowed atoms
     removal = []
     for g in graph.groups:
         removal += [g['star'], g['label_atom']]
         item = defs.get(g['group'])
         if not item or not item.get('values'):
-            raise ValueError(f"no values for {g['group']}")
+            raise MemberError(f"no values for {g['group']}", [g['group']])
         lo, hi = (item.get('count_range') or [1, 1])
         sites = [r for r in g['on'] if graph.atoms[graph.index[r]].get('kind') != 'ring']
         if not sites:  # substituent on a variable ring: its atoms only exist after expansion
@@ -242,6 +301,7 @@ def _one_member(spec, graph, defs, rng):
         k = rng.randint(lo, min(hi, len(sites)))
         for ref in rng.sample(sites, k):
             _attach(mol, graph.index[ref], rng.choice(item['values']))
+            placed.setdefault(ref, []).append(g['group'])
     # pseudo atoms: replace by a value with matching attachment count
     for i, info in enumerate(graph.atoms):
         if info.get('kind') not in ('generic', 'ring') or info['ref'] in {g['group'] for g in graph.groups}:
@@ -250,13 +310,40 @@ def _one_member(spec, graph, defs, rng):
         if info['ref'] in {g['group'] for g in graph.groups}:
             continue
         if not item or not item.get('values'):
-            raise ValueError(f"no values for {cx_label(info)}")
+            raise MemberError(f"no values for {cx_label(info)}", [info['ref']])
         mol.GetAtomWithIdx(i).SetProp('_replace', rng.choice(item['values']))
     for idx in sorted(removal, reverse=True):
         mol.RemoveAtom(idx)
     mol = _expand_pseudo(mol)
+    problems = Chem.DetectChemistryProblems(mol)
+    if problems:
+        raise _member_error(mol, problems, placed)
     Chem.SanitizeMol(mol)
     return Chem.MolToSmiles(mol)
+
+
+def _member_error(mol, problems, placed) -> MemberError:
+    """Describe chemistry problems by spec atom id and by the groups placed there."""
+    parts, groups = [], []
+    for problem in problems:
+        indices = ([problem.GetAtomIdx()] if hasattr(problem, 'GetAtomIdx')
+                   else list(problem.GetAtomIndices()) if hasattr(problem, 'GetAtomIndices') else [])
+        refs = [mol.GetAtomWithIdx(i).GetProp(_SPEC_REF) for i in indices
+                if mol.GetAtomWithIdx(i).HasProp(_SPEC_REF)]
+        here = [group for ref in refs for group in placed.get(ref, [])]
+        groups += here
+        if problem.GetType() == 'AtomValenceException' and refs:
+            atom = mol.GetAtomWithIdx(indices[0])
+            valence = sum(b.GetBondTypeAsDouble() for b in atom.GetBonds()) + atom.GetNumExplicitHs()
+            text = f"atom {refs[0]!r} ({atom.GetSymbol()}) would have valence {valence:g}"
+            if here:
+                text += f" with {', '.join(sorted(set(here)))} attached; it cannot carry all of them"
+        elif refs:
+            text = f"{problem.GetType()} at atom {', '.join(repr(r) for r in refs)}"
+        else:
+            text = problem.Message()
+        parts.append(text)
+    return MemberError('; '.join(dict.fromkeys(parts)), groups)
 
 
 def _attach(mol, idx, value):
