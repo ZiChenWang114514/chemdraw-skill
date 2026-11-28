@@ -287,7 +287,7 @@ def test_an_existing_output_is_never_overwritten(tmp_path):
         (lambda b: b["steps"][0]["moves"][1]["from"].update(bond=[0, 2]), "bond"),
         (lambda b: b["steps"][0]["moves"][0]["from"].update(bond=[0, 1]), "exactly one"),
         (lambda b: b["steps"][0]["moves"][0].update(extra=1), "unknown"),
-        (lambda b: b.update(surprise=1), "Unknown brief keys"),
+        (lambda b: b.update(surprise=1), "Unknown brief keys for kind 'mechanism'"),
         (lambda b: b["steps"][0].update(arrow="dashed"), "arrow"),
         (lambda b: b["species"][0].update(smiles=None), "smiles or a name"),
     ],

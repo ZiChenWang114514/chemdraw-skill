@@ -62,9 +62,9 @@ def _validate(brief: dict) -> list[str]:
     from . import figure_draw
 
     errors: list[str] = []
-    unknown = sorted(set(brief) - MOLECULE_KEYS)
-    if unknown:
-        errors.append(f"Unknown brief keys: {unknown}")
+    unknown_error = figure_draw.unknown_brief_keys_error(brief, MOLECULE_KEYS, "molecule")
+    if unknown_error:
+        errors.append(unknown_error)
     style_error = figure_draw.style_preset_error(brief.get("style"))
     if style_error:
         errors.append(style_error)

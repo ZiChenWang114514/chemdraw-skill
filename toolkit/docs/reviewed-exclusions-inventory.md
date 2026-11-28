@@ -358,15 +358,16 @@
 
 ## `mcp_runtime.figure_draw`
 
-- **function**, line 720: `bold_arrows(cdxml: Any, slug: str) -> Any` - Arrows at 1.5 times the document's line width (the preset's unless a house style measured it).
-- **function**, line 732: `bold_compound_numbers(cdxml: Any, grounded: list[dict], house: HouseStyle | None) -> tuple[Any, list[str]]` - Compound numbers in bold, as the journal style sheets set them.
-- **function**, line 686: `brief_house(brief: dict) -> HouseStyle | None` - The brief's house style, or None when ``style`` is a measurement preset or absent.
-- **function**, line 694: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug (a house style's base preset) and the factor from ACS geometry to it.
-- **function**, line 896: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
-- **function**, line 142: `offline_structure(name: str) -> str | None` - The SMILES a chemical name resolves to offline with normal confidence, else None.
-- **function**, line 675: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is neither a built-in preset nor a house style, else None.
-- **function**, line 710: `style_report(slug: str, house: HouseStyle | None = None, applied: list[str] | None = None, skipped: list[str] | None = None) -> dict` - No public docstring in the audited version.
-- **function**, line 701: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
+- **function**, line 729: `bold_arrows(cdxml: Any, slug: str) -> Any` - Arrows at 1.5 times the document's line width (the preset's unless a house style measured it).
+- **function**, line 741: `bold_compound_numbers(cdxml: Any, grounded: list[dict], house: HouseStyle | None) -> tuple[Any, list[str]]` - Compound numbers in bold, as the journal style sheets set them.
+- **function**, line 695: `brief_house(brief: dict) -> HouseStyle | None` - The brief's house style, or None when ``style`` is a measurement preset or absent.
+- **function**, line 703: `brief_style(brief: dict) -> tuple[str, float]` - The brief's preset slug (a house style's base preset) and the factor from ACS geometry to it.
+- **function**, line 905: `draw_figure(brief: dict | str, output_path: str | None = None, render: bool = False) -> dict` - Draw a reaction scheme from a brief and check it, in one call.
+- **function**, line 151: `offline_structure(name: str) -> str | None` - The SMILES a chemical name resolves to offline with normal confidence, else None.
+- **function**, line 684: `style_preset_error(style: Any) -> str | None` - Error text for a brief ``style`` that is neither a built-in preset nor a house style, else None.
+- **function**, line 719: `style_report(slug: str, house: HouseStyle | None = None, applied: list[str] | None = None, skipped: list[str] | None = None) -> dict` - No public docstring in the audited version.
+- **function**, line 710: `styled(cdxml: Any, slug: str) -> Any` - Apply a preset to a document laid out at ACS geometry; ACS documents are unchanged.
+- **function**, line 79: `unknown_brief_keys_error(brief: dict, allowed: set[str], default_kind: str) -> str | None` - Name the brief's kind and the accepted keys, so a brief sent to the wrong entry point says so.
 
 ## `mcp_runtime.figure_editing`
 
@@ -407,7 +408,7 @@
 
 ## `mcp_runtime.figure_scope`
 
-- **function**, line 175: `draw_scope(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a scope panel; called by draw_figure for ``kind: scope``.
+- **function**, line 176: `draw_scope(brief: dict, output_path: str | None, render: bool) -> dict` - Draw a scope panel; called by draw_figure for ``kind: scope``.
 
 ## `mcp_runtime.figure_tools`
 

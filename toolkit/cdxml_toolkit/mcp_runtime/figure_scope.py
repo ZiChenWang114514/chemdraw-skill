@@ -21,6 +21,7 @@ from . import artifact_safety
 from . import figure_house
 from .figure_draw import (
     _as_list, _failure, _ground, _render_png, brief_house, brief_style, style_preset_error, style_report,
+    unknown_brief_keys_error,
 )
 from ..chemdraw.style_presets import DEFAULT_STYLE_PRESET, style_preset_as_manifest_style
 
@@ -56,9 +57,9 @@ def _fields(brief: dict) -> tuple[list[dict], list[str]]:
 
 def _validate(brief: dict) -> list[str]:
     errors: list[str] = []
-    unknown = sorted(set(brief) - SCOPE_KEYS)
-    if unknown:
-        errors.append(f"Unknown brief keys: {unknown}")
+    unknown_error = unknown_brief_keys_error(brief, SCOPE_KEYS, "scope")
+    if unknown_error:
+        errors.append(unknown_error)
     style_error = style_preset_error(brief.get("style"))
     if style_error:
         errors.append(style_error)

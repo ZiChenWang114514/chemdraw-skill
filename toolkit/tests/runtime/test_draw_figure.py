@@ -548,3 +548,12 @@ def test_kind_molecule_avoids_spurious_structure_panel_skipped_note_for_scheme_c
 
     assert report["ok"] is True
     assert all("describes no structure_panel figures" not in item for item in report["style"]["skipped"])
+
+
+def test_an_unknown_key_names_the_kind_and_the_accepted_keys(tmp_path):
+    report = draw_figure(_brief(ASPIRIN, row_align="center"), output_path=str(tmp_path / "f"))
+
+    assert report["ok"] is False
+    message = " ".join(report["errors"])
+    assert "Unknown brief keys for kind 'scheme': ['row_align']" in message
+    assert "accepted keys:" in message and "'species'" in message
