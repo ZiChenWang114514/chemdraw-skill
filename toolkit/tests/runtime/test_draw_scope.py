@@ -171,7 +171,7 @@ def test_a_name_that_cannot_be_resolved_stops_the_run(tmp_path):
     "change, message",
     [
         ({"steps": [{}]}, "steps"),
-        ({"surprise": 1}, "Unknown brief keys"),
+        ({"surprise": 1}, "Unknown brief keys for kind 'scope'"),
         ({"fields": [{"label": "x"}]}, "key"),
         ({"fields": ["yield", "yield"]}, "duplicate"),
         ({"footnotes": "a single string"}, "footnotes"),

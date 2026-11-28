@@ -76,11 +76,20 @@ def _read_brief(brief: Any) -> tuple[dict | None, list[str]]:
     return copy.deepcopy(brief), []
 
 
+def unknown_brief_keys_error(brief: dict, allowed: set[str], default_kind: str) -> str | None:
+    """Name the brief's kind and the accepted keys, so a brief sent to the wrong entry point says so."""
+    unknown = sorted(set(brief) - allowed)
+    if not unknown:
+        return None
+    kind = brief.get("kind", default_kind)
+    return f"Unknown brief keys for kind {kind!r}: {unknown}; accepted keys: {sorted(allowed)}"
+
+
 def _validate(brief: dict) -> list[str]:
     errors: list[str] = []
-    unknown = sorted(set(brief) - BRIEF_KEYS)
-    if unknown:
-        errors.append(f"Unknown brief keys: {unknown}")
+    unknown_error = unknown_brief_keys_error(brief, BRIEF_KEYS, "scheme")
+    if unknown_error:
+        errors.append(unknown_error)
     kind = brief.get("kind", "scheme")
     if kind != "scheme":
         errors.append(f"kind {kind!r} is not supported; choose 'scheme', 'molecule', 'scope' or 'mechanism'.")
